@@ -1,0 +1,26 @@
+{
+	"name": "hallowelt/migrate-confluence",
+	"type": "project",
+	"authors": [
+		{
+			"name": "Robert Vogel",
+			"email": "vogel@hallowelt.com"
+		}
+	],
+	"repositories": [{
+		"type": "composer",
+		"url": "https://packages.bluespice.com/"
+	}],
+	"require": {
+		"hallowelt/mediawiki-lib-mediawikixml": "dev-master",
+		"hallowelt/mediawiki-lib-commandline-tools": "dev-master",
+		"hallowelt/mediawiki-lib-migration": "dev-master",
+		"hallowelt/mediawiki-lib-wikitext": "dev-master"
+	},
+	"autoload": {
+		"psr-4": {
+			"HalloWelt\\MigrateConfluence\\": "src/",
+			"HalloWelt\\MigrateConfluence\\Tests\\": "tests/phpunit/"
+		}
+	}
+}

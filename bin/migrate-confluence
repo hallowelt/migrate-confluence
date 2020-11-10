@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__.'/../vendor/autoload.php';
+
+use HalloWelt\MediaWiki\Lib\Migration\CliApp;
+
+$config = [
+	'file-extension-whitelist' => [ 'xml' ],
+	'analyzers' => [
+		'HalloWelt\MigrateConfluence\Analyzer\ConfluenceExport::factory'
+	],
+	'extractors' => [
+		'HalloWelt\MigrateConfluence\Extractor\ConfluenceExport::factory'
+	],
+	'converters' => [
+		'HalloWelt\MigrateConfluence\Converter\ConfluenceContentXML::factory'
+	],
+	'composers' => [
+		'HalloWelt\MigrateConfluence\Composer\ConfluenceExport::factory'
+	]
+];
+
+$application = new CliApp( $config );
+$application->run();
