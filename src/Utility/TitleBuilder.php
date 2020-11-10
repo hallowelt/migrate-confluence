@@ -20,12 +20,18 @@ class TitleBuilder {
 
 	/**
 	 *
+	 * @var array
+	 */
+	private $spaceIdPrefixMap = null;
+
+	/**
+	 *
 	 * @param array $spaceIdPrefixMap
 	 * @param XMLHelper $helper
 	 */
 	public function __construct( $spaceIdPrefixMap, $helper ) {
+		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->helper = $helper;
-		$this->builder = new GenericTitleBuilder( $spaceIdPrefixMap );
 	}
 
 	/**
@@ -35,6 +41,7 @@ class TitleBuilder {
 	 */
 	public function buildTitle( $pageNode ) {
 		$spaceId = $this->getSpaceId( $pageNode );
+		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$this->builder->setNamespace( $spaceId );
 
 		$title = $this->helper->getPropertyValue( 'title', $pageNode );
@@ -50,6 +57,7 @@ class TitleBuilder {
 	 *
 	 * @param BSConfluenceXMLHelper $this->helper
 	 * @param DOMElement $pageNode
+	 * 	 * @return int
 	 */
 	private function getSpaceId( $pageNode) {
 		$spaceId = $this->helper->getPropertyValue( 'space', $pageNode );
@@ -62,6 +70,7 @@ class TitleBuilder {
 			$origPage = $this->helper->getObjectNodeById( $originalVersion , 'Page' );
 			return $this->getSpaceId( $origPage );
 		}
+		return 0;
 	}
 
 	private function addParentTitles( $pageNode ) {

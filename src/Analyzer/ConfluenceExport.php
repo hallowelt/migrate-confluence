@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Analyzer;
 
 use DOMDocument;
 use DOMElement;
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
@@ -116,7 +117,13 @@ class ConfluenceExport extends AnalyzerBase {
 				continue;
 			}
 
-			$targetTitle = $titleBuilder->buildTitle( $pageNode );
+			try {
+				$targetTitle = $titleBuilder->buildTitle( $pageNode );
+			} catch ( Exception $ex ) {
+				error_log( $ex->getMessage() );
+				continue;
+			}
+
 			$revisionTimestamp = $this->buildRevisionTimestamp( $pageNode );
 			$bodyContentIds = $this->getBodyContentIds( $pageNode );
 			#$version = $this->helper->getPropertyValue( 'version', $pageNode );
@@ -187,7 +194,7 @@ class ConfluenceExport extends AnalyzerBase {
 			 * sometimes even this won't help... ("octet-stream")
 			 */
 			$file = new SplFileInfo( $targetName );
-			if( !$this->hasNoExplicitFileExtension( $file ) ){
+			if( $this->hasNoExplicitFileExtension( $file ) ){
 				$contentType = $this->helper->getPropertyValue( 'contentType', $attachment );
 				if( $contentType === 'application/gliffy+json' ) {
 					$targetName .= '.json';

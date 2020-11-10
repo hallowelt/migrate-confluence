@@ -98,8 +98,9 @@ class XMLHelper {
 	public function getPropertyValue( $propertyName, $contextElement ) {
 		$propertyNode = $this->getPropertyNode( $propertyName, $contextElement );
 		if( $propertyNode instanceof DOMElement == false ) {
+			$contextElementId = $this->getIDNodeValue( $contextElement );
 			error_log(
-				'Node "'.$contextElement->getNodePath().
+				'Node "'.$contextElement->getNodePath(). " (ID:$contextElementId)" .
 					'" contains no property "'.$propertyName.'"!'
 			);
 			return null;

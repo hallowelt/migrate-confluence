@@ -38,7 +38,10 @@ class FilenameBuilder {
 		$spaceId = $this->getSpaceId( $pageNode );
 		$this->builder->setNamespace( $spaceId );
 
-		$title = $this->helper->getPropertyValue( 'title', $pageNode );
+		$title = $this->helper->getPropertyValue( 'fileName', $pageNode );
+		if ( empty( $title ) ) {
+			$title = $this->helper->getPropertyValue( 'title', $pageNode );
+		}
 		$this->builder->appendTitleSegment( $title );
 		$builtTitle = $this->builder->invertTitleSegments()->build();
 		$filename = new WindowsFilename( $builtTitle );
@@ -51,6 +54,7 @@ class FilenameBuilder {
 	 *
 	 * @param BSConfluenceXMLHelper $this->helper
 	 * @param DOMElement $pageNode
+	 * @return int
 	 */
 	private function getSpaceId( $pageNode) {
 		$spaceId = $this->helper->getPropertyValue( 'space', $pageNode );
@@ -63,5 +67,7 @@ class FilenameBuilder {
 			$origPage = $this->helper->getObjectNodeById( $originalVersion , 'Page' );
 			return $this->getSpaceId( $origPage );
 		}
+
+		return 0;
 	}
 }
