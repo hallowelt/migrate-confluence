@@ -21,48 +21,60 @@ class FilenameBuilder {
 
 	/**
 	 *
+	 * @var array
+	 */
+	private $spaceIdPrefixMap = [];
+
+	/**
+	 *
 	 * @param array $spaceIdPrefixMap
 	 * @param XMLHelper $helper
 	 */
 	public function __construct( $spaceIdPrefixMap, $helper ) {
+		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->helper = $helper;
-		$this->builder = new GenericTitleBuilder( $spaceIdPrefixMap );
 	}
 
 	/**
 	 *
-	 * @param DOMElement $pageNode
+	 * @param DOMElement $attachmentNode
+	 * @param string $assocTitle
 	 * @return string
 	 */
-	public function buildFilename( $pageNode ) {
-		$spaceId = $this->getSpaceId( $pageNode );
+	public function buildFilename( $attachmentNode, $assocTitle ) {
+		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
+
+		// In some cases attachments don't have a `space`-id set. We fall back to NS_MAIN then
+		$spaceId = $this->getSpaceId( $attachmentNode );
 		$this->builder->setNamespace( $spaceId );
 
-		$title = $this->helper->getPropertyValue( 'fileName', $pageNode );
+		$title = $this->helper->getPropertyValue( 'fileName', $attachmentNode );
 		if ( empty( $title ) ) {
-			$title = $this->helper->getPropertyValue( 'title', $pageNode );
+			$title = $this->helper->getPropertyValue( 'title', $attachmentNode );
 		}
 		$this->builder->appendTitleSegment( $title );
+		if( !empty( $assocTitle ) ) {
+			$this->builder->appendTitleSegment( $assocTitle );
+		}
 		$builtTitle = $this->builder->invertTitleSegments()->build();
 		$filename = new WindowsFilename( $builtTitle );
 
 		return (string) $filename;
 	}
 
-
 	/**
 	 *
 	 * @param BSConfluenceXMLHelper $this->helper
-	 * @param DOMElement $pageNode
+	 * @param DOMElement $attachmentNode
 	 * @return int
 	 */
-	private function getSpaceId( $pageNode) {
-		$spaceId = $this->helper->getPropertyValue( 'space', $pageNode );
+	private function getSpaceId( $attachmentNode) {
+		$spaceId = $this->helper->getPropertyValue( 'space', $attachmentNode );
 		if( is_int( $spaceId ) ) {
 			return $spaceId;
 		}
 
-		$originalVersion = $this->helper->getPropertyValue( 'originalVersion', $pageNode );
+		$originalVersion = $this->helper->getPropertyValue( 'originalVersion', $attachmentNode );
 		if( $originalVersion !== null ) {
 			$origPage = $this->helper->getObjectNodeById( $originalVersion , 'Page' );
 			return $this->getSpaceId( $origPage );

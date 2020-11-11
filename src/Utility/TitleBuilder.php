@@ -22,7 +22,7 @@ class TitleBuilder {
 	 *
 	 * @var array
 	 */
-	private $spaceIdPrefixMap = null;
+	private $spaceIdPrefixMap = [];
 
 	/**
 	 *

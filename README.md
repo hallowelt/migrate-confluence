@@ -11,7 +11,14 @@ This is a command line tool to convert the contents of a Confluence space into a
 ### Export "space" from Confluence
 1. Create an export of your confluence space
 
-![Export 1][c001] ![Export 2][c002] ![Export 3][c003]
+Step 1:
+![Export 1][c001]
+
+Step 2:
+![Export 2][c002]
+
+Step 3:
+![Export 3][c003]
 
 2. Save it to a location that is accessbile by this tool (e.g. `/tmp/confluence/input/Confluence-export.zip`)
 3. Extract the ZIP file (e.g. `/tmp/confluence/input/Confluence-export`)
@@ -39,6 +46,23 @@ If you re-run the scripts you will need to clean up the "workspace" directory!
 4. Use `php maintenance/importDump.php /tmp/result/output.xml` to import the actual pages
 
 You may need to update your MediaWiki search index afterwards.
+
+### Manual post-import maintenance
+#### Cleanup Categories
+In the case that the tool can not migrate content or functionality it will create a category, so you can manually fix issues after the import
+- `Broken_link`
+- `Broken_user_link`
+- `Broken_image`
+- `Broken_layout`
+- `Broken_macro/<macro-name>`
+
+
+## Not migrated
+- User identities
+- Comments
+- Various macros
+- Various layouts
+- Blog posts
 
 ## Creating a PHAR
 See https://github.com/humbug/box

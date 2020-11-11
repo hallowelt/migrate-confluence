@@ -74,7 +74,7 @@ class ConfluenceExport extends AnalyzerBase {
 
 		$this->makeSpacesMap();
 		$this->makePagenamesMap();
-		$this->makeAttachmentsMap();
+		$this->addAdditionalFiles();
 
 		return true;
 	}
@@ -120,23 +120,95 @@ class ConfluenceExport extends AnalyzerBase {
 			try {
 				$targetTitle = $titleBuilder->buildTitle( $pageNode );
 			} catch ( Exception $ex ) {
-				error_log( $ex->getMessage() );
+				$id = $this->helper->getIDNodeValue( $pageNode );
+				$this->buckets->addData( 'title-invalids', $id, $ex->getMessage() );
 				continue;
 			}
 
 			$revisionTimestamp = $this->buildRevisionTimestamp( $pageNode );
 			$bodyContentIds = $this->getBodyContentIds( $pageNode );
-			#$version = $this->helper->getPropertyValue( 'version', $pageNode );
-			#$position = $this->helper->getPropertyValue( 'position', $pageNode );
+			$version = $this->helper->getPropertyValue( 'version', $pageNode );
 
-			$this->addTitleRevision( $targetTitle, implode( '/', $bodyContentIds ) . '@' . $revisionTimestamp );
+			$this->addTitleRevision( $targetTitle, implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp" );
 
-			$attachments = $this->helper->getElementsFromCollection( 'attachments', $pageNode );
-			foreach ( $attachments as $attachment ) {
-				$attachmentId = $this->helper->getIDNodeValue( $attachment );
-				$this->addTitleAttachment( $targetTitle, $attachmentId );
+			$attachmentRefs = $this->helper->getElementsFromCollection( 'attachments', $pageNode );
+			foreach ( $attachmentRefs as $attachmentRef ) {
+				$attachmentId = $this->helper->getIDNodeValue( $attachmentRef );
+				$attachment = $this->helper->getObjectNodeById( $attachmentId, 'Attachment' );
+				$attachmentTargetFilename = $this->makeAttachmentTargetFilename( $attachment, $targetTitle );
+				$attachmentReference = $this->makeAttachmentReference( $attachment );
+				$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
+				$this->addFile( $attachmentTargetFilename, $attachmentReference );
 			}
 		}
+	}
+
+	/**
+	 *
+	 * @param DOMElement $attachment
+	 * @param string $containerTitle
+	 * @return string
+	 */
+	private function makeAttachmentTargetFilename( $attachment, $containerTitle ) {
+		$fileName = $this->helper->getPropertyValue( 'title', $attachment );
+
+		$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
+		$filenameBuilder = new FilenameBuilder( $spaceIdPrefixMap, $this->helper );
+		$targetName = $filenameBuilder->buildFilename( $attachment, $containerTitle );
+
+		/*
+		 * Some attachments do not have a file extension available. We try
+		 * to find an extension by looking a the content type, but
+		 * sometimes even this won't help... ("octet-stream")
+		 */
+		$file = new SplFileInfo( $targetName );
+		if( $this->hasNoExplicitFileExtension( $file ) ){
+			$contentType = $this->helper->getPropertyValue( 'contentType', $attachment );
+			if( $contentType === 'application/gliffy+json' ) {
+				$targetName .= '.json';
+			}
+			elseif ( $contentType === 'application/gliffy+xml' ) {
+				$targetName .= '.xml';
+			}
+			else {
+				error_log(
+					"Could not find file extension for $fileName as "
+						. "{$attachment->getNodePath()}; "
+						. "contentType: $contentType"
+				);
+			}
+		}
+
+		return $targetName;
+	}
+
+	/**
+	 *
+	 * @param DOMElement $attachment
+	 * @return string
+	 */
+	private function makeAttachmentReference( $attachment ) {
+		$basePath = $this->currentFile->getPath() . '/attachments/';
+		$attachmentId = $this->helper->getIDNodeValue( $attachment );
+		$containerId = $this->helper->getPropertyValue( 'content', $attachment );
+		if ( empty( $containerId ) ) {
+			$containerId = $this->helper->getPropertyValue( 'containerContent', $attachment );
+		}
+		$attachmentVersion = $this->helper->getPropertyValue( 'attachmentVersion', $attachment );
+		if( empty( $attachmentVersion ) ) {
+			$attachmentVersion = $this->helper->getPropertyValue( 'version', $attachment );
+		}
+
+		/**
+		 * Sometimes there is no explicit version set in the "attachment" object. In such cases
+		 * there we always fetch the highest number from the respective directory
+		 */
+		if( empty( $attachmentVersion ) ) {
+			$attachmentVersion = '__LATEST__';
+		}
+
+		$path = $basePath . "/". $containerId .'/'.$attachmentId.'/'.$attachmentVersion;
+		return $path;
 	}
 
 	/**
@@ -166,52 +238,27 @@ class ConfluenceExport extends AnalyzerBase {
 		return $ids;
 	}
 
-	private function makeAttachmentsMap() {
+	private function addAdditionalFiles() {
 		$attachments = $this->helper->getObjectNodes( 'Attachment' );
 		foreach( $attachments as $attachment ) {
 			if( $attachment instanceof DOMElement === false ) {
 				continue;
 			}
 			$originalVersionID = $this->helper->getPropertyValue( 'originalVersion', $attachment);
+
+			// Skip legacy versions
 			if( $originalVersionID !== null ) {
 				continue;
 			}
 
-			$attachmentId = $this->helper->getIDNodeValue( $attachment );
-			$pageId = $this->helper->getPropertyValue( 'content', $attachment );
-
-			$fileName = $this->helper->getPropertyValue( 'title', $attachment );
-			$container = $this->helper->getPropertyValue( 'containerContent', $attachment );
-			$attachmentVersion = $this->helper->getPropertyValue( 'version', $attachment );
-
-			$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
-			$filenameBuilder = new FilenameBuilder( $spaceIdPrefixMap, $this->helper );
-			$targetName = $filenameBuilder->buildFilename( $attachment );
-
-			/*
-			 * Some attachments do not have a file extension available. We try
-			 * to find an extension by looking a the content type, but
-			 * sometimes even this won't help... ("octet-stream")
-			 */
-			$file = new SplFileInfo( $targetName );
-			if( $this->hasNoExplicitFileExtension( $file ) ){
-				$contentType = $this->helper->getPropertyValue( 'contentType', $attachment );
-				if( $contentType === 'application/gliffy+json' ) {
-					$targetName .= '.json';
-				}
-				elseif ( $contentType === 'application/gliffy+xml' ) {
-					$targetName .= '.xml';
-				}
-				else {
-					echo(
-						"Could not find file extension for $fileName as "
-							. "{$attachment->getNodePath()}; "
-							. "contentType: $contentType"
-					);
-				}
+			$sourceContentID = $this->helper->getPropertyValue( 'sourceContent', $attachment);
+			if( !empty( $sourceContentID ) ) {
+				// This has already been added as a page attachment
+				continue;
 			}
 
-			$path = "/".$container . $pageId.'/'.$attachmentId.'/'.$attachmentVersion;
+			$path = $this->makeAttachmentReference( $attachment );
+			$targetName = $this->makeAttachmentTargetFilename( $attachment, '' );
 			$this->addFile( $targetName, $path );
 		}
 	}
