@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Utility;
+namespace HalloWelt\MigrateConfluence\Converter;
 
 use DOMDocument;
 use DOMElement;
@@ -8,23 +8,28 @@ use DOMXPath;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use SplFileInfo;
 
-class HTML2WikiTextConverter extends PandocHTML {
+class ConfluenceContentXML extends PandocHTML {
 
 	protected $bodyContentFile = null;
 
-	protected function doConvert( SplFileInfo $file ): string {
-		$this->bodyContentFile = new SplFileInfo(
-			$file->getPathname().'.conv.html'
-		);
+	/**
+	 *
+	 * @var SplFileInfo
+	 */
+	private $rawFile = null;
 
-		$source = $this->preprocessHTMLSource( $file );
-		$dom = new DOMDocument();
-		$dom->recover = true;
-		#libxml_use_internal_errors(true);
-		$dom->loadXML( $source );
-		$dom->preserveWhiteSpace = true;
-		#libxml_clear_errors();
-		#libxml_use_internal_errors(false);
+	/**
+	 *
+	 * @var SplFileInfo
+	 */
+	private $preprocessedFile = null;
+
+	protected function doConvert( SplFileInfo $file ): string {
+		$this->rawFile = $file;
+		$this->preprocessFile();
+		$this->wikiText = parent::doConvert( $this->preprocessedFile );
+		$this->postprocessWikiText();
+		return $this->wikiText;
 
 		$tables = $dom->getElementsByTagName( 'table' );
 		foreach( $tables as $table ) {
@@ -61,6 +66,20 @@ class HTML2WikiTextConverter extends PandocHTML {
 		);
 	}
 
+	private function preprocessFile() {
+		$source = $this->preprocessHTMLSource( $this->rawFile );
+		$dom = new DOMDocument();
+		$dom->recover = true;
+		$dom->formatOutput = true;
+		$dom->preserveWhiteSpace = true;
+		$dom->validateOnParse = false;
+		$dom->loadXML( $source );
+
+		$preprocessedPathname = str_replace( '.mraw', '.mprep', $this->rawFile->getPathname() );
+		$dom->saveHTMLFile( $preprocessedPathname );
+		$this->preprocessedFile = new SplFileInfo( $preprocessedPathname );
+	}
+
 	public function getWikiText() {
 		if( $this->bodyContentFile === null || !$this->bodyContentFile->isReadable() ) {
 			return '';
@@ -94,10 +113,10 @@ class HTML2WikiTextConverter extends PandocHTML {
 			$this->log( $result );
 		}
 
-		$sWikiText = file_get_contents( $targetFile->getPathname() );
-		$this->postProcessWikiText( $sWikiText );
+		$this->wikiText = file_get_contents( $targetFile->getPathname() );
+		$this->postProcessWikiText( $this->wikiText );
 
-		return $sWikiText;
+		return $this->wikiText;
 	}
 
 	/**
@@ -386,7 +405,6 @@ class HTML2WikiTextConverter extends PandocHTML {
 	 */
 	protected function logMarkup( $oNode ) {
 		if( $oNode instanceof DOMElement === false ) {
-			BSDebug::logSimpleCallStack();
 			return;
 		}
 
@@ -447,8 +465,6 @@ class HTML2WikiTextConverter extends PandocHTML {
 
 		#$sContent = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">'
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">'.$sContent.'</xml>';
-
-		$this->notify( 'preprocessHTMLSource', array( &$sContent ) );
 
 		return $sContent;
 	}
@@ -842,14 +858,14 @@ HERE;
 		);
 	}
 
-	public function postProcessWikiText( &$sWikiText ) {
+	public function postprocessWikiText() {
 		//On Windows the CR would be encoded as "&#xD;" in the MediaWiki-XML, which is ulgy and unnecessary
-		$sWikiText = str_replace( "\r", '', $sWikiText );
-		$sWikiText = str_replace( "###BREAK###", "\n", $sWikiText );
-		$sWikiText = str_replace( "\n {{", "\n{{", $sWikiText );
-		$sWikiText = str_replace( "\n }}", "\n}}", $sWikiText );
-		$sWikiText = str_replace( "\n- ", "\n* ", $sWikiText );
-		$sWikiText = preg_replace_callback(
+		$this->wikiText = str_replace( "\r", '', $this->wikiText );
+		$this->wikiText = str_replace( "###BREAK###", "\n", $this->wikiText );
+		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
+		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
+		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
+		$this->wikiText = preg_replace_callback(
 			array(
 				"#&lt;headertabs /&gt;#si",
 				"#&lt;subpages(.*?)/&gt;#si",
@@ -858,9 +874,9 @@ HERE;
 			function( $aMatches ) {
 				return html_entity_decode( $aMatches[0] );
 			},
-			$sWikiText
+			$this->wikiText
 		);
 
-		$sWikiText .= "\n <!-- From bodyContent {$this->getFile()->getBasename()} -->";
+		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";
 	}
 }
