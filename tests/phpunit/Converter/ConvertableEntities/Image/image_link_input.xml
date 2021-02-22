@@ -1,0 +1,8 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+    <ac:link>
+        <ri:page ri:content-title="Page Title" />
+        <ac:plain-text-link-body>
+            <![CDATA[Link to another Confluence Page]]>
+        </ac:plain-text-link-body>
+    </ac:link>
+</xml>

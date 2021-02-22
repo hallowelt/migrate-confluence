@@ -1,0 +1,3 @@
+<xml xmlns:ac="sample_namespace">
+    <ac:emoticon ac:name="smile" />
+</xml>

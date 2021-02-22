@@ -36,7 +36,7 @@ class XMLHelper {
 	}
 
 	/**
-	 * Returns the integert ID of an model entity in Confluence export XML
+	 * Returns the integer ID of an model entity in Confluence export XML
 	 * @param DOMElement $domNode
 	 * @return int
 	 * @throws UnexpectedValueException
