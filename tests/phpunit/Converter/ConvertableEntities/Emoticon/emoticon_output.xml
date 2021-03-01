@@ -1,1 +1,3 @@
-:)
+<xml xmlns:ac="sample_namespace">
+    <p>Some sample text with emoticon :) </p>
+</xml>

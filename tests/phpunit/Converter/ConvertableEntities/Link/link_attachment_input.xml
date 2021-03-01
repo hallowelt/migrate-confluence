@@ -1,0 +1,6 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+    <ri:attachment ri:filename="SomeImage.png" />
+    <ac:plain-text-link-body>
+        <![CDATA[Link to a Confluence Attachment]]>
+    </ac:plain-text-link-body>
+</xml>

@@ -197,23 +197,6 @@ class ConfluenceContentXML extends PandocHTML {
 		);
 	}
 
-	protected $aEmoticonMapping = array(
-		'smile' => ':)',
-		'sad' => ':( ',
-		'cheeky' => ':P',
-		'laugh' => ':D',
-		'wink' => ';)',
-		'thumbs-up' => '(y)',
-		'thumbs-down' => '(n)',
-		'information' => '(i)',
-		'tick' => '(/)',
-		'cross' => '(x)',
-		'warning' => '(!)',
-
-		//Non standard!?
-		'question' => '(?)',
-	);
-
 	/**
 	 *
 	 * @param DOMNode $oNode

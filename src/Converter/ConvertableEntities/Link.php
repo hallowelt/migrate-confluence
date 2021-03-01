@@ -30,7 +30,6 @@ class Link implements \HalloWelt\MigrateConfluence\Converter\IProcessable
             $userKey = $userEl->getAttribute( 'ri:userkey' );
             if( !empty( $userKey ) ) {
                 $linkParts[] = 'User:'.$userKey;
-                #$linkParts[] = $userEl->getAttribute( 'ri:userkey' );
             }
             else {
                 $linkParts[] = 'NULL';

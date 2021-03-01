@@ -1,8 +1,14 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-    <ac:link>
-        <ri:page ri:content-title="Page Title" />
-        <ac:plain-text-link-body>
-            <![CDATA[Link to another Confluence Page]]>
-        </ac:plain-text-link-body>
-    </ac:link>
+    <div>
+        <ac:image
+                ac:class="some-class"
+                ac:thumbnail="true"
+                ac:alt="Alternative text"
+                ac:height="200"
+                ac:width="500"
+                ac:align="center"
+        >
+            <ri:url ri:value="http://confluence.atlassian.com/images/logo/confluence_48_trans.png" />
+        </ac:image>
+    </div>
 </xml>

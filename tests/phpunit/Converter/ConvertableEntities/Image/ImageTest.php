@@ -3,23 +3,27 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\ConvertableEntities\Image;
 
+use DOMDocument;
+use DOMElement;
+use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests that Confluence "ac:image" objects converting to HTMl works correctly.
  */
-class ImageTest extends \PHPUnit\Framework\TestCase
+class ImageTest extends TestCase
 {
     /**
      * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image::process()
      */
     public function testProcessLinkSuccess()
     {
-        $domInput = new \DOMDocument();
+        $domInput = new DOMDocument();
         // Load input XML
         $domInput->loadXML( file_get_contents( __DIR__ . '/image_link_input.xml' ) );
 
-        $xpath = new \DOMXPath($domInput);
+        $xpath = new DOMXPath($domInput);
 
         // Convert image
         $img = $domInput->getElementsByTagName( 'image' )->item(0);
@@ -27,11 +31,14 @@ class ImageTest extends \PHPUnit\Framework\TestCase
         $imgConvert->process(null, $img, $domInput, $xpath);
 
         // Get converted element
+        /** @var DOMElement $imgActual */
         $imgActual = $domInput->getElementsByTagName( 'img' )->item(0);
 
-        $domOutput = new \DOMDocument();
+        $domOutput = new DOMDocument();
         // Load output XML
         $domOutput->loadXML( file_get_contents( __DIR__ . '/image_link_output.xml' ) );
+
+        /** @var DOMElement $imgExpected */
         $imgExpected = $domOutput->getElementsByTagName('img')->item(0);
 
         $attributesActual = [];
@@ -55,11 +62,11 @@ class ImageTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessAttachmentSuccess()
     {
-        $domInput = new \DOMDocument();
+        $domInput = new DOMDocument();
         // Load input XML
         $domInput->loadXML( file_get_contents( __DIR__ . '/image_attachment_input.xml' ) );
 
-        $xpath = new \DOMXPath($domInput);
+        $xpath = new DOMXPath($domInput);
 
         // Convert attachment image
         $img = $domInput->getElementsByTagName( 'image' )->item(0);
@@ -71,7 +78,7 @@ class ImageTest extends \PHPUnit\Framework\TestCase
         $attachmentActualRaw = $domInput->getElementsByTagName( 'div' )->item(0)->textContent;
         $attachmentActual = trim($attachmentActualRaw);
 
-        $domOutput = new \DOMDocument();
+        $domOutput = new DOMDocument();
         // Load output XML
         $domOutput->loadXML( file_get_contents( __DIR__ . '/image_attachment_output.xml' ) );
         $attachmentExpectedRaw = $domOutput->getElementsByTagName('div')->item(0)->textContent;

@@ -4,12 +4,31 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\ConvertableEntities\Emoticon;
 
 
-class EmoticonTest extends \PHPUnit\Framework\TestCase
-{
+use DOMDocument;
+use DOMXPath;
+use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
+use PHPUnit\Framework\TestCase;
 
-    public function testProcessSuccess()
+class EmoticonTest extends TestCase
+{
+    /**
+     * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon::process()
+     */
+    public function testProcessEmoticonSuccess()
     {
-        $this->assertTrue(true);
+        $domInput = new DOMDocument();
+        // Load input XML
+        $domInput->loadXML( file_get_contents( __DIR__ . '/emoticon_input.xml' ) );
+
+        $xpath = new DOMXPath($domInput);
+
+        // Convert emoticon
+        $emoticon = $domInput->getElementsByTagName( 'emoticon' )->item(0);
+        $emoticonConvert = new Emoticon();
+        $emoticonConvert->process(null, $emoticon, $domInput, $xpath);
+
+        // Compare string from input XML with expected XML output
+        $this->assertXmlStringEqualsXmlFile( __DIR__ . '/emoticon_output.xml', $domInput->saveXML());
     }
 
 }
