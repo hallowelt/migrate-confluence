@@ -5,12 +5,17 @@ namespace HalloWelt\MigrateConfluence\Converter\ConvertableEntities;
 
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use DOMXPath;
+use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
+use HalloWelt\MigrateConfluence\Converter\IProcessable;
 
-class Link implements \HalloWelt\MigrateConfluence\Converter\IProcessable
+class Link implements IProcessable
 {
-
-    public function process( $sender, $match, $dom, $xpath ): void
+	/**
+	 * {@inheritDoc}
+	 */
+    public function process( ?ConfluenceConverter $sender, DOMNode $match, DOMDocument $dom, DOMXPath $xpath ): void
     {
         $attachmentEl = $xpath->query( './ri:attachment', $match )->item(0);
         $pageEl = $xpath->query( './ri:page', $match )->item(0);
@@ -71,7 +76,8 @@ class Link implements \HalloWelt\MigrateConfluence\Converter\IProcessable
         );
     }
 
-    public function makeMediaLink( $params ) {
+    public function makeMediaLink( $params )
+	{
         /*
         * The converter only knows the context of the current page that
         * is being converted
@@ -82,5 +88,10 @@ class Link implements \HalloWelt\MigrateConfluence\Converter\IProcessable
         $params = array_map( 'trim', $params );
         //$this->notify('makeMediaLink', array( &$params ) );
         return '[[Media:'.implode( '|', $params ).']]';
+    }
+
+    public function postProcess( $params )
+	{
+
     }
 }

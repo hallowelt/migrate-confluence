@@ -4,7 +4,9 @@
 namespace HalloWelt\MigrateConfluence\Converter\ConvertableEntities;
 
 
-class Emoticon implements \HalloWelt\MigrateConfluence\Converter\IProcessable
+use HalloWelt\MigrateConfluence\Converter\IProcessable;
+
+class Emoticon implements IProcessable
 {
 
     protected $aEmoticonMapping = array(
@@ -28,11 +30,16 @@ class Emoticon implements \HalloWelt\MigrateConfluence\Converter\IProcessable
     {
         $replacement = '';
         $sKey = $match->getAttribute('ac:name');
-        if( !isset($this->aEmoticonMapping[$sKey]) ) {
-            //$this->log( 'EMOTICON: '. $sKey );
+
+		if( $sKey === 'blue-star' ) {
+			$fallbackAttr = $match->getAttribute('ac:emoji-fallback');
+			$replacement = $fallbackAttr;
+		}
+        elseif( !isset($this->aEmoticonMapping[$sKey]) ) {
+            $replacement = '[[Category:Broken_emoticon]]';
         }
         else {
-            $replacement = " {$this->aEmoticonMapping[$sKey]} ";
+            $replacement = $this->aEmoticonMapping[$sKey];
         }
         //$this->notify( 'processEmoticon', array( $match, $dom, $xpath, &$replacement ) );
         if( !empty( $replacement ) ) {

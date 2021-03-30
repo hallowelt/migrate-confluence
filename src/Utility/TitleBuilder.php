@@ -39,15 +39,20 @@ class TitleBuilder {
 	 * @param DOMElement $pageNode
 	 * @return string
 	 */
-	public function buildTitle( $pageNode ) {
+	public function buildTitle( $pageNode, $fullTitle = true ) {
 		$spaceId = $this->getSpaceId( $pageNode );
 		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$this->builder->setNamespace( $spaceId );
 
-		$title = $this->helper->getPropertyValue( 'title', $pageNode );
-		$this->builder->appendTitleSegment( $title );
+		if( $fullTitle ) {
+			$titles = $this->addParentTitles( $pageNode );
+			$fullTitle = implode( '/', array_reverse( $titles ) );
+		}
+		else {
+			$fullTitle = $this->helper->getPropertyValue( 'title', $pageNode );
+		}
 
-		$this->addParentTitles( $pageNode );
+		$this->builder->appendTitleSegment( $fullTitle );
 
 		return $this->builder->invertTitleSegments()->build();
 	}
@@ -74,16 +79,20 @@ class TitleBuilder {
 	}
 
 	private function addParentTitles( $pageNode ) {
-		$parentPageId = $this->helper->getPropertyValue( 'parent', $pageNode );
-		if( is_integer( $parentPageId ) ) {
-			$parentPage = $this->helper->getObjectNodeById( $parentPageId, 'Page' );
-			$title = $this->helper->getPropertyValue( 'title', $parentPage );
-			$position = $this->helper->getPropertyValue( 'position', $parentPage );
-			if( !empty( $position ) ) {
-				$title = str_pad( $position, 3, '0', STR_PAD_BOTH ).'_'.$title;
-			}
+		$title = $this->helper->getPropertyValue( 'title', $pageNode );
 
-			$this->addParentTitles( $parentPage );
+		$titles = [ $title ];
+
+		$parentPageId = $this->helper->getPropertyValue( 'parent', $pageNode );
+		while( is_integer( $parentPageId ) ) {
+			$parentPage = $this->helper->getObjectNodeById( $parentPageId, 'Page' );
+			$parentTitle = $this->helper->getPropertyValue( 'title', $parentPage );
+
+			$titles[] = $parentTitle;
+
+			$parentPageId = $this->helper->getPropertyValue( 'parent', $parentPage );
 		}
+
+		return $titles;
 	}
 }

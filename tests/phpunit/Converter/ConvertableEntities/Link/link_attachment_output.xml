@@ -1,3 +1,4 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-    <a href="SomeImage.png">Link to a Confluence Attachment</a>
+    <div>[[Media:SomeImage.png|Link to a Confluence Attachment]]</div>
+    <div>[[Media:SomeImage1.png]]</div>
 </xml>

@@ -13,7 +13,7 @@ use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use SplFileInfo;
 
-class ConfluenceExport extends AnalyzerBase {
+class ConfluenceAnalyzer extends AnalyzerBase {
 
 	/**
 	 *
@@ -41,7 +41,8 @@ class ConfluenceExport extends AnalyzerBase {
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
 		$this->customBuckets = new DataBuckets( [
-			'space-id-to-prefix-map'
+			'space-id-to-prefix-map',
+			'pages-titles-map'
 		] );
 	}
 
@@ -89,7 +90,7 @@ class ConfluenceExport extends AnalyzerBase {
 			if ( $spaceKey === 'GENERAL' ) {
 				$spaceKey = '';
 			}
-			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $spaceKey, false );
+			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $spaceKey, false, true );
 		}
 	}
 
@@ -117,16 +118,35 @@ class ConfluenceExport extends AnalyzerBase {
 				continue;
 			}
 
+			$pageId = $this->helper->getIDNodeValue( $pageNode );
+
 			try {
 				$targetTitle = $titleBuilder->buildTitle( $pageNode );
 			} catch ( Exception $ex ) {
-				$id = $this->helper->getIDNodeValue( $pageNode );
-				$this->buckets->addData( 'title-invalids', $id, $ex->getMessage() );
+				$this->buckets->addData( 'title-invalids', $pageId, $ex->getMessage() );
 				continue;
 			}
 
+			/**
+			 * Adds data bucket "pages-titles-map", which contains mapping from page title itself to full page title.
+			 * Full page title contains parent pages and namespace (if it is not general space).
+			 * Example:
+			 * "Detailed_planning" -> "Dokumentation/Detailed_planning"
+			 */
+			$pageConfluenceTitle = $this->helper->getPropertyValue( 'title', $pageNode );
+			$this->customBuckets->addData( 'pages-titles-map', $pageConfluenceTitle, $targetTitle, false, true );
+
+			// Also add pages IDs in Confluence to full page title mapping.
+			// It is needed to have enough context on converting stage, to know from filename which page is currently being converted.
+			$this->customBuckets->addData( 'pages-ids-to-titles-map', $pageId, $targetTitle, false, true );
+
 			$revisionTimestamp = $this->buildRevisionTimestamp( $pageNode );
 			$bodyContentIds = $this->getBodyContentIds( $pageNode );
+
+			foreach( $bodyContentIds as $bodyContentId ) {
+				$this->customBuckets->addData( 'body-contents-to-pages-map', $bodyContentId, $pageId, false, true );
+			}
+
 			$version = $this->helper->getPropertyValue( 'version', $pageNode );
 
 			$this->addTitleRevision( $targetTitle, implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp" );
@@ -188,7 +208,7 @@ class ConfluenceExport extends AnalyzerBase {
 	 * @return string
 	 */
 	private function makeAttachmentReference( $attachment ) {
-		$basePath = $this->currentFile->getPath() . '/attachments/';
+		$basePath = $this->currentFile->getPath() . '/attachments';
 		$attachmentId = $this->helper->getIDNodeValue( $attachment );
 		$containerId = $this->helper->getPropertyValue( 'content', $attachment );
 		if ( empty( $containerId ) ) {

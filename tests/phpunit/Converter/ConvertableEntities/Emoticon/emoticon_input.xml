@@ -1,3 +1,5 @@
 <xml xmlns:ac="sample_namespace">
     <p>Some sample text with emoticon <ac:emoticon ac:name="smile" /></p>
+    <p>Some text with unknown emoticon <ac:emoticon ac:name="unknown_emoticon" /></p>
+    <p>Some text with "blue-star" emoticon <ac:emoticon ac:name="blue-star" ac:emoji-shortname=":e-mail:" ac:emoji-id="1f4e7" ac:emoji-fallback="&#128231;"></ac:emoticon></p>
 </xml>

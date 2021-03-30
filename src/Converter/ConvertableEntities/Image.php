@@ -3,26 +3,30 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\ConvertableEntities;
 
-use HalloWelt\MigrateConfluence\Converter\ConfluenceContentXML;
+use DOMDocument;
+use DOMNode;
+use DOMXPath;
+use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
+use HalloWelt\MigrateConfluence\Converter\IProcessable;
 use HalloWelt\MigrateConfluence\Utility\Html;
 
-class Image implements \HalloWelt\MigrateConfluence\Converter\IProcessable
+class Image implements IProcessable
 {
     /**
      * Image DOMNode to be processed.
      *
-     * @var \DOMNode
+     * @var DOMNode
      */
     private $image;
 
     /**
      * Image constructor.
-     * @param \DOMNode $image
+     * @param DOMNode $image
      */
-    public function __construct(\DOMNode $image)
+    /*public function __construct( DOMNode $image)
     {
         $this->image = $image;
-    }
+    }*/
 
     /**
      * {@inheritDoc}
@@ -38,7 +42,7 @@ class Image implements \HalloWelt\MigrateConfluence\Converter\IProcessable
      *
      * @see https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html#ConfluenceStorageFormat-Images
      */
-    public function process( ?ConfluenceContentXML $sender, \DOMNode $match, \DOMDocument $dom, \DOMXPath $xpath ): void
+    public function process( ?ConfluenceConverter $sender, DOMNode $match, DOMDocument $dom, DOMXPath $xpath ): void
     {
         $attachmentEl = $xpath->query( './ri:attachment', $match )->item(0);
         $urlEl = $xpath->query( './ri:url', $match )->item(0);
@@ -58,9 +62,13 @@ class Image implements \HalloWelt\MigrateConfluence\Converter\IProcessable
             $params[] = $dimensions;
             if( $width !== '') $attribs['width'] = $width;
         }
+
+        if( $match->getAttribute( 'ac:class') !== '' ) {
+            $attribs['class'][] = $match->getAttribute( 'ac:class' );
+        }
         if( $match->getAttribute('ac:thumbnail') !== '' ) {
             $params[] = 'thumb';
-            $attribs['class'] = 'thumb';
+            $attribs['class'][] = 'thumb';
         }
         if( $match->getAttribute('ac:align') !== '' ) {
             $params[] = $match->getAttribute('ac:align');
@@ -71,16 +79,19 @@ class Image implements \HalloWelt\MigrateConfluence\Converter\IProcessable
             $attribs['alt'] = $match->getAttribute('ac:alt');
         }
 
+        if( !empty( $attribs['class'] ) )
+        	$attribs['class'] = implode( ' ', $attribs['class'] );
+
         $replacement = '[[Category:Broken_image]]';
-        if( $urlEl instanceof \DOMNode ) {
+        if( $urlEl instanceof DOMNode ) {
             $attribs['src'] = $urlEl->getAttribute( 'ri:value' );
             //$this->notify('processImage', array( $match, $dom, $xpath, 'external', &$attribs ) );
-            $replacement = $this->makeImageTag( $dom, $attribs );
+            $replacement = self::makeImageTag( $dom, $attribs );
         }
-        elseif( $attachmentEl instanceof \DOMNode ) {
+        elseif( $attachmentEl instanceof DOMNode ) {
             array_unshift( $params , $attachmentEl->getAttribute('ri:filename') );
             //$this->notify('processImage', array( $match, $dom, $xpath, 'internal', &$params ) );
-            $replacement = $this->makeImageLink( $dom, $params );
+            $replacement = self::makeImageLink( $dom, $params );
         }
 
         $match->parentNode->replaceChild(
@@ -90,21 +101,21 @@ class Image implements \HalloWelt\MigrateConfluence\Converter\IProcessable
     }
 
     /**
-     * @param \DOMDocument $dom
+     * @param DOMDocument $dom
      * @param $aAttributes
-     * @return \DOMNode
+     * @return DOMNode
      */
-    protected function makeImageTag( \DOMDocument $dom, array $aAttributes ): \DOMNode
+    public function makeImageTag( DOMDocument $dom, array $aAttributes ): DOMNode
     {
         return Html::element( $dom, 'img', $aAttributes );
     }
 
     /**
-     * @param \DOMDocument $dom
+     * @param DOMDocument $dom
      * @param $params
-     * @return \DOMNode
+     * @return DOMNode
      */
-    protected function makeImageLink( \DOMDocument $dom, array $params ): \DOMNode
+    public function makeImageLink( DOMDocument $dom, array $params ): DOMNode
     {
         $params = array_map( 'trim', $params );
         return $dom->createTextNode('[[File:'.implode( '|', $params ).']]');

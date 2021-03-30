@@ -57,6 +57,9 @@ class FilenameBuilder {
 			$this->builder->appendTitleSegment( $assocTitle );
 		}
 		$builtTitle = $this->builder->invertTitleSegments()->build();
+
+		$builtTitle = str_replace('/', '_', $builtTitle);
+
 		$filename = new WindowsFilename( $builtTitle );
 
 		return (string) $filename;

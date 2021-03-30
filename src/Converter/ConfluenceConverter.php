@@ -4,13 +4,23 @@ namespace HalloWelt\MigrateConfluence\Converter;
 
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use DOMXPath;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
+use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use SplFileInfo;
+use \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
+use \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
 
-class ConfluenceContentXML extends PandocHTML {
+class ConfluenceConverter extends PandocHTML {
 
 	protected $bodyContentFile = null;
+
+	/**
+	 * @var DataBuckets
+	 */
+	private $dataBuckets = null;
 
 	/**
 	 *
@@ -19,17 +29,51 @@ class ConfluenceContentXML extends PandocHTML {
 	private $rawFile = null;
 
 	/**
+	 * @var string
+	 */
+	private $wikiText = '';
+
+	/**
+	 * @var string
+	 */
+	private $currentPageTitle = '';
+
+	private $currentSpace = 0;
+
+	/**
 	 *
 	 * @var SplFileInfo
 	 */
 	private $preprocessedFile = null;
 
+	/**
+	 *
+	 * @param array $config
+	 * @param Workspace $workspace
+	 * @param DataBuckets $buckets
+	 */
+	public function __construct( $config, Workspace $workspace ) {
+		parent::__construct( $config, $workspace );
+
+		$this->dataBuckets = new DataBuckets( [
+			'pages-ids-to-titles-map',
+			'pages-titles-map',
+			'title-attachments'
+		] );
+
+		$this->dataBuckets->loadFromWorkspace( $this->workspace );
+	}
+
 	protected function doConvert( SplFileInfo $file ): string {
 		$this->rawFile = $file;
+
+		$pagesIdsToTitlesMap = $this->dataBuckets->getBucketData( 'pages-ids-to-titles-map' );
+		if( isset($pagesIdsToTitlesMap[$this->rawFile->getFilename()]) )
+			$this->currentPageTitle = $pagesIdsToTitlesMap[$this->rawFile->getFilename()];
+		else
+			$this->currentPageTitle = 'not_current_revision_' . $this->rawFile->getFilename();
+
 		$dom = $this->preprocessFile();
-		$this->wikiText = parent::doConvert( $this->preprocessedFile );
-		$this->postprocessWikiText();
-		return $this->wikiText;
 
 		$tables = $dom->getElementsByTagName( 'table' );
 		foreach( $tables as $table ) {
@@ -62,8 +106,13 @@ class ConfluenceContentXML extends PandocHTML {
 		$this->postProcessDOM( $dom, $xpath );
 
 		$dom->saveHTMLFile(
-			$this->bodyContentFile->getPathname()
+			$this->preprocessedFile->getPathname()
 		);
+
+		$this->wikiText = parent::doConvert( $this->preprocessedFile );
+		$this->postProcessLinks();
+		$this->postprocessWikiText();
+		return $this->wikiText;
 	}
 
 	private function preprocessFile() {
@@ -80,45 +129,6 @@ class ConfluenceContentXML extends PandocHTML {
 		$this->preprocessedFile = new SplFileInfo( $preprocessedPathname );
 
 		return $dom;
-	}
-
-	public function getWikiText() {
-		if( $this->bodyContentFile === null || !$this->bodyContentFile->isReadable() ) {
-			return '';
-		}
-		$sourceFileName = $this->bodyContentFile->getFilename(); //54789357.html
-		$fileNameParts = explode( '.', $sourceFileName ); //array( "54789357", "html" )
-		array_pop( $fileNameParts ); //array( "54789357" )
-
-		$targetFileName = implode( '.', $fileNameParts ).'.wiki';
-		$targetDirectory = dirname( $this->bodyContentFile->getPath() ).'/wiki/';
-		$targetFile = new SplFileInfo(
-			$targetDirectory . $targetFileName
-		);
-
-		/*
-		 * Use pandoc to do the HTML > MediaWiki conversion!
-		 * http://pandoc.org/
-		 */
-		$sCmd = sprintf(
-			'pandoc %s -f html -t mediawiki -o %s',
-			$this->bodyContentFile->getPathname(),
-			$targetFile->getPathname()
-		);
-
-		$retval = null;
-		$result = wfShellExec( $sCmd, $retval );
-		if( $retval !== 0 ) {
-			$this->log( $retval );
-		}
-		if( !empty( $result ) ) {
-			$this->log( $result );
-		}
-
-		$this->wikiText = file_get_contents( $targetFile->getPathname() );
-		$this->postProcessWikiText( $this->wikiText );
-
-		return $this->wikiText;
 	}
 
 	/**
@@ -189,7 +199,7 @@ class ConfluenceContentXML extends PandocHTML {
 		}
 		$replacement .= "[[Category:Broken_macro/$sMacroName]]";
 
-		$this->notify( 'processMacro', array( $match, $dom, $xpath, &$replacement, $sMacroName ) );
+		//$this->notify( 'processMacro', array( $match, $dom, $xpath, &$replacement, $sMacroName ) );
 
 		$match->parentNode->replaceChild(
 			$dom->createTextNode( $replacement ),
@@ -212,16 +222,30 @@ class ConfluenceContentXML extends PandocHTML {
 		);
 	}
 
+	protected function processPlaceholder( $sender, $match, $dom, $xpath ) {
+		$replacement = $match->textContent;
+
+		if( !empty( $replacement ) ) {
+			$replacement = '<!--' . $replacement . '-->';
+
+			$match->parentNode->replaceChild(
+				$dom->createTextNode( $replacement ),
+				$match
+			);
+		}
+	}
+
 	public function makeReplacings() {
 		return array(
-			'//ac:link' => array( $this, 'processLink' ),
-			'//ac:image' => array( 'Image', 'process' ),
+			'//ac:link' => array( '\HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link', 'process' ),
+			'//ac:image' => array( '\HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image', 'process' ),
 			#'//ac:layout' => array( $this, 'processLayout' ),
 			'//ac:macro' => array( $this, 'processMacro' ),
 			'//ac:structured-macro' => array( $this, 'processStructuredMacro' ),
-			'//ac:emoticon' => array( $this, 'processEmoticon' ),
+			'//ac:emoticon' => array( '\HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon', 'process' ),
 			'//ac:task-list' => array( $this, 'processTaskList' ),
 			'//ac:inline-comment-marker' => array( $this, 'processInlineCommentMarker' ),
+			'//ac:placeholder' => array( $this, 'processPlaceholder' )
 		);
 	}
 
@@ -352,8 +376,8 @@ class ConfluenceContentXML extends PandocHTML {
 			$syntaxhighlight->setAttribute( 'lang', $sLanguage );
 		}
 		if( empty( $sContent ) ) {
-			error_log("CODE: '$sLanguage': $sContent in {$file->getPathname()}");
-			$this->logMarkup( $dom->documentElement );
+			//error_log("CODE: '$sLanguage': $sContent in {$file->getPathname()}");
+			//$this->logMarkup( $dom->documentElement );
 		}
 		if( $titleParam instanceof DOMElement ) {
 			$match->parentNode->insertBefore(
@@ -383,12 +407,15 @@ class ConfluenceContentXML extends PandocHTML {
 				$sTargetFile = $oRIAttachmentEl->getAttribute( 'ri:filename' );
 			}
 			if( empty( $sTargetFile ) ) {
-				$this->log( 'EMPTY NAME!' );
-				$this->logMarkup( $match );
+				//$this->log( 'EMPTY NAME!' );
+				//$this->logMarkup( $match );
 			}
+
+			$linkConverter = new Link();
+
 			$oContainer = $dom->createElement(
 				'span',
-				$this->makeMediaLink( array( $sTargetFile ) )
+				$linkConverter->makeMediaLink( array( $sTargetFile ) )
 			);
 			$oContainer->setAttribute( 'class', "ac-$sMacroName" );
 			$match->parentNode->insertBefore( $oContainer, $match );
@@ -414,7 +441,7 @@ class ConfluenceContentXML extends PandocHTML {
 		$oElement->setAttribute( 'class', 'subpagelist subpagelist-depth-'.$iDepth );
 		$oElement->appendChild(
 			$match->ownerDocument->createTextNode(
-				'{{SubpageList|page='.$this->sCurrentPageTitle.'|depth='.$iDepth.'}}'
+				'{{SubpageList|page='.$this->currentPageTitle.'|depth='.$iDepth.'}}'
 			)
 		);
 		$match->parentNode->insertBefore( $oElement, $match );
@@ -430,10 +457,14 @@ class ConfluenceContentXML extends PandocHTML {
 	private function processGliffyMacro($sender, $match, $dom, $xpath, &$replacement) {
 		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item(0);
 		if( empty( $oNameParam->nodeValue ) ) {
-			$this->log( "Gliffy: Missing name!" );
+			//$this->log( "Gliffy: Missing name!" );
+			error_log("Gliffy: Missing name!");
 			$this->logMarkup( $match );
 		}
-		$replacement = $this->makeImageLink( array( "{$oNameParam->nodeValue}.png" ) );
+		else {
+			$imgConverter = new Image();
+			$replacement = $imgConverter->makeImageLink( $dom, array( "{$oNameParam->nodeValue}.png" ) );
+		}
 	}
 
 	/**
@@ -453,7 +484,7 @@ class ConfluenceContentXML extends PandocHTML {
 		}
 		$oContainer = $dom->createElement( 'div', $params['url'] );
 		$oContainer->setAttribute( 'class', "ac-widget" );
-		$oContainer->setAttribute( 'data-params', FormatJson::encode( $params ) );
+		$oContainer->setAttribute( 'data-params', json_encode( $params ) );
 		$match->parentNode->insertBefore( $oContainer, $match );
 	}
 
@@ -497,7 +528,7 @@ class ConfluenceContentXML extends PandocHTML {
 		foreach( $oParamEls as $oParamEl ) {
 			$params[$oParamEl->getAttribute('ac:name')] = $oParamEl->nodeValue;
 		}
-		$oNewContainer->setAttribute( 'data-params', FormatJson::encode( $params ) );
+		$oNewContainer->setAttribute( 'data-params', json_encode( $params ) );
 
 		$oRTBody = $xpath->query( './ac:rich-text-body', $match )->item(0);
 		//Move all content out of <ac::rich-text-body>
@@ -634,7 +665,45 @@ HERE;
 			$oElementWithDataAttr->setAttribute( 'data-atlassian-layout', null );
 		}
 
-		$this->notify('postProcessDOM', array( $dom, $xpath ) );
+		//$this->notify('postProcessDOM', array( $dom, $xpath ) );
+	}
+
+	public function postProcessLinks() {
+		$oldToNewTitlesMap = $this->dataBuckets->getBucketData( 'pages-titles-map' );
+
+		preg_replace_callback(
+			"/\[\[Media:(.*)]]/",
+			function( $matches ) use( $oldToNewTitlesMap ) {
+				if( isset( $oldToNewTitlesMap[$matches[1]] ) ) {
+					return $oldToNewTitlesMap[$matches[1]];
+				}
+				return $matches[0];
+			},
+			$this->wikiText
+		);
+
+		// Pandoc converts external images like <img src='...' /> among others. It is not correct.
+		// So we need to find all images which look like that [[File:https://somesite.com]] and convert them back to <img>.
+		preg_replace_callback(
+			"/\[\[File:(http[s]?:\/\/.*)]]/",
+			function( $matches ) use( $oldToNewTitlesMap ) {
+
+				if( strpos( $matches[1], '|' ) ) {
+					$params = explode( '|', $matches[1] );
+					$replacement = $params[0];
+				}
+				else {
+					$replacement = $matches[1];
+				}
+
+				if( parse_url( $matches[1] ) ) {
+					return "<img src='$replacement' />";
+				}
+				return $matches[0];
+
+			},
+			$this->wikiText
+		);
 	}
 
 	/**
@@ -646,7 +715,7 @@ HERE;
 	 */
 	private function processRecentlyUpdatedMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$sNsText = '';
-		$aTitleParts = explode( ':', $this->sCurrentPageTitle, 2 );
+		$aTitleParts = explode( ':', $this->currentPageTitle, 2 );
 		if( count( $aTitleParts ) === 2 ) {
 			$sNsText = $aTitleParts[0];
 		}
@@ -674,6 +743,14 @@ HERE;
 			},
 			$this->wikiText
 		);
+
+		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
+		if( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
+			$this->wikiText .= "\n==Attachments==\n";
+			foreach( $attachmentsMap[$this->currentPageTitle] as $attachment ) {
+				$this->wikiText .= "* [[Media:$attachment]]\n";
+			}
+		}
 
 		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";
 	}

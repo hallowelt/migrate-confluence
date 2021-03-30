@@ -8,16 +8,16 @@ use HalloWelt\MediaWiki\Lib\Migration\CliApp;
 $config = [
 	'file-extension-whitelist' => [ 'xml' ],
 	'analyzers' => [
-		'HalloWelt\MigrateConfluence\Analyzer\ConfluenceExport::factory'
+		'HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer::factory'
 	],
 	'extractors' => [
-		'HalloWelt\MigrateConfluence\Extractor\ConfluenceExport::factory'
+		'HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor::factory'
 	],
 	'converters' => [
-		'HalloWelt\MigrateConfluence\Converter\ConfluenceContentXML::factory'
+		'HalloWelt\MigrateConfluence\Converter\ConfluenceConverter::factory'
 	],
 	'composers' => [
-		'HalloWelt\MigrateConfluence\Composer\ConfluenceExport::factory'
+		'HalloWelt\MigrateConfluence\Composer\ConfluenceComposer::factory'
 	]
 ];
 

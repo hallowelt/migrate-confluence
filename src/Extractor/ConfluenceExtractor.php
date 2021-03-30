@@ -8,7 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\ExtractorBase;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use SplFileInfo;
 
-class ConfluenceExport extends ExtractorBase {
+class ConfluenceExtractor extends ExtractorBase {
 
 	/**
 	 *

@@ -80,8 +80,8 @@ class XMLHelper {
 
 
 	/**
-	 * There are some classes of <property> elements that do contain the value
-	 * directly as nodeValue but instead contain an aditional <id> element that
+	 * There are some classes of <property> elements that do not contain the value
+	 * directly as nodeValue but instead contain an additional <id> element that
 	 * references another element in the XML
 	 *
 	 * @var array
