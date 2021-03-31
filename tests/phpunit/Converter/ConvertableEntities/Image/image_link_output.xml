@@ -1,0 +1,10 @@
+<xml>
+    <img
+        src="http://confluence.atlassian.com/images/logo/confluence_48_trans.png"
+        class="some-class thumb"
+        align="center"
+        height="200"
+        width="500"
+        alt="Alternative text"
+    />
+</xml>

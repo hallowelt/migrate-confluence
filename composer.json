@@ -15,7 +15,11 @@
 		"hallowelt/mediawiki-lib-mediawikixml": "dev-master",
 		"hallowelt/mediawiki-lib-commandline-tools": "dev-master",
 		"hallowelt/mediawiki-lib-migration": "dev-master",
-		"hallowelt/mediawiki-lib-wikitext": "dev-master"
+		"hallowelt/mediawiki-lib-wikitext": "dev-master",
+      	"ext-dom": "*"
+    },
+	"require-dev": {
+		"phpunit/phpunit": "^6.5"
 	},
 	"autoload": {
 		"psr-4": {
