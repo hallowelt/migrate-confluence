@@ -92,12 +92,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/hallowelt/mediawiki-lib-migration.git",
-                "reference": "e18cd7d66bf08733813bee5343613c0c84f7ff7a"
+                "reference": "87b6ca2f1c3543a76bf7c5530ec6c2365b60336d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hallowelt/mediawiki-lib-migration/zipball/e18cd7d66bf08733813bee5343613c0c84f7ff7a",
-                "reference": "e18cd7d66bf08733813bee5343613c0c84f7ff7a",
+                "url": "https://api.github.com/repos/hallowelt/mediawiki-lib-migration/zipball/87b6ca2f1c3543a76bf7c5530ec6c2365b60336d",
+                "reference": "87b6ca2f1c3543a76bf7c5530ec6c2365b60336d",
                 "shasum": ""
             },
             "require": {
@@ -127,7 +127,7 @@
                 "source": "https://github.com/hallowelt/mediawiki-lib-migration/tree/master",
                 "issues": "https://github.com/hallowelt/mediawiki-lib-migration/issues"
             },
-            "time": "2021-03-30T15:45:58+00:00"
+            "time": "2021-04-06T13:14:03+00:00"
         },
         {
             "name": "hallowelt/mediawiki-lib-wikitext",
