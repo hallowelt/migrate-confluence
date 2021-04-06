@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c24f6b79817cc32d80246c7c690328ad",
+    "content-hash": "34503181566885c1bfe66145ab505374",
     "packages": [
         {
             "name": "hallowelt/mediawiki-lib-commandline-tools",

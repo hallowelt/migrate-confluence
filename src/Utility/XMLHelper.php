@@ -6,9 +6,12 @@ use DOMDocument;
 use DOMElement;
 use DOMNodeList;
 use DOMXPath;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use UnexpectedValueException;
 
-class XMLHelper {
+class XMLHelper implements LoggerAwareInterface {
 
 	/**
 	 *
@@ -22,9 +25,25 @@ class XMLHelper {
 	 */
 	protected $xpath = null;
 
+	/**
+	 * @var LoggerInterface
+	 */
+	protected $logger = null;
+
+	/**
+	 * @param DOMDocument $dom
+	 */
 	public function __construct( $dom ) {
 		$this->dom = $dom;
 		$this->xpath = new DOMXPath( $this->dom );
+		$this->logger = new NullLogger();
+	}
+
+	/**
+	 * @param LoggerInterface $logger
+	 */
+	public function setLogger( LoggerInterface $logger ) {
+		$this->logger = $logger;
 	}
 
 	/**
@@ -99,7 +118,7 @@ class XMLHelper {
 		$propertyNode = $this->getPropertyNode( $propertyName, $contextElement );
 		if( $propertyNode instanceof DOMElement == false ) {
 			$contextElementId = $this->getIDNodeValue( $contextElement );
-			error_log(
+			$this->logger->debug(
 				'Node "'.$contextElement->getNodePath(). " (ID:$contextElementId)" .
 					'" contains no property "'.$propertyName.'"!'
 			);

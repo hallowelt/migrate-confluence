@@ -11,9 +11,12 @@ use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use SplFileInfo;
 
-class ConfluenceAnalyzer extends AnalyzerBase {
+class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface {
 
 	/**
 	 *
@@ -33,6 +36,11 @@ class ConfluenceAnalyzer extends AnalyzerBase {
 	private $helper = null;
 
 	/**
+	 * @var LoggerInterface
+	 */
+	private $logger = null;
+
+	/**
 	 *
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -44,6 +52,14 @@ class ConfluenceAnalyzer extends AnalyzerBase {
 			'space-id-to-prefix-map',
 			'pages-titles-map'
 		] );
+		$this->logger = new NullLogger();
+	}
+
+	/**
+	 * @param LoggerInterface $logger
+	 */
+	public function setLogger( LoggerInterface $logger ) {
+		$this->logger = $logger;
 	}
 
 	/**
@@ -191,7 +207,7 @@ class ConfluenceAnalyzer extends AnalyzerBase {
 				$targetName .= '.xml';
 			}
 			else {
-				error_log(
+				$this->logger->debug(
 					"Could not find file extension for $fileName as "
 						. "{$attachment->getNodePath()}; "
 						. "contentType: $contentType"
