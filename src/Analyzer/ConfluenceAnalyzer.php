@@ -7,6 +7,7 @@ use DOMElement;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
@@ -15,8 +16,9 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use SplFileInfo;
+use Symfony\Component\Console\Output\Output;
 
-class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface {
+class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface {
 
 	/**
 	 *
@@ -41,6 +43,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface {
 	private $logger = null;
 
 	/**
+	 * @param Output
+	 */
+	private $output = null;
+
+	/**
 	 *
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -60,6 +67,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface {
 	 */
 	public function setLogger( LoggerInterface $logger ) {
 		$this->logger = $logger;
+	}
+
+	/**
+	 * @param Output $output
+	 */
+	public function setOutput( Output $output ) {
+		$this->output = $output;
 	}
 
 	/**
@@ -98,10 +112,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface {
 
 	private function makeSpacesMap() {
 		$spaces = $this->helper->getObjectNodes( 'Space' );
+		$this->output->writeln( 'Finding namespaces' );
 		foreach( $spaces as $space ) {
 			$spaceId = $this->helper->getIDNodeValue( $space );
 			$spaceKey = $this->helper->getPropertyValue( 'key', $space );
 
+			$this->output->writeln( "- $spaceKey (ID:$spaceId)" );
 			//Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
 			if ( $spaceKey === 'GENERAL' ) {
 				$spaceKey = '';
@@ -111,6 +127,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface {
 	}
 
 	private function makePagenamesMap() {
+		$this->output->writeln( 'Finding pages' );
 		$pageNodes = $this->helper->getObjectNodes( "Page" );
 		$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
 		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $this->helper );
@@ -142,6 +159,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface {
 				$this->buckets->addData( 'title-invalids', $pageId, $ex->getMessage() );
 				continue;
 			}
+
+			$this->output->writeln( "- '$targetTitle' (ID:$pageId)" );
 
 			/**
 			 * Adds data bucket "pages-titles-map", which contains mapping from page title itself to full page title.
@@ -275,6 +294,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface {
 	}
 
 	private function addAdditionalFiles() {
+		$this->output->writeln( 'Finding attachments' );
 		$attachments = $this->helper->getObjectNodes( 'Attachment' );
 		foreach( $attachments as $attachment ) {
 			if( $attachment instanceof DOMElement === false ) {
@@ -295,6 +315,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface {
 
 			$path = $this->makeAttachmentReference( $attachment );
 			$targetName = $this->makeAttachmentTargetFilename( $attachment, '' );
+			$this->output->writeln( "- '$targetName'" );
 			$this->addFile( $targetName, $path );
 		}
 	}
