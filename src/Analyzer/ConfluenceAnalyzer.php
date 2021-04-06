@@ -4,9 +4,9 @@ namespace HalloWelt\MigrateConfluence\Analyzer;
 
 use DOMDocument;
 use DOMElement;
-use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
@@ -112,7 +112,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 	private function makeSpacesMap() {
 		$spaces = $this->helper->getObjectNodes( 'Space' );
-		$this->output->writeln( 'Finding namespaces' );
+		$this->output->writeln( "\nFinding namespaces" );
 		foreach( $spaces as $space ) {
 			$spaceId = $this->helper->getIDNodeValue( $space );
 			$spaceKey = $this->helper->getPropertyValue( 'key', $space );
@@ -127,7 +127,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	}
 
 	private function makePagenamesMap() {
-		$this->output->writeln( 'Finding pages' );
+		$this->output->writeln( "\nFinding pages" );
 		$pageNodes = $this->helper->getObjectNodes( "Page" );
 		$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
 		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $this->helper );
@@ -155,8 +155,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 			try {
 				$targetTitle = $titleBuilder->buildTitle( $pageNode );
-			} catch ( Exception $ex ) {
-				$this->buckets->addData( 'title-invalids', $pageId, $ex->getMessage() );
+			} catch ( InvalidTitleException $ex ) {
+				$this->buckets->addData( 'title-invalids', $pageId, $ex->getInvalidTitle() );
 				continue;
 			}
 
@@ -209,7 +209,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
 		$filenameBuilder = new FilenameBuilder( $spaceIdPrefixMap, $this->helper );
-		$targetName = $filenameBuilder->buildFilename( $attachment, $containerTitle );
+		$attachmentId = $this->helper->getIDNodeValue( $attachment );
+		try {
+			$targetName = $filenameBuilder->buildFilename( $attachment, $containerTitle );
+		} catch ( InvalidTitleException $ex ) {
+			$this->buckets->addData( 'title-invalids', $attachmentId, $ex->getInvalidTitle() );
+			$this->logger->error( $ex->getMessage() );
+			return '###INVALID###';
+		}
 
 		/*
 		 * Some attachments do not have a file extension available. We try
@@ -294,7 +301,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	}
 
 	private function addAdditionalFiles() {
-		$this->output->writeln( 'Finding attachments' );
+		$this->output->writeln( "\nFinding attachments" );
 		$attachments = $this->helper->getObjectNodes( 'Attachment' );
 		foreach( $attachments as $attachment ) {
 			if( $attachment instanceof DOMElement === false ) {
