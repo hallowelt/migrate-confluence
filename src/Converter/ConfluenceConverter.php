@@ -9,13 +9,15 @@ use DOMText;
 use DOMXPath;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
 use SplFileInfo;
 use \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
+use Symfony\Component\Console\Output\Output;
 
-class ConfluenceConverter extends PandocHTML {
+class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	protected $bodyContentFile = null;
 
@@ -49,6 +51,11 @@ class ConfluenceConverter extends PandocHTML {
 	private $preprocessedFile = null;
 
 	/**
+	 * @var Output
+	 */
+	private $output = null;
+
+	/**
 	 *
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -66,7 +73,15 @@ class ConfluenceConverter extends PandocHTML {
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
 	}
 
+	/**
+	 * @param Output $output
+	 */
+	public function setOutput( Output $output ) {
+		$this->output = $output;
+	}
+
 	protected function doConvert( SplFileInfo $file ): string {
+		$this->output->writeln( $file->getPathname() );
 		$this->rawFile = $file;
 
 		$pagesIdsToTitlesMap = $this->dataBuckets->getBucketData( 'pages-ids-to-titles-map' );
@@ -124,7 +139,7 @@ class ConfluenceConverter extends PandocHTML {
 		$dom->formatOutput = true;
 		$dom->preserveWhiteSpace = true;
 		$dom->validateOnParse = false;
-		$dom->loadXML( $source );
+		$dom->loadXML( $source, LIBXML_PARSEHUGE );
 
 		$preprocessedPathname = str_replace( '.mraw', '.mprep', $this->rawFile->getPathname() );
 		$dom->saveHTMLFile( $preprocessedPathname );
@@ -203,11 +218,11 @@ class ConfluenceConverter extends PandocHTML {
 
 		//$this->notify( 'processMacro', array( $match, $dom, $xpath, &$replacement, $sMacroName ) );
 		$parentNode = $match->parentNode;
-		if ( $match->parentNode === null ) {
-			$parentNode = $parentNode->ownerDocument;
+		if ( $parentNode === null ) {
+			return;
 		}
 		$parentNode->replaceChild(
-			$parentNode->ownerDocument->createTextNode( $replacement ),
+			$dom->createTextNode( $replacement ),
 			$match
 		);
 	}
