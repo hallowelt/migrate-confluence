@@ -74,3 +74,6 @@ See https://github.com/humbug/box
 * Preserve filename of "Broken_attachment"
 * Add `wikitable` as default class to `<table>`
 * Merge multiple `<code>` lines into `<pre>`
+* Remove bold/italic formatting from wikitext headings (e.g. `=== '''Some heading''' ===`)
+* Fix unconverted HTML lists in wikitext (e.g. `<ul><li>==== Lorem ipsum ====</li><li>'''<span class="confluence-link"> </span>[[Media:Some_file.pdf]]'''</li></ul><ul>`)
+* Remove empty confluence storage format fragments (e.g. `<span class="confluence-link"> </span>`, `<span class="no-children icon">`)
