@@ -5,10 +5,12 @@ namespace HalloWelt\MigrateConfluence\Converter;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
+use DOMText;
 use DOMXPath;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
 use SplFileInfo;
 use \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
@@ -200,9 +202,12 @@ class ConfluenceConverter extends PandocHTML {
 		$replacement .= "[[Category:Broken_macro/$sMacroName]]";
 
 		//$this->notify( 'processMacro', array( $match, $dom, $xpath, &$replacement, $sMacroName ) );
-
-		$match->parentNode->replaceChild(
-			$dom->createTextNode( $replacement ),
+		$parentNode = $match->parentNode;
+		if ( $match->parentNode === null ) {
+			$parentNode = $parentNode->ownerDocument;
+		}
+		$parentNode->replaceChild(
+			$parentNode->ownerDocument->createTextNode( $replacement ),
 			$match
 		);
 	}
@@ -237,12 +242,12 @@ class ConfluenceConverter extends PandocHTML {
 
 	public function makeReplacings() {
 		return array(
-			'//ac:link' => array( '\HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link', 'process' ),
-			'//ac:image' => array( '\HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image', 'process' ),
+			'//ac:link' => array( new Link(), 'process' ),
+			'//ac:image' => array( new Image(), 'process' ),
 			#'//ac:layout' => array( $this, 'processLayout' ),
 			'//ac:macro' => array( $this, 'processMacro' ),
 			'//ac:structured-macro' => array( $this, 'processStructuredMacro' ),
-			'//ac:emoticon' => array( '\HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon', 'process' ),
+			'//ac:emoticon' => array( new Emoticon(), 'process' ),
 			'//ac:task-list' => array( $this, 'processTaskList' ),
 			'//ac:inline-comment-marker' => array( $this, 'processInlineCommentMarker' ),
 			'//ac:placeholder' => array( $this, 'processPlaceholder' )
@@ -463,7 +468,8 @@ class ConfluenceConverter extends PandocHTML {
 		}
 		else {
 			$imgConverter = new Image();
-			$replacement = $imgConverter->makeImageLink( $dom, array( "{$oNameParam->nodeValue}.png" ) );
+			$replacementNode = $imgConverter->makeImageLink( $dom, array( "{$oNameParam->nodeValue}.png" ) );
+			$replacement = $replacementNode->ownerDocument->saveXML( $replacementNode );
 		}
 	}
 
