@@ -692,7 +692,7 @@ HERE;
 	public function postProcessLinks() {
 		$oldToNewTitlesMap = $this->dataBuckets->getBucketData( 'pages-titles-map' );
 
-		preg_replace_callback(
+		$this->wikiText = preg_replace_callback(
 			"/\[\[Media:(.*)]]/",
 			function( $matches ) use( $oldToNewTitlesMap ) {
 				if( isset( $oldToNewTitlesMap[$matches[1]] ) ) {
@@ -705,10 +705,9 @@ HERE;
 
 		// Pandoc converts external images like <img src='...' /> among others. It is not correct.
 		// So we need to find all images which look like that [[File:https://somesite.com]] and convert them back to <img>.
-		preg_replace_callback(
-			"/\[\[File:(http[s]?:\/\/.*)]]/",
-			function( $matches ) use( $oldToNewTitlesMap ) {
-
+		$this->wikiText = preg_replace_callback(
+			"/\[\[File:(.*)]]/",
+			function( $matches ) {
 				if( strpos( $matches[1], '|' ) ) {
 					$params = explode( '|', $matches[1] );
 					$replacement = $params[0];
@@ -717,7 +716,7 @@ HERE;
 					$replacement = $matches[1];
 				}
 
-				if( parse_url( $matches[1] ) ) {
+				if( parse_url( $replacement ) ) {
 					return "<img src='$replacement' />";
 				}
 				return $matches[0];
