@@ -53,7 +53,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		$pageAttachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
 
 		foreach( $pagesRevisions as $pageTitle => $pageRevision ) {
-			$this->output->writeln("Processing: $pageTitle\n");
+			$this->output->writeln("\nProcessing: $pageTitle\n");
 
 			$pageRevisionData = explode( '@', $pageRevision[0] );
 
