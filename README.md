@@ -3,7 +3,7 @@
 This is a command line tool to convert the contents of a Confluence space into a MediaWiki imprt data format.
 
 ## Prerequisites
-1. PHP 7.x must be installed
+1. PHP >= 7.4 must be installed
 2. The `pandoc` tool must be installed and available in the `PATH` (https://pandoc.org/installing.html)
 
 ## Workflow
