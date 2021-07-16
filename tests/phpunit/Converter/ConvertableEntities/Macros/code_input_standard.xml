@@ -1,0 +1,10 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="code" ac:schema-version="1" ac:macro-id="12346">
+		<ac:parameter ac:name="language">sql</ac:parameter>
+		<ac:parameter ac:name="title">The menu</ac:parameter>
+		<ac:parameter ac:name="collapse">true</ac:parameter>
+		<ac:plain-text-body>
+		<![CDATA[SELECT * FROM menu;]]>
+		</ac:plain-text-body>
+	</ac:structured-macro>
+</xml>

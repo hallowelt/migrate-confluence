@@ -1,0 +1,5 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<h6>The menu</h6><syntaxhighlight lang="sql">
+		SELECT * FROM menu;
+		</syntaxhighlight>
+</xml>
