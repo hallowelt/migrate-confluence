@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\ConvertableEntities\Macros
 use DOMDocument;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use PHPUnit\Framework\TestCase;
 
 class CodeTest extends TestCase {
@@ -25,7 +26,10 @@ class CodeTest extends TestCase {
 		$codeMacroProcessor = new Code();
 		$codeMacroProcessor->process( null, $match, $dom, $xpath );
 
-		$this->assertXmlStringEqualsXmlFile( $expectedOutputFile, $dom );
+		$expectedDom = new DOMDocument();
+		$expectedDom->load( $expectedOutputFile );
+
+		$this->assertEquals( $expectedDom->saveXML(), $dom->saveXML() );
 	}
 
 	/**

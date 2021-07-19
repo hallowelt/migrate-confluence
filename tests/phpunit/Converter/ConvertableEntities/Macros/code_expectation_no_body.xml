@@ -1,5 +1,4 @@
+<?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<h6>The menu</h6><syntaxhighlight lang="sql">
-		SELECT * FROM menu;
-		</syntaxhighlight>
+	<h6>Some SQL</h6><syntaxhighlight lang="sql">[[Category:Broken_macro/code/empty]]</syntaxhighlight>
 </xml>
