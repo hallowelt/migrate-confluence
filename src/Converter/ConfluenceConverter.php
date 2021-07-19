@@ -78,7 +78,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'pages-titles-map',
 			'title-attachments',
 			'body-contents-to-pages-map',
-			'page-id-to-space-id'
+			'page-id-to-space-id',
+			'space-id-to-prefix-map',
+			'filenames-to-filetitles-map'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
@@ -98,13 +100,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$bodyContentId = $this->getBodyContentIdFromFilename();
 		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
+		if( $pageId === -1 ) {
+			return '';
+		}
 		$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
 
 		$pagesIdsToTitlesMap = $this->dataBuckets->getBucketData( 'pages-ids-to-titles-map' );
 		if( isset($pagesIdsToTitlesMap[$pageId]) )
-			$this->currentPageTitle = $pagesIdsToTitlesMap[$this->rawFile->getFilename()];
+			$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
 		else
-			$this->currentPageTitle = 'not_current_revision_' . $this->rawFile->getFilename();
+			$this->currentPageTitle = 'not_current_revision_' . $pageId;
 
 		$dom = $this->preprocessFile();
 
@@ -166,7 +171,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function getPageIdFromBodyContentId( $bodyContentId ) {
 		$map = $this->dataBuckets->getBucketData( 'body-contents-to-pages-map' );
-		return $map[$bodyContentId];
+		return $map[$bodyContentId] ?? -1;
 	}
 
 	/**
@@ -176,7 +181,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function getSpaceIdFromPageId( $pageId ) {
 		$map = $this->dataBuckets->getBucketData( 'page-id-to-space-id' );
-		return $map[$pageId];
+		return $map[$pageId] ?? -1;
 	}
 
 	private function preprocessFile() {
