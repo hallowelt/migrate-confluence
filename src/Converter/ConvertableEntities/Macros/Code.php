@@ -23,7 +23,7 @@ class Code implements \HalloWelt\MigrateConfluence\Converter\IProcessable
         }
 
         $oPlainTextBody = $xpath->query( './ac:plain-text-body', $match )->item(0);
-        $sContent = '';
+        $sContent = '[[Category:Broken_macro/code/empty]]';
         if ( $oPlainTextBody instanceof DOMElement ) {
             $sContent = $oPlainTextBody->nodeValue;
         }

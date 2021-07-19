@@ -17,6 +17,7 @@ use \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use Symfony\Component\Console\Output\Output;
 
 class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
@@ -27,6 +28,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @var DataBuckets
 	 */
 	private $dataBuckets = null;
+
+	/**
+	 *
+	 * @var ConversionDataLookup
+	 */
+	private $dataLookup = null;
 
 	/**
 	 *
@@ -69,7 +76,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->dataBuckets = new DataBuckets( [
 			'pages-ids-to-titles-map',
 			'pages-titles-map',
-			'title-attachments'
+			'title-attachments',
+			'body-contents-to-pages-map',
+			'page-id-to-space-id'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
@@ -84,10 +93,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	protected function doConvert( SplFileInfo $file ): string {
 		$this->output->writeln( $file->getPathname() );
+		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->dataBuckets );
 		$this->rawFile = $file;
 
+		$bodyContentId = $this->getBodyContentIdFromFilename();
+		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
+		$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
+
 		$pagesIdsToTitlesMap = $this->dataBuckets->getBucketData( 'pages-ids-to-titles-map' );
-		if( isset($pagesIdsToTitlesMap[$this->rawFile->getFilename()]) )
+		if( isset($pagesIdsToTitlesMap[$pageId]) )
 			$this->currentPageTitle = $pagesIdsToTitlesMap[$this->rawFile->getFilename()];
 		else
 			$this->currentPageTitle = 'not_current_revision_' . $this->rawFile->getFilename();
@@ -132,6 +146,37 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->postProcessLinks();
 		$this->postprocessWikiText();
 		return $this->wikiText;
+	}
+
+	/**
+	 *
+	 * @return int
+	 */
+	private function getBodyContentIdFromFilename() {
+		// e.g. "67856345.mraw"
+		$filename = $this->rawFile->getFilename();
+		$filenameParts = explode( '.', $filename, 2 );
+		return (int)$filenameParts[0];
+	}
+
+	/**
+	 *
+	 * @param int $bodyContentId
+	 * @return int
+	 */
+	private function getPageIdFromBodyContentId( $bodyContentId ) {
+		$map = $this->dataBuckets->getBucketData( 'body-contents-to-pages-map' );
+		return $map[$bodyContentId];
+	}
+
+	/**
+	 *
+	 * @param int $pageId
+	 * @return int
+	 */
+	private function getSpaceIdFromPageId( $pageId ) {
+		$map = $this->dataBuckets->getBucketData( 'page-id-to-space-id' );
+		return $map[$pageId];
 	}
 
 	private function preprocessFile() {
@@ -260,7 +305,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	public function makeReplacings() {
 		return array(
-			'//ac:link' => array( new Link(), 'process' ),
+			'//ac:link' => array( new Link( $this->dataLookup, $this->currentSpace, $this->currentPageTitle ), 'process' ),
 			'//ac:image' => array( new Image(), 'process' ),
 			#'//ac:layout' => array( $this, 'processLayout' ),
 			'//ac:macro' => array( $this, 'processMacro' ),
@@ -407,7 +452,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				//$this->logMarkup( $match );
 			}
 
-			$linkConverter = new Link();
+			$linkConverter = new Link( $this->dataLookup, $this->currentSpace, $this->currentPageTitle );
 
 			$oContainer = $dom->createElement(
 				'span',

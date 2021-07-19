@@ -13,4 +13,12 @@
             <ri:attachment ri:filename="SomeImage1.png" />
         </ac:link>
     </div>
+
+    <div>
+        <ac:link>
+            <ri:attachment ri:filename="SomeImage1.png">
+                <ri:page ri:space-key="DEVOPS" ri:content-title="SomePage"/>
+            </ri:attachment>
+        </ac:link>
+    </div>
 </xml>
