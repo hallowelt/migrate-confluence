@@ -265,6 +265,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 						. "{$attachment->getNodePath()}; "
 						. "contentType: $contentType"
 				);
+				$targetName .= '.unknown';
 			}
 		}
 
