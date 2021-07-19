@@ -30,7 +30,11 @@ class ConversionDataLookup {
 	 * @return ConversionDataLookup
 	 */
 	public static function newFromBuckets( DataBuckets $buckets ) {
-
+		return new static(
+			$buckets->getBucketData( 'space-id-to-prefix-map' ),
+			$buckets->getBucketData( 'pages-titles-map' ),
+			$buckets->getBucketData( 'filenames-to-filetitles-map' )
+		);
 	}
 
 	/**
