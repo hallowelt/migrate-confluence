@@ -9,12 +9,43 @@ use DOMNode;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
 use HalloWelt\MigrateConfluence\Converter\IProcessable;
+use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
 class Link implements IProcessable
 {
-	/**
-	 * {@inheritDoc}
-	 */
+    /**
+     *
+     * @var ConversionDataLookup
+     */
+    private $dataLookup = null;
+
+    /**
+     *
+     * @var integer
+     */
+    private $currentSpaceId = -1;
+
+    /**
+     *
+     * @var string
+     */
+    private $rawPageTitle = '';
+
+    /**
+     *
+     * @param ConversionDataLookup $spaceIdPrefixMap
+     * @param int $currentSpaceId
+     * @param string $rawPageTitle
+     */
+    public function __construct( $dataLookup, $currentSpaceId, $rawPageTitle ) {
+        $this->dataLookup = $dataLookup;
+        $this->currentSpaceId = $currentSpaceId;
+        $this->rawPageTitle = $rawPageTitle;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function process( ?ConfluenceConverter $sender, DOMNode $match, DOMDocument $dom, DOMXPath $xpath ): void
     {
         $attachmentEl = $xpath->query( './ri:attachment', $match )->item(0);
@@ -24,12 +55,41 @@ class Link implements IProcessable
         $linkParts = array();
         $isMediaLink = false;
         $isUserLink = false;
+        $isBrokenPageLink = false;
         if( $attachmentEl instanceof DOMElement ) {
-            $linkParts[] = $attachmentEl->getAttribute( 'ri:filename' );
+            $riFilename = $attachmentEl->getAttribute( 'ri:filename' );
+            $nestedPageEl = $xpath->query( './ri:page', $attachmentEl )->item(0);
+            $rawPageTitle = $this->rawPageTitle;
+            $spaceId = $this->currentSpaceId;
+            if ( $nestedPageEl instanceof DOMElement ) {
+                $rawPageTitle = $nestedPageEl->getAttribute( 'ri:content-title' );
+                $spaceKey = $nestedPageEl->getAttribute( 'ri:space-key' );
+                if ( !empty( $spaceKey ) ) {
+                    $spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+                }
+            }
+            $confluenceFileKey = "$spaceId---$rawPageTitle---$riFilename";
+            $targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+            $linkParts[] = $targetFilename;
             $isMediaLink = true;
         }
         elseif( $pageEl instanceof DOMElement ) {
-            $linkParts[] = $pageEl->getAttribute( 'ri:content-title' );
+            $spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+            $spaceId = $this->currentSpaceId;
+            if ( !empty( $spaceKey ) ) {
+                $spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+            }
+            $rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
+            $confluencePageKey = "$spaceId---$rawPageTitle";
+            $targetTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
+            if( empty( $targetTitle ) ) {
+                // If not in migation data, save some info for manual post migration work
+                $linkParts[] = "Confluence---$confluencePageKey";
+                $isBrokenPageLink = true;
+            }
+            else {
+                $linkParts[] = $targetTitle;
+            }
         }
         elseif( $userEl instanceof DOMElement ) {
             $userKey = $userEl->getAttribute( 'ri:userkey' );
@@ -53,8 +113,7 @@ class Link implements IProcessable
         if( $linkBody instanceof DOMElement ) {
             $linkParts[] = $linkBody->nodeValue;
         }
-
-        //$this->notify( 'processLink', array( $match, $dom, $xpath, &$linkParts ) );
+        $linkParts = array_map( 'trim' , $linkParts );
 
         $replacement = '[[Category:Broken_link]]';
         if( !empty( $linkParts ) ) {
@@ -70,6 +129,10 @@ class Link implements IProcessable
             $replacement .= '[[Category:Broken_user_link]]';
         }
 
+        if( $isBrokenPageLink ) {
+            $replacement .= '[[Category:Broken_page_link]]';
+        }
+
         $match->parentNode->replaceChild(
             $dom->createTextNode( $replacement ),
             $match
@@ -77,7 +140,7 @@ class Link implements IProcessable
     }
 
     public function makeMediaLink( $params )
-	{
+    {
         /*
         * The converter only knows the context of the current page that
         * is being converted
@@ -86,12 +149,6 @@ class Link implements IProcessable
         * all the information from the original XML
         */
         $params = array_map( 'trim', $params );
-        //$this->notify('makeMediaLink', array( &$params ) );
         return '[[Media:'.implode( '|', $params ).']]';
-    }
-
-    public function postProcess( $params )
-	{
-
     }
 }

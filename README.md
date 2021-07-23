@@ -52,6 +52,7 @@ You may need to update your MediaWiki search index afterwards.
 In the case that the tool can not migrate content or functionality it will create a category, so you can manually fix issues after the import
 - `Broken_link`
 - `Broken_user_link`
+- `Broken_page_link`
 - `Broken_image`
 - `Broken_layout`
 - `Broken_macro/<macro-name>`
