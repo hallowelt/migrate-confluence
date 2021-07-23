@@ -101,7 +101,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$bodyContentId = $this->getBodyContentIdFromFilename();
 		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
 		if( $pageId === -1 ) {
-			return '';
+			return '<-- No context page id found -->';
 		}
 		$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
 

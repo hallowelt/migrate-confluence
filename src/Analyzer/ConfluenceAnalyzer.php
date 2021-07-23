@@ -55,6 +55,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 	/**
 	 *
+	 * @var string
+	 */
+	private $pageConfluenceTitle = '';
+
+	/**
+	 *
 	 * @param array $config
 	 * @param Workspace $workspace
 	 * @param DataBuckets $buckets
@@ -179,11 +185,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			 * Example:
 			 * "Detailed_planning" -> "Dokumentation/Detailed_planning"
 			 */
-			$pageConfluenceTitle = $this->helper->getPropertyValue( 'title', $pageNode );
+			$this->pageConfluenceTitle = $this->helper->getPropertyValue( 'title', $pageNode );
 			// We need to preserve the spaceID, so we can properly resolve cross-space links
 			// in the `convert` stage
-			$pageConfluenceTitle = "$spaceId---$pageConfluenceTitle";
-			$this->customBuckets->addData( 'pages-titles-map', $pageConfluenceTitle, $targetTitle, false, true );
+			$this->pageConfluenceTitle = "$spaceId---{$this->pageConfluenceTitle}";
+			$this->customBuckets->addData( 'pages-titles-map', $this->pageConfluenceTitle, $targetTitle, false, true );
 
 			// Also add pages IDs in Confluence to full page title mapping.
 			// It is needed to have enough context on converting stage, to know from filename which page is currently being converted.
@@ -269,7 +275,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			}
 		}
 
-		$this->customBuckets->addData( 'filenames-to-filetitles-map', $fileName, $targetName, false, true );
+		$fileKey = "{$this->pageConfluenceTitle}---$fileName";
+		$this->customBuckets->addData( 'filenames-to-filetitles-map', $fileKey, $targetName, false, true );
 
 		return $targetName;
 	}
