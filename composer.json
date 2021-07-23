@@ -20,12 +20,22 @@
 		"ext-dom": "*"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "^6.5"
+		"jakub-onderka/php-parallel-lint": "1.0.0",
+		"jakub-onderka/php-console-highlighter": "0.4.0",
+		"phpunit/phpunit": "^9"
 	},
 	"autoload": {
 		"psr-4": {
 			"HalloWelt\\MigrateConfluence\\": "src/",
 			"HalloWelt\\MigrateConfluence\\Tests\\": "tests/phpunit/"
 		}
+	},
+	"scripts": {
+		"unittest": [
+			"vendor/phpunit/phpunit/phpunit --configuration .phpunit.xml"
+		],
+		"test": [
+			"parallel-lint . --exclude vendor --exclude node_modules"
+		]
 	}
 }

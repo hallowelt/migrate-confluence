@@ -1,3 +1,3 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-    <div>[[Page Title|Link to another confluence Page]]</div>
+    <div>[[Page Title|Link to another Confluence Page]]</div>
 </xml>

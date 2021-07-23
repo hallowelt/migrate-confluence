@@ -15,6 +15,8 @@ use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
 use SplFileInfo;
 use \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
+use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use Symfony\Component\Console\Output\Output;
 
 class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
@@ -178,7 +180,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
 		}
 		elseif( $sMacroName === 'code' ) {
-			$this->processCodeMacro( $sender, $match, $dom, $xpath, $replacement );
+			$processor = new Code();
+			$processor->process( $sender, $match, $dom, $xpath );
 		}
 		elseif( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
 			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
@@ -277,6 +280,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	protected function preprocessHTMLSource( $oHTMLSourceFile ) {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
 
+		$preprocessors = [
+			new CDATAClosingFixer()
+		];
+		/** @var IPreprocessor */
+		foreach ( $preprocessors as $preprocessor ) {
+			$sContent = $preprocessor->preprocess( $sContent );
+		}
+
 		/**
 		 * As this is a mixture of XML and HTML the XMLParser has trouble
 		 * with entities from HTML. To circumvent this we replace all entites
@@ -372,41 +383,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$oChild = $oRTBody->childNodes->item(0);
 			$oNewContainer->appendChild( $oChild );
 		}
-	}
-
-	/**
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string $replacement
-	 */
-	private function processCodeMacro($sender, $match, $dom, $xpath, &$replacement) {
-		$titleParam = $xpath->query( './ac:parameter[@ac:name="title"]', $match )->item(0);
-		$oLanguageParam = $xpath->query( './ac:parameter[@ac:name="language"]', $match )->item(0);
-		$sLanguage = '';
-		if($oLanguageParam instanceof DOMElement) {
-			$sLanguage = $oLanguageParam->nodeValue;
-		}
-
-		$oPlainTextBody = $xpath->query( './ac:plain-text-body', $match )->item(0);
-		$sContent = $oPlainTextBody->nodeValue;
-
-		$syntaxhighlight = $dom->createElement( 'syntaxhighlight', $sContent );
-		if( $sLanguage !== '' ) {
-			$syntaxhighlight->setAttribute( 'lang', $sLanguage );
-		}
-		if( empty( $sContent ) ) {
-			//error_log("CODE: '$sLanguage': $sContent in {$file->getPathname()}");
-			//$this->logMarkup( $dom->documentElement );
-		}
-		if( $titleParam instanceof DOMElement ) {
-			$match->parentNode->insertBefore(
-				$dom->createElement( 'h6', $titleParam->nodeValue ),
-				$match
-			);
-		}
-
-		$match->parentNode->insertBefore( $syntaxhighlight, $match );
 	}
 
 	/**

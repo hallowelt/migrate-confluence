@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="code" ac:schema-version="1" ac:macro-id="12345">
+		<ac:parameter ac:name="language">sql</ac:parameter>
+		<ac:parameter ac:name="title">Some SQL</ac:parameter>
+		<ac:parameter ac:name="collapse">true</ac:parameter>
+	</ac:structured-macro>
+</xml>
