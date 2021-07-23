@@ -35,9 +35,6 @@ class EmoticonTest extends TestCase
 			$emoticonConvert->process(null, $emoticon, $domInput, $xpath);
 		}
 
-		// Compare string from input XML with expected XML output
-		$this->assertXmlStringEqualsXmlFile( __DIR__ . '/emoticon_output.xml', $domInput);
-
 		$domOutput = new DOMDocument();
 		// Load output XML
 		$domOutput->loadXML( file_get_contents( __DIR__ . '/emoticon_output.xml' ) );

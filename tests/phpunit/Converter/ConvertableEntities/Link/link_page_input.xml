@@ -16,9 +16,9 @@
 
     <div>
         <ac:link>
-            <ri:page ri:content-title="Page Title3" />
+            <ri:page ri:content-title="Page Title3" ri:space-key="DEVOPS" />
             <ac:plain-text-link-body>
-                <![CDATA[Link to another Confluence Page]]>
+                <![CDATA[Link to a Confluence Page in another space]]>
             </ac:plain-text-link-body>
         </ac:link>
     </div>

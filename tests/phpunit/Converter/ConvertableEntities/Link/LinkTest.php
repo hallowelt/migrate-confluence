@@ -1,12 +1,11 @@
 <?php
 
-
 namespace HalloWelt\MigrateConfluence\Tests\Converter\ConvertableEntities\Link;
-
 
 use DOMDocument;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
+use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,11 +21,9 @@ class LinkTest extends TestCase
 	public function testProcessAttachmentLinkSuccess()
 	{
 		$domInput = new DOMDocument();
-		// Load input XML
 		$domInput->loadXML( file_get_contents( __DIR__ . '/link_attachment_input.xml' ) );
 
 		$xpath = new DOMXPath( $domInput );
-
 		$linksLive = $domInput->getElementsByTagName(  'link' );
 
 		$links = [];
@@ -34,17 +31,27 @@ class LinkTest extends TestCase
 			$links[] = $linkLive;
 		}
 
-		$linkConvert = new Link();
+		$currentSpaceId = 42;
+		$currentRawPagename = 'SomePage';
+		$dataLookup = new ConversionDataLookup(
+			[
+				42 => '',
+				23 => 'DEVOPS'
+			],
+			[],
+			[
+				'42---SomePage---SomeImage.png' => 'SomePage_SomeImage.png',
+				'42---SomePage---SomeImage1.png' => 'SomePage_SomeImage1.png',
+				'23---SomePage---SomeImage1.png' => 'DEVOPS_SomePage_SomeImage1.png'
+			]
+		);
+		$linkConvert = new Link( $dataLookup, $currentSpaceId, $currentRawPagename );
 
-		// Convert links
 		foreach( $links as $link ) {
 			$linkConvert->process( null, $link, $domInput, $xpath );
 		}
 
-		$this->assertXmlStringEqualsXmlFile( __DIR__ . '/link_attachment_output.xml', $domInput );
-
 		$linksActual = [];
-
 		$linksActualLive = $domInput->getElementsByTagName('div');
 		foreach( $linksActualLive as $link ) {
 			$linkActualRaw = $link->textContent;
@@ -52,18 +59,9 @@ class LinkTest extends TestCase
 		}
 
 		$domOutput = new DOMDocument();
-		// Load output XML
 		$domOutput->loadXML( file_get_contents( __DIR__ . '/link_attachment_output.xml' ) );
 
-		$linksExpected = [];
-
-		$linksExpectedLive = $domOutput->getElementsByTagName('div');
-		foreach( $linksExpectedLive as $link ) {
-			$linkExpectedRaw = $link->textContent;
-			$linksExpected[] = trim( $linkExpectedRaw );
-		}
-
-		$this->assertEquals( $linksExpected, $linksActual );
+		$this->assertEquals( $domOutput->saveXML(), $domInput->saveXML() );
 	}
 
 	/**
@@ -72,33 +70,38 @@ class LinkTest extends TestCase
 	public function testProcessPageLinkSuccess()
 	{
 		$domInput = new DOMDocument();
-		// Load input XML
 		$domInput->loadXML( file_get_contents( __DIR__ . '/link_page_input.xml' ) );
-
 		$xpath = new DOMXPath( $domInput );
 
-		// Convert link
-		$link = $domInput->getElementsByTagName(  'link' )->item( 0 );
-		$linkConvert = new Link();
-		$linkConvert->process( null, $link, $domInput, $xpath );
+		$linksLive = $domInput->getElementsByTagName( 'link' );
+		$links = [];
+		foreach( $linksLive as $linkLive ) {
+			$links[] = $linkLive;
+		}
 
-		$linkActualRaw = $domInput->getElementsByTagName( 'div' )->item( 0 )->textContent;
-		$linkActual = trim( $linkActualRaw );
+		$currentSpaceId = 42;
+		$currentRawPagename = 'SomePage';
+		$dataLookup = new ConversionDataLookup(
+			[
+				42 => '',
+				23 => 'DEVOPS'
+			],
+			[
+				'42---Page Title' => 'Page_Title',
+				'42---Page Title2' => 'Page_Title2',
+				'42---Page Title3' => 'Page_Title3',
+				'23---Page Title3' => 'DEVOPS:Page_Title3',
+			],
+			[]
+		);
+		$linkConvert = new Link( $dataLookup, $currentSpaceId, $currentRawPagename );
+		foreach ($links as $link ) {
+			$linkConvert->process( null, $link, $domInput, $xpath );
+		}
 
-		$domOutput = new DOMDocument();
-		// Load output XML
-		$domOutput->loadXML( file_get_contents( __DIR__ . '/link_page_output.xml' ) );
+		$expectedDom = new DOMDocument();
+		$expectedDom->load( __DIR__ . '/link_page_output.xml' );
 
-		// As far as attachment link is converted not to an link tag, but to a string
-		// we should just check converted link's span as a content of parent 'div'
-		$linkExpectedRaw = $domOutput->getElementsByTagName( 'div' )->item( 0 )->textContent;
-		$linkExpected = trim( $linkExpectedRaw );
-
-		$this->assertEquals( $linkExpected, $linkActual );
-	}
-
-	public function testProcessPageAndNamespaceLinkSuccess()
-	{
-
+		$this->assertEquals( $expectedDom->saveXML(), $domInput->saveXML() );
 	}
 }

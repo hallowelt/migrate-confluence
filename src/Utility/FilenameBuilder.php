@@ -67,7 +67,6 @@ class FilenameBuilder {
 
 	/**
 	 *
-	 * @param BSConfluenceXMLHelper $this->helper
 	 * @param DOMElement $attachmentNode
 	 * @return int
 	 */
