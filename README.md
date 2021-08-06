@@ -12,13 +12,16 @@ This is a command line tool to convert the contents of a Confluence space into a
 1. Create an export of your confluence space
 
 Step 1:
-![Export 1][c001]
+
+<kbd>![Export 1][c001]</kbd>
 
 Step 2:
-![Export 2][c002]
+
+<kbd>![Export 2][c002]</kbd>
 
 Step 3:
-![Export 3][c003]
+
+<kbd>![Export 3][c003]</kbd>
 
 2. Save it to a location that is accessbile by this tool (e.g. `/tmp/confluence/input/Confluence-export.zip`)
 3. Extract the ZIP file (e.g. `/tmp/confluence/input/Confluence-export`)
