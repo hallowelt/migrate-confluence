@@ -34,8 +34,8 @@ Step 3:
 ### Migrate the contents
 1. Create the "workspace" directory (e.g. `/tmp/confluence/workspace/` )
 2. From the parent directory (e.g. `/tmp/confluence/` ), run the migration commands
-	1. Run `migrate-confluence analyze --src input/ --dest workspace/` to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
-	2. Run `migrate-confluence extract --src input/ --dest workspace/` to extract all contents, like wikipage contents, attachments and images into the workspace
+	1. Run `migrate-confluence analyze --src ./ --dest workspace/` to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
+	2. Run `migrate-confluence extract --src ./ --dest workspace/` to extract all contents, like wikipage contents, attachments and images into the workspace
 	3. Run `migrate-confluence convert --src workspace/ --dest workspace/` to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText
 	4. Run `migrate-confluence compose --src workspace/ --dest workspace/` to create importable data
 
