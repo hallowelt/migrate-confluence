@@ -6,6 +6,10 @@ This is a command line tool to convert the contents of a Confluence space into a
 1. PHP >= 7.4 must be installed
 2. The `pandoc` tool must be installed and available in the `PATH` (https://pandoc.org/installing.html)
 
+## Installation
+1. Download `migrate-confluence.phar` from https://github.com/hallowelt/migrate-confluence/releases/tag/latest
+2. Copy `migrate-confluence.phar` to `/usr/local/bin/`migrate-confluence`
+
 ## Workflow
 
 ### Export "space" from Confluence
@@ -68,8 +72,10 @@ In the case that the tool can not migrate content or functionality it will creat
 - Various layouts
 - Blog posts
 
-## Creating a PHAR
-See https://github.com/humbug/box
+## Creating a build
+1. Clone this repo
+2. Run `composer update`
+3. Run `box build` to actually create the PHAR file  in `dist/`. See also https://github.com/humbug/box
 
 # TODO
 * Reduce multiple linebreaks (`<br />`) to one
