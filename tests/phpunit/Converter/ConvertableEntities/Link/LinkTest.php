@@ -13,21 +13,19 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link
  */
-class LinkTest extends TestCase
-{
+class LinkTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link::process()
 	 */
-	public function testProcessAttachmentLinkSuccess()
-	{
+	public function testProcessAttachmentLinkSuccess() {
 		$domInput = new DOMDocument();
 		$domInput->loadXML( file_get_contents( __DIR__ . '/link_attachment_input.xml' ) );
 
 		$xpath = new DOMXPath( $domInput );
-		$linksLive = $domInput->getElementsByTagName(  'link' );
+		$linksLive = $domInput->getElementsByTagName( 'link' );
 
 		$links = [];
-		foreach( $linksLive as $linkLive ) {
+		foreach ( $linksLive as $linkLive ) {
 			$links[] = $linkLive;
 		}
 
@@ -47,13 +45,13 @@ class LinkTest extends TestCase
 		);
 		$linkConvert = new Link( $dataLookup, $currentSpaceId, $currentRawPagename );
 
-		foreach( $links as $link ) {
+		foreach ( $links as $link ) {
 			$linkConvert->process( null, $link, $domInput, $xpath );
 		}
 
 		$linksActual = [];
-		$linksActualLive = $domInput->getElementsByTagName('div');
-		foreach( $linksActualLive as $link ) {
+		$linksActualLive = $domInput->getElementsByTagName( 'div' );
+		foreach ( $linksActualLive as $link ) {
 			$linkActualRaw = $link->textContent;
 			$linksActual[] = trim( $linkActualRaw );
 		}
@@ -67,15 +65,14 @@ class LinkTest extends TestCase
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link::process()
 	 */
-	public function testProcessPageLinkSuccess()
-	{
+	public function testProcessPageLinkSuccess() {
 		$domInput = new DOMDocument();
 		$domInput->loadXML( file_get_contents( __DIR__ . '/link_page_input.xml' ) );
 		$xpath = new DOMXPath( $domInput );
 
 		$linksLive = $domInput->getElementsByTagName( 'link' );
 		$links = [];
-		foreach( $linksLive as $linkLive ) {
+		foreach ( $linksLive as $linkLive ) {
 			$links[] = $linkLive;
 		}
 
@@ -95,7 +92,7 @@ class LinkTest extends TestCase
 			[]
 		);
 		$linkConvert = new Link( $dataLookup, $currentSpaceId, $currentRawPagename );
-		foreach ($links as $link ) {
+		foreach ( $links as $link ) {
 			$linkConvert->process( null, $link, $domInput, $xpath );
 		}
 

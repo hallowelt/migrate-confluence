@@ -1,6 +1,5 @@
 <?php
 
-
 namespace HalloWelt\MigrateConfluence\Tests\Converter\ConvertableEntities\Image;
 
 use DOMDocument;
@@ -14,56 +13,53 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image
  */
-class ImageTest extends TestCase
-{
+class ImageTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image::process()
 	 */
-	public function testProcessLinkSuccess()
-	{
+	public function testProcessLinkSuccess() {
 		$domInput = new DOMDocument();
 		// Load input XML
 		$domInput->loadXML( file_get_contents( __DIR__ . '/image_link_input.xml' ) );
 
-		$xpath = new DOMXPath($domInput);
+		$xpath = new DOMXPath( $domInput );
 
 		// Convert image
-		$img = $domInput->getElementsByTagName( 'image' )->item(0);
+		$img = $domInput->getElementsByTagName( 'image' )->item( 0 );
 		$imgConvert = new Image();
-		$imgConvert->process(null, $img, $domInput, $xpath);
+		$imgConvert->process( null, $img, $domInput, $xpath );
 
 		// Get converted element
 		/** @var DOMElement $imgActual */
-		$imgActual = $domInput->getElementsByTagName( 'img' )->item(0);
+		$imgActual = $domInput->getElementsByTagName( 'img' )->item( 0 );
 
 		$domOutput = new DOMDocument();
 		// Load output XML
 		$domOutput->loadXML( file_get_contents( __DIR__ . '/image_link_output.xml' ) );
 
 		/** @var DOMElement $imgExpected */
-		$imgExpected = $domOutput->getElementsByTagName('img')->item(0);
+		$imgExpected = $domOutput->getElementsByTagName( 'img' )->item( 0 );
 
 		$attributesActual = [];
-		foreach($imgActual->attributes as $attribute) {
+		foreach ( $imgActual->attributes as $attribute ) {
 			$attributesActual[$attribute->name] = $attribute->value;
 		}
 
 		$attributesExpect = [];
-		foreach($imgExpected->attributes as $attribute) {
+		foreach ( $imgExpected->attributes as $attribute ) {
 			$attributesExpect[$attribute->name] = $attribute->value;
 		}
 
 		// Check that image was converted correctly, all attributes are preserved
-		$this->assertEqualXMLStructure($imgExpected, $imgActual, true);
+		$this->assertEqualXMLStructure( $imgExpected, $imgActual, true );
 
-		$this->assertEquals($attributesExpect, $attributesActual);
+		$this->assertEquals( $attributesExpect, $attributesActual );
 	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image::process()
 	 */
-	public function testProcessAttachmentSuccess()
-	{
+	public function testProcessAttachmentSuccess() {
 		$domInput = new DOMDocument();
 		// Load input XML
 		$domInput->loadXML( file_get_contents( __DIR__ . '/image_attachment_input.xml' ) );
@@ -72,7 +68,7 @@ class ImageTest extends TestCase
 
 		// Convert attachment image
 		$img = $domInput->getElementsByTagName( 'image' )->item( 0 );
-		$imgConvert = new Image($img);
+		$imgConvert = new Image( $img );
 		$imgConvert->process( null, $img, $domInput, $xpath );
 
 		// As far as attachment image is converted not to an image tag, but to a string

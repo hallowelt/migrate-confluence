@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\ConvertableEntities\Macros
 use DOMDocument;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
-use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use PHPUnit\Framework\TestCase;
 
 class CodeTest extends TestCase {

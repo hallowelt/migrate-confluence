@@ -44,11 +44,10 @@ class TitleBuilder {
 		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$this->builder->setNamespace( $spaceId );
 
-		if( $fullTitle ) {
+		if ( $fullTitle ) {
 			$titles = $this->addParentTitles( $pageNode );
 			$fullTitle = implode( '/', array_reverse( $titles ) );
-		}
-		else {
+		} else {
 			$fullTitle = $this->helper->getPropertyValue( 'title', $pageNode );
 		}
 
@@ -57,22 +56,21 @@ class TitleBuilder {
 		return $this->builder->invertTitleSegments()->build();
 	}
 
-
 	/**
 	 *
 	 * @param BSConfluenceXMLHelper $this->helper
 	 * @param DOMElement $pageNode
 	 * 	 * @return int
 	 */
-	private function getSpaceId( $pageNode) {
+	private function getSpaceId( $pageNode ) {
 		$spaceId = $this->helper->getPropertyValue( 'space', $pageNode );
-		if( is_int( $spaceId ) ) {
+		if ( is_int( $spaceId ) ) {
 			return $spaceId;
 		}
 
 		$originalVersion = $this->helper->getPropertyValue( 'originalVersion', $pageNode );
-		if( $originalVersion !== null ) {
-			$origPage = $this->helper->getObjectNodeById( $originalVersion , 'Page' );
+		if ( $originalVersion !== null ) {
+			$origPage = $this->helper->getObjectNodeById( $originalVersion, 'Page' );
 			return $this->getSpaceId( $origPage );
 		}
 		return 0;
@@ -84,7 +82,7 @@ class TitleBuilder {
 		$titles = [ $title ];
 
 		$parentPageId = $this->helper->getPropertyValue( 'parent', $pageNode );
-		while( is_integer( $parentPageId ) ) {
+		while ( is_int( $parentPageId ) ) {
 			$parentPage = $this->helper->getObjectNodeById( $parentPageId, 'Page' );
 			$parentTitle = $this->helper->getPropertyValue( 'title', $parentPage );
 

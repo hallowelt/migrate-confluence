@@ -13,10 +13,10 @@ class CDATAClosingFixer implements IPreprocessor {
 	/**
 	 * @inheritDoc
 	 */
-	public function preprocess(string $confluenceHTML): string {
+	public function preprocess( string $confluenceHTML ): string {
 		$confluenceHTML = preg_replace_callback(
 			$this->pattern,
-			function( $matches ) {
+			function ( $matches ) {
 				return $this->preprocessPlainTextBody( $matches );
 			},
 			$confluenceHTML
@@ -40,14 +40,14 @@ class CDATAClosingFixer implements IPreprocessor {
 			}
 		}
 
-		return $startTag.$content.$endTag;
+		return $startTag . $content . $endTag;
 	}
 
 	/**
 	 *
 	 * @param string $text
 	 * @param string $prefix
-	 * @return boolean
+	 * @return bool
 	 */
 	private function startsWith( $text, $prefix ) {
 		return strpos( $text, $prefix ) === 0;
@@ -57,7 +57,7 @@ class CDATAClosingFixer implements IPreprocessor {
 	 *
 	 * @param string $content
 	 * @param string $suffix
-	 * @return boolean
+	 * @return bool
 	 */
 	private function endsWith( $content, $suffix ) {
 		$contentLength = mb_strlen( $content );

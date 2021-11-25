@@ -53,7 +53,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 */
 	private function getBodyContentHTML( DOMElement $bodyContent ) {
 		$rawValue = $this->helper->getPropertyValue( 'body', $bodyContent );
-		//For a strange reason the CDATA blocks are not closed properly...
+		// For a strange reason the CDATA blocks are not closed properly...
 		$fixedValue = str_replace( ']] >', ']]>', $rawValue );
 		return '<html><body>' . $fixedValue . '</body></html>';
 	}
@@ -66,7 +66,7 @@ class ConfluenceExtractor extends ExtractorBase {
 			$labelValue = $this->helper->getPropertyValue( 'name', $label );
 			$labelNamespace = $this->helper->getPropertyValue( 'namespace', $label );
 
-			//There may be `my` or `team` also
+			// There may be `my` or `team` also
 			if ( $labelNamespace !== 'global' ) {
 				continue;
 			}
@@ -78,7 +78,7 @@ class ConfluenceExtractor extends ExtractorBase {
 		foreach ( $pages as $page ) {
 			$id = $this->helper->getIDNodeValue( $page );
 
-			//Currently we only extract "Categories"
+			// Currently we only extract "Categories"
 			$categories = [];
 			$labellingEls = $this->helper->getElementsFromCollection( 'labellings', $page );
 			foreach ( $labellingEls as $labellingEl ) {
@@ -86,7 +86,7 @@ class ConfluenceExtractor extends ExtractorBase {
 				$labelling = $this->helper->getObjectNodeById( $labellingId, 'Labelling' );
 				$labelProp = $this->helper->getPropertyNode( 'label', $labelling );
 				$labelId = $this->helper->getIDNodeValue( $labelProp );
-				if( isset( $labelMap[$labelId] ) ) {
+				if ( isset( $labelMap[$labelId] ) ) {
 					$categories[] = $labelMap[$labelId];
 				}
 			}

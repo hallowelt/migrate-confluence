@@ -26,7 +26,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private $dom = null;
 
-
 	/**
 	 * @var DataBuckets
 	 */
@@ -99,7 +98,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return bool
 	 */
 	public function analyze( SplFileInfo $file ): bool {
-		if( $file->getFilename() !== 'entities.xml' ) {
+		if ( $file->getFilename() !== 'entities.xml' ) {
 			return true;
 		}
 
@@ -115,7 +114,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return bool
 	 */
 	protected function doAnalyze( SplFileInfo $file ): bool {
-
 		$this->dom = new DOMDocument();
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
@@ -130,12 +128,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private function makeSpacesMap() {
 		$spaces = $this->helper->getObjectNodes( 'Space' );
 		$this->output->writeln( "\nFinding namespaces" );
-		foreach( $spaces as $space ) {
+		foreach ( $spaces as $space ) {
 			$spaceId = $this->helper->getIDNodeValue( $space );
 			$spaceKey = $this->helper->getPropertyValue( 'key', $space );
 
 			$this->output->writeln( "- $spaceKey (ID:$spaceId)" );
-			//Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
+			// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
 			if ( $spaceKey === 'GENERAL' ) {
 				$spaceKey = '';
 			}
@@ -148,23 +146,23 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$pageNodes = $this->helper->getObjectNodes( "Page" );
 		$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
 		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $this->helper );
-		foreach( $pageNodes as $pageNode ) {
-			if( $pageNode instanceof DOMElement === false ) {
+		foreach ( $pageNodes as $pageNode ) {
+			if ( $pageNode instanceof DOMElement === false ) {
 				continue;
 			}
 
-			$status = $this->helper->getPropertyValue('contentStatus', $pageNode );
-			if( $status !== 'current' ) {
+			$status = $this->helper->getPropertyValue( 'contentStatus', $pageNode );
+			if ( $status !== 'current' ) {
 				continue;
 			}
 
 			$spaceId = $this->helper->getPropertyValue( 'space', $pageNode );
-			if( $spaceId === null ) {
+			if ( $spaceId === null ) {
 				continue;
 			}
 
 			$originalVersionID = $this->helper->getPropertyValue( 'originalVersion', $pageNode );
-			if( $originalVersionID !== null ) {
+			if ( $originalVersionID !== null ) {
 				continue;
 			}
 
@@ -200,7 +198,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$revisionTimestamp = $this->buildRevisionTimestamp( $pageNode );
 			$bodyContentIds = $this->getBodyContentIds( $pageNode );
 
-			foreach( $bodyContentIds as $bodyContentId ) {
+			foreach ( $bodyContentIds as $bodyContentId ) {
 				$this->customBuckets->addData( 'body-contents-to-pages-map', $bodyContentId, $pageId, false, true );
 			}
 
@@ -257,15 +255,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		 * sometimes even this won't help... ("octet-stream")
 		 */
 		$file = new SplFileInfo( $targetName );
-		if( $this->hasNoExplicitFileExtension( $file ) ){
+		if ( $this->hasNoExplicitFileExtension( $file ) ) {
 			$contentType = $this->helper->getPropertyValue( 'contentType', $attachment );
-			if( $contentType === 'application/gliffy+json' ) {
+			if ( $contentType === 'application/gliffy+json' ) {
 				$targetName .= '.json';
-			}
-			elseif ( $contentType === 'application/gliffy+xml' ) {
+			} elseif ( $contentType === 'application/gliffy+xml' ) {
 				$targetName .= '.xml';
-			}
-			else {
+			} else {
 				$this->logger->debug(
 					"Could not find file extension for $fileName as "
 						. "{$attachment->getNodePath()}; "
@@ -294,7 +290,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$containerId = $this->helper->getPropertyValue( 'containerContent', $attachment );
 		}
 		$attachmentVersion = $this->helper->getPropertyValue( 'attachmentVersion', $attachment );
-		if( empty( $attachmentVersion ) ) {
+		if ( empty( $attachmentVersion ) ) {
 			$attachmentVersion = $this->helper->getPropertyValue( 'version', $attachment );
 		}
 
@@ -302,11 +298,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		 * Sometimes there is no explicit version set in the "attachment" object. In such cases
 		 * there we always fetch the highest number from the respective directory
 		 */
-		if( empty( $attachmentVersion ) ) {
+		if ( empty( $attachmentVersion ) ) {
 			$attachmentVersion = '__LATEST__';
 		}
 
-		$path = $basePath . "/". $containerId .'/'.$attachmentId.'/'.$attachmentVersion;
+		$path = $basePath . "/" . $containerId . '/' . $attachmentId . '/' . $attachmentVersion;
 		return $path;
 	}
 
@@ -331,7 +327,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$ids = [];
 		$bodyContentEl = $this->helper->getElementsFromCollection( 'bodyContents', $pageNode );
 
-		foreach( $bodyContentEl as $bodyContentElement ) {
+		foreach ( $bodyContentEl as $bodyContentElement ) {
 			$ids[] = $this->helper->getIDNodeValue( $bodyContentElement );
 		}
 		return $ids;
@@ -340,25 +336,25 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private function addAdditionalFiles() {
 		$this->output->writeln( "\nFinding attachments" );
 		$attachments = $this->helper->getObjectNodes( 'Attachment' );
-		foreach( $attachments as $attachment ) {
-			if( $attachment instanceof DOMElement === false ) {
+		foreach ( $attachments as $attachment ) {
+			if ( $attachment instanceof DOMElement === false ) {
 				continue;
 			}
-			$originalVersionID = $this->helper->getPropertyValue( 'originalVersion', $attachment);
+			$originalVersionID = $this->helper->getPropertyValue( 'originalVersion', $attachment );
 
 			// Skip legacy versions
-			if( $originalVersionID !== null ) {
+			if ( $originalVersionID !== null ) {
 				continue;
 			}
 
-			$sourceContentID = $this->helper->getPropertyValue( 'sourceContent', $attachment);
-			if( !empty( $sourceContentID ) ) {
+			$sourceContentID = $this->helper->getPropertyValue( 'sourceContent', $attachment );
+			if ( !empty( $sourceContentID ) ) {
 				// This has already been added as a page attachment
 				continue;
 			}
 
 			$attachmentId = $this->helper->getIDNodeValue( $attachment );
-			if( isset( $this->addedAttachmentIds[$attachmentId] ) ) {
+			if ( isset( $this->addedAttachmentIds[$attachmentId] ) ) {
 				// This has already been added as a page attachment
 				continue;
 			}
@@ -373,14 +369,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	/**
 	 *
 	 * @param SplFileInfo $file
-	 * @return boolean
+	 * @return bool
 	 */
 	private function hasNoExplicitFileExtension( $file ) {
 		if ( $file->getExtension() === '' ) {
 			return true;
 		}
 		// Evil hack for Names like "02.1 Some-Workflow File"
-		if ( strlen($file->getExtension()) > 10 ) {
+		if ( strlen( $file->getExtension() ) > 10 ) {
 
 		}
 		return false;

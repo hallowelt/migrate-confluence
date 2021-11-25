@@ -45,7 +45,6 @@ class ConversionDataLookup {
 	 */
 	public function __construct( $spaceIdPrefixMap, $confluencePageKeyTargetTitleMap,
 		$confluenceFilenameTargetFiletitleMap ) {
-
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->confluencePageKeyTargetTitleMap = $confluencePageKeyTargetTitleMap;
 		$this->confluenceFilenameTargetFiletitleMap = $confluenceFilenameTargetFiletitleMap;
@@ -74,7 +73,6 @@ class ConversionDataLookup {
 	 * @return string
 	 */
 	public function getTargetTitleFromConfluencePageKey( $confluencePageKey ) {
-
 		if ( isset( $this->confluencePageKeyTargetTitleMap[$confluencePageKey] ) ) {
 			return $this->confluencePageKeyTargetTitleMap[$confluencePageKey];
 		}
@@ -87,7 +85,6 @@ class ConversionDataLookup {
 	 * @return string
 	 */
 	public function getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey ) {
-
 		if ( isset( $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey] ) ) {
 			return $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey];
 		}

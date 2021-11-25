@@ -61,42 +61,40 @@ class XMLHelper implements LoggerAwareInterface {
 	 * @throws UnexpectedValueException
 	 */
 	public function getIDNodeValue( $domNode ) {
-		//TODO: Use XPath to query only direct children!
-		$idNode = $domNode->getElementsByTagName('id')->item(0);
-		if( $idNode instanceof DOMElement === false ) {
+		// TODO: Use XPath to query only direct children!
+		$idNode = $domNode->getElementsByTagName( 'id' )->item( 0 );
+		if ( $idNode instanceof DOMElement === false ) {
 			throw new UnexpectedValueException( 'No ID element found!' );
 		}
 
-		return (int) $idNode->nodeValue;
+		return (int)$idNode->nodeValue;
 	}
 
 	/**
 	 *
 	 * @param string $propName
-	 * @param DOMElement $contextElement
+	 * @param DOMElement|null $contextElement
 	 * @return DOMNodeList
 	 */
 	public function getPropertyNodes( $propName, $contextElement = null ) {
-		if( $contextElement === null ) {
-			//Fetch all in whole document
-			return $this->xpath->query( '//property[@name="'.$propName.'"]' );
+		if ( $contextElement === null ) {
+			// Fetch all in whole document
+			return $this->xpath->query( '//property[@name="' . $propName . '"]' );
 		}
 
-		//Fetch only direct children from context
-		return $this->xpath->query( './property[@name="'.$propName.'"]', $contextElement );
+		// Fetch only direct children from context
+		return $this->xpath->query( './property[@name="' . $propName . '"]', $contextElement );
 	}
 
 	/**
 	 *
 	 * @param string $propName
-	 * @param DOMElement $contextElement
+	 * @param DOMElement|null $contextElement
 	 * @return DOMElement
 	 */
 	public function getPropertyNode( $propName, $contextElement = null ) {
-		return $this->getPropertyNodes($propName, $contextElement)->item(0);
+		return $this->getPropertyNodes( $propName, $contextElement )->item( 0 );
 	}
-
-
 
 	/**
 	 * There are some classes of <property> elements that do not contain the value
@@ -105,9 +103,9 @@ class XMLHelper implements LoggerAwareInterface {
 	 *
 	 * @var array
 	 */
-	protected $propertyClassesOfTypeIDRef = array(
+	protected $propertyClassesOfTypeIDRef = [
 		'Space', 'Page', 'ConfluenceUserImpl', 'Attachment'
-	);
+	];
 
 	/**
 	 *
@@ -116,16 +114,16 @@ class XMLHelper implements LoggerAwareInterface {
 	 */
 	public function getPropertyValue( $propertyName, $contextElement ) {
 		$propertyNode = $this->getPropertyNode( $propertyName, $contextElement );
-		if( $propertyNode instanceof DOMElement == false ) {
+		if ( $propertyNode instanceof DOMElement == false ) {
 			$contextElementId = $this->getIDNodeValue( $contextElement );
 			$this->logger->debug(
-				'Node "'.$contextElement->getNodePath(). " (ID:$contextElementId)" .
-					'" contains no property "'.$propertyName.'"!'
+				'Node "' . $contextElement->getNodePath() . " (ID:$contextElementId)" .
+					'" contains no property "' . $propertyName . '"!'
 			);
 			return null;
 		}
-		$sClass = $propertyNode->getAttribute('class');
-		if(in_array( $sClass, $this->propertyClassesOfTypeIDRef ) ) {
+		$sClass = $propertyNode->getAttribute( 'class' );
+		if ( in_array( $sClass, $this->propertyClassesOfTypeIDRef ) ) {
 			return $this->getIDNodeValue( $propertyNode );
 		}
 
@@ -139,7 +137,7 @@ class XMLHelper implements LoggerAwareInterface {
 	 * @return DOMNodeList
 	 */
 	public function getObjectNodes( $objectNodeClass ) {
-		return $this->xpath->query('//object[@class="'.$objectNodeClass.'"]');
+		return $this->xpath->query( '//object[@class="' . $objectNodeClass . '"]' );
 	}
 
 	/**
@@ -150,7 +148,7 @@ class XMLHelper implements LoggerAwareInterface {
 	 */
 	public function getObjectNodeById( $id, $objectNodeClass ) {
 		$xpathExpression = "//object[@class='$objectNodeClass' and id='$id']";
-		return $this->xpath->query( $xpathExpression )->item(0);
+		return $this->xpath->query( $xpathExpression )->item( 0 );
 	}
 
 	/**
@@ -160,6 +158,6 @@ class XMLHelper implements LoggerAwareInterface {
 	 * @return DOMNodeList
 	 */
 	public function getElementsFromCollection( $collectionName, $contextElement ) {
-		return $this->xpath->query( './collection[@name="'.$collectionName.'"]/element', $contextElement );
+		return $this->xpath->query( './collection[@name="' . $collectionName . '"]/element', $contextElement );
 	}
 }

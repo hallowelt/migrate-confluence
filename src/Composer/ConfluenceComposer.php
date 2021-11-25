@@ -1,8 +1,6 @@
 <?php
 
-
 namespace HalloWelt\MigrateConfluence\Composer;
-
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
@@ -52,8 +50,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		$filesMap = $this->dataBuckets->getBucketData( 'files' );
 		$pageAttachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
 
-		foreach( $pagesRevisions as $pageTitle => $pageRevision ) {
-			$this->output->writeln("\nProcessing: $pageTitle\n");
+		foreach ( $pagesRevisions as $pageTitle => $pageRevision ) {
+			$this->output->writeln( "\nProcessing: $pageTitle\n" );
 
 			$pageRevisionData = explode( '@', $pageRevision[0] );
 
@@ -63,8 +61,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			$bodyContentIdsArr = explode( '/', $bodyContentIds );
 
 			$pageContent = "";
-			foreach( $bodyContentIdsArr as $bodyContentId ) {
-				$this->output->writeln("Getting '$bodyContentId' body content...");
+			foreach ( $bodyContentIdsArr as $bodyContentId ) {
+				$this->output->writeln( "Getting '$bodyContentId' body content..." );
 
 				$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
 			}
@@ -72,20 +70,19 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			$builder->addRevision( $pageTitle, $pageContent, $timestamp );
 
 			// Append attachments
-			if( !empty( $pageAttachmentsMap[$pageTitle] ) ) {
-				$this->output->writeln("\nPage has attachments. Adding them...\n");
+			if ( !empty( $pageAttachmentsMap[$pageTitle] ) ) {
+				$this->output->writeln( "\nPage has attachments. Adding them...\n" );
 
 				$attachments = $pageAttachmentsMap[$pageTitle];
-				foreach( $attachments as $attachment ) {
-					$this->output->writeln("Attachment: $attachment");
-					if( isset( $filesMap[$attachment] ) ) {
+				foreach ( $attachments as $attachment ) {
+					$this->output->writeln( "Attachment: $attachment" );
+					if ( isset( $filesMap[$attachment] ) ) {
 						$filePath = $filesMap[$attachment][0];
 						$attachmentContent = file_get_contents( $filePath );
 
 						$this->workspace->saveUploadFile( $attachment, $attachmentContent );
-					}
-					else {
-						$this->output->writeln("Attachment file was not found!");
+					} else {
+						$this->output->writeln( "Attachment file was not found!" );
 					}
 				}
 			}

@@ -1,18 +1,11 @@
 <?php
 
-
 namespace HalloWelt\MigrateConfluence\Tests\Utility\FilenameBuilder;
 
-
-use DOMDocument;
-use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
-use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use PHPUnit\Framework\TestCase;
 
-class FilenameBuilderTest extends TestCase
-{
-	public function testFilenameBuild()
-	{
+class FilenameBuilderTest extends TestCase {
+	public function testFilenameBuild() {
 		/*$dom = new DOMDocument();
 		$dom->load( __DIR__ . '/entities_test.xml' );
 		$helper = new XMLHelper( $dom );
@@ -52,6 +45,6 @@ class FilenameBuilderTest extends TestCase
 		];
 
 		$this->assertEquals( $expectedTitles, $actualTitles );*/
-		$this->assertTrue(true);
+		$this->assertTrue( true );
 	}
 }

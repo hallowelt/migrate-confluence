@@ -53,16 +53,16 @@ class FilenameBuilder {
 			$title = $this->helper->getPropertyValue( 'title', $attachmentNode );
 		}
 		$this->builder->appendTitleSegment( $title );
-		if( !empty( $assocTitle ) ) {
+		if ( !empty( $assocTitle ) ) {
 			$this->builder->appendTitleSegment( $assocTitle );
 		}
 		$builtTitle = $this->builder->invertTitleSegments()->build();
 
-		$builtTitle = str_replace('/', '_', $builtTitle);
+		$builtTitle = str_replace( '/', '_', $builtTitle );
 
 		$filename = new WindowsFilename( $builtTitle );
 
-		return (string) $filename;
+		return (string)$filename;
 	}
 
 	/**
@@ -70,15 +70,15 @@ class FilenameBuilder {
 	 * @param DOMElement $attachmentNode
 	 * @return int
 	 */
-	private function getSpaceId( $attachmentNode) {
+	private function getSpaceId( $attachmentNode ) {
 		$spaceId = $this->helper->getPropertyValue( 'space', $attachmentNode );
-		if( is_int( $spaceId ) ) {
+		if ( is_int( $spaceId ) ) {
 			return $spaceId;
 		}
 
 		$originalVersion = $this->helper->getPropertyValue( 'originalVersion', $attachmentNode );
-		if( $originalVersion !== null ) {
-			$origPage = $this->helper->getObjectNodeById( $originalVersion , 'Page' );
+		if ( $originalVersion !== null ) {
+			$origPage = $this->helper->getObjectNodeById( $originalVersion, 'Page' );
 			return $this->getSpaceId( $origPage );
 		}
 

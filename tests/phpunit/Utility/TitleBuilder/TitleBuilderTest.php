@@ -1,21 +1,17 @@
 <?php
 
-
 namespace HalloWelt\MigrateConfluence\Tests\Utility\TitleBuilder;
-
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use PHPUnit\Framework\TestCase;
 
-class TitleBuilderTest extends TestCase
-{
+class TitleBuilderTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Utility\TitleBuilder::buildTitle()
 	 */
-	public function testBuildTitle()
-	{
+	public function testBuildTitle() {
 		$dom = new DOMDocument();
 		$dom->load( __DIR__ . '/entities_test.xml' );
 		$helper = new XMLHelper( $dom );
@@ -28,11 +24,11 @@ class TitleBuilderTest extends TestCase
 		$pageNodes = $helper->getObjectNodes( "Page" );
 
 		$actualTitles = [];
-		foreach( $pageNodes as $pageNode ) {
+		foreach ( $pageNodes as $pageNode ) {
 			$fullTitle = $titleBuilder->buildTitle( $pageNode );
 
 			$originalVersionID = $helper->getPropertyValue( 'originalVersion', $pageNode );
-			if( $originalVersionID !== null ) {
+			if ( $originalVersionID !== null ) {
 				continue;
 			}
 

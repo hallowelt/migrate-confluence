@@ -1,21 +1,17 @@
 <?php
 
-
 namespace HalloWelt\MigrateConfluence\Tests\Converter\ConvertableEntities\Emoticon;
-
 
 use DOMDocument;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
 use PHPUnit\Framework\TestCase;
 
-class EmoticonTest extends TestCase
-{
+class EmoticonTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon::process()
 	 */
-	public function testProcessEmoticonSuccess()
-	{
+	public function testProcessEmoticonSuccess() {
 		$domInput = new DOMDocument();
 		// Load input XML
 		$domInput->loadXML( file_get_contents( __DIR__ . '/emoticon_input.xml' ) );
@@ -27,12 +23,12 @@ class EmoticonTest extends TestCase
 
 		$emoticonsLive = $domInput->getElementsByTagName( 'emoticon' );
 		$emoticons = [];
-		foreach( $emoticonsLive as $el ) {
+		foreach ( $emoticonsLive as $el ) {
 			$emoticons[] = $el;
 		}
 
-		foreach($emoticons as $emoticon) {
-			$emoticonConvert->process(null, $emoticon, $domInput, $xpath);
+		foreach ( $emoticons as $emoticon ) {
+			$emoticonConvert->process( null, $emoticon, $domInput, $xpath );
 		}
 
 		$domOutput = new DOMDocument();
@@ -42,7 +38,7 @@ class EmoticonTest extends TestCase
 		$emoticonsActual = [];
 
 		$emoticons = $domInput->getElementsByTagName( 'p' );
-		foreach( $emoticons as $emoticon ) {
+		foreach ( $emoticons as $emoticon ) {
 			$emoticonActualRaw = $emoticon->textContent;
 			$emoticonsActual[] = trim( $emoticonActualRaw );
 		}
@@ -50,12 +46,12 @@ class EmoticonTest extends TestCase
 		$emoticonsExpected = [];
 
 		$emoticons = $domOutput->getElementsByTagName( 'p' );
-		foreach( $emoticons as $emoticon ) {
+		foreach ( $emoticons as $emoticon ) {
 			$emoticonExpectedRaw = $emoticon->textContent;
 			$emoticonsExpected[] = trim( $emoticonExpectedRaw );
 		}
 
-		$this->assertEquals($emoticonsExpected, $emoticonsActual);
+		$this->assertEquals( $emoticonsExpected, $emoticonsActual );
 	}
 
 }
