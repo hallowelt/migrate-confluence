@@ -1,0 +1,235 @@
+<html>
+	<body>
+		<ac:layout>
+			<ac:layout-section ac:type="fixed-width" ac:breakout-mode="default">
+				<ac:layout-cell>
+					<ac:structured-macro ac:name="tip" ac:schema-version="1" ac:macro-id="ee43a951-6be6-4eb5-85e6-5478af3aaba5">
+						<ac:rich-text-body>
+							<p>Welcome to your first space. Go ahead, edit and customize this home page any way you like. We've added some sample content to get you started.</p>
+						</ac:rich-text-body>
+					</ac:structured-macro>
+					<ac:image ac:align="left" ac:layout="align-start" ac:original-height="329" ac:original-width="1900">
+						<ri:attachment ri:filename="peak.jpeg" ri:version-at-save="1" />
+					</ac:image>
+					<p>&nbsp;</p>
+				</ac:layout-cell>
+			</ac:layout-section>
+			<ac:layout-section ac:type="two_right_sidebar" ac:breakout-mode="full-width">
+				<ac:layout-cell>
+					<hr />
+					<h1>
+						<strong>Goal</strong>
+					</h1>
+					<h2>
+						<em>Your space homepage should summarize what the space is for, and provide links to key resources for your team.&nbsp;</em>
+					</h2>
+					<hr />
+					<p>&nbsp;</p>
+					<h1>
+						<strong>Core team</strong>
+					</h1>
+					<table data-layout="full-width">
+						<colgroup>
+							<col style="width: 548.0px;" />
+							<col style="width: 362.0px;" />
+							<col style="width: 321.0px;" />
+							<col style="width: 351.0px;" />
+						</colgroup>
+						<tbody>
+							<tr>
+								<td>
+									<ac:image ac:align="left" ac:layout="align-start" ac:original-height="334" ac:original-width="334" ac:width="95">
+										<ri:attachment ri:filename="Harvey.jpg" ri:version-at-save="1" />
+									</ac:image>
+									<p style="text-align: center;">
+										<strong>Harvey Honner-white</strong>
+										<br />Team Lead
+										<strong>&nbsp;</strong>
+									</p>
+								</td>
+								<td>
+									<ac:image ac:align="left" ac:layout="align-start" ac:original-height="334" ac:original-width="334" ac:width="95">
+										<ri:attachment ri:filename="Alana.jpg" ri:version-at-save="1" />
+									</ac:image>
+									<p style="text-align: center;">
+										<strong>Alana Baczewski</strong>
+										<br />
+										<strong>&nbsp;</strong>Tech Lead
+									</p>
+								</td>
+								<td>
+									<ac:image ac:align="left" ac:layout="align-start" ac:original-height="300" ac:original-width="300" ac:width="95">
+										<ri:attachment ri:filename="Sameer.jpg" ri:version-at-save="1" />
+									</ac:image>
+									<p style="text-align: center;">
+										<strong>Sameer Farrell</strong>
+										<br />
+										<strong>&nbsp;</strong>Marketing
+									</p>
+								</td>
+								<td>
+									<ac:image ac:align="left" ac:layout="align-start" ac:original-height="334" ac:original-width="334" ac:width="95">
+										<ri:attachment ri:filename="Cassie.jpg" ri:version-at-save="1" />
+									</ac:image>
+									<p style="text-align: center;">
+										<strong>Mia Bednarczyk</strong>
+										<br />
+										<strong>&nbsp;</strong>Recruitment
+									</p>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<p>&nbsp;</p>
+					<h1>
+						<strong>Roadmap</strong>
+					</h1>
+					<p>You can edit this roadmap or create a new one by adding the Roadmap Planner macro from the Insert menu. Link your Confluence pages to each bar to add visibility, and find more tips by reading the Atlassian blog:&nbsp;
+						<a href="http://blogs.atlassian.com/2015/01/roadmap-planner-macro/">Plan better in 2015 with the Roadmap Planner macro</a>.
+					</p>
+					<ac:structured-macro ac:name="roadmap" ac:schema-version="1" data-layout="default" ac:macro-id="acab4a3d-dde3-4e22-a912-ce9f886e3e91">
+						<ac:parameter ac:name="maplinks" />
+						<ac:parameter ac:name="timeline">true</ac:parameter>
+						<ac:parameter ac:name="source">%7B%22title%22%3A%22Roadmap%20Planner%22%2C%22timeline%22%3A%7B%22startDate%22%3A%222015-06-01%2000%3A00%3A00%22%2C%22endDate%22%3A%222015-12-31%2000%3A00%3A00%22%2C%22displayOption%22%3A%22MONTH%22%7D%2C%22lanes%22%3A%5B%7B%22title%22%3A%22Marketing%22%2C%22color%22%3A%7B%22lane%22%3A%22%23f15c75%22%2C%22bar%22%3A%22%23f58598%22%2C%22text%22%3A%22%23ffffff%22%2C%22count%22%3A1%7D%2C%22bars%22%3A%5B%7B%22title%22%3A%22Social%20campaign%22%2C%22description%22%3A%22Add%20a%20description%20to%20your%20bars%20here.%22%2C%22startDate%22%3A%222015-07-30%2011%3A10%3A05%22%2C%22duration%22%3A3.6435643564356437%2C%22rowIndex%22%3A0%2C%22id%22%3A%22e703c6a8-1649-4d20-9ccf-2c7a8698e385%22%2C%22pageLink%22%3A%7B%7D%7D%2C%7B%22title%22%3A%22Website%20development%22%2C%22description%22%3A%22Add%20a%20description%20to%20your%20bars%20here.%22%2C%22startDate%22%3A%222015-07-17%2006%3A24%3A57%22%2C%22duration%22%3A3.3069306930693068%2C%22rowIndex%22%3A1%2C%22id%22%3A%22655d454d-b701-4584-a301-9ea0bb86ed32%22%2C%22pageLink%22%3A%7B%7D%7D%2C%7B%22rowIndex%22%3A2%2C%22startDate%22%3A%222015-06-01%2000%3A00%3A00%22%2C%22id%22%3A%22c420ef33-ae28-4828-958f-8a9d793153b3%22%2C%22title%22%3A%22Crowdfunding%20campaign%22%2C%22description%22%3A%22Add%20a%20description%20to%20your%20bars%20here.%22%2C%22duration%22%3A2.5544554455445545%2C%22pageLink%22%3A%7B%7D%7D%5D%7D%2C%7B%22title%22%3A%22People%22%2C%22color%22%3A%7B%22lane%22%3A%22%23654982%22%2C%22bar%22%3A%22%238c77a1%22%2C%22text%22%3A%22%23ffffff%22%2C%22count%22%3A1%7D%2C%22bars%22%3A%5B%7B%22title%22%3A%22Recruitment%22%2C%22description%22%3A%22%22%2C%22startDate%22%3A%222015-06-01%2000%3A00%3A00%22%2C%22duration%22%3A2.5%2C%22rowIndex%22%3A0%2C%22id%22%3A%221230bab8-718c-47da-903a-2cbdcb220d97%22%2C%22pageLink%22%3A%7B%7D%7D%2C%7B%22rowIndex%22%3A0%2C%22startDate%22%3A%222015-08-17%2013%3A46%3A55%22%2C%22id%22%3A%228639d09c-59d1-4d1f-ad91-c78f04b20135%22%2C%22title%22%3A%22Assessment%20Period%22%2C%22description%22%3A%22%22%2C%22duration%22%3A2.910891089108911%2C%22pageLink%22%3A%7B%7D%7D%2C%7B%22rowIndex%22%3A1%2C%22startDate%22%3A%222015-09-01%2021%3A23%3A10%22%2C%22id%22%3A%22802b53f7-ba66-4415-984d-efef93b4caec%22%2C%22title%22%3A%22Training%22%2C%22description%22%3A%22%22%2C%22duration%22%3A2.5841584158415842%2C%22pageLink%22%3A%7B%7D%7D%2C%7B%22rowIndex%22%3A0%2C%22startDate%22%3A%222015-11-15%2006%3A10%3A41%22%2C%22id%22%3A%22502fac56-3849-415f-b412-af27c39229b7%22%2C%22title%22%3A%22Finalisation%22%2C%22description%22%3A%22%22%2C%22duration%22%3A1.4356435643564356%2C%22pageLink%22%3A%7B%7D%7D%5D%7D%2C%7B%22title%22%3A%22Product%22%2C%22color%22%3A%7B%22lane%22%3A%22%233b7fc4%22%2C%22bar%22%3A%22%236c9fd3%22%2C%22text%22%3A%22%23ffffff%22%2C%22count%22%3A1%7D%2C%22bars%22%3A%5B%7B%22rowIndex%22%3A0%2C%22startDate%22%3A%222015-06-24%2004%3A02%3A22%22%2C%22id%22%3A%2200ada54b-0998-41a5-aa98-712ecdec8c7f%22%2C%22title%22%3A%22Planning%22%2C%22description%22%3A%22%22%2C%22duration%22%3A2.1782178217821784%2C%22pageLink%22%3A%7B%7D%7D%2C%7B%22rowIndex%22%3A0%2C%22startDate%22%3A%222015-08-31%2001%3A54%3A03%22%2C%22id%22%3A%2271967f2c-f3ab-4871-aaf5-7cf31389e62f%22%2C%22title%22%3A%22Development%22%2C%22description%22%3A%22%22%2C%22duration%22%3A1.9207920792079207%2C%22pageLink%22%3A%7B%7D%7D%2C%7B%22rowIndex%22%3A0%2C%22startDate%22%3A%222015-10-29%2013%3A04%3A09%22%2C%22id%22%3A%22d76ac773-3ee7-495b-9d7f-1daf267dc58c%22%2C%22title%22%3A%22Testing%22%2C%22description%22%3A%22%22%2C%22duration%22%3A1%2C%22pageLink%22%3A%7B%7D%7D%2C%7B%22rowIndex%22%3A0%2C%22startDate%22%3A%222015-11-30%2002%3A36%3A49%22%2C%22id%22%3A%224f584dc6-63b8-4efa-a98e-a5d7bbe9910e%22%2C%22title%22%3A%22Deploy%22%2C%22description%22%3A%22%22%2C%22duration%22%3A1.0297029702970297%2C%22pageLink%22%3A%7B%7D%7D%5D%7D%5D%2C%22markers%22%3A%5B%7B%22title%22%3A%22Yearly%20Finalisation%22%2C%22markerDate%22%3A%222015-11-29%2012%3A21%3A23%22%7D%5D%7D</ac:parameter>
+						<ac:parameter ac:name="pagelinks" />
+						<ac:parameter ac:name="title">Roadmap%20Planner</ac:parameter>
+						<ac:parameter ac:name="hash">f0477dfac6f6ca380d8c5f2f44041947</ac:parameter>
+					</ac:structured-macro>
+					<p>&nbsp;</p>
+					<h1>
+						<strong>Know your spaces</strong>&nbsp;
+					</h1>
+					<p>Everything your team is working on - meeting notes and agendas, project plans and timelines, technical documentation and more - is located in a space; it's home base for your team.</p>
+					<p>A small team should plan to have a space for the team, and a space for each big project. If you'll be working in Confluence with several other teams and departments, we recommend a space for each team as well as a space for each major cross-team project. The key is to think of a space as the container that holds all the important stuff - like pages, files, and blog posts - a team, group, or project needs to work.</p>
+					<h1>
+						<strong>Know your pages</strong>
+					</h1>
+					<p>If you're working on something related to your team - project plans, product requirements, blog posts, internal communications, you name it - create and store it in a Confluence page. Confluence pages offer a lot of flexibility in creating and storing information, and there are a number of useful page templates included to get you started, like the&nbsp;meeting notes template. Your spaces should be filled with pages that document your business processes, outline your plans, contain your files, and report on your progress. The more you learn to do in Confluence (adding tables and graphs, or embedding video and links are great places to start), the more engaging and helpful your pages will become.</p>
+					<p>Learn more by reading&nbsp;
+						<a href="https://www.atlassian.com/collaboration/confluence-organize-work-in-spaces">Confluence 101: organize your work in spaces</a>
+					</p>
+					<p>&nbsp;</p>
+					<hr />
+				</ac:layout-cell>
+				<ac:layout-cell>
+					<h1>
+						<strong>Quick navigation</strong>
+					</h1>
+					<p>When you create new pages in this space, they'll appear here automatically.</p>
+					<ac:structured-macro ac:name="children" ac:schema-version="2" data-layout="default" ac:macro-id="8ca379f2-ea2a-4fbb-bf4a-77619f9875ed" />
+					<h1>
+						<strong>Useful links</strong>
+					</h1>
+					<table data-layout="full-width">
+						<colgroup>
+							<col style="width: 207.0px;" />
+							<col style="width: 1376.0px;" />
+						</colgroup>
+						<tbody>
+							<tr>
+								<th>
+									<p>Link</p>
+								</th>
+								<th>
+									<p>Description</p>
+								</th>
+							</tr>
+							<tr>
+								<td>
+									<p>
+										<a href="https://www.atlassian.com/collaboration/confluence-organize-work-in-spaces">Confluence 101: organize your work in spaces</a>
+									</p>
+								</td>
+								<td>
+									<p>Chances are, the information you need to do your job lives in multiple places. Word docs, Evernote files, email, PDFs, even Post-it notes. It's scattered among different systems. And to make matters worse,&nbsp;
+										<em>the stuff your teammates need is equally siloed</em>. If information had feelings, it would be lonely.
+									</p>
+									<p>But with&nbsp;Confluence, you can bring all that information into one place.</p>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<p>
+										<a href="https://www.atlassian.com/collaboration/confluence-discuss-work-with-your-team">Confluence 101: discuss work with your team</a>
+									</p>
+								</td>
+								<td>
+									<p>Getting a project outlined and adding the right content are just the first steps. Now it's time for your team to weigh in.&nbsp;Confluence&nbsp;makes it easy to discuss your work - with your team, your boss, or your entire company - in the same place where you organized and created it.</p>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<p>
+										<a href="https://www.atlassian.com/collaboration/confluence-create-content-with-pages">Confluence 101: create content with pages</a>
+									</p>
+								</td>
+								<td>
+									<p>Think of pages as a New Age &quot;document.&quot; If Word docs were rotary phones, Confluence pages would be smart phones. A smart phone still makes calls (like their rotary counterparts), but it can do so much more than that</p>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<p>
+						<br />
+					</p>
+					<p>
+						<strong>Tasks</strong>
+					</p>
+					<table data-layout="full-width">
+						<colgroup>
+							<col style="width: 1584.0px;" />
+						</colgroup>
+						<tbody>
+							<tr>
+								<td>
+									<ac:task-list>
+										<ac:task>
+											<ac:task-id>59</ac:task-id>
+											<ac:task-status>incomplete</ac:task-status>
+											<ac:task-body>
+												<span class="placeholder-inline-tasks">
+													<a href="https://confluence.atlassian.com/x/NgszKw">Customize the name, colour, and icon of Confluence</a>.
+												</span>
+											</ac:task-body>
+										</ac:task>
+										<ac:task>
+											<ac:task-id>56</ac:task-id>
+											<ac:task-status>incomplete</ac:task-status>
+											<ac:task-body>
+												<span class="placeholder-inline-tasks">Decide who can see and edit this space or a specific page by clicking the 
+													<ac:image>
+														<ri:attachment ri:filename="lock-icon.png" ri:version-at-save="1" />
+													</ac:image> icon. Learn more about 
+													<a href="https://confluence.atlassian.com/x/liAC">Page Restrictions</a> and 
+													<a href="https://confluence.atlassian.com/x/ASEC">Space Permissions</a>.
+												</span>
+											</ac:task-body>
+										</ac:task>
+										<ac:task>
+											<ac:task-id>57</ac:task-id>
+											<ac:task-status>incomplete</ac:task-status>
+											<ac:task-body>
+												<span class="placeholder-inline-tasks">Try adding an 
+													<a href="https://confluence.atlassian.com/x/2yAC">inline comment</a> by highlighting some text and click the comment icon.
+												</span>
+											</ac:task-body>
+										</ac:task>
+										<ac:task>
+											<ac:task-id>58</ac:task-id>
+											<ac:task-status>incomplete</ac:task-status>
+											<ac:task-body>
+												<span class="placeholder-inline-tasks">Learn more about 
+													<a href="https://confluence.atlassian.com/x/SRwC">inviting your team to Confluence</a>.
+												</span>
+											</ac:task-body>
+										</ac:task>
+									</ac:task-list>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</ac:layout-cell>
+			</ac:layout-section>
+		</ac:layout>
+	</body>
+</html>
