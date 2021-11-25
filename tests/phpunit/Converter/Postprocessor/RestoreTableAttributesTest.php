@@ -19,7 +19,17 @@ Lorem
 | Table
 |
 |}
-[[Ipum]]
+[[Ipsum]]
+{|
+|width="50%"| <span data="ABC" class="XYZ">###PRESERVEDTABLEATTRIBUTES###</span>
+|width="50%"|
+|-
+| Some
+| [[DEF]]
+|-
+| Table
+|
+|}
 HERE;
 
 	private $expectedOutput = <<<HERE
@@ -31,7 +41,14 @@ Lorem
 | Table
 |
 |}
-[[Ipum]]
+[[Ipsum]]
+{| data="ABC" class="XYZ"
+| Some
+| [[DEF]]
+|-
+| Table
+|
+|}
 HERE;
 
 	/**

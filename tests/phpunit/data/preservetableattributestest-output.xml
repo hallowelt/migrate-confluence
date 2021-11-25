@@ -1,15 +1,15 @@
 <html>
 	<table data-layout="full-width" class="someotherclass">
-		<tr>
-			<td>
-				<span data-layout="full-width" class="wikitable someotherclass">###PRESERVEDTABLEATTRIBUTES###</span>
-			</td>
-		</tr>
 		<colgroup>
 			<col style="width: 207.0px;" />
 			<col style="width: 1376.0px;" />
 		</colgroup>
 		<tbody>
+			<tr>
+				<td>
+					<span data-layout="full-width" class="someotherclass wikitable">###PRESERVEDTABLEATTRIBUTES###</span>
+				</td>
+			</tr>
 			<tr>
 				<th>
 					<p>Link</p>
@@ -25,12 +25,28 @@
 					</p>
 				</td>
 				<td>
-					<p>Chances are, the information you need to do your job lives in multiple places. Word docs, Evernote files, email, PDFs, even Post-it notes. It's scattered among different systems. And to make matters worse,&nbsp;
+					<p>Chances are, the information you need to do your job lives in multiple places. Word docs, Evernote files, email, PDFs, even Post-it notes. It's scattered among different systems. And to make matters worse, 
 						<em>the stuff your teammates need is equally siloed</em>. If information had feelings, it would be lonely.
 					</p>
-					<p>But with&nbsp;Confluence, you can bring all that information into one place.</p>
+					<p>But with Confluence, you can bring all that information into one place.</p>
 				</td>
 			</tr>
 		</tbody>
+	</table>
+	<p>Some Text</p>
+	<table data-layout="full-width" class="someotherclass">
+		<tr>
+			<td>
+				<span data-layout="full-width" class="someotherclass wikitable">###PRESERVEDTABLEATTRIBUTES###</span>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<p>Dummy</p>
+			</td>
+			<td>
+				<p>Content</p>
+			</td>
+		</tr>
 	</table>
 </html>

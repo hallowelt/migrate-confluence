@@ -20,12 +20,23 @@
 					</p>
 				</td>
 				<td>
-					<p>Chances are, the information you need to do your job lives in multiple places. Word docs, Evernote files, email, PDFs, even Post-it notes. It's scattered among different systems. And to make matters worse,&nbsp;
+					<p>Chances are, the information you need to do your job lives in multiple places. Word docs, Evernote files, email, PDFs, even Post-it notes. It's scattered among different systems. And to make matters worse, 
 						<em>the stuff your teammates need is equally siloed</em>. If information had feelings, it would be lonely.
 					</p>
-					<p>But with&nbsp;Confluence, you can bring all that information into one place.</p>
+					<p>But with Confluence, you can bring all that information into one place.</p>
 				</td>
 			</tr>
 		</tbody>
+	</table>
+	<p>Some Text</p>
+	<table data-layout="full-width" class="someotherclass">
+		<tr>
+			<td>
+				<p>Dummy</p>
+			</td>
+			<td>
+				<p>Content</p>
+			</td>
+		</tr>
 	</table>
 </html>
