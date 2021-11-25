@@ -1,6 +1,13 @@
 {
 	"name": "hallowelt/migrate-confluence",
 	"type": "project",
+	"description": "Tool to convert Confluence Export XML into MediaWiki import XML",
+	"keywords": [
+		"wiki",
+		"MediaWiki",
+		"Confluence"
+	],
+	"license": "GPL-3.0-only",
 	"authors": [
 		{
 			"name": "Robert Vogel",
@@ -13,13 +20,16 @@
 	}],
 	"require": {
 		"psr/log": "~1.1",
-		"hallowelt/mediawiki-lib-mediawikixml": "dev-master",
-		"hallowelt/mediawiki-lib-commandline-tools": "dev-master",
-		"hallowelt/mediawiki-lib-migration": "dev-master",
-		"hallowelt/mediawiki-lib-wikitext": "dev-master",
+		"hallowelt/mediawiki-lib-mediawikixml": "~1",
+		"hallowelt/mediawiki-lib-commandline-tools": "~1",
+		"hallowelt/mediawiki-lib-migration": "~1",
+		"hallowelt/mediawiki-lib-wikitext": "~1",
 		"ext-dom": "*"
 	},
 	"require-dev": {
+		"mediawiki/mediawiki-codesniffer": "31.0.0",
+		"mediawiki/mediawiki-phan-config": "0.11.0",
+		"mediawiki/minus-x": "1.1.1",
 		"jakub-onderka/php-parallel-lint": "1.0.0",
 		"jakub-onderka/php-console-highlighter": "0.4.0",
 		"phpunit/phpunit": "^9"
@@ -35,7 +45,16 @@
 			"vendor/phpunit/phpunit/phpunit --configuration .phpunit.xml"
 		],
 		"test": [
-			"parallel-lint . --exclude vendor --exclude node_modules"
+			"parallel-lint . --exclude vendor --exclude node_modules",
+			"minus-x check .",
+			"phpcs -sp"
+		],
+		"fix": [
+			"minus-x fix .",
+			"phpcbf"
+		],
+		"lint": [
+			"phan --no-progress-bar -m text | sed 's, ,:,'"
 		]
 	}
 }
