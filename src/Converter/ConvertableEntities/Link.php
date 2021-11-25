@@ -53,6 +53,7 @@ class Link implements IProcessable {
 		$isMediaLink = false;
 		$isUserLink = false;
 		$isBrokenPageLink = false;
+		$isBrokenMediaLink = false;
 		if ( $attachmentEl instanceof DOMElement ) {
 			$riFilename = $attachmentEl->getAttribute( 'ri:filename' );
 			$nestedPageEl = $xpath->query( './ri:page', $attachmentEl )->item( 0 );
@@ -65,9 +66,16 @@ class Link implements IProcessable {
 					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 				}
 			}
+			$rawPageTitle = basename( $rawPageTitle );
 			$confluenceFileKey = "$spaceId---$rawPageTitle---$riFilename";
 			$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
-			$linkParts[] = $targetFilename;
+			if ( !empty( $targetFilename ) ) {
+				$linkParts[] = $targetFilename;
+			}
+			else {
+				$linkParts[] = $riFilename;
+				$isBrokenMediaLink = true;
+			}
 			$isMediaLink = true;
 		} elseif ( $pageEl instanceof DOMElement ) {
 			$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
@@ -122,6 +130,10 @@ class Link implements IProcessable {
 
 		if ( $isBrokenPageLink ) {
 			$replacement .= '[[Category:Broken_page_link]]';
+		}
+
+		if ( $isBrokenMediaLink ) {
+			$replacement .= '[[Category:Broken_attachment_link]]';
 		}
 
 		$match->parentNode->replaceChild(

@@ -54,6 +54,12 @@ If you re-run the scripts you will need to clean up the "workspace" directory!
 
 You may need to update your MediaWiki search index afterwards.
 
+#### Recommended MediaWiki extensions
+Some Confluence macros are replaced with MediaWiki templates, that hold extension specific wikitext. This is especially important for features like "Recently updated" or "Subpagelist".
+
+1. Semantic MediaWiki
+2. HeaderTabs
+
 ### Manual post-import maintenance
 #### Cleanup Categories
 In the case that the tool can not migrate content or functionality it will create a category, so you can manually fix issues after the import
@@ -82,7 +88,6 @@ In the case that the tool can not migrate content or functionality it will creat
 * Remove line breaks and arbitrary fromatting (e.g. `<b>`) from headings
 * Mask external images (`<img />`)
 * Preserve filename of "Broken_attachment"
-* Add `wikitable` as default class to `<table>`
 * Merge multiple `<code>` lines into `<pre>`
 * Remove bold/italic formatting from wikitext headings (e.g. `=== '''Some heading''' ===`)
 * Fix unconverted HTML lists in wikitext (e.g. `<ul><li>==== Lorem ipsum ====</li><li>'''<span class="confluence-link"> </span>[[Media:Some_file.pdf]]'''</li></ul><ul>`)

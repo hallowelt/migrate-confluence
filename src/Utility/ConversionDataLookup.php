@@ -85,6 +85,7 @@ class ConversionDataLookup {
 	 * @return string
 	 */
 	public function getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey ) {
+		$confluenceFileKey = str_replace( '_', ' ', $confluenceFileKey );
 		if ( isset( $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey] ) ) {
 			return $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey];
 		}
