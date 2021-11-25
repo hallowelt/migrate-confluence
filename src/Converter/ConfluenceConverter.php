@@ -14,7 +14,9 @@ use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
@@ -113,14 +115,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$dom = $this->preprocessFile();
 
-		$tables = $dom->getElementsByTagName( 'table' );
-		foreach ( $tables as $table ) {
-			$classAttr = $table->getAttribute( 'class' );
-			if ( $classAttr === '' ) {
-				$table->setAttribute( 'class', 'wikitable' );
-			}
-		}
-
 		$xpath = new DOMXPath( $dom );
 		$xpath->registerNamespace( 'ac', 'some' );
 		$xpath->registerNamespace( 'ri', 'thing' );
@@ -133,7 +127,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			}
 			foreach ( $nonLiveListMatches as $match ) {
 				// See: https://wiki.hallowelt.com/index.php/Technik/Migration/Confluence_nach_MediaWiki#Inhalte
-				//See: https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
+				// See: https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
 				call_user_func_array(
 					$callback,
 					[ $this, $match, $dom, $xpath ]
@@ -141,6 +135,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			}
 		}
 
+		$this->runProcessors( $dom );
 		$this->postProcessDOM( $dom, $xpath );
 
 		$dom->saveHTMLFile(
@@ -148,9 +143,38 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		);
 
 		$this->wikiText = parent::doConvert( $this->preprocessedFile );
+		$this->runPostProcessors();
+
 		$this->postProcessLinks();
 		$this->postprocessWikiText();
 		return $this->wikiText;
+	}
+
+	/**
+	 *
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	private function runProcessors( $dom ) {
+		$processors = [
+			new PreserveTableAttributes()
+		];
+
+		/** @var IProcessor $processor */
+		foreach ( $processors as $processor ) {
+			$processor->process( $dom );
+		}
+	}
+
+	private function runPostProcessors() {
+		$postProcessors = [
+			new RestoreTableAttributes()
+		];
+
+		/** @var IPostprocessor $postProcessor */
+		foreach ( $postProcessors as $postProcessor ) {
+			$this->wikiText = $postProcessor->postprocess( $this->wikiText );
+		}
 	}
 
 	/**
@@ -256,7 +280,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 		$replacement .= "[[Category:Broken_macro/$sMacroName]]";
 
-		// $this->notify( 'processMacro', array( $match, $dom, $xpath, &$replacement, $sMacroName ) );
 		$parentNode = $match->parentNode;
 		if ( $parentNode === null ) {
 			return;
@@ -320,7 +343,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$preprocessors = [
 			new CDATAClosingFixer()
 		];
-		/** @var IPreprocessor */
+		/** @var IPreprocessor $preprocessor */
 		foreach ( $preprocessors as $preprocessor ) {
 			$sContent = $preprocessor->preprocess( $sContent );
 		}
@@ -696,8 +719,6 @@ HERE;
 		foreach ( $oElementsWithDataAttr as $oElementWithDataAttr ) {
 			$oElementWithDataAttr->setAttribute( 'data-atlassian-layout', null );
 		}
-
-		// $this->notify('postProcessDOM', array( $dom, $xpath ) );
 	}
 
 	public function postProcessLinks() {

@@ -84,11 +84,9 @@ class Image implements IProcessable {
 		$replacement = '[[Category:Broken_image]]';
 		if ( $urlEl instanceof DOMNode ) {
 			$attribs['src'] = $urlEl->getAttribute( 'ri:value' );
-			// $this->notify('processImage', array( $match, $dom, $xpath, 'external', &$attribs ) );
 			$replacement = self::makeImageTag( $dom, $attribs );
 		} elseif ( $attachmentEl instanceof DOMNode ) {
 			array_unshift( $params, $attachmentEl->getAttribute( 'ri:filename' ) );
-			// $this->notify('processImage', array( $match, $dom, $xpath, 'internal', &$params ) );
 			$replacement = self::makeImageLink( $dom, $params );
 		}
 

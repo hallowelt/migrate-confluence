@@ -35,7 +35,6 @@ class Emoticon implements IProcessable {
 		} else {
 			$replacement = $this->aEmoticonMapping[$sKey];
 		}
-		// $this->notify( 'processEmoticon', array( $match, $dom, $xpath, &$replacement ) );
 		if ( !empty( $replacement ) ) {
 			$match->parentNode->replaceChild(
 				$dom->createTextNode( $replacement ),

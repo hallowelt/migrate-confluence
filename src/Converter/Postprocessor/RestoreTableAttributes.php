@@ -47,12 +47,12 @@ class RestoreTableAttributes implements IPostprocessor {
 	}
 
 	private function isPreservedTableAttributesLine( $line ) {
-		return preg_match( "/\| <span.*?>###PRESERVEDTABLEATTRIBUTES###<\/span>/", $line ) === 1;
+		return preg_match( "/\|.*?<span.*?>###PRESERVEDTABLEATTRIBUTES###<\/span>/", $line ) === 1;
 	}
 
 	private function extractPreservedTableAttributes( $line ) {
 		return preg_replace(
-			"/\| <span(.*?)>###PRESERVEDTABLEATTRIBUTES###<\/span>/",
+			"/\|.*?<span(.*?)>###PRESERVEDTABLEATTRIBUTES###<\/span>/",
 			'$1',
 			$line
 		);

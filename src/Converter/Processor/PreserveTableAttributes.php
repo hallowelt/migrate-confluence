@@ -40,7 +40,7 @@ class PreserveTableAttributes implements IProcessor {
 
 			$attributes = [];
 			if ( $table->hasAttributes() ) {
-				foreach ($table->attributes as $attr) {
+				foreach ( $table->attributes as $attr ) {
 					$name = $attr->nodeName;
 					$value = $attr->nodeValue;
 					$attributes[$name] = $value;
@@ -54,7 +54,7 @@ class PreserveTableAttributes implements IProcessor {
 				$newCell = $dom->createElement( 'td' );
 				$newSpan = $dom->createElement( 'span' );
 				$newSpanContent = $dom->createTextNode( '###PRESERVEDTABLEATTRIBUTES###' );
-				foreach( $attributes as $attrName => $attrValue ) {
+				foreach ( $attributes as $attrName => $attrValue ) {
 					$newSpan->setAttribute( $attrName, $attrValue );
 				}
 				$newSpan->appendChild( $newSpanContent );
@@ -62,8 +62,7 @@ class PreserveTableAttributes implements IProcessor {
 				$newRow->appendChild( $newCell );
 				if ( $rowContainer->firstChild instanceof DOMNode ) {
 					$rowContainer->insertBefore( $newRow, $rowContainer->firstChild );
-				}
-				else {
+				} else {
 					$rowContainer->appendChild( $newRow );
 				}
 			}
@@ -90,7 +89,7 @@ class PreserveTableAttributes implements IProcessor {
 			$newAttributes[$name] = $value;
 		}
 
-		if( $noClass ) {
+		if ( $noClass ) {
 			$newAttributes['class'] = 'wikitable';
 		}
 
