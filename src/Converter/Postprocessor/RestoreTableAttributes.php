@@ -15,6 +15,7 @@ class RestoreTableAttributes implements IPostprocessor {
 		$inPreservedTableAttributesTableRow = false;
 		$tableStart = false;
 		$linesAfterTableStart = [];
+		$hasTableAttributes = false;
 		foreach ( $lines as $line ) {
 			$trimmedLine = trim( $line );
 			if ( $inPreservedTableAttributesTableRow && $trimmedLine === '|-' ) {
@@ -28,6 +29,9 @@ class RestoreTableAttributes implements IPostprocessor {
 				$tableStart = true;
 				continue;
 			}
+			if ( $trimmedLine === '|}' ) {
+				$tableStart = false;
+			}
 			if ( $tableStart ) {
 				if ( $this->isPreservedTableAttributesLine( $trimmedLine ) ) {
 					$tableStart = false;
@@ -36,14 +40,21 @@ class RestoreTableAttributes implements IPostprocessor {
 						$this->extractPreservedTableAttributes( $trimmedLine );
 						$preserverdAttributes = trim( $preserverdAttributes );
 					$newWikiText[] = "{| $preserverdAttributes";
-					foreach ( $linesAfterTableStart as $lineAfterTableStart ) {
-						$newWikiText[] = $lineAfterTableStart;
-					}
-					$linesAfterTableStart = [];
+					$hasTableAttributes = true;
 					continue;
 				}
+
 				$linesAfterTableStart[] = $line;
 				continue;
+			}
+			if ( !$tableStart ) {
+				if ( !empty( $linesAfterTableStart ) && !$hasTableAttributes ) {
+					$newWikiText[] = '{|';
+				}
+				foreach ( $linesAfterTableStart as $lineAfterTableStart ) {
+					$newWikiText[] = $lineAfterTableStart;
+				}
+				$linesAfterTableStart = [];
 			}
 			$newWikiText[] = $line;
 		}

@@ -10,6 +10,13 @@ class RestoreTableAttributesTest extends TestCase {
 	private $input = <<<HERE
 Lorem
 {|
+| Some
+| [[DEF]]
+|-
+| Table
+|
+|}
+{|
 | <span data="ABC" class="XYZ">###PRESERVEDTABLEATTRIBUTES###</span>
 |
 |-
@@ -48,6 +55,13 @@ HERE;
 
 	private $expectedOutput = <<<HERE
 Lorem
+{|
+| Some
+| [[DEF]]
+|-
+| Table
+|
+|}
 {| data="ABC" class="XYZ"
 | Some
 | [[DEF]]
