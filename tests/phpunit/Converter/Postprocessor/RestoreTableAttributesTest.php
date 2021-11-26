@@ -30,6 +30,20 @@ Lorem
 | Table
 |
 |}
+{{sit amet}}
+{|
+! Table head 1
+! Table head 2
+|-
+|width="50%"| <span data="ABC" class="XYZ">###PRESERVEDTABLEATTRIBUTES###</span>
+|width="50%"|
+|-
+| Some
+| [[DEF]]
+|-
+| Table
+|
+|}
 HERE;
 
 	private $expectedOutput = <<<HERE
@@ -43,6 +57,17 @@ Lorem
 |}
 [[Ipsum]]
 {| data="ABC" class="XYZ"
+| Some
+| [[DEF]]
+|-
+| Table
+|
+|}
+{{sit amet}}
+{| data="ABC" class="XYZ"
+! Table head 1
+! Table head 2
+|-
 | Some
 | [[DEF]]
 |-
