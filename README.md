@@ -54,6 +54,27 @@ If you re-run the scripts you will need to clean up the "workspace" directory!
 
 You may need to update your MediaWiki search index afterwards.
 
+#### Included MediaWiki wikitext templates
+- `AttachmentsSectionEnd`
+- `AttachmentsSectionStart`
+- `Excerpt`
+- `Info`
+- `InlineComment`
+- `Layout`
+- `Layouts.css`
+- `Note`
+- `Panel`
+- `RecentlyUpdated`
+- `SubpageList`
+- `SubpageListRow`
+- `Task`
+- `TaskListEnd`
+- `TaskListStart`
+- `Tip`
+- `Warning`
+
+Be aware that those pages may be overwritten by the import if they already exist in the target wiki.
+
 #### Recommended MediaWiki extensions
 Some Confluence macros are replaced with MediaWiki templates, that hold extension specific wikitext. This is especially important for features like "Recently updated" or "Subpagelist".
 

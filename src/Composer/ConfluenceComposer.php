@@ -46,6 +46,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	}
 
 	public function buildXML( Builder $builder ) {
+		$this->appendDefaultPages( $builder );
+
 		$pagesRevisions = $this->dataBuckets->getBucketData( 'title-revisions' );
 		$filesMap = $this->dataBuckets->getBucketData( 'files' );
 		$pageAttachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
@@ -86,6 +88,19 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 					}
 				}
 			}
+		}
+	}
+
+	private function appendDefaultPages( Builder $builder ) {
+		$basepath = realpath( __DIR__ . '/_defaultpages/' );
+		$files = glob( "$basepath/*/*" );
+		foreach( $files as $file ) {
+			$namespacePrefix = basename( dirname( $file ) );
+			$pageName = basename( $file );
+			$wikiPageName = "$namespacePrefix:$pageName";
+			$wikiText = file_get_contents( $file );
+
+			$builder->addRevision( $wikiPageName, $wikiText );
 		}
 	}
 

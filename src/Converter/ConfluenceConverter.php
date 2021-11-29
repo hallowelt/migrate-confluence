@@ -374,6 +374,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		// For now we just replace the layout markup of Confluence with simple
 		//HTML div markup
+		$sContent = str_replace( '<ac:layout-section', '{{Layout}}<ac:layout-section', $sContent );
 		$sContent = str_replace( '<ac:layout-section ac:type="', '<div class="ac-layout-section ', $sContent ); // "ac:layout-section" is the only one with a "ac:type" attribute
 		$sContent = str_replace( '<ac:layout-section', '<div class="ac-layout-section"', $sContent );
 		$sContent = str_replace( '</ac:layout-section', '</div', $sContent );
@@ -634,7 +635,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$wikiText = [];
 		$tasks = $match->getElementsByTagName( 'task' );
 
-		$wikiText[] = '{{TaskList/Start}}###BREAK###';
+		$wikiText[] = '{{TaskListStart}}###BREAK###';
 		foreach ( $tasks as $task ) {
 			$elId = $task->getElementsByTagName( 'task-id' )->item( 0 );
 			$elStatus = $task->getElementsByTagName( 'task-status' )->item( 0 );
@@ -653,7 +654,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 }}###BREAK###
 HERE;
 		}
-		$wikiText[] = '{{TaskList/End}}###BREAK###';
+		$wikiText[] = '{{TaskListEnd}}###BREAK###';
 		$wikiText = implode( "\n", $wikiText );
 
 		$match->parentNode->replaceChild(
@@ -778,7 +779,7 @@ HERE;
 			$sNsText = $aTitleParts[0];
 		}
 		$replacement = sprintf(
-			'{{RecentlyUpdatedMacro|namespace=%s}}',
+			'{{RecentlyUpdated|namespace=%s}}',
 			$sNsText
 		);
 	}
@@ -804,10 +805,11 @@ HERE;
 
 		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
-			$this->wikiText .= "\n==Attachments==\n";
+			$this->wikiText .= "\n{{AttachmentsSectionStart}}\n";
 			foreach ( $attachmentsMap[$this->currentPageTitle] as $attachment ) {
 				$this->wikiText .= "* [[Media:$attachment]]\n";
 			}
+			$this->wikiText .= "\n{{AttachmentsSectionEnd}}\n";
 		}
 
 		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";
