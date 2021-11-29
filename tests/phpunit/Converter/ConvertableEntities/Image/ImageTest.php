@@ -51,7 +51,10 @@ class ImageTest extends TestCase {
 		}
 
 		// Check that image was converted correctly, all attributes are preserved
-		$this->assertEqualXMLStructure( $imgExpected, $imgActual, true );
+		$this->assertXmlStringEqualsXmlString(
+			$domOutput->saveXML( $imgExpected ),
+			$domInput->saveXML( $imgActual )
+		);
 
 		$this->assertEquals( $attributesExpect, $attributesActual );
 	}
