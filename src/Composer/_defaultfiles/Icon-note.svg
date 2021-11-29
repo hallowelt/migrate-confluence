@@ -1,42 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="32"
-   height="32"
-   viewBox="0 0 8.4666665 8.4666669"
-   version="1.1"
    id="svg8"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
-   sodipodi:docname="Icon-Note.svg">
+   version="1.1"
+   viewBox="0 0 8.4666665 8.4666669"
+   height="32"
+   width="32">
   <defs
      id="defs2" />
-  <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="5.6568542"
-     inkscape:cx="49.622164"
-     inkscape:cy="2.6348041"
-     inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
-     showgrid="false"
-     units="px"
-     inkscape:window-width="1920"
-     inkscape:window-height="1031"
-     inkscape:window-x="1920"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -50,23 +25,20 @@
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Ebene 1"
-     inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(0,-288.53332)">
+     transform="translate(0,-288.53332)"
+     id="layer1">
     <path
-       style="opacity:0.98000004;fill:#ffb01c;fill-opacity:1;stroke:#ffb01c;stroke-width:0.76596874;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       inkscape:transform-center-y="-1.111531"
+       id="path875"
        d="m 8.0837701,296.10122 -7.70087399,0 3.85043699,-6.66915 z"
-       id="path875" />
+       style="opacity:0.98000004;fill:#ffb01c;fill-opacity:1;stroke:#ffb01c;stroke-width:0.76596874;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
     <g
-       aria-label="!"
+       id="text840"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.25379419px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:0.34028959px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       id="text840">
+       aria-label="!">
       <path
-         d="m 4.0225129,294.31877 h 0.4216408 v 0.52757 H 4.0225129 Z m 0,-2.57346 h 0.4216408 v 1.36047 l -0.041541,0.7415 H 4.0661309 l -0.043618,-0.7415 z"
+         id="path908"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.25379419px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:0.34028959px;stroke-opacity:1"
-         id="path908" />
+         d="m 4.0225129,294.31877 h 0.4216408 v 0.52757 H 4.0225129 Z m 0,-2.57346 h 0.4216408 v 1.36047 l -0.041541,0.7415 H 4.0661309 l -0.043618,-0.7415 z" />
     </g>
   </g>
 </svg>
