@@ -252,6 +252,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$replacement = '';
 		$sMacroName = $match->getAttribute( 'ac:name' );
 
+		// Exclude macros that are handled by an `IProcessor`
+		if( in_array(  $sMacroName, [ 'info', 'note', 'tip', 'warning' ] ) ) {
+			return;
+		}
+
 		if ( $sMacroName === 'gliffy' ) {
 			$this->processGliffyMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'localtabgroup' || $sMacroName === 'localtab' ) {
@@ -275,8 +280,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processRecentlyUpdatedMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'tasklist' ) {
 			$this->processTaskListMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'info' ) {
-			$this->processInfoMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'toc' ) {
 			$replacement = "\n__TOC__\n###BREAK###";
 		} else {
@@ -677,41 +680,6 @@ HERE;
 			$dom->createTextNode( $wikiText ),
 			$match
 		);
-	}
-
-	/**
-	 * <ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="448329ba-06ad-4845-b3bf-2fd9a75c0d51">
-	 *	<ac:parameter ac:name="title">/api/Device/devices</ac:parameter>
-	 *	<ac:rich-text-body>
-	 *		<p class="title">...</p>
-	 *		<p>...</p>
-	 *	</ac:rich-text-body>
-	 * </ac:structured-macro>
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string $replacement
-	 */
-	private function processInfoMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$oTitleParam = $xpath->query( './ac:parameter[@ac:name="title"]', $match )->item( 0 );
-
-		$oNewContainer = $dom->createElement( 'div' );
-		$oNewContainer->setAttribute( 'class', 'ac-info' );
-
-		$match->parentNode->insertBefore( $oNewContainer, $match );
-
-		if ( $oTitleParam instanceof DOMElement ) {
-			$oNewContainer->appendChild(
-				$dom->createElement( 'h3', $oTitleParam->nodeValue )
-			);
-		}
-
-		$oRTBody = $xpath->query( './ac:rich-text-body', $match )->item( 0 );
-		// Move all content out of <ac::rich-text-body>
-		while ( $oRTBody->childNodes->length > 0 ) {
-			$oChild = $oRTBody->childNodes->item( 0 );
-			$oNewContainer->appendChild( $oChild );
-		}
 	}
 
 	/**
