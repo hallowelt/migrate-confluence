@@ -16,6 +16,10 @@ use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use SplFileInfo;
@@ -157,7 +161,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function runProcessors( $dom ) {
 		$processors = [
-			new PreserveTableAttributes()
+			new PreserveTableAttributes(),
+			new ConvertTipMacro(),
+			new ConvertInfoMacro(),
+			new ConvertNoteMacro(),
+			new ConvertWarningMacro()
 		];
 
 		/** @var IProcessor $processor */

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">
+	<html>
+		{{Info###BREAK###
+		| title = Some nice title###BREAK###
+		| body =###BREAK###
+			<h3>Some heading:</h3>
+			<ol>
+				<li>
+					<ac:image>
+						<ri:attachment ri:filename="someFile.png">
+							<ri:page ri:content-title="Some alt text" />
+						</ri:attachment>
+					</ac:image> some inline text
+				</li>
+				<li>Some text with &#252;mlaut, 
+					<strong>formatting</strong> and stuff
+				</li>
+				<li>
+					<ac:image>
+						<ri:attachment ri:filename="someOtherFile.png">
+							<ri:page ri:content-title="Some other alt text" />
+						</ri:attachment>
+					</ac:image> some other inline text
+				</li>
+			</ol>
+		}}###BREAK###
+	</html>
+</xml>

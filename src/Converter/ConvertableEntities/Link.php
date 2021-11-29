@@ -71,8 +71,7 @@ class Link implements IProcessable {
 			$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 			if ( !empty( $targetFilename ) ) {
 				$linkParts[] = $targetFilename;
-			}
-			else {
+			} else {
 				$linkParts[] = $riFilename;
 				$isBrokenMediaLink = true;
 			}
