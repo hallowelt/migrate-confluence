@@ -1,0 +1,13 @@
+<includeonly><templatestyles src="Template:SimplePanel.css" />
+<div class="simplepanel {{{type|}}}" data-panel-type="{{{type|}}}">
+<div class="simplepanel__icon">
+<span role="img" aria-label="Panel {{{type|}}}">
+[[File:Icon-{{{type|info}}}.svg|link=]]
+</span>
+</div>{{#if:{{{title|}}}|
+<span class="simplepanel__heading">'''{{{title|}}}'''</span><br />
+|}}<div class="simplepanel__content">
+{{{body|Add a <code>body</code> parameter}}}
+</div>
+</div>
+</includeonly>

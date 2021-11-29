@@ -1,0 +1,5 @@
+{{SimplePanel
+|type=note
+|title={{{title|}}}
+|body={{{body|}}}
+}}

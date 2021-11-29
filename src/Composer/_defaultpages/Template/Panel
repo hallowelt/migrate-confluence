@@ -1,0 +1,8 @@
+<includeonly>
+<div class="panel">{{#if:{{{title|}}}|
+<span class="panel__heading">'''{{{title|}}}'''</span><br />
+|}}<div class="panel__content">
+{{{body|Add a <code>body</code> parameter}}}
+</div>
+</div>
+</includeonly>

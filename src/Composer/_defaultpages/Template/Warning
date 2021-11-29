@@ -1,0 +1,5 @@
+{{SimplePanel
+|type=warning
+|title={{{title|}}}
+|body={{{body|}}}
+}}

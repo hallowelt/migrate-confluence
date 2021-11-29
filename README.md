@@ -75,6 +75,14 @@ You may need to update your MediaWiki search index afterwards.
 
 Be aware that those pages may be overwritten by the import if they already exist in the target wiki.
 
+#### Included upload files
+- `Icon-info.svg`
+- `Icon-note.svg`
+- `Icon-tip.svg`
+- `Icon-warning.svg`
+
+Be aware that those pages may be overwritten by the import if they already exist in the target wiki.
+
 #### Recommended MediaWiki extensions
 Some Confluence macros are replaced with MediaWiki templates, that hold extension specific wikitext. This is especially important for features like "Recently updated" or "Subpagelist".
 
