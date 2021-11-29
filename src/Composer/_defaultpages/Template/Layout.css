@@ -1,0 +1,23 @@
+.ac-layout-section {
+	display: flex;
+}
+
+.ac-layout-section.three_equal .ac-layout-cell {
+	flex: 33%;
+}
+
+.ac-layout-section.two_equal .ac-layout-cell {
+	flex: 50%;
+}
+
+.ac-layout-section.three_with_sidebars .ac-layout-cell {
+	flex: 33%;
+}
+
+.ac-layout-section.two_right_sidebar .ac-layout-cell {
+	flex: 33%;
+}
+
+.ac-layout-section.two_left_sidebar .ac-layout-cell {
+	flex: 33%;
+}

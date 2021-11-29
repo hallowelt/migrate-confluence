@@ -1,0 +1,25 @@
+.simplepanel {
+	border: 2px solid;
+	border-radius: 3px;
+	padding: 0.5em;
+}
+
+.simplepanel.info {
+	border-color: #1c75ff;
+	background-color: #bdd7ff;
+}
+
+.simplepanel.note {
+	border-color: #ffb01c;
+	background-color: #ffe5b5;
+}
+
+.simplepanel.tip {
+	border-color: #53ac00;
+	background-color: #deffbf;
+}
+
+.simplepanel.warning {
+	border-color: #ff4e14;
+	background-color: #ffcab8;
+}
