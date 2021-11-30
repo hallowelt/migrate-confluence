@@ -40,8 +40,8 @@ Step 3:
 2. From the parent directory (e.g. `/tmp/confluence/` ), run the migration commands
 	1. Run `migrate-confluence analyze --src input/ --dest workspace/` to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
 	2. Run `migrate-confluence extract --src input/ --dest workspace/` to extract all contents, like wikipage contents, attachments and images into the workspace
-	3. Run `migrate-confluence convert --src workspace/ --dest workspace/` to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText
-	4. Run `migrate-confluence compose --src workspace/ --dest workspace/` to create importable data
+	3. Run `migrate-confluence convert --src workspace/ --dest workspace/` (yes, `--src workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText
+	4. Run `migrate-confluence compose --src workspace/ --dest workspace/` (yes, `--src workspace/` ) to create importable data
 
 If you re-run the scripts you will need to clean up the "workspace" directory!
 
@@ -81,7 +81,7 @@ Be aware that those pages may be overwritten by the import if they already exist
 - `Icon-tip.svg`
 - `Icon-warning.svg`
 
-Be aware that those pages may be overwritten by the import if they already exist in the target wiki.
+Be aware that those files may be overwritten by the import if they already exist in the target wiki.
 
 #### Recommended MediaWiki extensions
 Some Confluence macros are replaced with MediaWiki templates, that hold extension specific wikitext. This is especially important for features like "Recently updated" or "Subpagelist".

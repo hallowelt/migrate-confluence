@@ -18,6 +18,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
@@ -165,7 +166,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new ConvertTipMacro(),
 			new ConvertInfoMacro(),
 			new ConvertNoteMacro(),
-			new ConvertWarningMacro()
+			new ConvertWarningMacro(),
+			new ConvertStatusMacro()
 		];
 
 		/** @var IProcessor $processor */
@@ -284,10 +286,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$replacement = "\n__TOC__\n###BREAK###";
 		} else {
 			// TODO: 'calendar', 'contributors', 'anchor',
-			// 'pagetree', 'navitabs', 'include', 'info', 'listlabels',
-			// status'
-			#$this->log( "Unknown makro '$sMacroName' found in {$file->getPathname()}!" );
-			#$this->logMarkup( $match );
+			// 'pagetree', 'navitabs', 'include', 'listlabels'
+			$this->logMarkup( $match );
 		}
 		$replacement .= "[[Category:Broken_macro/$sMacroName]]";
 
@@ -333,7 +333,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		return [
 			'//ac:link' => [ new Link( $this->dataLookup, $this->currentSpace, $this->currentPageTitle ), 'process' ],
 			'//ac:image' => [ new Image(), 'process' ],
-			# '//ac:layout' => array( $this, 'processLayout' ),
 			'//ac:macro' => [ $this, 'processMacro' ],
 			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ],
 			'//ac:emoticon' => [ new Emoticon(), 'process' ],
@@ -473,10 +472,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			if ( empty( $sTargetFile ) && $oRIAttachmentEl instanceof DOMElement ) {
 				$sTargetFile = $oRIAttachmentEl->getAttribute( 'ri:filename' );
 			}
-			if ( empty( $sTargetFile ) ) {
-				// $this->log( 'EMPTY NAME!' );
-				//$this->logMarkup( $match );
-			}
 
 			$linkConverter = new Link( $this->dataLookup, $this->currentSpace, $this->currentPageTitle );
 
@@ -523,11 +518,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function processGliffyMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
-		if ( empty( $oNameParam->nodeValue ) ) {
-			// $this->log( "Gliffy: Missing name!" );
-			error_log( "Gliffy: Missing name!" );
-			$this->logMarkup( $match );
-		} else {
+		if ( !empty( $oNameParam->nodeValue ) ) {
 			$imgConverter = new Image();
 			$replacementNode = $imgConverter->makeImageLink( $dom, [ "{$oNameParam->nodeValue}.png" ] );
 			$replacement = $replacementNode->ownerDocument->saveXML( $replacementNode );
@@ -761,6 +752,14 @@ HERE;
 		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
+				// This is just for "TaskList", as it will add XML as TextNode.
+				// It should be removed as soon as TaskList is properly converted.
+				"#&lt;span.*?&gt;#si",
+				"#&lt;/span&gt;#si",
+				"#&lt;div.*?&gt;#si",
+				"#&lt;/div&gt;#si",
+				// End TaskList specific
+
 				"#&lt;headertabs /&gt;#si",
 				"#&lt;subpages(.*?)/&gt;#si",
 				"#&lt;img(.*?)/&gt;#s"
