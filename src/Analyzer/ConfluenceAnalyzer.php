@@ -187,6 +187,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			// We need to preserve the spaceID, so we can properly resolve cross-space links
 			// in the `convert` stage
 			$this->pageConfluenceTitle = "$spaceId---{$this->pageConfluenceTitle}";
+			$this->pageConfluenceTitle = str_replace( ' ', '_', $this->pageConfluenceTitle ); //Some normalization
 			$this->customBuckets->addData( 'pages-titles-map', $this->pageConfluenceTitle, $targetTitle, false, true );
 
 			// Also add pages IDs in Confluence to full page title mapping.
@@ -272,6 +273,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		$fileKey = "{$this->pageConfluenceTitle}---$fileName";
+		$fileKey = str_replace( ' ', '_', $fileKey ); //Some normalization
 		$this->customBuckets->addData( 'filenames-to-filetitles-map', $fileKey, $targetName, false, true );
 
 		return $targetName;
