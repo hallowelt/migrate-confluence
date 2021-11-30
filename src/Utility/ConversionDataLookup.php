@@ -46,8 +46,19 @@ class ConversionDataLookup {
 	public function __construct( $spaceIdPrefixMap, $confluencePageKeyTargetTitleMap,
 		$confluenceFilenameTargetFiletitleMap ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
-		$this->confluencePageKeyTargetTitleMap = $confluencePageKeyTargetTitleMap;
-		$this->confluenceFilenameTargetFiletitleMap = $confluenceFilenameTargetFiletitleMap;
+
+		// This is some quickfix solution. It must be changed as soon as possible!
+		// The real issue is in the way the `analyze` step constructs the "conflucence-keys"
+		// within the "maps". It does no normalization there. This whole mechanism should be
+		// reviewed.
+		foreach ( $confluencePageKeyTargetTitleMap as $confluencePageKey => $targetTitle ) {
+			$normalConfluencePageKey = str_replace( ' ', '_', $confluencePageKey );
+			$this->confluencePageKeyTargetTitleMap[$normalConfluencePageKey] = $targetTitle;
+		}
+		foreach ( $confluenceFilenameTargetFiletitleMap as $confluenceFileKey => $targetTitle ) {
+			$normalConfluenceFileKey = str_replace( ' ', '_', $confluenceFileKey );
+			$this->confluenceFilenameTargetFiletitleMap[$normalConfluenceFileKey] = $targetTitle;
+		}
 	}
 
 	/**
@@ -73,6 +84,7 @@ class ConversionDataLookup {
 	 * @return string
 	 */
 	public function getTargetTitleFromConfluencePageKey( $confluencePageKey ) {
+		$confluencePageKey = str_replace( ' ', '_', $confluencePageKey );
 		if ( isset( $this->confluencePageKeyTargetTitleMap[$confluencePageKey] ) ) {
 			return $this->confluencePageKeyTargetTitleMap[$confluencePageKey];
 		}
@@ -85,7 +97,7 @@ class ConversionDataLookup {
 	 * @return string
 	 */
 	public function getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey ) {
-		$confluenceFileKey = str_replace( '_', ' ', $confluenceFileKey );
+		$confluenceFileKey = str_replace( ' ', '_', $confluenceFileKey );
 		if ( isset( $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey] ) ) {
 			return $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey];
 		}

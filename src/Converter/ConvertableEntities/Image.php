@@ -10,21 +10,36 @@ use HalloWelt\MigrateConfluence\Converter\IProcessable;
 use HalloWelt\MigrateConfluence\Utility\Html;
 
 class Image implements IProcessable {
-	/**
-	 * Image DOMNode to be processed.
-	 *
-	 * @var DOMNode
-	 */
-	private $image;
 
 	/**
-	 * Image constructor.
-	 * @param DOMNode $image
+	 *
+	 * @var ConversionDataLookup
 	 */
-	/*public function __construct( DOMNode $image)
-	{
-		$this->image = $image;
-	}*/
+	private $dataLookup = null;
+
+	/**
+	 *
+	 * @var integer
+	 */
+	private $currentSpaceId = -1;
+
+	/**
+	 *
+	 * @var string
+	 */
+	private $rawPageTitle = '';
+
+	/**
+	 *
+	 * @param ConversionDataLookup $spaceIdPrefixMap
+	 * @param int $currentSpaceId
+	 * @param string $rawPageTitle
+	 */
+	public function __construct( $dataLookup, $currentSpaceId, $rawPageTitle ) {
+		$this->dataLookup = $dataLookup;
+		$this->currentSpaceId = $currentSpaceId;
+		$this->rawPageTitle = $rawPageTitle;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -84,10 +99,24 @@ class Image implements IProcessable {
 		$replacement = '[[Category:Broken_image]]';
 		if ( $urlEl instanceof DOMNode ) {
 			$attribs['src'] = $urlEl->getAttribute( 'ri:value' );
-			$replacement = self::makeImageTag( $dom, $attribs );
+			$replacement = $this->makeImageTag( $dom, $attribs );
 		} elseif ( $attachmentEl instanceof DOMNode ) {
-			array_unshift( $params, $attachmentEl->getAttribute( 'ri:filename' ) );
-			$replacement = self::makeImageLink( $dom, $params );
+			$riFilename = $attachmentEl->getAttribute( 'ri:filename' );
+			$nestedPageEl = $xpath->query( './ri:page', $attachmentEl )->item( 0 );
+			$rawPageTitle = $this->rawPageTitle;
+			$spaceId = $this->currentSpaceId;
+			if ( $nestedPageEl instanceof DOMElement ) {
+				$rawPageTitle = $nestedPageEl->getAttribute( 'ri:content-title' );
+				$spaceKey = $nestedPageEl->getAttribute( 'ri:space-key' );
+				if ( !empty( $spaceKey ) ) {
+					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+				}
+			}
+			$rawPageTitle = basename( $rawPageTitle );
+			$confluenceFileKey = "$spaceId---$rawPageTitle---$riFilename";
+			$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+			array_unshift( $params, $targetFilename );
+			$replacement = $this->makeImageLink( $dom, $params );
 		}
 
 		$match->parentNode->replaceChild(

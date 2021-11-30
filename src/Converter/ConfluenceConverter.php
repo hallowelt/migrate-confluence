@@ -255,7 +255,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sMacroName = $match->getAttribute( 'ac:name' );
 
 		// Exclude macros that are handled by an `IProcessor`
-		if( in_array(  $sMacroName, [ 'info', 'note', 'tip', 'warning', 'status' ] ) ) {
+		if ( in_array( $sMacroName, [ 'info', 'note', 'tip', 'warning', 'status' ] ) ) {
 			return;
 		}
 
@@ -332,7 +332,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	public function makeReplacings() {
 		return [
 			'//ac:link' => [ new Link( $this->dataLookup, $this->currentSpace, $this->currentPageTitle ), 'process' ],
-			'//ac:image' => [ new Image(), 'process' ],
+			'//ac:image' => [ new Image( $this->dataLookup, $this->currentSpace, $this->currentPageTitle ), 'process' ],
 			'//ac:macro' => [ $this, 'processMacro' ],
 			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ],
 			'//ac:emoticon' => [ new Emoticon(), 'process' ],
@@ -519,7 +519,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function processGliffyMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
 		if ( !empty( $oNameParam->nodeValue ) ) {
-			$imgConverter = new Image();
+			$imgConverter = new Image( $this->dataLookup, $this->currentSpace, $this->currentPageTitle );
 			$replacementNode = $imgConverter->makeImageLink( $dom, [ "{$oNameParam->nodeValue}.png" ] );
 			$replacement = $replacementNode->ownerDocument->saveXML( $replacementNode );
 		}
