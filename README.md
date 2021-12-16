@@ -8,7 +8,8 @@ This is a command line tool to convert the contents of a Confluence space into a
 
 ## Installation
 1. Download `migrate-confluence.phar` from https://github.com/hallowelt/migrate-confluence/releases/tag/latest
-2. Copy `migrate-confluence.phar` to `/usr/local/bin/migrate-confluence` (or somewhere else in the `PATH`)
+2. Make sure the file is executable. E.g. by running `chmod +x migrate-confluence.phar`
+3. Move `migrate-confluence.phar` to `/usr/local/bin/migrate-confluence` (or somewhere else in the `PATH`)
 
 ## Workflow
 
