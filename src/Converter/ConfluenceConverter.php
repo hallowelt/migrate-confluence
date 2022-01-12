@@ -114,8 +114,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$pagesIdsToTitlesMap = $this->dataBuckets->getBucketData( 'pages-ids-to-titles-map' );
 		if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
 			$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
-
-		} else { $this->currentPageTitle = 'not_current_revision_' . $pageId;
+		} else {
+			$this->currentPageTitle = 'not_current_revision_' . $pageId;
 		}
 
 		$dom = $this->preprocessFile();
@@ -153,6 +153,25 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->postProcessLinks();
 		$this->postprocessWikiText();
 		return $this->wikiText;
+	}
+
+
+	/**
+	 *
+	 * @param string $content
+	 * @return string
+	 */
+	private function runPreProcessors( $content ) {
+		$preprocessors = [
+			new CDATAClosingFixer()
+		];
+
+		/** @var IPreprocessor $preprocessor */
+		foreach ( $preprocessors as $preprocessor ) {
+			$content = $preprocessor->preprocess( $content );
+		}
+
+		return $content;
 	}
 
 	/**
@@ -285,8 +304,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		} elseif ( $sMacroName === 'toc' ) {
 			$replacement = "\n__TOC__\n###BREAK###";
 		} else {
-			// TODO: 'calendar', 'contributors', 'anchor',
-			// 'pagetree', 'navitabs', 'include', 'listlabels'
+			// TODO: 'panel', 'calendar', 'contributors', 'anchor',
+			// 'pagetree', 'navitabs', 'include', 'listlabels', 'content-report-table'
 			$this->logMarkup( $match );
 		}
 		$replacement .= "[[Category:Broken_macro/$sMacroName]]";
@@ -350,13 +369,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	protected function preprocessHTMLSource( $oHTMLSourceFile ) {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
 
-		$preprocessors = [
-			new CDATAClosingFixer()
-		];
-		/** @var IPreprocessor $preprocessor */
-		foreach ( $preprocessors as $preprocessor ) {
-			$sContent = $preprocessor->preprocess( $sContent );
-		}
+		$sContent = $this->runPreProcessors( $sContent );
 
 		/**
 		 * As this is a mixture of XML and HTML the XMLParser has trouble

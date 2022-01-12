@@ -213,6 +213,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$attachment = $this->helper->getObjectNodeById( $attachmentId, 'Attachment' );
 				$attachmentTargetFilename = $this->makeAttachmentTargetFilename( $attachment, $targetTitle );
 				$attachmentReference = $this->makeAttachmentReference( $attachment );
+				if ( empty( $attachmentReference ) ) {
+					echo "\033[31mDatei '$attachmentId' ($attachmentTargetFilename) nicht gefunden\033[39m\n";
+					continue;
+				}
 				$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
 				$this->addFile( $attachmentTargetFilename, $attachmentReference );
 				$this->addedAttachmentIds[$attachmentId] = true;
@@ -305,6 +309,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		$path = $basePath . "/" . $containerId . '/' . $attachmentId . '/' . $attachmentVersion;
+		if( !file_exists( $path ) ) {
+			return '';
+		}
+
 		return $path;
 	}
 
