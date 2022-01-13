@@ -155,25 +155,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		return $this->wikiText;
 	}
 
-
-	/**
-	 *
-	 * @param string $content
-	 * @return string
-	 */
-	private function runPreProcessors( $content ) {
-		$preprocessors = [
-			new CDATAClosingFixer()
-		];
-
-		/** @var IPreprocessor $preprocessor */
-		foreach ( $preprocessors as $preprocessor ) {
-			$content = $preprocessor->preprocess( $content );
-		}
-
-		return $content;
-	}
-
 	/**
 	 *
 	 * @param DOMDocument $dom
@@ -369,7 +350,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	protected function preprocessHTMLSource( $oHTMLSourceFile ) {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
 
-		$sContent = $this->runPreProcessors( $sContent );
+		$preprocessors = [
+			new CDATAClosingFixer()
+		];
+		/** @var IPreprocessor $preprocessor */
+		foreach ( $preprocessors as $preprocessor ) {
+			$sContent = $preprocessor->preprocess( $sContent );
+		}
 
 		/**
 		 * As this is a mixture of XML and HTML the XMLParser has trouble

@@ -214,7 +214,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$attachmentTargetFilename = $this->makeAttachmentTargetFilename( $attachment, $targetTitle );
 				$attachmentReference = $this->makeAttachmentReference( $attachment );
 				if ( empty( $attachmentReference ) ) {
-					echo "\033[31mDatei '$attachmentId' ($attachmentTargetFilename) nicht gefunden\033[39m\n";
+					$this->output->writeln( "\033[31mDatei '$attachmentId' ($attachmentTargetFilename) nicht gefunden\033[39m" );
 					continue;
 				}
 				$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
