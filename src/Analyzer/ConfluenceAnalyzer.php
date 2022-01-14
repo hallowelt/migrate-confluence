@@ -134,7 +134,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 			if ( substr( $spaceKey, 0, 1 ) === '~' ) {
 				//User namespaces
-				$userName = substr( $spaceKey, 1, strlen( $spaceKey ) -1 );
+				$userName = substr( $spaceKey, 1, strlen( $spaceKey ) - 1 );
 				$spaceKey = 'User' . ucfirst( $userName );
 				$this->output->writeln( "\033[31m- $spaceKey (ID:$spaceId) - protected user namespace\033[39m" );
 			} else {
