@@ -2,13 +2,13 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-class MacroColumn extends StructuredMacroProcessorBase {
+class StructuredMacroPanel extends StructuredMacroProcessorBase {
 
 	/**
 	 *
 	 * @inheritDoc
 	 */
 	public function getMacroName(): string {
-		return 'column';
+		return 'panel';
 	}
 }

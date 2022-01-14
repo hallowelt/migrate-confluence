@@ -1,48 +1,45 @@
-<property name="body">
-	<![CDATA[<ac:layout>
-		<ac:layout-section ac:type="two_right_sidebar">
-			<ac:layout-cell>
-				<ac:structured-macro ac:name="tip">
-					<ac:rich-text-body>
-						<p><span>&quot;Sandbox&quot; f&uuml;r die ersten Schritte. Sie k&ouml;nnen diese Seite zum &Uuml;ben bearbeiten</span></p>
-					</ac:rich-text-body>
-				</ac:structured-macro>
-			Lorem ipsum dolor
-			</ac:layout-cell>
-			<ac:layout-cell>
-				<ac:structured-macro ac:name="panel">
-					<ac:rich-text-body>
-						<p>
-							<strong>Auf dieser Seite:</strong>
-						</p>
-						<p>
-							<ac:structured-macro ac:name="toc" />
-						</p>
-					</ac:rich-text-body>
-				</ac:structured-macro>
-			</ac:layout-cell>
-		</ac:layout-section>
-		<ac:layout-section ac:type="single">
-			<ac:layout-cell>
-				Lorem ipsum dolor
-			</ac:layout-cell>
-		</ac:layout-section>
-		<ac:layout-section ac:type="single">
-			<ac:layout-cell>
-				<p>
-					<strong>Zugeh&ouml;rige Seiten</strong>
-				</p>
-				<p>
-					<ac:structured-macro ac:name="contentbylabel">
-						<ac:parameter ac:name="spaces">TA</ac:parameter>
-						<ac:parameter ac:name="showLabels">false</ac:parameter>
-						<ac:parameter ac:name="sort">title</ac:parameter>
-						<ac:parameter ac:name="labels">documentation-space-sample</ac:parameter>
-						<ac:parameter ac:name="showSpace">false</ac:parameter>
-						<ac:parameter ac:name="type">page</ac:parameter>
+<html xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">
+	<p><br /></p>
+	<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:macro-id="someID">
+		<ac:rich-text-body><p class="auto-cursor-target"><br /></p>
+			<ac:structured-macro ac:name="column" ac:schema-version="1" ac:macro-id="someID">
+				<ac:parameter ac:name="width">33%</ac:parameter>
+				<ac:rich-text-body>
+					<ac:image ac:width="400">
+						<ri:attachment ri:filename="someImage.png"><ri:content-entity ri:content-id="someID" /></ri:attachment>
+					</ac:image>
+				</ac:rich-text-body>
+			</ac:structured-macro>
+			<p class="auto-cursor-target"><br /></p>
+			<ac:structured-macro ac:name="column" ac:schema-version="1" ac:macro-id="someID">
+				<ac:parameter ac:name="width">33%</ac:parameter>
+				<ac:rich-text-body>
+					<h3 style="text-align: center;">Lorem ipsum</h3>
+					<p class="auto-cursor-target">
+						<ac:image ac:align="center" ac:thumbnail="true" ac:width="240">
+							<ri:attachment ri:filename="someImage.png">
+								<ri:content-entity ri:content-id="someID" />
+							</ri:attachment>
+						</ac:image>
+					</p>
+					<ac:structured-macro ac:name="note" ac:schema-version="1" ac:macro-id="someID">
+						<ac:rich-text-body>
+							<h3 style="text-align: center;">Lorem ipsum dolor</h3>
+						</ac:rich-text-body>
 					</ac:structured-macro>
-				</p>
-			</ac:layout-cell>
-		</ac:layout-section>
-	</ac:layout>]]>
-</property>
+					<p class="auto-cursor-target"><br /></p>
+				</ac:rich-text-body>
+			</ac:structured-macro>
+			<p class="auto-cursor-target"><br /></p>
+			<ac:structured-macro ac:name="column" ac:schema-version="1" ac:macro-id="someID">
+				<ac:parameter ac:name="width">33%</ac:parameter>
+				<ac:rich-text-body>
+					<ac:image ac:align="right" ac:width="450">
+						<ri:attachment ri:filename="someImage.png"><ri:content-entity ri:content-id="someID" /></ri:attachment>
+					</ac:image>
+				</ac:rich-text-body>
+			</ac:structured-macro>
+			<p class="auto-cursor-target"><br /></p>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</html>

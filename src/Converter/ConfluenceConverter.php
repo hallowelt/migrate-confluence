@@ -21,6 +21,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use SplFileInfo;
@@ -140,18 +142,18 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			}
 		}
 
-		$this->runProcessors( $dom );
-		$this->postProcessDOM( $dom, $xpath );
+		#$this->runProcessors( $dom );
+		#$this->postProcessDOM( $dom, $xpath );
 
 		$dom->saveHTMLFile(
 			$this->preprocessedFile->getPathname()
 		);
 
 		$this->wikiText = parent::doConvert( $this->preprocessedFile );
-		$this->runPostProcessors();
+		#$this->runPostProcessors();
 
-		$this->postProcessLinks();
-		$this->postprocessWikiText();
+		#$this->postProcessLinks();
+		#$this->postprocessWikiText();
 		return $this->wikiText;
 	}
 
@@ -232,16 +234,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->preprocessedFile = new SplFileInfo( $preprocessedPathname );
 
 		return $dom;
-	}
-
-	/**
-	 *
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 */
-	private function processStructuredMacro( $sender, $match, $dom, $xpath ) {
-		$this->processMacro( $sender, $match, $dom, $xpath );
 	}
 
 	/**
@@ -574,26 +566,21 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @param DOMXPath $xpath
 	 * @param string $replacement
 	 */
+	private function processColumnPanel( $sender, $match, $dom, $xpath, &$replacement ) {
+		$macroProcessor = new StructuredMacroPanel();
+		$macroProcessor->process( $dom );
+	}
+
+	/**
+	 *
+	 * @param DOMElement $match
+	 * @param DOMDocument $dom
+	 * @param DOMXPath $xpath
+	 * @param string $replacement
+	 */
 	private function processColumnMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$oNewContainer = $dom->createElement( 'div' );
-		$oNewContainer->setAttribute( 'class', 'ac-column' );
-
-		$match->parentNode->insertBefore( $oNewContainer, $match );
-
-		$oParamEls = $xpath->query( './ac:parameter', $match );
-		$params = [];
-
-		foreach ( $oParamEls as $oParamEl ) {
-			$params[$oParamEl->getAttribute( 'ac:name' )] = $oParamEl->nodeValue;
-		}
-		$oNewContainer->setAttribute( 'data-params', json_encode( $params ) );
-
-		$oRTBody = $xpath->query( './ac:rich-text-body', $match )->item( 0 );
-		// Move all content out of <ac::rich-text-body>
-		while ( $oRTBody->childNodes->length > 0 ) {
-			$oChild = $oRTBody->childNodes->item( 0 );
-			$oNewContainer->appendChild( $oChild );
-		}
+		$macroProcessor = new StructuredMacroColumn();
+		$macroProcessor->process( $dom );
 	}
 
 	/**
