@@ -278,6 +278,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'section' ) {
 			$this->processSectionMacro( $sender, $match, $dom, $xpath, $replacement );
+		} elseif ( $sMacroName === 'panel' ) {
+			$this->processPanelMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'column' ) {
 			$this->processColumnMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'recently-updated' ) {
@@ -576,7 +578,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @param DOMXPath $xpath
 	 * @param string $replacement
 	 */
-	private function processColumnPanel( $sender, $match, $dom, $xpath, &$replacement ) {
+	private function processPanelMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$macroProcessor = new StructuredMacroPanel();
 		$macroProcessor->process( $dom );
 	}
