@@ -21,6 +21,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use SplFileInfo;
@@ -114,8 +116,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$pagesIdsToTitlesMap = $this->dataBuckets->getBucketData( 'pages-ids-to-titles-map' );
 		if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
 			$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
-
-		} else { $this->currentPageTitle = 'not_current_revision_' . $pageId;
+		} else {
+			$this->currentPageTitle = 'not_current_revision_' . $pageId;
 		}
 
 		$dom = $this->preprocessFile();
@@ -276,6 +278,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'section' ) {
 			$this->processSectionMacro( $sender, $match, $dom, $xpath, $replacement );
+		} elseif ( $sMacroName === 'panel' ) {
+			$this->processPanelMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'column' ) {
 			$this->processColumnMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'recently-updated' ) {
@@ -285,8 +289,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		} elseif ( $sMacroName === 'toc' ) {
 			$replacement = "\n__TOC__\n###BREAK###";
 		} else {
-			// TODO: 'calendar', 'contributors', 'anchor',
-			// 'pagetree', 'navitabs', 'include', 'listlabels'
+			// TODO: 'panel', 'calendar', 'contributors', 'anchor',
+			// 'pagetree', 'navitabs', 'include', 'listlabels', 'content-report-table'
 			$this->logMarkup( $match );
 		}
 		$replacement .= "[[Category:Broken_macro/$sMacroName]]";
@@ -574,26 +578,21 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @param DOMXPath $xpath
 	 * @param string $replacement
 	 */
+	private function processPanelMacro( $sender, $match, $dom, $xpath, &$replacement ) {
+		$macroProcessor = new StructuredMacroPanel();
+		$macroProcessor->process( $dom );
+	}
+
+	/**
+	 *
+	 * @param DOMElement $match
+	 * @param DOMDocument $dom
+	 * @param DOMXPath $xpath
+	 * @param string $replacement
+	 */
 	private function processColumnMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$oNewContainer = $dom->createElement( 'div' );
-		$oNewContainer->setAttribute( 'class', 'ac-column' );
-
-		$match->parentNode->insertBefore( $oNewContainer, $match );
-
-		$oParamEls = $xpath->query( './ac:parameter', $match );
-		$params = [];
-
-		foreach ( $oParamEls as $oParamEl ) {
-			$params[$oParamEl->getAttribute( 'ac:name' )] = $oParamEl->nodeValue;
-		}
-		$oNewContainer->setAttribute( 'data-params', json_encode( $params ) );
-
-		$oRTBody = $xpath->query( './ac:rich-text-body', $match )->item( 0 );
-		// Move all content out of <ac::rich-text-body>
-		while ( $oRTBody->childNodes->length > 0 ) {
-			$oChild = $oRTBody->childNodes->item( 0 );
-			$oNewContainer->appendChild( $oChild );
-		}
+		$macroProcessor = new StructuredMacroColumn();
+		$macroProcessor->process( $dom );
 	}
 
 	/**

@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<html xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">
+	<p><br/></p>
+	<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:macro-id="someID">
+		<ac:rich-text-body><p class="auto-cursor-target"><br/></p>
+			<div class="ac-column" data-params="{&quot;width&quot;:&quot;33%&quot;}">
+					<ac:image xmlns:ac="some" xmlns:ri="thing" ac:width="400">
+						<ri:attachment ri:filename="someImage.png"><ri:content-entity ri:content-id="someID"/></ri:attachment>
+					</ac:image>
+				</div>
+			<p class="auto-cursor-target"><br/></p>
+			<div class="ac-column" data-params="{&quot;width&quot;:&quot;33%&quot;}">
+					<h3 style="text-align: center;">Lorem ipsum</h3>
+					<p xmlns:ac="some" xmlns:ri="thing" class="auto-cursor-target">
+						<ac:image ac:align="center" ac:thumbnail="true" ac:width="240">
+							<ri:attachment ri:filename="someImage.png">
+								<ri:content-entity ri:content-id="someID"/>
+							</ri:attachment>
+						</ac:image>
+					</p>
+					<ac:structured-macro xmlns:ac="some" ac:name="note" ac:schema-version="1" ac:macro-id="someID">
+						<ac:rich-text-body>
+							<h3 style="text-align: center;">Lorem ipsum dolor</h3>
+						</ac:rich-text-body>
+					</ac:structured-macro>
+					<p class="auto-cursor-target"><br/></p>
+				</div>
+			<p class="auto-cursor-target"><br/></p>
+			<div class="ac-column" data-params="{&quot;width&quot;:&quot;33%&quot;}">
+					<ac:image xmlns:ac="some" xmlns:ri="thing" ac:align="right" ac:width="450">
+						<ri:attachment ri:filename="someImage.png"><ri:content-entity ri:content-id="someID"/></ri:attachment>
+					</ac:image>
+				</div>
+			<p class="auto-cursor-target"><br/></p>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</html>
