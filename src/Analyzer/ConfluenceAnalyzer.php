@@ -132,7 +132,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$spaceId = $this->helper->getIDNodeValue( $space );
 			$spaceKey = $this->helper->getPropertyValue( 'key', $space );
 
-			$this->output->writeln( "- $spaceKey (ID:$spaceId)" );
+			if ( substr( $spaceKey, 0, 1 ) === '~' ) {
+				//User namespaces
+				$userName = substr( $spaceKey, 1, strlen( $spaceKey ) -1 );
+				$spaceKey = 'User' . ucfirst( $userName );
+				$this->output->writeln( "\033[31m- $spaceKey (ID:$spaceId) - protected user namespace\033[39m" );
+			} else {
+				$this->output->writeln( "- $spaceKey (ID:$spaceId)" );
+			}
+
 			// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
 			if ( $spaceKey === 'GENERAL' ) {
 				$spaceKey = '';
