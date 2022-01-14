@@ -142,18 +142,18 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			}
 		}
 
-		#$this->runProcessors( $dom );
-		#$this->postProcessDOM( $dom, $xpath );
+		$this->runProcessors( $dom );
+		$this->postProcessDOM( $dom, $xpath );
 
 		$dom->saveHTMLFile(
 			$this->preprocessedFile->getPathname()
 		);
 
 		$this->wikiText = parent::doConvert( $this->preprocessedFile );
-		#$this->runPostProcessors();
+		$this->runPostProcessors();
 
-		#$this->postProcessLinks();
-		#$this->postprocessWikiText();
+		$this->postProcessLinks();
+		$this->postprocessWikiText();
 		return $this->wikiText;
 	}
 
