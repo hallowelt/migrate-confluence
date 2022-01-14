@@ -9,7 +9,6 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 abstract class StructuredMacroProcessorBase implements IProcessor {
 
-
 	/**
 	 *
 	 * @return string
