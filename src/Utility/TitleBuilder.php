@@ -39,19 +39,17 @@ class TitleBuilder {
 	 * @param DOMElement $pageNode
 	 * @return string
 	 */
-	public function buildTitle( $pageNode, $fullTitle = true ) {
+	public function buildTitle( $pageNode ) {
 		$spaceId = $this->getSpaceId( $pageNode );
 		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$this->builder->setNamespace( $spaceId );
 
-		if ( $fullTitle ) {
-			$titles = $this->addParentTitles( $pageNode );
-			$fullTitle = implode( '/', array_reverse( $titles ) );
-		} else {
-			$fullTitle = $this->helper->getPropertyValue( 'title', $pageNode );
+		$titles = $this->addParentTitles( $pageNode );
+
+		foreach ( $titles as $title ) {
+			$this->builder->appendTitleSegment( $title );
 		}
 
-		$this->builder->appendTitleSegment( $fullTitle );
 
 		return $this->builder->invertTitleSegments()->build();
 	}
