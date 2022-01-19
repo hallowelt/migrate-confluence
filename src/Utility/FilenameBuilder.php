@@ -54,12 +54,11 @@ class FilenameBuilder {
 		}
 		$this->builder->appendTitleSegment( $title );
 		if ( !empty( $assocTitle ) ) {
+			$assocTitle = str_replace( '/', '_', $assocTitle );
 			$this->builder->setNamespace( 0 ); // Unset potential namespace prefix to avoid duplications
 			$this->builder->appendTitleSegment( $assocTitle );
 		}
 		$builtTitle = $this->builder->invertTitleSegments()->build();
-
-		$builtTitle = str_replace( '/', '_', $builtTitle );
 
 		$filename = new WindowsFilename( $builtTitle );
 
