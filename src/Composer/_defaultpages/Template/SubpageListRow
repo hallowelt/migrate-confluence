@@ -1,3 +1,1 @@
-<includeonly>
-{{#ifeq:{{#titleparts: {{{1}}} | -1 }}|{{{#userparam}}}|*[[{{{1}}}|{{#titleparts: {{{1}}} | | -1 }}]]}}
-</includeonly>
+<includeonly>{{#ifeq:{{#titleparts: {{{1}}} | -1 }}|{{{#userparam}}}|*[[{{{1}}}|{{#titleparts: {{{1}}} | | -1 }}]]}}</includeonly>
