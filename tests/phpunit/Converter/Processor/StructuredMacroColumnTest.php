@@ -15,7 +15,7 @@ class StructuredMacroColumnTest extends StructuredMacroProcessorTestBase {
 		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/structuredmacrocolumntest-output.xml' );
 	}
 
-	protected function getProcessorToTest(): IProcessor	{
+	protected function getProcessorToTest(): IProcessor {
 		return new StructuredMacroColumn();
 	}
 }

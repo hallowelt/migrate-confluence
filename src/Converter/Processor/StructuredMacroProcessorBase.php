@@ -46,7 +46,7 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 	 */
 	private function macroParams( $macro, $macroReplacement ): void {
 		$params = [];
-		foreach( $macro->childNodes as $childNode ) {
+		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
 				$params[$paramName] = $childNode->nodeValue;
@@ -65,7 +65,7 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 	 * @return void
 	 */
 	private function macroBody( $macro, $macroReplacement ): void {
-		foreach( $macro->childNodes as $childNode ) {
+		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:rich-text-body' ) {
 				foreach ( $childNode->childNodes as $node ) {
 					$newNode = $node->cloneNode( true );

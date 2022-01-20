@@ -133,7 +133,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$spaceKey = $this->helper->getPropertyValue( 'key', $space );
 
 			if ( substr( $spaceKey, 0, 1 ) === '~' ) {
-				//User namespaces
+				// User namespaces
 				$userName = substr( $spaceKey, 1, strlen( $spaceKey ) - 1 );
 				$spaceKey = 'User' . ucfirst( $userName );
 				$this->output->writeln( "\033[31m- $spaceKey (ID:$spaceId) - protected user namespace\033[39m" );
@@ -195,7 +195,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			// We need to preserve the spaceID, so we can properly resolve cross-space links
 			// in the `convert` stage
 			$this->pageConfluenceTitle = "$spaceId---{$this->pageConfluenceTitle}";
-			$this->pageConfluenceTitle = str_replace( ' ', '_', $this->pageConfluenceTitle ); //Some normalization
+			$this->pageConfluenceTitle = str_replace( ' ', '_', $this->pageConfluenceTitle ); // Some normalization
 			$this->customBuckets->addData( 'pages-titles-map', $this->pageConfluenceTitle, $targetTitle, false, true );
 
 			// Also add pages IDs in Confluence to full page title mapping.
@@ -285,7 +285,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		$fileKey = "{$this->pageConfluenceTitle}---$fileName";
-		$fileKey = str_replace( ' ', '_', $fileKey ); //Some normalization
+		$fileKey = str_replace( ' ', '_', $fileKey ); // Some normalization
 		$this->customBuckets->addData( 'filenames-to-filetitles-map', $fileKey, $targetName, false, true );
 
 		return $targetName;
@@ -317,7 +317,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		$path = $basePath . "/" . $containerId . '/' . $attachmentId . '/' . $attachmentVersion;
-		if( !file_exists( $path ) ) {
+		if ( !file_exists( $path ) ) {
 			return '';
 		}
 

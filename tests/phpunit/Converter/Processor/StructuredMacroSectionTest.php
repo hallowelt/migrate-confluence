@@ -15,7 +15,7 @@ class StructuredMacroSectionTest extends StructuredMacroProcessorTestBase {
 		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/structuredmacrosectiontest-output.xml' );
 	}
 
-	protected function getProcessorToTest(): IProcessor	{
+	protected function getProcessorToTest(): IProcessor {
 		return new StructuredMacroSection();
 	}
 }

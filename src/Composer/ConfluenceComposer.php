@@ -103,7 +103,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	private function appendDefaultPages( Builder $builder ) {
 		$path = pathinfo( __DIR__ . '/_defaultpages/' );
 		$dir = parse_url( $path['dirname'] );
-		$basepath = $dir['host'].':/' . $dir['path'];
+		$basepath = $dir['host'] . ':/' . $dir['path'];
 		$files = glob( "$basepath/*/*" );
 		foreach ( $files as $file ) {
 			$namespacePrefix = basename( dirname( $file ) );
@@ -121,7 +121,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	private function addDefaultFiles() {
 		$path = pathinfo( __DIR__ . '/_defaultfiles/' );
 		$dir = parse_url( $path['dirname'] );
-		$basepath = $dir['host'].':/' . $dir['path'];
+		$basepath = $dir['host'] . ':/' . $dir['path'];
 		$files = glob( "$basepath/*" );
 		foreach ( $files as $file ) {
 			$fileName = basename( $file );

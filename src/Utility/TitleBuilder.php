@@ -50,7 +50,6 @@ class TitleBuilder {
 			$this->builder->appendTitleSegment( $title );
 		}
 
-
 		return $this->builder->invertTitleSegments()->build();
 	}
 
