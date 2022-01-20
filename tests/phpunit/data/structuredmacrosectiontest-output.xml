@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<html xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">
+	<div class="ac-section">
+				<p class="auto-cursor-target"><br/></p>
+			<ac:structured-macro xmlns:ac="some" ac:name="column" ac:schema-version="1" ac:macro-id="1a3d150b-0f80-4095-9e76-b06bd82f6574">
+				<ac:parameter ac:name="width">26</ac:parameter>
+				<ac:rich-text-body>
+				</ac:rich-text-body>
+			</ac:structured-macro>
+		</div>
+</html>

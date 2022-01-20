@@ -24,6 +24,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
@@ -169,7 +170,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new ConvertInfoMacro(),
 			new ConvertNoteMacro(),
 			new ConvertWarningMacro(),
-			new ConvertStatusMacro()
+			new ConvertStatusMacro(),
+			new StructuredMacroPanel(),
+			new StructuredMacroColumn(),
+			new StructuredMacroSection()
 		];
 
 		/** @var IProcessor $processor */
@@ -257,7 +261,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sMacroName = $match->getAttribute( 'ac:name' );
 
 		// Exclude macros that are handled by an `IProcessor`
-		if ( in_array( $sMacroName, [ 'info', 'note', 'tip', 'warning', 'status' ] ) ) {
+		if ( in_array( $sMacroName, [ 'info', 'note', 'tip', 'warning', 'status', 'panel', 'section', 'column' ] ) ) {
 			return;
 		}
 
@@ -276,12 +280,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processChildrenMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'widget' ) {
 			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'section' ) {
-			$this->processSectionMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'panel' ) {
-			$this->processPanelMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'column' ) {
-			$this->processColumnMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'recently-updated' ) {
 			$this->processRecentlyUpdatedMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'tasklist' ) {
@@ -289,7 +287,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		} elseif ( $sMacroName === 'toc' ) {
 			$replacement = "\n__TOC__\n###BREAK###";
 		} else {
-			// TODO: 'panel', 'calendar', 'contributors', 'anchor',
+			// TODO: 'calendar', 'contributors', 'anchor',
 			// 'pagetree', 'navitabs', 'include', 'listlabels', 'content-report-table'
 			$this->logMarkup( $match );
 		}
@@ -548,51 +546,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$oContainer->setAttribute( 'class', "ac-widget" );
 		$oContainer->setAttribute( 'data-params', json_encode( $params ) );
 		$match->parentNode->insertBefore( $oContainer, $match );
-	}
-
-	/**
-	 *
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string $replacement
-	 */
-	private function processSectionMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$oNewContainer = $dom->createElement( 'div' );
-		$oNewContainer->setAttribute( 'class', 'ac-section' );
-
-		$match->parentNode->insertBefore( $oNewContainer, $match );
-
-		$oRTBody = $xpath->query( './ac:rich-text-body', $match )->item( 0 );
-		// Move all content out of <ac::rich-text-body>
-		while ( $oRTBody->childNodes->length > 0 ) {
-			$oChild = $oRTBody->childNodes->item( 0 );
-			$oNewContainer->appendChild( $oChild );
-		}
-	}
-
-	/**
-	 *
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string $replacement
-	 */
-	private function processPanelMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$macroProcessor = new StructuredMacroPanel();
-		$macroProcessor->process( $dom );
-	}
-
-	/**
-	 *
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string $replacement
-	 */
-	private function processColumnMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$macroProcessor = new StructuredMacroColumn();
-		$macroProcessor->process( $dom );
 	}
 
 	/**

@@ -1,0 +1,12 @@
+<html xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">
+	<ac:structured-macro ac:name="section" ac:schema-version="1" ac:macro-id="83859a3c-7fe6-49c5-ace8-ea3be6f82048">
+		<ac:rich-text-body>
+				<p class="auto-cursor-target"><br /></p>
+			<ac:structured-macro ac:name="column" ac:schema-version="1" ac:macro-id="1a3d150b-0f80-4095-9e76-b06bd82f6574">
+				<ac:parameter ac:name="width">26</ac:parameter>
+				<ac:rich-text-body>
+				</ac:rich-text-body>
+			</ac:structured-macro>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</html>
