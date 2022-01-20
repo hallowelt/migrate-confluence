@@ -6,6 +6,7 @@ use DOMDocument;
 use DOMElement;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
+use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -26,7 +27,7 @@ class ImageTest extends TestCase {
 
 		// Convert image
 		$img = $domInput->getElementsByTagName( 'image' )->item( 0 );
-		$imgConvert = new Image();
+		$imgConvert = new Image( $this->createMock( ConversionDataLookup::class ), 0, '' );
 		$imgConvert->process( null, $img, $domInput, $xpath );
 
 		// Get converted element
@@ -71,7 +72,9 @@ class ImageTest extends TestCase {
 
 		// Convert attachment image
 		$img = $domInput->getElementsByTagName( 'image' )->item( 0 );
-		$imgConvert = new Image( $img );
+		$mockConversionDataLookup = $this->createMock( ConversionDataLookup::class );
+		$mockConversionDataLookup->method( 'getTargetFileTitleFromConfluenceFileKey' )->willReturn( 'SampleImage.png' );
+		$imgConvert = new Image( $mockConversionDataLookup, 0, '' );
 		$imgConvert->process( null, $img, $domInput, $xpath );
 
 		// As far as attachment image is converted not to an image tag, but to a string
