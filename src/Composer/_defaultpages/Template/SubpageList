@@ -1,9 +1,7 @@
-<includeonly>
-{{#ask:[[-Subpage::{{{1|{{FULLPAGENAME}}}}}]]
+<includeonly>{{#ask:[[-Subpage::{{{1|{{FULLPAGENAME}}}}}]]
 |format=template
 |template=SubpageListRow
 |userparam={{{1|{{FULLPAGENAME}}}}}
 |limit=9999
 |link=none
-}}
-</includeonly>
+}}</includeonly>
