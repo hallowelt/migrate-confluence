@@ -32,7 +32,7 @@
 		"mediawiki/minus-x": "1.1.1",
 		"jakub-onderka/php-parallel-lint": "1.0.0",
 		"jakub-onderka/php-console-highlighter": "0.4.0",
-		"phpunit/phpunit": "^9"
+		"phpunit/phpunit": "^8"
 	},
 	"autoload": {
 		"psr-4": {
