@@ -31,7 +31,7 @@ class Image implements IProcessable {
 
 	/**
 	 *
-	 * @param ConversionDataLookup $spaceIdPrefixMap
+	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
@@ -42,7 +42,7 @@ class Image implements IProcessable {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @inheritDoc
 	 * Processes image Confluence entity. Converts it to "img" tag if source is some external link,
 	 * and to [[File:...]] link if source is attachment.
 	 *
@@ -59,8 +59,10 @@ class Image implements IProcessable {
 		$attachmentEl = $xpath->query( './ri:attachment', $match )->item( 0 );
 		$urlEl = $xpath->query( './ri:url', $match )->item( 0 );
 
-		$params = []; // For a potential WikiText-Image-Link
-		$attribs = []; // For a potential HTML <img> element
+		// For a potential WikiText-Image-Link
+		$params = [];
+		// For a potential HTML <img> element
+		$attribs = [];
 
 		$width = $match->getAttribute( 'ac:width' );
 		$height = $match->getAttribute( 'ac:height' );
@@ -127,7 +129,7 @@ class Image implements IProcessable {
 
 	/**
 	 * @param DOMDocument $dom
-	 * @param $aAttributes
+	 * @param array $aAttributes
 	 * @return DOMNode
 	 */
 	public function makeImageTag( DOMDocument $dom, array $aAttributes ): DOMNode {
@@ -136,7 +138,7 @@ class Image implements IProcessable {
 
 	/**
 	 * @param DOMDocument $dom
-	 * @param $params
+	 * @param array $params
 	 * @return DOMNode
 	 */
 	public function makeImageLink( DOMDocument $dom, array $params ): DOMNode {

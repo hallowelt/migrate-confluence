@@ -6,10 +6,12 @@ use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
 
 class Code implements \HalloWelt\MigrateConfluence\Converter\IProcessable {
+
 	/**
 	 * @inheritDoc
 	 */
-	public function process( ?ConfluenceConverter $sender, \DOMNode $match, \DOMDocument $dom, \DOMXPath $xpath ): void {
+	public function process( ?ConfluenceConverter $sender, \DOMNode $match, \DOMDocument $dom,
+		\DOMXPath $xpath ): void {
 		$titleParam = $xpath->query( './ac:parameter[@ac:name="title"]', $match )->item( 0 );
 		if ( $titleParam instanceof DOMElement ) {
 			$match->parentNode->insertBefore(
