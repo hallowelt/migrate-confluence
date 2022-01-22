@@ -55,7 +55,8 @@ class FilenameBuilder {
 		$this->builder->appendTitleSegment( $title );
 		if ( !empty( $assocTitle ) ) {
 			$assocTitle = str_replace( '/', '_', $assocTitle );
-			$this->builder->setNamespace( 0 ); // Unset potential namespace prefix to avoid duplications
+			// Unset potential namespace prefix to avoid duplications
+			$this->builder->setNamespace( 0 );
 			$this->builder->appendTitleSegment( $assocTitle );
 		}
 		$builtTitle = $this->builder->invertTitleSegments()->build();

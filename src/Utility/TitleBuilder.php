@@ -55,9 +55,8 @@ class TitleBuilder {
 
 	/**
 	 *
-	 * @param BSConfluenceXMLHelper $this->helper
 	 * @param DOMElement $pageNode
-	 * 	 * @return int
+	 * @return int
 	 */
 	private function getSpaceId( $pageNode ) {
 		$spaceId = $this->helper->getPropertyValue( 'space', $pageNode );
@@ -73,6 +72,11 @@ class TitleBuilder {
 		return 0;
 	}
 
+	/**
+	 *
+	 * @param DOMElement $pageNode
+	 * @return array
+	 */
 	private function addParentTitles( $pageNode ) {
 		$title = $this->helper->getPropertyValue( 'title', $pageNode );
 
