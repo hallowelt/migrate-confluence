@@ -1,4 +1,4 @@
-name: pull-request
+name: basic-tests
 on:
   push:
     branches: [ main ]
@@ -10,13 +10,17 @@ jobs:
     steps:
       - name: Check out code
       - uses: actions/checkout@v2
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           tools: composer:2
+
       - name: Install dependencies
         run: composer update
+
       - name: Run check coding conventions
         run: composer test
+
       - name: Run unit tests
         run: composer unittests
