@@ -1,22 +1,25 @@
-name: pull-request
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+name: basic-tests
+
+on: [ push, pull_request ]
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
+          php-version: 7.4
           tools: composer:2
+
       - name: Install dependencies
         run: composer update
+
       - name: Run check coding conventions
         run: composer test
+
       - name: Run unit tests
-        run: composer unittests
+        run: composer unittest
