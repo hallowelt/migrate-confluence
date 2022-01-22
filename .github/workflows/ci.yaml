@@ -22,4 +22,4 @@ jobs:
         run: composer test
 
       - name: Run unit tests
-        run: composer unittests
+        run: composer unittest
