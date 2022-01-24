@@ -423,7 +423,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$categorieMap = $this->dataBuckets->getBucketData( 'title-metadata' );
 		$categories = '';
 		if ( isset( $categorieMap[$pageId] ) && isset( $categorieMap[$pageId]['categories'] ) ) {
-			foreach( $categorieMap[$pageId]['categories'] as $key => $category ) {
+			foreach ( $categorieMap[$pageId]['categories'] as $key => $category ) {
 				$category = ucfirst( $category );
 				$categories .= "[[Category:$category]]\n";
 			}
