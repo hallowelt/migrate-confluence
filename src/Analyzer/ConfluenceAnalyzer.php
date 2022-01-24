@@ -195,11 +195,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			// We need to preserve the spaceID, so we can properly resolve cross-space links
 			// in the `convert` stage
 			$this->pageConfluenceTitle = "$spaceId---{$this->pageConfluenceTitle}";
-			$this->pageConfluenceTitle = str_replace( ' ', '_', $this->pageConfluenceTitle ); // Some normalization
+			// Some normalization
+			$this->pageConfluenceTitle = str_replace( ' ', '_', $this->pageConfluenceTitle );
 			$this->customBuckets->addData( 'pages-titles-map', $this->pageConfluenceTitle, $targetTitle, false, true );
 
 			// Also add pages IDs in Confluence to full page title mapping.
-			// It is needed to have enough context on converting stage, to know from filename which page is currently being converted.
+			// It is needed to have enough context on converting stage,
+			// to know from filename which page is currently being converted.
 			$this->customBuckets->addData( 'pages-ids-to-titles-map', $pageId, $targetTitle, false, true );
 
 			$this->customBuckets->addData( 'page-id-to-space-id', $pageId, $spaceId, false, true );
@@ -222,7 +224,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$attachmentTargetFilename = $this->makeAttachmentTargetFilename( $attachment, $targetTitle );
 				$attachmentReference = $this->makeAttachmentReference( $attachment );
 				if ( empty( $attachmentReference ) ) {
-					$this->output->writeln( "\033[31m\t- Datei '$attachmentId' ($attachmentTargetFilename) nicht gefunden\033[39m" );
+					$this->output->writeln(
+						//phpcs:ignore Generic.Files.LineLength.TooLong
+						"\033[31m\t- File '$attachmentId' ($attachmentTargetFilename) not found\033[39m"
+					);
 					continue;
 				}
 				$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
@@ -285,7 +290,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		$fileKey = "{$this->pageConfluenceTitle}---$fileName";
-		$fileKey = str_replace( ' ', '_', $fileKey ); // Some normalization
+		// Some normalization
+		$fileKey = str_replace( ' ', '_', $fileKey );
 		$this->customBuckets->addData( 'filenames-to-filetitles-map', $fileKey, $targetName, false, true );
 
 		return $targetName;

@@ -61,10 +61,20 @@ class RestoreTableAttributes implements IPostprocessor {
 		return implode( "\n", $newWikiText );
 	}
 
+	/**
+	 *
+	 * @param string $line
+	 * @return bool
+	 */
 	private function isPreservedTableAttributesLine( $line ) {
 		return preg_match( "/\|.*?<span.*?>###PRESERVEDTABLEATTRIBUTES###<\/span>/", $line ) === 1;
 	}
 
+	/**
+	 *
+	 * @param string $line
+	 * @return string
+	 */
 	private function extractPreservedTableAttributes( $line ) {
 		return preg_replace(
 			"/\|.*?<span(.*?)>###PRESERVEDTABLEATTRIBUTES###<\/span>/",

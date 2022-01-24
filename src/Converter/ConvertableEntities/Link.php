@@ -31,7 +31,7 @@ class Link implements IProcessable {
 
 	/**
 	 *
-	 * @param ConversionDataLookup $spaceIdPrefixMap
+	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
@@ -42,7 +42,7 @@ class Link implements IProcessable {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @inheritDoc
 	 */
 	public function process( ?ConfluenceConverter $sender, DOMNode $match, DOMDocument $dom, DOMXPath $xpath ): void {
 		$attachmentEl = $xpath->query( './ri:attachment', $match )->item( 0 );
@@ -100,14 +100,17 @@ class Link implements IProcessable {
 				$linkParts[] = 'NULL';
 			}
 			$isUserLink = true;
-		} else { // "<ac:link />"
+		} else {
+			// "<ac:link />"
 			$linkParts[] = 'NULL';
 		}
 
 		// Let's see if there is a description Text
-		$linkBody = $xpath->query( './ac:link-body', $match )->item( 0 ); // HTML Content
+		// HTML Content
+		$linkBody = $xpath->query( './ac:link-body', $match )->item( 0 );
 		if ( $linkBody instanceof DOMElement === false ) {
-			$linkBody = $xpath->query( './ac:plain-text-link-body', $match )->item( 0 ); // CDATA Content
+			// CDATA Content
+			$linkBody = $xpath->query( './ac:plain-text-link-body', $match )->item( 0 );
 		}
 		if ( $linkBody instanceof DOMElement ) {
 			$linkParts[] = $linkBody->nodeValue;
@@ -141,6 +144,10 @@ class Link implements IProcessable {
 		);
 	}
 
+	/**
+	 * @param array $params
+	 * @return string
+	 */
 	public function makeMediaLink( $params ) {
 		/*
 		* The converter only knows the context of the current page that

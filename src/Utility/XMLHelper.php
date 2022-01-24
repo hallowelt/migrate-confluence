@@ -111,6 +111,7 @@ class XMLHelper implements LoggerAwareInterface {
 	 *
 	 * @param string $propertyName
 	 * @param DOMElement $contextElement
+	 * @return null|string
 	 */
 	public function getPropertyValue( $propertyName, $contextElement ) {
 		$propertyNode = $this->getPropertyNode( $propertyName, $contextElement );

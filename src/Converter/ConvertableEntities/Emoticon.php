@@ -23,6 +23,14 @@ class Emoticon implements IProcessable {
 		'question' => '(?)',
 	];
 
+	/**
+	 *
+	 * @param ConfluenceConverter $sender
+	 * @param DOMElement $match
+	 * @param DOMDocument $dom
+	 * @param DOMXPath $xpath
+	 * @return void
+	 */
 	public function process( $sender, $match, $dom, $xpath ): void {
 		$replacement = '';
 		$sKey = $match->getAttribute( 'ac:name' );
