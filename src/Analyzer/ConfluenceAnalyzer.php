@@ -68,6 +68,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		parent::__construct( $config, $workspace, $buckets );
 		$this->customBuckets = new DataBuckets( [
 			'space-id-to-prefix-map',
+			'space-id-homepages',
 			'pages-titles-map',
 			'pages-ids-to-titles-map',
 			'body-contents-to-pages-map',
@@ -146,6 +147,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$spaceKey = '';
 			}
 			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $spaceKey, false, true );
+
+			$homePagePropertyNode = $this->helper->getPropertyNode( 'homePage' );
+			$homePageId = $this->helper->getIDNodeValue( $homePagePropertyNode );
+			$this->customBuckets->addData( 'space-id-homepages', $spaceId, $homePageId, false, true );
 		}
 	}
 
@@ -153,7 +158,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->output->writeln( "\nFinding pages" );
 		$pageNodes = $this->helper->getObjectNodes( "Page" );
 		$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
-		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $this->helper );
+		$spaceIdHomepages = $this->customBuckets->getBucketData( 'space-id-homepages' );
+		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $this->helper );
 		foreach ( $pageNodes as $pageNode ) {
 			if ( $pageNode instanceof DOMElement === false ) {
 				continue;
