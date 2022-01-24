@@ -77,7 +77,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 *
 	 * @param array $config
 	 * @param Workspace $workspace
-	 * @param DataBuckets $buckets
 	 */
 	public function __construct( $config, Workspace $workspace ) {
 		parent::__construct( $config, $workspace );
@@ -103,6 +102,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->output = $output;
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	protected function doConvert( SplFileInfo $file ): string {
 		$this->output->writeln( $file->getPathname() );
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->dataBuckets );
@@ -135,7 +137,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$nonLiveListMatches[] = $match;
 			}
 			foreach ( $nonLiveListMatches as $match ) {
+				//phpcs:ignore Generic.Files.LineLength.TooLong
 				// See: https://wiki.hallowelt.com/index.php/Technik/Migration/Confluence_nach_MediaWiki#Inhalte
+				//phpcs:ignore Generic.Files.LineLength.TooLong
 				// See: https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
 				call_user_func_array(
 					$callback,
@@ -183,6 +187,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 	}
 
+	/**
+	 *
+	 * @return void
+	 */
 	private function runPostProcessors() {
 		$postProcessors = [
 			new RestoreTableAttributes()
@@ -225,6 +233,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		return $map[$pageId] ?? -1;
 	}
 
+	/**
+	 *
+	 * @return void
+	 */
 	private function preprocessFile() {
 		$source = $this->preprocessHTMLSource( $this->rawFile );
 		$dom = new DOMDocument();
@@ -242,7 +254,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
@@ -252,7 +264,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
@@ -319,6 +331,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		);
 	}
 
+	/**
+	 *
+	 * @param ConfluenceConverter $sender
+	 * @param DOMElement $match
+	 * @param DOMDocument $dom
+	 * @param DOMXPath $xpath
+	 * @return void
+	 */
 	protected function processPlaceholder( $sender, $match, $dom, $xpath ) {
 		$replacement = $match->textContent;
 
@@ -332,7 +352,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 	}
 
-	public function makeReplacings() {
+	/**
+	 *
+	 * @return array
+	 */
+	private function makeReplacings() {
 		return [
 			'//ac:link' => [ new Link( $this->dataLookup, $this->currentSpace, $this->currentPageTitle ), 'process' ],
 			'//ac:image' => [ new Image( $this->dataLookup, $this->currentSpace, $this->currentPageTitle ), 'process' ],
@@ -353,7 +377,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	protected function preprocessHTMLSource( $oHTMLSourceFile ) {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
 		$bodyContentId = $this->getBodyContentIdFromFilename( $oHTMLSourceFile->getFilename() );
-		$spaceId = $this->getPageIdFromBodyContentId( $bodyContentId );
+		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
 
 		$preprocessors = [
 			new CDATAClosingFixer()
@@ -380,9 +404,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		// For now we just replace the layout markup of Confluence with simple
-		//HTML div markup
+		// HTML div markup
 		$sContent = str_replace( '<ac:layout-section', '{{Layout}}<ac:layout-section', $sContent );
-		$sContent = str_replace( '<ac:layout-section ac:type="', '<div class="ac-layout-section ', $sContent ); // "ac:layout-section" is the only one with a "ac:type" attribute
+		// "ac:layout-section" is the only one with a "ac:type" attribute
+		// phpcs:ignore Generic.Files.LineLength.TooLong
+		$sContent = str_replace( '<ac:layout-section ac:type="', '<div class="ac-layout-section ', $sContent );
+		// phpcs:ignore Generic.Files.LineLength.TooLong
 		$sContent = str_replace( '<ac:layout-section', '<div class="ac-layout-section"', $sContent );
 		$sContent = str_replace( '</ac:layout-section', '</div', $sContent );
 
@@ -395,15 +422,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		// Append categories
 		$categorieMap = $this->dataBuckets->getBucketData( 'title-metadata' );
 		$categories = '';
-		if ( isset( $categorieMap[$spaceId] ) && isset( $categorieMap[$spaceId]['categories'] ) ) {
-			foreach( $categorieMap[$spaceId]['categories'] as $key => $category ) {
+		if ( isset( $categorieMap[$pageId] ) && isset( $categorieMap[$pageId]['categories'] ) ) {
+			foreach( $categorieMap[$pageId]['categories'] as $key => $category ) {
 				$category = ucfirst( $category );
 				$categories .= "[[Category:$category]]\n";
 			}
 		}
 		$sContent = str_replace( '</body>', $categories . '</body>', $sContent );
 
-		# $sContent = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">'
+		// phpcs:ignore Generic.Files.LineLength.TooLong
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">' . $sContent . '</xml>';
 
 		return $sContent;
@@ -419,11 +446,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * </ac:macro>
 	 * </ac:rich-text-body>
 	 * </ac:macro>
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string $replacement
-	 * @param string &$sMacroName
+	 * @param string &$replacement
+	 * @param string $sMacroName
 	 */
 	private function processLocalTabMacro( $sender, $match, $dom, $xpath, &$replacement, $sMacroName ) {
 		if ( $sMacroName === 'localtabgroup' ) {
@@ -449,10 +477,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string $replacement
+	 * @param string &$replacement
 	 */
 	private function processExcerptMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$oNewContainer = $dom->createElement( 'div' );
@@ -472,11 +501,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string $replacement
-	 * @param string &$sMacroName
+	 * @param string &$replacement
+	 * @param string $sMacroName
 	 */
 	private function processViewXMacro( $sender, $match, $dom, $xpath, &$replacement, $sMacroName ) {
 		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
@@ -501,10 +531,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string $replacement
+	 * @param string &$replacement
 	 */
 	private function processChildrenMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$iDepth = 1;
@@ -526,11 +557,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string $replacement
+	 * @param string &$replacement
 	 */
 	private function processGliffyMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
@@ -542,11 +573,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string $replacement
+	 * @param string &$replacement
 	 */
 	private function processWidgetMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$oParamEls = $xpath->query( './ac:parameter', $match );
@@ -563,11 +594,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string $replacement
+	 * @param string &$replacement
 	 */
 	private function processTaskListMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$this->processTaskList( $sender, $match, $dom, $xpath );
@@ -587,6 +618,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * <ac:task-body><strong>Create your first page</strong> - Click the <em>Create</em> ...</ac:task-body>
 	 * <ac:task>
 	 * </ac:task-list>
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
@@ -627,6 +659,7 @@ HERE;
 	 * <ac:inline-comment-marker ac:ref="ca3f84d8-5618-4cdb-b8f6-b58f4e29864e">
 	 *	Alternatives
 	 * </ac:inline-comment-marker>
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
@@ -655,6 +688,10 @@ HERE;
 		}
 	}
 
+	/**
+	 *
+	 * @return void
+	 */
 	public function postProcessLinks() {
 		$oldToNewTitlesMap = $this->dataBuckets->getBucketData( 'pages-titles-map' );
 
@@ -670,7 +707,8 @@ HERE;
 		);
 
 		// Pandoc converts external images like <img src='...' /> among others. It is not correct.
-		// So we need to find all images which look like that [[File:https://somesite.com]] and convert them back to <img>.
+		// So we need to find all images which look like that [[File:https://somesite.com]] and
+		// convert them back to <img>.
 		$this->wikiText = preg_replace_callback(
 			"/\[\[File:(http[s]?:\/\/.*)]]/",
 			function ( $matches ) {
@@ -691,11 +729,11 @@ HERE;
 	}
 
 	/**
-	 *
+	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string $replacement
+	 * @param string &$replacement
 	 */
 	private function processRecentlyUpdatedMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$sNsText = '';
@@ -709,7 +747,11 @@ HERE;
 		);
 	}
 
-	public function postprocessWikiText() {
+	/**
+	 *
+	 * @return void
+	 */
+	private function postprocessWikiText() {
 		// On Windows the CR would be encoded as "&#xD;" in the MediaWiki-XML, which is ulgy and unnecessary
 		$this->wikiText = str_replace( "\r", '', $this->wikiText );
 		$this->wikiText = str_replace( "###BREAK###", "\n", $this->wikiText );
