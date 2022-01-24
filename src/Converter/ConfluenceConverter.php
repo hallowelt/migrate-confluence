@@ -89,7 +89,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'body-contents-to-pages-map',
 			'page-id-to-space-id',
 			'space-id-to-prefix-map',
-			'filenames-to-filetitles-map'
+			'filenames-to-filetitles-map',
+			'title-metadata'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
@@ -290,8 +291,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			// TODO: 'calendar', 'contributors', 'anchor',
 			// 'pagetree', 'navitabs', 'include', 'listlabels', 'content-report-table'
 			$this->logMarkup( $match );
+			$replacement .= "[[Category:Broken_macro/$sMacroName]]";
 		}
-		$replacement .= "[[Category:Broken_macro/$sMacroName]]";
 
 		$parentNode = $match->parentNode;
 		if ( $parentNode === null ) {
@@ -351,6 +352,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	protected function preprocessHTMLSource( $oHTMLSourceFile ) {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
+		$bodyContentId = $this->getBodyContentIdFromFilename( $oHTMLSourceFile->getFilename() );
+		$spaceId = $this->getPageIdFromBodyContentId( $bodyContentId );
 
 		$preprocessors = [
 			new CDATAClosingFixer()
@@ -388,6 +391,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$sContent = str_replace( '<ac:layout', '<div class="ac-layout"', $sContent );
 		$sContent = str_replace( '</ac:layout', '</div', $sContent );
+
+		// Append categories
+		$categorieMap = $this->dataBuckets->getBucketData( 'title-metadata' );
+		$categories = '';
+		if ( isset( $categorieMap[$spaceId] ) && isset( $categorieMap[$spaceId]['categories'] ) ) {
+			foreach( $categorieMap[$spaceId]['categories'] as $key => $category ) {
+				$category = ucfirst( $category );
+				$categories .= "[[Category:$category]]\n";
+			}
+		}
+		$sContent = str_replace( '</body>', $categories . '</body>', $sContent );
 
 		# $sContent = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">'
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">' . $sContent . '</xml>';
