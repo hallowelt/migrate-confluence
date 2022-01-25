@@ -74,7 +74,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'body-contents-to-pages-map',
 			'title-invalids',
 			'filenames-to-filetitles-map',
-			'page-id-to-space-id'
+			'page-id-to-space-id',
+			'attachment-file-extensions'
 		] );
 		$this->logger = new NullLogger();
 	}
@@ -394,6 +395,25 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$this->output->writeln( "- '$targetName'" );
 			$this->addFile( $targetName, $path );
 		}
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	protected function addFile( $rawFilename, $attachmentReference = 'n/a' ) {
+		$parts = explode( '.', $rawFilename );
+		if ( count( $parts ) > 1 ) {
+			$extension = array_pop( $parts );
+			$normalExtension = strtolower( $extension );
+			$this->customBuckets->addData(
+				'attachment-file-extensions',
+				'extensions',
+				$normalExtension,
+				true,
+				true
+			);
+		}
+		return parent::addFile( $rawFilename, $attachmentReference );
 	}
 
 	/**
