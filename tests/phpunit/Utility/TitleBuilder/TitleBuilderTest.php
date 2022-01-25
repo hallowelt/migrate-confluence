@@ -20,7 +20,11 @@ class TitleBuilderTest extends TestCase {
 			32973 => 'TestNS'
 		];
 
-		$titleBuilder = new TitleBuilder( $spacePrefixToIdMap, $helper );
+		$spaceIdHomepages = [
+			32973 => 32974
+		];
+
+		$titleBuilder = new TitleBuilder( $spacePrefixToIdMap, $spaceIdHomepages, $helper );
 		$pageNodes = $helper->getObjectNodes( "Page" );
 
 		$actualTitles = [];
@@ -36,9 +40,9 @@ class TitleBuilderTest extends TestCase {
 		}
 
 		$expectedTitles = [
-			"TestNS:Dokumentation",
-			"TestNS:Dokumentation/Roadmap",
-			"TestNS:Dokumentation/Roadmap/Detailed_planning"
+			"TestNS:Main_Page",
+			"TestNS:Roadmap",
+			"TestNS:Roadmap/Detailed_planning"
 		];
 
 		$this->assertEquals( $expectedTitles, $actualTitles );

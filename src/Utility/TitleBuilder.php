@@ -26,11 +26,25 @@ class TitleBuilder {
 
 	/**
 	 *
+	 * @var array
+	 */
+	private $spaceIdHomepages = [];
+
+	/**
+	 *
+	 * @var integer
+	 */
+	private $currentTitlesSpaceHomePageId = -1;
+
+	/**
+	 *
 	 * @param array $spaceIdPrefixMap
+	 * @param array $spaceIdHomepages
 	 * @param XMLHelper $helper
 	 */
-	public function __construct( $spaceIdPrefixMap, $helper ) {
+	public function __construct( $spaceIdPrefixMap, $spaceIdHomepages, $helper ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
+		$this->spaceIdHomepages = $spaceIdHomepages;
 		$this->helper = $helper;
 	}
 
@@ -43,6 +57,17 @@ class TitleBuilder {
 		$spaceId = $this->getSpaceId( $pageNode );
 		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$this->builder->setNamespace( $spaceId );
+
+		$pageId = $this->helper->getIDNodeValue( $pageNode );
+		$this->currentTitlesSpaceHomePageId = -1;
+		if ( isset( $this->spaceIdHomepages[$spaceId] ) ) {
+			$this->currentTitlesSpaceHomePageId = $this->spaceIdHomepages[$spaceId];
+		}
+
+		if ( $pageId === $this->currentTitlesSpaceHomePageId ) {
+			$this->builder->appendTitleSegment( 'Main_Page' );
+			return $this->builder->build();
+		}
 
 		$titles = $this->addParentTitles( $pageNode );
 
@@ -83,6 +108,10 @@ class TitleBuilder {
 		$titles = [ $title ];
 
 		$parentPageId = $this->helper->getPropertyValue( 'parent', $pageNode );
+		if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
+			$parentPageId = null;
+		}
+
 		while ( is_int( $parentPageId ) ) {
 			$parentPage = $this->helper->getObjectNodeById( $parentPageId, 'Page' );
 			$parentTitle = $this->helper->getPropertyValue( 'title', $parentPage );
@@ -90,6 +119,10 @@ class TitleBuilder {
 			$titles[] = $parentTitle;
 
 			$parentPageId = $this->helper->getPropertyValue( 'parent', $parentPage );
+
+			if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
+				$parentPageId = null;
+			}
 		}
 
 		return $titles;
