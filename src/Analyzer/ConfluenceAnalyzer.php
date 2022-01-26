@@ -75,7 +75,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'title-invalids',
 			'filenames-to-filetitles-map',
 			'page-id-to-space-id',
-			'attachment-file-extensions'
+			'attachment-file-extensions',
+			'space-name-to-prefix-map'
 		] );
 		$this->logger = new NullLogger();
 	}
@@ -137,7 +138,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			if ( substr( $spaceKey, 0, 1 ) === '~' ) {
 				// User namespaces
 				$spaceKey = $this->sanitizeUserSpaceKey( $spaceKey, $spaceName );
-
 				$this->output->writeln( "\033[31m- $spaceKey (ID:$spaceId) - protected user namespace\033[39m" );
 			} else {
 				$this->output->writeln( "- $spaceKey (ID:$spaceId)" );
@@ -148,6 +148,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$spaceKey = '';
 			}
 			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $spaceKey, false, true );
+			$this->customBuckets->addData( 'space-name-to-prefix-map', $spaceName, $spaceKey, false, true );
 
 			$homePagePropertyNode = $this->helper->getPropertyNode( 'homePage' );
 			$homePageId = $this->helper->getIDNodeValue( $homePagePropertyNode );
