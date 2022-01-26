@@ -156,6 +156,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 	}
 
+	/**
+	 *
+	 * @param int|string $spaceKey
+	 * @param string $spaceName
+	 * @return string
+	 */
 	private function sanitizeUserSpaceKey( $spaceKey, $spaceName ) {
 		$spaceKey = substr( $spaceKey, 1, strlen( $spaceKey ) - 1 );
 		if ( is_numeric( $spaceKey ) ) {
