@@ -252,7 +252,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 						//phpcs:ignore Generic.Files.LineLength.TooLong
 						"\033[31m\t- File '$attachmentId' ($attachmentTargetFilename) not found\033[39m"
 					);
-					$this->customBuckets->addData( 'missing-attachment-id-to-filename', $attachmentId, $attachmentTargetFilename, false, true );
+					$this->customBuckets->addData(
+						'missing-attachment-id-to-filename',
+						$attachmentId,
+						$attachmentTargetFilename,
+						false,
+						true
+					);
 					continue;
 				}
 				$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
