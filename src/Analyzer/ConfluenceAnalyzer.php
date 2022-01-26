@@ -161,7 +161,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		if ( is_numeric( $spaceKey ) ) {
 			$spaceKey = $spaceName;
 		}
-		$spaceKey = preg_replace('/[^A-Za-z0-9]/', '', $spaceKey);
+		$spaceKey = preg_replace( '/[^A-Za-z0-9]/', '', $spaceKey );
 		return 'User' . ucfirst( $spaceKey );
 	}
 
