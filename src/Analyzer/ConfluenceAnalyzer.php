@@ -75,7 +75,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'title-invalids',
 			'filenames-to-filetitles-map',
 			'page-id-to-space-id',
-			'attachment-file-extensions'
+			'attachment-file-extensions',
+			'space-name-to-prefix-map',
+			'missing-attachment-id-to-filename'
 		] );
 		$this->logger = new NullLogger();
 	}
@@ -133,11 +135,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		foreach ( $spaces as $space ) {
 			$spaceId = $this->helper->getIDNodeValue( $space );
 			$spaceKey = $this->helper->getPropertyValue( 'key', $space );
-
+			$spaceName = $this->helper->getPropertyValue( 'name', $space );
 			if ( substr( $spaceKey, 0, 1 ) === '~' ) {
 				// User namespaces
-				$userName = substr( $spaceKey, 1, strlen( $spaceKey ) - 1 );
-				$spaceKey = 'User' . ucfirst( $userName );
+				$spaceKey = $this->sanitizeUserSpaceKey( $spaceKey, $spaceName );
 				$this->output->writeln( "\033[31m- $spaceKey (ID:$spaceId) - protected user namespace\033[39m" );
 			} else {
 				$this->output->writeln( "- $spaceKey (ID:$spaceId)" );
@@ -148,11 +149,27 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$spaceKey = '';
 			}
 			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $spaceKey, false, true );
+			$this->customBuckets->addData( 'space-name-to-prefix-map', $spaceName, $spaceKey, false, true );
 
 			$homePagePropertyNode = $this->helper->getPropertyNode( 'homePage' );
 			$homePageId = $this->helper->getIDNodeValue( $homePagePropertyNode );
 			$this->customBuckets->addData( 'space-id-homepages', $spaceId, $homePageId, false, true );
 		}
+	}
+
+	/**
+	 *
+	 * @param int|string $spaceKey
+	 * @param string $spaceName
+	 * @return string
+	 */
+	private function sanitizeUserSpaceKey( $spaceKey, $spaceName ) {
+		$spaceKey = substr( $spaceKey, 1, strlen( $spaceKey ) - 1 );
+		if ( is_numeric( $spaceKey ) ) {
+			$spaceKey = $spaceName;
+		}
+		$spaceKey = preg_replace( '/[^A-Za-z0-9]/', '', $spaceKey );
+		return 'User' . ucfirst( $spaceKey );
 	}
 
 	private function makePagenamesMap() {
@@ -234,6 +251,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 					$this->output->writeln(
 						//phpcs:ignore Generic.Files.LineLength.TooLong
 						"\033[31m\t- File '$attachmentId' ($attachmentTargetFilename) not found\033[39m"
+					);
+					$this->customBuckets->addData(
+						'missing-attachment-id-to-filename',
+						$attachmentId,
+						$attachmentTargetFilename,
+						false,
+						true
 					);
 					continue;
 				}
