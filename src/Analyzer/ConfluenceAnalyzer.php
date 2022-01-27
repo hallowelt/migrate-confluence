@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as MigrationTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
@@ -77,7 +78,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'page-id-to-space-id',
 			'attachment-file-extensions',
 			'space-name-to-prefix-map',
-			'missing-attachment-id-to-filename'
+			'missing-attachment-id-to-filename',
+			'userkey-to-username-map',
+			'users'
 		] );
 		$this->logger = new NullLogger();
 	}
@@ -122,6 +125,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
 
+		$this->userMap();
 		$this->makeSpacesMap();
 		$this->makePagenamesMap();
 		$this->addAdditionalFiles();
@@ -234,6 +238,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$bodyContentIds = $this->getBodyContentIds( $pageNode );
 
 			foreach ( $bodyContentIds as $bodyContentId ) {
+				// TODO: Add UserImpl-key or directly MediaWiki username (could also be done in `extract` as "metadata" )
 				$this->customBuckets->addData( 'body-contents-to-pages-map', $bodyContentId, $pageId, false, true );
 			}
 
@@ -454,5 +459,57 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		}
 		return false;
+	}
+
+	private function userMap() {
+		$this->output->writeln( "\nFinding users" );
+		$userImpls = $this->helper->getObjectNodes( 'ConfluenceUserImpl' );
+		foreach ( $userImpls as $userImpl ) {
+			// Can not use `XMLHelper::getIDNodeValue` here, as the key is not an integer
+			$idNode = $userImpl->getElementsByTagName( 'id' )->item( 0 );
+			$userImplKey = $idNode->nodeValue;
+			$lcUserName = $this->helper->getPropertyValue( 'lowerName', $userImpl );
+			$email = $this->helper->getPropertyValue( 'email', $userImpl );
+
+			$mediaWikiUsername = $this->makeMWUserName( $lcUserName );
+
+			$this->customBuckets->addData(
+				'userkey-to-username-map',
+				$userImplKey,
+				$mediaWikiUsername,
+				false
+			);
+
+			$this->customBuckets->addData(
+				'users',
+				$mediaWikiUsername,
+				[
+					'email' => is_null( $email ) ? '' : $email
+				],
+				false,
+				true
+			);
+
+			$this->output->writeln( "- '$mediaWikiUsername' (ID:$userImplKey)" );
+		}
+	}
+
+	/**
+	 *
+	 * @param string $userName
+	 * @return string
+	 */
+	private function makeMWUserName( $userName ) {
+		// Email adresses are no valid MW usernames. We just use the first part
+		// While this could lead to collisions it is very unlikly
+		$usernameParts = explode( '@', $userName, 2 );
+		$newUsername = $usernameParts[0];
+		$newUsername = ucfirst( strtolower( $newUsername ) );
+
+		// A MW username must always be avalid page title
+		$titleBuilder = new MigrationTitleBuilder( [] );
+		$titleBuilder->appendTitleSegment( $newUsername );
+
+		return $titleBuilder->build();
 	}
 }
