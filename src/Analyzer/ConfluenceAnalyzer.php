@@ -238,7 +238,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$bodyContentIds = $this->getBodyContentIds( $pageNode );
 
 			foreach ( $bodyContentIds as $bodyContentId ) {
-				// TODO: Add UserImpl-key or directly MediaWiki username (could also be done in `extract` as "metadata" )
+				// TODO: Add UserImpl-key or directly MediaWiki username
+				// (could also be done in `extract` as "metadata" )
 				$this->customBuckets->addData( 'body-contents-to-pages-map', $bodyContentId, $pageId, false, true );
 			}
 
@@ -484,7 +485,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				'users',
 				$mediaWikiUsername,
 				[
-					'email' => is_null( $email ) ? '' : $email
+					'email' => $email === null ? '' : $email
 				],
 				false,
 				true
