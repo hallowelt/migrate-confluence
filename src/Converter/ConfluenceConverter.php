@@ -780,13 +780,43 @@ HERE;
 
 		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
-			$this->wikiText .= "\n{{AttachmentsSectionStart}}\n";
+			$mediaExludeList = $this->buildMediaExcludeList( $this->wikiText );
+			$attachmentList = [];
 			foreach ( $attachmentsMap[$this->currentPageTitle] as $attachment ) {
-				$this->wikiText .= "* [[Media:$attachment]]\n";
+				if ( in_array( $attachment, $mediaExludeList ) ) {
+					continue;
+				}
+				$attachmentList[] = $attachment;
 			}
-			$this->wikiText .= "\n{{AttachmentsSectionEnd}}\n";
+
+			if ( !empty( $attachmentList ) ) {
+				$this->wikiText .= "\n{{AttachmentsSectionStart}}\n";
+				foreach ( $attachmentList as $attachment ) {
+					$this->wikiText .= "* [[Media:$attachment]]\n";
+				}
+				$this->wikiText .= "\n{{AttachmentsSectionEnd}}\n";
+			}
 		}
 
 		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";
+	}
+
+	/**
+	 *
+	 * @param string $wikiText
+	 * @return array
+	 */
+	private function buildMediaExcludeList( $wikiText ): array {
+		$excludes = [ 'File', 'Media' ];
+
+		$matches = [];
+		$excludes = implode( '|', $excludes );
+		preg_match_all( "#\[\[\s*(File|Media):(.*?)\s*[\|*|\]\]]#im", $wikiText, $matches );
+		$exludeList = [];
+		foreach ( $matches[2] as $match ) {
+			$exludeList[] = $match;
+		}
+
+		return $exludeList;
 	}
 }
