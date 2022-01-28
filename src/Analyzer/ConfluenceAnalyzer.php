@@ -80,7 +80,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'space-name-to-prefix-map',
 			'missing-attachment-id-to-filename',
 			'userkey-to-username-map',
-			'users'
+			'users',
+			'title-files',
+			'additional-files'
 		] );
 		$this->logger = new NullLogger();
 	}
@@ -220,6 +222,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			 * "Detailed_planning" -> "Dokumentation/Detailed_planning"
 			 */
 			$this->pageConfluenceTitle = $this->helper->getPropertyValue( 'title', $pageNode );
+			$migrationTitleBuilder = new MigrationTitleBuilder( [] );
+			$this->pageConfluenceTitle = $migrationTitleBuilder
+				->appendTitleSegment( $this->pageConfluenceTitle )->build();
 			// We need to preserve the spaceID, so we can properly resolve cross-space links
 			// in the `convert` stage
 			$this->pageConfluenceTitle = "$spaceId---{$this->pageConfluenceTitle}";
@@ -269,6 +274,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				}
 				$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
 				$this->addFile( $attachmentTargetFilename, $attachmentReference );
+				$this->customBuckets->addData( 'title-files', $targetTitle, $attachmentTargetFilename, false, true );
 				$this->addedAttachmentIds[$attachmentId] = true;
 			}
 		}
@@ -424,6 +430,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$targetName = $this->makeAttachmentTargetFilename( $attachment, '' );
 			$this->output->writeln( "- '$targetName'" );
 			$this->addFile( $targetName, $path );
+			$this->customBuckets->addData( 'additional-files', $targetName, $path, false, true );
 		}
 	}
 
