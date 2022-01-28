@@ -56,6 +56,9 @@ If you re-run the scripts you will need to clean up the "workspace" directory!
 
 You may need to update your MediaWiki search index afterwards.
 
+### User spaces
+In confluence user spaces are protected. In MediaWiki this is not possible for namespace `User`. Therefore user spaces are migrated to a namespace `User<username>` which can be protected in `BlueSpice for MediaWiki`.
+
 #### Included MediaWiki wikitext templates
 - `AttachmentsSectionEnd`
 - `AttachmentsSectionStart`
