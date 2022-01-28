@@ -108,6 +108,7 @@ In the case that the tool can not migrate content or functionality it will creat
 - Various macros
 - Various layouts
 - Blog posts
+- Files of a space which can not be assigned to a page
 
 ## Creating a build
 1. Clone this repo
