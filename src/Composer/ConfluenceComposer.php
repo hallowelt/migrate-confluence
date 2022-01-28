@@ -37,6 +37,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			'files'
 		] );
 
+		$this->customBuckets = new DataBuckets( [
+			'title-uploads',
+			'title-uploads-fail'
+		] );
+
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
 	}
 
@@ -90,12 +95,15 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 						$attachmentContent = file_get_contents( $filePath );
 
 						$this->workspace->saveUploadFile( $attachment, $attachmentContent );
+						$this->customBuckets->addData( 'title-uploads', $pageTitle, $attachment );
 					} else {
 						$this->output->writeln( "Attachment file was not found!" );
+						$this->customBuckets->addData( 'title-uploads-fail', $pageTitle, $attachment );
 					}
 				}
 			}
 		}
+		$this->customBuckets->saveToWorkspace( $this->workspace );
 	}
 
 	/**
