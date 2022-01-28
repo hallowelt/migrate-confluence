@@ -223,7 +223,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			 */
 			$this->pageConfluenceTitle = $this->helper->getPropertyValue( 'title', $pageNode );
 			$migrationTitleBuilder = new MigrationTitleBuilder( [] );
-			$this->pageConfluenceTitle = $migrationTitleBuilder->appendTitleSegment( $this->pageConfluenceTitle )->build();
+			$this->pageConfluenceTitle = $migrationTitleBuilder
+				->appendTitleSegment( $this->pageConfluenceTitle )->build();
 			// We need to preserve the spaceID, so we can properly resolve cross-space links
 			// in the `convert` stage
 			$this->pageConfluenceTitle = "$spaceId---{$this->pageConfluenceTitle}";
