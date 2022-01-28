@@ -48,15 +48,15 @@ If you re-run the scripts you will need to clean up the "workspace" directory!
 
 ### Import into MediaWiki
 1. Copy the diretory "workspace/result" directory (e.g. `/tmp/confluence/workspace/result/` to your target wiki server (e.g. `/tmp/result`)
-1. Go to your MediaWiki installation directory
-2. Make sure you have the target namespaces set up properly. See `workspace/space-id-to-prefix-map.php` for reference.
-3. Make sure [$wgFileExtensions](https://www.mediawiki.org/wiki/Manual:$wgFileExtensions) is setup properly. See `workspace/attachment-file-extensions.php` for reference.
-4. Use `php maintenance/importImages.php /tmp/result/images/` to first import all attachment files and images
-5. Use `php maintenance/importDump.php /tmp/result/output.xml` to import the actual pages
+2. Go to your MediaWiki installation directory
+3. Make sure you have the target namespaces set up properly. See `workspace/space-id-to-prefix-map.php` for reference.
+4. Make sure [$wgFileExtensions](https://www.mediawiki.org/wiki/Manual:$wgFileExtensions) is setup properly. See `workspace/attachment-file-extensions.php` for reference.
+5. Use `php maintenance/importImages.php /tmp/result/images/` to first import all attachment files and images
+6. Use `php maintenance/importDump.php /tmp/result/output.xml` to import the actual pages
 
 You may need to update your MediaWiki search index afterwards.
 
-### User spaces
+#### User spaces
 In confluence user spaces are protected. In MediaWiki this is not possible for namespace `User`. Therefore user spaces are migrated to a namespace `User<username>` which can be protected in `BlueSpice for MediaWiki`.
 
 #### Included MediaWiki wikitext templates
