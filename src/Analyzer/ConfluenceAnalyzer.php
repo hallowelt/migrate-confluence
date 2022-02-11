@@ -157,8 +157,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $spaceKey, false, true );
 			$this->customBuckets->addData( 'space-name-to-prefix-map', $spaceName, $spaceKey, false, true );
 
+			$homePageId = -1;
 			$homePagePropertyNode = $this->helper->getPropertyNode( 'homePage' );
-			$homePageId = $this->helper->getIDNodeValue( $homePagePropertyNode );
+			if ( $homePagePropertyNode !== null ) {
+				$homePageId = $this->helper->getIDNodeValue( $homePagePropertyNode );
+			}
 			$this->customBuckets->addData( 'space-id-homepages', $spaceId, $homePageId, false, true );
 		}
 	}
