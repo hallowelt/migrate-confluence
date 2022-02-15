@@ -17,11 +17,13 @@ class TitleBuilderTest extends TestCase {
 		$helper = new XMLHelper( $dom );
 
 		$spacePrefixToIdMap = [
-			32973 => 'TestNS'
+			32973 => 'TestNS',
+			99999 => 'TestNS_NoMain_Page'
 		];
 
 		$spaceIdHomepages = [
-			32973 => 32974
+			32973 => 32974,
+			99999 => -1
 		];
 
 		$titleBuilder = new TitleBuilder( $spacePrefixToIdMap, $spaceIdHomepages, $helper );
@@ -42,7 +44,9 @@ class TitleBuilderTest extends TestCase {
 		$expectedTitles = [
 			"TestNS:Main_Page",
 			"TestNS:Roadmap",
-			"TestNS:Roadmap/Detailed_planning"
+			"TestNS:Roadmap/Detailed_planning",
+			"TestNS_NoMain_Page:Dokumentation",
+			"TestNS_NoMain_Page:Dokumentation/Roadmap",
 		];
 
 		$this->assertEquals( $expectedTitles, $actualTitles );
