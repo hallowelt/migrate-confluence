@@ -93,6 +93,7 @@ Some Confluence macros are replaced with MediaWiki templates, that hold extensio
 
 1. Semantic MediaWiki
 2. HeaderTabs
+3. ParserFunctions
 
 ### Manual post-import maintenance
 #### Cleanup Categories
