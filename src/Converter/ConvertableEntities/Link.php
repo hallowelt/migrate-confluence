@@ -97,12 +97,12 @@ class Link implements IProcessable {
 			if ( !empty( $userKey ) ) {
 				$linkParts[] = 'User:' . $userKey;
 			} else {
-				$linkParts[] = 'TEST';
+				$linkParts[] = 'NULL';
 			}
 			$isUserLink = true;
 		} else {
 			// "<ac:link />"
-			$linkParts[] = 'TEST2';
+			$linkParts[] = 'NULL';
 		}
 
 		// Let's see if there is a description Text
