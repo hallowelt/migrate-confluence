@@ -118,7 +118,7 @@ class Image implements IProcessable {
 			$confluenceFileKey = "$spaceId---$rawPageTitle---$riFilename";
 			$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 			array_unshift( $params, $targetFilename );
-			$replacement = $this->makeImageLinkWithFallback( $dom, $params, $confluenceFileKey );
+			$replacement = $this->makeImageLinkWithDebugInfo( $dom, $params, $confluenceFileKey );
 		}
 
 		$match->parentNode->replaceChild(
@@ -152,7 +152,7 @@ class Image implements IProcessable {
 	 * @param string $confluenceFileKey
 	 * @return DOMNode
 	 */
-	private function makeImageLinkWithFallback( DOMDocument $dom, array $params, $confluenceFileKey ): DOMNode {
+	private function makeImageLinkWithDebugInfo( DOMDocument $dom, array $params, $confluenceFileKey ): DOMNode {
 		$params = array_map( 'trim', $params );
 		$debug = '';
 		if ( empty( $params ) || empty( $params[0] ) ) {
