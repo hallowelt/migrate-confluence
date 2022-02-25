@@ -357,9 +357,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return array
 	 */
 	private function makeReplacings() {
+		$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
+		$prefix = $spaceIdPrefixMap[$this->currentSpace];
+		$currentPageTitle = $this->currentPageTitle;
+		if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
+			$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
+		}
+
 		return [
-			'//ac:link' => [ new Link( $this->dataLookup, $this->currentSpace, $this->currentPageTitle ), 'process' ],
-			'//ac:image' => [ new Image( $this->dataLookup, $this->currentSpace, $this->currentPageTitle ), 'process' ],
+			'//ac:link' => [ new Link( $this->dataLookup, $this->currentSpace, $currentPageTitle ), 'process' ],
+			'//ac:image' => [ new Image( $this->dataLookup, $this->currentSpace, $currentPageTitle ), 'process' ],
 			'//ac:macro' => [ $this, 'processMacro' ],
 			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ],
 			'//ac:emoticon' => [ new Emoticon(), 'process' ],
@@ -519,7 +526,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$sTargetFile = $oRIAttachmentEl->getAttribute( 'ri:filename' );
 			}
 
-			$linkConverter = new Link( $this->dataLookup, $this->currentSpace, $this->currentPageTitle );
+			$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
+			$prefix = $spaceIdPrefixMap[$this->currentSpace];
+			$currentPageTitle = $this->currentPageTitle;
+			if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
+				$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
+			}
+
+			$linkConverter = new Link( $this->dataLookup, $this->currentSpace, $currentPageTitle );
 
 			$oContainer = $dom->createElement(
 				'span',
