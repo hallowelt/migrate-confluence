@@ -82,7 +82,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'userkey-to-username-map',
 			'users',
 			'title-files',
-			'additional-files'
+			'additional-files',
+			'attachment-orig-filename-target-filename-map'
 		] );
 		$this->logger = new NullLogger();
 	}
@@ -279,6 +280,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$this->addFile( $attachmentTargetFilename, $attachmentReference );
 				$this->customBuckets->addData( 'title-files', $targetTitle, $attachmentTargetFilename, false, true );
 				$this->addedAttachmentIds[$attachmentId] = true;
+
+				$fileName = $this->helper->getPropertyValue( 'fileName', $attachment );
+				if ( $fileName === null ) {
+					$fileName = $this->helper->getPropertyValue( 'title', $attachment );
+				}
+				$this->customBuckets->addData( 'attachment-orig-filename-target-filename-map', $fileName, $attachmentTargetFilename );
 			}
 		}
 	}
@@ -434,6 +441,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$this->output->writeln( "- '$targetName'" );
 			$this->addFile( $targetName, $path );
 			$this->customBuckets->addData( 'additional-files', $targetName, $path, false, true );
+			$fileName = $this->helper->getPropertyValue( 'fileName', $attachment );
+			if ( $fileName === null ) {
+				$fileName = $this->helper->getPropertyValue( 'title', $attachment );
+			}
+			$this->customBuckets->addData( 'attachment-orig-filename-target-filename-map', $fileName, $targetName );
 		}
 	}
 
