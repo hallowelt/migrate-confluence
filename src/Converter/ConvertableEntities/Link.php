@@ -104,7 +104,6 @@ class Link implements IProcessable {
 			// "<ac:link />"
 			$linkParts[] = 'NULL';
 		}
-		// ac:anchor ac:link ac:anchor="3. Organisation"><ri:content-entity ri:content-id="22447443" /><ac:plain-text-link-body><![CDATA[Unternehmensbroschüre#3. Organisation]]></ac:plain-text-link-body></ac:link>
 
 		// Let's see if there is a description Text
 		// HTML Content
