@@ -14,7 +14,7 @@ class FixLineBreakInHeadings implements IPostprocessor {
 			$regex = $this->buildRegExForHeadingLevel( $heading );
 			$newWikiText = preg_replace_callback(
 				$regex,
-				function( $matches ) {
+				function ( $matches ) {
 					$wikiTextHeading = $matches[0];
 					$newWikiTextHeading = str_replace( [ "<br />", "\n" ], '', $wikiTextHeading );
 					return $newWikiTextHeading;
@@ -34,6 +34,6 @@ class FixLineBreakInHeadings implements IPostprocessor {
 		for ( $heading = 1; $heading <= $level; $heading++ ) {
 			$tag = '.=';
 		}
-		return "#^$tag.*?(<br \/>\n*?).*?$tag$#im";;
+		return "#^$tag.*?(<br \/>\n*?).*?$tag$#im";
 	}
 }

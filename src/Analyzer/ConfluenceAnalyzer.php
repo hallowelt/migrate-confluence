@@ -285,7 +285,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				if ( $fileName === null ) {
 					$fileName = $this->helper->getPropertyValue( 'title', $attachment );
 				}
-				$this->customBuckets->addData( 'attachment-orig-filename-target-filename-map', $fileName, $attachmentTargetFilename );
+				$this->customBuckets->addData(
+					'attachment-orig-filename-target-filename-map',
+					$fileName,
+					$attachmentTargetFilename
+				);
 			}
 		}
 	}
