@@ -80,9 +80,11 @@ class Link implements IProcessable {
 			$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			$spaceId = $this->currentSpaceId;
 			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+				// This is sometimes -1 and the result is a $confluencePageKey like Confluence----1---Page_Title
+				#$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 			}
-			$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
+			$rawPageTitle = $this->rawPageTitle;
+			$rawPageTitle = basename( $rawPageTitle );
 			$confluencePageKey = "$spaceId---$rawPageTitle";
 			$targetTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
 			if ( empty( $targetTitle ) ) {
