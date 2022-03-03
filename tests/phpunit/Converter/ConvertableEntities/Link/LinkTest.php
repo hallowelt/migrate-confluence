@@ -41,7 +41,9 @@ class LinkTest extends TestCase {
 				'42---SomePage---SomeImage.png' => 'SomePage_SomeImage.png',
 				'42---SomePage---SomeImage1.png' => 'SomePage_SomeImage1.png',
 				'23---SomePage---SomeImage1.png' => 'DEVOPS_SomePage_SomeImage1.png'
-			]
+			],
+			[],
+			[]
 		);
 		$linkConvert = new Link( $dataLookup, $currentSpaceId, $currentRawPagename );
 
@@ -89,6 +91,8 @@ class LinkTest extends TestCase {
 				'42---Page Title3' => 'Page_Title3',
 				'23---Page Title3' => 'DEVOPS:Page_Title3',
 			],
+			[],
+			[],
 			[]
 		);
 		$linkConvert = new Link( $dataLookup, $currentSpaceId, $currentRawPagename );
