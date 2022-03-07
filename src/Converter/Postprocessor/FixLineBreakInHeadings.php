@@ -16,7 +16,7 @@ class FixLineBreakInHeadings implements IPostprocessor {
 				$regex,
 				function ( $matches ) {
 					$wikiTextHeading = $matches[0];
-					$newWikiTextHeading = str_replace( [ "<br />", "\n" ], '', $wikiTextHeading );
+					$newWikiTextHeading = str_replace( [ "<br />", "\n" ], ' ', $wikiTextHeading );
 					return $newWikiTextHeading;
 				},
 				$wikiText
