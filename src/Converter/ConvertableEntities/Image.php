@@ -118,7 +118,7 @@ class Image implements IProcessable {
 			$confluenceFileKey = "$spaceId---$rawPageTitle---$riFilename";
 			$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 			array_unshift( $params, $targetFilename );
-			$replacement = $this->makeImageLink( $dom, $params );
+			$replacement = $this->makeImageLinkWithDebugInfo( $dom, $params, $confluenceFileKey );
 		}
 
 		$match->parentNode->replaceChild(
@@ -144,5 +144,20 @@ class Image implements IProcessable {
 	public function makeImageLink( DOMDocument $dom, array $params ): DOMNode {
 		$params = array_map( 'trim', $params );
 		return $dom->createTextNode( '[[File:' . implode( '|', $params ) . ']]' );
+	}
+
+	/**
+	 * @param DOMDocument $dom
+	 * @param array $params
+	 * @param string $confluenceFileKey
+	 * @return DOMNode
+	 */
+	private function makeImageLinkWithDebugInfo( DOMDocument $dom, array $params, $confluenceFileKey ): DOMNode {
+		$params = array_map( 'trim', $params );
+		$debug = '';
+		if ( empty( $params ) || empty( $params[0] ) ) {
+			$debug = " ###BROKENIMAGE $confluenceFileKey ###";
+		}
+		return $dom->createTextNode( '[[File:' . implode( '|', $params ) . ']]' . $debug );
 	}
 }

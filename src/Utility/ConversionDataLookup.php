@@ -26,6 +26,18 @@ class ConversionDataLookup {
 
 	/**
 	 *
+	 * @var array
+	 */
+	private $confluenceAttachmentOrigFilenameToTargetFilenameMap = [];
+
+	/**
+	 *
+	 * @var array
+	 */
+	private $confluenceFiles = [];
+
+	/**
+	 *
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataLookup
 	 */
@@ -33,7 +45,9 @@ class ConversionDataLookup {
 		return new static(
 			$buckets->getBucketData( 'space-id-to-prefix-map' ),
 			$buckets->getBucketData( 'pages-titles-map' ),
-			$buckets->getBucketData( 'filenames-to-filetitles-map' )
+			$buckets->getBucketData( 'filenames-to-filetitles-map' ),
+			$buckets->getBucketData( 'attachment-orig-filename-target-filename-map' ),
+			$buckets->getBucketData( 'files' )
 		);
 	}
 
@@ -42,9 +56,12 @@ class ConversionDataLookup {
 	 * @param array $spaceIdPrefixMap
 	 * @param array $confluencePageKeyTargetTitleMap
 	 * @param array $confluenceFilenameTargetFiletitleMap
+	 * @param array $confluenceAttachmentOrigFilenameToTargetFilenameMap
+	 * @param array $confluenceFiles
 	 */
 	public function __construct( $spaceIdPrefixMap, $confluencePageKeyTargetTitleMap,
-		$confluenceFilenameTargetFiletitleMap ) {
+		$confluenceFilenameTargetFiletitleMap, $confluenceAttachmentOrigFilenameToTargetFilenameMap,
+		$confluenceFiles ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 
 		// This is some quickfix solution. It must be changed as soon as possible!
@@ -59,6 +76,11 @@ class ConversionDataLookup {
 			$normalConfluenceFileKey = str_replace( ' ', '_', $confluenceFileKey );
 			$this->confluenceFilenameTargetFiletitleMap[$normalConfluenceFileKey] = $targetTitle;
 		}
+		foreach ( $confluenceAttachmentOrigFilenameToTargetFilenameMap as $origFilename => $filenames ) {
+			$filename = str_replace( ' ', '_', $origFilename );
+			$this->confluenceAttachmentOrigFilenameToTargetFilenameMap[$filename] = $filenames;
+		}
+		$this->confluenceFiles = $confluenceFiles;
 	}
 
 	/**
@@ -101,6 +123,29 @@ class ConversionDataLookup {
 		if ( isset( $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey] ) ) {
 			return $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey];
 		}
-		return '';
+		$confluenceFileKeyParts = explode( '---', $confluenceFileKey );
+		$confluenceFilename = $confluenceFileKeyParts[2];
+		$md5File = '';
+		$filename = '';
+		if ( isset( $this->confluenceAttachmentOrigFilenameToTargetFilenameMap[$confluenceFilename] ) ) {
+			$filenames = $this->confluenceAttachmentOrigFilenameToTargetFilenameMap[$confluenceFilename];
+			foreach ( $filenames as $curFilename ) {
+				if ( !isset( $this->confluenceFiles[$curFilename] ) ) {
+					continue;
+				}
+				$paths = $this->confluenceFiles[$curFilename];
+				$curFile = file_get_contents( $paths[0] );
+				$curFileMd5 = md5( $curFile );
+				if ( $md5File === '' ) {
+					$md5File = $curFileMd5;
+				}
+				if ( $md5File !== $curFileMd5 ) {
+					// It might be that not all files with equal filename are equal files
+					return '';
+				}
+				$filename = $curFilename;
+			}
+		}
+		return $filename;
 	}
 }

@@ -14,6 +14,7 @@ use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
@@ -89,7 +90,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'page-id-to-space-id',
 			'space-id-to-prefix-map',
 			'filenames-to-filetitles-map',
-			'title-metadata'
+			'title-metadata',
+			'attachment-orig-filename-target-filename-map',
+			'files'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
@@ -193,7 +196,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function runPostProcessors() {
 		$postProcessors = [
-			new RestoreTableAttributes()
+			new RestoreTableAttributes(),
+			new FixLineBreakInHeadings()
 		];
 
 		/** @var IPostprocessor $postProcessor */
@@ -357,9 +361,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return array
 	 */
 	private function makeReplacings() {
+		$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
+		$prefix = $spaceIdPrefixMap[$this->currentSpace];
+		$currentPageTitle = $this->currentPageTitle;
+		if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
+			$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
+		}
+
 		return [
-			'//ac:link' => [ new Link( $this->dataLookup, $this->currentSpace, $this->currentPageTitle ), 'process' ],
-			'//ac:image' => [ new Image( $this->dataLookup, $this->currentSpace, $this->currentPageTitle ), 'process' ],
+			'//ac:link' => [ new Link( $this->dataLookup, $this->currentSpace, $currentPageTitle ), 'process' ],
+			'//ac:image' => [ new Image( $this->dataLookup, $this->currentSpace, $currentPageTitle ), 'process' ],
 			'//ac:macro' => [ $this, 'processMacro' ],
 			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ],
 			'//ac:emoticon' => [ new Emoticon(), 'process' ],
@@ -519,7 +530,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$sTargetFile = $oRIAttachmentEl->getAttribute( 'ri:filename' );
 			}
 
-			$linkConverter = new Link( $this->dataLookup, $this->currentSpace, $this->currentPageTitle );
+			$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
+			$prefix = $spaceIdPrefixMap[$this->currentSpace];
+			$currentPageTitle = $this->currentPageTitle;
+			if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
+				$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
+			}
+
+			$linkConverter = new Link( $this->dataLookup, $this->currentSpace, $currentPageTitle );
 
 			$oContainer = $dom->createElement(
 				'span',
