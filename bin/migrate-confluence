@@ -4,6 +4,7 @@
 require __DIR__.'/../vendor/autoload.php';
 
 use HalloWelt\MediaWiki\Lib\Migration\CliApp;
+use HalloWelt\MigrateConfluence\Command\CheckResult;
 
 $config = [
 	'file-extension-whitelist' => [ 'xml' ],
@@ -22,4 +23,5 @@ $config = [
 ];
 
 $application = new CliApp( $config );
+$application->add( new CheckResult() );
 $application->run();
