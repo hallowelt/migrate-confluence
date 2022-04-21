@@ -22,4 +22,10 @@
             </ac:plain-text-link-body>
         </ac:link>
     </div>
+
+    <div>
+        <ac:link>
+            <ri:page ri:content-title="Page Title3" ri:space-key="DEVOPS" />
+        </ac:link>
+    </div>
 </xml>

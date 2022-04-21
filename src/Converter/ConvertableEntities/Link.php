@@ -51,9 +51,10 @@ class Link implements IProcessable {
 
 		$linkParts = [];
 		$isMediaLink = false;
-		$isUserLink = false;
+		$isBrokenUserLink = false;
 		$isBrokenPageLink = false;
 		$isBrokenMediaLink = false;
+		$isBrokenACLink = false;
 		if ( $attachmentEl instanceof DOMElement ) {
 			$riFilename = $attachmentEl->getAttribute( 'ri:filename' );
 			$nestedPageEl = $xpath->query( './ri:page', $attachmentEl )->item( 0 );
@@ -99,11 +100,12 @@ class Link implements IProcessable {
 				$linkParts[] = 'User:' . $userKey;
 			} else {
 				$linkParts[] = 'NULL';
+				$isBrokenUserLink = true;
 			}
-			$isUserLink = true;
 		} else {
 			// "<ac:link />"
 			$linkParts[] = 'NULL';
+			$isBrokenACLink = true;
 		}
 
 		// Let's see if there is a description Text
@@ -123,11 +125,18 @@ class Link implements IProcessable {
 			if ( $isMediaLink ) {
 				$replacement = $this->makeMediaLink( $linkParts );
 			} else {
-				$replacement = '[[' . implode( '|', $linkParts ) . ']]';
+				// Sometimes it could be that no label is set
+				if ( count( $linkParts ) > 1 ) {
+					$replacement = '[[' . implode( '|', $linkParts ) . ']]';
+				} else {
+					$labelParts = explode( ':', $linkParts[0] );
+					$label = array_pop( $labelParts );
+					$replacement = '[[' . $linkParts[0] . '|' . $label . ']]';
+				}
 			}
 		}
 
-		if ( $isUserLink ) {
+		if ( $isBrokenUserLink ) {
 			$replacement .= '[[Category:Broken_user_link]]';
 		}
 
@@ -137,6 +146,10 @@ class Link implements IProcessable {
 
 		if ( $isBrokenMediaLink ) {
 			$replacement .= '[[Category:Broken_attachment_link]]';
+		}
+
+		if ( $isBrokenACLink ) {
+			$replacement .= '[[Category:Broken_ac_link]]';
 		}
 
 		$match->parentNode->replaceChild(
