@@ -60,6 +60,32 @@ class PreserveTableAttributes implements IProcessor {
 				$newSpan->appendChild( $newSpanContent );
 				$newCell->appendChild( $newSpan );
 				$newRow->appendChild( $newCell );
+
+				// Fill row with remaining numbers of td to avoid broken table after
+				// conversion with pandoc
+				// See https://github.com/hallowelt/migrate-confluence/issues/52
+				$colgroup = $table->getElementsByTagName( 'colgroup' )->item( 0 );
+				if ( $colgroup ) {
+					$cols = [];
+					$columns = $colgroup->childNodes;
+					foreach ( $columns as $column ) {
+						if ( ( $column instanceof DOMElement ) === false
+							|| ( $column->tagName !== 'col' ) ) {
+								continue;
+						}
+						$cols[] = $column;
+					}
+
+					for ( $index = 1; $index < count( $cols ); $index++ ) {
+						if ( ( $cols[$index] instanceof DOMElement )
+							&& ( $cols[$index]->tagName === 'col' ) ) {
+
+							$newCell = $dom->createElement( 'td' );
+							$newRow->appendChild( $newCell );
+						}
+					}
+				}
+
 				if ( $rowContainer->firstChild instanceof DOMNode ) {
 					$rowContainer->insertBefore( $newRow, $rowContainer->firstChild );
 				} else {
