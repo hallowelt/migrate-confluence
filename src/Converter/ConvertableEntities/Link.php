@@ -128,8 +128,7 @@ class Link implements IProcessable {
 				// Sometimes it could be that no label is set
 				if ( count( $linkParts ) > 1 ) {
 					$replacement = '[[' . implode( '|', $linkParts ) . ']]';
-				}
-				else {
+				} else {
 					$labelParts = explode( ':', $linkParts[0] );
 					$label = array_pop( $labelParts );
 					$replacement = '[[' . $linkParts[0] . '|' . $label . ']]';
