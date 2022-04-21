@@ -64,9 +64,34 @@ class ImageTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image::process()
 	 */
 	public function testProcessAttachmentSuccess() {
+		/**
+		 * If link has a child node ri:attachment
+		 * Covers Image::makeImageLink
+		 */
+		$this->processAttachment(
+			'image_attachment_input_1.xml',
+			'image_attachment_output_1.xml',
+		);
+
+		/**
+		 * If link has a child node ri:url
+		 * Covers Image::makeImageTag
+		 */
+		$this->processAttachment(
+			'image_attachment_input_2.xml',
+			'image_attachment_output_2.xml',
+		);
+	}
+
+	/**
+	 * @param string $input
+	 * @param string $output
+	 * @return void
+	 */
+	private function processAttachment( $input, $output ): void {
 		$domInput = new DOMDocument();
 		// Load input XML
-		$domInput->loadXML( file_get_contents( __DIR__ . '/image_attachment_input.xml' ) );
+		$domInput->loadXML( file_get_contents( __DIR__ . '/' . $input ) );
 
 		$xpath = new DOMXPath( $domInput );
 
@@ -84,10 +109,11 @@ class ImageTest extends TestCase {
 
 		$domOutput = new DOMDocument();
 		// Load output XML
-		$domOutput->loadXML( file_get_contents( __DIR__ . '/image_attachment_output.xml' ) );
+		$domOutput->loadXML( file_get_contents( __DIR__ . '/' . $output ) );
 		$attachmentExpectedRaw = $domOutput->getElementsByTagName( 'div' )->item( 0 )->textContent;
 		$attachmentExpected = trim( $attachmentExpectedRaw );
 
+		$this->assertEquals( $domInput->saveXML(), $domOutput->saveXML() );
 		$this->assertEquals( $attachmentExpected, $attachmentActual );
 	}
 
