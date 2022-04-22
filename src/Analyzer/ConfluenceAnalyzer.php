@@ -21,6 +21,7 @@ use SplFileInfo;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\Input;
 use Symfony\Component\Console\Output\Output;
+use Symfony\Component\Console\Question\Question;
 
 class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface, IUserInteraction {
 
@@ -73,6 +74,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private $questionHelper = null;
 
 	/**
+	 * @var string
+	 */
+	private $mainpage = 'Main Page';
+
+	/**
 	 *
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -112,14 +118,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @param QuestionHelper $questionHelper
 	 * @return void
 	 */
-	public function setQuestionHelper( QuestionHelper $questionHelper ): void {
+	public function setQuestionHelper( QuestionHelper $questionHelper ) {
 		$this->questionHelper = $questionHelper;
 	}
 
 	/**
 	 * @param Input $input
 	 */
-	public function setInput( Input $input ): void {
+	public function setInput( Input $input ) {
 		$this->input = $input;
 	}
 
@@ -155,6 +161,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->dom = new DOMDocument();
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
+
+		$qMainPage = new Question( 'Set main page name (default Main_Page): ', 'Main_Page' );
+		$qMainPage->setValidator( function ( $answer ) {
+			$answer = trim( $answer );
+			return $answer;
+		} );
+		$this->mainpage = $this->questionHelper->ask( $this->input, $this->output, $qMainPage );
 
 		$this->userMap();
 		$this->makeSpacesMap();

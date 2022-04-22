@@ -24,7 +24,6 @@ class Analyze extends CommandAnalyze {
 	 */
 	protected function doProcessFile(): bool {
 		$analyzerFactoryCallbacks = $this->config['analyzers'];
-		var_dump( $this->config );
 		foreach ( $analyzerFactoryCallbacks as $key => $callback ) {
 			$analyzer = call_user_func_array(
 				$callback,
