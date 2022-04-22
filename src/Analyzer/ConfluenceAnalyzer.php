@@ -162,12 +162,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
 
-		$qMainPage = new Question( 'Set main page name (default Main_Page): ', 'Main_Page' );
-		$qMainPage->setValidator( function ( $answer ) {
+		$questionMainPage = new Question( 'Set main page name (default Main_Page): ', 'Main_Page' );
+		$questionMainPage->setValidator( function ( $answer ) {
 			$answer = trim( $answer );
 			return $answer;
 		} );
-		$this->mainpage = $this->questionHelper->ask( $this->input, $this->output, $qMainPage );
+		$this->mainpage = $this->questionHelper->ask( $this->input, $this->output, $questionMainPage );
 
 		$this->userMap();
 		$this->makeSpacesMap();
@@ -196,8 +196,16 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			if ( $spaceKey === 'GENERAL' ) {
 				$spaceKey = '';
 			}
-			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $spaceKey, false, true );
-			$this->customBuckets->addData( 'space-name-to-prefix-map', $spaceName, $spaceKey, false, true );
+
+			$questionSpacePrefix = new Question( "Set prefix for space '$spaceName' (default $spaceKey): ", $spaceKey );
+			$questionSpacePrefix->setValidator( function ( $answer ) {
+				$answer = trim( $answer );
+				return $answer;
+			} );
+			$customSpacePrefix = $this->questionHelper->ask( $this->input, $this->output, $questionSpacePrefix );
+
+			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $customSpacePrefix, false, true );
+			$this->customBuckets->addData( 'space-name-to-prefix-map', $spaceName, $customSpacePrefix, false, true );
 
 			$homePageId = -1;
 			$homePagePropertyNode = $this->helper->getPropertyNode( 'homePage' );
