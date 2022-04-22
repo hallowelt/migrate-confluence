@@ -14,6 +14,7 @@ use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
@@ -197,7 +198,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function runPostProcessors() {
 		$postProcessors = [
 			new RestoreTableAttributes(),
-			new FixLineBreakInHeadings()
+			new FixLineBreakInHeadings(),
+			new FixImagesWithExternalUrl()
 		];
 
 		/** @var IPostprocessor $postProcessor */
@@ -718,27 +720,6 @@ HERE;
 			function ( $matches ) use( $oldToNewTitlesMap ) {
 				if ( isset( $oldToNewTitlesMap[$matches[1]] ) ) {
 					return $oldToNewTitlesMap[$matches[1]];
-				}
-				return $matches[0];
-			},
-			$this->wikiText
-		);
-
-		// Pandoc converts external images like <img src='...' /> among others. It is not correct.
-		// So we need to find all images which look like that [[File:https://somesite.com]] and
-		// convert them back to <img>.
-		$this->wikiText = preg_replace_callback(
-			"/\[\[File:(http[s]?:\/\/.*)]]/",
-			function ( $matches ) {
-				if ( strpos( $matches[1], '|' ) ) {
-					$params = explode( '|', $matches[1] );
-					$replacement = $params[0];
-				} else {
-					$replacement = $matches[1];
-				}
-
-				if ( parse_url( $matches[1] ) ) {
-					return "<img src='$replacement' />";
 				}
 				return $matches[0];
 			},

@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<div>
+		<ac:image ac:height="150">
+			<ri:url
+				ri:value="https://server/confluence/download/attachments/123456789/image2021-8-17_10-15-14.png?version=1&amp;modificationDate=1914846492120&amp;api=v2"
+			/>
+		</ac:image>
+	</div>
+</xml>
