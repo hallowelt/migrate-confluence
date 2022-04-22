@@ -19,6 +19,11 @@ $config = [
 	],
 	'composers' => [
 		'HalloWelt\MigrateConfluence\Composer\ConfluenceComposer::factory'
+	],
+	'command-overrides' => [
+		'analyze' => [
+			'factory' => 'HalloWelt\MigrateConfluence\Command\Analyze::factory'
+		]
 	]
 ];
 

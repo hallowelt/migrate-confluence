@@ -10,6 +10,7 @@ use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as MigrationTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\IUserInteraction;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
@@ -17,9 +18,11 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use SplFileInfo;
+use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Input\Input;
 use Symfony\Component\Console\Output\Output;
 
-class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface {
+class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface, IUserInteraction {
 
 	/**
 	 *
@@ -43,6 +46,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private $logger = null;
 
 	/**
+	 * @param Input
+	 */
+	private $input = null;
+
+	/**
 	 * @param Output
 	 */
 	private $output = null;
@@ -58,6 +66,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @var string
 	 */
 	private $pageConfluenceTitle = '';
+
+	/**
+	 * @var QuestionHelper
+	 */
+	private $questionHelper = null;
 
 	/**
 	 *
@@ -93,6 +106,21 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	public function setLogger( LoggerInterface $logger ) {
 		$this->logger = $logger;
+	}
+
+	/**
+	 * @param QuestionHelper $questionHelper
+	 * @return void
+	 */
+	public function setQuestionHelper( QuestionHelper $questionHelper ): void {
+		$this->questionHelper = $questionHelper;
+	}
+
+	/**
+	 * @param Input $input
+	 */
+	public function setInput( Input $input ): void {
+		$this->input = $input;
 	}
 
 	/**
