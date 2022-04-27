@@ -7,7 +7,6 @@ use HalloWelt\MediaWiki\Lib\Migration\Command\Analyze as CommandAnalyze;
 use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\IUserInteraction;
-use Symfony\Component\Console\Question\Question;
 
 class Analyze extends CommandAnalyze {
 
@@ -43,14 +42,6 @@ class Analyze extends CommandAnalyze {
 				$analyzer->setOutput( $this->output );
 				$analyzer->setInput( $this->input );
 			}
-
-			$gerritUserQuestion = new Question( 'Question test: ', '' );
-			$gerritUserQuestion->setValidator( function ( $answer ) {
-			$answer = trim( $answer );
-			if ( empty( $answer ) ) { throw  new \RuntimeException( "Required!" );
-			}
-			return $answer;
-			} );
 
 			$result = $analyzer->analyze( $this->currentFile );
 			// TODO: Evaluate result

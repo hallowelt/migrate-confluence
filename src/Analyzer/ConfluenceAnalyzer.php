@@ -79,6 +79,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private $mainpage = 'Main Page';
 
 	/**
+	 * @var boolean
+	 */
+	private $extNsFileRepoCompat = false;
+
+	/**
 	 *
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -162,12 +167,39 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
 
-		$questionMainPage = new Question( 'Set main page name (default Main_Page): ', 'Main_Page' );
+		$questionExtNsFileRepoCompat = new Question(
+			'Use compatibility for extension NsFileRepo (yes/no, default no): ',
+			false
+		);
+		$questionExtNsFileRepoCompat->setValidator( function ( $answer ) {
+			if ( $answer === false ) {
+				return false;
+			}
+			$answer = strtolower( trim( $answer ) );
+			if ( $answer === 'yes' ) {
+				return true;
+			}
+			return false;
+		} );
+		$this->extNsFileRepoCompat = $this->questionHelper->ask(
+			$this->input,
+			$this->output,
+			$questionExtNsFileRepoCompat
+		);
+
+		$questionMainPage = new Question(
+			'Set main page name (default Main_Page): ',
+			'Main_Page'
+		);
 		$questionMainPage->setValidator( function ( $answer ) {
 			$answer = trim( $answer );
 			return $answer;
 		} );
-		$this->mainpage = $this->questionHelper->ask( $this->input, $this->output, $questionMainPage );
+		$this->mainpage = $this->questionHelper->ask(
+			$this->input,
+			$this->output,
+			$questionMainPage
+		);
 
 		$this->userMap();
 		$this->makeSpacesMap();
@@ -236,7 +268,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$pageNodes = $this->helper->getObjectNodes( "Page" );
 		$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
 		$spaceIdHomepages = $this->customBuckets->getBucketData( 'space-id-homepages' );
-		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $this->helper );
+		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $this->helper, $this->mainpage );
 		foreach ( $pageNodes as $pageNode ) {
 			if ( $pageNode instanceof DOMElement === false ) {
 				continue;

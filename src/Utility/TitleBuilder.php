@@ -37,15 +37,22 @@ class TitleBuilder {
 	private $currentTitlesSpaceHomePageId = -1;
 
 	/**
+	 * @var string
+	 */
+	private $mainpage = '';
+
+	/**
 	 *
 	 * @param array $spaceIdPrefixMap
 	 * @param array $spaceIdHomepages
 	 * @param XMLHelper $helper
+	 * @param string $mainpage
 	 */
-	public function __construct( $spaceIdPrefixMap, $spaceIdHomepages, $helper ) {
+	public function __construct( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $mainpage = 'Main_Page' ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdHomepages = $spaceIdHomepages;
 		$this->helper = $helper;
+		$this->mainpage = $mainpage;
 	}
 
 	/**
@@ -65,7 +72,7 @@ class TitleBuilder {
 		}
 
 		if ( $pageId === $this->currentTitlesSpaceHomePageId ) {
-			$this->builder->appendTitleSegment( 'Main_Page' );
+			$this->builder->appendTitleSegment( $this->mainpage );
 			return $this->builder->build();
 		}
 
