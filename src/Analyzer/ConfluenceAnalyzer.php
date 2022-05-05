@@ -10,7 +10,7 @@ use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as MigrationTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\IUserInteraction;
+use HalloWelt\MediaWiki\Lib\Migration\IUserInteraction;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
@@ -107,7 +107,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'users',
 			'title-files',
 			'additional-files',
-			'attachment-orig-filename-target-filename-map'
+			'attachment-orig-filename-target-filename-map',
+			'converter-params'
 		] );
 		$this->logger = new NullLogger();
 	}
@@ -153,6 +154,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
+
+		$nsFileRepoCompoat = "false";
+		if ( $this->extNsFileRepoCompat === true ) {
+			$nsFileRepoCompoat = "true";
+		}
+		$this->customBuckets->addData( 'converter-params', 'ns-filerepo-compat', $nsFileRepoCompoat, false, true );
+
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 		return $result;
 	}

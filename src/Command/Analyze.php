@@ -6,7 +6,7 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Analyze as CommandAnalyze;
 use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MigrateConfluence\IUserInteraction;
+use HalloWelt\MediaWiki\Lib\Migration\IUserInteraction;
 
 class Analyze extends CommandAnalyze {
 
@@ -48,5 +48,4 @@ class Analyze extends CommandAnalyze {
 		}
 		return true;
 	}
-
 }

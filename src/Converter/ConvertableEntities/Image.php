@@ -30,15 +30,21 @@ class Image implements IProcessable {
 	private $rawPageTitle = '';
 
 	/**
+	 * @var boolean
+	 */
+	private $nsFileRepoCompat = false;
+
+	/**
 	 *
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
-	public function __construct( $dataLookup, $currentSpaceId, $rawPageTitle ) {
+	public function __construct( $dataLookup, $currentSpaceId, $rawPageTitle, $nsFileRepoCompat = false ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
+		$this->nsFileRepoCompat = $nsFileRepoCompat;
 	}
 
 	/**
@@ -157,6 +163,15 @@ class Image implements IProcessable {
 		$debug = '';
 		if ( empty( $params ) || empty( $params[0] ) ) {
 			$debug = " ###BROKENIMAGE $confluenceFileKey ###";
+		} elseif ( $this->nsFileRepoCompat === true ) {
+			$filename = $params[0];
+			$pos = strpos( $filename, '_' );
+			if ( $pos !== false ) {
+				$namespace = substr( $filename, 0, $pos );
+				if ( $namespace !== false ) {
+					$params[0] = str_replace( $namespace . '_', $namespace . ':', $filename );
+				}
+			}
 		}
 		return $dom->createTextNode( '[[File:' . implode( '|', $params ) . ']]' . $debug );
 	}
