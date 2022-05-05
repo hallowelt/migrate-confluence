@@ -39,6 +39,7 @@ class Image implements IProcessable {
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
+	 * @param bool $nsFileRepoCompat
 	 */
 	public function __construct( $dataLookup, $currentSpaceId, $rawPageTitle, $nsFileRepoCompat = false ) {
 		$this->dataLookup = $dataLookup;
