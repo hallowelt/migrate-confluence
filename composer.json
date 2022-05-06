@@ -24,7 +24,8 @@
 		"hallowelt/mediawiki-lib-commandline-tools": "~1",
 		"hallowelt/mediawiki-lib-migration": "~1",
 		"hallowelt/mediawiki-lib-wikitext": "~1",
-		"ext-dom": "*"
+		"ext-dom": "*",
+		"symfony/yaml": "~4"
 	},
 	"require-dev": {
 		"mediawiki/mediawiki-codesniffer": "31.0.0",

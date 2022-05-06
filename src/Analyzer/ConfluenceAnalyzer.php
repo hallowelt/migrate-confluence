@@ -84,6 +84,16 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private $extNsFileRepoCompat = false;
 
 	/**
+	 * @var array
+	 */
+	private $advancedConfig = [];
+
+	/**
+	 * @var bool
+	 */
+	private $hasAdvancedConfig = true;
+
+	/**
 	 *
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -152,14 +162,20 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return true;
 		}
 
+		if ( isset( $this->config['config'] ) ) {
+			$this->advancedConfig = $this->config['config'];
+			$this->hasAdvancedConfig = true;
+		};
+
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
 
-		$nsFileRepoCompoat = "false";
-		if ( $this->extNsFileRepoCompat === true ) {
-			$nsFileRepoCompoat = "true";
+		$categories = [];
+		if ( isset( $this->advancedConfig['categories'] ) ) {
+			$categories = $this->advancedConfig['categories'];
 		}
-		$this->customBuckets->addData( 'converter-params', 'ns-filerepo-compat', $nsFileRepoCompoat, false, true );
+		$this->customBuckets->addData( 'converter-params', 'categories', $categories, false, true );
+		$this->customBuckets->addData( 'converter-params', 'ns-filerepo-compat', $this->extNsFileRepoCompat, false, true );
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 		return $result;
@@ -175,39 +191,52 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
 
-		$questionExtNsFileRepoCompat = new Question(
-			'Use compatibility for extension NsFileRepo (yes/no, default no): ',
-			false
-		);
-		$questionExtNsFileRepoCompat->setValidator( function ( $answer ) {
-			if ( $answer === false ) {
+		if ( !$this->hasAdvancedConfig ) {
+			$questionExtNsFileRepoCompat = new Question(
+				'Use compatibility for extension NsFileRepo (yes/no, default no): ',
+				false
+			);
+			$questionExtNsFileRepoCompat->setValidator( function ( $answer ) {
+				if ( $answer === false ) {
+					return false;
+				}
+				$answer = strtolower( trim( $answer ) );
+				if ( $answer === 'yes' ) {
+					return true;
+				}
 				return false;
+			} );
+			$extNsFileRepoCompat = $this->questionHelper->ask(
+				$this->input,
+				$this->output,
+				$questionExtNsFileRepoCompat
+			);
+			if ( $extNsFileRepoCompat === 'true' ) {
+				$this->extNsFileRepoCompat = true;
 			}
-			$answer = strtolower( trim( $answer ) );
-			if ( $answer === 'yes' ) {
-				return true;
-			}
-			return false;
-		} );
-		$this->extNsFileRepoCompat = $this->questionHelper->ask(
-			$this->input,
-			$this->output,
-			$questionExtNsFileRepoCompat
-		);
+		}
+		elseif ( isset( $this->advancedConfig['ext-ns-file-repo-compat'] ) ) {
+			$this->extNsFileRepoCompat = $this->advancedConfig['ext-ns-file-repo-compat'];
+		}
 
-		$questionMainPage = new Question(
-			'Set main page name (default Main_Page): ',
-			'Main_Page'
-		);
-		$questionMainPage->setValidator( function ( $answer ) {
-			$answer = trim( $answer );
-			return $answer;
-		} );
-		$this->mainpage = $this->questionHelper->ask(
-			$this->input,
-			$this->output,
-			$questionMainPage
-		);
+		if ( !$this->hasAdvancedConfig ) {
+			$questionMainPage = new Question(
+				'Set main page name (default Main_Page): ',
+				'Main_Page'
+			);
+			$questionMainPage->setValidator( function ( $answer ) {
+				$answer = trim( $answer );
+				return $answer;
+			} );
+			$this->mainpage = $this->questionHelper->ask(
+				$this->input,
+				$this->output,
+				$questionMainPage
+			);
+		}
+		elseif ( isset( $this->advancedConfig['mainpage'] ) ) {
+			$this->mainpage = $this->advancedConfig['mainpage'];
+		}
 
 		$this->userMap();
 		$this->makeSpacesMap();
@@ -237,12 +266,20 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$spaceKey = '';
 			}
 
-			$questionSpacePrefix = new Question( "Set prefix for space '$spaceName' (default $spaceKey): ", $spaceKey );
-			$questionSpacePrefix->setValidator( function ( $answer ) {
-				$answer = trim( $answer );
-				return $answer;
-			} );
-			$customSpacePrefix = $this->questionHelper->ask( $this->input, $this->output, $questionSpacePrefix );
+			if ( !$this->hasAdvancedConfig ) {
+				$questionSpacePrefix = new Question( "Set prefix for space '$spaceName' (default $spaceKey): ", $spaceKey );
+				$questionSpacePrefix->setValidator( function ( $answer ) {
+					$answer = trim( $answer );
+					return $answer;
+				} );
+				$customSpacePrefix = $this->questionHelper->ask( $this->input, $this->output, $questionSpacePrefix );
+			}
+			elseif ( isset( $this->advancedConfig['space-prefix'][$spaceKey] ) ) {
+				$customSpacePrefix = $this->advancedConfig['space-prefix'][$spaceKey];
+			}
+			else {
+				$customSpacePrefix = $spaceKey;
+			}
 
 			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $customSpacePrefix, false, true );
 			$this->customBuckets->addData( 'space-name-to-prefix-map', $spaceName, $customSpacePrefix, false, true );
