@@ -76,11 +76,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private $output = null;
 
 	/**
-	 * @var array
-	 */
-	private $converterParams = [];
-
-	/**
 	 * @var boolean
 	 */
 	private $nsFileRepoCompat = false;
@@ -103,8 +98,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'filenames-to-filetitles-map',
 			'title-metadata',
 			'attachment-orig-filename-target-filename-map',
-			'files',
-			'converter-params'
+			'files'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
@@ -125,9 +119,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->dataBuckets );
 		$this->rawFile = $file;
 
-		$this->converterParams = $this->dataBuckets->getBucketData( 'converter-params' );
-		if ( isset( $this->converterParams['ns-filerepo-compat'] )
-			&& $this->converterParams['ns-filerepo-compat'] === 'true'
+		if ( isset( $this->config['config']['ns-filerepo-compat'] )
+			&& $this->config['config']['ns-filerepo-compat'] === 'true'
 			) {
 				$this->nsFileRepoCompat = true;
 		}

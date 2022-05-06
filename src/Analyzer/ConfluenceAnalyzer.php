@@ -117,8 +117,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'users',
 			'title-files',
 			'additional-files',
-			'attachment-orig-filename-target-filename-map',
-			'converter-params'
+			'attachment-orig-filename-target-filename-map'
 		] );
 		$this->logger = new NullLogger();
 	}
@@ -169,13 +168,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
-
-		$categories = [];
-		if ( isset( $this->advancedConfig['categories'] ) ) {
-			$categories = $this->advancedConfig['categories'];
-		}
-		$this->customBuckets->addData( 'converter-params', 'categories', $categories, false, true );
-		$this->customBuckets->addData( 'converter-params', 'ns-filerepo-compat', $this->extNsFileRepoCompat, false, true );
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 		return $result;

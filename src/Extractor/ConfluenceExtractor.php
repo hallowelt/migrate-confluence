@@ -22,6 +22,12 @@ class ConfluenceExtractor extends ExtractorBase {
 	private $helper = null;
 
 	/**
+	 * @var array
+	 */
+	private $categories = [];
+
+
+	/**
 	 * @param SplFileInfo $file
 	 * @return bool
 	 */
@@ -29,6 +35,11 @@ class ConfluenceExtractor extends ExtractorBase {
 		$this->dom = new DOMDocument();
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
+
+
+		if ( isset( $this->config['config']['categories'] ) ) {
+			$this->categories = $this->config['config']['categories'];
+		}
 
 		$this->extractBodyContents();
 		$this->extractPageMetaData();
@@ -90,6 +101,8 @@ class ConfluenceExtractor extends ExtractorBase {
 					$categories[] = $labelMap[$labelId];
 				}
 			}
+
+			$categories = array_merge( $categories, $this->categories );
 
 			$meta = [
 				'categories' => $categories
