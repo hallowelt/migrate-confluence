@@ -87,7 +87,7 @@ class Convert extends CommandConvert {
 	}
 
 	/**
-	 * @param array $config
+	 * @param array &$config
 	 * @return void
 	 */
 	private function readConfigFile( &$config ): void {
@@ -99,7 +99,7 @@ class Convert extends CommandConvert {
 					$yaml = Yaml::parse( $content );
 					$config = array_merge( $config, $yaml );
 				}
-				catch( ParseException $e ) {
+				catch ( ParseException $e ) {
 				}
 			}
 		}

@@ -164,7 +164,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		if ( isset( $this->config['config'] ) ) {
 			$this->advancedConfig = $this->config['config'];
 			$this->hasAdvancedConfig = true;
-		};
+		}
 
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
@@ -206,8 +206,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			if ( $extNsFileRepoCompat === 'true' ) {
 				$this->extNsFileRepoCompat = true;
 			}
-		}
-		elseif ( isset( $this->advancedConfig['ext-ns-file-repo-compat'] ) ) {
+		} elseif ( isset( $this->advancedConfig['ext-ns-file-repo-compat'] ) ) {
 			$this->extNsFileRepoCompat = $this->advancedConfig['ext-ns-file-repo-compat'];
 		}
 
@@ -225,8 +224,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$this->output,
 				$questionMainPage
 			);
-		}
-		elseif ( isset( $this->advancedConfig['mainpage'] ) ) {
+		} elseif ( isset( $this->advancedConfig['mainpage'] ) ) {
 			$this->mainpage = $this->advancedConfig['mainpage'];
 		}
 
@@ -259,17 +257,18 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			}
 
 			if ( !$this->hasAdvancedConfig ) {
-				$questionSpacePrefix = new Question( "Set prefix for space '$spaceName' (default $spaceKey): ", $spaceKey );
+				$questionSpacePrefix = new Question(
+					"Set prefix for space '$spaceName' (default $spaceKey): ",
+					$spaceKey
+				);
 				$questionSpacePrefix->setValidator( function ( $answer ) {
 					$answer = trim( $answer );
 					return $answer;
 				} );
 				$customSpacePrefix = $this->questionHelper->ask( $this->input, $this->output, $questionSpacePrefix );
-			}
-			elseif ( isset( $this->advancedConfig['space-prefix'][$spaceKey] ) ) {
+			} elseif ( isset( $this->advancedConfig['space-prefix'][$spaceKey] ) ) {
 				$customSpacePrefix = $this->advancedConfig['space-prefix'][$spaceKey];
-			}
-			else {
+			} else {
 				$customSpacePrefix = $spaceKey;
 			}
 
