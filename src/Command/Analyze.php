@@ -43,7 +43,7 @@ class Analyze extends CommandAnalyze {
 	 * @return bool
 	 */
 	protected function doProcessFile(): bool {
-		$analyzerFactoryCallbacks = $this->config['analyzers'];
+		$this->readConfigFile( $this->config );
 		return parent::doProcessFile();
 	}
 

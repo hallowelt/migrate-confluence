@@ -2,12 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
-use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Extract as CommandExtract;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
-use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
-use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -50,32 +46,8 @@ class Extract extends CommandExtract {
 	}
 
 	protected function beforeProcessFiles() {
-		parent::beforeProcessFiles();
-		// Explicitly reset the persisted data
-		$this->buckets = new DataBuckets( $this->getBucketKeys() );
-
-		$extractorFactoryCallbacks = $this->config['extractors'];
 		$this->readConfigFile( $this->config );
-
-		foreach ( $extractorFactoryCallbacks as $key => $callback ) {
-			$extractor = call_user_func_array(
-				$callback,
-				[ $this->config, $this->workspace, $this->buckets ]
-			);
-			if ( $extractor instanceof IExtractor === false ) {
-				throw new Exception(
-					"Factory callback for extractor '$key' did not return an "
-					. "IExtractor object"
-				);
-			}
-			if ( $extractor instanceof IOutputAwareInterface ) {
-				$extractor->setOutput( $this->output );
-			}
-			$this->extractors[$key] = $extractor;
-			if ( $extractor instanceof IFileProcessorEventHandler ) {
-				$this->eventhandlers[$key] = $extractor;
-			}
-		}
+		parent::beforeProcessFiles();
 	}
 
 	/**
