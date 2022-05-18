@@ -91,7 +91,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	/**
 	 * @var bool
 	 */
-	private $hasAdvancedConfig = true;
+	private $hasAdvancedConfig = false;
 
 	/**
 	 *

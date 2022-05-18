@@ -44,46 +44,8 @@ class Convert extends CommandConvert {
 	}
 
 	protected function doProcessFile(): bool {
-		$converterFactoryCallbacks = $this->config['converters'];
 		$this->readConfigFile( $this->config );
-
-		$this->makeTargetPathname();
-		$this->ensureTargetPath();
-
-		foreach ( $converterFactoryCallbacks as $key => $callback ) {
-			$converter = call_user_func_array(
-				$callback,
-				[ $this->config, $this->workspace ]
-			);
-			if ( $converter instanceof IConverter === false ) {
-				throw new Exception(
-					"Factory callback for converter '$key' did not return an "
-					. "IConverter object"
-				);
-			}
-			if ( $converter instanceof IOutputAwareInterface ) {
-				$converter->setOutput( $this->output );
-			}
-			$result = $converter->convert( $this->currentFile );
-			file_put_contents( $this->targetPathname, $result );
-		}
-		return true;
-	}
-
-	private function makeTargetPathname() {
-		$this->targetPathname = str_replace(
-			$this->src,
-			$this->targetBasePath,
-			$this->currentFile->getPathname()
-		);
-		$this->targetPathname = preg_replace( '#\.mraw$#', '.wiki', $this->targetPathname );
-	}
-
-	private function ensureTargetPath() {
-		$baseTargetPath = dirname( $this->targetPathname );
-		if ( !file_exists( $baseTargetPath ) ) {
-			mkdir( $baseTargetPath, 0755, true );
-		}
+		return parent::doProcessFile();
 	}
 
 	/**
