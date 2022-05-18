@@ -2,11 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
-use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Analyze as CommandAnalyze;
-use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
-use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MediaWiki\Lib\Migration\IUserInteraction;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;

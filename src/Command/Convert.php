@@ -2,10 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
-use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
-use HalloWelt\MediaWiki\Lib\Migration\IConverter;
-use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
