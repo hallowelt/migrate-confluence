@@ -2,7 +2,7 @@ config:
         mainpage: My Main Page
         space-prefix:
                 ABC: MYNAMESPACE
-        categories::
+        categories:
                 - My Category 1
                 - My Category 2
         ext-ns-file-repo-compat: true
