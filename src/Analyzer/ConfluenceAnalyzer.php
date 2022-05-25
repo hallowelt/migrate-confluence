@@ -8,7 +8,6 @@ use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MediaWiki\Lib\Migration\IUserInteraction;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as MigrationTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
@@ -18,12 +17,10 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use SplFileInfo;
-use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\Input;
 use Symfony\Component\Console\Output\Output;
-use Symfony\Component\Console\Question\Question;
 
-class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface, IUserInteraction {
+class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface {
 
 	/**
 	 *
@@ -67,11 +64,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @var string
 	 */
 	private $pageConfluenceTitle = '';
-
-	/**
-	 * @var QuestionHelper
-	 */
-	private $questionHelper = null;
 
 	/**
 	 * @var string
@@ -120,6 +112,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'attachment-orig-filename-target-filename-map'
 		] );
 		$this->logger = new NullLogger();
+
+		if ( isset( $this->config['config'] ) ) {
+			$this->advancedConfig = $this->config['config'];
+			$this->hasAdvancedConfig = true;
+		}
 	}
 
 	/**
@@ -127,14 +124,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	public function setLogger( LoggerInterface $logger ) {
 		$this->logger = $logger;
-	}
-
-	/**
-	 * @param QuestionHelper $questionHelper
-	 * @return void
-	 */
-	public function setQuestionHelper( QuestionHelper $questionHelper ) {
-		$this->questionHelper = $questionHelper;
 	}
 
 	/**
@@ -161,11 +150,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return true;
 		}
 
-		if ( isset( $this->config['config'] ) ) {
-			$this->advancedConfig = $this->config['config'];
-			$this->hasAdvancedConfig = true;
-		}
-
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
 
@@ -183,48 +167,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
 
-		if ( !$this->hasAdvancedConfig ) {
-			$questionExtNsFileRepoCompat = new Question(
-				'Use compatibility for extension NsFileRepo (yes/no, default no): ',
-				false
-			);
-			$questionExtNsFileRepoCompat->setValidator( function ( $answer ) {
-				if ( $answer === false ) {
-					return false;
-				}
-				$answer = strtolower( trim( $answer ) );
-				if ( $answer === 'yes' ) {
-					return true;
-				}
-				return false;
-			} );
-			$extNsFileRepoCompat = $this->questionHelper->ask(
-				$this->input,
-				$this->output,
-				$questionExtNsFileRepoCompat
-			);
-			if ( $extNsFileRepoCompat === 'true' ) {
-				$this->extNsFileRepoCompat = true;
+		if ( $this->hasAdvancedConfig && isset( $this->advancedConfig['ext-ns-file-repo-compat'] ) ) {
+			if ( is_bool( $this->advancedConfig['ext-ns-file-repo-compat'] ) ) {
+				$this->extNsFileRepoCompat = $this->advancedConfig['ext-ns-file-repo-compat'];
+			} else {
+				$this->extNsFileRepoCompat = false;
 			}
-		} elseif ( isset( $this->advancedConfig['ext-ns-file-repo-compat'] ) ) {
-			$this->extNsFileRepoCompat = $this->advancedConfig['ext-ns-file-repo-compat'];
 		}
 
-		if ( !$this->hasAdvancedConfig ) {
-			$questionMainPage = new Question(
-				'Set main page name (default Main_Page): ',
-				'Main_Page'
-			);
-			$questionMainPage->setValidator( function ( $answer ) {
-				$answer = trim( $answer );
-				return $answer;
-			} );
-			$this->mainpage = $this->questionHelper->ask(
-				$this->input,
-				$this->output,
-				$questionMainPage
-			);
-		} elseif ( isset( $this->advancedConfig['mainpage'] ) ) {
+		if ( $this->hasAdvancedConfig && isset( $this->advancedConfig['mainpage'] ) ) {
 			$this->mainpage = $this->advancedConfig['mainpage'];
 		}
 
@@ -256,17 +207,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$spaceKey = '';
 			}
 
-			if ( !$this->hasAdvancedConfig ) {
-				$questionSpacePrefix = new Question(
-					"Set prefix for space '$spaceName' (default $spaceKey): ",
-					$spaceKey
-				);
-				$questionSpacePrefix->setValidator( function ( $answer ) {
-					$answer = trim( $answer );
-					return $answer;
-				} );
-				$customSpacePrefix = $this->questionHelper->ask( $this->input, $this->output, $questionSpacePrefix );
-			} elseif ( isset( $this->advancedConfig['space-prefix'][$spaceKey] ) ) {
+			if ( $this->hasAdvancedConfig && isset( $this->advancedConfig['space-prefix'][$spaceKey] ) ) {
 				$customSpacePrefix = $this->advancedConfig['space-prefix'][$spaceKey];
 			} else {
 				$customSpacePrefix = $spaceKey;
