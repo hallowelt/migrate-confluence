@@ -6,4 +6,3 @@ config:
                 - My Category 1
                 - My Category 2
         ext-ns-file-repo-compat: true
-
