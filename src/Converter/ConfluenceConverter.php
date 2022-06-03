@@ -119,8 +119,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->dataBuckets );
 		$this->rawFile = $file;
 
-		if ( isset( $this->config['config']['ns-filerepo-compat'] )
-			&& $this->config['config']['ns-filerepo-compat'] === 'true'
+		if ( isset( $this->config['config']['ext-ns-file-repo-compat'] )
+			&& $this->config['config']['ext-ns-file-repo-compat'] === true
 			) {
 				$this->nsFileRepoCompat = true;
 		}
