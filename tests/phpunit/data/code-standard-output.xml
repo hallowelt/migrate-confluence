@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<h6>The menu</h6><syntaxhighlight lang="sql">
+	<h6>The menu</h6><pre lang="sql" data-collapse="true">
 		SELECT * FROM menu;
-		</syntaxhighlight>
+		</pre>
 </xml>
