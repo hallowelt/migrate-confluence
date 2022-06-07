@@ -26,7 +26,59 @@ class TitleBuilderTest extends TestCase {
 			99999 => -1
 		];
 
+		$this->useDefaultMainpage( $spacePrefixToIdMap, $spaceIdHomepages, $helper );
+		$this->useCustomMainpage( $spacePrefixToIdMap, $spaceIdHomepages, $helper, 'CustomMainpage' );
+	}
+
+	/**
+	 * @param array $spacePrefixToIdMap
+	 * @param array $spaceIdHomepages
+	 * @param XMLHelper $helper
+	 * @return void
+	 */
+	private function useDefaultMainpage( $spacePrefixToIdMap, $spaceIdHomepages, $helper ): void {
 		$titleBuilder = new TitleBuilder( $spacePrefixToIdMap, $spaceIdHomepages, $helper );
+		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
+
+		$expectedTitles = [
+			"TestNS:Main_Page",
+			"TestNS:Roadmap",
+			"TestNS:Roadmap/Detailed_planning",
+			"TestNS_NoMain_Page:Dokumentation",
+			"TestNS_NoMain_Page:Dokumentation/Roadmap",
+		];
+
+		$this->assertEquals( $expectedTitles, $actualTitles );
+	}
+
+	/**
+	 * @param array $spacePrefixToIdMap
+	 * @param array $spaceIdHomepages
+	 * @param XMLHelper $helper
+	 * @param string $customMainpage
+	 * @return void
+	 */
+	private function useCustomMainpage( $spacePrefixToIdMap, $spaceIdHomepages, $helper, $customMainpage ): void {
+		$titleBuilder = new TitleBuilder( $spacePrefixToIdMap, $spaceIdHomepages, $helper, $customMainpage );
+		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
+
+		$expectedTitles = [
+			"TestNS:$customMainpage",
+			"TestNS:Roadmap",
+			"TestNS:Roadmap/Detailed_planning",
+			"TestNS_NoMain_Page:Dokumentation",
+			"TestNS_NoMain_Page:Dokumentation/Roadmap",
+		];
+
+		$this->assertEquals( $expectedTitles, $actualTitles );
+	}
+
+	/**
+	 * @param TitleBuilder $titleBuilder
+	 * @param XMLHelper $helper
+	 * @return array
+	 */
+	private function buildTitles( $titleBuilder, $helper ): array {
 		$pageNodes = $helper->getObjectNodes( "Page" );
 
 		$actualTitles = [];
@@ -40,16 +92,6 @@ class TitleBuilderTest extends TestCase {
 
 			$actualTitles[] = $fullTitle;
 		}
-
-		$expectedTitles = [
-			"TestNS:Main_Page",
-			"TestNS:Roadmap",
-			"TestNS:Roadmap/Detailed_planning",
-			"TestNS_NoMain_Page:Dokumentation",
-			"TestNS_NoMain_Page:Dokumentation/Roadmap",
-		];
-
-		$this->assertEquals( $expectedTitles, $actualTitles );
+		return $actualTitles;
 	}
-
 }

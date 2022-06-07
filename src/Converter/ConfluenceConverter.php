@@ -76,6 +76,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private $output = null;
 
 	/**
+	 * @var boolean
+	 */
+	private $nsFileRepoCompat = false;
+
+	/**
 	 *
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -113,6 +118,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->output->writeln( $file->getPathname() );
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->dataBuckets );
 		$this->rawFile = $file;
+
+		if ( isset( $this->config['config']['ext-ns-file-repo-compat'] )
+			&& $this->config['config']['ext-ns-file-repo-compat'] === true
+			) {
+				$this->nsFileRepoCompat = true;
+		}
 
 		$bodyContentId = $this->getBodyContentIdFromFilename();
 		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
@@ -371,8 +382,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		return [
-			'//ac:link' => [ new Link( $this->dataLookup, $this->currentSpace, $currentPageTitle ), 'process' ],
-			'//ac:image' => [ new Image( $this->dataLookup, $this->currentSpace, $currentPageTitle ), 'process' ],
+			'//ac:link' => [
+				new Link( $this->dataLookup, $this->currentSpace,
+				$currentPageTitle ), 'process'
+			],
+			'//ac:image' => [
+				new Image( $this->dataLookup, $this->currentSpace,
+				$currentPageTitle, $this->nsFileRepoCompat ), 'process'
+			],
 			'//ac:macro' => [ $this, 'processMacro' ],
 			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ],
 			'//ac:emoticon' => [ new Emoticon(), 'process' ],

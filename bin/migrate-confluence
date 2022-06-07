@@ -19,6 +19,17 @@ $config = [
 	],
 	'composers' => [
 		'HalloWelt\MigrateConfluence\Composer\ConfluenceComposer::factory'
+	],
+	'command-overrides' => [
+		'analyze' => [
+			'factory' => 'HalloWelt\MigrateConfluence\Command\Analyze::factory'
+		],
+		'extract' => [
+			'factory' => 'HalloWelt\MigrateConfluence\Command\Extract::factory'
+		],
+		'convert' => [
+			'factory' => 'HalloWelt\MigrateConfluence\Command\Convert::factory'
+		]
 	]
 ];
 

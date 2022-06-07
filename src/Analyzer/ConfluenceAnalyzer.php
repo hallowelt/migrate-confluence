@@ -17,6 +17,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use SplFileInfo;
+use Symfony\Component\Console\Input\Input;
 use Symfony\Component\Console\Output\Output;
 
 class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface {
@@ -43,6 +44,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private $logger = null;
 
 	/**
+	 * @param Input
+	 */
+	private $input = null;
+
+	/**
 	 * @param Output
 	 */
 	private $output = null;
@@ -58,6 +64,26 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @var string
 	 */
 	private $pageConfluenceTitle = '';
+
+	/**
+	 * @var string
+	 */
+	private $mainpage = 'Main Page';
+
+	/**
+	 * @var boolean
+	 */
+	private $extNsFileRepoCompat = false;
+
+	/**
+	 * @var array
+	 */
+	private $advancedConfig = [];
+
+	/**
+	 * @var bool
+	 */
+	private $hasAdvancedConfig = false;
 
 	/**
 	 *
@@ -86,6 +112,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'attachment-orig-filename-target-filename-map'
 		] );
 		$this->logger = new NullLogger();
+
+		if ( isset( $this->config['config'] ) ) {
+			$this->advancedConfig = $this->config['config'];
+			$this->hasAdvancedConfig = true;
+		}
 	}
 
 	/**
@@ -93,6 +124,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	public function setLogger( LoggerInterface $logger ) {
 		$this->logger = $logger;
+	}
+
+	/**
+	 * @param Input $input
+	 */
+	public function setInput( Input $input ) {
+		$this->input = $input;
 	}
 
 	/**
@@ -114,6 +152,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
+
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 		return $result;
 	}
@@ -127,6 +166,18 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->dom = new DOMDocument();
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
+
+		if ( $this->hasAdvancedConfig && isset( $this->advancedConfig['ext-ns-file-repo-compat'] ) ) {
+			if ( is_bool( $this->advancedConfig['ext-ns-file-repo-compat'] ) ) {
+				$this->extNsFileRepoCompat = $this->advancedConfig['ext-ns-file-repo-compat'];
+			} else {
+				$this->extNsFileRepoCompat = false;
+			}
+		}
+
+		if ( $this->hasAdvancedConfig && isset( $this->advancedConfig['mainpage'] ) ) {
+			$this->mainpage = $this->advancedConfig['mainpage'];
+		}
 
 		$this->userMap();
 		$this->makeSpacesMap();
@@ -155,8 +206,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			if ( $spaceKey === 'GENERAL' ) {
 				$spaceKey = '';
 			}
-			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $spaceKey, false, true );
-			$this->customBuckets->addData( 'space-name-to-prefix-map', $spaceName, $spaceKey, false, true );
+
+			if ( $this->hasAdvancedConfig && isset( $this->advancedConfig['space-prefix'][$spaceKey] ) ) {
+				$customSpacePrefix = $this->advancedConfig['space-prefix'][$spaceKey];
+			} else {
+				$customSpacePrefix = $spaceKey;
+			}
+
+			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $customSpacePrefix, false, true );
+			$this->customBuckets->addData( 'space-name-to-prefix-map', $spaceName, $customSpacePrefix, false, true );
 
 			$homePageId = -1;
 			$homePagePropertyNode = $this->helper->getPropertyNode( 'homePage' );
@@ -187,7 +245,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$pageNodes = $this->helper->getObjectNodes( "Page" );
 		$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
 		$spaceIdHomepages = $this->customBuckets->getBucketData( 'space-id-homepages' );
-		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $this->helper );
+		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $this->helper, $this->mainpage );
 		foreach ( $pageNodes as $pageNode ) {
 			if ( $pageNode instanceof DOMElement === false ) {
 				continue;

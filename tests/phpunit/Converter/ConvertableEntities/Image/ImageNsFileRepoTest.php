@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\ConvertableEntities\Image;
 
 use DOMDocument;
-use DOMElement;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
@@ -14,72 +13,18 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image
  */
-class ImageTest extends TestCase {
-	/**
-	 * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image::process()
-	 */
-	public function testProcessLinkSuccess() {
-		$domInput = new DOMDocument();
-		// Load input XML
-		$domInput->loadXML( file_get_contents( __DIR__ . '/image_link_input.xml' ) );
-
-		$xpath = new DOMXPath( $domInput );
-
-		// Convert image
-		$img = $domInput->getElementsByTagName( 'image' )->item( 0 );
-		$imgConvert = new Image( $this->createMock( ConversionDataLookup::class ), 0, '' );
-		$imgConvert->process( null, $img, $domInput, $xpath );
-
-		// Get converted element
-		/** @var DOMElement $imgActual */
-		$imgActual = $domInput->getElementsByTagName( 'img' )->item( 0 );
-
-		$domExpected = new DOMDocument();
-		// Load output XML
-		$domExpected->loadXML( file_get_contents( __DIR__ . '/image_link_output.xml' ) );
-
-		/** @var DOMElement $imgExpected */
-		$imgExpected = $domExpected->getElementsByTagName( 'img' )->item( 0 );
-
-		$attributesActual = [];
-		foreach ( $imgActual->attributes as $attribute ) {
-			$attributesActual[$attribute->name] = $attribute->value;
-		}
-
-		$attributesExpect = [];
-		foreach ( $imgExpected->attributes as $attribute ) {
-			$attributesExpect[$attribute->name] = $attribute->value;
-		}
-
-		// Check that image was converted correctly, all attributes are preserved
-		$this->assertXmlStringEqualsXmlString(
-			$domExpected->saveXML( $imgExpected ),
-			$domInput->saveXML( $imgActual )
-		);
-
-		$this->assertEquals( $attributesExpect, $attributesActual );
-	}
-
+class ImageNsFileRepoTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image::process()
 	 */
 	public function testProcessAttachmentSuccess() {
 		/**
-		 * If link has a child node ri:attachment
-		 * Covers Image::makeImageLink
-		 */
-		$this->processAttachment(
-			'image_attachment_input_1.xml',
-			'image_attachment_output_1.xml',
-		);
-
-		/**
 		 * If link has a child node ri:url
 		 * Covers Image::makeImageTag
 		 */
 		$this->processAttachment(
-			'image_attachment_input_2.xml',
-			'image_attachment_output_2.xml',
+			'image_attachment_input_1.xml',
+			'image_attachment_output_3.xml',
 		);
 	}
 
@@ -98,8 +43,10 @@ class ImageTest extends TestCase {
 		// Convert attachment image
 		$img = $domInput->getElementsByTagName( 'image' )->item( 0 );
 		$mockConversionDataLookup = $this->createMock( ConversionDataLookup::class );
-		$mockConversionDataLookup->method( 'getTargetFileTitleFromConfluenceFileKey' )->willReturn( 'SampleImage.png' );
-		$imgConvert = new Image( $mockConversionDataLookup, 0, '' );
+		$mockConversionDataLookup->method( 'getTargetFileTitleFromConfluenceFileKey' )
+			->willReturn( 'ABC_SampleImage.png' );
+
+		$imgConvert = new Image( $mockConversionDataLookup, 0, '', true );
 		$imgConvert->process( null, $img, $domInput, $xpath );
 
 		// As far as attachment image is converted not to an image tag, but to a string
