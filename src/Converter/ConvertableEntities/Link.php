@@ -30,15 +30,22 @@ class Link implements IProcessable {
 	private $rawPageTitle = '';
 
 	/**
+	 * @var boolean
+	 */
+	private $nsFileRepoCompat = false;
+
+	/**
 	 *
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
+	 * @param bool $nsFileRepoCompat
 	 */
-	public function __construct( $dataLookup, $currentSpaceId, $rawPageTitle ) {
+	public function __construct( $dataLookup, $currentSpaceId, $rawPageTitle, $nsFileRepoCompat = false ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
+		$this->nsFileRepoCompat = $nsFileRepoCompat;
 	}
 
 	/**
@@ -171,6 +178,16 @@ class Link implements IProcessable {
 		* all the information from the original XML
 		*/
 		$params = array_map( 'trim', $params );
+		if ( $this->nsFileRepoCompat ) {
+			$filename = $params[0];
+			$pos = strpos( $filename, '_' );
+			if ( $pos !== false ) {
+				$namespace = substr( $filename, 0, $pos );
+				if ( $namespace !== false ) {
+					$params[0] = str_replace( $namespace . '_', $namespace . ':', $filename );
+				}
+			}
+		}
 		return '[[Media:' . implode( '|', $params ) . ']]';
 	}
 }
