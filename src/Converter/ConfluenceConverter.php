@@ -384,7 +384,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		return [
 			'//ac:link' => [
 				new Link( $this->dataLookup, $this->currentSpace,
-				$currentPageTitle ), 'process'
+				$currentPageTitle, $this->nsFileRepoCompat ), 'process'
 			],
 			'//ac:image' => [
 				new Image( $this->dataLookup, $this->currentSpace,
