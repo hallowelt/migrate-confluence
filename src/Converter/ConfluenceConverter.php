@@ -556,7 +556,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
 			}
 
-			$linkConverter = new Link( $this->dataLookup, $this->currentSpace, $currentPageTitle );
+			$linkConverter = new Link( $this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat );
 
 			$oContainer = $dom->createElement(
 				'span',
