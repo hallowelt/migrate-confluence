@@ -62,21 +62,21 @@ class PageLinkProcessor extends LinkProcessorBase {
 	}
 
 	/**
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @param string $rawPageTitle
 	 * @return string
 	 */
 	private function generatePageConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		return  "$spaceId---$rawPageTitle";
+		return "$spaceId---$rawPageTitle";
 	}
 
 	/**
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @param string $rawPageTitle
 	 * @return string
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		return  "Confluence---$spaceId---$rawPageTitle";
+		return "Confluence---$spaceId---$rawPageTitle";
 	}
 
 	/**

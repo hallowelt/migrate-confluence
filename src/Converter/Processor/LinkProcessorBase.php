@@ -106,7 +106,7 @@ abstract class LinkProcessorBase implements IProcessor {
 
 	/**
 	 * @param DOMNode $node
-	 * @param array $linkParts
+	 * @param array &$linkParts
 	 * @return void
 	 */
 	protected function getLinkBody( $node, &$linkParts ): void {

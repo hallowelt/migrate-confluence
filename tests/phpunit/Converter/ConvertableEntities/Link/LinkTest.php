@@ -57,7 +57,6 @@ class LinkTest extends TestCase {
 		$this->assertEquals( $expectedDom->saveXML(), $domInput->saveXML() );
 	}
 
-
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link::process()
 	 */

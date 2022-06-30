@@ -75,13 +75,13 @@ class AttachmentsLinkProcessor extends LinkProcessorBase {
 	}
 
 	/**
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @param string $rawPageTitle
 	 * @param string $filename
 	 * @return string
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle, string $filename ): string {
-		return  "$spaceId---$rawPageTitle---$filename";
+		return "$spaceId---$rawPageTitle---$filename";
 	}
 
 	/**
