@@ -1,0 +1,13 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+    <div>
+        [[Media:SomePage_SomeImage.png|Link to a Confluence Attachment]]
+    </div>
+
+    <div>
+        [[Media:SomePage_SomeImage1.png]]
+    </div>
+
+    <div>
+        [[Media:DEVOPS_SomePage_SomeImage2.png]]
+    </div>
+</xml>

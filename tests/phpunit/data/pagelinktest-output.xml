@@ -1,0 +1,17 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+    <div>
+        [[Page_Title|Link to another Confluence Page]]
+    </div>
+
+    <div>
+        [[Page_Title2|Page_Title2]]
+    </div>
+
+    <div>
+        [[DEVOPS:Page_Title3|Link to a Confluence Page in another space]]
+    </div>
+
+    <div>
+        [[DEVOPS:Page_Title3|Page_Title3]]
+    </div>
+</xml>

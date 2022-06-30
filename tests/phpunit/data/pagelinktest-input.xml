@@ -1,0 +1,31 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+    <div>
+        <ac:link>
+            <ri:page ri:content-title="Page Title" />
+            <ac:plain-text-link-body>
+                <![CDATA[Link to another Confluence Page]]>
+            </ac:plain-text-link-body>
+        </ac:link>
+    </div>
+
+    <div>
+        <ac:link>
+            <ri:page ri:content-title="Page Title2" />
+        </ac:link>
+    </div>
+
+    <div>
+        <ac:link>
+            <ri:page ri:content-title="Page Title3" ri:space-key="DEVOPS" />
+            <ac:plain-text-link-body>
+                <![CDATA[Link to a Confluence Page in another space]]>
+            </ac:plain-text-link-body>
+        </ac:link>
+    </div>
+
+    <div>
+        <ac:link>
+            <ri:page ri:content-title="Page Title3" ri:space-key="DEVOPS" />
+        </ac:link>
+    </div>
+</xml>
