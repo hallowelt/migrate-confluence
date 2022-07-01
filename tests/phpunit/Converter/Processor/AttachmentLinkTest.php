@@ -7,7 +7,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
-class AttachmentLinkTest extends TestCase {
+class attachmentlinktest extends TestCase {
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\AttatchmentsLinkProcessor::preprocess
@@ -15,14 +15,14 @@ class AttachmentLinkTest extends TestCase {
 	 */
 	public function testPreprocess() {
 		$this->doTestAttachments(
-			'AttachmentLinktest-input.xml',
-			'AttachmentLinktest-output.xml',
+			'attachmentlinktest-input.xml',
+			'attachmentlinktest-output.xml',
 			false
 		);
 
 		$this->doTestAttachments(
-			'AttachmentLinktest-input.xml',
-			'AttachmentLinktest-ns-file-repo-output.xml',
+			'attachmentlinktest-input.xml',
+			'attachmentlinktest-ns-file-repo-output.xml',
 			true
 		);
 	}
