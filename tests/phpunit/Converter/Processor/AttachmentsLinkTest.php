@@ -3,11 +3,11 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
-class AttachmentsLinkTest extends TestCase {
+class AttachmentLinkTest extends TestCase {
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\AttatchmentsLinkProcessor::preprocess
@@ -15,14 +15,14 @@ class AttachmentsLinkTest extends TestCase {
 	 */
 	public function testPreprocess() {
 		$this->doTestAttachments(
-			'attachmentslinktest-input.xml',
-			'attachmentslinktest-output.xml',
+			'AttachmentLinktest-input.xml',
+			'AttachmentLinktest-output.xml',
 			false
 		);
 
 		$this->doTestAttachments(
-			'attachmentslinktest-input.xml',
-			'attachmentslinktest-ns-file-repo-output.xml',
+			'AttachmentLinktest-input.xml',
+			'AttachmentLinktest-ns-file-repo-output.xml',
 			true
 		);
 	}
@@ -57,7 +57,7 @@ class AttachmentsLinkTest extends TestCase {
 			[]
 		);
 
-		$processor = new AttachmentsLink( $dataLookup, $currentSpaceId, $currentRawPagename, $extNSFileRepo );
+		$processor = new AttachmentLink( $dataLookup, $currentSpaceId, $currentRawPagename, $extNSFileRepo );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

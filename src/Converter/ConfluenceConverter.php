@@ -17,7 +17,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
-use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
@@ -196,7 +196,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroPanel(),
 			new StructuredMacroColumn(),
 			new StructuredMacroSection(),
-			new AttachmentsLink(
+			new AttachmentLink(
 				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
 			),
 			new PageLink(
@@ -563,7 +563,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
 			}
 
-			$linkProcessor = new AttachmentsLink(
+			$linkProcessor = new AttachmentLink(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			);
 
@@ -816,7 +816,7 @@ HERE;
 
 		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
 
-		$linkProcessor = new AttachmentsLink(
+		$linkProcessor = new AttachmentLink(
 			$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
 		);
 
