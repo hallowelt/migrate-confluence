@@ -17,18 +17,18 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
-use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsLinkProcessor;
+use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\PageLinkProcessor;
+use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
-use HalloWelt\MigrateConfluence\Converter\Processor\UserLinkProcessor;
+use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
@@ -196,13 +196,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroPanel(),
 			new StructuredMacroColumn(),
 			new StructuredMacroSection(),
-			new AttachmentsLinkProcessor(
+			new AttachmentsLink(
 				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
 			),
-			new PageLinkProcessor(
+			new PageLink(
 				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
 			),
-			new UserLinkProcessor(
+			new UserLink(
 				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
 			),
 		];
@@ -563,7 +563,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
 			}
 
-			$linkProcessor = new AttachmentsLinkProcessor(
+			$linkProcessor = new AttachmentsLink(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			);
 
@@ -816,7 +816,7 @@ HERE;
 
 		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
 
-		$linkProcessor = new AttachmentsLinkProcessor(
+		$linkProcessor = new AttachmentsLink(
 			$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
 		);
 

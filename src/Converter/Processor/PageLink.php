@@ -5,7 +5,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMElement;
 use DOMNode;
 
-class PageLinkProcessor extends LinkProcessorBase {
+class PageLink extends LinkProcessorBase {
 
 	/**
 	 *

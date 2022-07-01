@@ -3,14 +3,14 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\PageLinkProcessor;
+use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 class PageLinkTest extends TestCase {
 
 		/**
-		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageLinkProcessor::preprocess
+		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageLink::preprocess
 		 * @return void
 		 */
 		public function testPreprocess() {
@@ -38,7 +38,7 @@ class PageLinkTest extends TestCase {
 				[]
 			);
 
-			$processor = new PageLinkProcessor( $dataLookup, $currentSpaceId, $currentRawPagename, false );
+			$processor = new PageLink( $dataLookup, $currentSpaceId, $currentRawPagename, false );
 			$processor->process( $dom );
 
 			$actualOutput = $dom->saveXML( $dom->documentElement );

@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsLinkProcessor;
+use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
@@ -57,7 +57,7 @@ class AttachmentsLinkTest extends TestCase {
 			[]
 		);
 
-		$processor = new AttachmentsLinkProcessor( $dataLookup, $currentSpaceId, $currentRawPagename, $extNSFileRepo );
+		$processor = new AttachmentsLink( $dataLookup, $currentSpaceId, $currentRawPagename, $extNSFileRepo );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

@@ -3,14 +3,14 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\UserLinkProcessor;
+use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 class UserLinkTest extends TestCase {
 
 		/**
-		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\UserLinkProcessor::preprocess
+		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\UserLink::preprocess
 		 * @return void
 		 */
 		public function testPreprocess() {
@@ -38,7 +38,7 @@ class UserLinkTest extends TestCase {
 				[]
 			);
 
-			$processor = new UserLinkProcessor( $dataLookup, $currentSpaceId, $currentRawPagename, false );
+			$processor = new UserLink( $dataLookup, $currentSpaceId, $currentRawPagename, false );
 			$processor->process( $dom );
 
 			$actualOutput = $dom->saveXML( $dom->documentElement );

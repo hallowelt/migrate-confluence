@@ -5,7 +5,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMElement;
 use DOMNode;
 
-class AttachmentsLinkProcessor extends LinkProcessorBase {
+class AttachmentsLink extends LinkProcessorBase {
 
 	/**
 	 *
