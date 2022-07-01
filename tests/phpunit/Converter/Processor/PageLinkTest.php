@@ -41,7 +41,7 @@ class PageLinkTest extends TestCase {
 			$processor = new PageLinkProcessor( $dataLookup, $currentSpaceId, $currentRawPagename, false );
 			$processor->process( $dom );
 
-			$actualOutput = $dom->saveXML();
+			$actualOutput = $dom->saveXML( $dom->documentElement );
 			$expectedOutput = $input = file_get_contents( "$dir/pagelinktest-output.xml" );
 
 			$this->assertEquals( $expectedOutput, $actualOutput );

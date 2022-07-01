@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
     <div>
         [[ABC:Page_Title|Link to another Confluence Page]]

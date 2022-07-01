@@ -60,7 +60,7 @@ class AttachmentsLinkTest extends TestCase {
 		$processor = new AttachmentsLinkProcessor( $dataLookup, $currentSpaceId, $currentRawPagename, $extNSFileRepo );
 		$processor->process( $dom );
 
-		$actualOutput = $dom->saveXML();
+		$actualOutput = $dom->saveXML( $dom->documentElement );
 		$expectedOutput = $input = file_get_contents( "$dir/$output" );
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
