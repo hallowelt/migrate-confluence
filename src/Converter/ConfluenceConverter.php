@@ -10,7 +10,6 @@ use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
@@ -23,6 +22,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
@@ -193,7 +193,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new ConvertStatusMacro(),
 			new StructuredMacroPanel(),
 			new StructuredMacroColumn(),
-			new StructuredMacroSection()
+			new StructuredMacroSection(),
+			new Emoticon()
 		];
 
 		/** @var IProcessor $processor */
@@ -392,7 +393,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			],
 			'//ac:macro' => [ $this, 'processMacro' ],
 			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ],
-			'//ac:emoticon' => [ new Emoticon(), 'process' ],
 			'//ac:task-list' => [ $this, 'processTaskList' ],
 			'//ac:inline-comment-marker' => [ $this, 'processInlineCommentMarker' ],
 			'//ac:placeholder' => [ $this, 'processPlaceholder' ]

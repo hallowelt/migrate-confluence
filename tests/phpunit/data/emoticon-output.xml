@@ -1,5 +1,5 @@
 <xml xmlns:ac="sample_namespace">
-    <p>Some sample text with emoticon :) </p>
+    <p>Some sample text with emoticon :)</p>
     <p>Some text with unknown emoticon [[Category:Broken_emoticon]]</p>
     <p>Some text with "blue-star" emoticon &#128231;</p>
 </xml>
