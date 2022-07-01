@@ -816,32 +816,30 @@ HERE;
 
 		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
 
+		$linkProcessor = new AttachmentsLinkProcessor(
+			$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+		);
+
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
 			$mediaExludeList = $this->buildMediaExcludeList( $this->wikiText );
 
 			$attachmentList = [];
 			foreach ( $attachmentsMap[$this->currentPageTitle] as $attachmentFileName ) {
-				if ( $this->nsFileRepoCompat ) {
-					$pos = strpos( $attachmentFileName, '_' );
-					if ( $pos !== false ) {
-						$namespace = substr( $attachmentFileName, 0, $pos );
-						if ( $namespace !== false ) {
-							$attachmentFileName = str_replace( $namespace . '_', $namespace . ':', $attachmentFileName );
-						}
-					}
-				}
+				$mediaLink = $linkProcessor->makeLink( [ $attachmentFileName ] );
+				$matches = [];
+				preg_match( "#\[\[\s*(Media):(.*?)\s*[\|*|\]\]]#im", $mediaLink, $matches );
 
-				if ( in_array( $attachmentFileName, $mediaExludeList ) ) {
+				if ( in_array(  $matches[2], $mediaExludeList ) ) {
 					continue;
 				}
 
-				$attachmentList[] = $attachmentFileName;
+				$attachmentList[] = $mediaLink;
 			}
 
 			if ( !empty( $attachmentList ) ) {
 				$wikiText .= "\n{{AttachmentsSectionStart}}\n";
 				foreach ( $attachmentList as $attachment ) {
-					$wikiText .= "* [[Media:$attachment]]\n";
+					$wikiText .= "* $attachment\n";
 				}
 				$wikiText .= "\n{{AttachmentsSectionEnd}}\n";
 			}
