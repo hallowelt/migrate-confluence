@@ -48,7 +48,7 @@ class AttachmentsLinkProcessor extends LinkProcessorBase {
 			$replacement = $this->getBrokenLinkReplacement();
 
 			if ( !empty( $linkParts ) ) {
-				$replacement = $this->getPageLinkReplacement( $linkParts );
+				$replacement = $this->makeLink( $linkParts );
 			}
 
 			if ( $isBrokenLink ) {
@@ -93,7 +93,7 @@ class AttachmentsLinkProcessor extends LinkProcessorBase {
 	 * @param array $linkParts
 	 * @return string
 	 */
-	private function getPageLinkReplacement( array $linkParts ): string {
+	public function makeLink( array $linkParts ): string {
 		/*
 		* The converter only knows the context of the current page that
 		* is being converted

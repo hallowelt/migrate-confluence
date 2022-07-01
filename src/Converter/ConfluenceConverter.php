@@ -18,15 +18,18 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsLinkProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PageLinkProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
+use HalloWelt\MigrateConfluence\Converter\Processor\UserLinkProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
@@ -193,7 +196,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new ConvertStatusMacro(),
 			new StructuredMacroPanel(),
 			new StructuredMacroColumn(),
-			new StructuredMacroSection()
+			new StructuredMacroSection(),
+			new AttachmentsLinkProcessor(
+				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+			),
+			new PageLinkProcessor(
+				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+			),
+			new UserLinkProcessor(
+				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+			),
 		];
 
 		/** @var IProcessor $processor */
@@ -382,10 +394,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		return [
-			'//ac:link' => [
-				new Link( $this->dataLookup, $this->currentSpace,
-				$currentPageTitle, $this->nsFileRepoCompat ), 'process'
-			],
 			'//ac:image' => [
 				new Image( $this->dataLookup, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat ), 'process'
@@ -556,13 +564,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
 			}
 
-			$linkConverter = new Link(
+			$linkConverter = new AttachmentsLinkProcessor(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			);
 
 			$oContainer = $dom->createElement(
 				'span',
-				$linkConverter->makeMediaLink( [ $sTargetFile ] )
+				$linkConverter->makeLink( [ $sTargetFile ] )
 			);
 			$oContainer->setAttribute( 'class', "ac-$sMacroName" );
 			$match->parentNode->insertBefore( $oContainer, $match );

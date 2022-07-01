@@ -81,6 +81,12 @@ abstract class LinkProcessorBase implements IProcessor {
 	}
 
 	/**
+	 * @param array $linkParts
+	 * @return string
+	 */
+	abstract public function makeLink( array $linkParts ): string;
+
+	/**
 	 * @param DOMNode $node
 	 * @return void
 	 */

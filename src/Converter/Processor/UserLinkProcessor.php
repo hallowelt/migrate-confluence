@@ -36,7 +36,7 @@ class UserLinkProcessor extends LinkProcessorBase {
 			$replacement = $this->getBrokenLinkReplacement();
 
 			if ( !empty( $linkParts ) ) {
-				$replacement = $this->getUserLinkReplacement( $linkParts );
+				$replacement = $this->makeLink( $linkParts );
 			}
 
 			if ( $isBrokenLink ) {
@@ -51,7 +51,7 @@ class UserLinkProcessor extends LinkProcessorBase {
 	 * @param array $linkParts
 	 * @return string
 	 */
-	private function getUserLinkReplacement( array $linkParts ): string {
+	public function makeLink( array $linkParts ): string {
 		$linkParts = array_map( 'trim', $linkParts );
 
 		$labelParts = explode( ':', $linkParts[0] );

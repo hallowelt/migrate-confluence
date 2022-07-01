@@ -41,7 +41,7 @@ class PageLinkProcessor extends LinkProcessorBase {
 			$replacement = $this->getBrokenLinkReplacement();
 
 			if ( !empty( $linkParts ) ) {
-				$replacement = $this->getPageLinkReplacement( $linkParts );
+				$replacement = $this->makeLink( $linkParts );
 			}
 
 			if ( $isBrokenLink ) {
@@ -89,7 +89,7 @@ class PageLinkProcessor extends LinkProcessorBase {
 	 * @param array $linkParts
 	 * @return string
 	 */
-	private function getPageLinkReplacement( array $linkParts ): string {
+	public function makeLink( array $linkParts ): string {
 		$linkParts = array_map( 'trim', $linkParts );
 
 		// Sometimes it could be that no label is set
