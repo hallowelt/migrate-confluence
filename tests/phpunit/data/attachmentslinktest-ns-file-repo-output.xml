@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
     <div>
         [[Media:ABC:SomePage_SomeImage.png|Link to a Confluence Attachment]]
@@ -9,5 +10,9 @@
 
     <div>
         [[Media:DEVOPS:SomePage_SomeImage2.png]]
+    </div>
+
+    <div>
+        [[Media:SomeImage3.png]][[Category:Broken_attachment_link]]
     </div>
 </xml>
