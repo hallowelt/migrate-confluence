@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 class AttachmentsLinkTest extends TestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageLink::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\AttatchmentsLinkProcessor::preprocess
 	 * @return void
 	 */
 	public function testPreprocess() {

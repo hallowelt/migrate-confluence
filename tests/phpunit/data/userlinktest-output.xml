@@ -1,0 +1,13 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<div>
+		[[User:1234567890abc|1234567890abc]]
+	</div>
+
+	<div>
+		[[User:1234567890def|1234567890def]]
+	</div>
+
+	<div>
+		[[NULL|NULL]][[Category:Broken_user_link]]
+	</div>
+</xml>

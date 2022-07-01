@@ -3,19 +3,19 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\PageLinkProcessor;
+use HalloWelt\MigrateConfluence\Converter\Processor\UserLinkProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
-class PageLinkTest extends TestCase {
+class UserLinkTest extends TestCase {
 
 		/**
-		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageLinkProcessor::preprocess
+		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\UserLinkProcessor::preprocess
 		 * @return void
 		 */
 		public function testPreprocess() {
 			$dir = dirname( dirname( __DIR__ ) ) . '/data';
-			$input = file_get_contents( "$dir/pagelinktest-input.xml" );
+			$input = file_get_contents( "$dir/userlinktest-input.xml" );
 
 			$dom = new DOMDocument();
 			$dom->loadXML( $input );
@@ -38,11 +38,11 @@ class PageLinkTest extends TestCase {
 				[]
 			);
 
-			$processor = new PageLinkProcessor( $dataLookup, $currentSpaceId, $currentRawPagename, false );
+			$processor = new UserLinkProcessor( $dataLookup, $currentSpaceId, $currentRawPagename, false );
 			$processor->process( $dom );
 
 			$actualOutput = $dom->saveXML();
-			$expectedOutput = $input = file_get_contents( "$dir/pagelinktest-output.xml" );
+			$expectedOutput = $input = file_get_contents( "$dir/userlinktest-output.xml" );
 
 			$this->assertEquals( $expectedOutput, $actualOutput );
 		}
