@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\Converter\Preprocessor;
+namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
@@ -33,14 +33,15 @@ class PreserveCodeTest extends TestCase {
 	 * @return array
 	 */
 	public function provideTestProcessData() {
+		$dir = dirname( dirname( __DIR__ ) );
 		return [
 			'standard' => [
-				__DIR__ . '../data/code-standard-input.xml',
-				__DIR__ . '../data/code-standard-output.xml',
+				"$dir/data/code-standard-input.xml",
+				"$dir/data/code-standard-output.xml",
 			],
 			'no-body' => [
-				__DIR__ . '../data/code-nobody-input.xml',
-				__DIR__ . '../data/code-nobody-output.xml',
+				"$dir/data/code-nobody-input.xml",
+				"$dir/data/code-nobody-output.xml",
 			]
 		];
 	}

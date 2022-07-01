@@ -2,67 +2,74 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMDocument;
-use DOMElement;
-use HalloWelt\MigrateConfluence\Converter\IProcessor;
-
 /**
  * Unfortunately `pandoc` eats <syntaxhighlight> tags.
  * Therefore we preserve the information in the DOM and restore it in the post processing.
  * @see HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode
  */
-class PreserveCode implements IProcessor {
+class PreserveCode extends StructuredMacroProcessorBase {
 
 	/**
+	 *
 	 * @inheritDoc
 	 */
-	public function process( DOMDocument $dom ): void {
-		$macros = $dom->getElementsByTagName( 'structured-macro' );
+	public function getMacroName(): string {
+		return 'code';
+	}
 
-		// Collect all DOMElements in a non-live list
-		$actualMacros = [];
-		foreach ( $macros as $macro ) {
-			$macroName = $macro->getAttribute( 'ac:name' );
-			if ( $macroName !== 'code' ) {
-				continue;
-			}
-			$actualMacros[] = $macro;
+	/**
+	 * @param DOMNode $node
+	 * @return void
+	 */
+	protected function doProcessMacro( $node ): void {
+		$macroReplacement = $node->ownerDocument->createElement( 'pre' );
+		$macroReplacement->setAttribute( 'class', 'PRESERVESYNTAXHIGHLIGHT' );
+
+		$this->processParamElements( $node, $macroReplacement );
+
+		$plaintextEls = $node->getElementsByTagName( 'plain-text-body' );
+		foreach ( $plaintextEls as $plaintextEl ) {
+			$macroReplacement->appendChild( $plaintextEl );
 		}
 
-		foreach ( $actualMacros as $actualMacro ) {
-			$preEl = $dom->createElement( 'pre' );
-			$preEl->setAttribute( 'class', 'PRESERVESYNTAXHIGHLIGHT' );
+		if ( $plaintextEls->count() === 0 ) {
+			$macroReplacement->appendChild(
+				$node->ownerDocument->createTextNode( '[[Category:Broken_macro/code/empty]]' )
+			);
+		}
 
-			/** @var DOMElement $actualMacro */
-			foreach ( $actualMacro->childNodes as $child ) {
-				$paramEls = $child->getElementsByTagName( 'parameter' );
-				foreach ( $paramEls as $paramEl ) {
-					$paramName = $paramEl->getAttribute( 'name' );
-					if ( $paramName === 'language' ) {
-						$preEl->setAttribute( 'lang', $paramEl->nodeValue );
-					}
-					if ( $paramName === 'collapse' ) {
-						$preEl->setAttribute( 'data-collapse', $paramEl->nodeValue );
-					}
-					if ( $paramName === 'title' ) {
-						$headingEl = $dom->createElement( 'h6' );
-						$headingEl->appendChild( $dom->createTextNode( $paramEl->nodeValue ) );
-						$actualMacro->parentNode->insertBefore( $headingEl, $actualMacro );
-					}
-				}
+		$node->parentNode->replaceChild( $macroReplacement, $node );
+	}
 
-				$plaintextEls = $child->getElementsByTagName( 'plain-text-body' );
-				foreach ( $plaintextEls as $plaintextEl ) {
-					$preEl->appendChild( $plaintextEl );
-				}
+	/**
+	 * @param DOMNode $node
+	 * @param DOMNode $replacementNode
+	 * @return void
+	 */
+	private function processParamElements( $node, $replacementNode ): void {
 
-				if ( $plaintextEls->count() === 0 ) {
-					$preEl->appendChild(
-						$dom->createTextNode( '[[Category:Broken_macro/code/empty]]' )
-					);
-				}
+		// GO ON HERE
+
+
+
+		$paramEls = $node->getElementsByTagName( 'parameter' );
+		foreach ( $paramEls as $paramEl ) {
+			$paramName = $paramEl->getAttribute( 'ac:name' );
+			if ( $paramName === 'language' ) {
+				$replacementNode->setAttribute( 'lang', $paramEl->nodeValue );
 			}
-			$dom->replaceChild( $preEl, $actualMacro );
+
+			if ( $paramName === 'collapse' ) {
+				$replacementNode->setAttribute( 'data-collapse', $paramEl->nodeValue );
+			}
+
+			if ( $paramName === 'title' ) {
+				$headingEl = $replacementNode->ownerDocument->createElement( 'h6' );
+				$headingEl->appendChild(
+					$replacementNode->ownerDocument->createTextNode( $paramEl->nodeValue )
+				);
+				$replacementNode->insertBefore( $headingEl, $replacementNode );
+			}
 		}
 	}
 }
