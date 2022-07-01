@@ -64,18 +64,26 @@ abstract class LinkProcessorBase implements IProcessor {
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
+		$linkNodes = $dom->getElementsByTagName( 'link' );
 		$processableNodeName = $this->getProcessableNodeName();
 
-		$processableLiveNodes = $dom->getElementsByTagName( $processableNodeName );
-
-		$processableNodes = [];
-		foreach ( $processableLiveNodes as $processableLiveNode ) {
-			$processableNodes[] = $processableLiveNode;
+		$linkNodeList = [];
+		foreach ( $linkNodes as $linkNode ) {
+			$linkNodeList[] = $linkNode;
 		}
 
-		foreach ( $processableNodes as $processableNode ) {
-			$this->setLinkNode( $processableNode );
-			$this->doProcessLink( $processableNode );
+		foreach ( $linkNodeList as $linkNode ) {
+			$processableLiveNodes = $linkNode->getElementsByTagName( $processableNodeName );
+
+			$processableNodes = [];
+			foreach ( $processableLiveNodes as $processableLiveNode ) {
+				$processableNodes[] = $processableLiveNode;
+			}
+
+			foreach ( $processableNodes as $processableNode ) {
+				$this->setLinkNode( $processableNode );
+				$this->doProcessLink( $processableNode );
+			}
 		}
 	}
 

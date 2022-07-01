@@ -42,7 +42,7 @@ class PageLinkTest extends TestCase {
 			$processor->process( $dom );
 
 			$actualOutput = $dom->saveXML( $dom->documentElement );
-			$expectedOutput = $input = file_get_contents( "$dir/pagelinktest-output.xml" );
+			$expectedOutput = file_get_contents( "$dir/pagelinktest-output.xml" );
 
 			$this->assertEquals( $expectedOutput, $actualOutput );
 		}

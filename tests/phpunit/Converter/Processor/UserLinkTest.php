@@ -42,7 +42,7 @@ class UserLinkTest extends TestCase {
 			$processor->process( $dom );
 
 			$actualOutput = $dom->saveXML( $dom->documentElement );
-			$expectedOutput = $input = file_get_contents( "$dir/userlinktest-output.xml" );
+			$expectedOutput = file_get_contents( "$dir/userlinktest-output.xml" );
 
 			$this->assertEquals( $expectedOutput, $actualOutput );
 		}

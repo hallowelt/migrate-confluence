@@ -61,7 +61,7 @@ class AttachmentsLinkTest extends TestCase {
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
-		$expectedOutput = $input = file_get_contents( "$dir/$output" );
+		$expectedOutput = file_get_contents( "$dir/$output" );
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
 	}

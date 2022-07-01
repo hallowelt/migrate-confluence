@@ -263,7 +263,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	/**
 	 *
-	 * @return void
+	 * @return DOMDocument
 	 */
 	private function preprocessFile() {
 		$source = $this->preprocessHTMLSource( $this->rawFile );
