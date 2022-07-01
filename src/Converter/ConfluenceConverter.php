@@ -829,7 +829,7 @@ HERE;
 				$matches = [];
 				preg_match( "#\[\[\s*(Media):(.*?)\s*[\|*|\]\]]#im", $mediaLink, $matches );
 
-				if ( in_array(  $matches[2], $mediaExludeList ) ) {
+				if ( in_array( $matches[2], $mediaExludeList ) ) {
 					continue;
 				}
 
