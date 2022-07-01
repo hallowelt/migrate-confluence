@@ -21,17 +21,19 @@ class PageLinkProcessor extends LinkProcessorBase {
 	 */
 	protected function doProcessLink( DOMNode $node ): void {
 		if ( $node instanceof DOMElement ) {
+			$isBrokenLink = false;
 			$rawPageTitle = $node->getAttribute( 'ri:content-title' );
 			$spaceId = $this->ensureSpaceId( $node );
 
 			$confluencePageKey = $this->generatePageConfluenceKey( $spaceId, $rawPageTitle );
 
 			$targetTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
-			if ( empty( $targetTitle ) ) {
+			if ( !empty( $targetTitle ) ) {
+				$linkParts[] = $targetTitle;
+			} else {
 				// If not in migation data, save some info for manual post migration work
 				$linkParts[] = $this->generateConfluenceKey( $spaceId, $rawPageTitle );
-			} else {
-				$linkParts[] = $targetTitle;
+				$isBrokenLink = true;
 			}
 
 			$this->getLinkBody( $node, $linkParts );
@@ -40,6 +42,10 @@ class PageLinkProcessor extends LinkProcessorBase {
 
 			if ( !empty( $linkParts ) ) {
 				$replacement = $this->getPageLinkReplacement( $linkParts );
+			}
+
+			if ( $isBrokenLink ) {
+				$replacement .= '[[Category:Broken_page_link]]';
 			}
 
 			$this->replaceLink( $node, $replacement );

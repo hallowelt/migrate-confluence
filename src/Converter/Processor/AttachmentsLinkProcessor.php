@@ -21,6 +21,7 @@ class AttachmentsLinkProcessor extends LinkProcessorBase {
 	 */
 	protected function doProcessLink( DOMNode $node ): void {
 		if ( $node instanceof DOMElement ) {
+			$isBrokenLink = false;
 			$riFilename = $node->getAttribute( 'ri:filename' );
 			$spaceId = $this->ensureSpaceId( $node );
 
@@ -33,13 +34,13 @@ class AttachmentsLinkProcessor extends LinkProcessorBase {
 			$rawPageTitle = basename( $rawPageTitle );
 
 			$confluenceFileKey = $this->generateConfluenceKey( $spaceId, $rawPageTitle, $riFilename );
-			var_dump( $confluenceFileKey );
+
 			$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
-			var_dump( $targetFilename );
 			if ( !empty( $targetFilename ) ) {
 				$linkParts[] = $targetFilename;
 			} else {
 				$linkParts[] = $riFilename;
+				$isBrokenLink = true;
 			}
 
 			$this->getLinkBody( $node, $linkParts );
@@ -48,6 +49,10 @@ class AttachmentsLinkProcessor extends LinkProcessorBase {
 
 			if ( !empty( $linkParts ) ) {
 				$replacement = $this->getPageLinkReplacement( $linkParts );
+			}
+
+			if ( $isBrokenLink ) {
+				$replacement .= '[[Category:Broken_attachment_link]]';
 			}
 
 			$this->replaceLink( $node, $replacement );
@@ -98,7 +103,6 @@ class AttachmentsLinkProcessor extends LinkProcessorBase {
 		*/
 		$linkParts = array_map( 'trim', $linkParts );
 
-		var_dump( $linkParts );
 		if ( $this->nsFileRepoCompat ) {
 			$filename = $linkParts[0];
 

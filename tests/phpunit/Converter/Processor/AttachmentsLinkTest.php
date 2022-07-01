@@ -9,40 +9,60 @@ use PHPUnit\Framework\TestCase;
 
 class AttachmentsLinkTest extends TestCase {
 
-		/**
-		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageLink::preprocess
-		 * @return void
-		 */
-		public function testPreprocess() {
-			$dir = dirname( dirname( __DIR__ ) ) . '/data';
-			$input = file_get_contents( "$dir/attachmentslinktest-input.xml" );
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageLink::preprocess
+	 * @return void
+	 */
+	public function testPreprocess() {
+		$this->doTestAttachments(
+			'attachmentslinktest-input.xml',
+			'attachmentslinktest-output.xml',
+			false
+		);
 
-			$dom = new DOMDocument();
-			$dom->loadXML( $input );
+		$this->doTestAttachments(
+			'attachmentslinktest-input.xml',
+			'attachmentslinktest-ns-file-repo-output.xml',
+			true
+		);
+	}
 
-			$currentSpaceId = 42;
-			$currentRawPagename = 'SomePage';
-			$dataLookup = new ConversionDataLookup(
-				[
-					42 => '',
-					23 => 'DEVOPS'
-				],
-				[],
-				[
-					'42---SomePage---SomeImage.png' => 'SomePage_SomeImage.png',
-					'42---SomePage---SomeImage1.png' => 'SomePage_SomeImage1.png',
-					'23---SomePage---SomeImage2.png' => 'DEVOPS_SomePage_SomeImage2.png'
-				],
-				[],
-				[]
-			);
+	/**
+	 * @param string $input
+	 * @param string $output
+	 * @param boolean $extNSFileRepo
+	 * @return void
+	 */
+	private function doTestAttachments( $input, $output, $extNSFileRepo = false ): void {
+		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$input = file_get_contents( "$dir/$input" );
 
-			$processor = new AttachmentsLinkProcessor( $dataLookup, $currentSpaceId, $currentRawPagename, false );
-			$processor->process( $dom );
+		$dom = new DOMDocument();
+		$dom->loadXML( $input );
 
-			$actualOutput = $dom->saveXML();
-			$expectedOutput = $input = file_get_contents( "$dir/attachmentslinktest-output.xml" );
+		$currentSpaceId = 42;
+		$currentRawPagename = 'SomePage';
+		$dataLookup = new ConversionDataLookup(
+			[
+				42 => 'ABC',
+				23 => 'DEVOPS'
+			],
+			[],
+			[
+				'42---SomePage---SomeImage.png' => 'ABC_SomePage_SomeImage.png',
+				'42---SomePage---SomeImage1.png' => 'ABC_SomePage_SomeImage1.png',
+				'23---SomePage---SomeImage2.png' => 'DEVOPS_SomePage_SomeImage2.png'
+			],
+			[],
+			[]
+		);
 
-			$this->assertEquals( $expectedOutput, $actualOutput );
-		}
+		$processor = new AttachmentsLinkProcessor( $dataLookup, $currentSpaceId, $currentRawPagename, $extNSFileRepo );
+		$processor->process( $dom );
+
+		$actualOutput = $dom->saveXML();
+		$expectedOutput = $input = file_get_contents( "$dir/$output" );
+
+		$this->assertEquals( $expectedOutput, $actualOutput );
+	}
 }

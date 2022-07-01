@@ -1,13 +1,17 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
     <div>
-        [[Media:SomePage_SomeImage.png|Link to a Confluence Attachment]]
+        [[Media:ABC_SomePage_SomeImage.png|Link to a Confluence Attachment]]
     </div>
 
     <div>
-        [[Media:SomePage_SomeImage1.png]]
+        [[Media:ABC_SomePage_SomeImage1.png]]
     </div>
 
     <div>
         [[Media:DEVOPS_SomePage_SomeImage2.png]]
+    </div>
+
+    <div>
+        [[Media:SomeImage3.png]][[Category:Broken_attachment_link]]
     </div>
 </xml>

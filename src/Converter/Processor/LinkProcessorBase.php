@@ -98,10 +98,7 @@ abstract class LinkProcessorBase implements IProcessor {
 	 * @return string
 	 */
 	protected function getBrokenLinkReplacement(): string {
-		$replacement = '[[Category:Broken_link]]';
-		$replacement .= '[[Category:Broken_' . $this->getProcessableNodeName() . '_link]]';
-
-		return $replacement;
+		return '[[Category:Broken_link]]';
 	}
 
 	/**
