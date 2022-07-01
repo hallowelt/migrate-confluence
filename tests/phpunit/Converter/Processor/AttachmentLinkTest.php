@@ -7,7 +7,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
-class attachmentlinktest extends TestCase {
+class AttachmentLinkTest extends TestCase {
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\AttatchmentsLinkProcessor::preprocess
