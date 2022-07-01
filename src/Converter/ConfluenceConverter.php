@@ -563,13 +563,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
 			}
 
-			$linkConverter = new AttachmentsLinkProcessor(
+			$linkProcessor = new AttachmentsLinkProcessor(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			);
 
 			$oContainer = $dom->createElement(
 				'span',
-				$linkConverter->makeLink( [ $sTargetFile ] )
+				$linkProcessor->makeLink( [ $sTargetFile ] )
 			);
 			$oContainer->setAttribute( 'class', "ac-$sMacroName" );
 			$match->parentNode->insertBefore( $oContainer, $match );
@@ -803,27 +803,51 @@ HERE;
 			$this->wikiText
 		);
 
+		$this->wikiText .= $this->addAdditionalAttachments();
+
+		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";
+	}
+
+	/**
+	 * @return string
+	 */
+	private function addAdditionalAttachments(): string {
+		$wikiText = '';
+
 		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
+
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
 			$mediaExludeList = $this->buildMediaExcludeList( $this->wikiText );
+
 			$attachmentList = [];
-			foreach ( $attachmentsMap[$this->currentPageTitle] as $attachment ) {
-				if ( in_array( $attachment, $mediaExludeList ) ) {
+			foreach ( $attachmentsMap[$this->currentPageTitle] as $attachmentFileName ) {
+				if ( $this->nsFileRepoCompat ) {
+					$pos = strpos( $attachmentFileName, '_' );
+					if ( $pos !== false ) {
+						$namespace = substr( $attachmentFileName, 0, $pos );
+						if ( $namespace !== false ) {
+							$attachmentFileName = str_replace( $namespace . '_', $namespace . ':', $attachmentFileName );
+						}
+					}
+				}
+
+				if ( in_array( $attachmentFileName, $mediaExludeList ) ) {
 					continue;
 				}
-				$attachmentList[] = $attachment;
+
+				$attachmentList[] = $attachmentFileName;
 			}
 
 			if ( !empty( $attachmentList ) ) {
-				$this->wikiText .= "\n{{AttachmentsSectionStart}}\n";
+				$wikiText .= "\n{{AttachmentsSectionStart}}\n";
 				foreach ( $attachmentList as $attachment ) {
-					$this->wikiText .= "* [[Media:$attachment]]\n";
+					$wikiText .= "* [[Media:$attachment]]\n";
 				}
-				$this->wikiText .= "\n{{AttachmentsSectionEnd}}\n";
+				$wikiText .= "\n{{AttachmentsSectionEnd}}\n";
 			}
 		}
 
-		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";
+		return $wikiText;
 	}
 
 	/**
