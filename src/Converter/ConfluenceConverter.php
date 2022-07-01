@@ -12,7 +12,6 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
-use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
