@@ -74,7 +74,6 @@ abstract class LinkProcessorBase implements IProcessor {
 		}
 
 		foreach ( $processableNodes as $processableNode ) {
-			var_dump( $processableLiveNode->nodeName );
 			$this->setLinkNode( $processableNode );
 			$this->doProcessLink( $processableNode );
 		}
