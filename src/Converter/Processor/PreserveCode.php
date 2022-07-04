@@ -26,17 +26,7 @@ class PreserveCode extends StructuredMacroProcessorBase {
 		$macroReplacement->setAttribute( 'class', 'PRESERVESYNTAXHIGHLIGHT' );
 
 		$this->processParamElements( $node, $macroReplacement );
-
-		$plaintextEls = $node->getElementsByTagName( 'plain-text-body' );
-		foreach ( $plaintextEls as $plaintextEl ) {
-			$macroReplacement->appendChild( $plaintextEl );
-		}
-
-		if ( $plaintextEls->count() === 0 ) {
-			$macroReplacement->appendChild(
-				$node->ownerDocument->createTextNode( '[[Category:Broken_macro/code/empty]]' )
-			);
-		}
+		$this->processPlainTextBody( $node, $macroReplacement );
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
@@ -47,14 +37,10 @@ class PreserveCode extends StructuredMacroProcessorBase {
 	 * @return void
 	 */
 	private function processParamElements( $node, $replacementNode ): void {
-
-		// GO ON HERE
-
-
-
 		$paramEls = $node->getElementsByTagName( 'parameter' );
 		foreach ( $paramEls as $paramEl ) {
 			$paramName = $paramEl->getAttribute( 'ac:name' );
+
 			if ( $paramName === 'language' ) {
 				$replacementNode->setAttribute( 'lang', $paramEl->nodeValue );
 			}
@@ -68,8 +54,30 @@ class PreserveCode extends StructuredMacroProcessorBase {
 				$headingEl->appendChild(
 					$replacementNode->ownerDocument->createTextNode( $paramEl->nodeValue )
 				);
-				$replacementNode->insertBefore( $headingEl, $replacementNode );
+				$node->parentNode->insertBefore( $headingEl, $node );
 			}
+		}
+	}
+
+	/**
+	 * @param DOMNode $node
+	 * @param DOMNode $replacementNode
+	 * @return void
+	 */
+	private function processPlainTextBody( $node, $replacementNode ): void {
+		$hasPlaintextEls = false;
+		$plaintextEls = $node->getElementsByTagName( 'plain-text-body' );
+		foreach ( $plaintextEls as $plaintextEl ) {
+			$replacementNode->appendChild(
+				$replacementNode->ownerDocument->createTextNode( $plaintextEl->nodeValue )
+			);
+			$hasPlaintextEls = true;
+		}
+
+		if ( !$hasPlaintextEls ) {
+			$replacementNode->appendChild(
+				$node->ownerDocument->createTextNode( '[[Category:Broken_macro/code/empty]]' )
+			);
 		}
 	}
 }
