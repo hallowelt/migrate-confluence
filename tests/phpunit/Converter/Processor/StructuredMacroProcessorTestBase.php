@@ -34,8 +34,6 @@ abstract class StructuredMacroProcessorTestBase extends TestCase {
 		$input = $this->getInput();
 		$expectedOutput = $this->getExpectedOutput();
 
-		file_put_contents( '/tmp/expected.xml', $expectedOutput );
-
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
@@ -43,7 +41,6 @@ abstract class StructuredMacroProcessorTestBase extends TestCase {
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML();
-		file_put_contents( '/tmp/actual.xml', $actualOutput );
 
 		/* Issue with xml namespaces ac, ri, bs
 		$this->assertXmlStringEqualsXmlString(

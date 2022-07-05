@@ -91,10 +91,10 @@ Lorem
 HERE;
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\RestoreTableAttributes::postprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes::postprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testPostprocess() {
 		$preprocessor = new RestoreTableAttributes();
 		$actualOutput = $preprocessor->postprocess( $this->input );
 		$this->assertEquals( $this->expectedOutput, $actualOutput );

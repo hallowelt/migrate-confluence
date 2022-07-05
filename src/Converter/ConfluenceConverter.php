@@ -11,22 +11,25 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
-use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
-use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
+use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
+use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
@@ -194,7 +197,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroPanel(),
 			new StructuredMacroColumn(),
 			new StructuredMacroSection(),
-			new Emoticon()
+			new Emoticon(),
+			new AttachmentLink(
+				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+			),
+			new PageLink(
+				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+			),
+			new UserLink(
+				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+			),
+			new PreserveCode(),
 		];
 
 		/** @var IProcessor $processor */
@@ -211,7 +224,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$postProcessors = [
 			new RestoreTableAttributes(),
 			new FixLineBreakInHeadings(),
-			new FixImagesWithExternalUrl()
+			new FixImagesWithExternalUrl(),
+			new RestoreCode(),
 		];
 
 		/** @var IPostprocessor $postProcessor */
@@ -253,7 +267,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	/**
 	 *
-	 * @return void
+	 * @return DOMDocument
 	 */
 	private function preprocessFile() {
 		$source = $this->preprocessHTMLSource( $this->rawFile );
@@ -292,7 +306,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sMacroName = $match->getAttribute( 'ac:name' );
 
 		// Exclude macros that are handled by an `IProcessor`
-		if ( in_array( $sMacroName, [ 'info', 'note', 'tip', 'warning', 'status', 'panel', 'section', 'column' ] ) ) {
+		if ( in_array( $sMacroName, [
+				'info',
+				'note',
+				'tip',
+				'warning',
+				'status',
+				'panel',
+				'section',
+				'column',
+				'code',
+			] ) ) {
 			return;
 		}
 
@@ -302,9 +326,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processLocalTabMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
 		} elseif ( $sMacroName === 'excerpt' ) {
 			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'code' ) {
-			$processor = new Code();
-			$processor->process( $sender, $match, $dom, $xpath );
 		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
 			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
 		} elseif ( $sMacroName === 'children' ) {
@@ -383,10 +404,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		return [
-			'//ac:link' => [
-				new Link( $this->dataLookup, $this->currentSpace,
-				$currentPageTitle ), 'process'
-			],
 			'//ac:image' => [
 				new Image( $this->dataLookup, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat ), 'process'
@@ -556,11 +573,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
 			}
 
-			$linkConverter = new Link( $this->dataLookup, $this->currentSpace, $currentPageTitle );
+			$linkProcessor = new AttachmentLink(
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
+			);
 
 			$oContainer = $dom->createElement(
 				'span',
-				$linkConverter->makeMediaLink( [ $sTargetFile ] )
+				$linkProcessor->makeLink( [ $sTargetFile ] )
 			);
 			$oContainer->setAttribute( 'class', "ac-$sMacroName" );
 			$match->parentNode->insertBefore( $oContainer, $match );
@@ -794,27 +813,49 @@ HERE;
 			$this->wikiText
 		);
 
+		$this->wikiText .= $this->addAdditionalAttachments();
+
+		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";
+	}
+
+	/**
+	 * @return string
+	 */
+	private function addAdditionalAttachments(): string {
+		$wikiText = '';
+
 		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
+
+		$linkProcessor = new AttachmentLink(
+			$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+		);
+
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
 			$mediaExludeList = $this->buildMediaExcludeList( $this->wikiText );
+
 			$attachmentList = [];
-			foreach ( $attachmentsMap[$this->currentPageTitle] as $attachment ) {
-				if ( in_array( $attachment, $mediaExludeList ) ) {
+			foreach ( $attachmentsMap[$this->currentPageTitle] as $attachmentFileName ) {
+				$mediaLink = $linkProcessor->makeLink( [ $attachmentFileName ] );
+				$matches = [];
+				preg_match( "#\[\[\s*(Media):(.*?)\s*[\|*|\]\]]#im", $mediaLink, $matches );
+
+				if ( in_array( $matches[2], $mediaExludeList ) ) {
 					continue;
 				}
-				$attachmentList[] = $attachment;
+
+				$attachmentList[] = $mediaLink;
 			}
 
 			if ( !empty( $attachmentList ) ) {
-				$this->wikiText .= "\n{{AttachmentsSectionStart}}\n";
+				$wikiText .= "\n{{AttachmentsSectionStart}}\n";
 				foreach ( $attachmentList as $attachment ) {
-					$this->wikiText .= "* [[Media:$attachment]]\n";
+					$wikiText .= "* $attachment\n";
 				}
-				$this->wikiText .= "\n{{AttachmentsSectionEnd}}\n";
+				$wikiText .= "\n{{AttachmentsSectionEnd}}\n";
 			}
 		}
 
-		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";
+		return $wikiText;
 	}
 
 	/**

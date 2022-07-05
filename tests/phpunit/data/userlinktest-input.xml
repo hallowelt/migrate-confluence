@@ -1,0 +1,19 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<div>
+		<ac:link>
+			<ri:user ri:userkey="1234567890abc" />
+		</ac:link>
+	</div>
+
+	<div>
+		<ac:link>
+			<ri:user ri:userkey="1234567890def" />
+		</ac:link>
+	</div>
+
+	<div>
+		<ac:link>
+			<ri:user />
+		</ac:link>
+	</div>
+</xml>
