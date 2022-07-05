@@ -12,9 +12,11 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
+use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Link;
 use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Macros\Code;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
@@ -24,6 +26,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
@@ -205,6 +208,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new UserLink(
 				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
 			),
+			new PreserveCode(),
 		];
 
 		/** @var IProcessor $processor */
@@ -221,7 +225,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$postProcessors = [
 			new RestoreTableAttributes(),
 			new FixLineBreakInHeadings(),
-			new FixImagesWithExternalUrl()
+			new FixImagesWithExternalUrl(),
+			new RestoreCode(),
 		];
 
 		/** @var IPostprocessor $postProcessor */
@@ -302,7 +307,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sMacroName = $match->getAttribute( 'ac:name' );
 
 		// Exclude macros that are handled by an `IProcessor`
-		if ( in_array( $sMacroName, [ 'info', 'note', 'tip', 'warning', 'status', 'panel', 'section', 'column' ] ) ) {
+		if ( in_array( $sMacroName, [
+				'info',
+				'note',
+				'tip',
+				'warning',
+				'status',
+				'panel',
+				'section',
+				'column',
+				'code',
+			] ) ) {
 			return;
 		}
 
@@ -312,9 +327,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processLocalTabMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
 		} elseif ( $sMacroName === 'excerpt' ) {
 			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'code' ) {
-			$processor = new Code();
-			$processor->process( $sender, $match, $dom, $xpath );
 		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
 			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
 		} elseif ( $sMacroName === 'children' ) {
