@@ -29,13 +29,23 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 		$macros = $xpath->query( '//ac:structured-macro' );
 		foreach ( $macros as $macro ) {
 			if ( $macro->getAttribute( 'ac:name' ) === $macroName ) {
-				$macroReplacement = $dom->createElement( 'div' );
-				$macroReplacement->setAttribute( 'class', "ac-$macroName" );
-				$this->macroParams( $macro, $macroReplacement );
-				$this->macroBody( $macro, $macroReplacement );
-				$macro->parentNode->replaceChild( $macroReplacement, $macro );
+				$this->doProcessMacro( $macro );
 			}
 		}
+	}
+
+	/**
+	 * @param DOMNode $node
+	 * @return void
+	 */
+	protected function doProcessMacro( $node ): void {
+		$macroName = $node->getAttribute( 'ac:name' );
+
+		$macroReplacement = $node->ownerDocument->createElement( 'div' );
+		$macroReplacement->setAttribute( 'class', "ac-$macroName" );
+		$this->macroParams( $node, $macroReplacement );
+		$this->macroBody( $node, $macroReplacement );
+		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
 
 	/**
