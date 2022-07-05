@@ -1,10 +1,10 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
     <div>
-        [[Page_Title|Link to another Confluence Page]]
+        [[ABC:Page_Title|Link to another Confluence Page]]
     </div>
 
     <div>
-        [[Page_Title2|Page_Title2]]
+        [[ABC:Page_Title2|Page_Title2]]
     </div>
 
     <div>
@@ -13,5 +13,9 @@
 
     <div>
         [[DEVOPS:Page_Title3|Page_Title3]]
+    </div>
+
+    <div>
+        [[Confluence----1---Page Title4|Confluence----1---Page Title4]][[Category:Broken_page_link]]
     </div>
 </xml>
