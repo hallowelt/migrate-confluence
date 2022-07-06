@@ -3531,5 +3531,5 @@
         "ext-intl": "7",
         "ext-pdo_sqlite": "7"
     },
-    "plugin-api-version": "2.2.0"
+    "plugin-api-version": "2.3.0"
 }

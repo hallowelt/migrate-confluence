@@ -1,5 +1,5 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 	<div>
-		<img height="150" src="https://server/confluence/download/attachments/123456789/image2021-8-17_10-15-14.png?version=1&amp;modificationDate=1914846492120&amp;api=v2" />
+		<img height="150" src="https://server/confluence/download/attachments/123456789/image2021-8-17_10-15-14.png?version=1&amp;modificationDate=1914846492120&amp;api=v2"/>
 	</div>
 </xml>

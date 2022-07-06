@@ -10,7 +10,6 @@ use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Converter\ConvertableEntities\Image;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
@@ -23,6 +22,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
+use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
@@ -198,6 +198,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroColumn(),
 			new StructuredMacroSection(),
 			new Emoticon(),
+			new Image(
+				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+			),
 			new AttachmentLink(
 				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
 			),
@@ -404,10 +407,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		return [
-			'//ac:image' => [
-				new Image( $this->dataLookup, $this->currentSpace,
-				$currentPageTitle, $this->nsFileRepoCompat ), 'process'
-			],
 			'//ac:macro' => [ $this, 'processMacro' ],
 			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ],
 			'//ac:task-list' => [ $this, 'processTaskList' ],
@@ -622,8 +621,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function processGliffyMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
 		if ( !empty( $oNameParam->nodeValue ) ) {
-			$imgConverter = new Image( $this->dataLookup, $this->currentSpace, $this->currentPageTitle );
-			$replacementNode = $imgConverter->makeImageLink( $dom, [ "{$oNameParam->nodeValue}.png" ] );
+			$imageProcessor = new Image(
+				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+			);
+			$replacementNode = $imageProcessor->makeImageLink( $dom, [ "{$oNameParam->nodeValue}.png" ] );
 			$replacement = $replacementNode->ownerDocument->saveXML( $replacementNode );
 		}
 	}
