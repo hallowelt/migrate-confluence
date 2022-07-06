@@ -8,7 +8,7 @@
 				ac:width="500"
 				ac:align="center"
 		>
-			<ri:attachment ri:filename="SampleImage.png" />
+			<ri:attachment ri:filename="SomeImage2.png" />
 		</ac:image>
 	</div>
 </xml>
