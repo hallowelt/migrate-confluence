@@ -33,19 +33,22 @@ class ImageTest extends TestCase {
 			],
 			[],
 			[
-				'42---SomePage---SomeImage.png' => 'ABC_SomePage_SomeImage.png',
-				'42---SomePage---SomeImage1.png' => 'ABC_SomePage_SomeImage1.png',
+				'0---SomePage---SomeImage2.png' => 'SomePage_SomeImage2.png',
 				'23---SomePage---SomeImage2.png' => 'DEVOPS_SomePage_SomeImage2.png'
 			],
-			[
-				'0------SampleImage.png' => 'DEVOPS_SomeImage.png'
-			],
+			[],
 			[]
 		);
 
-		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-1.xml' );
-		$this->doTest( 'image-attachment-input-2.xml', 'image-attachment-output-2.xml' );
-		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-3.xml', true );
+		/** SpaceId GENERAL */
+		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-1-general.xml', 0, 'SomePage' );
+		$this->doTest( 'image-attachment-input-2.xml', 'image-attachment-output-2.xml', 0, 'SomePage' );
+		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-3-general.xml', 0, 'SomePage', true );
+
+		/** Random SpaceId */
+		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-1.xml', 23, 'SomePage' );
+		$this->doTest( 'image-attachment-input-2.xml', 'image-attachment-output-2.xml', 23, 'SomePage' );
+		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-3.xml', 23, 'SomePage', true );
 	}
 
 	/**
@@ -54,13 +57,13 @@ class ImageTest extends TestCase {
 	 * @param bool $extNSFileRepo
 	 * @return void
 	 */
-	private function doTest( $input, $output, $extNSFileRepo = false ): void {
+	private function doTest( $input, $output, $spaceId, $rawPageTitle, $extNSFileRepo = false ): void {
 		$input = file_get_contents( "$this->dir/$input" );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new Image( $this->dataLookup, 23, 'SomePage', $extNSFileRepo );
+		$processor = new Image( $this->dataLookup, $spaceId, $rawPageTitle, $extNSFileRepo );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

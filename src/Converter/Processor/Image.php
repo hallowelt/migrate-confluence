@@ -245,7 +245,7 @@ class Image implements IProcessor {
 		$filename = $params[0];
 
 		$filenameParts = explode( '_', $filename );
-		if ( count( $filenameParts ) > 1 ) {
+		if ( count( $filenameParts ) > 2 ) {
 			$namespace = array_shift( $filenameParts );
 			$params[0] = "$namespace:";
 			$params[0] .= implode( '_', $filenameParts );
