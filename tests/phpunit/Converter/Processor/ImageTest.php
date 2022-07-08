@@ -31,7 +31,9 @@ class ImageTest extends TestCase {
 				42 => 'ABC',
 				23 => 'DEVOPS'
 			],
-			[],
+			[
+				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
+			],
 			[
 				'0---SomePage---SomeImage2.png' => 'SomePage_SomeImage2.png',
 				'23---SomePage---SomeImage2.png' => 'DEVOPS_SomePage_SomeImage2.png'

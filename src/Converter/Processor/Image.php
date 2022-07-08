@@ -77,10 +77,22 @@ class Image implements IProcessor {
 			}
 		}
 
-		$node->parentNode->replaceChild(
-			$replacementNode,
-			$node
-		);
+		$isImageWithPageLink = $this->isImageWithPageLink( $node );
+		if ( $isImageWithPageLink ) {
+			$pageLinkReplacementNode = $this->makeImagePageLinkReplacement( $node, $replacementNode );
+
+			$linkBody = $node->parentNode;
+			$linkNode = $linkBody->parentNode;
+			$linkNode->parentNode->replaceChild(
+				$pageLinkReplacementNode,
+				$linkNode
+			);
+		} else {
+			$node->parentNode->replaceChild(
+				$replacementNode,
+				$node
+			);
+		}
 	}
 
 	/**
@@ -204,6 +216,52 @@ class Image implements IProcessor {
 	}
 
 	/**
+	 * @param DOMNode $node
+	 * @return DOMNode
+	 */
+	private function makeImagePageLinkReplacement( $node ): DOMNode {
+		$params = $this->getImageParams( $node );
+
+		$attachmentNode = $node->getElementsByTagName( 'attachment' )->item( 0 );
+		$filename = $attachmentNode->getAttribute( 'ri:filename' );
+		$pageEl = $node->getElementsByTagName( 'page' )->item( 0 );
+
+		$rawPageTitle = $this->rawPageTitle;
+		$spaceId = $this->currentSpaceId;
+		if ( $pageEl instanceof DOMElement ) {
+			$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
+			$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+			if ( !empty( $spaceKey ) ) {
+				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+			}
+		}
+
+		$rawPageTitle = basename( $rawPageTitle );
+		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
+		$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		array_unshift( $params, $targetFilename );
+
+		$linkBody = $node->parentNode;
+		$link = $linkBody->parentNode;
+
+		$imagePageLinkHelper = new ImagePageLinkHelper(
+			$this->dataLookup,
+			$this->currentSpaceId,
+			$this->rawPageTitle
+		);
+		$target = $imagePageLinkHelper->getLinkTarget( $link );
+		if ( !empty( $target ) ) {
+			$params[] = "link=$target";
+		}
+
+		$isBrokenPageLink = $imagePageLinkHelper->isBrokenLink();
+
+		$replacementNode = $this->makeImageLinkWithDebugInfo( $node->ownerDocument, $params, $confluenceFileKey );
+
+		return $replacementNode;
+	}
+
+	/**
 	 * @param DOMDocument $dom
 	 * @param array $params
 	 * @return DOMNode
@@ -265,5 +323,17 @@ class Image implements IProcessor {
 	 */
 	private function getImageReplacement( $params ): string {
 		return '[[File:' . implode( '|', $params ) . ']]';
+	}
+
+	/**
+	 * @param DOMNode $node
+	 * @return bool
+	 */
+	private function isImageWithPageLink( $node ): bool {
+		if ( $node->parentNode->nodeName === 'ac:link-body' ) {
+			return true;
+		}
+
+		return false;
 	}
 }

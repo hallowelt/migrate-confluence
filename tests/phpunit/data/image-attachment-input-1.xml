@@ -21,4 +21,5 @@
 			<ri:attachment ri:filename="SomeImage2.png" />
 		</ac:image>
 	</p>
+	<ac:link><ri:page ri:content-title="SomeLinkedPage" ri:space-key="ABC" /><ac:link-body><ac:image ac:align="center" ac:width="305"><ri:attachment ri:filename="SomeImage2.png" /></ac:image></ac:link-body></ac:link>
 </xml>
