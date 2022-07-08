@@ -53,10 +53,12 @@ class ImagePageLinkHelper {
 		if ( $node instanceof DOMElement && $node->nodeName === 'ac:link' ) {
 			$page = $node->getElementsByTagName( 'page' )->item( 0 );
 
-			$rawPageTitle = $page->getAttribute( 'ri:content-title' );
+			if ( $page instanceof DOMElement ) {
+				$this->rawPageTitle = $page->getAttribute( 'ri:content-title' );
+			}
 			$spaceId = $this->ensureSpaceId( $page );
 
-			$confluencePageKey = $this->generatePageConfluenceKey( $spaceId, $rawPageTitle );
+			$confluencePageKey = $this->generatePageConfluenceKey( $spaceId, $this->rawPageTitle );
 
 			$targetTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
 			if ( !empty( $targetTitle ) ) {
@@ -64,7 +66,7 @@ class ImagePageLinkHelper {
 			} else {
 				$this->isBrokenLink = true;
 				// If not in migation data, save some info for manual post migration work
-				return $this->generateConfluenceKey( $spaceId, $rawPageTitle );
+				return $this->generateConfluenceKey( $spaceId, $this->rawPageTitle );
 			}
 		}
 
