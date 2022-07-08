@@ -11,4 +11,14 @@
 			<ri:attachment ri:filename="SomeImage2.png" />
 		</ac:image>
 	</div>
+	<p>
+		<ac:image ac:height="215">
+			<ri:attachment ri:filename="SomeImage2.png" />
+		</ac:image>
+	</p>
+	<p>
+		<ac:image ac:height="164">
+			<ri:attachment ri:filename="SomeImage2.png" />
+		</ac:image>
+	</p>
 </xml>

@@ -43,7 +43,7 @@ class ImageTest extends TestCase {
 		/** SpaceId GENERAL */
 		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-1-general.xml', 0, 'SomePage' );
 		$this->doTest( 'image-attachment-input-2.xml', 'image-attachment-output-2.xml', 0, 'SomePage' );
-		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-3-general.xml', 0, 'SomePage', true );
+		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-1-general.xml', 0, 'SomePage', true );
 
 		/** Random SpaceId */
 		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-1.xml', 23, 'SomePage' );

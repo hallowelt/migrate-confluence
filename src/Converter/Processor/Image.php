@@ -50,7 +50,12 @@ class Image implements IProcessor {
 	public function process( DOMDocument $dom ): void {
 		$imageNodes = $dom->getElementsByTagName( 'image' );
 
+		$nonLiveList = [];
 		foreach ( $imageNodes as $imageNode ) {
+			$nonLiveList[] = $imageNode;
+		}
+
+		foreach ( $nonLiveList as $imageNode ) {
 			$this->doProcessImage( $imageNode );
 		}
 	}
