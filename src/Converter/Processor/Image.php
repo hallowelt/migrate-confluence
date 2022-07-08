@@ -255,8 +255,17 @@ class Image implements IProcessor {
 		}
 
 		$isBrokenPageLink = $imagePageLinkHelper->isBrokenLink();
+		$brokenPageLinkInfo = '';
+		if ( $isBrokenPageLink ) {
+			$brokenPageLinkInfo = '[[Category:Broken_page_link]]';
+		}
 
-		$replacementNode = $this->makeImageLinkWithDebugInfo( $node->ownerDocument, $params, $confluenceFileKey );
+		$replacementNode = $this->makeImageLinkWithDebugInfo(
+			$node->ownerDocument,
+			$params,
+			$confluenceFileKey,
+			$brokenPageLinkInfo
+		);
 
 		return $replacementNode;
 	}
@@ -282,14 +291,15 @@ class Image implements IProcessor {
 	 * @param DOMDocument $dom
 	 * @param array $params
 	 * @param string $confluenceFileKey
+	 * @param string $debug
 	 * @return DOMNode
 	 */
-	private function makeImageLinkWithDebugInfo( DOMDocument $dom, array $params, $confluenceFileKey ): DOMNode {
+	private function makeImageLinkWithDebugInfo( DOMDocument $dom, array $params,
+		$confluenceFileKey, $debug = '' ): DOMNode {
 		$params = array_map( 'trim', $params );
 
-		$debug = '';
 		if ( empty( $params ) || empty( $params[0] ) ) {
-			$debug = " ###BROKENIMAGE $confluenceFileKey ###";
+			$debug .= " ###BROKENIMAGE $confluenceFileKey ###";
 		} elseif ( $this->nsFileRepoCompat === true ) {
 			$params = $this->buildNsFileReopCompatParams( $params );
 		}
