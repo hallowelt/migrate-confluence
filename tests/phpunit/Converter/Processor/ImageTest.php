@@ -39,6 +39,7 @@ class ImageTest extends TestCase {
 				'23---SomePage---SomeImage2.png' => 'DEVOPS_SomePage_SomeImage2.png'
 			],
 			[],
+			[],
 			[]
 		);
 

@@ -37,6 +37,11 @@ class ConversionDataLookup {
 	private $confluenceFiles = [];
 
 	/**
+	 * @var array
+	 */
+	private $confluenceUserMap = [];
+
+	/**
 	 *
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataLookup
@@ -47,7 +52,8 @@ class ConversionDataLookup {
 			$buckets->getBucketData( 'pages-titles-map' ),
 			$buckets->getBucketData( 'filenames-to-filetitles-map' ),
 			$buckets->getBucketData( 'attachment-orig-filename-target-filename-map' ),
-			$buckets->getBucketData( 'files' )
+			$buckets->getBucketData( 'files' ),
+			$buckets->getBucketData( 'userkey-to-username-map' )
 		);
 	}
 
@@ -58,10 +64,11 @@ class ConversionDataLookup {
 	 * @param array $confluenceFilenameTargetFiletitleMap
 	 * @param array $confluenceAttachmentOrigFilenameToTargetFilenameMap
 	 * @param array $confluenceFiles
+	 * @param array $confluenceUserMap
 	 */
 	public function __construct( $spaceIdPrefixMap, $confluencePageKeyTargetTitleMap,
 		$confluenceFilenameTargetFiletitleMap, $confluenceAttachmentOrigFilenameToTargetFilenameMap,
-		$confluenceFiles ) {
+		$confluenceFiles, $confluenceUserMap ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 
 		// This is some quickfix solution. It must be changed as soon as possible!
@@ -81,6 +88,7 @@ class ConversionDataLookup {
 			$this->confluenceAttachmentOrigFilenameToTargetFilenameMap[$filename] = $filenames;
 		}
 		$this->confluenceFiles = $confluenceFiles;
+		$this->confluenceUserMap = $confluenceUserMap;
 	}
 
 	/**
@@ -147,5 +155,17 @@ class ConversionDataLookup {
 			}
 		}
 		return $filename;
+	}
+
+	/**
+	 * @param string $userKey
+	 * @return string
+	 */
+	public function getUsernameFromUserKey( string $userKey ): string {
+		if ( isset( $this->confluenceUserMap[ $userKey ] ) ) {
+			return $this->confluenceUserMap[ $userKey ];
+		}
+
+		return $userKey;
 	}
 }

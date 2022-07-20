@@ -207,6 +207,7 @@ class Image implements IProcessor {
 		}
 
 		$rawPageTitle = basename( $rawPageTitle );
+
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 		$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 		array_unshift( $params, $targetFilename );
@@ -247,7 +248,7 @@ class Image implements IProcessor {
 		$imagePageLinkHelper = new ImagePageLinkHelper(
 			$this->dataLookup,
 			$this->currentSpaceId,
-			$this->rawPageTitle
+			$rawPageTitle
 		);
 		$target = $imagePageLinkHelper->getLinkTarget( $link );
 		if ( !empty( $target ) ) {

@@ -101,7 +101,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'filenames-to-filetitles-map',
 			'title-metadata',
 			'attachment-orig-filename-target-filename-map',
-			'files'
+			'files',
+			'userkey-to-username-map'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
@@ -187,6 +188,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return void
 	 */
 	private function runProcessors( $dom ) {
+		$currentPageTitle = $this->getCurrentPageTitle();
+
 		$processors = [
 			new PreserveTableAttributes(),
 			new ConvertTipMacro(),
@@ -199,16 +202,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroSection(),
 			new Emoticon(),
 			new Image(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new AttachmentLink(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new PageLink(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new UserLink(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new PreserveCode(),
 		];
@@ -565,12 +568,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$sTargetFile = $oRIAttachmentEl->getAttribute( 'ri:filename' );
 			}
 
-			$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
-			$prefix = $spaceIdPrefixMap[$this->currentSpace];
-			$currentPageTitle = $this->currentPageTitle;
-			if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
-				$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
-			}
+			$currentPageTitle = $this->getCurrentPageTitle();
 
 			$linkProcessor = new AttachmentLink(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
@@ -620,9 +618,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function processGliffyMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
+		$currentPageTitle = $this->getCurrentPageTitle();
 		if ( !empty( $oNameParam->nodeValue ) ) {
 			$imageProcessor = new Image(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			);
 			$replacementNode = $imageProcessor->makeImageLink( $dom, [ "{$oNameParam->nodeValue}.png" ] );
 			$replacement = $replacementNode->ownerDocument->saveXML( $replacementNode );
@@ -827,8 +826,10 @@ HERE;
 
 		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
 
+		$currentPageTitle = $this->getCurrentPageTitle();
+
 		$linkProcessor = new AttachmentLink(
-			$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+			$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 		);
 
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
@@ -876,5 +877,20 @@ HERE;
 		}
 
 		return $exludeList;
+	}
+
+	/**
+	 * @return string
+	 */
+	private function getCurrentPageTitle(): string {
+		$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
+		$prefix = $spaceIdPrefixMap[$this->currentSpace];
+		$currentPageTitle = $this->currentPageTitle;
+
+		if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
+			$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
+		}
+
+		return $currentPageTitle;
 	}
 }
