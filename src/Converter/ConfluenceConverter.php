@@ -303,16 +303,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
 	 */
-	private function processStructuredMacro( $sender, $match, $dom, $xpath ) {
-		$this->processMacro( $sender, $match, $dom, $xpath );
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 */
 	private function processMacro( $sender, $match, $dom, $xpath ) {
 		$replacement = '';
 		$sMacroName = $match->getAttribute( 'ac:name' );
@@ -388,7 +378,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function makeReplacings() {
 		return [
 			'//ac:macro' => [ $this, 'processMacro' ],
-			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ]
+			'//ac:structured-macro' => [ $this, 'processMacro' ]
 		];
 	}
 

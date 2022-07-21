@@ -59,10 +59,7 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
-
-				if ( !in_array( $paramName, [ 'ac', 'ri' ] ) ) {
-					$params[$paramName] = $childNode->nodeValue;
-				}
+				$params[$paramName] = $childNode->nodeValue;
 			}
 		}
 
