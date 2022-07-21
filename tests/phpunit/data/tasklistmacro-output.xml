@@ -1,0 +1,24 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		{{TaskListStart}}###BREAK###
+			{{Task###BREAK###
+| id = 1###BREAK###
+| status = incomplete###BREAK###
+| body = I have another tasklist :)
+					{{TaskListStart}}###BREAK###
+						{{Task###BREAK###
+| id = 2###BREAK###
+| status = incomplete###BREAK###
+| body = Body 1 &amp;lt;ac:placeholder&amp;gt;with placeholder&amp;lt;/ac:placeholder&amp;gt;###BREAK###
+}}###BREAK###
+						{{Task###BREAK###
+| id = 3###BREAK###
+| status = incomplete###BREAK###
+| body = &amp;lt;span style="color: red;"&amp;gt;Body 2&amp;lt;/span&amp;gt; &amp;lt;ac:placeholder&amp;gt;with placeholder&amp;lt;/ac:placeholder&amp;gt;###BREAK###
+}}###BREAK###
+					{{TaskListEnd}}###BREAK###
+				###BREAK###
+}}###BREAK###
+		{{TaskListEnd}}###BREAK###
+	</p>
+</xml>

@@ -9,7 +9,7 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
 /**
  *
  */
-class ConvertTaskMacro implements IProcessor {
+class ConvertTaskListMacro implements IProcessor {
 	/**
 	 * @inheritDoc
 	 */
@@ -135,8 +135,8 @@ class ConvertTaskMacro implements IProcessor {
 			);
 		}
 
-		$wikiText = '';
-		$wikiText .= $node->nodeValue;
+		$bodyXML = $node->ownerDocument->saveXML( $node );
+		$wikiText = str_replace( [ '<ac:task-body>', '</ac:task-body>' ], '', $bodyXML );
 
 		return $wikiText;
 	}
@@ -156,6 +156,5 @@ class ConvertTaskMacro implements IProcessor {
 }}###BREAK###
 HERE;
 	}
-
 
 }

@@ -17,8 +17,11 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInlineCommentMarkerMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertPlaceholderMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
@@ -192,6 +195,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$processors = [
 			new PreserveTableAttributes(),
+			new ConvertPlaceholderMacro(),
+			new ConvertInlineCommentMarkerMacro(),
 			new ConvertTipMacro(),
 			new ConvertInfoMacro(),
 			new ConvertNoteMacro(),
@@ -214,6 +219,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new PreserveCode(),
+			new ConvertTaskListMacro()
 		];
 
 		/** @var IProcessor $processor */
@@ -322,6 +328,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'section',
 				'column',
 				'code',
+				'tasklist'
 			] ) ) {
 			return;
 		}
@@ -340,8 +347,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'recently-updated' ) {
 			$this->processRecentlyUpdatedMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'tasklist' ) {
-			$this->processTaskListMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'toc' ) {
 			$replacement = "\n__TOC__\n###BREAK###";
 		} else {
@@ -378,36 +383,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	/**
 	 *
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @return void
-	 */
-	protected function processPlaceholder( $sender, $match, $dom, $xpath ) {
-		$replacement = $match->textContent;
-
-		if ( !empty( $replacement ) ) {
-			$replacement = '<!--' . $replacement . '-->';
-
-			$match->parentNode->replaceChild(
-				$dom->createTextNode( $replacement ),
-				$match
-			);
-		}
-	}
-
-	/**
-	 *
 	 * @return array
 	 */
 	private function makeReplacings() {
 		return [
 			'//ac:macro' => [ $this, 'processMacro' ],
-			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ],
-			'//ac:task-list' => [ $this, 'processTaskList' ],
-			'//ac:inline-comment-marker' => [ $this, 'processInlineCommentMarker' ],
-			'//ac:placeholder' => [ $this, 'processPlaceholder' ]
+			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ]
 		];
 	}
 
@@ -640,85 +621,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$oContainer->setAttribute( 'class', "ac-widget" );
 		$oContainer->setAttribute( 'data-params', json_encode( $params ) );
 		$match->parentNode->insertBefore( $oContainer, $match );
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processTaskListMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$this->processTaskList( $sender, $match, $dom, $xpath );
-	}
-
-	/**
-	 *
-	 * <ac:task-list>
-	 * <ac:task>
-	 * <ac:task-id>29</ac:task-id>
-	 * <ac:task-status>incomplete</ac:task-status>
-	 * <ac:task-body><strong>Edit this home page</strong> - Click <em>Edit</em> ...</ac:task-body>
-	 * </ac:task>
-	 * <ac:task>
-	 * <ac:task-id>30</ac:task-id>
-	 * <ac:task-status>incomplete</ac:task-status>
-	 * <ac:task-body><strong>Create your first page</strong> - Click the <em>Create</em> ...</ac:task-body>
-	 * <ac:task>
-	 * </ac:task-list>
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 */
-	private function processTaskList( $sender, $match, $dom, $xpath ) {
-		$wikiText = [];
-		$tasks = $match->getElementsByTagName( 'task' );
-
-		$wikiText[] = '{{TaskListStart}}###BREAK###';
-		foreach ( $tasks as $task ) {
-			$elId = $task->getElementsByTagName( 'task-id' )->item( 0 );
-			$elStatus = $task->getElementsByTagName( 'task-status' )->item( 0 );
-			$elBody = $task->getElementsByTagName( 'task-body' )->item( 0 );
-
-			$id = $elId instanceof DOMElement ? $elId->nodeValue : -1;
-			$status = $elStatus instanceof DOMElement ? $elStatus->nodeValue : '';
-			$body = $elBody instanceof DOMElement ? $dom->saveXML( $elBody ) : '';
-			$body = str_replace( [ '<ac:task-body>', '</ac:task-body>' ], '', $body );
-
-			$wikiText[] = <<<HERE
-{{Task###BREAK###
- | id = $id###BREAK###
- | status = $status###BREAK###
- | body = $body###BREAK###
-}}###BREAK###
-HERE;
-		}
-		$wikiText[] = '{{TaskListEnd}}###BREAK###';
-		$wikiText = implode( "\n", $wikiText );
-
-		$match->parentNode->replaceChild(
-			$dom->createTextNode( $wikiText ),
-			$match
-		);
-	}
-
-	/**
-	 * <ac:inline-comment-marker ac:ref="ca3f84d8-5618-4cdb-b8f6-b58f4e29864e">
-	 *	Alternatives
-	 * </ac:inline-comment-marker>
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 */
-	private function processInlineCommentMarker( $sender, $match, $dom, $xpath ) {
-		$wikiText = "{{InlineComment|{$match->nodeValue}}}";
-		$match->parentNode->replaceChild(
-			$dom->createTextNode( $wikiText ),
-			$match
-		);
 	}
 
 	/**
