@@ -27,9 +27,7 @@ class UserLink extends LinkProcessorBase {
 			if ( !empty( $userKey ) ) {
 				$username = $this->dataLookup->getUsernameFromUserKey( $userKey );
 				$linkParts[] = 'User:' . $username;
-				$linkParts[] = $username;
 			} else {
-				$linkParts[] = 'NULL';
 				$linkParts[] = 'NULL';
 				$isBrokenLink = true;
 			}

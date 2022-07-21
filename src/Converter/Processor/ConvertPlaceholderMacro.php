@@ -16,11 +16,11 @@ class ConvertPlaceholderMacro implements IProcessor {
 		$processorNodes = $dom->getElementsByTagName( 'placeholder' );
 
 		$macroNodes = [];
-		foreach( $processorNodes as $processorNode ) {
+		foreach ( $processorNodes as $processorNode ) {
 			$macroNodes[] = $processorNode;
 		}
 
-		foreach( $macroNodes as $macroNode ) {
+		foreach ( $macroNodes as $macroNode ) {
 			$macroNode->parentNode->replaceChild(
 				$macroNode->ownerDocument->createTextNode(
 					"<!-- $macroNode->textContent -->"

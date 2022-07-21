@@ -64,14 +64,14 @@ class ConvertTaskListMacro implements IProcessor {
 	 */
 	private function processTaskList( DOMElement $node ) {
 		$taskNodes = [];
-		foreach( $node->childNodes as $childNode ) {
+		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName !== 'ac:task' ) {
 				continue;
 			}
 			$taskNodes[] = $childNode;
 		}
 
-		foreach( $taskNodes as $taskNode ) {
+		foreach ( $taskNodes as $taskNode ) {
 			$replacement = $this->processTask( $taskNode );
 			$taskNode->parentNode->replaceChild(
 				$taskNode->ownerDocument->createTextNode(
@@ -81,7 +81,7 @@ class ConvertTaskListMacro implements IProcessor {
 			);
 		}
 
-		return  '{{TaskListStart}}###BREAK###' .$node->nodeValue . '{{TaskListEnd}}###BREAK###';
+		return '{{TaskListStart}}###BREAK###' . $node->nodeValue . '{{TaskListEnd}}###BREAK###';
 	}
 
 	/**
@@ -104,7 +104,7 @@ class ConvertTaskListMacro implements IProcessor {
 				$status = $childNode->nodeValue;
 			}
 			if ( $childNode->nodeName === 'ac:task-body' ) {
-				$body =$this->getTaskBody( $childNode );
+				$body = $this->getTaskBody( $childNode );
 			}
 		}
 
@@ -117,7 +117,7 @@ class ConvertTaskListMacro implements IProcessor {
 	 * @param DOMElement $node
 	 * @return void
 	 */
-	private function getTaskBody( DOMElement $node ){
+	private function getTaskBody( DOMElement $node ) {
 		$tasklistNodes = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:task-list' ) {

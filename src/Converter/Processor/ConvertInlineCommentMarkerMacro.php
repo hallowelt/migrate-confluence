@@ -16,11 +16,11 @@ class ConvertInlineCommentMarkerMacro implements IProcessor {
 		$processorNodes = $dom->getElementsByTagName( 'inline-comment-marker' );
 
 		$macroNodes = [];
-		foreach( $processorNodes as $processorNode ) {
+		foreach ( $processorNodes as $processorNode ) {
 			$macroNodes[] = $processorNode;
 		}
 
-		foreach( $macroNodes as $macroNode ) {
+		foreach ( $macroNodes as $macroNode ) {
 			$macroNode->parentNode->replaceChild(
 				$macroNode->ownerDocument->createTextNode(
 					"{{InlineComment|{$macroNode->nodeValue}}}"
