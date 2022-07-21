@@ -19,14 +19,15 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
+		$structuredMacros = $dom->getElementsByTagName( 'structured-macro' );
+
+		$macros = [];
+		foreach ( $structuredMacros as $structuredMacro ) {
+			$macros[] = $structuredMacro;
+		}
+
 		$macroName = $this->getMacroName();
 
-		$xpath = new DOMXPath( $dom );
-		$xpath->registerNamespace( 'ac', 'some' );
-		$xpath->registerNamespace( 'ri', 'thing' );
-
-		// <ac:structured-macro ac:name="column"
-		$macros = $xpath->query( '//ac:structured-macro' );
 		foreach ( $macros as $macro ) {
 			if ( $macro->getAttribute( 'ac:name' ) === $macroName ) {
 				$this->doProcessMacro( $macro );
