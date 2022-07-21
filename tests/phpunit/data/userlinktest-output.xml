@@ -1,13 +1,13 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 	<div>
-		[[User:TheFirstUser|TheFirstUser]]
+		[[User:TheFirstUser]]
 	</div>
 
 	<div>
-		[[User:1234567890def|1234567890def]]
+		[[User:1234567890def]]
 	</div>
 
 	<div>
-		[[NULL|NULL]][[Category:Broken_user_link]]
+		[[NULL]][[Category:Broken_user_link]]
 	</div>
 </xml>
