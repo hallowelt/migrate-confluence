@@ -1,0 +1,7 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+	{{Tasklist}}
+	{{Task}}
+	{{TasklistEnd}}
+	<p>
+</xml>

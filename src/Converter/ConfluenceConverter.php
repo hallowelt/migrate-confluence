@@ -402,13 +402,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return array
 	 */
 	private function makeReplacings() {
-		$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
-		$prefix = $spaceIdPrefixMap[$this->currentSpace];
-		$currentPageTitle = $this->currentPageTitle;
-		if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
-			$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
-		}
-
 		return [
 			'//ac:macro' => [ $this, 'processMacro' ],
 			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ],
