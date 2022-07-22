@@ -325,6 +325,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'palceholder',
 				'inline-comment-marker',
 				'toc',
+				'recently-updated'
 			] ) ) {
 			return;
 		}
@@ -341,8 +342,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processChildrenMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'widget' ) {
 			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'recently-updated' ) {
-			$this->processRecentlyUpdatedMacro( $sender, $match, $dom, $xpath, $replacement );
 		} else {
 			// TODO: 'calendar', 'contributors', 'anchor',
 			// 'pagetree', 'navitabs', 'include', 'listlabels', 'content-report-table'
@@ -649,25 +648,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				return $matches[0];
 			},
 			$this->wikiText
-		);
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processRecentlyUpdatedMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$sNsText = '';
-		$aTitleParts = explode( ':', $this->currentPageTitle, 2 );
-		if ( count( $aTitleParts ) === 2 ) {
-			$sNsText = $aTitleParts[0];
-		}
-		$replacement = sprintf(
-			'{{RecentlyUpdated|namespace=%s}}',
-			$sNsText
 		);
 	}
 

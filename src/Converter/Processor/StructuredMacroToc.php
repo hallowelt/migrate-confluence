@@ -2,35 +2,21 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMDocument;
-use DOMElement;
-use HalloWelt\MigrateConfluence\Converter\IProcessor;
-
-class StructuredMacroToc implements IProcessor {
+class StructuredMacroToc extends StructuredMacroProcessorBase {
 
 	/**
-	 * @inheritDoc
+	 *
+	 * @return string
 	 */
-	public function process( DOMDocument $dom ): void {
-		$structuredMacros = $dom->getElementsByTagName( 'structured-macro' );
-
-		$macros = [];
-		foreach ( $structuredMacros as $structuredMacro ) {
-			$macros[] = $structuredMacro;
-		}
-
-		foreach ( $macros as $macro ) {
-			if ( $macro->getAttribute( 'ac:name' ) === 'toc' ) {
-				$this->doProcessMacro( $macro );
-			}
-		}
+	protected function getMacroName(): string {
+		return 'toc';
 	}
 
 	/**
-	 * @param DOMElement $node
+	 * @param DOMNode $node
 	 * @return void
 	 */
-	private function doProcessMacro( DOMElement $node ): void {
+	protected function doProcessMacro( $node ): void {
 		$node->parentNode->replaceChild(
 			$node->ownerDocument->createTextNode( "\n__TOC__\n###BREAK###" ),
 			$node
