@@ -31,6 +31,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroToc;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
@@ -207,6 +208,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroPanel(),
 			new StructuredMacroColumn(),
 			new StructuredMacroSection(),
+			new StructuredMacroRecentlyUpdated( $this->currentPageTitle ),
 			new Emoticon(),
 			new Image(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat

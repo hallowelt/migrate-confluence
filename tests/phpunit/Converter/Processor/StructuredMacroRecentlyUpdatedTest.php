@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroToc;
 use PHPUnit\Framework\TestCase;
 
 class StructuredMacroRecentlyUpdatedTest extends TestCase {
