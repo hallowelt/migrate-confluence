@@ -20,6 +20,8 @@ class UserLink extends LinkProcessorBase {
 	 * @return void
 	 */
 	protected function doProcessLink( DOMNode $node ): void {
+		$linkParts = [];
+
 		if ( $node instanceof DOMElement ) {
 			$isBrokenLink = false;
 			$userKey = $node->getAttribute( 'ri:userkey' );
@@ -27,7 +29,9 @@ class UserLink extends LinkProcessorBase {
 			if ( !empty( $userKey ) ) {
 				$username = $this->dataLookup->getUsernameFromUserKey( $userKey );
 				$linkParts[] = 'User:' . $username;
+				$linkParts[] = $username;
 			} else {
+				$linkParts[] = 'NULL';
 				$linkParts[] = 'NULL';
 				$isBrokenLink = true;
 			}

@@ -32,6 +32,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroToc;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use SplFileInfo;
@@ -202,6 +203,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new ConvertNoteMacro(),
 			new ConvertWarningMacro(),
 			new ConvertStatusMacro(),
+			new StructuredMacroToc(),
 			new StructuredMacroPanel(),
 			new StructuredMacroColumn(),
 			new StructuredMacroSection(),
@@ -318,7 +320,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'section',
 				'column',
 				'code',
-				'tasklist'
+				'tasklist',
+				'task',
+				'palceholder',
+				'inline-comment-marker',
+				'toc',
 			] ) ) {
 			return;
 		}
@@ -337,8 +343,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'recently-updated' ) {
 			$this->processRecentlyUpdatedMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'toc' ) {
-			$replacement = "\n__TOC__\n###BREAK###";
 		} else {
 			// TODO: 'calendar', 'contributors', 'anchor',
 			// 'pagetree', 'navitabs', 'include', 'listlabels', 'content-report-table'
