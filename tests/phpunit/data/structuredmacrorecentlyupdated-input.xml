@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		<ac:structured-macro ac:name="recently-updated" ac:schema-version="1" ac:macro-id="1234567890">
+			<ac:parameter ac:name="types">page,blogpost</ac:parameter>
+			<ac:parameter ac:name="hideHeading">true</ac:parameter>
+		</ac:structured-macro>
+	</p>
+	<p>Lorem ipsum</p>
+</xml>

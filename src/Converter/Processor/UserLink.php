@@ -20,13 +20,18 @@ class UserLink extends LinkProcessorBase {
 	 * @return void
 	 */
 	protected function doProcessLink( DOMNode $node ): void {
+		$linkParts = [];
+
 		if ( $node instanceof DOMElement ) {
 			$isBrokenLink = false;
 			$userKey = $node->getAttribute( 'ri:userkey' );
 
 			if ( !empty( $userKey ) ) {
-				$linkParts[] = 'User:' . $userKey;
+				$username = $this->dataLookup->getUsernameFromUserKey( $userKey );
+				$linkParts[] = 'User:' . $username;
+				$linkParts[] = $username;
 			} else {
+				$linkParts[] = 'NULL';
 				$linkParts[] = 'NULL';
 				$isBrokenLink = true;
 			}
@@ -53,10 +58,8 @@ class UserLink extends LinkProcessorBase {
 	 */
 	public function makeLink( array $linkParts ): string {
 		$linkParts = array_map( 'trim', $linkParts );
-
-		$labelParts = explode( ':', $linkParts[0] );
-		$label = array_pop( $labelParts );
-		$replacement = '[[' . $linkParts[0] . '|' . $label . ']]';
+		$linkBody = implode( '|', $linkParts );
+		$replacement = '[[' . $linkBody . ']]';
 
 		return $replacement;
 	}

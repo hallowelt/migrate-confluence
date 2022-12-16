@@ -1,0 +1,6 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		<ac:structured-macro ac:name="toc" ac:schema-version="1" ac:macro-id="1234567890"><ac:parameter ac:name="maxLevel">1</ac:parameter></ac:structured-macro>
+	</p>
+	<p>Lorem ipsum</p>
+</xml>

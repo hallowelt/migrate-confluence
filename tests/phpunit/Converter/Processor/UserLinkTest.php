@@ -35,7 +35,11 @@ class UserLinkTest extends TestCase {
 				],
 				[],
 				[],
-				[]
+				[],
+				[
+					'123456' => 'TheFirstUser',
+					'789456' => 'TheSecondUser',
+				]
 			);
 
 			$processor = new UserLink( $dataLookup, $currentSpaceId, $currentRawPagename, false );
