@@ -43,5 +43,4 @@ class ConvertTaskListMacroTest extends TestCase {
 		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/tasklistmacro-output.xml' );
 	}
 
-
 }
