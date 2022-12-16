@@ -20,7 +20,7 @@ class ConvertTaskListMacroTest extends TestCase {
 	public function testProcess() {
 		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
 
-		$input = file_get_contents( "$this->dir/taskmacro-input.xml" );
+		$input = $this->getInput();
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
@@ -29,9 +29,19 @@ class ConvertTaskListMacroTest extends TestCase {
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
-		$expectedOutput = file_get_contents( "$this->dir/taskmacro-output.xml" );
+
+		$expectedOutput = $this->getExpectedOutput();
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
 	}
+
+	protected function getInput(): string {
+		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/tasklistmacro-input.xml' );
+	}
+
+	protected function getExpectedOutput(): string {
+		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/tasklistmacro-output.xml' );
+	}
+
 
 }

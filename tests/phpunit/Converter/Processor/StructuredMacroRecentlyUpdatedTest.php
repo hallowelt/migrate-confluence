@@ -8,29 +8,36 @@ use PHPUnit\Framework\TestCase;
 
 class StructuredMacroRecentlyUpdatedTest extends TestCase {
 
-		/**
-		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated::preprocess
-		 * @return void
-		 */
-		public function testPreprocess() {
-			$dir = dirname( dirname( __DIR__ ) ) . '/data';
-			$input = file_get_contents( "$dir/structuredmacrorecentlyupdated-input.xml" );
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated::preprocess
+	 * @return void
+	 */
+	public function testPreprocess() {
+		$input = $this->getInput();
 
-			$dom = new DOMDocument();
-			$dom->loadXML( $input );
+		$dom = new DOMDocument();
+		$dom->loadXML( $input );
 
-			$processor = new StructuredMacroRecentlyUpdated( 'ABC:SomePage_1' );
-			$processor->process( $dom );
+		$processor = new StructuredMacroRecentlyUpdated( 'ABC:SomePage_1' );
+		$processor->process( $dom );
 
-			$actualOutput = $dom->saveXML( $dom->documentElement );
+		$actualOutput = $dom->saveXML( $dom->documentElement );
 
-			$input = file_get_contents( "$dir/structuredmacrorecentlyupdated-output.xml" );
+		$output = $this->getExpectedOutput();
 
-			$expectedDom = new DOMDocument();
-			$expectedDom->loadXML( $input );
+		$expectedDom = new DOMDocument();
+		$expectedDom->loadXML( $output );
 
-			$expectedOutput = $expectedDom->saveXML( $expectedDom->documentElement );
+		$expectedOutput = $expectedDom->saveXML( $expectedDom->documentElement );
 
-			$this->assertEquals( $expectedOutput, $actualOutput );
-		}
+		$this->assertEquals( $expectedOutput, $actualOutput );
+	}
+
+	protected function getInput(): string {
+		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/structuredmacrorecentlyupdated-input.xml' );
+	}
+
+	protected function getExpectedOutput(): string {
+		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/structuredmacrorecentlyupdated-output.xml' );
+	}
 }
