@@ -314,7 +314,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sMacroName = $match->getAttribute( 'ac:name' );
 
 		// Exclude macros that are handled by an `IProcessor`
-		if ( in_array( $sMacroName, [
+		if ( in_array(
+			$sMacroName,
+			[
 				'info',
 				'note',
 				'tip',
@@ -330,8 +332,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'inline-comment-marker',
 				'toc',
 				'recently-updated',
-        'children'
-			] ) ) {
+				'children'
+			]
+		) ) {
 			return;
 		}
 
