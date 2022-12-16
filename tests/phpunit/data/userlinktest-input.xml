@@ -1,7 +1,7 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 	<div>
 		<ac:link>
-			<ri:user ri:userkey="1234567890abc" />
+			<ri:user ri:userkey="123456" />
 		</ac:link>
 	</div>
 

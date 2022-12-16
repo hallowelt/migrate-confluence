@@ -17,8 +17,11 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInlineCommentMarkerMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertPlaceholderMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
@@ -28,7 +31,9 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroToc;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use SplFileInfo;
@@ -101,7 +106,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'filenames-to-filetitles-map',
 			'title-metadata',
 			'attachment-orig-filename-target-filename-map',
-			'files'
+			'files',
+			'userkey-to-username-map'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
@@ -187,30 +193,37 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return void
 	 */
 	private function runProcessors( $dom ) {
+		$currentPageTitle = $this->getCurrentPageTitle();
+
 		$processors = [
 			new PreserveTableAttributes(),
+			new ConvertPlaceholderMacro(),
+			new ConvertInlineCommentMarkerMacro(),
 			new ConvertTipMacro(),
 			new ConvertInfoMacro(),
 			new ConvertNoteMacro(),
 			new ConvertWarningMacro(),
 			new ConvertStatusMacro(),
+			new StructuredMacroToc(),
 			new StructuredMacroPanel(),
 			new StructuredMacroColumn(),
 			new StructuredMacroSection(),
+			new StructuredMacroRecentlyUpdated( $this->currentPageTitle ),
 			new Emoticon(),
 			new Image(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new AttachmentLink(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new PageLink(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new UserLink(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new PreserveCode(),
+			new ConvertTaskListMacro()
 		];
 
 		/** @var IProcessor $processor */
@@ -294,16 +307,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
 	 */
-	private function processStructuredMacro( $sender, $match, $dom, $xpath ) {
-		$this->processMacro( $sender, $match, $dom, $xpath );
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 */
 	private function processMacro( $sender, $match, $dom, $xpath ) {
 		$replacement = '';
 		$sMacroName = $match->getAttribute( 'ac:name' );
@@ -319,6 +322,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'section',
 				'column',
 				'code',
+				'tasklist',
+				'task',
+				'palceholder',
+				'inline-comment-marker',
+				'toc',
+				'recently-updated'
 			] ) ) {
 			return;
 		}
@@ -335,12 +344,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processChildrenMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'widget' ) {
 			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'recently-updated' ) {
-			$this->processRecentlyUpdatedMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'tasklist' ) {
-			$this->processTaskListMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'toc' ) {
-			$replacement = "\n__TOC__\n###BREAK###";
 		} else {
 			// TODO: 'calendar', 'contributors', 'anchor',
 			// 'pagetree', 'navitabs', 'include', 'listlabels', 'content-report-table'
@@ -375,43 +378,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	/**
 	 *
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @return void
-	 */
-	protected function processPlaceholder( $sender, $match, $dom, $xpath ) {
-		$replacement = $match->textContent;
-
-		if ( !empty( $replacement ) ) {
-			$replacement = '<!--' . $replacement . '-->';
-
-			$match->parentNode->replaceChild(
-				$dom->createTextNode( $replacement ),
-				$match
-			);
-		}
-	}
-
-	/**
-	 *
 	 * @return array
 	 */
 	private function makeReplacings() {
-		$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
-		$prefix = $spaceIdPrefixMap[$this->currentSpace];
-		$currentPageTitle = $this->currentPageTitle;
-		if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
-			$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
-		}
-
 		return [
 			'//ac:macro' => [ $this, 'processMacro' ],
-			'//ac:structured-macro' => [ $this, 'processStructuredMacro' ],
-			'//ac:task-list' => [ $this, 'processTaskList' ],
-			'//ac:inline-comment-marker' => [ $this, 'processInlineCommentMarker' ],
-			'//ac:placeholder' => [ $this, 'processPlaceholder' ]
+			'//ac:structured-macro' => [ $this, 'processMacro' ]
 		];
 	}
 
@@ -565,12 +537,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$sTargetFile = $oRIAttachmentEl->getAttribute( 'ri:filename' );
 			}
 
-			$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
-			$prefix = $spaceIdPrefixMap[$this->currentSpace];
-			$currentPageTitle = $this->currentPageTitle;
-			if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
-				$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
-			}
+			$currentPageTitle = $this->getCurrentPageTitle();
 
 			$linkProcessor = new AttachmentLink(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
@@ -620,9 +587,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function processGliffyMacro( $sender, $match, $dom, $xpath, &$replacement ) {
 		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
+		$currentPageTitle = $this->getCurrentPageTitle();
 		if ( !empty( $oNameParam->nodeValue ) ) {
 			$imageProcessor = new Image(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			);
 			$replacementNode = $imageProcessor->makeImageLink( $dom, [ "{$oNameParam->nodeValue}.png" ] );
 			$replacement = $replacementNode->ownerDocument->saveXML( $replacementNode );
@@ -648,85 +616,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$oContainer->setAttribute( 'class', "ac-widget" );
 		$oContainer->setAttribute( 'data-params', json_encode( $params ) );
 		$match->parentNode->insertBefore( $oContainer, $match );
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processTaskListMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$this->processTaskList( $sender, $match, $dom, $xpath );
-	}
-
-	/**
-	 *
-	 * <ac:task-list>
-	 * <ac:task>
-	 * <ac:task-id>29</ac:task-id>
-	 * <ac:task-status>incomplete</ac:task-status>
-	 * <ac:task-body><strong>Edit this home page</strong> - Click <em>Edit</em> ...</ac:task-body>
-	 * </ac:task>
-	 * <ac:task>
-	 * <ac:task-id>30</ac:task-id>
-	 * <ac:task-status>incomplete</ac:task-status>
-	 * <ac:task-body><strong>Create your first page</strong> - Click the <em>Create</em> ...</ac:task-body>
-	 * <ac:task>
-	 * </ac:task-list>
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 */
-	private function processTaskList( $sender, $match, $dom, $xpath ) {
-		$wikiText = [];
-		$tasks = $match->getElementsByTagName( 'task' );
-
-		$wikiText[] = '{{TaskListStart}}###BREAK###';
-		foreach ( $tasks as $task ) {
-			$elId = $task->getElementsByTagName( 'task-id' )->item( 0 );
-			$elStatus = $task->getElementsByTagName( 'task-status' )->item( 0 );
-			$elBody = $task->getElementsByTagName( 'task-body' )->item( 0 );
-
-			$id = $elId instanceof DOMElement ? $elId->nodeValue : -1;
-			$status = $elStatus instanceof DOMElement ? $elStatus->nodeValue : '';
-			$body = $elBody instanceof DOMElement ? $dom->saveXML( $elBody ) : '';
-			$body = str_replace( [ '<ac:task-body>', '</ac:task-body>' ], '', $body );
-
-			$wikiText[] = <<<HERE
-{{Task###BREAK###
- | id = $id###BREAK###
- | status = $status###BREAK###
- | body = $body###BREAK###
-}}###BREAK###
-HERE;
-		}
-		$wikiText[] = '{{TaskListEnd}}###BREAK###';
-		$wikiText = implode( "\n", $wikiText );
-
-		$match->parentNode->replaceChild(
-			$dom->createTextNode( $wikiText ),
-			$match
-		);
-	}
-
-	/**
-	 * <ac:inline-comment-marker ac:ref="ca3f84d8-5618-4cdb-b8f6-b58f4e29864e">
-	 *	Alternatives
-	 * </ac:inline-comment-marker>
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 */
-	private function processInlineCommentMarker( $sender, $match, $dom, $xpath ) {
-		$wikiText = "{{InlineComment|{$match->nodeValue}}}";
-		$match->parentNode->replaceChild(
-			$dom->createTextNode( $wikiText ),
-			$match
-		);
 	}
 
 	/**
@@ -761,25 +650,6 @@ HERE;
 				return $matches[0];
 			},
 			$this->wikiText
-		);
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processRecentlyUpdatedMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$sNsText = '';
-		$aTitleParts = explode( ':', $this->currentPageTitle, 2 );
-		if ( count( $aTitleParts ) === 2 ) {
-			$sNsText = $aTitleParts[0];
-		}
-		$replacement = sprintf(
-			'{{RecentlyUpdated|namespace=%s}}',
-			$sNsText
 		);
 	}
 
@@ -827,8 +697,10 @@ HERE;
 
 		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
 
+		$currentPageTitle = $this->getCurrentPageTitle();
+
 		$linkProcessor = new AttachmentLink(
-			$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->nsFileRepoCompat
+			$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 		);
 
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
@@ -876,5 +748,20 @@ HERE;
 		}
 
 		return $exludeList;
+	}
+
+	/**
+	 * @return string
+	 */
+	private function getCurrentPageTitle(): string {
+		$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
+		$prefix = $spaceIdPrefixMap[$this->currentSpace];
+		$currentPageTitle = $this->currentPageTitle;
+
+		if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
+			$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
+		}
+
+		return $currentPageTitle;
 	}
 }

@@ -1,0 +1,6 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		{{RecentlyUpdated|namespace=ABC}}
+	</p>
+	<p>Lorem ipsum</p>
+</xml>
