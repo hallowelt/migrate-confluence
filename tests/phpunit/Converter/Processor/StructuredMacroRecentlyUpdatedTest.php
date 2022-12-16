@@ -25,8 +25,10 @@ class StructuredMacroRecentlyUpdatedTest extends TestCase {
 			$actualOutput = $dom->saveXML( $dom->documentElement );
 
 			$input = file_get_contents( "$dir/structuredmacrorecentlyupdated-output.xml" );
+
 			$expectedDom = new DOMDocument();
 			$expectedDom->loadXML( $input );
+
 			$expectedOutput = $expectedDom->saveXML( $expectedDom->documentElement );
 
 			$this->assertEquals( $expectedOutput, $actualOutput );
