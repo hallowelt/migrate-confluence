@@ -29,6 +29,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroChildren;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated;
@@ -208,6 +209,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroPanel(),
 			new StructuredMacroColumn(),
 			new StructuredMacroSection(),
+			new StructuredMacroChildren( $this->currentPageTitle ),
 			new StructuredMacroRecentlyUpdated( $this->currentPageTitle ),
 			new Emoticon(),
 			new Image(
@@ -312,7 +314,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sMacroName = $match->getAttribute( 'ac:name' );
 
 		// Exclude macros that are handled by an `IProcessor`
-		if ( in_array( $sMacroName, [
+		if ( in_array(
+			$sMacroName,
+			[
 				'info',
 				'note',
 				'tip',
@@ -327,8 +331,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'palceholder',
 				'inline-comment-marker',
 				'toc',
-				'recently-updated'
-			] ) ) {
+				'recently-updated',
+				'children'
+			]
+		) ) {
 			return;
 		}
 
@@ -340,8 +346,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
 			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
-		} elseif ( $sMacroName === 'children' ) {
-			$this->processChildrenMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'widget' ) {
 			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
 		} else {
@@ -550,32 +554,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$oContainer->setAttribute( 'class', "ac-$sMacroName" );
 			$match->parentNode->insertBefore( $oContainer, $match );
 		}
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processChildrenMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$iDepth = 1;
-		// Looking for<ac:parameter ac:name="depth">2</ac:parameter>
-		$oDepthParam = $xpath->query( './ac:parameter[@ac:name="depth"]', $match )->item( 0 );
-		if ( $oDepthParam instanceof DOMNode ) {
-			$iDepth = (int)$oDepthParam->nodeValue;
-		}
-
-		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
-		$oElement = $match->ownerDocument->createElement( 'div' );
-		$oElement->setAttribute( 'class', 'subpagelist subpagelist-depth-' . $iDepth );
-		$oElement->appendChild(
-			$match->ownerDocument->createTextNode(
-				'{{SubpageList|page=' . $this->currentPageTitle . '|depth=' . $iDepth . '}}'
-			)
-		);
-		$match->parentNode->insertBefore( $oElement, $match );
 	}
 
 	/**
