@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawIO;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
@@ -46,8 +45,6 @@ class StructuredMacroDrawIOTest extends TestCase {
 			[],
 			[]
 		);
-
-
 
 		/** SpaceId GENERAL */
 		$this->doTest( 0, false, 'structuredmacro-drawio-input.xml', 'structuredmacro-drawio-output-1.xml' );
