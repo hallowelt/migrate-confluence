@@ -56,10 +56,16 @@ class StructuredMacroDrawIO extends StructuredMacroProcessorBase {
 		$params = $this->getMacroParams( $node );
 
 		if ( isset( $params['diagramName'] ) ) {
-			$paramsString = $this->makeParamsString( $params );
+			$drawIONode = $node->ownerDocument->createElement( 'drawio' );
+			$filename = $this->getFilename( $params['diagramName'] );
+			$drawIONode->setAttribute( 'filename', $filename );
+
+			foreach ( $params as $name => $value ) {
+				$drawIONode->setAttribute( $name, $value );
+			}
 
 			$node->parentNode->replaceChild(
-				$node->ownerDocument->createTextNode( "{{#drawio:$paramsString}}" ),
+				$drawIONode,
 				$node
 			);
 		}
@@ -85,28 +91,6 @@ class StructuredMacroDrawIO extends StructuredMacroProcessorBase {
 		}
 
 		return $params;
-	}
-
-	/**
-	 * @param array $params
-	 * @return string
-	 */
-	private function makeParamsString( array $params ): string {
-		$paramsString = '';
-
-		if ( isset( $params['diagramName'] ) ) {
-			$filename = $this->getFilename( $params['diagramName'] );
-			$paramsString .= $filename;
-		} else {
-			return '';
-		}
-
-		if ( isset( $params['width'] ) && $params['width'] !== '' ) {
-			$width = $params['width'];
-			$paramsString .= '|width=' . $width . 'px';
-		}
-
-		return $paramsString;
 	}
 
 	/**

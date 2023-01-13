@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="some" xmlns:ri="thing">
-	{{#drawio:DEVOPS:SomePage_drawio.png}}
+	<drawio filename="DEVOPS:SomePage_drawio.png" border="true" diagramName="drawio.png" simpleViewer="false" width="" links="auto" tbstyle="top" lbox="true" diagramWidth="107" revision="1"/>
 </xml>
