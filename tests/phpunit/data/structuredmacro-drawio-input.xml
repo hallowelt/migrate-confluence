@@ -1,8 +1,7 @@
-<html xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">
-	<p><br /></p>
+<xml xmlns:ac="some" xmlns:ri="thing">
 	<ac:structured-macro ac:name="drawio" ac:schema-version="1" ac:macro-id="...">
 		<ac:parameter ac:name="border">true</ac:parameter>
-		<ac:parameter ac:name="diagramName">draw.io</ac:parameter>
+		<ac:parameter ac:name="diagramName">drawio.png</ac:parameter>
 		<ac:parameter ac:name="simpleViewer">false</ac:parameter>
 		<ac:parameter ac:name="width" />
 		<ac:parameter ac:name="links">auto</ac:parameter>
@@ -11,5 +10,5 @@
 		<ac:parameter ac:name="diagramWidth">107</ac:parameter>
 		<ac:parameter ac:name="revision">1</ac:parameter>
 		<ac:parameter ac:name="" />
-</ac:structured-macro>
-</html>
+	</ac:structured-macro>
+</xml>

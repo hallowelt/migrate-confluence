@@ -31,6 +31,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroChildren;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawIO;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
@@ -225,7 +226,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new PreserveCode(),
-			new ConvertTaskListMacro()
+			new ConvertTaskListMacro(),
+			new StructuredMacroDrawIO(
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
+			),
 		];
 
 		/** @var IProcessor $processor */
