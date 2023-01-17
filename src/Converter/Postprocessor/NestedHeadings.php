@@ -18,11 +18,12 @@ class NestedHeadings implements IPostprocessor {
 			if ( strpos( $lines[$index], '*', 0 ) === 0 ) {
 				$hasNextLine = ( ( $index + 1 ) < count( $lines ) ) ? true : false;
 
+				$nextLineIsListItem = false;
 				if ( $hasNextLine ) {
 					$nextLineIsListItem = ( strpos( $lines[$index + 1], '*', 0 ) === 0 ) ? true : false;
 				}
 
-				if ( $nextLineIsListItem ) {
+				if ( $hasNextLine && $nextLineIsListItem ) {
 					$nextIndex = $this->processList( $lines, $index );
 					$index = $nextIndex;
 				} else {
