@@ -42,7 +42,6 @@ class NestedHeadings implements IPostprocessor {
 
 		if ( count( $matches ) > 0 ) {
 			$orig = $matches[0];
-			# $listLevel = $matches[1];
 			$headingLevel = $matches[2];
 			$text = $matches[3];
 
@@ -63,7 +62,6 @@ class NestedHeadings implements IPostprocessor {
 		while ( count( $matches ) > 0 ) {
 			$orig = $matches[0];
 			$listLevel = $matches[1];
-			# $headingLevel = $matches[2];
 			$text = $matches[3];
 
 			$lines[$index] = $this->getListReplacement( $listLevel, $text );
