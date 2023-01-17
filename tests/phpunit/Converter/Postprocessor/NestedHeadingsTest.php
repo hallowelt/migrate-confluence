@@ -18,7 +18,9 @@ Lorem ipsum.
 *** == Heading==
 ** ==Heading==
 
+* ==Heading==
 dolor
+** ==Heading==
 TEXT;
 
 	/**
@@ -27,12 +29,14 @@ TEXT;
 	private $expected = <<<TEXT
 Lorem ipsum.
 
-==<br />Heading starting with br-tag ==
-== Heading  ==
-== Heading==
-==Heading==
+*<br />Heading starting with br-tag 
+** Heading  
+*** Heading
+**Heading
 
+==Heading==
 dolor
+==Heading==
 TEXT;
 
 	/**

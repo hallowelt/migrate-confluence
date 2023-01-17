@@ -12,21 +12,72 @@ class NestedHeadings implements IPostprocessor {
 	 * @inheritDoc
 	 */
 	public function postprocess( string $wikiText ): string {
-		$matches = [];
-		preg_match_all( $this->regEx, $wikiText, $matches );
+		$lines = explode( "\n", $wikiText );
 
-		for ( $index = 0; $index < count( $matches[0] ); $index++ ) {
-			$orig = $matches[0][$index];
-			# $ListLevel = $matches[1][$index];
-			$headingLevel = $matches[2][$index];
-			$text = $matches[3][$index];
-
-			$replacement = $this->getReplacement( $headingLevel, $text );
-
-			$wikiText = str_replace( $orig, $replacement, $wikiText );
+		for ( $index = 0; $index < count( $lines ); $index++ ) {
+			if ( strpos( $lines[$index], '*', 0 ) === 0 ) {
+				if ( strpos( $lines[$index + 1], '*', 0 ) === 0 ) {
+					$nextIndex = $this->processList( $lines, $index );
+					$index = $nextIndex;
+				} else {
+					$this->processHeading( $lines, $index );
+				}
+			}
 		}
 
+		$wikiText = implode( "\n", $lines );
+
 		return $wikiText;
+	}
+
+	/**
+	 * @param array &$lines
+	 * @param int $index
+	 */
+	private function processHeading( &$lines, $index ) {
+		$matches = [];
+
+		$line = $lines[$index];
+		preg_match( $this->regEx, $line, $matches );
+
+		if ( count( $matches ) > 0 ) {
+			$orig = $matches[0];
+			# $listLevel = $matches[1];
+			$headingLevel = $matches[2];
+			$text = $matches[3];
+
+			$lines[$index] = $this->getHeadingReplacement( $headingLevel, $text );
+		}
+	}
+
+	/**
+	 * @param array &$lines
+	 * @param int $index
+	 * @return int
+	 */
+	private function processList( &$lines, $index ): int {
+		$matches = [];
+
+		$line = $lines[$index];
+		preg_match( $this->regEx, $line, $matches );
+		while ( count( $matches ) > 0 ) {
+			$orig = $matches[0];
+			$listLevel = $matches[1];
+			# $headingLevel = $matches[2];
+			$text = $matches[3];
+
+			$lines[$index] = $this->getListReplacement( $listLevel, $text );
+
+			$index++;
+			if ( $index >= count( $lines ) ) {
+				$matches = 0;
+			}
+
+			$line = $lines[$index];
+			preg_match( $this->regEx, $line, $matches );
+		}
+
+		return $index;
 	}
 
 	/**
@@ -34,7 +85,16 @@ class NestedHeadings implements IPostprocessor {
 	 * @param string $text
 	 * @return string
 	 */
-	private function getReplacement( $markup, $text ): string {
+	private function getListReplacement( $markup, $text ): string {
+		return $markup . $text;
+	}
+
+	/**
+	 * @param string $markup
+	 * @param string $text
+	 * @return string
+	 */
+	private function getHeadingReplacement( $markup, $text ): string {
 		return $markup . $text . $markup;
 	}
 }
