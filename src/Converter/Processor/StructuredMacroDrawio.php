@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
-class StructuredMacroDrawIO extends StructuredMacroProcessorBase {
+class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 
 	/**
 	 * @var ConversionDataLookup
@@ -59,7 +59,7 @@ class StructuredMacroDrawIO extends StructuredMacroProcessorBase {
 			$paramsString = $this->makeParamsString( $params );
 
 			$node->parentNode->replaceChild(
-				$node->ownerDocument->createTextNode( "{{DrawIO$paramsString}}" ),
+				$node->ownerDocument->createTextNode( "{{Drawio$paramsString}}" ),
 				$node
 			);
 		}
@@ -74,6 +74,7 @@ class StructuredMacroDrawIO extends StructuredMacroProcessorBase {
 
 		if ( isset( $params['diagramName'] ) ) {
 			$filename = $this->getFilename( $params['diagramName'] );
+			$fileextension = $this->getFileExtension( $filename );
 			$params['diagramName'] = $filename;
 		} else {
 			return '';
@@ -130,5 +131,16 @@ class StructuredMacroDrawIO extends StructuredMacroProcessorBase {
 		}
 
 		return $filename;
+	}
+
+	/**
+	 * @param string $filename
+	 * @return string
+	 */
+	private function getFileExtension( string $filename ): string {
+		$filenameParts = explode( '_', $filename );
+		$fileextension = array_pop( $filenameParts );
+
+		return $fileextension;
 	}
 }

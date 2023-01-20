@@ -3,11 +3,11 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawIO;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawio;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
-class StructuredMacroDrawIOTest extends TestCase {
+class StructuredMacroDrawioTest extends TestCase {
 
 	/**
 	 * @var ConversionDataLookup
@@ -62,7 +62,7 @@ class StructuredMacroDrawIOTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new StructuredMacroDrawIO( $this->dataLookup, $spaceId, 'SomePage', $nsFileRepoCompat );
+		$processor = new StructuredMacroDrawio( $this->dataLookup, $spaceId, 'SomePage', $nsFileRepoCompat );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 
