@@ -76,6 +76,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 
 			$pageContent = "";
 			foreach ( $bodyContentIdsArr as $bodyContentId ) {
+				if ( $bodyContentId === '' ) {
+					// Skip if no reference to a body content is not set
+					continue;
+				}
+
 				$this->output->writeln( "Getting '$bodyContentId' body content..." );
 
 				$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
