@@ -59,7 +59,7 @@ class StructuredMacroChildren extends StructuredMacroProcessorBase {
 			$div->setAttribute( 'class', 'subpagelist subpagelist-depth-' . $depth );
 
 			$templateParams = '';
-			foreach( $params as $key => $value ) {
+			foreach ( $params as $key => $value ) {
 				$templateParams .= '|' . $key . '=' . $value;
 			}
 
