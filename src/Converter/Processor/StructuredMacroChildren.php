@@ -55,22 +55,8 @@ class StructuredMacroChildren extends StructuredMacroProcessorBase {
 		}
 
 		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
-		$div = $node->ownerDocument->createElement( 'div' );
-		$div->setAttribute( 'class', 'subpagelist' );
-		$div->appendChild(
-			$node->ownerDocument->createTextNode(
-				'{{SubpageList' . $templateParams . '}}'
-			)
-		);
+		$text = $node->ownerDocument->createTextNode( '{{SubpageList' . $templateParams . '}}' );
 
-		if ( empty( $templateParams ) ) {
-			$div->appendChild(
-				$node->ownerDocument->createTextNode(
-					'[[Category:Broken_macro/' . $this->getMacroName() . ']]'
-				)
-			);
-		}
-
-		$node->parentNode->replaceChild( $div, $node );
+		$node->parentNode->replaceChild( $text, $node );
 	}
 }
