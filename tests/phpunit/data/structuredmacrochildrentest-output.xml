@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <html xmlns:ac="some" xmlns:ri="thing">
 	<p>
-		<div class="subpagelist no-depth">{{SubpageList}}[[Category:Broken_macro/children]]</div>
+		<div class="subpagelist">{{SubpageList}}[[Category:Broken_macro/children]]</div>
 	</p>
 	<p>
-		<div class="subpagelist no-depth">{{SubpageList|all=true|style=h2|sort=creation|reverse=true}}</div>
+		<div class="subpagelist">{{SubpageList|all=true|style=h2|sort=creation|reverse=true}}</div>
 	</p>
 	<p>
-		<div class="subpagelist subpagelist-depth-1">{{SubpageList|all=true|depth=1|style=h2|page=SomePage}}</div>
+		<div class="subpagelist">{{SubpageList|all=true|depth=1|style=h2|page=SomePage}}</div>
 	</p>
 </html>

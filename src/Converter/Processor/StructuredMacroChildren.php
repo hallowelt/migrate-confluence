@@ -37,15 +37,11 @@ class StructuredMacroChildren extends StructuredMacroProcessorBase {
 		}
 
 		$params = [];
-		$depth = false;
 		foreach ( $paramNodes as $paramNode ) {
 			if ( !$paramNode->hasAttributes() ) {
 				continue;
 			}
 			$name = $paramNode->getAttribute( 'ac:name' );
-			if ( $name === 'depth' ) {
-				$depth = (int)$paramNode->nodeValue;
-			}
 			if ( $name === 'page' ) {
 				$params[$name] = $this->currentPageTitle;
 				continue;
@@ -60,11 +56,7 @@ class StructuredMacroChildren extends StructuredMacroProcessorBase {
 
 		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
 		$div = $node->ownerDocument->createElement( 'div' );
-		if ( $depth !== false ) {
-			$div->setAttribute( 'class', 'subpagelist subpagelist-depth-' . $depth );
-		} else {
-			$div->setAttribute( 'class', 'subpagelist no-depth' );
-		}
+		$div->setAttribute( 'class', 'subpagelist' );
 		$div->appendChild(
 			$node->ownerDocument->createTextNode(
 				'{{SubpageList' . $templateParams . '}}'
