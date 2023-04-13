@@ -36,28 +36,27 @@ class StructuredMacroChildren extends StructuredMacroProcessorBase {
 			}
 		}
 
-		$depth = false;
+		$params = [];
 		foreach ( $paramNodes as $paramNode ) {
 			if ( !$paramNode->hasAttributes() ) {
 				continue;
 			}
 			$name = $paramNode->getAttribute( 'ac:name' );
-			if ( $name === 'depth' ) {
-				$depth = (int)$paramNode->nodeValue;
-				break;
+			if ( $name === 'page' ) {
+				$params[$name] = $this->currentPageTitle;
+				continue;
 			}
+			$params[$name] = $paramNode->nodeValue;
 		}
 
-		if ( $depth !== false ) {
-			// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
-			$div = $node->ownerDocument->createElement( 'div' );
-			$div->setAttribute( 'class', 'subpagelist subpagelist-depth-' . $depth );
-			$div->appendChild(
-				$node->ownerDocument->createTextNode(
-					'{{SubpageList|page=' . $this->currentPageTitle . '|depth=' . $depth . '}}'
-				)
-			);
-			$node->parentNode->insertBefore( $div, $node );
+		$templateParams = '';
+		foreach ( $params as $key => $value ) {
+			$templateParams .= '|' . $key . '=' . $value;
 		}
+
+		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
+		$text = $node->ownerDocument->createTextNode( '{{SubpageList' . $templateParams . '}}' );
+
+		$node->parentNode->replaceChild( $text, $node );
 	}
 }
