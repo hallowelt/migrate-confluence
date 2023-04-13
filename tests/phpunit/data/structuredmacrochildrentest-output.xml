@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <html xmlns:ac="some" xmlns:ri="thing">
 	<p>
-		<div class="subpagelist no-depth" data-params="{}">[[Category:Broken_macro/children]]</div>
+		<div class="subpagelist no-depth">{{SubpageList}}[[Category:Broken_macro/children]]</div>
 	</p>
 	<p>
-		<div class="subpagelist no-depth" data-params="{&quot;all&quot;:&quot;true&quot;,&quot;style&quot;:&quot;h2&quot;,&quot;sort&quot;:&quot;creation&quot;,&quot;reverse&quot;:&quot;true&quot;}">[[Category:Broken_macro/children]]</div>
+		<div class="subpagelist no-depth">{{SubpageList|all=true|style=h2|sort=creation|reverse=true}}</div>
 	</p>
 	<p>
 		<div class="subpagelist subpagelist-depth-1">{{SubpageList|all=true|depth=1|style=h2|page=SomePage}}</div>
