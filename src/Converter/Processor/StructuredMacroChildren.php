@@ -36,6 +36,7 @@ class StructuredMacroChildren extends StructuredMacroProcessorBase {
 			}
 		}
 
+		$params = [];
 		$depth = false;
 		foreach ( $paramNodes as $paramNode ) {
 			if ( !$paramNode->hasAttributes() ) {
@@ -44,20 +45,43 @@ class StructuredMacroChildren extends StructuredMacroProcessorBase {
 			$name = $paramNode->getAttribute( 'ac:name' );
 			if ( $name === 'depth' ) {
 				$depth = (int)$paramNode->nodeValue;
-				break;
 			}
+			if ( $name === 'page' ) {
+				$params[$name] = $this->currentPageTitle;
+				continue;
+			}
+			$params[$name] = $paramNode->nodeValue;
 		}
 
+		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
+		$div = $node->ownerDocument->createElement( 'div' );
 		if ( $depth !== false ) {
-			// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
-			$div = $node->ownerDocument->createElement( 'div' );
 			$div->setAttribute( 'class', 'subpagelist subpagelist-depth-' . $depth );
+
+			$templateParams = '';
+			foreach( $params as $key => $value ) {
+				$templateParams .= '|' . $key . '=' . $value;
+			}
+
 			$div->appendChild(
 				$node->ownerDocument->createTextNode(
-					'{{SubpageList|page=' . $this->currentPageTitle . '|depth=' . $depth . '}}'
+					'{{SubpageList' . $templateParams . '}}'
 				)
 			);
-			$node->parentNode->insertBefore( $div, $node );
+			$node->parentNode->replaceChild( $div, $node );
+		} else {
+			$div->setAttribute( 'class', 'subpagelist no-depth' . $depth );
+			if ( !empty( $params ) ) {
+				$div->setAttribute( 'data-params', json_encode( $params ) );
+			} else {
+				$div->setAttribute( 'data-params', '{}' );
+			}
+			$div->appendChild(
+				$node->ownerDocument->createTextNode(
+					'[[Category:Broken_macro/' . $this->getMacroName() . ']]'
+				)
+			);
+			$node->parentNode->replaceChild( $div, $node );
 		}
 	}
 }

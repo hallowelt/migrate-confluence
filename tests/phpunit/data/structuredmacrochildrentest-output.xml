@@ -1,25 +1,12 @@
 <?xml version="1.0"?>
 <html xmlns:ac="some" xmlns:ri="thing">
 	<p>
-		<ac:structured-macro ac:name="children" ac:schema-version="2" ac:macro-id="1234567890"/>
+		<div class="subpagelist no-depth" data-params="{}">[[Category:Broken_macro/children]]</div>
 	</p>
 	<p>
-		<ac:structured-macro ac:name="children" ac:schema-version="2" ac:macro-id="1234567890">
-			<ac:parameter ac:name="all">true</ac:parameter>
-			<ac:parameter ac:name="style">h2</ac:parameter>
-			<ac:parameter ac:name="sort">creation</ac:parameter>
-			<ac:parameter ac:name="reverse">true</ac:parameter>
-		</ac:structured-macro>
+		<div class="subpagelist no-depth" data-params="{&quot;all&quot;:&quot;true&quot;,&quot;style&quot;:&quot;h2&quot;,&quot;sort&quot;:&quot;creation&quot;,&quot;reverse&quot;:&quot;true&quot;}">[[Category:Broken_macro/children]]</div>
 	</p>
 	<p>
-		<div class="subpagelist subpagelist-depth-1">{{SubpageList|page=SomePage|depth=1}}</div><ac:structured-macro ac:name="children" ac:schema-version="2" ac:macro-id="1234567890">
-		<ac:parameter ac:name="all">true</ac:parameter>
-		<ac:parameter ac:name="depth">1</ac:parameter>
-		<ac:parameter ac:name="style">h2</ac:parameter>
-		<ac:parameter ac:name="page">
-		<ac:link>
-			<ri:page ri:content-title="SomeOtherPage"/>
-		</ac:link></ac:parameter>
-		</ac:structured-macro>
+		<div class="subpagelist subpagelist-depth-1">{{SubpageList|all=true|depth=1|style=h2|page=SomePage}}</div>
 	</p>
 </html>
