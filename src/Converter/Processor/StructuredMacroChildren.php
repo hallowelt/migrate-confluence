@@ -52,7 +52,7 @@ class StructuredMacroChildren extends StructuredMacroProcessorBase {
 			}
 			$params[$name] = $paramNode->nodeValue;
 		}
-	
+
 		$templateParams = '';
 		foreach ( $params as $key => $value ) {
 			$templateParams .= '|' . $key . '=' . $value;
