@@ -70,7 +70,7 @@ class StructuredMacroChildren extends StructuredMacroProcessorBase {
 			);
 			$node->parentNode->replaceChild( $div, $node );
 		} else {
-			$div->setAttribute( 'class', 'subpagelist no-depth' . $depth );
+			$div->setAttribute( 'class', 'subpagelist no-depth' );
 			if ( !empty( $params ) ) {
 				$div->setAttribute( 'data-params', json_encode( $params ) );
 			} else {
