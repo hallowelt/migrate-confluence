@@ -1,0 +1,8 @@
+<xml xmlns:ac="some" xmlns:ri="thing">
+    <ac:structured-macro ac:name="contentbylabel" ac:schema-version="4" data-layout="default" ac:local-id="a123-456bc-789" ac:macro-id="a123-456bc-789-def">
+        <ac:parameter ac:name="showLabels">false</ac:parameter>
+        <ac:parameter ac:name="max">99</ac:parameter>
+        <ac:parameter ac:name="showSpace">false</ac:parameter>
+        <ac:parameter ac:name="cql">label = &quot;label_1&quot; and label = &quot;label_2&quot;</ac:parameter>
+     </ac:structured-macro>
+</xml>
