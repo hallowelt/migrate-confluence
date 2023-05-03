@@ -67,9 +67,9 @@ class StructuredMacroContenByLabel extends StructuredMacroProcessorBase {
 	}
 
 	/**
-     * @param string $cql
-     * @return string
-     */
+	 * @param string $cql
+	 * @return string
+	 */
 	private function getConditionsForCQL( string $cql ): string {
 		$cqlParser = new CQLParser();
 		$conditions = $cqlParser->parse( $cql );
