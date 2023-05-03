@@ -12,7 +12,7 @@ class CQLParser {
         $parsedCQL = '';
 
         $parsedCQL = preg_replace_callback(
-            '#(.*?)\s*=\s*\"(.*?)\"\s*(and|or)*#',
+            '#\s*(.*?)\s*=\s*\"(.*?)\"\s*(and|or)*#',
             'self::cqlReplacement',
             $cql
         );
@@ -28,12 +28,18 @@ class CQLParser {
      * @param array $matches
      * @return string
      */
-    private static function cqlReplacement( $matches ): string {
+    private static function cqlReplacement( array $matches ): string {
         $type = $matches[1];
+
+        if ( $type !== 'label' ) {
+            // Currently we do only support 'label'
+            return $matches[0];
+        }
         $value = $matches[2];
 
         $operator = '';
         if ( isset( $matches[3] ) ) {
+            // Currently we do only support "and" and "or"
             if ( $matches[3] === 'and' ) {
                 $operator = '';
             } elseif ( $matches[3] === 'or' ) {
