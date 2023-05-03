@@ -20,4 +20,3 @@ class CQLParserTest extends TestCase {
 		$this->assertEquals( $expected, $actual );
 	}
 }
-
