@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Utility\CQLParser;
+
 class StructuredMacroContenByLabel extends StructuredMacroProcessorBase {
 
 	/**
@@ -49,6 +51,10 @@ class StructuredMacroContenByLabel extends StructuredMacroProcessorBase {
 			$params[$name] = $paramNode->nodeValue;
 		}
 
+		if ( isset( $params['cql'] ) ) {
+			$params['conditions'] = $this->getConditionsForCQL( $params['cql'] );
+		}
+
 		$templateParams = '';
 		foreach ( $params as $key => $value ) {
 			$templateParams .= "|$key=$value\n";
@@ -58,5 +64,16 @@ class StructuredMacroContenByLabel extends StructuredMacroProcessorBase {
 		$text = $node->ownerDocument->createTextNode( "{{ContenByLabel\n$templateParams}}" );
 
 		$node->parentNode->replaceChild( $text, $node );
+	}
+
+	/**
+     * @param string $cql
+     * @return string
+     */
+	private function getConditionsForCQL( string $cql ): string {
+		$cqlParser = new CQLParser();
+		$conditions = $cqlParser->parse( $cql );
+
+		return $conditions;
 	}
 }
