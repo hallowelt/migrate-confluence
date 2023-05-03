@@ -8,7 +8,7 @@ class CQLParser {
      * @param string $cql
      * @return string
      */
-    public function parse( string $cql, ): string {
+    public function parse( string $cql ): string {
         $parsedCQL = '';
 
         $parsedCQL = preg_replace_callback(

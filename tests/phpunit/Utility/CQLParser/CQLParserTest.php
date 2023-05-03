@@ -13,7 +13,7 @@ class CQLParserTest extends TestCase {
 		$cqlParser = new CQLParser();
 
 		$input = 'label = "label_1" and label = "label_2"';
-		$expected = '[Category:label_1]][[Category:label_2]]';
+		$expected = '[[Category:Label_1]][[Category:Label_2]]';
 
 		$actual = $cqlParser->parse( $input );
 

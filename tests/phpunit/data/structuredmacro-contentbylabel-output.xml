@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="some" xmlns:ri="thing">
-	    {{ContenByLabel
+    {{ContenByLabel
 |showLabels=false
 |max=99
 |showSpace=false
 |cql=label = "label_1" and label = "label_2"
+|conditions=[[Category:Label_1]][[Category:Label_2]]
 }}
 </xml>
