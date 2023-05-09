@@ -43,7 +43,7 @@ class StructuredMacroContenByLabel extends StructuredMacroProcessorBase {
 			if ( !$paramNode->hasAttributes() ) {
 				continue;
 			}
-			
+
 			$name = $paramNode->getAttribute( 'ac:name' );
 			if ( $name === 'page' ) {
 				$params[$name] = $this->currentPageTitle;
@@ -52,7 +52,7 @@ class StructuredMacroContenByLabel extends StructuredMacroProcessorBase {
 
 			$params[$name] = $paramNode->nodeValue;
 		}
-		
+
 		if ( isset( $params['cql'] ) ) {
 			$params['conditions'] = $this->getConditionsForCQL( $params['cql'] );
 		}
