@@ -43,14 +43,16 @@ class StructuredMacroContenByLabel extends StructuredMacroProcessorBase {
 			if ( !$paramNode->hasAttributes() ) {
 				continue;
 			}
+			
 			$name = $paramNode->getAttribute( 'ac:name' );
 			if ( $name === 'page' ) {
 				$params[$name] = $this->currentPageTitle;
 				continue;
 			}
+
 			$params[$name] = $paramNode->nodeValue;
 		}
-
+		
 		if ( isset( $params['cql'] ) ) {
 			$params['conditions'] = $this->getConditionsForCQL( $params['cql'] );
 		}
@@ -59,9 +61,12 @@ class StructuredMacroContenByLabel extends StructuredMacroProcessorBase {
 		foreach ( $params as $key => $value ) {
 			$templateParams .= "|$key=$value\n";
 		}
-
-		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
-		$text = $node->ownerDocument->createTextNode( "{{ContenByLabel\n$templateParams}}" );
+		if ( empty( $params ) ) {
+			$text = $node->ownerDocument->createTextNode( "[[Category:Broken_macro/" . $this->getMacroName() . "]]" );
+		} else {
+			// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
+			$text = $node->ownerDocument->createTextNode( "{{ContentByLabel\n$templateParams}}" );
+		}
 
 		$node->parentNode->replaceChild( $text, $node );
 	}

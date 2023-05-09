@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="some" xmlns:ri="thing">
-    {{ContenByLabel
+    {{ContentByLabel
 |showLabels=false
 |max=99
 |showSpace=false
