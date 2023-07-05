@@ -14,6 +14,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreNoFormat;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
@@ -29,6 +30,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreserveNoFormat;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTableAttributes;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroChildren;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
@@ -227,6 +229,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new PreserveCode(),
+			new PreserveNoFormat(),
 			new ConvertTaskListMacro(),
 			new StructuredMacroDrawio(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
@@ -249,6 +252,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
 			new RestoreCode(),
+			new RestoreNoFormat(),
 			new NestedHeadings()
 		];
 
@@ -332,13 +336,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'section',
 				'column',
 				'code',
+				'noformat',
 				'tasklist',
 				'task',
 				'palceholder',
 				'inline-comment-marker',
 				'toc',
 				'recently-updated',
-				'children'
+				'children',
+				'drawio'
 			]
 		) ) {
 			return;

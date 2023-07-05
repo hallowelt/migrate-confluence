@@ -1,4 +1,0 @@
-<h6>The menu</h6><pre class="PRESERVESYNTAXHIGHLIGHT" lang="sql" data-collapse="true">
-	SELECT * FROM menu;
-</pre>
-<h6>Some SQL</h6><pre class="PRESERVESYNTAXHIGHLIGHT" lang="sql" data-collapse="true">[[Category:Broken_macro/code/empty]]</pre>

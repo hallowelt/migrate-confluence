@@ -1,0 +1,4 @@
+<syntaxhighlight>
+	SELECT * FROM menu;
+</syntaxhighlight>
+<syntaxhighlight>[[Category:Broken_macro/noformat]]</syntaxhighlight>
