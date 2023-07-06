@@ -342,8 +342,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'toc',
 				'recently-updated',
 				'children',
-				'drawio',
-				'contentbylabel'
+				'contentbylabel',
+				'drawio'
 			]
 		) ) {
 			return;
