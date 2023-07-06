@@ -23,6 +23,7 @@ class StructuredMacroNoFormat extends StructuredMacroProcessorBase {
 	 */
 	protected function doProcessMacro( $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'pre' );
+		$macroReplacement->setAttribute( 'class', 'noformat' );
 
 		$this->processParamElements( $node, $macroReplacement );
 		$this->processPlainTextBody( $node, $macroReplacement );
@@ -41,7 +42,7 @@ class StructuredMacroNoFormat extends StructuredMacroProcessorBase {
 			$paramName = $paramEl->getAttribute( 'ac:name' );
 
 			if ( $paramName === 'nopanel' && $paramEl->nodeValue === "true" ) {
-				$replacementNode->setAttribute( 'class', 'nopanel' );
+				$replacementNode->setAttribute( 'class', 'noformat nopanel' );
 			}
 		}
 	}
