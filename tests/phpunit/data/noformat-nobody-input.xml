@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="noformat" ac:schema-version="1" ac:macro-id="12345">
+	</ac:structured-macro>
+</xml>

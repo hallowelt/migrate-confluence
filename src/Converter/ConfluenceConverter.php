@@ -34,6 +34,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroChildren;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroContenByLabel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawio;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroNoFormat;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
@@ -228,6 +229,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new PreserveCode(),
+			new StructuredMacroNoFormat(),
 			new ConvertTaskListMacro(),
 			new StructuredMacroDrawio(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
@@ -334,6 +336,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'section',
 				'column',
 				'code',
+				'noformat',
 				'tasklist',
 				'task',
 				'palceholder',
@@ -341,6 +344,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'toc',
 				'recently-updated',
 				'children',
+				'drawio',
 				'contentbylabel'
 			]
 		) ) {
