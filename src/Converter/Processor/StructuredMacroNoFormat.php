@@ -7,7 +7,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  * Therefore we preserve the information in the DOM and restore it in the post processing.
  * @see HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreNoFormat
  */
-class PreserveNoFormat extends StructuredMacroProcessorBase {
+class StructuredMacroNoFormat extends StructuredMacroProcessorBase {
 
 	/**
 	 *
@@ -23,11 +23,27 @@ class PreserveNoFormat extends StructuredMacroProcessorBase {
 	 */
 	protected function doProcessMacro( $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'pre' );
-		$macroReplacement->setAttribute( 'class', 'PRESERVENOFORMAT' );
 
+		$this->processParamElements( $node, $macroReplacement );
 		$this->processPlainTextBody( $node, $macroReplacement );
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
+	}
+
+	/**
+	 * @param DOMNode $node
+	 * @param DOMNode $replacementNode
+	 * @return void
+	 */
+	private function processParamElements( $node, $replacementNode ): void {
+		$paramEls = $node->getElementsByTagName( 'parameter' );
+		foreach ( $paramEls as $paramEl ) {
+			$paramName = $paramEl->getAttribute( 'ac:name' );
+
+			if ( $paramName === 'nopanel' && $paramEl->nodeValue === "true" ) {
+				$replacementNode->setAttribute( 'class', 'nopanel' );
+			}
+		}
 	}
 
 	/**

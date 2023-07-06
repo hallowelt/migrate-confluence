@@ -5,4 +5,10 @@
 		<![CDATA[SELECT * FROM menu;]]>
 		</ac:plain-text-body>
 	</ac:structured-macro>
+	<ac:structured-macro ac:name="noformat" ac:schema-version="1" ac:macro-id="12346">
+		<ac:parameter ac:name="nopanel">true</ac:parameter>
+		<ac:plain-text-body>
+		<![CDATA[SELECT * FROM menu;]]>
+		</ac:plain-text-body>
+	</ac:structured-macro>
 </xml>

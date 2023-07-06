@@ -3,15 +3,15 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\PreserveNoFormat;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroNoFormat;
 use PHPUnit\Framework\TestCase;
 
-class PreserveNoFormatTest extends TestCase {
+class StructuredMacroNoFormatNoFormatTest extends TestCase {
 
 	/**
 	 * @param string $inputFile
 	 * @param string $expectedOutputFile
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PreserveNoFormat::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroNoFormatNoFormat::process
 	 * @dataProvider provideTestProcessData
 	 * @return void
 	 */
@@ -19,7 +19,7 @@ class PreserveNoFormatTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->load( $inputFile );
 
-		$codeMacroProcessor = new PreserveNoFormat();
+		$codeMacroProcessor = new StructuredMacroNoFormat();
 		$codeMacroProcessor->process( $dom );
 
 		$expectedDom = new DOMDocument();

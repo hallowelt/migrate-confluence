@@ -1,4 +1,0 @@
-<pre class="PRESERVENOFORMAT">
-	SELECT * FROM menu;
-</pre>
-<pre class="PRESERVENOFORMAT">[[Category:Broken_macro/noformat]]</pre>
