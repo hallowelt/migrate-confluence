@@ -6,7 +6,7 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroNoFormat;
 use PHPUnit\Framework\TestCase;
 
-class StructuredMacroNoFormatNoFormatTest extends TestCase {
+class StructuredMacroNoFormatTest extends TestCase {
 
 	/**
 	 * @param string $inputFile
