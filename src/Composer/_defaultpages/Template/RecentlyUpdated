@@ -1,5 +1,5 @@
 <includeonly>
-{{#ask:[[Modification date::+]]
+{{#ask:[[{{NAMESPACE}}:+]][[Modification date::+]]
 |format=ul
 |limit=10
 }}
