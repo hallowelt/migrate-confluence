@@ -26,6 +26,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
+use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
@@ -234,7 +235,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroDrawio(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
-			new StructuredMacroContenByLabel( $this->currentPageTitle )
+			new StructuredMacroContenByLabel( $this->currentPageTitle ),
+			new ExpandMacro()
 		];
 
 		/** @var IProcessor $processor */
@@ -345,7 +347,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'recently-updated',
 				'children',
 				'drawio',
-				'contentbylabel'
+				'contentbylabel',
+				'expand'
 			]
 		) ) {
 			return;
