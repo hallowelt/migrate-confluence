@@ -202,7 +202,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$processors = [
-			new PreserveTableAttributes(),
 			new ConvertPlaceholderMacro(),
 			new ConvertInlineCommentMarkerMacro(),
 			new ConvertTipMacro(),
@@ -251,7 +250,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function runPostProcessors() {
 		$postProcessors = [
-			new RestoreTableAttributes(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
 			new RestoreCode(),
