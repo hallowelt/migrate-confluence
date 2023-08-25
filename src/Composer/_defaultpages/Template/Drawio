@@ -1,1 +1,4 @@
-<bs:drawio filename="{{{diagramName}}}" />
+{{#tag:drawio
+|
+|filename={{{diagramName}}}
+}}
