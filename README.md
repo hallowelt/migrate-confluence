@@ -131,6 +131,7 @@ In the case that the tool can not migrate content or functionality it will creat
 - Various layouts
 - Blog posts
 - Files of a space which can not be assigned to a page
+- DrawIO diagrams
 
 ## Creating a build
 1. Clone this repo
@@ -146,3 +147,6 @@ In the case that the tool can not migrate content or functionality it will creat
 * Remove bold/italic formatting from wikitext headings (e.g. `=== '''Some heading''' ===`)
 * Fix unconverted HTML lists in wikitext (e.g. `<ul><li>==== Lorem ipsum ====</li><li>'''<span class="confluence-link"> </span>[[Media:Some_file.pdf]]'''</li></ul><ul>`)
 * Remove empty confluence storage format fragments (e.g. `<span class="confluence-link"> </span>`, `<span class="no-children icon">`)
+
+# Current issues
+1. Unfortunately, currently DrawIO diagrams cannot be correctly migrated. Solution is ongoing.
