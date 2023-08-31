@@ -136,7 +136,7 @@ In the case that the tool can not migrate content or functionality it will creat
 ## Creating a build
 1. Clone this repo
 2. Run `composer update --no-dev`
-3. Run `box build` to actually create the PHAR file  in `dist/`. See also https://github.com/humbug/box
+3. Run `box compile` to actually create the PHAR file  in `dist/`. See also https://github.com/humbug/box
 
 # TODO
 * Reduce multiple linebreaks (`<br />`) to one
