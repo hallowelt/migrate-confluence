@@ -4,7 +4,7 @@ This is a command line tool to convert the contents of a Confluence space into a
 
 ## Prerequisites
 1. PHP >= 7.4 with the `xml` extension must be installed
-2. The `pandoc` tool must be installed and available in the `PATH` (https://pandoc.org/installing.html)
+2. `pandoc` => 3.1.6. The `pandoc` tool must be installed and available in the `PATH` (https://pandoc.org/installing.html).
 
 ## Installation
 1. Download `migrate-confluence.phar` from https://github.com/hallowelt/migrate-confluence/releases/tag/latest
@@ -135,7 +135,7 @@ In the case that the tool can not migrate content or functionality it will creat
 ## Creating a build
 1. Clone this repo
 2. Run `composer update --no-dev`
-3. Run `box build` to actually create the PHAR file  in `dist/`. See also https://github.com/humbug/box
+3. Run `box compile` to actually create the PHAR file  in `dist/`. See also https://github.com/humbug/box
 
 # TODO
 * Reduce multiple linebreaks (`<br />`) to one
