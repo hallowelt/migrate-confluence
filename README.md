@@ -4,8 +4,7 @@ This is a command line tool to convert the contents of a Confluence space into a
 
 ## Prerequisites
 1. PHP >= 7.4 with the `xml` extension must be installed
-2. `pandoc` => 3.1.6.
-The `pandoc` tool must be installed and available in the `PATH` (https://pandoc.org/installing.html).
+2. `pandoc` => 3.1.6. The `pandoc` tool must be installed and available in the `PATH` (https://pandoc.org/installing.html).
 
 ## Installation
 1. Download `migrate-confluence.phar` from https://github.com/hallowelt/migrate-confluence/releases/tag/latest
