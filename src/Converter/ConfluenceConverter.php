@@ -130,6 +130,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @inheritDoc
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
+		$timeStart = microtime( true );
+
 		$this->output->writeln( $file->getPathname() );
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->dataBuckets );
 		$this->rawFile = $file;
@@ -190,6 +192,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$this->postProcessLinks();
 		$this->postprocessWikiText();
+
+		$timeEnd = microtime( true );
+		$timeExecution = round( ( $timeEnd - $timeStart )/60, 1 );
+		$this->output->writeln( "\n\033[33mTime: $timeExecution\033[39m" );
+
 		return $this->wikiText;
 	}
 

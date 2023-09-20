@@ -58,6 +58,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	 * @return void
 	 */
 	public function buildXML( Builder $builder ) {
+		$timeStart = microtime( true );
+
 		$this->appendDefaultPages( $builder );
 		$this->addDefaultFiles();
 
@@ -96,6 +98,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 				$attachments = $pageAttachmentsMap[$pageTitle];
 				foreach ( $attachments as $attachment ) {
 					$this->output->writeln( "Attachment: $attachment" );
+					error_log( __LINE__ . " $attachment\n", 3, '/datadisk/workspace/migrate-confluence/iway/debug.log' );
 
 					$drawIoFileHandler = new DrawIOFileHandler();
 
@@ -106,14 +109,17 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 
 					if ( isset( $filesMap[$attachment] ) ) {
 						$filePath = $filesMap[$attachment][0];
+						error_log( __LINE__ . " $filePath\n", 3, '/datadisk/workspace/migrate-confluence/iway/debug.log' );
 						$attachmentContent = file_get_contents( $filePath );
 
 						if ( $drawIoFileHandler->isDrawIOImage( $attachment ) ) {
 							// Find associated with DrawIO PNG image diagram XML
 							// If image has "image1.drawio.png" name,
-							// Then diagram XML will be stored in the "image1.drawio" file
+							// Then diagram XML will be stored in the "image1.drawio.unknown" file
+							error_log( __LINE__ . " $attachment\n", 3, '/datadisk/workspace/migrate-confluence/iway/debug.log' );
 							$diagramFileName = substr( $attachment, 0, -4 );
-
+							error_log( __LINE__ . " $diagramFileName\n", 3, '/datadisk/workspace/migrate-confluence/iway/debug.log' );
+							$diagramFileName = '.unknown';
 							if ( isset( $filesMap[$diagramFileName] ) ) {
 								$diagramContent = file_get_contents( $filesMap[$diagramFileName][0] );
 
@@ -136,6 +142,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			}
 		}
 		$this->customBuckets->saveToWorkspace( $this->workspace );
+
+		$timeEnd = microtime( true );
+		$timeExecution = round( ( $timeEnd - $timeStart )/60, 1 );
+		$this->output->writeln( "\n\033[33mTime: $timeExecution\033[39m" );
 	}
 
 	/**

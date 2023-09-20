@@ -109,7 +109,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'users',
 			'title-files',
 			'additional-files',
-			'attachment-orig-filename-target-filename-map'
+			'attachment-orig-filename-target-filename-map',
+			'guessed-drawio-files'
 		] );
 		$this->logger = new NullLogger();
 
@@ -163,6 +164,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return bool
 	 */
 	protected function doAnalyze( SplFileInfo $file ): bool {
+		$timeStart = microtime( true );
+
 		$this->dom = new DOMDocument();
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
@@ -183,8 +186,29 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->makeSpacesMap();
 		$this->makePagenamesMap();
 		$this->addAdditionalFiles();
+		$this->guessDrawioFiles();
+
+		$timeEnd = microtime( true );
+		$timeExecution = round( ( $timeEnd - $timeStart )/60, 1 );
+		$this->output->writeln( "\n\033[33mTime: $timeExecution\033[39m" );
 
 		return true;
+	}
+
+	private function guessDrawioFiles() {
+		$this->output->writeln( "\nGuessing drawio files" );
+
+		$files = $this->customBuckets->getBucketData( 'filenames-to-filetitles-map' );
+
+		foreach( $files as $key => $filename ) {
+			$guessedKey = $key . '.png';
+
+			if ( isset( $files[$guessedKey] ) ) {
+				$this->customBuckets->addData( 'guessed-drawio-files', $filename, $files[$guessedKey], false, true );
+
+				$this->output->writeln( "\033[33m- " . $filename . " -> " . $files[$guessedKey] . "\033[39m" );
+			}
+		}
 	}
 
 	private function makeSpacesMap() {

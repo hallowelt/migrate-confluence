@@ -73,8 +73,9 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 		$paramsString = '';
 
 		if ( isset( $params['diagramName'] ) ) {
+			var_dump( $params['diagramName'] );
 			$filename = $this->getFilename( $params['diagramName'] );
-			$fileextension = $this->getFileExtension( $filename );
+			var_dump( $filename );
 			$params['diagramName'] = $filename;
 		} else {
 			return '';
@@ -120,6 +121,15 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$diagramName";
 		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 
+		$fileextension = $this->getFileExtension( $filename );
+		if ( $fileextension === 'unknown' ) {
+			// There are .unkown and .png filenames in the bucket.
+			// The .unknown is the drawio data file.
+			// If the .unknown is the first we try to get a .png
+			$confluenceFileKey = "$spaceId---$rawPageTitle---$diagramName.png";
+			$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		}
+
 		if ( $this->nsFileRepoCompat ) {
 			$filenameParts = explode( '_', $filename );
 
@@ -138,7 +148,7 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 	 * @return string
 	 */
 	private function getFileExtension( string $filename ): string {
-		$filenameParts = explode( '_', $filename );
+		$filenameParts = explode( '.', $filename );
 		$fileextension = array_pop( $filenameParts );
 
 		return $fileextension;
