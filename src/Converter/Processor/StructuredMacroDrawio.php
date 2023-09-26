@@ -130,9 +130,14 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 
 		$fileextension = $this->getFileExtension( $filename );
 
-		if ( $fileextension === 'unknown' || $fileextension === 'drawio' ) {
-			$this->bakeDrawIODataInPNG( $rawPageTitle, $filename, $fileextension, $diagramName );
+		if ( $fileextension === 'unknown' ) {
+			// If file does not have extension in Confluence export data,
+			// ConfluenceAnalyzer adds '.unknown' extension
+			// But we do not need '.unknown' extension in the wiki or diagram name, so cut if off
+			$filename = substr( $filename, 0, -1 * ( strlen( $fileextension ) + 1 ) );
 		}
+
+		$this->bakeDrawIODataInPNG( $rawPageTitle, $filename, $diagramName );
 
 		if ( $this->nsFileRepoCompat ) {
 			$filenameParts = explode( '_', $filename );
@@ -161,18 +166,14 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 	/**
 	 * @param string $rawPageTitle
 	 * @param string $filename
-	 * @param string $fileExtension
 	 * @param string $diagramName
 	 * @return void
 	 */
 	private function bakeDrawIODataInPNG(
 		string $rawPageTitle,
 		string $filename,
-		string $fileExtension,
 		string $diagramName
 	): void {
-		$spaceId = $this->currentSpaceId;
-
 		// Diagram file could be not an '.png' image, but just a text file with diagram XML
 		// In that case it may have '.drawio' extension, or may not have extension at all
 		// Anyway, in case with DrawIO diagram there should be a corresponding '.png' image:
@@ -185,40 +186,24 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 		$drawIoFileHandler = new DrawIOFileHandler();
 
 		// Need to make sure that file is really DrawIO file with diagram data
-		$drawIoFile = null;
 		$fileContent = $this->dataLookup->getConfluenceFileContent( $filename );
 
-		if ( $drawIoFileHandler->isDrawIODataFile( $filename ) ) {
-			$drawIoFile = $filename;
-		} else {
-			// Probably without extension, but still contains DrawIO diagram XML?
-			if ( $drawIoFileHandler->isDrawIODataContent( $fileContent ) ) {
-				$drawIoFile = $filename;
-			}
-		}
+		// Let's look for a corresponding PNG image
+		// If such image exists - then file we are currently processing is most likely DrawIO data file
 
-		// Diagram data found, can be "baked" into PNG
-		if ( $drawIoFile !== null ) {
-			if ( $fileExtension === 'drawio' ) {
-				// If DrawIO data file is like "file.drawio", let's just look for "file.drawio.png"
-				$confluenceFileKey = "$spaceId---$rawPageTitle---$diagramName.png";
-			} else {
-				// If file does not have extension in Confluence export data,
-				// ConfluenceAnalyzer adds '.unknown' extension
-				// So if we need an image for 'diagram.unknown' - then should look for 'diagram.png'
-				$fileNameWithoutExtension = substr( $diagramName, 0, -1 * ( strlen( $fileExtension ) + 1 ) );
+		// If DrawIO data file is like "file.drawio", let's just look for "file.drawio.png"
+		// It works with any extension, not only ".drawio"
+		// For example, diagram name could be "something.OG" - then diagram image will be "something.OG.png"
+		$confluenceFileKey = "{$this->currentSpaceId}---$rawPageTitle---$diagramName.png";
 
-				$confluenceFileKey = "$spaceId---$rawPageTitle---$fileNameWithoutExtension.png";
-			}
-			$imageFile = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		$imageFile = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 
-			// PNG image file found, "bake" diagram data into it and replace file content
-			if ( $imageFile ) {
-				$imageContent = $this->dataLookup->getConfluenceFileContent( $imageFile );
-				$imageContent =	$drawIoFileHandler->bakeDiagramDataIntoImage( $imageContent, $fileContent );
+		// PNG image file found, "bake" diagram data into it and replace file content
+		if ( $imageFile ) {
+			$imageContent = $this->dataLookup->getConfluenceFileContent( $imageFile );
+			$imageContent =	$drawIoFileHandler->bakeDiagramDataIntoImage( $imageContent, $fileContent );
 
-				$this->conversionDataWriter->replaceConfluenceFileContent( $imageFile, $imageContent );
-			}
+			$this->conversionDataWriter->replaceConfluenceFileContent( $imageFile, $imageContent );
 		}
 	}
 }
