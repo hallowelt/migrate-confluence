@@ -164,8 +164,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return bool
 	 */
 	protected function doAnalyze( SplFileInfo $file ): bool {
-		$timeStart = microtime( true );
-
 		$this->dom = new DOMDocument();
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
@@ -188,10 +186,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->addAdditionalFiles();
 		$this->guessDrawioFiles();
 
-		$timeEnd = microtime( true );
-		$timeExecution = round( ( $timeEnd - $timeStart )/60, 1 );
-		$this->output->writeln( "\n\033[33mTime: $timeExecution\033[39m" );
-
 		return true;
 	}
 
@@ -200,7 +194,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$files = $this->customBuckets->getBucketData( 'filenames-to-filetitles-map' );
 
-		foreach( $files as $key => $filename ) {
+		foreach ( $files as $key => $filename ) {
 			$guessedKey = $key . '.png';
 
 			if ( isset( $files[$guessedKey] ) ) {

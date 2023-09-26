@@ -3,6 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
+use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 
 class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 
@@ -10,6 +12,11 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 	 * @var ConversionDataLookup
 	 */
 	protected $dataLookup;
+
+	/**
+	 * @var ConversionDataWriter
+	 */
+	protected $conversionDataWriter;
 
 	/**
 	 * @var int
@@ -28,13 +35,15 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
+	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param bool $nsFileRepoCompat
 	 */
-	public function __construct( ConversionDataLookup $dataLookup,
+	public function __construct( ConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
 		int $currentSpaceId, string $rawPageTitle, bool $nsFileRepoCompat = false ) {
 		$this->dataLookup = $dataLookup;
+		$this->conversionDataWriter = $conversionDataWriter;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
 		$this->nsFileRepoCompat = $nsFileRepoCompat;
@@ -73,9 +82,7 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 		$paramsString = '';
 
 		if ( isset( $params['diagramName'] ) ) {
-			var_dump( $params['diagramName'] );
 			$filename = $this->getFilename( $params['diagramName'] );
-			var_dump( $filename );
 			$params['diagramName'] = $filename;
 		} else {
 			return '';
@@ -122,12 +129,9 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 
 		$fileextension = $this->getFileExtension( $filename );
-		if ( $fileextension === 'unknown' ) {
-			// There are .unkown and .png filenames in the bucket.
-			// The .unknown is the drawio data file.
-			// If the .unknown is the first we try to get a .png
-			$confluenceFileKey = "$spaceId---$rawPageTitle---$diagramName.png";
-			$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+
+		if ( $fileextension === 'unknown' || $fileextension === 'drawio' ) {
+			$this->bakeDrawIODataInPNG( $rawPageTitle, $filename, $fileextension, $diagramName );
 		}
 
 		if ( $this->nsFileRepoCompat ) {
@@ -152,5 +156,69 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 		$fileextension = array_pop( $filenameParts );
 
 		return $fileextension;
+	}
+
+	/**
+	 * @param string $rawPageTitle
+	 * @param string $filename
+	 * @param string $fileExtension
+	 * @param string $diagramName
+	 * @return void
+	 */
+	private function bakeDrawIODataInPNG(
+		string $rawPageTitle,
+		string $filename,
+		string $fileExtension,
+		string $diagramName
+	): void {
+		$spaceId = $this->currentSpaceId;
+
+		// Diagram file could be not an '.png' image, but just a text file with diagram XML
+		// In that case it may have '.drawio' extension, or may not have extension at all
+		// Anyway, in case with DrawIO diagram there should be a corresponding '.png' image:
+		// *	If there is a diagram file 'diagram' - there should be corresponding 'diagram.png' image
+		// *	If there is a diagram file 'diagram.drawio' - there will be 'diagram.drawio.png' image
+
+		// Our goal here is to encode and "bake" diagram XML into corresponding '.png' image
+		// Because that's how BlueSpice will process it, it needs just single PNG image with "baked" diagram XML
+
+		$drawIoFileHandler = new DrawIOFileHandler();
+
+		// Need to make sure that file is really DrawIO file with diagram data
+		$drawIoFile = null;
+		$fileContent = $this->dataLookup->getConfluenceFileContent( $filename );
+
+		if ( $drawIoFileHandler->isDrawIODataFile( $filename ) ) {
+			$drawIoFile = $filename;
+		} else {
+			// Probably without extension, but still contains DrawIO diagram XML?
+			if ( $drawIoFileHandler->isDrawIODataContent( $fileContent ) ) {
+				$drawIoFile = $filename;
+			}
+		}
+
+		// Diagram data found, can be "baked" into PNG
+		if ( $drawIoFile !== null ) {
+			if ( $fileExtension === 'drawio' ) {
+				// If DrawIO data file is like "file.drawio", let's just look for "file.drawio.png"
+				$confluenceFileKey = "$spaceId---$rawPageTitle---$diagramName.png";
+			} else {
+				// If file does not have extension in Confluence export data,
+				// ConfluenceAnalyzer adds '.unknown' extension
+				// So if we need an image for 'diagram.unknown' - then should look for 'diagram.png'
+				$fileNameWithoutExtension = substr( $diagramName, 0, -1 * ( strlen( $fileExtension ) + 1 ) );
+
+				$confluenceFileKey = "$spaceId---$rawPageTitle---$fileNameWithoutExtension.png";
+			}
+			$imageFile = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+
+			// PNG image file found, "bake" diagram data into it and replace file content
+			if ( $imageFile ) {
+				$imageContent = $this->dataLookup->getConfluenceFileContent( $imageFile );
+				$imageContent =	$drawIoFileHandler->bakeDiagramDataIntoImage( $imageContent, $fileContent );
+
+				$this->conversionDataWriter->replaceConfluenceFileContent( $imageFile, $imageContent );
+			}
+		}
 	}
 }

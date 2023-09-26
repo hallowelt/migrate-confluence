@@ -29,6 +29,16 @@ class DrawIOFileHandler {
 	}
 
 	/**
+	 * Checks by file content if that's associated with XML of DrawIO diagram
+	 *
+	 * @param string $fileContent
+	 * @return bool
+	 */
+	public function isDrawIODataContent( string $fileContent ): bool {
+		return preg_match( '#<mxfile.*?>\s*.*\s*<diagram.*?>#', $fileContent );
+	}
+
+	/**
 	 * Encodes and bakes DrawIO diagram XML into PNG image "tEXt" data chunk
 	 *
 	 * @param string $imageContent

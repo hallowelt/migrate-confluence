@@ -31,8 +31,6 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @return bool
 	 */
 	protected function doExtract( SplFileInfo $file ): bool {
-		$timeStart = microtime( true );
-
 		$this->dom = new DOMDocument();
 		$this->dom->load( $file->getPathname() );
 		$this->helper = new XMLHelper( $this->dom );
@@ -43,10 +41,6 @@ class ConfluenceExtractor extends ExtractorBase {
 
 		$this->extractBodyContents();
 		$this->extractPageMetaData();
-
-		$timeEnd = microtime( true );
-		$timeExecution = round( ( $timeEnd - $timeStart )/60, 1 );
-		echo "\n\033[33mTime: $timeExecution\033[39m\n";
 
 		return true;
 	}
