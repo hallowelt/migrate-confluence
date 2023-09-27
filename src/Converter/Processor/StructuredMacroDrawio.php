@@ -128,15 +128,6 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$diagramName";
 		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 
-		$fileextension = $this->getFileExtension( $filename );
-
-		if ( $fileextension === 'unknown' ) {
-			// If file does not have extension in Confluence export data,
-			// ConfluenceAnalyzer adds '.unknown' extension
-			// But we do not need '.unknown' extension in the wiki or diagram name, so cut if off
-			$filename = substr( $filename, 0, -1 * ( strlen( $fileextension ) + 1 ) );
-		}
-
 		$this->bakeDrawIODataInPNG( $rawPageTitle, $filename, $diagramName );
 
 		if ( $this->nsFileRepoCompat ) {
