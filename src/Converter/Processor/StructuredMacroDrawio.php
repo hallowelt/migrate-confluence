@@ -125,10 +125,49 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 		$spaceId = $this->currentSpaceId;
 		$rawPageTitle = basename( $this->rawPageTitle );
 
-		$confluenceFileKey = "$spaceId---$rawPageTitle---$diagramName";
+		$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $diagramName );
 		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		$originalFilename = $filename;
 
-		$this->bakeDrawIODataInPNG( $rawPageTitle, $filename, $diagramName );
+		if ( $this->getFileExtension( $filename ) === 'unknown' ) {
+			$filename = substr( $filename, 0, strlen( $filename ) - strlen( '.unknown' ) );
+		}
+
+		error_log( $filename . "\n", 3, '/datadisk/workspace/migrate-confluence/iway/debug.log' );
+
+		// Let's look for a corresponding PNG image
+		// If such image exists - then file we are currently processing is most likely DrawIO data file
+
+		// If DrawIO data file is like "file.drawio", let's just look for "file.drawio.png"
+		// It works with any extension, not only ".drawio"
+		// For example, diagram name could be "something.OG" - then diagram image will be "something.OG.png"
+
+		$drawioDataFilename = '';
+		$drawioImageFilename = '';
+		if ( strtolower( $this->getFileExtension( $filename ) ) !== 'png' ) {
+			// find png
+			$drawioDataFilename = $originalFilename;
+			$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $diagramName ) . ".png";
+			$drawioImageFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		} else {
+			// find data
+			$drawioImageFilename = $filename;
+			$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.png' ) );
+			$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $diagramName );
+			$drawioDataFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+			// Maybe png = PNG
+			if ( $drawioDataFilename === '' ) {
+				$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.PNG' ) );
+				$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $diagramName );
+				$drawioDataFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+			}
+		}
+
+		if ( ( $drawioDataFilename !== '' ) && ( $drawioImageFilename !== '' ) ) {
+			// Bring image and data together
+			$this->bakeDrawIODataInPNG( $drawioDataFilename, $drawioImageFilename );
+		}
+
 
 		if ( $this->nsFileRepoCompat ) {
 			$filenameParts = explode( '_', $filename );
@@ -155,16 +194,12 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param string $rawPageTitle
-	 * @param string $filename
-	 * @param string $diagramName
+	 * @param string $drawioDataFilename
+	 * @param string $drawioImageFilename
 	 * @return void
 	 */
-	private function bakeDrawIODataInPNG(
-		string $rawPageTitle,
-		string $filename,
-		string $diagramName
-	): void {
+	private function bakeDrawIODataInPNG( string $drawioDataFilename, string $drawioImageFilename ): void {
+		error_log( "$drawioDataFilename -> $drawioImageFilename\n", 3, '/datadisk/workspace/migrate-confluence/debug.log' );
 		// Diagram file could be not an '.png' image, but just a text file with diagram XML
 		// In that case it may have '.drawio' extension, or may not have extension at all
 		// Anyway, in case with DrawIO diagram there should be a corresponding '.png' image:
@@ -177,24 +212,12 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 		$drawIoFileHandler = new DrawIOFileHandler();
 
 		// Need to make sure that file is really DrawIO file with diagram data
-		$fileContent = $this->dataLookup->getConfluenceFileContent( $filename );
-
-		// Let's look for a corresponding PNG image
-		// If such image exists - then file we are currently processing is most likely DrawIO data file
-
-		// If DrawIO data file is like "file.drawio", let's just look for "file.drawio.png"
-		// It works with any extension, not only ".drawio"
-		// For example, diagram name could be "something.OG" - then diagram image will be "something.OG.png"
-		$confluenceFileKey = "{$this->currentSpaceId}---$rawPageTitle---$diagramName.png";
-
-		$imageFile = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		$dataFileContent = $this->dataLookup->getConfluenceFileContent( $drawioDataFilename );
 
 		// PNG image file found, "bake" diagram data into it and replace file content
-		if ( $imageFile ) {
-			$imageContent = $this->dataLookup->getConfluenceFileContent( $imageFile );
-			$imageContent =	$drawIoFileHandler->bakeDiagramDataIntoImage( $imageContent, $fileContent );
+		$imageFileContent = $this->dataLookup->getConfluenceFileContent( $drawioImageFilename );
+		$imageFileContent =	$drawIoFileHandler->bakeDiagramDataIntoImage( $imageFileContent, $dataFileContent );
 
-			$this->conversionDataWriter->replaceConfluenceFileContent( $imageFile, $imageContent );
-		}
+		$this->conversionDataWriter->replaceConfluenceFileContent( $drawioImageFilename, $imageFileContent );
 	}
 }

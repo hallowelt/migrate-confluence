@@ -110,7 +110,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'title-files',
 			'additional-files',
 			'attachment-orig-filename-target-filename-map',
-			'guessed-drawio-files'
 		] );
 		$this->logger = new NullLogger();
 
@@ -184,26 +183,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->makeSpacesMap();
 		$this->makePagenamesMap();
 		$this->addAdditionalFiles();
-		$this->guessDrawioFiles();
 
 		return true;
 	}
 
-	private function guessDrawioFiles() {
-		$this->output->writeln( "\nGuessing drawio files" );
-
-		$files = $this->customBuckets->getBucketData( 'filenames-to-filetitles-map' );
-
-		foreach ( $files as $key => $filename ) {
-			$guessedKey = $key . '.png';
-
-			if ( isset( $files[$guessedKey] ) ) {
-				$this->customBuckets->addData( 'guessed-drawio-files', $filename, $files[$guessedKey], false, true );
-
-				$this->output->writeln( "\033[33m- " . $filename . " -> " . $files[$guessedKey] . "\033[39m" );
-			}
-		}
-	}
 
 	private function makeSpacesMap() {
 		$spaces = $this->helper->getObjectNodes( 'Space' );
