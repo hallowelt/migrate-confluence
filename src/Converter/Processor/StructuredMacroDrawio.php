@@ -166,7 +166,6 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 			$this->bakeDrawIODataInPNG( $drawioDataFilename, $drawioImageFilename );
 		}
 
-
 		if ( $this->nsFileRepoCompat ) {
 			$filenameParts = explode( '_', $filename );
 
