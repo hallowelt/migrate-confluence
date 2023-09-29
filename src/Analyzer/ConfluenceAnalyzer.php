@@ -109,7 +109,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'users',
 			'title-files',
 			'additional-files',
-			'attachment-orig-filename-target-filename-map',
+			'attachment-orig-filename-target-filename-map'
 		] );
 		$this->logger = new NullLogger();
 
