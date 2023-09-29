@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawio;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use PHPUnit\Framework\TestCase;
 
 class StructuredMacroDrawioTest extends TestCase {
@@ -13,6 +14,11 @@ class StructuredMacroDrawioTest extends TestCase {
 	 * @var ConversionDataLookup
 	 */
 	private $dataLookup;
+
+	/**
+	 * @var ConversionDataWriter
+	 */
+	private $conversionDataWriter;
 
 	protected function getInput(): string {
 		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/structuredmacro-drawio-input.xml' );
@@ -45,6 +51,7 @@ class StructuredMacroDrawioTest extends TestCase {
 			[],
 			[]
 		);
+		$this->conversionDataWriter = new ConversionDataWriter( [] );
 
 		/** SpaceId GENERAL */
 		$this->doTest( 0, false, 'structuredmacro-drawio-input.xml', 'structuredmacro-drawio-output-1.xml' );
@@ -62,7 +69,8 @@ class StructuredMacroDrawioTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new StructuredMacroDrawio( $this->dataLookup, $spaceId, 'SomePage', $nsFileRepoCompat );
+		$processor = new StructuredMacroDrawio( $this->dataLookup, $this->conversionDataWriter,
+			$spaceId, 'SomePage', $nsFileRepoCompat );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 

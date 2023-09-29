@@ -40,6 +40,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroToc;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
@@ -57,6 +58,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @var ConversionDataLookup
 	 */
 	private $dataLookup = null;
+
+	/**
+	 * @var ConversionDataWriter
+	 */
+	private $conversionDataWriter = null;
 
 	/**
 	 *
@@ -130,6 +136,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	protected function doConvert( SplFileInfo $file ): string {
 		$this->output->writeln( $file->getPathname() );
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->dataBuckets );
+		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->dataBuckets );
 		$this->rawFile = $file;
 
 		if ( isset( $this->config['config']['ext-ns-file-repo-compat'] )
@@ -188,6 +195,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$this->postProcessLinks();
 		$this->postprocessWikiText();
+
 		return $this->wikiText;
 	}
 
@@ -230,7 +238,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroNoFormat(),
 			new ConvertTaskListMacro(),
 			new StructuredMacroDrawio(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
+				$currentPageTitle, $this->nsFileRepoCompat
 			),
 			new StructuredMacroContenByLabel( $this->currentPageTitle ),
 			new ExpandMacro()

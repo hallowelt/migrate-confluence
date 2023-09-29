@@ -108,24 +108,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 						$filePath = $filesMap[$attachment][0];
 						$attachmentContent = file_get_contents( $filePath );
 
-						if ( $drawIoFileHandler->isDrawIOImage( $attachment ) ) {
-							// Find associated with DrawIO PNG image diagram XML
-							// If image has "image1.drawio.png" name,
-							// Then diagram XML will be stored in the "image1.drawio" file
-							$diagramFileName = substr( $attachment, 0, -4 );
-
-							if ( isset( $filesMap[$diagramFileName] ) ) {
-								$diagramContent = file_get_contents( $filesMap[$diagramFileName][0] );
-
-								// Need to bake DrawIO diagram XML into the PNG image
-								$attachmentContent = $drawIoFileHandler->bakeDiagramDataIntoImage(
-									$attachmentContent, $diagramContent
-								);
-							} else {
-								$this->output->writeln( "No DrawIO diagram XML was found for image '$attachment'" );
-							}
-						}
-
 						$this->workspace->saveUploadFile( $attachment, $attachmentContent );
 						$this->customBuckets->addData( 'title-uploads', $pageTitle, $attachment );
 					} else {
