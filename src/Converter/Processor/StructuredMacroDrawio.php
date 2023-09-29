@@ -133,8 +133,6 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 			$filename = substr( $filename, 0, strlen( $filename ) - strlen( '.unknown' ) );
 		}
 
-		error_log( $filename . "\n", 3, '/datadisk/workspace/migrate-confluence/iway/debug.log' );
-
 		// Let's look for a corresponding PNG image
 		// If such image exists - then file we are currently processing is most likely DrawIO data file
 
@@ -199,7 +197,6 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 	 * @return void
 	 */
 	private function bakeDrawIODataInPNG( string $drawioDataFilename, string $drawioImageFilename ): void {
-		error_log( "$drawioDataFilename -> $drawioImageFilename\n", 3, '/datadisk/workspace/migrate-confluence/debug.log' );
 		// Diagram file could be not an '.png' image, but just a text file with diagram XML
 		// In that case it may have '.drawio' extension, or may not have extension at all
 		// Anyway, in case with DrawIO diagram there should be a corresponding '.png' image:

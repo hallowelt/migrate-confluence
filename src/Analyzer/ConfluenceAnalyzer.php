@@ -187,7 +187,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		return true;
 	}
 
-
 	private function makeSpacesMap() {
 		$spaces = $this->helper->getObjectNodes( 'Space' );
 		$this->output->writeln( "\nFinding namespaces" );
