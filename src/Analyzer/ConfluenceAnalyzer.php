@@ -304,10 +304,32 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$revisionTimestamp = $this->buildRevisionTimestamp( $pageNode );
 			$bodyContentIds = $this->getBodyContentIds( $pageNode );
 
-			foreach ( $bodyContentIds as $bodyContentId ) {
-				// TODO: Add UserImpl-key or directly MediaWiki username
-				// (could also be done in `extract` as "metadata" )
-				$this->customBuckets->addData( 'body-contents-to-pages-map', $bodyContentId, $pageId, false, true );
+			if ( !empty( $bodyContentIds ) ) {
+				foreach ( $bodyContentIds as $bodyContentId ) {
+					// TODO: Add UserImpl-key or directly MediaWiki username
+					// (could also be done in `extract` as "metadata" )
+					$this->customBuckets->addData( 'body-contents-to-pages-map', $bodyContentId, $pageId, false, true );
+				}
+			} else {
+				$bodyContentIds = [];
+
+				$bodyContents = $this->helper->getObjectNodes( 'BodyContent' );
+				foreach ( $bodyContents as $bodyContent ) {
+					$bodyContentId = $this->helper->getIDNodeValue( $bodyContent );
+					$contentPageId = $this->helper->getPropertyValue( 'content', $bodyContent );
+
+					if ( $pageId === $contentPageId ) {
+						$bodyContentIds[] = $bodyContentId;
+
+						$this->customBuckets->addData(
+							'body-contents-to-pages-map',
+							$bodyContentId,
+							$pageId,
+							false,
+							true
+						);
+					}
+				}
 			}
 
 			$version = $this->helper->getPropertyValue( 'version', $pageNode );
