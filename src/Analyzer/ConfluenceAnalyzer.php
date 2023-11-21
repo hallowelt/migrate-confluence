@@ -336,6 +336,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 			$this->addTitleRevision( $targetTitle, implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp" );
 
+			// In case of ERM34465 this seems to be empty because
+			// title-attachments and missing-attachment-id-to-filename are empty
 			$attachmentRefs = $this->helper->getElementsFromCollection( 'attachments', $pageNode );
 			foreach ( $attachmentRefs as $attachmentRef ) {
 				$attachmentId = $this->helper->getIDNodeValue( $attachmentRef );
@@ -356,6 +358,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 					);
 					continue;
 				}
+				// In case of ERM34465 no files are added to title-attachments
 				$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
 				$this->addFile( $attachmentTargetFilename, $attachmentReference );
 				$this->customBuckets->addData( 'title-files', $targetTitle, $attachmentTargetFilename, false, true );
