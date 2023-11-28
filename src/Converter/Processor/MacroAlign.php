@@ -55,7 +55,7 @@ class MacroAlign implements IProcessor {
 			$style = 'text-align: ' . $macroParams['align'] . ';';
 			$macroReplacement->setAttribute( 'style', $style );
 		}
-		
+
 		$this->macroBody( $node, $macroReplacement );
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
