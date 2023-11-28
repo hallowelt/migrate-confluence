@@ -7,14 +7,14 @@ use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 class MacroAlign implements IProcessor {
-  
+
 	/**
 	 *
 	 * @return string
 	 */
 	protected function getMacroName(): string {
-        return 'align';
-    }
+		return 'align';
+	}
 
 	/**
 	 * @inheritDoc
@@ -22,7 +22,7 @@ class MacroAlign implements IProcessor {
 	public function process( DOMDocument $dom ): void {
 		$macrosTags = $dom->getElementsByTagName( 'macro' );
 
-        $macros = [];
+		$macros = [];
 		foreach ( $macrosTags as $macrosTag ) {
 			$macros[] = $macrosTag;
 		}
@@ -44,17 +44,17 @@ class MacroAlign implements IProcessor {
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 
-        $macroReplacement->setAttribute( 'class', "ac-macro-$macroName" );
+		$macroReplacement->setAttribute( 'class', "ac-macro-$macroName" );
 
-        $macroParams = $this->getMacroParams( $node, $macroReplacement );
+		$macroParams = $this->getMacroParams( $node, $macroReplacement );
 		if ( !empty( $macroParams ) ) {
 			$macroReplacement->setAttribute( 'data-params', json_encode( $macroParams ) );
 		}
 
-        if ( isset( $macroParams['align'] ) ) {
-            $style = 'text-align: ' . $macroParams['align'] . ';';
-            $macroReplacement->setAttribute( 'style', $style );
-        }
+		if ( isset( $macroParams['align'] ) ) {
+			$style = 'text-align: ' . $macroParams['align'] . ';';
+			$macroReplacement->setAttribute( 'style', $style );
+		}
 		
 		$this->macroBody( $node, $macroReplacement );
 		$node->parentNode->replaceChild( $macroReplacement, $node );
@@ -75,7 +75,7 @@ class MacroAlign implements IProcessor {
 			}
 		}
 
-        return $params;
+		return $params;
 	}
 
 	/**
