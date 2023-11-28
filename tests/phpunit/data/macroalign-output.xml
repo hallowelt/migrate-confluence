@@ -1,0 +1,6 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		<div class="ac-macro-align" data-params="{&quot;align&quot;:&quot;center&quot;}"  style="text-align: center;">lorem ipsum dolor</div>
+	</p>
+	<p>sit amet</p>
+</xml>
