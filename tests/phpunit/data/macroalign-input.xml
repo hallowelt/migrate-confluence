@@ -1,0 +1,6 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		<ac:macro ac:name="align"><ac:parameter ac:name="align">center</ac:parameter><ac:rich-text-body>lorem ipsum dolor</ac:rich-text-body></ac:macro>
+	</p>
+	<p>sit amet</p>
+</xml>
