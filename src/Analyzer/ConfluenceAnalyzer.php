@@ -109,7 +109,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'users',
 			'title-files',
 			'additional-files',
-			'attachment-orig-filename-target-filename-map'
+			'attachment-orig-filename-target-filename-map',
+			'title-attachments'
 		] );
 		$this->logger = new NullLogger();
 
@@ -182,6 +183,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->userMap();
 		$this->makeSpacesMap();
 		$this->makePagenamesMap();
+		$this->addTitleAttachmentsFallback();
 		$this->addAdditionalFiles();
 
 		return true;
@@ -304,16 +306,40 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$revisionTimestamp = $this->buildRevisionTimestamp( $pageNode );
 			$bodyContentIds = $this->getBodyContentIds( $pageNode );
 
-			foreach ( $bodyContentIds as $bodyContentId ) {
-				// TODO: Add UserImpl-key or directly MediaWiki username
-				// (could also be done in `extract` as "metadata" )
-				$this->customBuckets->addData( 'body-contents-to-pages-map', $bodyContentId, $pageId, false, true );
+			if ( !empty( $bodyContentIds ) ) {
+				foreach ( $bodyContentIds as $bodyContentId ) {
+					// TODO: Add UserImpl-key or directly MediaWiki username
+					// (could also be done in `extract` as "metadata" )
+					$this->customBuckets->addData( 'body-contents-to-pages-map', $bodyContentId, $pageId, false, true );
+				}
+			} else {
+				$bodyContentIds = [];
+
+				$bodyContents = $this->helper->getObjectNodes( 'BodyContent' );
+				foreach ( $bodyContents as $bodyContent ) {
+					$bodyContentId = $this->helper->getIDNodeValue( $bodyContent );
+					$contentPageId = $this->helper->getPropertyValue( 'content', $bodyContent );
+
+					if ( $pageId === $contentPageId ) {
+						$bodyContentIds[] = $bodyContentId;
+
+						$this->customBuckets->addData(
+							'body-contents-to-pages-map',
+							$bodyContentId,
+							$pageId,
+							false,
+							true
+						);
+					}
+				}
 			}
 
 			$version = $this->helper->getPropertyValue( 'version', $pageNode );
 
 			$this->addTitleRevision( $targetTitle, implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp" );
 
+			// In case of ERM34465 this seems to be empty because
+			// title-attachments and missing-attachment-id-to-filename are empty
 			$attachmentRefs = $this->helper->getElementsFromCollection( 'attachments', $pageNode );
 			foreach ( $attachmentRefs as $attachmentRef ) {
 				$attachmentId = $this->helper->getIDNodeValue( $attachmentRef );
@@ -334,6 +360,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 					);
 					continue;
 				}
+				// In case of ERM34465 no files are added to title-attachments
 				$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
 				$this->addFile( $attachmentTargetFilename, $attachmentReference );
 				$this->customBuckets->addData( 'title-files', $targetTitle, $attachmentTargetFilename, false, true );
@@ -342,6 +369,76 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$fileName = $this->helper->getPropertyValue( 'fileName', $attachment );
 				if ( $fileName === null ) {
 					$fileName = $this->helper->getPropertyValue( 'title', $attachment );
+				}
+				$this->customBuckets->addData(
+					'attachment-orig-filename-target-filename-map',
+					$fileName,
+					$attachmentTargetFilename
+				);
+			}
+		}
+	}
+
+	private function addTitleAttachmentsFallback() {
+		$currentTitleAttachments = $this->customBuckets->getBucketData( 'title-attachments' );
+		if ( empty( $currentTitleAttachments ) ) {
+			$this->output->writeln( "\nFinding title attachments fallback" );
+
+			$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
+			$spaceIdHomepages = $this->customBuckets->getBucketData( 'space-id-homepages' );
+			$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $this->helper, $this->mainpage );
+
+			$attachmentObjs = $this->helper->getObjectNodes( 'Attachment' );
+			foreach ( $attachmentObjs as $attachmentObj ) {
+				$attachmentId = $this->helper->getIDNodeValue( $attachmentObj );
+				$containerContent = $this->helper->getPropertyNode( 'containerContent', $attachmentObj );
+				$containerContentId = $this->helper->getIDNodeValue( $containerContent );
+				$pageObj = $this->helper->getObjectNodeById( $containerContentId, 'Page' );
+				if ( $pageObj instanceof DOMElement === false ) {
+					continue;
+				}
+
+				if ( $containerContentId !== $this->helper->getIDNodeValue( $pageObj ) ) {
+					continue;
+				}
+
+				$attachmentObjContentStatus = $this->helper->getPropertyValue( 'contentStatus', $attachmentObj );
+				if ( strtolower( $attachmentObjContentStatus ) !== 'current' ) {
+					continue;
+				}
+
+				try {
+					$targetTitle = $titleBuilder->buildTitle( $pageObj );
+				} catch ( InvalidTitleException $ex ) {
+					continue;
+				}
+
+				$attachmentId = $this->helper->getIDNodeValue( $attachmentObj );
+				$attachmentTargetFilename = $this->makeAttachmentTargetFilename( $attachmentObj, $targetTitle );
+				$attachmentReference = $this->makeAttachmentReference( $attachmentObj );
+				if ( empty( $attachmentReference ) ) {
+					$this->output->writeln(
+						//phpcs:ignore Generic.Files.LineLength.TooLong
+						"\033[31m\t- File '$attachmentId' ($attachmentTargetFilename) not found\033[39m"
+					);
+					$this->customBuckets->addData(
+						'missing-attachment-id-to-filename',
+						$attachmentId,
+						$attachmentTargetFilename,
+						false,
+						true
+					);
+					continue;
+				}
+				$this->output->writeln( "- $attachmentTargetFilename" );
+				$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
+				$this->addFile( $attachmentTargetFilename, $attachmentReference );
+				$this->customBuckets->addData( 'title-files', $targetTitle, $attachmentTargetFilename, false, true );
+				$this->addedAttachmentIds[$attachmentId] = true;
+
+				$fileName = $this->helper->getPropertyValue( 'fileName', $attachmentObj );
+				if ( $fileName === null ) {
+					$fileName = $this->helper->getPropertyValue( 'title', $attachmentObj );
 				}
 				$this->customBuckets->addData(
 					'attachment-orig-filename-target-filename-map',
