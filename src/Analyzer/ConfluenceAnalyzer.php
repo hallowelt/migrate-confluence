@@ -389,7 +389,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $this->helper, $this->mainpage );
 
 			$attachmentObjs = $this->helper->getObjectNodes( 'Attachment' );
-			foreach( $attachmentObjs as $attachmentObj ) {
+			foreach ( $attachmentObjs as $attachmentObj ) {
 				$attachmentId = $this->helper->getIDNodeValue( $attachmentObj );
 				$containerContent = $this->helper->getPropertyNode( 'containerContent', $attachmentObj );
 				$containerContentId = $this->helper->getIDNodeValue( $containerContent );
