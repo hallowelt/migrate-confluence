@@ -61,6 +61,24 @@
 					{{TaskListEnd}}###BREAK###
 				###BREAK###
 }}###BREAK###
+			{{Task###BREAK###
+| id = 4###BREAK###
+| status = incomplete###BREAK###
+| body = And another one!
+					{{TaskListStart}}###BREAK###
+						{{Task###BREAK###
+| id = 5###BREAK###
+| status = incomplete###BREAK###
+| body = Body 7 &amp;lt;ac:placeholder&amp;gt;with placeholder&amp;lt;/ac:placeholder&amp;gt;###BREAK###
+}}###BREAK###
+						{{Task###BREAK###
+| id = 6###BREAK###
+| status = incomplete###BREAK###
+| body = &amp;lt;span style="color: orange;"&amp;gt;Body 8&amp;lt;/span&amp;gt; &amp;lt;ac:placeholder&amp;gt;with placeholder&amp;lt;/ac:placeholder&amp;gt;###BREAK###
+}}###BREAK###
+					{{TaskListEnd}}###BREAK###
+				###BREAK###
+}}###BREAK###
 		{{TaskListEnd}}###BREAK###
 	</p>
 </xml>

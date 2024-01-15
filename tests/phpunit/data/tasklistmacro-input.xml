@@ -61,6 +61,24 @@
 					</ac:task-list>
 				</ac:task-body>
 			</ac:task>
+			<ac:task>
+				<ac:task-id>4</ac:task-id>
+				<ac:task-status>incomplete</ac:task-status>
+				<ac:task-body>And another one!
+					<ac:task-list>
+						<ac:task>
+							<ac:task-id>5</ac:task-id>
+							<ac:task-status>incomplete</ac:task-status>
+							<ac:task-body>Body 7 <ac:placeholder>with placeholder</ac:placeholder></ac:task-body>
+						</ac:task>
+						<ac:task>
+							<ac:task-id>6</ac:task-id>
+							<ac:task-status>incomplete</ac:task-status>
+							<ac:task-body><span style="color: orange;">Body 8</span> <ac:placeholder>with placeholder</ac:placeholder></ac:task-body>
+						</ac:task>
+					</ac:task-list>
+				</ac:task-body>
+			</ac:task>
 		</ac:task-list>
 	</p>
 </xml>
