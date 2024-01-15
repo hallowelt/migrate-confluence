@@ -4,7 +4,7 @@
 			<ac:task>
 				<ac:task-id>1</ac:task-id>
 				<ac:task-status>incomplete</ac:task-status>
-				<ac:task-body>I have another tasklist :)
+				<ac:task-body>I have a tasklist :)
 					<ac:task-list>
 						<ac:task>
 							<ac:task-id>2</ac:task-id>
@@ -15,6 +15,48 @@
 							<ac:task-id>3</ac:task-id>
 							<ac:task-status>incomplete</ac:task-status>
 							<ac:task-body><span style="color: red;">Body 2</span> <ac:placeholder>with placeholder</ac:placeholder></ac:task-body>
+						</ac:task>
+					</ac:task-list>
+				</ac:task-body>
+			</ac:task>
+		</ac:task-list>
+		<ac:task-list>
+			<ac:task>
+				<ac:task-id>1</ac:task-id>
+				<ac:task-status>incomplete</ac:task-status>
+				<ac:task-body>I have another tasklist ;)
+					<ac:task-list>
+						<ac:task>
+							<ac:task-id>2</ac:task-id>
+							<ac:task-status>incomplete</ac:task-status>
+							<ac:task-body>Body 3 <ac:placeholder>with placeholder</ac:placeholder></ac:task-body>
+						</ac:task>
+						<ac:task>
+							<ac:task-id>3</ac:task-id>
+							<ac:task-status>incomplete</ac:task-status>
+							<ac:task-body><span style="color: blue;">Body 4</span> <ac:placeholder>with placeholder</ac:placeholder></ac:task-body>
+						</ac:task>
+					</ac:task-list>
+				</ac:task-body>
+			</ac:task>
+		</ac:task-list>
+	</p>
+	<p>
+		<ac:task-list>
+			<ac:task>
+				<ac:task-id>1</ac:task-id>
+				<ac:task-status>incomplete</ac:task-status>
+				<ac:task-body>I have yet another tasklist :D
+					<ac:task-list>
+						<ac:task>
+							<ac:task-id>2</ac:task-id>
+							<ac:task-status>incomplete</ac:task-status>
+							<ac:task-body>Body 5 <ac:placeholder>with placeholder</ac:placeholder></ac:task-body>
+						</ac:task>
+						<ac:task>
+							<ac:task-id>3</ac:task-id>
+							<ac:task-status>incomplete</ac:task-status>
+							<ac:task-body><span style="color: yellow;">Body 6</span> <ac:placeholder>with placeholder</ac:placeholder></ac:task-body>
 						</ac:task>
 					</ac:task-list>
 				</ac:task-body>

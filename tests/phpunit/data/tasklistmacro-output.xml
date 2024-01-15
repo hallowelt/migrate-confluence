@@ -4,7 +4,7 @@
 			{{Task###BREAK###
 | id = 1###BREAK###
 | status = incomplete###BREAK###
-| body = I have another tasklist :)
+| body = I have a tasklist :)
 					{{TaskListStart}}###BREAK###
 						{{Task###BREAK###
 | id = 2###BREAK###
@@ -15,6 +15,48 @@
 | id = 3###BREAK###
 | status = incomplete###BREAK###
 | body = &amp;lt;span style="color: red;"&amp;gt;Body 2&amp;lt;/span&amp;gt; &amp;lt;ac:placeholder&amp;gt;with placeholder&amp;lt;/ac:placeholder&amp;gt;###BREAK###
+}}###BREAK###
+					{{TaskListEnd}}###BREAK###
+				###BREAK###
+}}###BREAK###
+		{{TaskListEnd}}###BREAK###
+		{{TaskListStart}}###BREAK###
+			{{Task###BREAK###
+| id = 1###BREAK###
+| status = incomplete###BREAK###
+| body = I have another tasklist ;)
+					{{TaskListStart}}###BREAK###
+						{{Task###BREAK###
+| id = 2###BREAK###
+| status = incomplete###BREAK###
+| body = Body 3 &amp;lt;ac:placeholder&amp;gt;with placeholder&amp;lt;/ac:placeholder&amp;gt;###BREAK###
+}}###BREAK###
+						{{Task###BREAK###
+| id = 3###BREAK###
+| status = incomplete###BREAK###
+| body = &amp;lt;span style="color: blue;"&amp;gt;Body 4&amp;lt;/span&amp;gt; &amp;lt;ac:placeholder&amp;gt;with placeholder&amp;lt;/ac:placeholder&amp;gt;###BREAK###
+}}###BREAK###
+					{{TaskListEnd}}###BREAK###
+				###BREAK###
+}}###BREAK###
+		{{TaskListEnd}}###BREAK###
+	</p>
+	<p>
+		{{TaskListStart}}###BREAK###
+			{{Task###BREAK###
+| id = 1###BREAK###
+| status = incomplete###BREAK###
+| body = I have yet another tasklist :D
+					{{TaskListStart}}###BREAK###
+						{{Task###BREAK###
+| id = 2###BREAK###
+| status = incomplete###BREAK###
+| body = Body 5 &amp;lt;ac:placeholder&amp;gt;with placeholder&amp;lt;/ac:placeholder&amp;gt;###BREAK###
+}}###BREAK###
+						{{Task###BREAK###
+| id = 3###BREAK###
+| status = incomplete###BREAK###
+| body = &amp;lt;span style="color: yellow;"&amp;gt;Body 6&amp;lt;/span&amp;gt; &amp;lt;ac:placeholder&amp;gt;with placeholder&amp;lt;/ac:placeholder&amp;gt;###BREAK###
 }}###BREAK###
 					{{TaskListEnd}}###BREAK###
 				###BREAK###
