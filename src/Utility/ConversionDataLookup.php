@@ -175,7 +175,15 @@ class ConversionDataLookup {
 	 */
 	public function getConfluenceFileContent( string $fileName ): ?string {
 		if ( isset( $this->confluenceFiles[$fileName] ) ) {
-			return file_get_contents( $this->confluenceFiles[$fileName][0] );
+			if ( !file_exists( $this->confluenceFiles[$fileName][0] ) ) {
+				return null;
+			}
+			$content =  file_get_contents( $this->confluenceFiles[$fileName][0] );
+			if ( !$content ) {
+				return null;
+			}
+
+			return $content;
 		}
 
 		return null;
