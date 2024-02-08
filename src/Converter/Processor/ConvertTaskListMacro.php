@@ -109,11 +109,13 @@ class ConvertTaskListMacro implements IProcessor {
 			}
 		}
 
-		$txt = $macroReplacement->ownerDocument->createTextNode( "\n[x] " );
-		if ( $macroReplacement->getAttribute( 'data-task-status' ) === 'incomplete' ) {
-			$txt = $macroReplacement->ownerDocument->createTextNode( "\n[] " );
+		if ( $node instanceof DOMElement ) {
+			$txt = $macroReplacement->ownerDocument->createTextNode( "\n[x] " );
+			if ( $macroReplacement->getAttribute( 'data-task-status' ) === 'incomplete' ) {
+				$txt = $macroReplacement->ownerDocument->createTextNode( "\n[] " );
+			}
+			$macroReplacement->prepend( $txt );
 		}
-		$macroReplacement->prepend( $txt );
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
