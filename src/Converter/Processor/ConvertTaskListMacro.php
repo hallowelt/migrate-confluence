@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
+use DOMElement;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
@@ -33,7 +34,6 @@ class ConvertTaskListMacro implements IProcessor {
 
 		$items = array_reverse( $items );
 
-
 		foreach ( $items as $item ) {
 			$this->doProcessTaskBody( $item );
 		}
@@ -46,25 +46,28 @@ class ConvertTaskListMacro implements IProcessor {
 	protected function doProcessTaskBody( DOMNode $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'task-body-replacement' );
 
-		foreach( $node->childNodes as $childNode ) {
+		foreach ( $node->childNodes as $childNode ) {
 			$newNode = $childNode->cloneNode( true );
 			$macroReplacement->appendChild( $newNode );
 		}
 	
-		$ol = $node->getElementsByTagName( 'ol' );
-		$li = $node->getElementsByTagName( 'li' );
-		if ( count( $ol ) > 0 || count( $li ) > 0 ) {
-			$broken = $node->ownerDocument->createTextNode(
-				'[[Categroy:Broken_macro/task_(nested)]]'
-			);
-			$macroReplacement->appendChild( $broken );
+		if ( $node instanceof DOMElement ) {
+			$ol = $node->getElementsByTagName( 'ol' );
+			$li = $node->getElementsByTagName( 'li' );
+
+			if ( count( $ol ) > 0 || count( $li ) > 0 ) {
+				$broken = $node->ownerDocument->createTextNode(
+					'[[Categroy:Broken_macro/task_(nested)]]'
+				);
+				$macroReplacement->appendChild( $broken );
+			}
 		}
-		
+
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMDocument $dom
 	 * @return void
 	 */
 	private function processTask( DOMDocument $dom ) {
@@ -76,7 +79,6 @@ class ConvertTaskListMacro implements IProcessor {
 		}
 
 		$items = array_reverse( $items );
-
 
 		foreach ( $items as $item ) {
 			$this->doProcessTask( $item );
@@ -90,7 +92,7 @@ class ConvertTaskListMacro implements IProcessor {
 	protected function doProcessTask( DOMNode $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'task-replacement' );
 
-		foreach( $node->childNodes as $childNode ) {
+		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:task-id' ) {
 				$macroReplacement->setAttribute( 'data-task-id', $childNode->nodeValue );
 				continue;
@@ -118,7 +120,7 @@ class ConvertTaskListMacro implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMDocument $dom
 	 * @return void
 	 */
 	private function processTaskList( DOMDocument $dom ) {
@@ -130,7 +132,6 @@ class ConvertTaskListMacro implements IProcessor {
 		}
 
 		$items = array_reverse( $items );
-
 
 		foreach ( $items as $item ) {
 			$this->doProcessTaskList( $item );
@@ -145,12 +146,11 @@ class ConvertTaskListMacro implements IProcessor {
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 		$macroReplacement->setAttribute( 'class', 'ac-tasklist' );
 
-		foreach( $node->childNodes as $childNode ) {
+		foreach ( $node->childNodes as $childNode ) {
 			foreach ( $childNode->childNodes as $taskNode ) {
 				$newNode = $taskNode->cloneNode( true );
 				$macroReplacement->appendChild( $newNode );
 			}
-			
 		}
 		
 		$node->parentNode->replaceChild( $macroReplacement, $node );
