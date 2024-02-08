@@ -1,3 +1,24 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-<div class="task" data-task-id="3" data-task-status="incomplete">bla bla <span style="color: red;">Body 2</span> <ac:placeholder xmlns:ac="sample_namespace">with placeholder</ac:placeholder></div>
+<div class="ac-tasklist">
+[] 
+			<ol xmlns:ac="sample_namespace">
+				<li style="list-style-type: none;">
+					<ul>
+						<li>Wurde der Test hier schon begonnen?</li>
+						<li>Tiket liegt bei<a href="https://confulence-url">Testuser</a> 
+							<ul>
+								<li>Aktuell kann dort nicht getestet werden
+									<div class="ac-tasklist">
+[] <a href="https://confulence-url">Testuser</a> Zugriff muss geklärt werden.
+												<div class="ac-tasklist">
+[] <a href="https://confulence-url">Testuser</a> Zugriff muss geklärt werden.
+[] lorem ipsum dolor</div>
+											</div>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</li>
+			</ol>
+		</div>
 </xml>
