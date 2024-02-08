@@ -1,0 +1,3 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+<div class="task" data-task-id="3" data-task-status="incomplete">bla bla <span style="color: red;">Body 2</span> <ac:placeholder xmlns:ac="sample_namespace">with placeholder</ac:placeholder></div>
+</xml>
