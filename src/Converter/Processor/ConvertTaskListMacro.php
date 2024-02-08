@@ -50,6 +50,15 @@ class ConvertTaskListMacro implements IProcessor {
 			$newNode = $childNode->cloneNode( true );
 			$macroReplacement->appendChild( $newNode );
 		}
+	
+		$ol = $node->getElementsByTagName( 'ol' );
+		$li = $node->getElementsByTagName( 'li' );
+		if ( count( $ol ) > 0 || count( $li ) > 0 ) {
+			$broken = $node->ownerDocument->createTextNode(
+				'[[Categroy:Broken_macro/task_(nested)]]'
+			);
+			$macroReplacement->appendChild( $broken );
+		}
 		
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}

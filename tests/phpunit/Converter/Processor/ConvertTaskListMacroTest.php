@@ -36,11 +36,11 @@ class ConvertTaskListMacroTest extends TestCase {
 	}
 
 	protected function getInput(): string {
-		return file_get_contents( $this->dir . '/task-macro-input.xml' );
+		return file_get_contents( $this->dir . '/task-list-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( $this->dir . '/task-macro-output.xml' );
+		return file_get_contents( $this->dir . '/task-list-macro-output.xml' );
 	}
 
 }

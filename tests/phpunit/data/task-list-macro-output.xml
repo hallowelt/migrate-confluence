@@ -20,5 +20,15 @@
 					</ul>
 				</li>
 			</ol>
-		</div>
+		[[Categroy:Broken_macro/task_(nested)]]</div>
+<p>
+	<div class="ac-tasklist">
+[] I have another tasklist :)
+				<p xmlns:ac="sample_namespace">
+					<div class="ac-tasklist">
+[] Body 1 <ac:placeholder xmlns:ac="sample_namespace">with placeholder</ac:placeholder>
+[] <span style="color: red;">Body 2</span> <ac:placeholder xmlns:ac="sample_namespace">with placeholder</ac:placeholder></div>
+					</p>
+			</div>
+</p>
 </xml>
