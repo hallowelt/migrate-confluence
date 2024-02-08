@@ -50,7 +50,7 @@ class ConvertTaskListMacro implements IProcessor {
 			$newNode = $childNode->cloneNode( true );
 			$macroReplacement->appendChild( $newNode );
 		}
-	
+
 		if ( $node instanceof DOMElement ) {
 			$ol = $node->getElementsByTagName( 'ol' );
 			$li = $node->getElementsByTagName( 'li' );
@@ -110,12 +110,11 @@ class ConvertTaskListMacro implements IProcessor {
 		}
 
 		$txt = $macroReplacement->ownerDocument->createTextNode( "\n[x] " );
-		if ( $macroReplacement->getAttribute( 'data-task-status' ) === 'incomplete') {
+		if ( $macroReplacement->getAttribute( 'data-task-status' ) === 'incomplete' ) {
 			$txt = $macroReplacement->ownerDocument->createTextNode( "\n[] " );
 		}
-
 		$macroReplacement->prepend( $txt );
-		
+
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
 
@@ -152,7 +151,7 @@ class ConvertTaskListMacro implements IProcessor {
 				$macroReplacement->appendChild( $newNode );
 			}
 		}
-		
+
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
 }
