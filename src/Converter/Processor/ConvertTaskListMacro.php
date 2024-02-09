@@ -15,7 +15,6 @@ class ConvertTaskListMacro implements IProcessor {
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
-		$this->processTaskBody( $dom );
 		$this->processTask( $dom );
 		$this->processTaskList( $dom );
 	}
@@ -24,53 +23,9 @@ class ConvertTaskListMacro implements IProcessor {
 	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function processTaskBody( DOMDocument $dom ) {
-		$elements = $dom->getElementsByTagName( 'task-body' );
-
-		$items = [];
-		foreach ( $elements as $element ) {
-			$items[] = $element;
-		}
-
-		$items = array_reverse( $items );
-
-		foreach ( $items as $item ) {
-			$this->doProcessTaskBody( $item );
-		}
-	}
-
-	/**
-	 * @param DOMNode $node
-	 * @return void
-	 */
-	protected function doProcessTaskBody( DOMNode $node ): void {
-		$macroReplacement = $node->ownerDocument->createElement( 'task-body-replacement' );
-
-		foreach ( $node->childNodes as $childNode ) {
-			$newNode = $childNode->cloneNode( true );
-			$macroReplacement->appendChild( $newNode );
-		}
-
-		if ( $node instanceof DOMElement ) {
-			$ol = $node->getElementsByTagName( 'ol' );
-			$li = $node->getElementsByTagName( 'li' );
-
-			if ( count( $ol ) > 0 || count( $li ) > 0 ) {
-				$broken = $node->ownerDocument->createTextNode(
-					'[[Categroy:Broken_macro/task_(nested)]]'
-				);
-				$macroReplacement->appendChild( $broken );
-			}
-		}
-
-		$node->parentNode->replaceChild( $macroReplacement, $node );
-	}
-
-	/**
-	 * @param DOMDocument $dom
-	 * @return void
-	 */
 	private function processTask( DOMDocument $dom ) {
+		$this->processTaskBody( $dom );
+
 		$elements = $dom->getElementsByTagName( 'task' );
 
 		$items = [];
@@ -106,6 +61,7 @@ class ConvertTaskListMacro implements IProcessor {
 					$newNode = $taskNode->cloneNode( true );
 					$macroReplacement->appendChild( $newNode );
 				}
+				continue;
 			}
 		}
 
@@ -115,6 +71,53 @@ class ConvertTaskListMacro implements IProcessor {
 				$txt = $macroReplacement->ownerDocument->createTextNode( "\n[] " );
 			}
 			$macroReplacement->prepend( $txt );
+		}
+
+		$node->parentNode->replaceChild( $macroReplacement, $node );
+	}
+
+	/**
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	private function processTaskBody( DOMDocument $dom ) {
+		$elements = $dom->getElementsByTagName( 'task-body' );
+
+		$items = [];
+		foreach ( $elements as $element ) {
+			$items[] = $element;
+		}
+
+		$items = array_reverse( $items );
+
+		foreach ( $items as $item ) {
+			$this->doProcessTaskBody( $item );
+		}
+	}
+
+	/**
+	 * @param DOMNode $node
+	 * @return void
+	 */
+	protected function doProcessTaskBody( DOMNode $node ): void {
+		$macroReplacement = $node->ownerDocument->createElement( 'task-body-replacement' );
+
+		foreach ( $node->childNodes as $childNode ) {
+			$newNode = $childNode->cloneNode( true );
+			$macroReplacement->appendChild( $newNode );
+		}
+
+		if ( $node instanceof DOMElement ) {
+			$ol = $node->getElementsByTagName( 'ol' );
+			$ul = $node->getElementsByTagName( 'ul' );
+			$div = $node->getElementsByTagName( 'div' );
+
+			if ( count( $ol ) > 0 || count( $ul ) > 0 || count( $div ) > 0 ) {
+				$brokenNode = $node->ownerDocument->createTextNode(
+					'[[Categroy:Broken_macro/task]]'
+				);
+				$macroReplacement->appendChild( $brokenNode );
+			}
 		}
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
@@ -147,11 +150,24 @@ class ConvertTaskListMacro implements IProcessor {
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 		$macroReplacement->setAttribute( 'class', 'ac-tasklist' );
 
+		$broken = false;
 		foreach ( $node->childNodes as $childNode ) {
 			foreach ( $childNode->childNodes as $taskNode ) {
-				$newNode = $taskNode->cloneNode( true );
-				$macroReplacement->appendChild( $newNode );
+				if ( $childNode->nodeName === 'task-replacement' ) {
+					$newNode = $taskNode->cloneNode( true );
+					$macroReplacement->appendChild( $newNode );
+					continue;
+				}
+
+				$broken = true;
 			}
+		}
+
+		if ( $broken === true ) {
+			$brokenNode = $node->ownerDocument->createTextNode(
+				'[[Categroy:Broken_macro/task-list]]'
+			);
+			$macroReplacement->appendChild( $brokenNode );
 		}
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
