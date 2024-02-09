@@ -8,19 +8,19 @@
 				<li style="list-style-type: none;">
 					<ul>
 						<li>Wurde der Test hier schon begonnen?</li>
-						<li>Tiket liegt bei<a href="https://confulence-url">Testuser</a>&#xA0;
+						<li>Tiket liegt bei<a href="https://confulence-url">Testuser</a>
 							<ul>
 								<li>Aktuell kann dort nicht getestet werden
 									<ac:task-list>
 										<ac:task>
 											<ac:task-id>4</ac:task-id>
 											<ac:task-status>incomplete</ac:task-status>
-											<ac:task-body><a href="https://confulence-url">Testuser</a> Zugriff muss gekl&#xE4;rt werden.
+											<ac:task-body><a href="https://confulence-url">Testuser</a> Zugriff muss geklärt werden.
 												<ac:task-list>
 													<ac:task>
 														<ac:task-id>4</ac:task-id>
 														<ac:task-status>incomplete</ac:task-status>
-														<ac:task-body><a href="https://confulence-url">Testuser</a> Zugriff muss gekl&#xE4;rt werden.</ac:task-body>
+														<ac:task-body><a href="https://confulence-url">Testuser</a> Zugriff muss geklärt werden.</ac:task-body>
 													</ac:task>
 													<ac:task>
 														<ac:task-id>5</ac:task-id>
@@ -68,12 +68,12 @@
 <ac:task>
 <ac:task-id>16</ac:task-id>
 <ac:task-status>complete</ac:task-status>
-<ac:task-body><span class="placeholder-inline-tasks"><ac:link><ri:user ri:userkey="1234" /></ac:link> <span class="PRESERVEDATETIME">2024-02-22</span> Testaufgabe 1</span></ac:task-body>
+<ac:task-body><span class="placeholder-inline-tasks"><ac:link><ri:user ri:userkey="1234"/></ac:link> <time datetime="2024-02-22" /> Testaufgabe 1</span></ac:task-body>
 </ac:task>
 <ac:task>
 <ac:task-id>17</ac:task-id>
 <ac:task-status>incomplete</ac:task-status>
-<ac:task-body><span class="placeholder-inline-tasks"><ac:link><ri:user ri:userkey="567" /></ac:link> <span class="PRESERVEDATETIME">2024-02-12</span> Testaufgabe 2</span></ac:task-body>
+<ac:task-body><span class="placeholder-inline-tasks"><ac:link><ri:user ri:userkey="567"/></ac:link> <time datetime="2024-02-12" /> Testaufgabe 2</span></ac:task-body>
 </ac:task>
 </ac:task-list>
 </xml>

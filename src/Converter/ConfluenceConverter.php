@@ -14,6 +14,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
@@ -22,6 +23,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertPlaceholderMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTaskListMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
@@ -211,6 +213,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$processors = [
 			new ConvertPlaceholderMacro(),
 			new ConvertInlineCommentMarkerMacro(),
+			new PreserveTimeTag(),
 			new ConvertTipMacro(),
 			new ConvertInfoMacro(),
 			new ConvertNoteMacro(),
@@ -259,6 +262,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function runPostProcessors() {
 		$postProcessors = [
+			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
 			new RestoreCode(),

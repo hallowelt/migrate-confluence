@@ -103,6 +103,15 @@ class ConvertTaskListMacro implements IProcessor {
 		$macroReplacement = $node->ownerDocument->createElement( 'task-body-replacement' );
 
 		foreach ( $node->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement ) {
+				if ( $childNode->getAttribute( 'class' ) === 'placeholder-inline-tasks' ) {
+					foreach( $childNode->childNodes as $inlineChild ) {
+						$newNode = $inlineChild->cloneNode( true );
+						$macroReplacement->appendChild( $newNode );		
+					}
+					continue;
+				}
+			}
 			$newNode = $childNode->cloneNode( true );
 			$macroReplacement->appendChild( $newNode );
 		}
@@ -119,6 +128,8 @@ class ConvertTaskListMacro implements IProcessor {
 				$macroReplacement->appendChild( $brokenNode );
 			}
 		}
+		$brokenNode = $node->ownerDocument->createElement( 'br' );
+		$macroReplacement->appendChild( $brokenNode );
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
@@ -148,18 +159,17 @@ class ConvertTaskListMacro implements IProcessor {
 	 */
 	protected function doProcessTaskList( DOMNode $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
-		$macroReplacement->setAttribute( 'class', 'ac-tasklist' );
+		$macroReplacement->setAttribute( 'class', 'ac-task-list' );
 
 		$broken = false;
 		foreach ( $node->childNodes as $childNode ) {
 			foreach ( $childNode->childNodes as $taskNode ) {
-				if ( $childNode->nodeName === 'task-replacement' ) {
-					$newNode = $taskNode->cloneNode( true );
-					$macroReplacement->appendChild( $newNode );
+				if ( $childNode->nodeName !== 'task-replacement' ) {
+					$broken = true;
 					continue;
 				}
-
-				$broken = true;
+				$newNode = $taskNode->cloneNode( true );
+				$macroReplacement->appendChild( $newNode );
 			}
 		}
 
