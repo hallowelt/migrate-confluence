@@ -57,8 +57,7 @@ class Convert extends CommandConvert {
 				try {
 					$yaml = Yaml::parse( $content );
 					$config = array_merge( $config, $yaml );
-				}
-				catch ( ParseException $e ) {
+				} catch ( ParseException $e ) {
 				}
 			}
 		}

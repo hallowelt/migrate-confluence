@@ -29,7 +29,7 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 	protected $rawPageTitle;
 
 	/**
-	 * @var boolean
+	 * @var bool
 	 */
 	protected $nsFileRepoCompat = false;
 

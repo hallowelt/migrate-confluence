@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Preprocessor;
 
-use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use PHPUnit\Framework\TestCase;
 
@@ -19,7 +18,6 @@ class RestoreTimeTagTest extends TestCase {
 	 */
 	public function testPostprocess() {
 		$this->dir = dirname( __DIR__, 2 ) . '/data';
-
 
 		$input = $this->getInput();
 

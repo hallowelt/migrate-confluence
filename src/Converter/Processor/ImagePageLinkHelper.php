@@ -24,12 +24,12 @@ class ImagePageLinkHelper {
 	protected $rawPageTitle;
 
 	/**
-	 * @var boolean
+	 * @var bool
 	 */
 	protected $nsFileRepoCompat = false;
 
 	/**
-	 * @var boolean
+	 * @var bool
 	 */
 	private $isBrokenLink = false;
 

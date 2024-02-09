@@ -105,9 +105,9 @@ class ConvertTaskListMacro implements IProcessor {
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode instanceof DOMElement ) {
 				if ( $childNode->getAttribute( 'class' ) === 'placeholder-inline-tasks' ) {
-					foreach( $childNode->childNodes as $inlineChild ) {
+					foreach ( $childNode->childNodes as $inlineChild ) {
 						$newNode = $inlineChild->cloneNode( true );
-						$macroReplacement->appendChild( $newNode );		
+						$macroReplacement->appendChild( $newNode );
 					}
 					continue;
 				}
