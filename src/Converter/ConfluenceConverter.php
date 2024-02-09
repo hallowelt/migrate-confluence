@@ -49,7 +49,7 @@ use Symfony\Component\Console\Output\Output;
 
 class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
-	/** @var bool */ */
+	/** @var bool */
 	protected $bodyContentFile = null;
 
 	/**
