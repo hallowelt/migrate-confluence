@@ -14,6 +14,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreStructuredMacroTasksReport;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
@@ -30,6 +31,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\MacroAlign;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreserveStructuredMacroTasksReport;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroChildren;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroContenByLabel;
@@ -223,6 +225,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroChildren( $this->currentPageTitle ),
 			new StructuredMacroRecentlyUpdated( $this->currentPageTitle ),
 			new Emoticon(),
+			new PreserveStructuredMacroTasksReport( $this->dataLookup ),
 			new Image(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
@@ -262,7 +265,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
 			new RestoreCode(),
-			new NestedHeadings()
+			new NestedHeadings(),
+			new RestoreStructuredMacroTasksReport()
 		];
 
 		/** @var IPostprocessor $postProcessor */
@@ -346,7 +350,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'column',
 				'code',
 				'noformat',
-				'tasklist',
+				'tasks-report-macro',
+				'task-list',
 				'task',
 				'palceholder',
 				'inline-comment-marker',

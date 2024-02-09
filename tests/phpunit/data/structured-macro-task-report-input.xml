@@ -1,0 +1,21 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		<ac:structured-macro ac:name="tasks-report-macro" ac:schema-version="1" data-layout="default" ac:local-id="b99f2390-dd98-4550-aac5-3454fdee2583" ac:macro-id="173c46729dba0d5d85b94ff23bd08c5c">
+			<ac:parameter ac:name="creators" />
+			<ac:parameter ac:name="spaces">MT,AB</ac:parameter>
+			<ac:parameter ac:name="assignees"><ri:user ri:userkey="123456" /></ac:parameter>
+			<ac:parameter ac:name="pageSize">10</ac:parameter>
+			<ac:parameter ac:name="createddateFrom" />
+			<ac:parameter ac:name="isMissingRequiredParameters">true</ac:parameter>
+		</ac:structured-macro>
+	</p>
+	<ac:structured-macro ac:name="tasks-report-macro" ac:schema-version="1" data-layout="default" ac:local-id="b99f2390-dd98-4550-aac5-3454fdee2583" ac:macro-id="0a576863c5a4cb1df573402cac1aead1">
+		<ac:parameter ac:name="creators" />
+		<ac:parameter ac:name="spaces">MT</ac:parameter>
+		<ac:parameter ac:name="assignees"><ri:user ri:userkey="123456" /><ri:user ri:userkey="789456" /></ac:parameter>
+		<ac:parameter ac:name="pageSize">10</ac:parameter>
+		<ac:parameter ac:name="createddateFrom" />
+		<ac:parameter ac:name="isMissingRequiredParameters">true</ac:parameter>
+		<ac:parameter ac:name="status">complete</ac:parameter>
+	</ac:structured-macro>
+</xml>
