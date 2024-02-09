@@ -7,7 +7,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PreserveStructuredMacroTasks
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
-class PreserveStructuredMacroTaskReportTest extends TestCase {
+class PreserveStructuredMacroTasksReportTest extends TestCase {
 
 	/**
 	 * @var ConversionDataLookup
@@ -20,11 +20,11 @@ class PreserveStructuredMacroTaskReportTest extends TestCase {
 	private $dir = '';
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroTaskReport::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PreserveStructuredMacroTasksReport::preprocess
 	 * @return void
 	 */
 	public function testPreprocess() {
-		$this->dir =dirname( __DIR__, 2 ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$this->dataLookup = new ConversionDataLookup(
 			[

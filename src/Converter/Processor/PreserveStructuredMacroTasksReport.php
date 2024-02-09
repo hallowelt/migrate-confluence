@@ -94,7 +94,7 @@ class PreserveStructuredMacroTasksReport extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param string $spaceKey
+	 * @param string $spaceKeys
 	 * @return string
 	 */
 	private function findNamespaceName( string $spaceKeys ): string {
@@ -112,6 +112,5 @@ class PreserveStructuredMacroTasksReport extends StructuredMacroProcessorBase {
 		$key = $user->getAttribute( 'ri:userkey' );
 		$username = $this->dataLookup->getUsernameFromUserKey( $key );
 		return $username;
-
 	}
 }
