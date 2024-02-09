@@ -32,10 +32,7 @@ class ConvertInfoMacroTest extends TestCase {
 
 		$expectedOutput = $this->getExpectedOutput();
 
-		$this->assertXmlStringEqualsXmlString(
-			$expectedOutput,
-			$actualOutput
-		);
+		$this->assertEquals( $expectedOutput, $actualOutput );
 	}
 
 	protected function getInput(): string {
