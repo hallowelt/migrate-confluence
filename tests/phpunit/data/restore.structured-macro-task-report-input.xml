@@ -3,4 +3,5 @@
 		<div class="PRESERVETASKSREPORT" status="unchecked" namespaces="MT|AB" user="TheFirstUser"></div>
 	</p>
 	<div class="PRESERVETASKSREPORT" status="checked" namespaces="MT" user="TheFirstUser|TheSecondUser"></div>
+	<div class="PRESERVETASKSREPORT" status="unchecked" namespaces="AB" user="TheFirstUser"></div>
 </xml>
