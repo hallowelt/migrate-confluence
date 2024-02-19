@@ -1,0 +1,7 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		<taskreport status="unchecked" namespaces="MT|AB" user="TheFirstUser"/>
+	</p>
+	<taskreport status="checked" namespaces="MT" user="TheFirstUser|TheSecondUser"/>
+	<taskreport status="unchecked" namespaces="AB" user="TheFirstUser"/>
+</xml>
