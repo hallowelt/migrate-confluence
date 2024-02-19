@@ -26,7 +26,7 @@ class Image implements IProcessor {
 	protected $rawPageTitle;
 
 	/**
-	 * @var boolean
+	 * @var bool
 	 */
 	protected $nsFileRepoCompat = false;
 

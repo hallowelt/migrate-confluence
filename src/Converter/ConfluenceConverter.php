@@ -14,6 +14,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
@@ -30,6 +31,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\MacroAlign;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroChildren;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroContenByLabel;
@@ -47,6 +49,7 @@ use Symfony\Component\Console\Output\Output;
 
 class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
+	/** @var bool */
 	protected $bodyContentFile = null;
 
 	/**
@@ -81,6 +84,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private $currentPageTitle = '';
 
+	/** @var int */
 	private $currentSpace = 0;
 
 	/**
@@ -95,7 +99,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private $output = null;
 
 	/**
-	 * @var boolean
+	 * @var bool
 	 */
 	private $nsFileRepoCompat = false;
 
@@ -211,6 +215,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$processors = [
 			new ConvertPlaceholderMacro(),
 			new ConvertInlineCommentMarkerMacro(),
+			new PreserveTimeTag(),
 			new ConvertTipMacro(),
 			new ConvertInfoMacro(),
 			new ConvertNoteMacro(),
@@ -259,6 +264,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function runPostProcessors() {
 		$postProcessors = [
+			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
 			new RestoreCode(),
@@ -645,7 +651,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$this->wikiText = preg_replace_callback(
 			"/\[\[Media:(.*)]]/",
-			function ( $matches ) use( $oldToNewTitlesMap ) {
+			static function ( $matches ) use( $oldToNewTitlesMap ) {
 				if ( isset( $oldToNewTitlesMap[$matches[1]] ) ) {
 					return $oldToNewTitlesMap[$matches[1]];
 				}
@@ -680,7 +686,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				"#&lt;subpages(.*?)/&gt;#si",
 				"#&lt;img(.*?)/&gt;#s"
 			],
-			function ( $aMatches ) {
+			static function ( $aMatches ) {
 				return html_entity_decode( $aMatches[0] );
 			},
 			$this->wikiText

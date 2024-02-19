@@ -6,8 +6,10 @@ use HalloWelt\MigrateConfluence\Converter\IPreprocessor;
 
 class CDATAClosingFixer implements IPreprocessor {
 
+	/** @var string */
 	private $pattern = '#(<ac:plain-text-body>)(.*?)(</ac:plain-text-body>)#si';
 
+	/** @var string */
 	private $cdataCloser = " [[Category:Broken_CDATA]] ]]>";
 
 	/**

@@ -32,7 +32,7 @@ class TitleBuilder {
 
 	/**
 	 *
-	 * @var integer
+	 * @var int
 	 */
 	private $currentTitlesSpaceHomePageId = -1;
 

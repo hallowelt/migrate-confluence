@@ -1,29 +1,24 @@
-<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">
-	<html>
-		<ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="...">
-			<ac:parameter ac:name="title">Some nice title</ac:parameter>
-			<ac:rich-text-body>
-				<h3>Some heading:</h3>
-				<ol>
-					<li>
-						<ac:image>
-							<ri:attachment ri:filename="someFile.png">
-								<ri:page ri:content-title="Some alt text" />
-							</ri:attachment>
-						</ac:image> some inline text
-					</li>
-					<li>Some text with &#252;mlaut,
-						<strong>formatting</strong> and stuff
-					</li>
-					<li>
-						<ac:image>
-							<ri:attachment ri:filename="someOtherFile.png">
-								<ri:page ri:content-title="Some other alt text" />
-							</ri:attachment>
-						</ac:image> some other inline text
-					</li>
-				</ol>
-			</ac:rich-text-body>
-		</ac:structured-macro>
-	</html>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="...">
+		<ac:parameter ac:name="title">Some nice title</ac:parameter>
+		<ac:rich-text-body>
+			<h3>Some heading:</h3>
+			<ol>
+				<li>
+					<ac:image>
+						<ri:attachment ri:filename="someFile.png">
+							<ri:page ri:content-title="Some alt text" />
+						</ri:attachment>
+					</ac:image> some inline text
+				</li>
+				<li>
+					<ac:image>
+						<ri:attachment ri:filename="someOtherFile.png">
+							<ri:page ri:content-title="Some other alt text" />
+						</ri:attachment>
+					</ac:image> some other inline text
+				</li>
+			</ol>
+		</ac:rich-text-body>
+	</ac:structured-macro>
 </xml>

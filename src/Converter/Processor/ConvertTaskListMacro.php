@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 /**
@@ -14,147 +15,171 @@ class ConvertTaskListMacro implements IProcessor {
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
-		$this->processNestedTaskLists( $dom );
-		$this->processRootTaskLists( $dom );
+		$this->processTask( $dom );
+		$this->processTaskList( $dom );
 	}
 
 	/**
 	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function processRootTaskLists( DOMDocument $dom ) {
-		$macroNodes = $dom->getElementsByTagName( 'task-list' );
+	private function processTask( DOMDocument $dom ) {
+		$this->processTaskBody( $dom );
 
-		$macroNodeList = [];
-		foreach ( $macroNodes as $macroNode ) {
-			$macroNodeList[] = $macroNode;
+		$elements = $dom->getElementsByTagName( 'task' );
+
+		$items = [];
+		foreach ( $elements as $element ) {
+			$items[] = $element;
 		}
 
-		foreach ( $macroNodeList as $macroNode ) {
-			$replacement = $this->processTaskList( $macroNode );
-			$macroNode->parentNode->replaceChild(
-				$macroNode->ownerDocument->createTextNode(
-					$replacement
-				),
-				$macroNode
-			);
+		$items = array_reverse( $items );
+
+		foreach ( $items as $item ) {
+			$this->doProcessTask( $item );
 		}
 	}
 
 	/**
-	 * @param DOMDocument $dom
+	 * @param DOMNode $node
 	 * @return void
 	 */
-	private function processNestedTaskLists( DOMDocument $dom ) {
-		$macroNodes = $dom->getElementsByTagName( 'task-list' );
+	protected function doProcessTask( DOMNode $node ): void {
+		$macroReplacement = $node->ownerDocument->createElement( 'task-replacement' );
 
-		$macroNodeList = [];
-		foreach ( $macroNodes as $macroNode ) {
-			$macroNodeList[] = $macroNode;
-		}
-
-		foreach ( $macroNodeList as $macroNode ) {
-			$replacement = $this->processTaskList( $macroNode );
-		}
-	}
-
-	/**
-	 * @param DOMElement $node
-	 * @return void
-	 */
-	private function processTaskList( DOMElement $node ) {
-		$taskNodes = [];
 		foreach ( $node->childNodes as $childNode ) {
-			if ( $childNode->nodeName !== 'ac:task' ) {
+			if ( $childNode->nodeName === 'ac:task-id' ) {
+				$macroReplacement->setAttribute( 'data-task-id', $childNode->nodeValue );
 				continue;
 			}
-			$taskNodes[] = $childNode;
-		}
-
-		foreach ( $taskNodes as $taskNode ) {
-			$replacement = $this->processTask( $taskNode );
-			$taskNode->parentNode->replaceChild(
-				$taskNode->ownerDocument->createTextNode(
-					$replacement
-				),
-				$taskNode
-			);
-		}
-
-		return '{{TaskListStart}}###BREAK###' . $node->nodeValue . '{{TaskListEnd}}###BREAK###';
-	}
-
-	/**
-	 * @param DOMElement $taskNode
-	 * @return string
-	 */
-	private function processTask( DOMElement $taskNode ): string {
-		if ( !$taskNode->hasChildNodes() ) {
-			return '';
-		}
-
-		$id = -1;
-		$status = '';
-		$body = '';
-		foreach ( $taskNode->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:task-id' ) {
-				$id = $childNode->nodeValue;
-			}
 			if ( $childNode->nodeName === 'ac:task-status' ) {
-				$status = $childNode->nodeValue;
+				$macroReplacement->setAttribute( 'data-task-status', $childNode->nodeValue );
+				continue;
 			}
-			if ( $childNode->nodeName === 'ac:task-body' ) {
-				$body = $this->getTaskBody( $childNode );
+			if ( $childNode->nodeName === 'task-body-replacement' ) {
+				foreach ( $childNode->childNodes as $taskNode ) {
+					$newNode = $taskNode->cloneNode( true );
+					$macroReplacement->appendChild( $newNode );
+				}
+				continue;
 			}
 		}
 
-		$replacement = $this->makeTaskTemplate( $id, $status, $body );
+		if ( $node instanceof DOMElement ) {
+			$txt = $macroReplacement->ownerDocument->createTextNode( "\n[x] " );
+			if ( $macroReplacement->getAttribute( 'data-task-status' ) === 'incomplete' ) {
+				$txt = $macroReplacement->ownerDocument->createTextNode( "\n[] " );
+			}
+			$macroReplacement->prepend( $txt );
+		}
 
-		return $replacement;
+		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
 
 	/**
-	 * @param DOMElement $node
+	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function getTaskBody( DOMElement $node ) {
-		$tasklistNodes = [];
-		foreach ( $node->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:task-list' ) {
-				$tasklistNodes[] = $childNode;
-			}
+	private function processTaskBody( DOMDocument $dom ) {
+		$elements = $dom->getElementsByTagName( 'task-body' );
+
+		$items = [];
+		foreach ( $elements as $element ) {
+			$items[] = $element;
 		}
 
-		foreach ( $tasklistNodes as $tasklistNode ) {
-			$tasklistReplacement = $this->processTaskList( $tasklistNode );
-			$tasklistNode->parentNode->replaceChild(
-				$tasklistNode->ownerDocument->createTextNode(
-					$tasklistReplacement
-				),
-				$tasklistNode
-			);
+		$items = array_reverse( $items );
+
+		foreach ( $items as $item ) {
+			$this->doProcessTaskBody( $item );
 		}
-
-		$bodyXML = $node->ownerDocument->saveXML( $node );
-		$wikiText = str_replace( [ '<ac:task-body>', '</ac:task-body>' ], '', $bodyXML );
-
-		return $wikiText;
 	}
 
 	/**
-	 * @param string $id
-	 * @param string $status
-	 * @param string $body
-	 * @return string
+	 * @param DOMNode $node
+	 * @return void
 	 */
-	private function makeTaskTemplate( string $id, string $status, string $body ): string {
-		return <<<HERE
-{{Task###BREAK###
-| id = $id###BREAK###
-| status = $status###BREAK###
-| body = $body###BREAK###
-}}###BREAK###
-HERE;
+	protected function doProcessTaskBody( DOMNode $node ): void {
+		$macroReplacement = $node->ownerDocument->createElement( 'task-body-replacement' );
+
+		foreach ( $node->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement ) {
+				if ( $childNode->getAttribute( 'class' ) === 'placeholder-inline-tasks' ) {
+					foreach ( $childNode->childNodes as $inlineChild ) {
+						$newNode = $inlineChild->cloneNode( true );
+						$macroReplacement->appendChild( $newNode );
+					}
+					continue;
+				}
+			}
+			$newNode = $childNode->cloneNode( true );
+			$macroReplacement->appendChild( $newNode );
+		}
+
+		if ( $node instanceof DOMElement ) {
+			$ol = $node->getElementsByTagName( 'ol' );
+			$ul = $node->getElementsByTagName( 'ul' );
+			$div = $node->getElementsByTagName( 'div' );
+
+			if ( count( $ol ) > 0 || count( $ul ) > 0 || count( $div ) > 0 ) {
+				$brokenNode = $node->ownerDocument->createTextNode(
+					'[[Categroy:Broken_macro/task]]'
+				);
+				$macroReplacement->appendChild( $brokenNode );
+			}
+		}
+		$brokenNode = $node->ownerDocument->createElement( 'br' );
+		$macroReplacement->appendChild( $brokenNode );
+
+		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
 
+	/**
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	private function processTaskList( DOMDocument $dom ) {
+		$elements = $dom->getElementsByTagName( 'task-list' );
+
+		$items = [];
+		foreach ( $elements as $element ) {
+			$items[] = $element;
+		}
+
+		$items = array_reverse( $items );
+
+		foreach ( $items as $item ) {
+			$this->doProcessTaskList( $item );
+		}
+	}
+
+	/**
+	 * @param DOMNode $node
+	 * @return void
+	 */
+	protected function doProcessTaskList( DOMNode $node ): void {
+		$macroReplacement = $node->ownerDocument->createElement( 'div' );
+		$macroReplacement->setAttribute( 'class', 'ac-task-list' );
+
+		$broken = false;
+		foreach ( $node->childNodes as $childNode ) {
+			foreach ( $childNode->childNodes as $taskNode ) {
+				if ( $childNode->nodeName !== 'task-replacement' ) {
+					$broken = true;
+					continue;
+				}
+				$newNode = $taskNode->cloneNode( true );
+				$macroReplacement->appendChild( $newNode );
+			}
+		}
+
+		if ( $broken === true ) {
+			$brokenNode = $node->ownerDocument->createTextNode(
+				'[[Categroy:Broken_macro/task-list]]'
+			);
+			$macroReplacement->appendChild( $brokenNode );
+		}
+
+		$node->parentNode->replaceChild( $macroReplacement, $node );
+	}
 }

@@ -12,7 +12,7 @@ class FixImagesWithExternalUrl implements IPostprocessor {
 	public function postprocess( string $wikiText ): string {
 		$wikiText = preg_replace_callback(
 			"/\[\[File:(http[s]?:\/\/.*)]]/",
-			function ( $matches ) {
+			static function ( $matches ) {
 				$attributes = [];
 
 				if ( strpos( $matches[1], '|' ) ) {

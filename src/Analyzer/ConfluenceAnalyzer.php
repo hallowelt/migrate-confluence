@@ -44,12 +44,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private $logger = null;
 
 	/**
-	 * @param Input
+	 * @var Input
 	 */
 	private $input = null;
 
 	/**
-	 * @param Output
+	 * @var Output
 	 */
 	private $output = null;
 
@@ -71,7 +71,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private $mainpage = 'Main Page';
 
 	/**
-	 * @var boolean
+	 * @var bool
 	 */
 	private $extNsFileRepoCompat = false;
 
