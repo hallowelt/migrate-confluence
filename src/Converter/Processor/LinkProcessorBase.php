@@ -26,7 +26,7 @@ abstract class LinkProcessorBase implements IProcessor {
 	protected $rawPageTitle;
 
 	/**
-	 * @var boolean
+	 * @var bool
 	 */
 	protected $nsFileRepoCompat = false;
 

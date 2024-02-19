@@ -57,6 +57,8 @@ class ImageTest extends TestCase {
 	/**
 	 * @param string $input
 	 * @param string $output
+	 * @param string $spaceId
+	 * @param string $rawPageTitle
 	 * @param bool $extNSFileRepo
 	 * @return void
 	 */

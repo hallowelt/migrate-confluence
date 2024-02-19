@@ -6,6 +6,7 @@ use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 
 class NestedHeadings implements IPostprocessor {
 
+	/** @var string */
 	private $regEx = '#(\*{1,6})\s?([=]{1,6})([^=]*)\s?([=]{1,6})#';
 
 	/**

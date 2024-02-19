@@ -30,7 +30,7 @@ class AttachmentLinkTest extends TestCase {
 	/**
 	 * @param string $input
 	 * @param string $output
-	 * @param boolean $extNSFileRepo
+	 * @param bool $extNSFileRepo
 	 * @return void
 	 */
 	private function doTestAttachments( $input, $output, $extNSFileRepo = false ): void {

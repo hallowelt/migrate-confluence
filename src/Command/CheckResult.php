@@ -103,12 +103,12 @@ class CheckResult extends Command {
 	private $brokenFileLinks = [];
 
 	/**
-	 * @var integer
+	 * @var int
 	 */
 	private $numberOfPageLinks = 0;
 
 	/**
-	 * @var integer
+	 * @var int
 	 */
 	private $numberOfFileLinks = 0;
 

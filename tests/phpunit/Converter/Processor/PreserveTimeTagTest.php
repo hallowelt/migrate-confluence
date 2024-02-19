@@ -3,10 +3,10 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTaskListMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
 use PHPUnit\Framework\TestCase;
 
-class ConvertTaskListMacroTest extends TestCase {
+class PreserveTimeTagTest extends TestCase {
 
 	/**
 	 * @var string
@@ -14,18 +14,18 @@ class ConvertTaskListMacroTest extends TestCase {
 	private $dir = '';
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ConvertTaskListMacro::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag::process
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$input = $this->getInput();
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ConvertTaskListMacro();
+		$processor = new PreserveTimeTag();
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
@@ -36,11 +36,10 @@ class ConvertTaskListMacroTest extends TestCase {
 	}
 
 	protected function getInput(): string {
-		return file_get_contents( $this->dir . '/task-list-macro-input.xml' );
+		return file_get_contents( $this->dir . '/preserve-time-tag-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( $this->dir . '/task-list-macro-output.xml' );
+		return file_get_contents( $this->dir . '/preserve-time-tag-output.xml' );
 	}
-
 }
