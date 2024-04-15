@@ -38,6 +38,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroChildren;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroContenByLabel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawio;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroJira;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroNoFormat;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated;
@@ -252,7 +253,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			),
 			new StructuredMacroContenByLabel( $this->currentPageTitle ),
 			new ExpandMacro(),
-			new MacroAlign()
+			new MacroAlign(),
+			new StructuredMacroJira()
 		];
 
 		/** @var IProcessor $processor */
