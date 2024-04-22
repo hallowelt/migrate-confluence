@@ -1,0 +1,3 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	{{Jira|server = My JIRA|serverId = 1a43h4459d325e4b|key = ABC-3423}}
+</xml>
