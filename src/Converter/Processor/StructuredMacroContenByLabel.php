@@ -59,7 +59,7 @@ class StructuredMacroContenByLabel extends StructuredMacroProcessorBase {
 			$vals = [];
 			foreach ( $values as $val ) {
 				if ( strpos( $val, '+' ) === 0 || strpos( $val, '-' ) ) {
-					// "+" or - is sometimes added to label
+					// "+" or "-" is sometimes added to label
 					$val = substr( $val, 1 );
 				}
 				$val = ucfirst( $val );
