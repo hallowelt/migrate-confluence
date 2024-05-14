@@ -1,5 +1,7 @@
 <noinclude>This template is used to convert the structured macro "contentbylabel".</noinclude>
 <includeonly>
 {{#ask:{{{conditions}}}
+|format=ul
+|limit=999
 }}
 </includeonly>

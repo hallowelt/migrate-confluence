@@ -53,8 +53,23 @@ class StructuredMacroContenByLabel extends StructuredMacroProcessorBase {
 			$params[$name] = $paramNode->nodeValue;
 		}
 
+		// "+" as first char of label causes issues
+		if ( isset( $params['labels' ] ) ) {
+			$value = $params['labels' ];
+			$values = explode( ',',  $value );
+			$vals = [];
+			foreach ( $values as $val ) {
+				$val = substr( $val, 1 );
+				$val = ucfirst( $val );
+				$vals[] = $val;
+			}
+			$params['labels'] = implode( ', ', $vals );
+		}
+
 		if ( isset( $params['cql'] ) ) {
 			$params['conditions'] = $this->getConditionsForCQL( $params['cql'] );
+		} else {
+			$params['conditions'] = '{{#if:{{{labels|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}';
 		}
 
 		$templateParams = '';
