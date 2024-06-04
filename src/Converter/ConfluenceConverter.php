@@ -6,6 +6,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
@@ -167,7 +168,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->currentPageTitle = 'not_current_revision_' . $pageId;
 		}
 
-		$dom = $this->preprocessFile();
+		try {
+			$dom = $this->preprocessFile();
+		}
+		catch ( Exception $e ) {
+			$rawContent = file_get_contents( $this->rawFile->getPathname() );
+			return "<-- Unconvertable RAW start-->\n$rawContent\n<-- Unconvertable RAW start-->\n[[Category:Unconvertable]]";
+		}
 
 		$xpath = new DOMXPath( $dom );
 		$xpath->registerNamespace( 'ac', 'some' );
@@ -325,7 +332,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$dom->formatOutput = true;
 		$dom->preserveWhiteSpace = true;
 		$dom->validateOnParse = false;
-		$dom->loadXML( $source, LIBXML_PARSEHUGE );
+		$validXML = $dom->loadXML( $source, LIBXML_PARSEHUGE );
+		if ( $validXML === false ) {
+			throw new Exception( 'Unconvertable');
+		}
 
 		$preprocessedPathname = str_replace( '.mraw', '.mprep', $this->rawFile->getPathname() );
 		$dom->saveHTMLFile( $preprocessedPathname );
