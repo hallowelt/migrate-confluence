@@ -1,0 +1,17 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="view-file" ac:schema-version="1" ac:macro-id="AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE">
+		<ac:parameter ac:name="name">
+			<ri:attachment ri:filename="Dummy_1.pdf" ri:version-at-save="1" />
+		</ac:parameter>
+	</ac:structured-macro>
+	<ac:structured-macro ac:name="view-file" ac:schema-version="1" ac:macro-id="AAAAAAAA-BBBB-CCCC-DDDD-FFFFFFFFFFFF">
+		<ac:parameter ac:name="name">
+			<ri:attachment ri:filename="Dummy_2.docx" ri:version-at-save="1" />
+		</ac:parameter>
+	</ac:structured-macro>
+	<ac:structured-macro ac:name="view-file" ac:schema-version="1" ac:macro-id="AAAAAAAA-BBBB-CCCC-DDDD-GGGGGGGGGGGG">
+		<ac:parameter ac:name="name">
+			<ri:attachment ri:filename="Dummy_3.png" ri:version-at-save="1" />
+		</ac:parameter>
+	</ac:structured-macro>
+</xml>

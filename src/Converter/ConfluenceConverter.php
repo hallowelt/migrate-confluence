@@ -254,7 +254,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroContenByLabel( $this->currentPageTitle ),
 			new ExpandMacro(),
 			new MacroAlign(),
-			new StructuredMacroJira()
+			new StructuredMacroJira(),
+			new ViewFile(
+				$this->dataLookup, $this->currentSpace,
+				$currentPageTitle, $this->nsFileRepoCompat
+			)
 		];
 
 		/** @var IProcessor $processor */
@@ -387,7 +391,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
 		} else {
 			// TODO: 'calendar', 'contributors', 'anchor',
-			// 'pagetree', 'navitabs', 'include', 'listlabels', 'content-report-table'
+			// 'navitabs', 'include', 'listlabels', 'content-report-table'
 			$this->logMarkup( $match );
 			$replacement .= "[[Category:Broken_macro/$sMacroName]]";
 		}
