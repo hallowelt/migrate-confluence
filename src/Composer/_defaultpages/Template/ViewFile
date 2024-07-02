@@ -1,0 +1,2 @@
+<noinclude>Template for confluence macro "view-file"
+</noinclude><includeonly>[[File:{{{filename}}}]]</includeonly>
