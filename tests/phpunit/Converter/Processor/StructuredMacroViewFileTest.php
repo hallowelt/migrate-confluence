@@ -39,16 +39,21 @@ class StructuredMacroViewFileTest extends TestCase {
 			[]
 		);
 
-		$spaceId = 23;
-		$pagename = "SomePage";
-
 		/** SpaceId GENERAL */
-		$this->doTest( 0, "SomePage", false, 'structuredmacro-view-file-input.xml', 'structuredmacro-view-file-output-1.xml' );
-		$this->doTest( 0, "SomePage", true, 'structuredmacro-view-file-input.xml', 'structuredmacro-view-file-output-1.xml' );
+		$this->doTest(
+			0, "SomePage", false, 'structuredmacro-view-file-input.xml', 'structuredmacro-view-file-output-1.xml'
+		);
+		$this->doTest(
+			0, "SomePage", true, 'structuredmacro-view-file-input.xml', 'structuredmacro-view-file-output-1.xml'
+		);
 
 		/** Random SpaceId */
-		$this->doTest( 23, "SomePage", false, 'structuredmacro-view-file-input.xml', 'structuredmacro-view-file-output-2.xml' );
-		$this->doTest( 23, "SomePage", true, 'structuredmacro-view-file-input.xml', 'structuredmacro-view-file-output-3.xml' );
+		$this->doTest(
+			23, "SomePage", false, 'structuredmacro-view-file-input.xml', 'structuredmacro-view-file-output-2.xml'
+		);
+		$this->doTest(
+			23, "SomePage", true, 'structuredmacro-view-file-input.xml', 'structuredmacro-view-file-output-3.xml'
+		);
 	}
 
 	/**

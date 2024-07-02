@@ -82,10 +82,13 @@ class StructuredMacroViewFile extends StructuredMacroProcessorBase {
 					foreach ( $childNode->childNodes as $attachmentNode ) {
 						if ( $attachmentNode->nodeName === 'ri:attachment' ) {
 							if ( $attachmentNode->hasAttribute( 'ri:filename' ) ) {
-								$params['filename'] = $this->makeFilename( $attachmentNode->getAttribute( 'ri:filename' ) );				
+								$params['filename'] = $this->makeFilename(
+									$attachmentNode->getAttribute( 'ri:filename' )
+								);
 							}
 							if ( $attachmentNode->hasAttribute( 'ri:version-at-save' ) ) {
-								$params['version-at-save'] = $attachmentNode->getAttribute( 'ri:version-at-save' );				
+								$params['version-at-save'] = $attachmentNode
+									->getAttribute( 'ri:version-at-save' );
 							}
 						}
 					}
