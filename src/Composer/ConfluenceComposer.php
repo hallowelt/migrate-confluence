@@ -33,6 +33,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		parent::__construct( $config, $workspace, $buckets );
 
 		$this->dataBuckets = new DataBuckets( [
+			'space-id-homepages',
+			'space-id-to-description-id-map',
+			'space-description-id-to-body-id-map',
+			'body-contents-to-pages-map',
 			'title-attachments',
 			'title-revisions',
 			'files'
@@ -61,9 +65,23 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		$this->appendDefaultPages( $builder );
 		$this->addDefaultFiles();
 
+		$bodyContentsToPagesMap = $this->dataBuckets->getBucketData( 'body-contents-to-pages-map' );
+		$spaceIDHomepagesMap = $this->dataBuckets->getBucketData( 'space-id-homepages' );
+
+		$homepageSpaceIDMap = array_flip( $spaceIDHomepagesMap );
+		$spaceIDDescriptionIDMap = $this->dataBuckets->getBucketData( 'space-id-to-description-id-map' );
+		$spaceDescriptionIDBodyIDMap = $this->dataBuckets->getBucketData( 'space-description-id-to-body-id-map' );
+
 		$pagesRevisions = $this->dataBuckets->getBucketData( 'title-revisions' );
 		$filesMap = $this->dataBuckets->getBucketData( 'files' );
 		$pageAttachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
+
+		$bodyContentIDMainpageID = [];
+		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );
+		foreach( $spaceIDHomepagesMap as $spaceID => $homepageID ) {
+			$bodyContentsID = $pagesToBodyContents[$homepageID];
+			$bodyContentIDMainpageID[$bodyContentsID] = $homepageID;
+		}
 
 		foreach ( $pagesRevisions as $pageTitle => $pageRevision ) {
 			$this->output->writeln( "\nProcessing: $pageTitle\n" );
@@ -85,6 +103,25 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 				$this->output->writeln( "Getting '$bodyContentId' body content..." );
 
 				$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
+
+				// Add space description to homepage
+				if ( isset( $bodyContentIDMainpageID[$bodyContentId] ) ) {
+					// get homepage id if it is a homepage
+					$mainpageID = $bodyContentIDMainpageID[$bodyContentId];
+					if ( isset( $homepageSpaceIDMap[$mainpageID] ) ) {
+						// get space id
+						$spaceID = $homepageSpaceIDMap[$mainpageID];
+						if ( isset( $spaceIDDescriptionIDMap[$spaceID] ) ) {
+							// get description id
+							$descID = $spaceIDDescriptionIDMap[$spaceID];
+							if ( isset( $spaceDescriptionIDBodyIDMap[$descID] ) ) {
+								// get description id
+								$descBodyID = $spaceDescriptionIDBodyIDMap[$descID];
+								$pageContent .= $this->workspace->getConvertedContent( $descBodyID ) . "\n";
+							}
+						}
+					}
+				}
 			}
 
 			$builder->addRevision( $pageTitle, $pageContent, $timestamp );
