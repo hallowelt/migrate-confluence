@@ -14,7 +14,6 @@ class StructuredMacroSpaceDetails extends StructuredMacroProcessorBase {
 		return 'space-details';
 	}
 
-
 	/**
 	 * @param \DOMElement $node
 	 * @return void
@@ -35,7 +34,6 @@ class StructuredMacroSpaceDetails extends StructuredMacroProcessorBase {
 		return 'SpaceDetails';
 	}
 
-
 	/**
 	 * @param \DOMElement $node
 	 * @return array
@@ -49,7 +47,7 @@ class StructuredMacroSpaceDetails extends StructuredMacroProcessorBase {
 				$paramName = $paramNode->getAttribute( 'ac:name' );
 				if ( $paramName === 'width' ) {
 					if ( trim( $paramNode->nodeValue ) !== '' ) {
-						$params['width'] =  trim( $paramNode->nodeValue );
+						$params['width'] = trim( $paramNode->nodeValue );
 					}
 				}
 			}

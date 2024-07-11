@@ -261,7 +261,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$propertyNode = $this->helper->getPropertyNode( 'description' );
 			if ( $propertyNode !== null ) {
 				$details['description'] = $this->helper->getIDNodeValue( $propertyNode );
-				$this->customBuckets->addData( 'space-id-to-description-id-map', $spaceId, $details['description'], false, true );
+				$this->customBuckets->addData(
+					'space-id-to-description-id-map',
+					$spaceId,
+					$details['description'],
+					false,
+					true
+				);
 			}
 
 			$propertyNode = $this->helper->getPropertyNode( 'homePage' );
