@@ -44,6 +44,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroToc;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroViewFile;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
@@ -125,7 +126,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'title-metadata',
 			'attachment-orig-filename-target-filename-map',
 			'files',
-			'userkey-to-username-map'
+			'userkey-to-username-map',
+			'space-description-id-to-body-id-map'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
@@ -155,6 +157,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$bodyContentId = $this->getBodyContentIdFromFilename();
 		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
+		if ( $pageId === -1 ) {
+			$pageId = $this->getSpaceDescriptionIDFromBodyContentId( $bodyContentId );
+		}
 		if ( $pageId === -1 ) {
 			return '<-- No context page id found -->';
 		}
@@ -255,7 +260,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new ExpandMacro(),
 			new MacroAlign(),
 			new StructuredMacroJira(),
-			new ViewFile(
+			new StructuredMacroViewFile(
 				$this->dataLookup, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat
 			)
@@ -305,6 +310,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function getPageIdFromBodyContentId( $bodyContentId ) {
 		$map = $this->dataBuckets->getBucketData( 'body-contents-to-pages-map' );
+		return $map[$bodyContentId] ?? -1;
+	}
+
+	/**
+	 *
+	 * @param int $bodyContentId
+	 * @return int
+	 */
+	private function getSpaceDescriptionIDFromBodyContentId( $bodyContentId ) {
+		$map = $this->dataBuckets->getBucketData( 'space-description-id-to-body-id-map' );
+		$map = array_flip( $map );
 		return $map[$bodyContentId] ?? -1;
 	}
 

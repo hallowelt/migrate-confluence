@@ -61,13 +61,63 @@ class XMLHelper implements LoggerAwareInterface {
 	 * @throws UnexpectedValueException
 	 */
 	public function getIDNodeValue( $domNode ) {
-		// TODO: Use XPath to query only direct children!
-		$idNode = $domNode->getElementsByTagName( 'id' )->item( 0 );
-		if ( $idNode instanceof DOMElement === false ) {
+		if ( !$domNode->hasChildNodes() ) {
+			return -1;
+		}
+
+		$hasIDNode = false;
+		$value = -1;
+		foreach ( $domNode->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
+			if ( $childNode->nodeName !== 'id' ) {
+				continue;
+			}
+
+			$hasIDNode = true;
+			$value = (int)$childNode->nodeValue;
+			break;
+		}
+
+		if ( !$hasIDNode ) {
 			throw new UnexpectedValueException( 'No ID element found!' );
 		}
 
-		return (int)$idNode->nodeValue;
+		return $value;
+	}
+
+	/**
+	 * Returns the value of id node name="key" of an model entity in Confluence export XML
+	 * @param DOMElement $domNode
+	 * @return string
+	 * @throws UnexpectedValueException
+	 */
+	public function getKeyNodeValue( $domNode ) {
+		if ( !$domNode->hasChildNodes() ) {
+			return -1;
+		}
+
+		$hasIDNode = false;
+		$value = '';
+		foreach ( $domNode->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
+			if ( $childNode->nodeName !== 'id' ) {
+				continue;
+			}
+
+			$hasIDNode = true;
+			$value = (string)$childNode->nodeValue;
+			break;
+		}
+
+		if ( !$hasIDNode ) {
+			throw new UnexpectedValueException( 'No ID element found!' );
+		}
+
+		return $value;
 	}
 
 	/**

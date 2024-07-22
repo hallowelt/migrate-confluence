@@ -1,0 +1,15 @@
+<noinclude>Template for confluence macro "space-details"
+</noinclude><includeonly>{| class="wikitable" style="width:{{{width}}}"
+|-
+| Name || {{NAMESPACE}}
+|-
+| Description || {{#ask:[[{{NAMESPACE}}:+]][[Confluence space description::+]]|?Confluence space description=|mainlabel=-|link=none}}
+|-
+| Pages in namespace || {{#ask:[[{{NAMESPACE}}:+]]|format=count}}
+|-
+| Last page edit || {{#ask:[[{{NAMESPACE}}:+]]|limit=1|sort=Modification date|order=desc|searchlabel=}} 
+|-
+| Last modification date || {{#ask:[[{{NAMESPACE}}:+]]|?Modification date=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}} 
+|-
+| Last modifier || {{#ask:[[{{NAMESPACE}}:+]]|?Last editor is=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}} 
+|}</includeonly>

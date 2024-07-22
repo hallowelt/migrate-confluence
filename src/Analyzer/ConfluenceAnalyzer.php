@@ -110,7 +110,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'title-files',
 			'additional-files',
 			'attachment-orig-filename-target-filename-map',
-			'title-attachments'
+			'title-attachments',
+			'space-id-to-description-id-map',
+			'space-id-details-map',
+			'space-description-id-to-body-id-map'
 		] );
 		$this->logger = new NullLogger();
 
@@ -182,6 +185,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$this->userMap();
 		$this->makeSpacesMap();
+		$this->makeSpaceDetailsMap();
+		$this->makeSpaceDescriptionMap();
 		$this->makePagenamesMap();
 		$this->addTitleAttachmentsFallback();
 		$this->addAdditionalFiles();
@@ -224,6 +229,81 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$homePageId = $this->helper->getIDNodeValue( $homePagePropertyNode );
 			}
 			$this->customBuckets->addData( 'space-id-homepages', $spaceId, $homePageId, false, true );
+		}
+	}
+
+	private function makeSpaceDetailsMap() {
+		$spaces = $this->helper->getObjectNodes( 'Space' );
+		$this->output->writeln( "\nFinding space details" );
+		foreach ( $spaces as $space ) {
+			$details = [];
+			$spaceId = $this->helper->getIDNodeValue( $space );
+			$spacekey = $this->helper->getPropertyValue( 'key', $space );
+
+			$this->output->writeln( "- $spacekey" );
+
+			// Property id
+			$details['id'] = $spaceId;
+
+			// Property key
+			$details['key'] = $spacekey;
+
+			// Text only propterties
+			$properties = [
+				'name', 'creationDate', 'lastModificationDate', 'spaceType', 'spaceStatus'
+			];
+
+			foreach ( $properties as $property ) {
+				$details[$property] = $this->helper->getPropertyValue( $property, $space );
+			}
+
+			// ID (int) node propterties
+			$propertyNode = $this->helper->getPropertyNode( 'description' );
+			if ( $propertyNode !== null ) {
+				$details['description'] = $this->helper->getIDNodeValue( $propertyNode );
+				$this->customBuckets->addData(
+					'space-id-to-description-id-map',
+					$spaceId,
+					$details['description'],
+					false,
+					true
+				);
+			}
+
+			$propertyNode = $this->helper->getPropertyNode( 'homePage' );
+			if ( $propertyNode !== null ) {
+				$details['homePage'] = $this->helper->getIDNodeValue( $propertyNode );
+			}
+
+			// ID (key) node propterties
+			$properties = [
+				'creator', 'lastModifier'
+			];
+
+			foreach ( $properties as $property ) {
+				$propertyNode = $this->helper->getPropertyNode( $property );
+				if ( $propertyNode !== null ) {
+					$details[$property] = $this->helper->getKeyNodeValue( $propertyNode );
+				}
+			}
+
+			$this->customBuckets->addData( 'space-id-details-map', $spaceId, $details, false, true );
+		}
+	}
+
+	private function makeSpaceDescriptionMap() {
+		$spacesDesc = $this->helper->getObjectNodes( 'SpaceDescription' );
+		$this->output->writeln( "\nFinding SpaceDescription body id's" );
+		foreach ( $spacesDesc as $desc ) {
+			$descID = $this->helper->getIDNodeValue( $desc );
+			$bodyContents = $this->helper->getElementsFromCollection( 'bodyContents', $desc );
+			$bodyContentIDs = [];
+			foreach ( $bodyContents as $bodyContent ) {
+				$id = $this->helper->getIDNodeValue( $bodyContent );
+				$this->customBuckets->addData( 'space-description-id-to-body-id-map', $descID, $id, false, true );
+				$this->output->writeln( "- $id" );
+			}
+
 		}
 	}
 
