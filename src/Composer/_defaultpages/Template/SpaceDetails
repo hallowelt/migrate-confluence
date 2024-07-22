@@ -3,7 +3,7 @@
 |-
 | Name || {{NAMESPACE}}
 |-
-| Description || {{#ask:[[{{NAMESPACE}}:+]][[Confluence space description::+]]|?Confluence space description=|mainlabel=-|link=none}}
+| Description || {{#ask:[[{{NAMESPACE}}:+]][[Space description::+]]|?Confluence space description=|mainlabel=-|link=none}}
 |-
 | Pages in namespace || {{#ask:[[{{NAMESPACE}}:+]]|format=count}}
 |-

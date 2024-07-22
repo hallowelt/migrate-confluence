@@ -118,7 +118,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 								// get description id
 								$descBodyID = $spaceDescriptionIDBodyIDMap[$descID];
 								$description = $this->workspace->getConvertedContent( $descBodyID );
-								$pageContent .= "[[Confluence space description::$description]]\n";
+								$pageContent .= "[[Space description::$description]]\n";
 							}
 						}
 					}
