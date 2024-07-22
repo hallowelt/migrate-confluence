@@ -1,9 +1,9 @@
-<noinclude>Template for confluence macro "space-details"
+<noinclude>Template for macro "space-details"
 </noinclude><includeonly>{| class="wikitable" style="width:{{{width}}}"
 |-
 | Name || {{NAMESPACE}}
 |-
-| Description || {{#ask:[[{{NAMESPACE}}:+]][[Confluence space description::+]]|?Confluence space description=|mainlabel=-|link=none}}
+| Description || {{#ask:[[{{NAMESPACE}}:+]][[Space description::+]]|?Space description=|mainlabel=-|link=none}}
 |-
 | Pages in namespace || {{#ask:[[{{NAMESPACE}}:+]]|format=count}}
 |-

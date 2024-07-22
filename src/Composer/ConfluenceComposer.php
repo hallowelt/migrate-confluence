@@ -117,7 +117,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 							if ( isset( $spaceDescriptionIDBodyIDMap[$descID] ) ) {
 								// get description id
 								$descBodyID = $spaceDescriptionIDBodyIDMap[$descID];
-								$pageContent .= $this->workspace->getConvertedContent( $descBodyID ) . "\n";
+								$description = $this->workspace->getConvertedContent( $descBodyID );
+								$pageContent .= "[[Space description::$description]]\n";
 							}
 						}
 					}
