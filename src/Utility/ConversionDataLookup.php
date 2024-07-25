@@ -117,23 +117,6 @@ class ConversionDataLookup {
 	}
 
 	/**
-	 * @param string $spacePrefix
-	 * @return int
-	 */
-	public function getSpaceKeyFromSpacePrefix( $spacePrefix ) {
-		// See `ConfluenceAnalyzer::makeSpacesMap`
-		if ( $spacePrefix === 'GENERAL' ) {
-			$spacePrefix = '';
-		}
-		foreach ( $this->spaceKeyPrefixMap as $spaceKey => $prefix ) {
-			if ( $prefix === $spacePrefix ) {
-				return $spaceKey;
-			}
-		}
-		return -1;
-	}
-
-	/**
 	 * Get the mediawiki namespace for a given space key.
 	 * This is required if the namespace prefix for the namespace
 	 * is overwritten by custom config file.
@@ -152,24 +135,6 @@ class ConversionDataLookup {
 			return $spacePrefix;	
 		}	
 		return -1;
-	}
-
-	/**
-	 * @param int $spaceKey
-	 * @return string|int
-	 */
-	public function getSpaceKeyFromSpaceId( int $spaceId ) {
-		$spaceKey = '';
-		if ( isset( $this->spaceIdPrefixMap[$spaceId] ) ) {
-			$spaceKey = $this->spaceIdPrefixMap[$spaceId];
-		} else {
-			return -1;
-		}
-		// See `ConfluenceAnalyzer::makeSpacesMap`
-		if ( $spaceKey === 'GENERAL' ) {
-			$spaceKey = '';
-		}
-		return $spaceKey;
 	}
 
 	/**
