@@ -72,6 +72,7 @@ class ConversionDataLookup {
 	 * @param array $confluenceAttachmentOrigFilenameToTargetFilenameMap
 	 * @param array $confluenceFiles
 	 * @param array $confluenceUserMap
+	 * @param array $spaceKeyPrefixMap
 	 */
 	public function __construct( $spaceIdPrefixMap, $confluencePageKeyTargetTitleMap,
 		$confluenceFilenameTargetFiletitleMap, $confluenceAttachmentOrigFilenameToTargetFilenameMap,
@@ -132,8 +133,8 @@ class ConversionDataLookup {
 			if ( $spacePrefix === 'GENERAL' ) {
 				$spacePrefix = '';
 			}
-			return $spacePrefix;	
-		}	
+			return $spacePrefix;
+		}
 		return -1;
 	}
 
