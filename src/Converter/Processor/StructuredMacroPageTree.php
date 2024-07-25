@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMElement;
+use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
 /**
@@ -121,10 +123,10 @@ class StructuredMacroPageTree extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return array
 	 */
-	private function extractRootPageParams( DOMNode $node ): array {
+	private function extractRootPageParams( DOMElement $node ): array {
 		$params = [];
 
 		$pageNodes = $node->getElementsByTagName( 'page' );
