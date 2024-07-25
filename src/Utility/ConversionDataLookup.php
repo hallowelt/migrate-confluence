@@ -16,6 +16,12 @@ class ConversionDataLookup {
 	 *
 	 * @var array
 	 */
+	private $spaceKeyPrefixMap = [];
+
+	/**
+	 *
+	 * @var array
+	 */
 	private $confluencePageKeyTargetTitleMap = [];
 
 	/**
@@ -53,7 +59,8 @@ class ConversionDataLookup {
 			$buckets->getBucketData( 'filenames-to-filetitles-map' ),
 			$buckets->getBucketData( 'attachment-orig-filename-target-filename-map' ),
 			$buckets->getBucketData( 'files' ),
-			$buckets->getBucketData( 'userkey-to-username-map' )
+			$buckets->getBucketData( 'userkey-to-username-map' ),
+			$buckets->getBucketData( 'space-key-to-prefix-map' ),
 		);
 	}
 
@@ -68,8 +75,9 @@ class ConversionDataLookup {
 	 */
 	public function __construct( $spaceIdPrefixMap, $confluencePageKeyTargetTitleMap,
 		$confluenceFilenameTargetFiletitleMap, $confluenceAttachmentOrigFilenameToTargetFilenameMap,
-		$confluenceFiles, $confluenceUserMap ) {
+		$confluenceFiles, $confluenceUserMap, $spaceKeyPrefixMap = [] ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
+		$this->spaceKeyPrefixMap = $spaceKeyPrefixMap;
 
 		// This is some quickfix solution. It must be changed as soon as possible!
 		// The real issue is in the way the `analyze` step constructs the "conflucence-keys"
@@ -95,7 +103,7 @@ class ConversionDataLookup {
 	 * @param string $spaceKey
 	 * @return int
 	 */
-	public function getSpaceIdFromSpaceKey( $spaceKey ) {
+	public function getSpaceIdFromSpacePrefix( $spaceKey ) {
 		// See `ConfluenceAnalyzer::makeSpacesMap`
 		if ( $spaceKey === 'GENERAL' ) {
 			$spaceKey = '';
@@ -106,6 +114,62 @@ class ConversionDataLookup {
 			}
 		}
 		return -1;
+	}
+
+	/**
+	 * @param string $spacePrefix
+	 * @return int
+	 */
+	public function getSpaceKeyFromSpacePrefix( $spacePrefix ) {
+		// See `ConfluenceAnalyzer::makeSpacesMap`
+		if ( $spacePrefix === 'GENERAL' ) {
+			$spacePrefix = '';
+		}
+		foreach ( $this->spaceKeyPrefixMap as $spaceKey => $prefix ) {
+			if ( $prefix === $spacePrefix ) {
+				return $spaceKey;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Get the mediawiki namespace for a given space key.
+	 * This is required if the namespace prefix for the namespace
+	 * is overwritten by custom config file.
+	 *
+	 * @param string $spaceKey
+	 * @return int
+	 */
+	public function getSpacePrefixFromSpaceKey( $spaceKey ) {
+		$spacePrefix = '';
+		if ( isset( $this->spaceKeyPrefixMap[$spaceKey] ) ) {
+			$spacePrefix = $this->spaceKeyPrefixMap[$spaceKey];
+			// See `ConfluenceAnalyzer::makeSpacesMap`
+			if ( $spacePrefix === 'GENERAL' ) {
+				$spacePrefix = '';
+			}
+			return $spacePrefix;	
+		}	
+		return -1;
+	}
+
+	/**
+	 * @param int $spaceKey
+	 * @return string|int
+	 */
+	public function getSpaceKeyFromSpaceId( int $spaceId ) {
+		$spaceKey = '';
+		if ( isset( $this->spaceIdPrefixMap[$spaceId] ) ) {
+			$spaceKey = $this->spaceIdPrefixMap[$spaceId];
+		} else {
+			return -1;
+		}
+		// See `ConfluenceAnalyzer::makeSpacesMap`
+		if ( $spaceKey === 'GENERAL' ) {
+			$spaceKey = '';
+		}
+		return $spaceKey;
 	}
 
 	/**

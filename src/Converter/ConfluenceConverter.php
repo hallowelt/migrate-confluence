@@ -40,6 +40,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroContenByLabel
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawio;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroJira;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroNoFormat;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPageTree;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
@@ -56,59 +57,43 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/** @var bool */
 	protected $bodyContentFile = null;
 
-	/**
-	 * @var DataBuckets
-	 */
+	/** @var DataBuckets */
 	private $dataBuckets = null;
 
-	/**
-	 *
-	 * @var ConversionDataLookup
-	 */
+	/** @var ConversionDataLookup */
 	private $dataLookup = null;
 
-	/**
-	 * @var ConversionDataWriter
-	 */
+	/** @var ConversionDataWriter */
 	private $conversionDataWriter = null;
 
-	/**
-	 *
-	 * @var SplFileInfo
-	 */
+	/** @var SplFileInfo */
 	private $rawFile = null;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private $wikiText = '';
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private $currentPageTitle = '';
+
+	/** @var string */
+	private $currentMainPage = '';
 
 	/** @var int */
 	private $currentSpace = 0;
 
-	/**
-	 *
-	 * @var SplFileInfo
-	 */
+	/** @var SplFileInfo */
 	private $preprocessedFile = null;
 
-	/**
-	 * @var Output
-	 */
+	/** @var Output */
 	private $output = null;
 
-	/**
-	 * @var bool
-	 */
+	/** @var bool */
 	private $nsFileRepoCompat = false;
 
+	/** @var string */
+	private $mainpage = 'Main Page';
+
 	/**
-	 *
 	 * @param array $config
 	 * @param Workspace $workspace
 	 */
@@ -122,6 +107,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'body-contents-to-pages-map',
 			'page-id-to-space-id',
 			'space-id-to-prefix-map',
+			'space-key-to-prefix-map',
 			'filenames-to-filetitles-map',
 			'title-metadata',
 			'attachment-orig-filename-target-filename-map',
@@ -153,6 +139,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			&& $this->config['config']['ext-ns-file-repo-compat'] === true
 			) {
 				$this->nsFileRepoCompat = true;
+		}
+
+		if ( isset( $this->config['config']['mainpage'] ) ) {
+			$this->mainpage = $this->advancedConfig['mainpage'];
 		}
 
 		$bodyContentId = $this->getBodyContentIdFromFilename();
@@ -234,6 +224,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroColumn(),
 			new StructuredMacroSection(),
 			new StructuredMacroChildren( $this->currentPageTitle ),
+			new StructuredMacroPageTree(
+				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->mainpage
+			),
 			new StructuredMacroRecentlyUpdated( $this->currentPageTitle ),
 			new Emoticon(),
 			new PreserveStructuredMacroTasksReport( $this->dataLookup ),

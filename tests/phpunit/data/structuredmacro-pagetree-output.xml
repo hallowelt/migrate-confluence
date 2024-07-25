@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<div class="ac-pagetree">{{PageTree|reverse=false|sort=natural|startDepth=3|excerpt=true|searchBox=true|expandCollapseAll=true|content-title=ABC:SomeLinkedPage/Testpage}}</div>
+
+	<div class="ac-pagetree">{{PageTree|space-key=DEVOPS|content-title=ABC:Main Page}}</div>
+
+	<div class="ac-pagetree">{{PageTree|space-key=DEVOPS|content-title=ABC:SomeLinkedPage/Testpage}}</div>
+
+	<div class="ac-pagetree">{{PageTree|space-key=DEVOPS|content-title=ABC:SomeLinkedPage}}</div>
+
+	<div class="ac-pagetree" data-params="{&quot;space-key&quot;:&quot;DEVOPS&quot;}">
+[[Category:Broken_macro/pagetree]]
+</div>
+
+	<div class="ac-pagetree" data-params="[]">
+[[Category:Broken_macro/pagetree]]
+</div>
+
+	<div class="ac-pagetree">{{PageTree|space-key=DEVOPS|content-title=DEVOPS:Testpage}}</div>
+</xml>

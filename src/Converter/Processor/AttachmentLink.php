@@ -73,7 +73,7 @@ class AttachmentLink extends LinkProcessorBase {
 		$spaceKey = $pageNode->getAttribute( 'ri:space-key' );
 
 		if ( !empty( $spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+			$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $spaceKey );
 		}
 
 		return $spaceId;

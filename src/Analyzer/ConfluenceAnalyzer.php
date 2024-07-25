@@ -95,6 +95,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		parent::__construct( $config, $workspace, $buckets );
 		$this->customBuckets = new DataBuckets( [
 			'space-id-to-prefix-map',
+			'space-key-to-prefix-map',
 			'space-id-homepages',
 			'pages-titles-map',
 			'pages-ids-to-titles-map',
@@ -210,6 +211,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			}
 
 			// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
+			$bucketSpaceKey = $spaceKey;
 			if ( $spaceKey === 'GENERAL' ) {
 				$spaceKey = '';
 			}
@@ -220,8 +222,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$customSpacePrefix = $spaceKey;
 			}
 
-			$this->customBuckets->addData( 'space-id-to-prefix-map', $spaceId, $customSpacePrefix, false, true );
-			$this->customBuckets->addData( 'space-name-to-prefix-map', $spaceName, $customSpacePrefix, false, true );
+			$this->customBuckets->addData(
+				'space-id-to-prefix-map', $spaceId, $customSpacePrefix, false, true
+			);
+			$this->customBuckets->addData(
+				'space-key-to-prefix-map', $bucketSpaceKey, $customSpacePrefix, false, true
+			);
+			$this->customBuckets->addData(
+				'space-name-to-prefix-map', $spaceName, $customSpacePrefix, false, true
+			);
 
 			$homePageId = -1;
 			$homePagePropertyNode = $this->helper->getPropertyNode( 'homePage' );

@@ -202,7 +202,7 @@ class Image implements IProcessor {
 			$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+				$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $spaceKey );
 			}
 		}
 
@@ -233,7 +233,7 @@ class Image implements IProcessor {
 			$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+				$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $spaceKey );
 			}
 		}
 
