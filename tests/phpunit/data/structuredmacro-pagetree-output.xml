@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	{{PageTree|content-title=ABC:SomeLinkedPage/Testpage|excerpt=true|expandCollapseAll=true|reverse=false|searchBox=true|sort=natural|startDepth=3}}
+
+	{{PageTree|content-title=ABC:Main Page|space-key=DEVOPS}}
+
+	{{PageTree|content-title=ABC:SomeLinkedPage/Testpage|space-key=DEVOPS}}
+
+	{{PageTree|content-title=ABC:SomeLinkedPage|space-key=DEVOPS}}
+
+	{{PageTree|content-title=|space-key=DEVOPS}} [[Category:Broken_macro/pagetree]]
+
+	{{PageTree|content-title=|space-key={{NAMESPACE}}}} [[Category:Broken_macro/pagetree]]
+
+	{{PageTree|content-title=DEVOPS:Testpage|space-key=DEVOPS}}
+</xml>

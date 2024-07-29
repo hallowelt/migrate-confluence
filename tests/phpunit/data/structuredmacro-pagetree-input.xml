@@ -1,0 +1,63 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="pagetree" ac:schema-version="1" ac:macro-id="00000000-0000-0000-0000-000000000001">
+		<ac:parameter ac:name="root">
+			<ac:link>
+				<ri:page ri:content-title="@self" />
+			</ac:link>
+		</ac:parameter>
+		<ac:parameter ac:name="reverse">false</ac:parameter>
+		<ac:parameter ac:name="sort">natural</ac:parameter>
+		<ac:parameter ac:name="startDepth">3</ac:parameter>
+		<ac:parameter ac:name="excerpt">true</ac:parameter>
+		<ac:parameter ac:name="searchBox">true</ac:parameter>
+		<ac:parameter ac:name="expandCollapseAll">true</ac:parameter>
+	</ac:structured-macro>
+
+	<ac:structured-macro ac:name="pagetree" ac:schema-version="1" ac:macro-id="00000000-0000-0000-0000-000000000002">
+		<ac:parameter ac:name="root">
+			<ac:link>
+				<ri:page ri:space-key="DEVOPS" ri:content-title="@home" />
+			</ac:link>
+		</ac:parameter>
+	</ac:structured-macro>
+
+	<ac:structured-macro ac:name="pagetree" ac:schema-version="1" ac:macro-id="00000000-0000-0000-0000-000000000003">
+		<ac:parameter ac:name="root">
+			<ac:link>
+				<ri:page ri:space-key="DEVOPS" ri:content-title="@self" />
+			</ac:link>
+		</ac:parameter>
+	</ac:structured-macro>
+
+	<ac:structured-macro ac:name="pagetree" ac:schema-version="1" ac:macro-id="00000000-0000-0000-0000-000000000004">
+		<ac:parameter ac:name="root">
+			<ac:link>
+				<ri:page ri:space-key="DEVOPS" ri:content-title="@parent" />
+			</ac:link>
+		</ac:parameter>
+	</ac:structured-macro>
+
+	<ac:structured-macro ac:name="pagetree" ac:schema-version="1" ac:macro-id="00000000-0000-0000-0000-000000000005">
+		<ac:parameter ac:name="root">
+			<ac:link>
+				<ri:page ri:space-key="DEVOPS" ri:content-title="@none" />
+			</ac:link>
+		</ac:parameter>
+	</ac:structured-macro>
+
+	<ac:structured-macro ac:name="pagetree" ac:schema-version="1" ac:macro-id="00000000-0000-0000-0000-000000000006">
+		<ac:parameter ac:name="root">
+			<ac:link>
+				<ri:page ri:content-title="@none" />
+			</ac:link>
+		</ac:parameter>
+	</ac:structured-macro>
+
+	<ac:structured-macro ac:name="pagetree" ac:schema-version="1" ac:macro-id="00000000-0000-0000-0000-000000000007">
+		<ac:parameter ac:name="root">
+			<ac:link>
+				<ri:page ri:space-key="DEVOPS" ri:content-title="Testpage" />
+			</ac:link>
+		</ac:parameter>
+	</ac:structured-macro>
+</xml>

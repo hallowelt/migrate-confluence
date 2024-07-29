@@ -61,7 +61,7 @@ class PageLink extends LinkProcessorBase {
 		$spaceKey = $node->getAttribute( 'ri:space-key' );
 
 		if ( !empty( $spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+			$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $spaceKey );
 		}
 
 		return $spaceId;
