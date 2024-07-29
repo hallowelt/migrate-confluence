@@ -54,33 +54,27 @@ class StructuredMacroPageTree extends StructuredMacroProcessorBase {
 	 * @return void
 	 */
 	protected function doProcessMacro( $node ): void {
-		$macroName = $node->getAttribute( 'ac:name' );
 
-		$macroReplacement = $node->ownerDocument->createElement( 'div' );
-		$macroReplacement->setAttribute( 'class', "ac-$macroName" );
-
-		$this->macroParams( $node, $macroReplacement );
+		$this->macroParams( $node );
 		$brokenMacro = false;
 		if ( isset( $this->params['broken-macro'] ) ) {
 			unset( $this->params['broken-macro'] );
 			$brokenMacro = true;
 		}
-		$template = '';
-		if ( isset( $this->params['content-title'] ) && $this->params['content-title'] !== '' ) {
-			$template = "{{PageTree";
-			foreach ( $this->params as $key => $value ) {
-				$template .= "|$key=$value";
-			}
-			$template .= "}}";
 
-			if ( $brokenMacro ) {
-				$template .= $this->getBrokenMacroCategroy();
-			}
-		} else {
-			$template = $this->getBrokenMacroCategroy();
-			$macroReplacement->setAttribute( 'data-params', json_encode( $this->params ) );
+		ksort( $this->params );
+
+		$template = "{{PageTree";
+		foreach ( $this->params as $key => $value ) {
+			$template .= "|$key=$value";
 		}
-		$macroReplacement->nodeValue = $template;
+		$template .= "}}";
+
+		if ( $brokenMacro ) {
+			$template .= $this->getBrokenMacroCategroy();
+		}
+
+		$macroReplacement = $node->ownerDocument->createTextNode( $template );
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
 
@@ -89,16 +83,15 @@ class StructuredMacroPageTree extends StructuredMacroProcessorBase {
 	 */
 	private function getBrokenMacroCategroy(): string {
 		$sMacroName = $this->getMacroName();
-		return "\n[[Category:Broken_macro/$sMacroName]]\n";
+		return " [[Category:Broken_macro/$sMacroName]]";
 	}
 
 	/**
 	 *
 	 * @param DOMNode $macro
-	 * @param DOMElement $macroReplacement
 	 * @return void
 	 */
-	private function macroParams( $macro, $macroReplacement ): void {
+	private function macroParams( $macro ): void {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -173,7 +166,7 @@ class StructuredMacroPageTree extends StructuredMacroProcessorBase {
 					$params['content-title'] = $text;
 					break;
 				case '@parent':
-					// parent of current page
+					// parent of current PageTitle
 					$key = $this->getTitleLookupKey( $this->currentSpace, $this->currentPageTitle );
 					$currentPageTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
 					$currentPageParts = explode( '/', $currentPageTitle );
@@ -188,35 +181,52 @@ class StructuredMacroPageTree extends StructuredMacroProcessorBase {
 					break;
 				case '@none':
 					// all pages in namespace
-					unset( $params['content-title'] );
-					if ( !isset( $params['space-key'] ) ) {
-						$params['broken-macro'] = true;
-						break;
-					}
-					$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
-					if ( is_string( $namespace ) ) {
-						$params['space-key'] = $namespace;
+					$params['content-title'] = '';
+
+					if ( isset( $params['space-key'] ) ) {
+						$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
+						if ( is_string( $namespace ) ) {
+							$params['space-key'] = $namespace;
+						} else {
+							$params['space-key'] = '{{NAMESPACE}}';
+						}
 					} else {
-						$params['broken-macro'] = true;
+						$params['space-key'] = '{{NAMESPACE}}';
 					}
+					// always broken. Subpage tree based on namespace is not supported until now.
+					$params['broken-macro'] = true;
 					break;
 				default:
-					$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $params['space-key'] );
+					// create new content-title from space key and content title
+					if ( isset( $params['space-key'] ) ) {
+						$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $params['space-key'] );
+					} else {
+						$spaceId = $this->currentSpace;
+					}
 					$key = $this->getTitleLookupKey( $spaceId, $params['content-title'] );
 					$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
 					if ( is_string( $text ) ) {
 						$params['content-title'] = $text;
-					} else {
-						unset( $params['content-title'] );
 					}
 					$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
 					if ( is_string( $namespace ) ) {
 						$params['space-key'] = $namespace;
-					} else {
-						unset( $params['space-key'] );
 					}
 					break;
 			}
+		} else {
+			// if content-title is not set fallback to {{FULLPAGENAME}}
+			$params['content-title'] = '{{FULLPAGENAME}}';
+			if ( isset( $params['space-key'] ) ) {
+				$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $params['space-key'] );
+			} else {
+				$spaceId = $this->currentSpace;
+			}
+			$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
+			if ( is_string( $namespace ) ) {
+				$params['space-key'] = $namespace;
+			}
+			$params['broken-macro'] = true;
 		}
 		return $params;
 	}

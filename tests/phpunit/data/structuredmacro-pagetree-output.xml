@@ -1,20 +1,16 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<div class="ac-pagetree">{{PageTree|reverse=false|sort=natural|startDepth=3|excerpt=true|searchBox=true|expandCollapseAll=true|content-title=ABC:SomeLinkedPage/Testpage}}</div>
+	{{PageTree|content-title=ABC:SomeLinkedPage/Testpage|excerpt=true|expandCollapseAll=true|reverse=false|searchBox=true|sort=natural|startDepth=3}}
 
-	<div class="ac-pagetree">{{PageTree|space-key=DEVOPS|content-title=ABC:Main Page}}</div>
+	{{PageTree|content-title=ABC:Main Page|space-key=DEVOPS}}
 
-	<div class="ac-pagetree">{{PageTree|space-key=DEVOPS|content-title=ABC:SomeLinkedPage/Testpage}}</div>
+	{{PageTree|content-title=ABC:SomeLinkedPage/Testpage|space-key=DEVOPS}}
 
-	<div class="ac-pagetree">{{PageTree|space-key=DEVOPS|content-title=ABC:SomeLinkedPage}}</div>
+	{{PageTree|content-title=ABC:SomeLinkedPage|space-key=DEVOPS}}
 
-	<div class="ac-pagetree" data-params="{&quot;space-key&quot;:&quot;DEVOPS&quot;}">
-[[Category:Broken_macro/pagetree]]
-</div>
+	{{PageTree|content-title=|space-key=DEVOPS}} [[Category:Broken_macro/pagetree]]
 
-	<div class="ac-pagetree" data-params="[]">
-[[Category:Broken_macro/pagetree]]
-</div>
+	{{PageTree|content-title=|space-key={{NAMESPACE}}}} [[Category:Broken_macro/pagetree]]
 
-	<div class="ac-pagetree">{{PageTree|space-key=DEVOPS|content-title=DEVOPS:Testpage}}</div>
+	{{PageTree|content-title=DEVOPS:Testpage|space-key=DEVOPS}}
 </xml>
