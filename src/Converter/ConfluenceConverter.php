@@ -382,7 +382,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'drawio',
 				'contentbylabel',
 				'expand',
-				'align'
+				'align',
+				'pagetree',
+				'view-file',
+				'space-details'
 			]
 		) ) {
 			return;
