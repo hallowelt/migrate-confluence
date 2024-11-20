@@ -24,6 +24,7 @@ class PageLinkTest extends TestCase {
 			$currentRawPagename = 'SomePage';
 			$dataLookup = new ConversionDataLookup(
 				[
+					0 => '',
 					42 => 'ABC',
 					23 => 'DEVOPS'
 				],
@@ -31,7 +32,10 @@ class PageLinkTest extends TestCase {
 					'42---Page Title' => 'ABC:Page_Title',
 					'42---Page Title2' => 'ABC:Page_Title2',
 					'42---Page Title3' => 'ABC:Page_Title3',
+					'42---Page Title5' => 'ABC:Test/Page_Title5',
 					'23---Page Title3' => 'DEVOPS:Page_Title3',
+					'0---Page Title6' => 'Page_Title6',
+					'0---Page Title7' => 'Test/Page_Title7',
 				],
 				[],
 				[],

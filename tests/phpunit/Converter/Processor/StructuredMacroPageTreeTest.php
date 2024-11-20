@@ -20,7 +20,7 @@ class StructuredMacroPageTreeTest extends TestCase {
 	public function testProcess() {
 		$this->dataLookup = new ConversionDataLookup(
 			[
-				0 => 'GENERAL',
+				0 => '',
 				42 => 'ABC',
 				23 => 'DEVOPS'
 			],
