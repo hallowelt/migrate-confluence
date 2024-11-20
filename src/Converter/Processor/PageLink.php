@@ -96,8 +96,12 @@ class PageLink extends LinkProcessorBase {
 		if ( count( $linkParts ) > 1 ) {
 			$replacement = '[[' . implode( '|', $linkParts ) . ']]';
 		} else {
-			$labelParts = explode( ':', $linkParts[0] );
+			$titleParts = explode( ':', $linkParts[0] );
+			$label = array_pop( $titleParts );
+			$labelParts = explode( '/', $label );
 			$label = array_pop( $labelParts );
+			$label = str_replace( '_', ' ', $label );
+
 			$replacement = '[[' . $linkParts[0] . '|' . $label . ']]';
 		}
 

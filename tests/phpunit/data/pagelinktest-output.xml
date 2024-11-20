@@ -4,7 +4,7 @@
     </div>
 
     <div>
-        [[ABC:Page_Title2|Page_Title2]]
+        [[ABC:Page_Title2|Page Title2]]
     </div>
 
     <div>
@@ -12,10 +12,16 @@
     </div>
 
     <div>
-        [[DEVOPS:Page_Title3|Page_Title3]]
+        [[DEVOPS:Page_Title3|Page Title3]]
     </div>
 
     <div>
         [[Confluence----1---Page Title4|Confluence----1---Page Title4]][[Category:Broken_page_link]]
+    </div>
+
+    <div>
+        [[ABC:Test/Page_Title5|Page Title5]]
+        [[Page_Title6|Page Title6]]
+        [[Test/Page_Title7|Page Title7]]
     </div>
 </xml>

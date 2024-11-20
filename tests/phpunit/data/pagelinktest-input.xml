@@ -34,4 +34,16 @@
             <ri:page ri:content-title="Page Title4" ri:space-key="DEF" />
         </ac:link>
     </div>
+
+    <div>
+        <ac:link>
+            <ri:page ri:content-title="Page Title5"  />
+        </ac:link>
+        <ac:link>
+            <ri:page ri:content-title="Page Title6" ri:space-key="GENERAL"  />
+        </ac:link>
+        <ac:link>
+            <ri:page ri:content-title="Page Title7" ri:space-key="GENERAL"  />
+        </ac:link>
+    </div>
 </xml>
