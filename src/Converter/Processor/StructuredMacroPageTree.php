@@ -150,24 +150,35 @@ class StructuredMacroPageTree extends StructuredMacroProcessorBase {
 			 * See https://confluence.atlassian.com/conf59/page-tree-macro-792499177.html
 			 * Convert to https://github.com/ProfessionalWiki/SubPageList/blob/master/doc/USAGE.md
 			 */
-
 			switch ( $params['content-title'] ) {
 				case '@home':
 					// Main Page
 					$key = $this->getTitleLookupKey( $this->currentSpace, $this->mainpage );
 					$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+					if ( $text === '' ) {
+						$params['broken-macro'] = true;
+						break;
+					}
 					$params['content-title'] = $text;
 					break;
 				case '@self':
 					// current PageTitle
 					$key = $this->getTitleLookupKey( $this->currentSpace, $this->currentPageTitle );
 					$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+					if ( $text === '' ) {
+						$params['broken-macro'] = true;
+						break;
+					}
 					$params['content-title'] = $text;
 					break;
 				case '@parent':
 					// parent of current PageTitle
 					$key = $this->getTitleLookupKey( $this->currentSpace, $this->currentPageTitle );
 					$currentPageTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+					if ( $currentPageTitle === '' ) {
+						$params['broken-macro'] = true;
+						break;
+					}
 					$currentPageParts = explode( '/', $currentPageTitle );
 					if ( count( $currentPageParts ) > 1 ) {
 						$subpageTitle = array_pop( $currentPageParts );
@@ -204,6 +215,10 @@ class StructuredMacroPageTree extends StructuredMacroProcessorBase {
 					}
 					$key = $this->getTitleLookupKey( $spaceId, $params['content-title'] );
 					$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+					if ( $text === '' ) {
+						$params['broken-macro'] = true;
+						break;
+					}
 					if ( is_string( $text ) ) {
 						$params['content-title'] = $text;
 					}
@@ -236,6 +251,7 @@ class StructuredMacroPageTree extends StructuredMacroProcessorBase {
 	 * @return string
 	 */
 	private function getTitleLookupKey( int $spaceId, string $text ): string {
-		return (string)$spaceId . '---' . $text;
+		$rawText = basename( $text );
+		return (string)$spaceId . '---' . $rawText;
 	}
 }
