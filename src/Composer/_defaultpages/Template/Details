@@ -1,0 +1,5 @@
+{{SimplePanel
+|type=info
+|title={{{headings|}}}
+|body={{{cql|}}}
+}}

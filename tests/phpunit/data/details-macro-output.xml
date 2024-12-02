@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace">
+    {{Details###BREAK###
+ |id = Lorem###BREAK###
+ |body = ###BREAK###
+
+        <h3>Ipsum dolor</h3>
+      }}###BREAK###
+
+</xml>
