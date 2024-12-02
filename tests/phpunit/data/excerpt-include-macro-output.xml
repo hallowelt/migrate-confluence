@@ -1,0 +1,7 @@
+<xml xmlns:ac="sample_namespace">
+    {{ExcerptInclude###BREAK###
+ |nopanel = true###BREAK###
+ |target = Some_MediaWiki_page_name###BREAK###
+     }}###BREAK###
+
+</xml>
