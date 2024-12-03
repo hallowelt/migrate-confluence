@@ -1,4 +1,4 @@
-<xml xmlns:ac="sample_namespace">
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_namespace2">
     <ac:structured-macro ac:name="excerpt-include">
       <ac:parameter ac:name="nopanel">true</ac:parameter>
       <ac:parameter ac:name="">

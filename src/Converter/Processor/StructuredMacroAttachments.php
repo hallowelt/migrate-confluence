@@ -17,6 +17,8 @@ class StructuredMacroAttachments extends StructuredMacroProcessorBase {
 	 * @return void
 	 */
 	protected function doProcessMacro( $node ): void {
-		// TBD
+		$attachmentsEl = $node->ownerDocument->createElement( 'attachments' );
+		$attachmentsEl->appendChild( $node->ownerDocument->createTextNode( '' ) );
+		$node->parentNode->replaceChild( $attachmentsEl, $node );
 	}
 }

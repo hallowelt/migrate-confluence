@@ -12,10 +12,26 @@ class StructuredMacroInclude extends StructuredMacroProcessorBase {
 	protected $dataLookup;
 
 	/**
+	 * @var int
+	 */
+	protected $currentSpaceId;
+
+	/**
+	 * @var string
+	 */
+	protected $mediaWikiPageName = '';
+
+	/**
+	 * @var DOMNode
+	 */
+	protected $currentNode = null;
+
+	/**
 	 * @param ConversionDataLookup $dataLookup
 	 */
-	public function __construct( ConversionDataLookup $dataLookup ) {
+	public function __construct( ConversionDataLookup $dataLookup, int $currentSpaceId ) {
 		$this->dataLookup = $dataLookup;
+		$this->currentSpaceId = $currentSpaceId;
 	}
 
 	/**
@@ -31,8 +47,34 @@ class StructuredMacroInclude extends StructuredMacroProcessorBase {
 	 * @return void
 	 */
 	protected function doProcessMacro( $node ): void {
-		$params = $this->getMacroParams( $node );
-		// TBD
+		$this->currentNode = $node;
+		$this->setMediaWikiPageName();
+		if ( $this->mediaWikiPageName === '' ) {
+			return;
+		}
+		$wikiTextTemplateCall = $this->makeTemplateCall();
+		$wikiTextTemplateCallNode = $node->ownerDocument->createTextNode( $wikiTextTemplateCall );
+		$node->parentNode->replaceChild( $wikiTextTemplateCallNode, $node );
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function makeTemplateCall(): string {
+		return '{{:' . $this->mediaWikiPageName . '}}';
+	}
+
+	/**
+	 * @return void
+	 */
+	private function setMediaWikiPageName(): void {
+		$pageEl = $this->currentNode->getElementsByTagName( 'page' )->item( 0 );
+		if ( $pageEl === null ) {
+			return;
+		}
+		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );
+		$confluencePageKey = $this->currentSpaceId . '---' . $targetPageName;
+		$this->mediaWikiPageName = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
 	}
 
 	/**

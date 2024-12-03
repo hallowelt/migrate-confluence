@@ -1,3 +1,4 @@
-<xml xmlns:ac="sample_namespace">
-    {{:Some_MediaWiki_page_name}}
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_namespace2">
+    {{:ABC:Some_MediaWiki_page_name}}
 </xml>

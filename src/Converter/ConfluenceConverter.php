@@ -255,8 +255,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle, $this->nsFileRepoCompat
 			),
 			new StructuredMacroContenByLabel( $this->currentPageTitle ),
-			new StructuredMacroInclude( $this->dataLookup ),
-			new StructuredMacroExcerptInclude( $this->dataLookup ),
+			new StructuredMacroInclude( $this->dataLookup, $this->currentSpace ),
+			new StructuredMacroExcerptInclude( $this->dataLookup, $this->currentSpace ),
 			new StructuredMacroAttachments(),
 			new ExpandMacro(),
 			new DetailsMacro(),
