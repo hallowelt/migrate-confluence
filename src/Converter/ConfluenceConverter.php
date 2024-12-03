@@ -26,6 +26,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
@@ -34,10 +36,13 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveStructuredMacroTasksReport;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroAttachments;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroChildren;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroContenByLabel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawio;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroExcerptInclude;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroInclude;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroJira;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroNoFormat;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPageTree;
@@ -250,7 +255,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle, $this->nsFileRepoCompat
 			),
 			new StructuredMacroContenByLabel( $this->currentPageTitle ),
+			new StructuredMacroInclude( $this->dataLookup, $this->currentSpace ),
+			new StructuredMacroExcerptInclude( $this->dataLookup, $this->currentSpace ),
+			new StructuredMacroAttachments(),
 			new ExpandMacro(),
+			new DetailsMacro(),
+			new DetailsSummaryMacro(),
 			new MacroAlign(),
 			new StructuredMacroJira(),
 			new StructuredMacroViewFile(
@@ -385,7 +395,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'align',
 				'pagetree',
 				'view-file',
-				'space-details'
+				'space-details',
+				'details',
+				'detailssummary',
+				'attachments',
+				'include',
+				'excerpt-include',
 			]
 		) ) {
 			return;

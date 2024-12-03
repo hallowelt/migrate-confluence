@@ -1,0 +1,8 @@
+<xml xmlns:ac="sample_namespace">
+    <ac:structured-macro ac:name="detailssummary">
+        <ac:parameter ac:name="firstcolumn">Col 1</ac:parameter>
+        <ac:parameter ac:name="headings">Heading 1, Heading 2, Heading 3, Heading 4</ac:parameter>
+        <ac:parameter ac:name="sortBy">Title</ac:parameter>
+        <ac:parameter ac:name="cql">label = "Label 1" and parent = currentContent ( )</ac:parameter>
+      </ac:structured-macro>
+</xml>
