@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_namespace2">
+    {{ExcerptInclude###BREAK###
+ |target = ABC:Some_MediaWiki_page_name###BREAK###
+ |nopanel = true###BREAK###
+}}###BREAK###
+
+</xml>

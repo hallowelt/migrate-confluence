@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_namespace2">
+    <ac:structured-macro ac:name="include">
+      <ac:parameter ac:name="">
+        <ac:link>
+          <ri:page ri:content-title="Some Confluence page name" ri:version-at-save="1"/>
+        </ac:link>
+      </ac:parameter>
+    </ac:structured-macro>
+</xml>
