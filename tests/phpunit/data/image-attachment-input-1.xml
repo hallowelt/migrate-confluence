@@ -29,4 +29,15 @@
 			</ac:image>
 		</ac:link-body>
 	</ac:link>
+	<a href="https://www.mediawiki.org/wiki/Help:Images#Display_image,_link_it_to_another_page_or_website">
+		<ac:image
+			ac:class="some-class"
+			ac:thumbnail="true"
+			ac:alt="Alternative text"
+			ac:height="200"
+			ac:width="500"
+			ac:align="center"
+		>
+		<ri:attachment ri:filename="SomeImage2.png" ri:version-at-save="1" /></ac:image>
+	</a>
 </xml>
