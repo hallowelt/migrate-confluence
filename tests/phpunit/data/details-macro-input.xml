@@ -1,8 +1,12 @@
 <xml xmlns:ac="sample_namespace">
     <ac:structured-macro ac:name="details">
-      <ac:parameter ac:name="id">Lorem</ac:parameter>
-      <ac:rich-text-body>
-        <h3>Ipsum dolor</h3>
-      </ac:rich-text-body>
+        <ac:parameter ac:name="id">Lorem</ac:parameter>
+        <ac:parameter ac:name="something">we have never seen before</ac:parameter>
+        <ac:rich-text-body>
+            <h3>Ipsum dolor</h3>
+        </ac:rich-text-body>
+        <ac:rich-text-body>
+            <h3>There may be multiple rich texts</h3>
+        </ac:rich-text-body>
     </ac:structured-macro>
 </xml>

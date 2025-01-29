@@ -233,6 +233,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->mainpage
 			),
 			new StructuredMacroRecentlyUpdated( $this->currentPageTitle ),
+			new StructuredMacroInclude( $this->dataLookup, $this->currentSpace ),
+			new StructuredMacroExcerptInclude( $this->dataLookup, $this->currentSpace ),
 			new Emoticon(),
 			new PreserveStructuredMacroTasksReport( $this->dataLookup ),
 			new Image(
@@ -255,8 +257,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle, $this->nsFileRepoCompat
 			),
 			new StructuredMacroContenByLabel( $this->currentPageTitle ),
-			new StructuredMacroInclude( $this->dataLookup, $this->currentSpace ),
-			new StructuredMacroExcerptInclude( $this->dataLookup, $this->currentSpace ),
 			new StructuredMacroAttachments(),
 			new ExpandMacro(),
 			new DetailsMacro(),
