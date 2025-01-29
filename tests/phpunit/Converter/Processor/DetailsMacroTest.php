@@ -28,10 +28,13 @@ class DetailsMacroTest extends TestCase {
 		$processor = new DetailsMacro();
 		$processor->process( $dom );
 
-		$actualOutput = $dom->saveXML( $dom->documentElement );
-		$expectedOutput = file_get_contents( "$this->dir/details-macro-output.xml" );
+		$expectedDOM = new DOMDocument();
+		$expectedDOM->load( "$this->dir/details-macro-output.xml" );
 
-		$this->assertEquals( $expectedOutput, $actualOutput );
+		$this->assertEqualXMLStructure(
+			$expectedDOM->documentElement,
+			$dom->documentElement
+		);
 	}
 
 }
