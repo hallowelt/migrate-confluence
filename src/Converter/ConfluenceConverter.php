@@ -388,7 +388,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'noformat',
 				'note',
 				'pagetree',
-				'palceholder',
+				'placeholder',
 				'panel',
 				'recently-updated',
 				'section',
