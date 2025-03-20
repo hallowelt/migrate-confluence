@@ -741,6 +741,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$userImplKey = $idNode->nodeValue;
 			$lcUserName = $this->helper->getPropertyValue( 'lowerName', $userImpl );
 			$email = $this->helper->getPropertyValue( 'email', $userImpl );
+			if ( !$lcUserName ) {
+				$this->output->writeln( "\033[31m- UserImpl $userImplKey has no username\033[39m" );
+				continue;
+			}
 
 			$mediaWikiUsername = $this->makeMWUserName( $lcUserName );
 
