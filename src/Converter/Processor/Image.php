@@ -233,12 +233,18 @@ class Image implements IProcessor {
 		$params = $this->getImageParams( $node );
 
 		$attachmentNode = $node->getElementsByTagName( 'attachment' )->item( 0 );
+		if ( !$attachmentNode || !$attachmentNode->hasAttribute( 'ri:filename' ) ) {
+			return $node;
+		}
 		$filename = $attachmentNode->getAttribute( 'ri:filename' );
 		$pageEl = $node->getElementsByTagName( 'page' )->item( 0 );
 
 		$rawPageTitle = $this->rawPageTitle;
 		$spaceId = $this->currentSpaceId;
 		if ( $pageEl instanceof DOMElement ) {
+			if ( !$pageEl || !$pageEl->hasAttribute( 'ri:content-title' ) || !$pageEl->hasAttribute( 'ri:space-key' ) ) {
+				return $node;
+			}
 			$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			if ( !empty( $spaceKey ) ) {
@@ -288,12 +294,18 @@ class Image implements IProcessor {
 		$params = $this->getImageParams( $node );
 
 		$attachmentNode = $node->getElementsByTagName( 'attachment' )->item( 0 );
+		if ( !$attachmentNode || !$attachmentNode->hasAttribute( 'ri:filename' ) ) {
+			return $node;
+		}
 		$filename = $attachmentNode->getAttribute( 'ri:filename' );
 		$pageEl = $node->getElementsByTagName( 'page' )->item( 0 );
 
 		$rawPageTitle = $this->rawPageTitle;
 		$spaceId = $this->currentSpaceId;
 		if ( $pageEl instanceof DOMElement ) {
+			if ( !$pageEl || !$pageEl->hasAttribute( 'ri:content-title' ) || !$pageEl->hasAttribute( 'ri:space-key' ) ) {
+				return $node;
+			}
 			$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			if ( !empty( $spaceKey ) ) {
