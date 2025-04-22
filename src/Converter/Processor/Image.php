@@ -69,6 +69,9 @@ class Image implements IProcessor {
 
 		if ( $node instanceof DOMElement ) {
 			foreach ( $node->childNodes as $childNode ) {
+				if ( $childNode instanceof DOMElement === false ) {
+					continue;
+				}
 				if ( $childNode->nodeName === 'ri:url' ) {
 					$replacementNode = $this->makeImageUrlReplacement( $childNode );
 				} elseif ( $childNode->nodeName === 'ri:attachment' ) {
@@ -105,14 +108,20 @@ class Image implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return array
 	 */
 	private function getImageAttributes( $node ): array {
 		$attributes = [];
+		$width = '';
+		$height = '';
 
-		$width = $node->getAttribute( 'ac:width' );
-		$height = $node->getAttribute( 'ac:height' );
+		if ( $node->hasAttribute( 'ac:width' ) ) {
+			$width = $node->getAttribute( 'ac:width' );
+		}
+		if ( $node->hasAttribute( 'ac:height' ) ) {
+			$height = $node->getAttribute( 'ac:height' );
+		}
 		if ( $width !== '' || $height !== '' ) {
 			$dimensions = 'px';
 			if ( $height !== '' ) {
@@ -126,15 +135,16 @@ class Image implements IProcessor {
 			}
 		}
 
+		$classes = [];
 		if ( $node->getAttribute( 'ac:class' ) !== '' ) {
-			$attributes['class'][] = $node->getAttribute( 'ac:class' );
+			$classes[] = $node->getAttribute( 'ac:class' );
 		}
 		if ( $node->getAttribute( 'ac:thumbnail' ) !== '' ) {
 			$params[] = 'thumb';
-			$attributes['class'][] = 'thumb';
+			$classes[] = 'thumb';
 		}
-		if ( !empty( $attributes['class'] ) ) {
-			$attributes['class'] = implode( ' ', $attributes['class'] );
+		if ( !empty( $classes ) ) {
+			$attributes['class'] = implode( ' ', $classes );
 		}
 
 		if ( $node->getAttribute( 'ac:align' ) !== '' ) {
@@ -150,7 +160,7 @@ class Image implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return array
 	 */
 	private function getImageParams( $node ): array {
@@ -179,7 +189,7 @@ class Image implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return DOMNode
 	 */
 	private function makeImageUrlReplacement( $node ): DOMNode {
@@ -196,12 +206,15 @@ class Image implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return DOMNode
 	 */
 	private function makeImageAttachmentReplacement( $node ): DOMNode {
 		$params = $this->getImageParams( $node->parentNode );
 
+		if ( !$node->hasAttribute( 'ri:filename' ) ) {
+			return $node;
+		}
 		$filename = $node->getAttribute( 'ri:filename' );
 		$pageEl = $node->getElementsByTagName( 'page' )->item( 0 );
 
@@ -233,6 +246,9 @@ class Image implements IProcessor {
 		$params = $this->getImageParams( $node );
 
 		$attachmentNode = $node->getElementsByTagName( 'attachment' )->item( 0 );
+		if ( !$attachmentNode || !$attachmentNode->hasAttribute( 'ri:filename' ) ) {
+			return $node;
+		}
 		$filename = $attachmentNode->getAttribute( 'ri:filename' );
 		$pageEl = $node->getElementsByTagName( 'page' )->item( 0 );
 
@@ -288,6 +304,9 @@ class Image implements IProcessor {
 		$params = $this->getImageParams( $node );
 
 		$attachmentNode = $node->getElementsByTagName( 'attachment' )->item( 0 );
+		if ( !$attachmentNode || !$attachmentNode->hasAttribute( 'ri:filename' ) ) {
+			return $node;
+		}
 		$filename = $attachmentNode->getAttribute( 'ri:filename' );
 		$pageEl = $node->getElementsByTagName( 'page' )->item( 0 );
 
