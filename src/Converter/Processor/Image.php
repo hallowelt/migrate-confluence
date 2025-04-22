@@ -221,8 +221,13 @@ class Image implements IProcessor {
 		$rawPageTitle = $this->rawPageTitle;
 		$spaceId = $this->currentSpaceId;
 		if ( $pageEl instanceof DOMElement ) {
-			$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
-			$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
+				$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
+			}
+			$spaceKey = '';
+			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
+				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+			}
 			if ( !empty( $spaceKey ) ) {
 				$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $spaceKey );
 			}
@@ -255,8 +260,13 @@ class Image implements IProcessor {
 		$rawPageTitle = $this->rawPageTitle;
 		$spaceId = $this->currentSpaceId;
 		if ( $pageEl instanceof DOMElement ) {
-			$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
-			$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
+				$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
+			}
+			$spaceKey = '';
+			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
+				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+			}
 			if ( !empty( $spaceKey ) ) {
 				$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $spaceKey );
 			}
@@ -313,8 +323,13 @@ class Image implements IProcessor {
 		$rawPageTitle = $this->rawPageTitle;
 		$spaceId = $this->currentSpaceId;
 		if ( $pageEl instanceof DOMElement ) {
-			$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
-			$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
+				$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
+			}
+			$spaceKey = '';
+			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
+				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+			}
 			if ( !empty( $spaceKey ) ) {
 				$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $spaceKey );
 			}
