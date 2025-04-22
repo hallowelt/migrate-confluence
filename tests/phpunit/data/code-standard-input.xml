@@ -8,4 +8,15 @@
 		<![CDATA[SELECT * FROM menu;]]>
 		</ac:plain-text-body>
 	</ac:structured-macro>
+	<ac:structured-macro ac:name="code" ac:schema-version="1" ac:macro-id="12346">
+		<ac:parameter ac:name="language">json</ac:parameter>
+		<ac:parameter ac:name="title">JSON test</ac:parameter>
+		<ac:parameter ac:name="collapse">true</ac:parameter>
+		<ac:plain-text-body>
+		<![CDATA[{
+			"name": "test",
+			"version": "null"
+		}]]>
+		</ac:plain-text-body>
+	</ac:structured-macro>
 </xml>

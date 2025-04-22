@@ -1,4 +1,10 @@
 <h6>The menu</h6><syntaxhighlight lang="sql" data-collapse="true">
-	SELECT * FROM menu;
-</syntaxhighlight>
-<h6>Some SQL</h6><syntaxhighlight lang="sql" data-collapse="true">[[Category:Broken_macro/code/empty]]</syntaxhighlight>
+		SELECT * FROM menu;
+		</syntaxhighlight>
+<h6>JSON test</h6><syntaxhighlight lang="json" data-collapse="true">
+		{
+			"name": "test",
+			"version": "null"
+		}
+		</syntaxhighlight>
+<h6>Some SQL</h6><syntaxhighlight lang="sql" data-collapse="true"></syntaxhighlight>[[Category:Broken_macro/code/empty]]

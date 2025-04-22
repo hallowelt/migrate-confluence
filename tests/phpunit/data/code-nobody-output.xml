@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<h6>Some SQL</h6><pre class="PRESERVESYNTAXHIGHLIGHT" lang="sql" data-collapse="true">[[Category:Broken_macro/code/empty]]</pre>
+	<h6>Some SQL</h6><pre class="PRESERVESYNTAXHIGHLIGHT" lang="sql" data-collapse="true" data-broken-macro="Broken_macro/code/empty"></pre>
 </xml>

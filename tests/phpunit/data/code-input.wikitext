@@ -1,4 +1,3 @@
-<h6>The menu</h6><pre class="PRESERVESYNTAXHIGHLIGHT" lang="sql" data-collapse="true">
-	SELECT * FROM menu;
-</pre>
-<h6>Some SQL</h6><pre class="PRESERVESYNTAXHIGHLIGHT" lang="sql" data-collapse="true">[[Category:Broken_macro/code/empty]]</pre>
+<h6>The menu</h6><pre class="PRESERVESYNTAXHIGHLIGHT" lang="sql" data-collapse="true">CgkJU0VMRUNUICogRlJPTSBtZW51OwoJCQ==</pre>
+<h6>JSON test</h6><pre class="PRESERVESYNTAXHIGHLIGHT" lang="json" data-collapse="true">CgkJewoJCQkibmFtZSI6ICJ0ZXN0IiwKCQkJInZlcnNpb24iOiAibnVsbCIKCQl9CgkJ</pre>
+<h6>Some SQL</h6><pre class="PRESERVESYNTAXHIGHLIGHT" lang="sql" data-collapse="true" data-broken-macro="Broken_macro/code/empty"></pre>
