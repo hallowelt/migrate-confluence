@@ -10,9 +10,8 @@ class RestoreCode implements IPostprocessor {
 	 * @inheritDoc
 	 */
 	public function postprocess( string $wikiText ): string {
-		var_dump( $wikiText );
 		$wikiText = preg_replace_callback(
-			'#<pre class="PRESERVESYNTAXHIGHLIGHT"(.*?)>(.*?)</pre>#si', function( $matches ) {
+			'#<pre class="PRESERVESYNTAXHIGHLIGHT"(.*?)>(.*?)</pre>#si', function ( $matches ) {
 				$attribs = $this->getAttributes( $matches[1] );
 
 				if ( isset( $attribs['data-broken-macro'] ) ) {
@@ -32,7 +31,11 @@ class RestoreCode implements IPostprocessor {
 		return $wikiText;
 	}
 
-	private function getAttributes( $params ) {
+	/**
+	 * @param string $params
+	 * @return array
+	 */
+	private function getAttributes( string $params ): array {
 		$matches = [];
 		preg_match_all( '#\s(.*?)="(.*?)"#', $params, $matches );
 
@@ -45,7 +48,11 @@ class RestoreCode implements IPostprocessor {
 		return $attribs;
 	}
 
-	private function buildAttributes( $attribs ) {
+	/**
+	 * @param array $attribs
+	 * @return string
+	 */
+	private function buildAttributes( array $attribs ): string {
 		$params = '';
 		foreach ( $attribs as $key => $value ) {
 			$params .= ' ' . $key . '="' . $value . '"';
