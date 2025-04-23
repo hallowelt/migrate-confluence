@@ -68,16 +68,18 @@ class PreserveCode extends StructuredMacroProcessorBase {
 		$hasPlaintextEls = false;
 		$plaintextEls = $node->getElementsByTagName( 'plain-text-body' );
 		foreach ( $plaintextEls as $plaintextEl ) {
+
+			$code = $plaintextEl->nodeValue;
+			$code = base64_encode( $plaintextEl->nodeValue );
+
 			$replacementNode->appendChild(
-				$replacementNode->ownerDocument->createTextNode( $plaintextEl->nodeValue )
+				$replacementNode->ownerDocument->createTextNode( $code )
 			);
 			$hasPlaintextEls = true;
 		}
 
 		if ( !$hasPlaintextEls ) {
-			$replacementNode->appendChild(
-				$node->ownerDocument->createTextNode( '[[Category:Broken_macro/code/empty]]' )
-			);
+			$replacementNode->setAttribute( 'data-broken-macro', 'Broken_macro/code/empty' );
 		}
 	}
 }
