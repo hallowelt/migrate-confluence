@@ -111,7 +111,9 @@ class TitleBuilderTest extends TestCase {
 	 * @param string $customMainpage
 	 * @return void
 	 */
-	private function useCustomMainpageWithRootPage( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage ): void {
+	private function useCustomMainpageWithRootPage(
+		$spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage
+	): void {
 		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage );
 		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
 
