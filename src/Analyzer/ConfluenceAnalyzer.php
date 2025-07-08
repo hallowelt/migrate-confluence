@@ -219,7 +219,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			if ( $this->hasAdvancedConfig && isset( $this->advancedConfig['space-prefix'][$spaceKey] ) ) {
 				$customSpacePrefix = $this->advancedConfig['space-prefix'][$spaceKey];
 			} else {
-				$customSpacePrefix = $spaceKey;
+				$customSpacePrefix = "{$spaceKey}:";
 			}
 
 			$this->customBuckets->addData(
