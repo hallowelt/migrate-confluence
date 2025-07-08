@@ -16,28 +16,38 @@ class TitleBuilderTest extends TestCase {
 		$dom->load( __DIR__ . '/entities_test.xml' );
 		$helper = new XMLHelper( $dom );
 
-		$spacePrefixToIdMap = [
-			32973 => 'TestNS',
-			99999 => 'TestNS_NoMain_Page'
-		];
-
 		$spaceIdHomepages = [
 			32973 => 32974,
 			99999 => -1
 		];
 
-		$this->useDefaultMainpage( $spacePrefixToIdMap, $spaceIdHomepages, $helper );
-		$this->useCustomMainpage( $spacePrefixToIdMap, $spaceIdHomepages, $helper, 'CustomMainpage' );
+		$spaceIdPrefixMap = [
+			32973 => 'TestNS:',
+			32974 => 'TestNS:',
+			99999 => 'TestNS_NoMain_Page:'
+		];
+
+		$this->useDefaultMainpage( $spaceIdPrefixMap, $spaceIdHomepages, $helper );
+		$this->useCustomMainpage( $spaceIdPrefixMap, $spaceIdHomepages, $helper, 'CustomMainpage' );
+
+		$spaceIdPrefixMap = [
+			32973 => 'TestNS:32973/',
+			32974 => 'TestNS:32974/',
+			99999 => 'TestNS_NoMain_Page:'
+		];
+
+		$this->useDefaultMainpageWithRootPage( $spaceIdPrefixMap, $spaceIdHomepages, $helper );
+		$this->useCustomMainpageWithRootPage( $spaceIdPrefixMap, $spaceIdHomepages, $helper, 'CustomMainpage' );
 	}
 
 	/**
-	 * @param array $spacePrefixToIdMap
+	 * @param array $spaceIdPrefixMap
 	 * @param array $spaceIdHomepages
 	 * @param XMLHelper $helper
 	 * @return void
 	 */
-	private function useDefaultMainpage( $spacePrefixToIdMap, $spaceIdHomepages, $helper ): void {
-		$titleBuilder = new TitleBuilder( $spacePrefixToIdMap, $spaceIdHomepages, $helper );
+	private function useDefaultMainpage( $spaceIdPrefixMap, $spaceIdHomepages, $helper ): void {
+		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $helper );
 		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
 
 		$expectedTitles = [
@@ -52,20 +62,63 @@ class TitleBuilderTest extends TestCase {
 	}
 
 	/**
-	 * @param array $spacePrefixToIdMap
+	 * @param array $spaceIdPrefixMap
 	 * @param array $spaceIdHomepages
 	 * @param XMLHelper $helper
 	 * @param string $customMainpage
 	 * @return void
 	 */
-	private function useCustomMainpage( $spacePrefixToIdMap, $spaceIdHomepages, $helper, $customMainpage ): void {
-		$titleBuilder = new TitleBuilder( $spacePrefixToIdMap, $spaceIdHomepages, $helper, $customMainpage );
+	private function useCustomMainpage( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage ): void {
+		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage );
 		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
 
 		$expectedTitles = [
 			"TestNS:$customMainpage",
 			"TestNS:Roadmap",
 			"TestNS:Roadmap/Detailed_planning",
+			"TestNS_NoMain_Page:Dokumentation",
+			"TestNS_NoMain_Page:Dokumentation/Roadmap",
+		];
+
+		$this->assertEquals( $expectedTitles, $actualTitles );
+	}
+
+	/**
+	 * @param array $spaceIdPrefixMap
+	 * @param array $spaceIdHomepages
+	 * @param XMLHelper $helper
+	 * @return void
+	 */
+	private function useDefaultMainpageWithRootPage( $spaceIdPrefixMap, $spaceIdHomepages, $helper ): void {
+		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $helper );
+		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
+
+		$expectedTitles = [
+			"TestNS:32973/Main_Page",
+			"TestNS:32973/Roadmap",
+			"TestNS:32973/Roadmap/Detailed_planning",
+			"TestNS_NoMain_Page:Dokumentation",
+			"TestNS_NoMain_Page:Dokumentation/Roadmap",
+		];
+
+		$this->assertEquals( $expectedTitles, $actualTitles );
+	}
+
+	/**
+	 * @param array $spaceIdPrefixMap
+	 * @param array $spaceIdHomepages
+	 * @param XMLHelper $helper
+	 * @param string $customMainpage
+	 * @return void
+	 */
+	private function useCustomMainpageWithRootPage( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage ): void {
+		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage );
+		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
+
+		$expectedTitles = [
+			"TestNS:32973/$customMainpage",
+			"TestNS:32973/Roadmap",
+			"TestNS:32973/Roadmap/Detailed_planning",
 			"TestNS_NoMain_Page:Dokumentation",
 			"TestNS_NoMain_Page:Dokumentation/Roadmap",
 		];

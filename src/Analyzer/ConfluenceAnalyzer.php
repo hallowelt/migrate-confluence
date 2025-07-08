@@ -8,7 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as MigrationTitleBuilder;
+use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
@@ -375,8 +375,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			 * "Detailed_planning" -> "Dokumentation/Detailed_planning"
 			 */
 			$this->pageConfluenceTitle = $this->helper->getPropertyValue( 'title', $pageNode );
-			$migrationTitleBuilder = new MigrationTitleBuilder( [] );
-			$this->pageConfluenceTitle = $migrationTitleBuilder
+			$genericTitleBuilder = new GenericTitleBuilder( [] );
+			$this->pageConfluenceTitle = $genericTitleBuilder
 				->appendTitleSegment( $this->pageConfluenceTitle )->build();
 			// We need to preserve the spaceID, so we can properly resolve cross-space links
 			// in the `convert` stage
@@ -782,7 +782,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$newUsername = ucfirst( strtolower( $newUsername ) );
 
 		// A MW username must always be avalid page title
-		$titleBuilder = new MigrationTitleBuilder( [] );
+		$titleBuilder = new GenericTitleBuilder( [] );
 		$titleBuilder->appendTitleSegment( $newUsername );
 
 		return $titleBuilder->build();

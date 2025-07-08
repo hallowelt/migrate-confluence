@@ -147,7 +147,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		if ( isset( $this->config['config']['mainpage'] ) ) {
-			$this->mainpage = $this->advancedConfig['mainpage'];
+			$this->mainpage = $this->config['config']['mainpage'];
 		}
 
 		$bodyContentId = $this->getBodyContentIdFromFilename();
@@ -804,8 +804,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$prefix = $spaceIdPrefixMap[$this->currentSpace];
 		$currentPageTitle = $this->currentPageTitle;
 
-		if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
-			$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
+		if ( substr( $currentPageTitle, 0, strlen( $prefix ) ) === $prefix ) {
+			$currentPageTitle = str_replace( $prefix, '', $currentPageTitle );
 		}
 
 		return $currentPageTitle;
