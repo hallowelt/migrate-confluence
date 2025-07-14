@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
 class StructuredMacroInclude extends StructuredMacroProcessorBase {
@@ -73,29 +74,20 @@ class StructuredMacroInclude extends StructuredMacroProcessorBase {
 			return;
 		}
 		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );
-		$confluencePageKey = $this->currentSpaceId . '---' . $targetPageName;
+		$confluencePageKey = $this->generatePageConfluenceKey( $this->currentSpaceId, $targetPageName );
 		$this->mediaWikiPageName = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
 	}
 
 	/**
-	 *
-	 * @param DOMNode $macro
-	 * @return array
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return string
 	 */
-	private function getMacroParams( $macro ): array {
-		$params = [];
-		foreach ( $macro->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter' ) {
-				$paramName = $childNode->getAttribute( 'ac:name' );
-
-				if ( $paramName === '' ) {
-					continue;
-				}
-
-				$params[$paramName] = $childNode->nodeValue;
-			}
-		}
-
-		return $params;
+	private function generatePageConfluenceKey( int $spaceId, string $rawPageTitle ): string {
+		$genericTitleBuilder = new GenericTitleBuilder( [] );
+			$rawPageTitle = $genericTitleBuilder
+				->appendTitleSegment( $rawPageTitle )->build();
+			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
+		return "$spaceId---$rawPageTitle";
 	}
 }
