@@ -52,6 +52,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroToc;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroViewFile;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\Widget;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use SplFileInfo;
@@ -266,7 +267,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroViewFile(
 				$this->dataLookup, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat
-			)
+			),
+			new Widget()
 		];
 
 		/** @var IProcessor $processor */
@@ -401,7 +403,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'toc',
 				'view-file',
 				'warning',
-				'jira'
+				'jira',
+				'widget'
 			]
 		) ) {
 			return;
@@ -415,8 +418,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
 			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
-		} elseif ( $sMacroName === 'widget' ) {
-			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
 		} else {
 			// TODO: 'calendar', 'contributors', 'anchor',
 			// 'navitabs', 'include', 'listlabels', 'content-report-table'
@@ -642,27 +643,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$replacementNode = $imageProcessor->makeImageLink( $dom, [ "{$oNameParam->nodeValue}.png" ] );
 			$replacement = $replacementNode->ownerDocument->saveXML( $replacementNode );
 		}
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processWidgetMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$oParamEls = $xpath->query( './ac:parameter', $match );
-		$params = [
-			'url' => ''
-		];
-		foreach ( $oParamEls as $oParamEl ) {
-			$params[$oParamEl->getAttribute( 'ac:name' )] = $oParamEl->nodeValue;
-		}
-		$oContainer = $dom->createElement( 'div', $params['url'] );
-		$oContainer->setAttribute( 'class', "ac-widget" );
-		$oContainer->setAttribute( 'data-params', json_encode( $params ) );
-		$match->parentNode->insertBefore( $oContainer, $match );
 	}
 
 	/**
