@@ -75,10 +75,10 @@ class PageLink extends LinkProcessorBase {
 	 */
 	private function generatePageConfluenceKey( int $spaceId, string $rawPageTitle ): string {
 		$genericTitleBuilder = new GenericTitleBuilder( [] );
-			$rawPageTitle = $genericTitleBuilder
-				->appendTitleSegment( $rawPageTitle )->build();
-			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
-		return "$spaceId---$rawPageTitle";
+			$pageConfluenceTitle = $genericTitleBuilder
+				->appendTitleSegment( $this->rawPageTitle )->build();
+			$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
+		return "$spaceId---$pageConfluenceTitle";
 	}
 
 	/**
@@ -87,10 +87,6 @@ class PageLink extends LinkProcessorBase {
 	 * @return string
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-			$genericTitleBuilder = new GenericTitleBuilder( [] );
-			$rawPageTitle = $genericTitleBuilder
-				->appendTitleSegment( $rawPageTitle )->build();
-			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
 		return "Confluence---$spaceId---$rawPageTitle";
 	}
 
