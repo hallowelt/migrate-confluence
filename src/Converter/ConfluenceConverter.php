@@ -401,6 +401,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'toc',
 				'view-file',
 				'warning',
+				'jira'
 			]
 		) ) {
 			return;
