@@ -52,7 +52,7 @@ class FilenameBuilder {
 		if ( empty( $title ) ) {
 			$title = $this->helper->getPropertyValue( 'title', $attachmentNode );
 		}
-		$this->builder->appendTitleSegment( $title );
+		$this->builder->appendTitleSegment( "-{$title}" );
 		if ( !empty( $assocTitle ) ) {
 			$assocTitle = str_replace( '/', '_', $assocTitle );
 			// Unset potential namespace prefix to avoid duplications
