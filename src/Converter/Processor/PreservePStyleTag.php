@@ -10,7 +10,7 @@ class PreservePStyleTag implements IProcessor {
 
 	/**
 	 * Pandoc removes p tags with style
-	 * 
+	 *
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
@@ -27,7 +27,7 @@ class PreservePStyleTag implements IProcessor {
 
 			$attributes = [];
 			$attributeMap = $tag->attributes;
-			for ( $index = 0; $index < count( $attributeMap ); $index ++ ) {
+			for ( $index = 0; $index < count( $attributeMap ); $index++ ) {
 				$name = $attributeMap->item( $index )->nodeName;
 				$value = $attributeMap->item( $index )->nodeValue;
 				$attributes[$name] = "{$name}=\"{$value}\"";
@@ -50,6 +50,5 @@ class PreservePStyleTag implements IProcessor {
 			$tag->prepend( $openingTagReplacement );
 			$tag->append( $closeingTagReplacement );
 		}
-
 	}
 }

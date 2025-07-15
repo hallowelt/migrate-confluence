@@ -3,9 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\Widget;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 class WidgetTest extends TestCase {

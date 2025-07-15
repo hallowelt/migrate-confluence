@@ -53,7 +53,7 @@ class Widget extends StructuredMacroProcessorBase {
 
 			$name = $attrName->nodeValue;
 
-			$value = $this->getParamValue( $childNode, 'ri:url');
+			$value = $this->getParamValue( $childNode, 'ri:url' );
 
 			$params[$name] = $value;
 		}
@@ -98,7 +98,7 @@ class Widget extends StructuredMacroProcessorBase {
 		$childNodes = $node->childNodes;
 
 		if ( $childNodes->count() > 0 ) {
-			for( $index = 0; $index < $childNodes->count(); $index++ ) {
+			for ( $index = 0; $index < $childNodes->count(); $index++ ) {
 				$child = $childNodes->item( $index );
 				$attrName = $this->getAttribute( $child, 'ri:value' );
 				if ( !$attrName ) {
@@ -108,7 +108,7 @@ class Widget extends StructuredMacroProcessorBase {
 				$value = $attrName->nodeValue;
 			}
 		}
-		
+
 		if ( $value === '' ) {
 			$value = $node->nodeValue;
 		}
