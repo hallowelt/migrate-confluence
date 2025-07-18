@@ -89,15 +89,27 @@ class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 	private function makeParamsString( array $params ): string {
 		$paramsString = '';
 
+		$spaceId = $this->currentSpaceId;
+		$rawPageTitle = basename( $this->rawPageTitle );
+
 		if ( isset( $params['name'] ) && $params['name'] !== '' ) {
 			$name = $params['name'];
-			if ( strtolower( substr( $name, strlen( $name ) - 4 ) ) !== '.png' ) {
+
+			$extension = strtolower( substr( $name, strlen( $name ) - 4 ) );
+			if ( $extension !== '.png' && $extension !== '.svg' ) {
 				$name .= '.png';
 			}
-			$spaceId = $this->currentSpaceId;
-			$rawPageTitle = basename( $this->rawPageTitle );
+
 			$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $name );
 			$filename = $this->getFilename( $confluenceFileKey );
+			if ( $filename === '' ) {
+				// Fallback
+				$name = $params['name'];
+				$name .= '.PNG';
+				$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $name );
+				$filename = $this->getFilename( $confluenceFileKey );
+			}
+
 			if ( $filename !== '' ) {
 				$params['name'] = $filename;
 				$this->dataBuckets->addData( 'gliffy-map', $confluenceFileKey, $filename, true, true );
