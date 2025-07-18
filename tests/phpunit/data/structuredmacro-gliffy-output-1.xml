@@ -9,4 +9,9 @@
 |name=SomePage_gliffy-file-2.png
 |pagePin=5
 }}
+
+	{{Gliffy|displayName=gliffy-file-2
+|name=SomePage_gliffy-file-2.svg
+|pagePin=5
+}}
 </xml>

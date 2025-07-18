@@ -87,33 +87,34 @@ class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 	 * @return string
 	 */
 	private function makeParamsString( array $params ): string {
-		$paramsString = '';
-
-		$spaceId = $this->currentSpaceId;
-		$rawPageTitle = basename( $this->rawPageTitle );
-
 		if ( isset( $params['name'] ) && $params['name'] !== '' ) {
 			$name = $params['name'];
 
-			$extension = strtolower( substr( $name, strlen( $name ) - 4 ) );
-			if ( $extension !== '.png' && $extension !== '.svg' ) {
-				$name .= '.png';
+			$extension = substr( $name, strlen( $name ) - 4 );
+			if ( strtolower( $extension ) !== '.png' && strtolower( $extension ) !== '.svg' ) {
+				$key = $this->getConfluenceKey( $name, '.png' );
+			} else {
+				$key = $this->getConfluenceKey( $name );
 			}
+			$filename = $this->getFilename( $key );
 
-			$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $name );
-			$filename = $this->getFilename( $confluenceFileKey );
 			if ( $filename === '' ) {
-				// Fallback
-				$name = $params['name'];
-				$name .= '.PNG';
-				$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $name );
-				$filename = $this->getFilename( $confluenceFileKey );
+				$fallbackExtensions = [ '.PNG', '.svg', '.png' ];
+				foreach ( $fallbackExtensions as $ext ) {
+					$key = $this->getConfluenceKey( $name, $ext );
+					$filename = $this->getFilename( $key );
+
+					if ( $filename === '' ) {
+						break;
+					}
+				}
 			}
 
 			if ( $filename !== '' ) {
 				$params['name'] = $filename;
-				$this->dataBuckets->addData( 'gliffy-map', $confluenceFileKey, $filename, true, true );
 			}
+
+			$this->dataBuckets->addData( 'gliffy-map', $key, $filename, true, true );
 		} else {
 			return '';
 		}
@@ -122,6 +123,7 @@ class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 			unset( $params['macroId'] );
 		}
 
+		$paramsString = '';
 		foreach ( $params as $key => $value ) {
 			$paramsString .= "|$key=$value\n";
 		}
@@ -130,7 +132,6 @@ class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 *
 	 * @param DOMNode $macro
 	 * @return array
 	 */
@@ -139,7 +140,6 @@ class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
-
 				if ( $paramName === '' ) {
 					continue;
 				}
@@ -149,6 +149,18 @@ class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 		}
 
 		return $params;
+	}
+
+	/**
+	 * @param string $name
+	 * @param string $extension
+	 * @return string
+	 */
+	private function getConfluenceKey( string $name, string $extension = '' ): string {
+		$spaceId = $this->currentSpaceId;
+		$rawPageTitle = basename( $this->rawPageTitle );
+		$name .= $extension;
+		return "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $name );
 	}
 
 	/**

@@ -12,4 +12,11 @@
 		<ac:parameter ac:name="name">gliffy-file-2</ac:parameter>
 		<ac:parameter ac:name="pagePin">5</ac:parameter>
 	</ac:structured-macro>
+
+	<ac:structured-macro ac:name="gliffy" ac:schema-version="1" ac:macro-id="12345">
+		<ac:parameter ac:name="macroId">12345</ac:parameter>
+		<ac:parameter ac:name="displayName">gliffy-file-2</ac:parameter>
+		<ac:parameter ac:name="name">gliffy-file-2.svg</ac:parameter>
+		<ac:parameter ac:name="pagePin">5</ac:parameter>
+	</ac:structured-macro>
 </xml>
