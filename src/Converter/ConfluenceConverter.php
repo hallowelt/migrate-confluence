@@ -69,6 +69,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/** @var DataBuckets */
 	private $dataBuckets = null;
 
+	/** @var DataBuckets */
+	private $customBuckets = null;
+
 	/** @var ConversionDataLookup */
 	private $dataLookup = null;
 
@@ -127,6 +130,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
+
+		$this->customBuckets = new DataBuckets( [
+			'title-uploads',
+			'title-uploads-fail'
+		] );
 	}
 
 	/**
@@ -209,6 +217,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->postProcessLinks();
 		$this->postprocessWikiText();
 
+		$this->customBuckets->saveToWorkspace( $this->workspace );
+
 		return $this->wikiText;
 	}
 
@@ -263,7 +273,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			),
 			new StructuredMacroGliffy(
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
-				$currentPageTitle, $this->dataBuckets, $this->nsFileRepoCompat
+				$currentPageTitle, $this->customBuckets, $this->nsFileRepoCompat
 			),
 			new StructuredMacroContenByLabel( $this->currentPageTitle ),
 			new StructuredMacroAttachments(),

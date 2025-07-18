@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
-use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 
 class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 
@@ -42,13 +41,13 @@ class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 	/**
 	 * @param ConversionDataLookup $dataLookup
 	 * @param ConversionDataWriter $conversionDataWriter
-	 * @param integer $currentSpaceId
+	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param DataBuckets $dataBuckets
-	 * @param boolean $nsFileRepoCompat
+	 * @param DataBuckets &$dataBuckets
+	 * @param bool $nsFileRepoCompat
 	 */
 	public function __construct( ConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
-		int $currentSpaceId, string $rawPageTitle,  DataBuckets &$dataBuckets, bool $nsFileRepoCompat = false ) {
+		int $currentSpaceId, string $rawPageTitle, DataBuckets &$dataBuckets, bool $nsFileRepoCompat = false ) {
 		$this->dataLookup = $dataLookup;
 		$this->conversionDataWriter = $conversionDataWriter;
 		$this->currentSpaceId = $currentSpaceId;
@@ -92,13 +91,16 @@ class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 
 		if ( isset( $params['name'] ) && $params['name'] !== '' ) {
 			$name = $params['name'];
-			if ( strtolower( substr( $name, strlen( $name ) - 4 ) )  !== '.png' ) {
+			if ( strtolower( substr( $name, strlen( $name ) - 4 ) ) !== '.png' ) {
 				$name .= '.png';
 			}
-			$filename = $this->getFilename( $name );
+			$spaceId = $this->currentSpaceId;
+			$rawPageTitle = basename( $this->rawPageTitle );
+			$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $name );
+			$filename = $this->getFilename( $confluenceFileKey );
 			if ( $filename !== '' ) {
 				$params['name'] = $filename;
-				$this->dataBuckets->addData( 'gliffy-map', $params['name'], $filename, true, true );
+				$this->dataBuckets->addData( 'gliffy-map', $confluenceFileKey, $filename, true, true );
 			}
 		} else {
 			return '';
@@ -138,20 +140,10 @@ class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param string $diagramName
+	 * @param string $confluenceFileKey
 	 * @return string
 	 */
-	private function getFilename( string $diagramName ): string {
-		$spaceId = $this->currentSpaceId;
-		$rawPageTitle = basename( $this->rawPageTitle );
-
-
-		// TODO get correct key !!
-
-
-
-		
-		$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $diagramName );
+	private function getFilename( string $confluenceFileKey ): string {
 		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 		if ( $this->nsFileRepoCompat ) {
 			$filenameParts = explode( '_', $filename );

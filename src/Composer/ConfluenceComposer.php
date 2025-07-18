@@ -20,6 +20,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	private $dataBuckets;
 
 	/**
+	 * @var DataBuckets
+	 */
+	private $customBuckets;
+
+	/**
 	 * @var Output
 	 */
 	private $output = null;

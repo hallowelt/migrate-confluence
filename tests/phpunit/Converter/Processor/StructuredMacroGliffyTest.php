@@ -51,12 +51,12 @@ class StructuredMacroGliffyTest extends TestCase {
 		$this->conversionDataWriter = new ConversionDataWriter( [] );
 
 		/** SpaceId GENERAL */
-		#$this->doTest( 0, false, 'structuredmacro-gliffy-input.xml', 'structuredmacro-gliffy-output-1.xml' );
-		#$this->doTest( 0, true, 'structuredmacro-gliffy-input.xml', 'structuredmacro-gliffy-output-1.xml' );
+		$this->doTest( 0, false, 'structuredmacro-gliffy-input.xml', 'structuredmacro-gliffy-output-1.xml' );
+		$this->doTest( 0, true, 'structuredmacro-gliffy-input.xml', 'structuredmacro-gliffy-output-1.xml' );
 
 		/** Random SpaceId */
 		$this->doTest( 23, false, 'structuredmacro-gliffy-input.xml', 'structuredmacro-gliffy-output-2.xml' );
-		#$this->doTest( 23, true, 'structuredmacro-gliffy-input.xml', 'structuredmacro-gliffy-output-3.xml' );
+		$this->doTest( 23, true, 'structuredmacro-gliffy-input.xml', 'structuredmacro-gliffy-output-3.xml' );
 	}
 
 	private function doTest( $spaceId, $nsFileRepoCompat, $input, $output ) {
@@ -73,8 +73,5 @@ class StructuredMacroGliffyTest extends TestCase {
 		$actualOutput = $dom->saveXML();
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
-
-		// TODO: Add unittest for bucket
-		//var_dump( $dataBuckets->getBucketData( 'gliffy-map' ) );
 	}
 }
