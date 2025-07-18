@@ -44,6 +44,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroContenByLabel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawio;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroExcerptInclude;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroGliffy;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroInclude;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroJira;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroNoFormat;
@@ -121,7 +122,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'attachment-orig-filename-target-filename-map',
 			'files',
 			'userkey-to-username-map',
-			'space-description-id-to-body-id-map'
+			'space-description-id-to-body-id-map',
+			'gliffy-map'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
@@ -258,6 +260,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroDrawio(
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat
+			),
+			new StructuredMacroGliffy(
+				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
+				$currentPageTitle, $this->dataBuckets, $this->nsFileRepoCompat
 			),
 			new StructuredMacroContenByLabel( $this->currentPageTitle ),
 			new StructuredMacroAttachments(),
@@ -408,15 +414,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'view-file',
 				'warning',
 				'jira',
-				'widget'
+				'widget',
+				'gliffy'
 			]
 		) ) {
 			return;
 		}
 
-		if ( $sMacroName === 'gliffy' ) {
-			$this->processGliffyMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'localtabgroup' || $sMacroName === 'localtab' ) {
+		if ( $sMacroName === 'localtabgroup' || $sMacroName === 'localtab' ) {
 			$this->processLocalTabMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
 		} elseif ( $sMacroName === 'excerpt' ) {
 			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
@@ -627,25 +632,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			);
 			$oContainer->setAttribute( 'class', "ac-$sMacroName" );
 			$match->parentNode->insertBefore( $oContainer, $match );
-		}
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processGliffyMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
-		$currentPageTitle = $this->getCurrentPageTitle();
-		if ( !empty( $oNameParam->nodeValue ) ) {
-			$imageProcessor = new Image(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
-			);
-			$replacementNode = $imageProcessor->makeImageLink( $dom, [ "{$oNameParam->nodeValue}.png" ] );
-			$replacement = $replacementNode->ownerDocument->saveXML( $replacementNode );
 		}
 	}
 

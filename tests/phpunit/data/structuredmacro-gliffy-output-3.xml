@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="some" xmlns:ri="thing">
+	{{Gliffy|displayName=gliffy-file-1.png
+|name=DEVOPS:SomePage_gliffy-file-1.png
+|pagePin=5
+}}
+
+	{{Gliffy|displayName=gliffy-file-2
+|name=DEVOPS:SomePage_gliffy-file-2.png
+|pagePin=5
+}}
+</xml>

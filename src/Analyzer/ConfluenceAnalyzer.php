@@ -576,18 +576,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$file = new SplFileInfo( $targetName );
 		if ( $this->hasNoExplicitFileExtension( $file ) ) {
 			$contentType = $this->helper->getPropertyValue( 'contentType', $attachment );
-			if ( $contentType === 'application/gliffy+json' ) {
-				$targetName .= '.json';
-			} elseif ( $contentType === 'application/gliffy+xml' ) {
-				$targetName .= '.xml';
-			} else {
-				$this->logger->debug(
-					"Could not find file extension for $fileName as "
-						. "{$attachment->getNodePath()}; "
-						. "contentType: $contentType"
-				);
-				$targetName .= '.unknown';
-			}
+			$this->logger->debug(
+				"Could not find file extension for $fileName as "
+					. "{$attachment->getNodePath()}; "
+					. "contentType: $contentType"
+			);
+			$targetName .= '.unknown';
 		}
 
 		$fileKey = "{$this->pageConfluenceTitle}---$fileName";
