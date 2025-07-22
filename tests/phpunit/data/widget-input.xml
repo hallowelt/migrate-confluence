@@ -1,0 +1,11 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="widget" ac:schema-version="1" ac:macro-id="1">
+		<ac:parameter ac:name="url">
+			<ri:url ri:value="https://www.example.com/1" />
+		</ac:parameter>
+	</ac:structured-macro>
+
+	<ac:structured-macro ac:name="widget" ac:schema-version="1" ac:macro-id="2">
+		<ac:parameter ac:name="url">https://www.example.com/2</ac:parameter>
+	</ac:structured-macro>
+</xml>

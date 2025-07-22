@@ -8,7 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as MigrationTitleBuilder;
+use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
@@ -219,7 +219,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			if ( $this->hasAdvancedConfig && isset( $this->advancedConfig['space-prefix'][$spaceKey] ) ) {
 				$customSpacePrefix = $this->advancedConfig['space-prefix'][$spaceKey];
 			} else {
-				$customSpacePrefix = $spaceKey;
+				$customSpacePrefix = "{$spaceKey}:";
 			}
 
 			$this->customBuckets->addData(
@@ -375,8 +375,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			 * "Detailed_planning" -> "Dokumentation/Detailed_planning"
 			 */
 			$this->pageConfluenceTitle = $this->helper->getPropertyValue( 'title', $pageNode );
-			$migrationTitleBuilder = new MigrationTitleBuilder( [] );
-			$this->pageConfluenceTitle = $migrationTitleBuilder
+			$genericTitleBuilder = new GenericTitleBuilder( [] );
+			$this->pageConfluenceTitle = $genericTitleBuilder
 				->appendTitleSegment( $this->pageConfluenceTitle )->build();
 			// We need to preserve the spaceID, so we can properly resolve cross-space links
 			// in the `convert` stage
@@ -576,18 +576,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$file = new SplFileInfo( $targetName );
 		if ( $this->hasNoExplicitFileExtension( $file ) ) {
 			$contentType = $this->helper->getPropertyValue( 'contentType', $attachment );
-			if ( $contentType === 'application/gliffy+json' ) {
-				$targetName .= '.json';
-			} elseif ( $contentType === 'application/gliffy+xml' ) {
-				$targetName .= '.xml';
-			} else {
-				$this->logger->debug(
-					"Could not find file extension for $fileName as "
-						. "{$attachment->getNodePath()}; "
-						. "contentType: $contentType"
-				);
-				$targetName .= '.unknown';
-			}
+			$this->logger->debug(
+				"Could not find file extension for $fileName as "
+					. "{$attachment->getNodePath()}; "
+					. "contentType: $contentType"
+			);
+			$targetName .= '.unknown';
 		}
 
 		$fileKey = "{$this->pageConfluenceTitle}---$fileName";
@@ -782,7 +776,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$newUsername = ucfirst( strtolower( $newUsername ) );
 
 		// A MW username must always be avalid page title
-		$titleBuilder = new MigrationTitleBuilder( [] );
+		$titleBuilder = new GenericTitleBuilder( [] );
 		$titleBuilder->appendTitleSegment( $newUsername );
 
 		return $titleBuilder->build();

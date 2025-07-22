@@ -14,6 +14,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreStructuredMacroTasksReport;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
@@ -34,6 +35,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\MacroAlign;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveStructuredMacroTasksReport;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroAttachments;
@@ -42,6 +44,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroContenByLabel;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawio;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroExcerptInclude;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroGliffy;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroInclude;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroJira;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroNoFormat;
@@ -52,6 +55,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroToc;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroViewFile;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\Widget;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use SplFileInfo;
@@ -64,6 +68,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	/** @var DataBuckets */
 	private $dataBuckets = null;
+
+	/** @var DataBuckets */
+	private $customBuckets = null;
 
 	/** @var ConversionDataLookup */
 	private $dataLookup = null;
@@ -118,10 +125,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'attachment-orig-filename-target-filename-map',
 			'files',
 			'userkey-to-username-map',
-			'space-description-id-to-body-id-map'
+			'space-description-id-to-body-id-map',
+			'gliffy-map'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
+
+		$this->customBuckets = new DataBuckets( [
+			'title-uploads',
+			'title-uploads-fail'
+		] );
 	}
 
 	/**
@@ -147,7 +160,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		if ( isset( $this->config['config']['mainpage'] ) ) {
-			$this->mainpage = $this->advancedConfig['mainpage'];
+			$this->mainpage = $this->config['config']['mainpage'];
 		}
 
 		$bodyContentId = $this->getBodyContentIdFromFilename();
@@ -204,6 +217,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->postProcessLinks();
 		$this->postprocessWikiText();
 
+		$this->customBuckets->saveToWorkspace( $this->workspace );
+
 		return $this->wikiText;
 	}
 
@@ -256,6 +271,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat
 			),
+			new StructuredMacroGliffy(
+				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
+				$currentPageTitle, $this->customBuckets, $this->nsFileRepoCompat
+			),
 			new StructuredMacroContenByLabel( $this->currentPageTitle ),
 			new StructuredMacroAttachments(),
 			new ExpandMacro(),
@@ -266,7 +285,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new StructuredMacroViewFile(
 				$this->dataLookup, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat
-			)
+			),
+			new Widget(),
+			new PreservePStyleTag()
 		];
 
 		/** @var IProcessor $processor */
@@ -281,6 +302,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function runPostProcessors() {
 		$postProcessors = [
+			new RestorePStyleTag(),
 			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
@@ -401,21 +423,20 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'toc',
 				'view-file',
 				'warning',
+				'jira',
+				'widget',
+				'gliffy'
 			]
 		) ) {
 			return;
 		}
 
-		if ( $sMacroName === 'gliffy' ) {
-			$this->processGliffyMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'localtabgroup' || $sMacroName === 'localtab' ) {
+		if ( $sMacroName === 'localtabgroup' || $sMacroName === 'localtab' ) {
 			$this->processLocalTabMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
 		} elseif ( $sMacroName === 'excerpt' ) {
 			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
 			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
-		} elseif ( $sMacroName === 'widget' ) {
-			$this->processWidgetMacro( $sender, $match, $dom, $xpath, $replacement );
 		} else {
 			// TODO: 'calendar', 'contributors', 'anchor',
 			// 'navitabs', 'include', 'listlabels', 'content-report-table'
@@ -625,46 +646,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processGliffyMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
-		$currentPageTitle = $this->getCurrentPageTitle();
-		if ( !empty( $oNameParam->nodeValue ) ) {
-			$imageProcessor = new Image(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
-			);
-			$replacementNode = $imageProcessor->makeImageLink( $dom, [ "{$oNameParam->nodeValue}.png" ] );
-			$replacement = $replacementNode->ownerDocument->saveXML( $replacementNode );
-		}
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processWidgetMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$oParamEls = $xpath->query( './ac:parameter', $match );
-		$params = [
-			'url' => ''
-		];
-		foreach ( $oParamEls as $oParamEl ) {
-			$params[$oParamEl->getAttribute( 'ac:name' )] = $oParamEl->nodeValue;
-		}
-		$oContainer = $dom->createElement( 'div', $params['url'] );
-		$oContainer->setAttribute( 'class', "ac-widget" );
-		$oContainer->setAttribute( 'data-params', json_encode( $params ) );
-		$match->parentNode->insertBefore( $oContainer, $match );
-	}
-
-	/**
 	 *
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
@@ -804,8 +785,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$prefix = $spaceIdPrefixMap[$this->currentSpace];
 		$currentPageTitle = $this->currentPageTitle;
 
-		if ( substr( $currentPageTitle, 0, strlen( "$prefix:" ) ) === "$prefix:" ) {
-			$currentPageTitle = str_replace( "$prefix:", '', $currentPageTitle );
+		if ( substr( $currentPageTitle, 0, strlen( $prefix ) ) === $prefix ) {
+			$currentPageTitle = str_replace( $prefix, '', $currentPageTitle );
 		}
 
 		return $currentPageTitle;

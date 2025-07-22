@@ -23,19 +23,22 @@ class PageLinkTest extends TestCase {
 			$currentSpaceId = 42;
 			$currentRawPagename = 'SomePage';
 			$dataLookup = new ConversionDataLookup(
+				// space-id-to-prefix-map
 				[
 					0 => '',
 					42 => 'ABC',
 					23 => 'DEVOPS'
 				],
+				// pages-titles-map
 				[
-					'42---Page Title' => 'ABC:Page_Title',
-					'42---Page Title2' => 'ABC:Page_Title2',
-					'42---Page Title3' => 'ABC:Page_Title3',
-					'42---Page Title5' => 'ABC:Test/Page_Title5',
-					'23---Page Title3' => 'DEVOPS:Page_Title3',
-					'0---Page Title6' => 'Page_Title6',
-					'0---Page Title7' => 'Test/Page_Title7',
+					'42---Page_Title' => 'ABC:Page_Title',
+					'42---Page_Title2' => 'ABC:Page_Title2',
+					'42---Page_Title3' => 'ABC:Page_Title3',
+					'42---Page_Title5' => 'ABC:Test/Page_Title5',
+					'23---Page_Title3' => 'DEVOPS:Page_Title3',
+					'23---Page_Title3,_Test' => 'DEVOPS:Page_Title3/Test',
+					'0---Page_Title6' => 'Page_Title6',
+					'0---Page_Title7' => 'Test/Page_Title7',
 				],
 				[],
 				[],

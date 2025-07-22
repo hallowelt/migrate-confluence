@@ -22,7 +22,7 @@
 		"psr/log": "~1.1",
 		"hallowelt/mediawiki-lib-mediawikixml": "~1",
 		"hallowelt/mediawiki-lib-commandline-tools": "~1",
-		"hallowelt/mediawiki-lib-migration": "~1",
+		"hallowelt/mediawiki-lib-migration": "~2",
 		"hallowelt/mediawiki-lib-wikitext": "~1",
 		"ext-dom": "*",
 		"symfony/yaml": "~4"

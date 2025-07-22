@@ -23,7 +23,7 @@ class StructuredMacroJira extends StructuredMacroProcessorBase {
 		$wikitextTemplate->setRenderFormatted( false );
 		$node->parentNode->replaceChild(
 			$node->ownerDocument->createTextNode(
-				(string)$wikitextTemplate
+				$wikitextTemplate->render()
 			),
 			$node
 		);
