@@ -29,6 +29,9 @@ $config = [
 		],
 		'convert' => [
 			'factory' => 'HalloWelt\MigrateConfluence\Command\Convert::factory'
+		],
+		'compose' => [
+			'factory' => 'HalloWelt\MigrateConfluence\Command\Compose::factory'
 		]
 	]
 ];

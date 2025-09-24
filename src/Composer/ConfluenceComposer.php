@@ -29,6 +29,9 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	 */
 	private $output = null;
 
+	/** @var array */
+	private $advancedConfig = [];
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -53,6 +56,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
+
+		if ( isset( $this->config['config'] ) ) {
+			$this->advancedConfig = $this->config['config'];
+		}
 	}
 
 	/**
@@ -130,6 +137,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 				}
 			}
 
+			$namespace = $this->getNamespace( $pageTitle );
+			if ( isset( $this->advancedConfig['skipNamespace'][$namespace] ) ) {
+				$this->output->writeln( "Page {$pageTitle} skipped by configuration 'skipNamespace' ($namespace)" );
+				continue;
+			}
 			$builder->addRevision( $pageTitle, $pageContent, $timestamp );
 
 			// Append attachments
@@ -161,6 +173,18 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			}
 		}
 		$this->customBuckets->saveToWorkspace( $this->workspace );
+	}
+
+	/**
+	 * @param string $title
+	 * @return string
+	 */
+	private function getNamespace( string $title ): string {
+		$collonPos = strpos( $title, ':' );
+		if ( !$collonPos ) {
+			return '';
+		}
+		return substr( $title, 0, $collonPos );
 	}
 
 	/**

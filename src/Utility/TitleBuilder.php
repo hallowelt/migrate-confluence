@@ -52,13 +52,17 @@ class TitleBuilder {
 	private $mainpage = '';
 
 	/**
-	 *
 	 * @param array $spaceIdPrefixMap
 	 * @param array $spaceIdHomepages
+	 * @param array $pageIdParentPageIdMap
+	 * @param array $pageIConfluenceTitledMap
 	 * @param XMLHelper $helper
 	 * @param string $mainpage
 	 */
-	public function __construct( $spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIConfluenceTitledMap, $helper, $mainpage = 'Main_Page' ) {
+	public function __construct(
+		array $spaceIdPrefixMap, array $spaceIdHomepages, array $pageIdParentPageIdMap,
+		array $pageIConfluenceTitledMap, XMLHelper $helper, string $mainpage = 'Main_Page'
+	) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdHomepages = $spaceIdHomepages;
 		$this->pageIdParentPageIdMap = $pageIdParentPageIdMap;

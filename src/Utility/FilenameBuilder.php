@@ -36,7 +36,7 @@ class FilenameBuilder {
 	}
 
 	/**
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @param string $originalFilename
 	 * @param string $assocTitle
 	 * @return string
