@@ -113,7 +113,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		parent::__construct( $config, $workspace );
 
 		$this->dataBuckets = new DataBuckets( [
-			'pages-ids-to-titles-map',
+			'page-id-to-title-map',
 			'pages-titles-map',
 			'title-attachments',
 			'body-contents-to-pages-map',
@@ -173,7 +173,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 		$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
 
-		$pagesIdsToTitlesMap = $this->dataBuckets->getBucketData( 'pages-ids-to-titles-map' );
+		$pagesIdsToTitlesMap = $this->dataBuckets->getBucketData( 'page-id-to-title-map' );
 		if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
 			$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
 		} else {

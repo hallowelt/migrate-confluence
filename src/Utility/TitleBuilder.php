@@ -31,6 +31,16 @@ class TitleBuilder {
 	private $spaceIdHomepages = [];
 
 	/**
+	 * @var array
+	 */
+	private $pageIdParentPageIdMap = [];
+
+	/**
+	 * @var array
+	 */
+	private $pageIConfluenceTitledMap = [];
+
+	/**
 	 *
 	 * @var int
 	 */
@@ -48,9 +58,11 @@ class TitleBuilder {
 	 * @param XMLHelper $helper
 	 * @param string $mainpage
 	 */
-	public function __construct( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $mainpage = 'Main_Page' ) {
+	public function __construct( $spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIConfluenceTitledMap, $helper, $mainpage = 'Main_Page' ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdHomepages = $spaceIdHomepages;
+		$this->pageIdParentPageIdMap = $pageIdParentPageIdMap;
+		$this->pageIConfluenceTitledMap = $pageIConfluenceTitledMap;
 		$this->helper = $helper;
 		$this->mainpage = $mainpage;
 	}
@@ -119,14 +131,16 @@ class TitleBuilder {
 			$parentPageId = null;
 		}
 
-		while ( is_int( $parentPageId ) ) {
-			$parentPage = $this->helper->getObjectNodeById( $parentPageId, 'Page' );
-			$parentTitle = $this->helper->getPropertyValue( 'title', $parentPage );
+		if ( !is_int( $parentPageId ) ) {
+			return $titles;
+		}
+
+		while ( isset( $this->pageIdParentPageIdMap[$parentPageId] ) ) {
+			$parentTitle = $this->pageIConfluenceTitledMap[$parentPageId];
 
 			$titles[] = $parentTitle;
 
-			$parentPageId = $this->helper->getPropertyValue( 'parent', $parentPage );
-
+			$parentPageId = $this->pageIdParentPageIdMap[$parentPageId];
 			if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
 				$parentPageId = null;
 			}
