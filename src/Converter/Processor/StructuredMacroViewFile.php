@@ -109,7 +109,7 @@ class StructuredMacroViewFile extends StructuredMacroProcessorBase {
 		$spaceId = $this->currentSpaceId;
 		$rawPageTitle = basename( $this->rawPageTitle );
 
-		$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $name );
+		$confluenceFileKey = str_replace( ' ', '_', "$spaceId---$rawPageTitle---" . $name );
 		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 
 		if ( $this->nsFileRepoCompat && $this->currentSpaceId !== 0 ) {

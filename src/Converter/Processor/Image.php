@@ -237,10 +237,6 @@ class Image implements IProcessor {
 
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 		$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
-		var_dump( __METHOD__ );
-			var_dump( $filename );
-			var_dump( $confluenceFileKey );
-			var_dump( $targetFilename );
 		array_unshift( $params, $targetFilename );
 		$replacementNode = $this->makeImageLinkWithDebugInfo( $node->ownerDocument, $params, $confluenceFileKey );
 
@@ -279,10 +275,6 @@ class Image implements IProcessor {
 		$rawPageTitle = basename( $rawPageTitle );
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 		$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
-		var_dump( __METHOD__ );
-			var_dump( $filename );
-			var_dump( $confluenceFileKey );
-			var_dump( $targetFilename );
 		array_unshift( $params, $targetFilename );
 
 		$linkBody = $node->parentNode;

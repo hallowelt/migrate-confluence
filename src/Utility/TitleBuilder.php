@@ -126,26 +126,34 @@ class TitleBuilder {
 	 * @return array
 	 */
 	private function addParentTitles( $pageNode ) {
+		$pageId = $this->helper->getIDNodeValue( $pageNode );
 		$title = $this->helper->getPropertyValue( 'title', $pageNode );
 
-		$titles = [ $title ];
+		$titles = [];
+		if ( $pageId === $this->currentTitlesSpaceHomePageId ) {
+				$title[] = $this->mainpage;
+		} else {
+			$titles[] = $title;
+		}
 
-		$parentPageId = $this->helper->getPropertyValue( 'parent', $pageNode );
-		if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
+		if ( isset( $this->pageIdParentPageIdMap[$pageId] ) ) {
+			$parentPageId = $this->pageIdParentPageIdMap[$pageId];
+		} else {
 			$parentPageId = null;
 		}
 
-		if ( !is_int( $parentPageId ) ) {
-			return $titles;
-		}
-
-		while ( isset( $this->pageIdParentPageIdMap[$parentPageId] ) ) {
-			$parentTitle = $this->pageIConfluenceTitledMap[$parentPageId];
+		while ( $parentPageId !== null ) {
+			if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
+				break;
+			} else {
+				$parentTitle = $this->pageIConfluenceTitledMap[$parentPageId];
+			}
 
 			$titles[] = $parentTitle;
 
-			$parentPageId = $this->pageIdParentPageIdMap[$parentPageId];
-			if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
+			if ( isset( $this->pageIdParentPageIdMap[$parentPageId] ) ) {
+				$parentPageId = $this->pageIdParentPageIdMap[$parentPageId];
+			} else {
 				$parentPageId = null;
 			}
 		}

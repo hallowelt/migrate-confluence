@@ -120,7 +120,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'additional-files',
 			'attachment-orig-filename-target-filename-map',
 			'attachment-id-to-target-filename-map',
-			'attachment-confluence-file-key-to-target-filename-map',
+			'filenames-to-filetitles-map',
 
 			'debug-attachment-id-to-target-filename',
 			'debug-missing-attachment-id-to-filename',
@@ -761,7 +761,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 			$confluenceFileKey = str_replace( ' ', '_', "{$spaceId}---{$confluenceTitle}---{$attachmentOrigFilename}" );
 			$this->customBuckets->addData(
-				'attachment-confluence-file-key-to-target-filename-map',
+				'filenames-to-filetitles-map',
 				$confluenceFileKey,
 				$attachmentTargetFilename,
 				false,
@@ -868,7 +868,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$confluenceFileKey = str_replace( ' ', '',  "{$confluenceKey}---{$attachmentOrigFilename}" );
 		$this->customBuckets->addData(
-			'attachment-confluence-file-key-to-target-filename-map',
+			'filenames-to-filetitles-map',
 			$confluenceFileKey,
 			$attachmentTargetFilename,
 			false,

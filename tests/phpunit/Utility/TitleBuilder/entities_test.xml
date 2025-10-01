@@ -4,7 +4,7 @@
 
     <!-- "Dokumentation" page -->
     <object class="Page" package="com.atlassian.confluence.pages">
-        <id name="id">32974</id>
+        <id name="id">32974567</id>
         <property name="hibernateVersion">35</property>
         <property name="title"><![CDATA[Dokumentation]]></property>
         <property name="lowerTitle"><![CDATA[dokumentation]]></property>
@@ -208,7 +208,7 @@
         <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">32973</id>
         </property>
         <property name="position">692580904</property>
-        <property name="parent" class="Page" package="com.atlassian.confluence.pages"><id name="id">32974</id>
+        <property name="parent" class="Page" package="com.atlassian.confluence.pages"><id name="id">32974567</id>
         </property>
         <collection name="children" class="java.util.Collection">
             <element class="Page" package="com.atlassian.confluence.pages"><id name="id">262231</id>
