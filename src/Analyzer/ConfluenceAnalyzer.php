@@ -55,7 +55,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private $output = null;
 
 	/**
-	 *
+	 * @var array
+	 */
+	private $availableAttachmentIds = [];
+
+	/**
 	 * @var array
 	 */
 	private $addedAttachmentIds = [];
@@ -105,13 +109,24 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'attachment-id-to-orig-filename-map',
 			'attachment-id-to-space-id-map',
 			'attachment-id-to-reference-map',
+			'attachment-id-to-container-content-id-map',
+			'attachment-id-to-content-status-map',
 			'userkey-to-username-map',
 			'pages-titles-map',
 			'page-id-to-confluence-key-map',
 			'page-id-to-title-map',
 			'page-id-to-space-id',
 			'title-files',
+			'additional-files',
 			'attachment-orig-filename-target-filename-map',
+			'attachment-id-to-target-filename-map',
+			'attachment-confluence-file-key-to-target-filename-map',
+
+			'debug-attachment-id-to-target-filename',
+			'debug-missing-attachment-id-to-filename',
+			'debug-attachment-page-to-attachment-id',
+			'debug-fallback-attachment-id-to-target-filename',
+			'debug-additional-attachment-id-to-target-filename',
 		] );
 
 		$this->logger = new NullLogger();
@@ -268,31 +283,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 			$read = $xmlReader->next();
 		}
-		$xmlReader->close();
-
-		// Process additional attachments
-		$xmlReader->open( $file->getPathname() );
-		$read = $xmlReader->read();
-		while ( $read ) {
-			if ( $xmlReader->name !== 'object' ) {
-				// Usually all root nodes should be objects.
-				$read = $xmlReader->read();
-				continue;
-			}
-
-			$nodeXML = $xmlReader->readOuterXml();
-
-			$objectDom = new DOMDocument();
-			$objectDom->loadXML( $nodeXML );
-
-			$class = $xmlReader->getAttribute( 'class' );
-			if ( $class === 'Attachment' ) {
-				$this->buildAdditionalFilesMap( $objectDom );
-			}
-
-			$read = $xmlReader->next();
-		}
-
 		$xmlReader->close();
 
 		return true;
@@ -457,7 +447,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 		$pageNode = $pages->item( 0 );
 		if ( $pageNode instanceof DOMElement === false ) {
-			$this->output->writeln( __LINE__ );
 			return;
 		}
 		$status = $xmlHelper->getPropertyValue( 'contentStatus', $pageNode );
@@ -470,7 +459,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 		$originalVersionID = $xmlHelper->getPropertyValue( 'originalVersion', $pageNode );
 		if ( $originalVersionID !== null ) {
-			$this->output->writeln( __LINE__ );
 			return;
 		}
 
@@ -503,9 +491,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		$bodyContentId = $xmlHelper->getIDNodeValue( $bodyContentObject );
-		$contentPageId = $xmlHelper->getPropertyValue( 'content', $bodyContentObject );
+		$pageId = $xmlHelper->getPropertyValue( 'content', $bodyContentObject );
 		$this->customBuckets->addData( 'body-content-id-to-page-id-map',
-			$bodyContentId,	$contentPageId,	false, true );
+			$bodyContentId,	$pageId,	false, true );
 	}
 
 	/**
@@ -525,6 +513,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		$attachmentId = $xmlHelper->getIDNodeValue( $attachmentNode );
+		if ( $attachmentId < 0 ) {
+			return;
+		}
+		$this->availableAttachmentIds[] = $attachmentId;
+
 		$attachmentFilename = $xmlHelper->getPropertyValue( 'fileName', $attachmentNode );
 		if ( $attachmentFilename === null ) {
 			$attachmentFilename = $xmlHelper->getPropertyValue( 'title', $attachmentNode );
@@ -544,6 +537,17 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$this->customBuckets->addData(
 				'attachment-id-to-reference-map', $attachmentId, $attachmentReference, false, true );
 		}
+		$containerContent = $xmlHelper->getPropertyNode( 'containerContent', $attachmentNode );
+		if ( $containerContent instanceof DOMElement ) {
+			$containerContentId = $xmlHelper->getIDNodeValue( $containerContent );
+			if ( $containerContentId >= 0 ) {
+				$this->customBuckets->addData(
+					'attachment-id-to-container-content-id-map', $attachmentId, $containerContentId, false, true );
+			}
+		}
+		$attachmentNodeContentStatus = $xmlHelper->getPropertyValue( 'contentStatus', $attachmentNode );
+		$this->customBuckets->addData(
+			'attachment-id-to-content-status-map', $attachmentId, $attachmentNodeContentStatus, false, true );
 	}
 
 	/**
@@ -604,9 +608,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$pageIdParentPageIdMap = $this->customBuckets->getBucketData( 'page-id-to-parent-page-id-map' );
 		$pageIdConfluendTitleMap = $this->customBuckets->getBucketData( 'page-id-to-confluence-title-map' );
 		$bodyContents = $this->customBuckets->getBucketData( 'body-content-id-to-page-id-map' );
-		$attachmentIdToOrigFilenameMap = $this->customBuckets->getBucketData( 'attachment-id-to-orig-filename-map' );
-		$attachmentIdToReferenceMap = $this->customBuckets->getBucketData( 'attachment-id-to-reference-map' );
-		$attachmentIdToSpaceIdMap = $this->customBuckets->getBucketData( 'attachment-id-to-space-id-map' );
 
 		$xmlHelper = new XMLHelper( $dom );
 
@@ -640,7 +641,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		);
 		try {
 			$targetTitle = $titleBuilder->buildTitle( $pageNode );
-			$this->output->writeln( $targetTitle );
 		} catch ( InvalidTitleException $ex ) {
 			$this->buckets->addData( 'title-invalids', $pageId, $ex->getInvalidTitle() );
 			return;
@@ -702,48 +702,77 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$this->addTitleRevision( $targetTitle, implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp" );
 
+		// Find attachments
+
+		$this->getAttachmentsFromCollection( $xmlHelper, $pageNode, $spaceId );
+	}
+
+	/**
+	 * @param XMLHelper $xmlHelper
+	 * @param DOMElement $element
+	 * @param int $spaceId
+	 * @return void
+	 */
+	private function getAttachmentsFromCollection( XMLHelper $xmlHelper, DOMElement $element, int $spaceId ): void {
+		$pageIdConflueTitleMap = $this->customBuckets->getBucketData( 'page-id-to-confluence-title-map' );
+		$pageIdConfluenKeyMap = $this->customBuckets->getBucketData( 'page-id-to-confluence-key-map' );
+		$pagesTitlesMap = $this->customBuckets->getBucketData( 'pages-titles-map' );
+		$spaceIdToPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
+		$attachmentIdToOrigFilenameMap = $this->customBuckets->getBucketData( 'attachment-id-to-orig-filename-map' );
+		$attachmentIdToSpaceIdMap = $this->customBuckets->getBucketData( 'attachment-id-to-space-id-map' );
+		$attachmentIdToReferenceMap = $this->customBuckets->getBucketData( 'attachment-id-to-reference-map' );
+
+		$pageId = $xmlHelper->getIDNodeValue( $element );
+		$confluenceTitle = $pageIdConflueTitleMap[$pageId];
+		$confluenceKey = $pageIdConfluenKeyMap[$pageId];
+		$wikiTitle = $pagesTitlesMap[$confluenceKey];
+
 		// In case of ERM34465 this seems to be empty because
 		// title-attachments and debug-missing-attachment-id-to-filename are empty
-		$attachmentRefs = $xmlHelper->getElementsFromCollection( 'attachments', $pageNode );
+		$attachmentRefs = $xmlHelper->getElementsFromCollection( 'attachments', $element );
 		foreach ( $attachmentRefs as $attachmentRef ) {
 			$attachmentId = $xmlHelper->getIDNodeValue( $attachmentRef );
+			if ( in_array( $attachmentId, $this->addedAttachmentIds ) ) {
+				continue;
+			}
 			if ( !isset( $attachmentIdToOrigFilenameMap[$attachmentId] ) ) {
 				continue;
 			}
 			$attachmentOrigFilename = $attachmentIdToOrigFilenameMap[$attachmentId];
-
 			if ( isset( $attachmentIdToSpaceIdMap[$attachmentId] ) ) {
 				$attachmentSpaceId = $attachmentIdToSpaceIdMap[$attachmentId];
 			} else {
 				$attachmentSpaceId = $spaceId;
 			}
-
 			$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
-				$pageConfluenceTitle, $attachmentId, $attachmentSpaceId,
-				$attachmentOrigFilename, $targetTitle, $spaceIdToPrefixMap
+				$confluenceTitle, $attachmentId, $attachmentSpaceId,
+				$attachmentOrigFilename, $wikiTitle, $spaceIdToPrefixMap
 			);
-
 			if ( !isset( $attachmentIdToReferenceMap[$attachmentId] ) ) {
-				$this->output->writeln(
-					//phpcs:ignore Generic.Files.LineLength.TooLong
-					"\033[31m\t- File '$attachmentId' ($attachmentTargetFilename) not found\033[39m"
-				);
-				$this->customBuckets->addData(
-					'debug-missing-attachment-id-to-filename',
-					$attachmentId,
-					$attachmentTargetFilename,
-					false,
-					true
-				);
 				continue;
 			}
 			$attachmentReference = $attachmentIdToReferenceMap[$attachmentId];
 
 			// In case of ERM34465 no files are added to title-attachments
-			$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
+			$this->addTitleAttachment( $wikiTitle, $attachmentTargetFilename );
 			$this->addFile( $attachmentTargetFilename, $attachmentReference );
-			$this->customBuckets->addData( 'title-files', $targetTitle, $attachmentTargetFilename, false, true );
-			$this->addedAttachmentIds[$attachmentId] = true;
+			$this->customBuckets->addData( 'title-files', $wikiTitle, $attachmentTargetFilename, false, true );
+			$this->addedAttachmentIds[] = $attachmentId;
+
+			$confluenceFileKey = str_replace( ' ', '_', "{$spaceId}---{$confluenceTitle}---{$attachmentOrigFilename}" );
+			$this->customBuckets->addData(
+				'attachment-confluence-file-key-to-target-filename-map',
+				$confluenceFileKey,
+				$attachmentTargetFilename,
+				false,
+				true
+			);
+
+			$this->customBuckets->addData(
+				'attachment-id-to-target-filename-map',
+				$attachmentId,
+				$attachmentTargetFilename
+			);
 
 			$this->customBuckets->addData(
 				'attachment-orig-filename-target-filename-map',
@@ -763,7 +792,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$attachmentIdToReferenceMap = $this->customBuckets->getBucketData( 'attachment-id-to-reference-map' );
 		$attachmentIdToSpaceIdMap = $this->customBuckets->getBucketData( 'attachment-id-to-space-id-map' );
 		$pageIdToTitleMap = $this->customBuckets->getBucketData( 'page-id-to-title-map' );
-		$titleAttachmentsMap = $this->buckets->getBucketData( 'title-attachments' );
+		$pageIdToConfluenceKey = $this->customBuckets->getBucketData( 'page-id-to-confluence-key-map' );
 
 		$xmlHelper = new XMLHelper( $dom );
 
@@ -775,137 +804,88 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		if ( $attachmentNode instanceof DOMElement === false ) {
 			return;
 		}
-		if ( !empty( $titleAttachmentsMap ) ) {
+		$attachmentNodeContentStatus = $xmlHelper->getPropertyValue( 'contentStatus', $attachmentNode );
+		if ( strtolower( $attachmentNodeContentStatus ) !== 'current' ) {
 			return;
 		}
 		$attachmentId = $xmlHelper->getIDNodeValue( $attachmentNode );
-		$containerContent = $xmlHelper->getPropertyNode( 'containerContent', $attachmentNode );
-		$containerContentId = $xmlHelper->getIDNodeValue( $containerContent );
-
-		if ( !isset( $pageIdToTitleMap[$containerContentId] ) ) {
-			$targetTitle = '';
-		} else {
-			$targetTitle = $pageIdToTitleMap[$containerContentId];
+		if ( in_array( $attachmentId, $this->addedAttachmentIds ) ) {
+			return;
 		}
-		$attachmentNodeContentStatus = $xmlHelper->getPropertyValue( 'contentStatus', $attachmentNode );
-		if ( strtolower( $attachmentNodeContentStatus ) !== 'current' ) {
+		if ( !in_array( $attachmentId, $this->availableAttachmentIds ) ) {
 			return;
 		}
 		if ( !isset( $attachmentIdToOrigFilenameMap[$attachmentId] ) ) {
 			return;
 		}
 		$attachmentOrigFilename = $attachmentIdToOrigFilenameMap[$attachmentId];
+
+		// Check to which page attachment belongs
+		$targetTitle = '';
+		$confluenceKey = '';
+		$containerContentId = $xmlHelper->getPropertyValue( 'containerContent', $attachmentNode );
+		if ( $containerContentId !== null ) {
+			if ( isset( $pageIdToTitleMap[$containerContentId] ) ) {
+				$targetTitle = $pageIdToTitleMap[$containerContentId];
+			}
+			if ( isset( $pageIdToConfluenceKey[$containerContentId] ) ) {
+				$confluenceKey = $pageIdToConfluenceKey[$containerContentId];
+			} else {
+				return;
+			}
+		}
+		// TODO: Is this wise?
+		$attachmentSpaceId = 0;
 		if ( isset( $attachmentIdToSpaceIdMap[$attachmentId] ) ) {
 			$attachmentSpaceId = $attachmentIdToSpaceIdMap[$attachmentId];
-		} else {
-			// TODO: Is this wise?
-			$attachmentSpaceId = 0;
-		}
-
-		$confluenceKey = '';
-		if ( isset( $pageIdToConfluenceKey[$containerContentId] ) ) {
-			$confluenceKey = $pageIdToConfluenceKey[$containerContentId];
 		}
 		$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
 			$confluenceKey, $attachmentId, $attachmentSpaceId, $attachmentOrigFilename,
 			$targetTitle, $spaceIdPrefixMap
 		);
+
 		if ( !isset( $attachmentIdToReferenceMap[$attachmentId] ) ) {
 			$this->output->writeln(
 				//phpcs:ignore Generic.Files.LineLength.TooLong
 				"\033[31m\t- File '$attachmentId' ($attachmentTargetFilename) not found\033[39m"
 			);
-			$this->customBuckets->addData(
-				'debug-missing-attachment-id-to-filename',
-				$attachmentId,
-				$attachmentTargetFilename,
-				false,
-				true
-			);
 			return;
 		}
+
 		$attachmentReference = $attachmentIdToReferenceMap[$attachmentId];
-		$this->output->writeln( "Add attachment $attachmentTargetFilename (fallback)" );
-		$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
+
+		if ( $confluenceKey !== '' ) {
+			$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
+			$this->output->writeln( "Add attachment $attachmentTargetFilename (fallback: {$confluenceKey})" );
+		} else {
+			$this->customBuckets->addData(
+				'additional-files', $attachmentTargetFilename, $attachmentReference, false, true );
+			$this->output->writeln( "Add attachment $attachmentTargetFilename (additional)" );
+		}
+
 		$this->addFile( $attachmentTargetFilename, $attachmentReference );
-		$this->addedAttachmentIds[$attachmentId] = true;
+		$this->addedAttachmentIds[] = $attachmentId;
+
+		$confluenceFileKey = str_replace( ' ', '',  "{$confluenceKey}---{$attachmentOrigFilename}" );
+		$this->customBuckets->addData(
+			'attachment-confluence-file-key-to-target-filename-map',
+			$confluenceFileKey,
+			$attachmentTargetFilename,
+			false,
+			true
+		);
+
+		$this->customBuckets->addData(
+			'attachment-id-to-target-filename-map',
+			$attachmentId,
+			$attachmentTargetFilename
+		);
 
 		$this->customBuckets->addData(
 			'attachment-orig-filename-target-filename-map',
 			$attachmentOrigFilename,
 			$attachmentTargetFilename
 		);
-	}
-
-	/**
-	 * @param DOMDocument $dom
-	 * @return void
-	 */
-	private function buildAdditionalFilesMap( DOMDocument $dom ) {
-		$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
-		$attachmentIdToReferenceMap = $this->customBuckets->getBucketData( 'attachment-id-to-reference-map' );
-		$attachmentIdToSpaceIdMap = $this->customBuckets->getBucketData( 'attachment-id-to-space-id-map' );
-
-		$xmlHelper = new XMLHelper( $dom );
-
-		$attachments = $xmlHelper->getObjectNodes( 'Attachment' );
-		foreach ( $attachments as $attachment ) {
-			if ( $attachment instanceof DOMElement === false ) {
-				continue;
-			}
-			$originalVersionID = $xmlHelper->getPropertyValue( 'originalVersion', $attachment );
-
-			// Skip legacy versions
-			if ( $originalVersionID !== null ) {
-				continue;
-			}
-
-			$sourceContentID = $xmlHelper->getPropertyValue( 'sourceContent', $attachment );
-			if ( !empty( $sourceContentID ) ) {
-				// This has already been added as a page attachment
-				continue;
-			}
-
-			$attachmentId = $xmlHelper->getIDNodeValue( $attachment );
-			if ( isset( $this->addedAttachmentIds[$attachmentId] ) ) {
-				// This has already been added as a page attachment
-				continue;
-			}
-
-			if ( !isset( $attachmentIdToOrigFilenameMap[$attachmentId] ) ) {
-				continue;
-			}
-			$attachmentOrigFilename = $attachmentIdToOrigFilenameMap[$attachmentId];
-
-			$attachmetFilenameMap = $this->customBuckets->getBucketData(
-				'attachment-orig-filename-target-filename-map' );
-			if ( isset( $attachmetFilenameMap[$attachmentOrigFilename] ) ) {
-				continue;
-			}
-
-			if ( isset( $attachmentIdToSpaceIdMap[$attachmentId] ) ) {
-				$attachmentSpaceId = $attachmentIdToSpaceIdMap[$attachmentId];
-			} else {
-				// TODO: Is this wise?
-				$attachmentSpaceId = 0;
-			}
-
-			if ( !isset( $attachmentIdToReferenceMap[$attachmentId] ) ) {
-				continue;
-			}
-			$attachmentReference = $attachmentIdToReferenceMap[$attachmentId];
-			$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
-				'', $attachmentId, $attachmentSpaceId, $attachmentOrigFilename, '', $spaceIdPrefixMap );
-			$this->output->writeln( "- '$attachmentTargetFilename'" );
-			$this->addFile( $attachmentTargetFilename, $attachmentReference );
-			$this->customBuckets->addData(
-				'debug-additional-files', $attachmentTargetFilename, $attachmentReference, false, true );
-			$this->customBuckets->addData(
-				'attachment-orig-filename-target-filename-map', $attachmentOrigFilename, $attachmentTargetFilename );
-			$this->addedAttachmentIds[$attachmentId] = true;
-
-			$this->output->writeln( "\nAdd additional file $attachmentTargetFilename" );
-		}
 	}
 
 	/**

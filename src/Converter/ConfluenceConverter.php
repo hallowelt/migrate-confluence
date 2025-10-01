@@ -126,7 +126,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'files',
 			'userkey-to-username-map',
 			'space-description-id-to-body-id-map',
-			'gliffy-map'
+			'gliffy-map',
+			'attachment-confluence-file-key-to-target-filename-map'
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );

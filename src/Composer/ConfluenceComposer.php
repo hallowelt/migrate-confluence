@@ -47,7 +47,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			'body-contents-to-pages-map',
 			'title-attachments',
 			'title-revisions',
-			'files'
+			'files',
+			'additional-files'
 		] );
 
 		$this->customBuckets = new DataBuckets( [
@@ -87,6 +88,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		$pagesRevisions = $this->dataBuckets->getBucketData( 'title-revisions' );
 		$filesMap = $this->dataBuckets->getBucketData( 'files' );
 		$pageAttachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
+
+		$additionalFiles = $this->dataBuckets->getBucketData( 'additional-files' );
 
 		$bodyContentIDMainpageID = [];
 		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );
@@ -172,6 +175,12 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 				}
 			}
 		}
+
+		foreach ( $additionalFiles as $filename => $path ) {
+			$attachmentContent = file_get_contents( $path );
+			$this->workspace->saveUploadFile( $filename, $attachmentContent );
+		}
+
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 	}
 
