@@ -89,8 +89,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		$filesMap = $this->dataBuckets->getBucketData( 'files' );
 		$pageAttachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
 
-		$additionalFiles = $this->dataBuckets->getBucketData( 'additional-files' );
-
 		$bodyContentIDMainpageID = [];
 		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );
 		foreach ( $spaceIDHomepagesMap as $spaceID => $homepageID ) {
@@ -141,7 +139,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			}
 
 			$namespace = $this->getNamespace( $pageTitle );
-			if ( isset( $this->advancedConfig['skipNamespace'][$namespace] ) ) {
+			if ( isset( $this->advancedConfig['skip-namespace'][$namespace] ) ) {
 				$this->output->writeln( "Page {$pageTitle} skipped by configuration 'skipNamespace' ($namespace)" );
 				continue;
 			}
@@ -174,11 +172,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 					}
 				}
 			}
-		}
-
-		foreach ( $additionalFiles as $filename => $path ) {
-			$attachmentContent = file_get_contents( $path );
-			$this->workspace->saveUploadFile( $filename, $attachmentContent );
 		}
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
