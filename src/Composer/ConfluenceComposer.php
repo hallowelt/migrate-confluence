@@ -58,8 +58,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
 
-		if ( isset( $this->config['config'] ) ) {
-			$this->advancedConfig = $this->config['config'];
+		if ( isset( $config['config'] ) ) {
+			$this->advancedConfig = $config['config'];
 		}
 	}
 
@@ -139,8 +139,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			}
 
 			$namespace = $this->getNamespace( $pageTitle );
-			if ( isset( $this->advancedConfig['skip-namespace'][$namespace] ) ) {
-				$this->output->writeln( "Page {$pageTitle} skipped by configuration 'skipNamespace' ($namespace)" );
+			if ( in_array( $namespace, $this->advancedConfig['skip-namespace'] ) ) {
+				$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
 				continue;
 			}
 			$builder->addRevision( $pageTitle, $pageContent, $timestamp );

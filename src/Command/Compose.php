@@ -42,9 +42,9 @@ class Compose extends CommandCompose {
 	/**
 	 * @return bool
 	 */
-	protected function doProcessFile(): bool {
+	protected function processFiles() {
 		$this->readConfigFile( $this->config );
-		return parent::doProcessFile();
+		parent::processFiles();
 	}
 
 	/**
