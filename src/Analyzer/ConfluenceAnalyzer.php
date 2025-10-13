@@ -116,6 +116,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'page-id-to-confluence-key-map',
 			'page-id-to-title-map',
 			'page-id-to-space-id',
+			'body-contents-to-pages-map',
 			'title-files',
 			'additional-files',
 			'attachment-orig-filename-target-filename-map',
