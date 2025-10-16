@@ -139,7 +139,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			}
 
 			$namespace = $this->getNamespace( $pageTitle );
-			if ( in_array( $namespace, $this->advancedConfig['skip-namespace'] ) ) {
+			if (
+				isset( $this->advancedConfig['skip-namespace'] ) 
+				&& in_array( $namespace, $this->advancedConfig['skip-namespace'] )
+			) {
 				$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
 				continue;
 			}
