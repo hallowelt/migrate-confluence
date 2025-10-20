@@ -123,6 +123,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'attachment-id-to-target-filename-map',
 			'filenames-to-filetitles-map',
 
+			'invalid-titles',
+			'invalid-namespaces',
+
 			'debug-attachment-id-to-target-filename',
 			'debug-missing-attachment-id-to-filename',
 			'debug-attachment-page-to-attachment-id',
@@ -187,6 +190,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
+
+		$this->checkTitles();
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 		return $result;
@@ -647,6 +652,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return;
 		}
 
+		if ( $targetTitle === '' ) {
+			$this->buckets->addData( 'title-invalids', $pageId, $targetTitle );
+			return;
+		}
+
 		$this->output->writeln( "Add page '$targetTitle' (ID:$pageId)" );
 
 		/**
@@ -1046,5 +1056,89 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		return $path;
+	}
+
+	private function checkTitles(): void {
+		$spacePrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
+		$pagesTitlesMap = $this->customBuckets->getBucketData( 'pages-titles-map' );
+
+		$hasInvalidTitles = false;
+		$hasInvalidNamespaces = false;
+		foreach ( $pagesTitlesMap as $key => $title ) {
+			if ( str_ends_with( 'title', '_' ) ) {
+				$this->customBuckets->addData(
+					'invalid-titles',
+					'invalid_ending', $title,
+					true, true
+				);
+				$hasInvalidTitles = true;
+			}
+			if ( str_contains( $title, ':' ) ) {
+				if ( strpos( $title, ':' ) !== strrpos( $title, ':' ) ) {
+					$this->customBuckets->addData(
+						'invalid-titles',
+						'multiple_collons', $title,
+						true, true
+					);
+					$hasInvalidTitles = true;
+				}
+				$namespace = substr( $title, 0, strpos( $title, ':' ) );
+				$text = substr( $title, strpos( $title, ':' ) + 1 );
+
+				if ( !in_array( $namespace, $spacePrefixMap ) ) {
+					$this->customBuckets->addData(
+						'invalid-namespaces',
+						'unknown', $namespace,
+						true, true
+					);
+					$hasInvalidNamespaces = true;
+				}
+
+				$matches = [];
+				preg_match( '#(\d*)([a-zA-Z0-9_]*)#', $namespace, $matches );
+				if ( empty( $matches ) || $matches[1] !== '' ) {
+					$this->customBuckets->addData(
+						'invalid-namespaces',
+						'invalid_char', $namespace,
+						true, true
+					);
+					$hasInvalidNamespaces = true;
+				}
+
+				if ( mb_strlen( $text ) > 255 ) {
+					$this->customBuckets->addData(
+						'invalid-titles',
+						'length', $title,
+						true, true
+					);
+					$hasInvalidTitles = true;
+				}
+			} else {
+				if ( mb_strlen( $title ) > 255 ) {
+					$this->customBuckets->addData(
+						'invalid-titles',
+						'length', $title,
+						true, true
+					);
+					$hasInvalidTitles = true;
+				}
+			}
+		}
+
+		if ( $hasInvalidNamespaces === true || $hasInvalidTitles === true ) {
+			$this->output->writeln( "\n\nWarning:\n" );
+
+			if ( $hasInvalidNamespaces === true ) {
+				$this->output->writeln( ' - Analyze process found invalid namespaces' );
+			}
+
+			if ( $hasInvalidTitles === true ) {
+				$this->output->writeln( ' - Analyze process found invalid titles' );
+			}
+
+			$this->output->writeln(
+				"\nPlease check invalid-namespaces.php and/or invalid-titles.php before continuing with extract step"
+			);
+		}
 	}
 }

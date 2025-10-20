@@ -95,6 +95,12 @@ class TitleBuilder {
 		$titles = $this->addParentTitles( $pageNode );
 
 		foreach ( $titles as $title ) {
+			$title = str_replace(
+				[ ':', '%', '?', '#', '<', '>', '+', '[', ']', '{', '}', '|' ],
+				'_',
+				$title
+			);
+			$title = str_replace( '__', '_', $title );
 			$this->builder->appendTitleSegment( $title );
 		}
 
