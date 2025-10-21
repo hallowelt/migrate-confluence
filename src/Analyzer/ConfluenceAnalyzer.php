@@ -1085,15 +1085,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$namespace = substr( $title, 0, strpos( $title, ':' ) );
 				$text = substr( $title, strpos( $title, ':' ) + 1 );
 
-				if ( !in_array( $namespace, $spacePrefixMap ) ) {
-					$this->customBuckets->addData(
-						'invalid-namespaces',
-						'unknown', $namespace,
-						true, true
-					);
-					$hasInvalidNamespaces = true;
-				}
-
 				$matches = [];
 				preg_match( '#(\d*)([a-zA-Z0-9_]*)#', $namespace, $matches );
 				if ( empty( $matches ) || $matches[1] !== '' ) {

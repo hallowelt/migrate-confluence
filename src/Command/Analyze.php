@@ -60,6 +60,8 @@ class Analyze extends CommandAnalyze {
 					$yaml = Yaml::parse( $content );
 					$config = array_merge( $config, $yaml );
 				} catch ( ParseException $e ) {
+					$this->output->writeln( 'Invalid config file provided' );
+					exit( true );
 				}
 			}
 		}
