@@ -58,9 +58,9 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 				// They will be restored in a "Postprocessor"
 				$praramString = " |$paramName = $paramValue";
 				if ( $this->addLinebreakInsideTemplate() ) {
-					$praramString .= '###BREAK###\n';
+					$praramString .= "###BREAK###\n";
 				}
-				$paramTextNode = $dom->createTextNode( "$praramString" );
+				$paramTextNode = $dom->createTextNode( $praramString );
 				$parentNode->insertBefore( $paramTextNode, $actualMacro );
 			}
 
@@ -75,9 +75,9 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 			if ( !empty( $richTextBodyEls ) ) {
 				$bodyString = " |body = ";
 				if ( $this->addLinebreakInsideTemplate() ) {
-					$bodyString .= '###BREAK###\n';
+					$bodyString .= "###BREAK###\n";
 				}
-				$wikitextTemplateEndTextNode = $dom->createTextNode( "$bodyString" );
+				$wikitextTemplateEndTextNode = $dom->createTextNode( $bodyString );
 				$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
 
 				foreach ( $richTextBodyEls as $richTextBodyEl ) {
@@ -96,9 +96,9 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 
 			$closeTemplate = "}}";
 			if ( $this->addLinebreakAfterTemplate() ) {
-				$closeTemplate .= "###BREAK###";
+				$closeTemplate .= "###BREAK###\n";
 			}
-			$wikitextTemplateEndTextNode = $dom->createTextNode( "$closeTemplate\n" );
+			$wikitextTemplateEndTextNode = $dom->createTextNode( "$closeTemplate" );
 			$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
 
 			$parentNode->removeChild( $actualMacro );
@@ -118,14 +118,14 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 	abstract protected function getWikiTextTemplateName(): string;
 
 	/**
-	 * @return boolean
+	 * @return bool
 	 */
 	protected function addLinebreakInsideTemplate(): bool {
 		return true;
 	}
 
 	/**
-	 * @return boolean
+	 * @return bool
 	 */
 	protected function addLinebreakAfterTemplate(): bool {
 		return true;

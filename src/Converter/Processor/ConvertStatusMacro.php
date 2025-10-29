@@ -25,14 +25,14 @@ class ConvertStatusMacro extends ConvertMacroToTemplateBase {
 	}
 
 	/**
-	 * @return boolean
+	 * @return bool
 	 */
 	protected function addLinebreakInsideTemplate(): bool {
 		return false;
 	}
 
 	/**
-	 * @return boolean
+	 * @return bool
 	 */
 	protected function addLinebreakAfterTemplate(): bool {
 		return false;
