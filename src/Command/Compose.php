@@ -50,7 +50,7 @@ class Compose extends CommandCompose {
 		parent::processFiles();
 
 		$executionTime = $executionTime->getHumanReadableExecutionTime();
-		$this->output( $executionTime );
+		$this->output->writeln( $executionTime );
 	}
 
 	/**

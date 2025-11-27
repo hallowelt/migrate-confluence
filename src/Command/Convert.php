@@ -47,7 +47,7 @@ class Convert extends CommandConvert {
 		$returnValue = parent::processFiles();
 
 		$executionTime = $executionTime->getHumanReadableExecutionTime();
-		$this->output( $executionTime );
+		$this->output->writeln( $executionTime );
 
 		return $returnValue;
 	}

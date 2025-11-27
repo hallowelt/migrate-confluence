@@ -57,7 +57,7 @@ class Extract extends CommandExtract {
 		$returnValue = parent::processFiles();
 
 		$executionTime = $executionTime->getHumanReadableExecutionTime();
-		$this->output( $executionTime );
+		$this->output->writeln( $executionTime );
 
 		return $returnValue;
 	}
