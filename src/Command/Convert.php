@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Command;
 
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
-use HalloWelt\MigrateConfluence\Utility\ExecutionTime;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -39,17 +38,6 @@ class Convert extends CommandConvert {
 	 */
 	public static function factory( $config ): Convert {
 		return new static( $config );
-	}
-
-	protected function processFiles() {
-		$executionTime = new ExecutionTime();
-
-		$returnValue = parent::processFiles();
-
-		$executionTime = $executionTime->getHumanReadableExecutionTime();
-		$this->output->writeln( $executionTime );
-
-		return $returnValue;
 	}
 
 	protected function doProcessFile(): bool {
