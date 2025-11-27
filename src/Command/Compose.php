@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Command;
 
 use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
+use HalloWelt\MigrateConfluence\Utility\ExecutionTime;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -43,8 +44,13 @@ class Compose extends CommandCompose {
 	 * @return bool
 	 */
 	protected function processFiles() {
+		$executionTime = new ExecutionTime();
+
 		$this->readConfigFile( $this->config );
 		parent::processFiles();
+
+		$executionTime = $executionTime->getHumanReadableExecutionTime();
+		$this->output( $executionTime );
 	}
 
 	/**

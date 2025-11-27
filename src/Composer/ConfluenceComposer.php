@@ -140,40 +140,40 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 
 			$namespace = $this->getNamespace( $pageTitle );
 			if (
-				isset( $this->advancedConfig['skip-namespace'] )
-				&& in_array( $namespace, $this->advancedConfig['skip-namespace'] )
+				isset( $this->advancedConfig['composer-include-namespace'] )
+				&& in_array( $namespace, $this->advancedConfig['composer-include-namespace'] )
 			) {
-				$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
-				continue;
-			}
-			$builder->addRevision( $pageTitle, $pageContent, $timestamp );
+				$builder->addRevision( $pageTitle, $pageContent, $timestamp );
 
-			// Append attachments
-			if ( !empty( $pageAttachmentsMap[$pageTitle] ) ) {
-				$this->output->writeln( "\nPage has attachments. Adding them...\n" );
+				// Append attachments
+				if ( !empty( $pageAttachmentsMap[$pageTitle] ) ) {
+					$this->output->writeln( "\nPage has attachments. Adding them...\n" );
 
-				$attachments = $pageAttachmentsMap[$pageTitle];
-				foreach ( $attachments as $attachment ) {
-					$this->output->writeln( "Attachment: $attachment" );
+					$attachments = $pageAttachmentsMap[$pageTitle];
+					foreach ( $attachments as $attachment ) {
+						$this->output->writeln( "Attachment: $attachment" );
 
-					$drawIoFileHandler = new DrawIOFileHandler();
+						$drawIoFileHandler = new DrawIOFileHandler();
 
-					// We do not need DrawIO data files in our wiki, just PNG image
-					if ( $drawIoFileHandler->isDrawIODataFile( $attachment ) ) {
-						continue;
-					}
+						// We do not need DrawIO data files in our wiki, just PNG image
+						if ( $drawIoFileHandler->isDrawIODataFile( $attachment ) ) {
+							continue;
+						}
 
-					if ( isset( $filesMap[$attachment] ) ) {
-						$filePath = $filesMap[$attachment][0];
-						$attachmentContent = file_get_contents( $filePath );
+						if ( isset( $filesMap[$attachment] ) ) {
+							$filePath = $filesMap[$attachment][0];
+							$attachmentContent = file_get_contents( $filePath );
 
-						$this->workspace->saveUploadFile( $attachment, $attachmentContent );
-						$this->customBuckets->addData( 'title-uploads', $pageTitle, $attachment );
-					} else {
-						$this->output->writeln( "Attachment file was not found!" );
-						$this->customBuckets->addData( 'title-uploads-fail', $pageTitle, $attachment );
+							$this->workspace->saveUploadFile( $attachment, $attachmentContent );
+							$this->customBuckets->addData( 'title-uploads', $pageTitle, $attachment );
+						} else {
+							$this->output->writeln( "Attachment file was not found!" );
+							$this->customBuckets->addData( 'title-uploads-fail', $pageTitle, $attachment );
+						}
 					}
 				}
+			} else {
+				$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
 			}
 		}
 
@@ -187,7 +187,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	private function getNamespace( string $title ): string {
 		$collonPos = strpos( $title, ':' );
 		if ( !$collonPos ) {
-			return '';
+			return 'NS_MAIN';
 		}
 		return substr( $title, 0, $collonPos );
 	}

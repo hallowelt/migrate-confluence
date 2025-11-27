@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Command;
 
 use HalloWelt\MediaWiki\Lib\Migration\Command\Extract as CommandExtract;
+use HalloWelt\MigrateConfluence\Utility\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -48,6 +49,17 @@ class Extract extends CommandExtract {
 	protected function beforeProcessFiles() {
 		$this->readConfigFile( $this->config );
 		parent::beforeProcessFiles();
+	}
+
+	protected function processFiles() {
+		$executionTime = new ExecutionTime();
+
+		$returnValue = parent::processFiles();
+
+		$executionTime = $executionTime->getHumanReadableExecutionTime();
+		$this->output( $executionTime );
+
+		return $returnValue;
 	}
 
 	/**

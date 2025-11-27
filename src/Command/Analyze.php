@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Command;
 
 use HalloWelt\MediaWiki\Lib\Migration\Command\Analyze as CommandAnalyze;
+use HalloWelt\MigrateConfluence\Utility\ExecutionTime;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -45,6 +46,17 @@ class Analyze extends CommandAnalyze {
 	protected function doProcessFile(): bool {
 		$this->readConfigFile( $this->config );
 		return parent::doProcessFile();
+	}
+
+	protected function processFiles() {
+		$executionTime = new ExecutionTime();
+
+		$returnValue = parent::processFiles();
+
+		$executionTime = $executionTime->getHumanReadableExecutionTime();
+		$this->output( $executionTime );
+
+		return $returnValue;
 	}
 
 	/**

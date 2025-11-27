@@ -634,6 +634,16 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		if ( $spaceId === null ) {
 			return;
 		}
+		if ( !isset( $spaceIdToPrefixMap[$spaceId] ) ) {
+			return;
+		}
+		$prefix = $spaceIdToPrefixMap[$spaceId];
+		if (
+			isset( $this->config['analyzer-include-spacekey'] )
+			&& !in_array( $prefix, $this->config['analyzer-include-spacekey'] )
+		) {
+			return;
+		}
 		$originalVersionID = $xmlHelper->getPropertyValue( 'originalVersion', $pageNode );
 		if ( $originalVersionID !== null ) {
 			return;
