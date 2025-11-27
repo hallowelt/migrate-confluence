@@ -155,6 +155,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		if ( isset( $this->advancedConfig['mainpage'] ) ) {
 			$this->mainpage = $this->advancedConfig['mainpage'];
 		}
+
+		if ( isset( $this->advancedConfig['analyzer-include-spacekey'] ) ) {
+			$analyzerIncludeSpacekey = $this->advancedConfig['analyzer-include-spacekey'];
+			$normalizedAnalyzerIncludeSpacekey = [];
+			foreach ( $analyzerIncludeSpacekey as $key ) {
+				$normalizedAnalyzerIncludeSpacekey[] = strtolower( $key );
+			}
+			$this->advancedConfig['analyzer-include-spacekey'] = $normalizedAnalyzerIncludeSpacekey;
+		}
 	}
 
 	/**
@@ -639,8 +648,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 		$prefix = $spaceIdToPrefixMap[$spaceId];
 		if (
-			isset( $this->config['analyzer-include-spacekey'] )
-			&& !in_array( $prefix, $this->config['analyzer-include-spacekey'] )
+			isset( $this->advancedConfig['analyzer-include-spacekey'] )
+			&& !in_array( strtolower( $prefix ), $this->advancedConfig['analyzer-include-spacekey'] )
 		) {
 			return;
 		}
@@ -1106,7 +1115,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 					$hasInvalidNamespaces = true;
 				}
 
-				if ( mb_strlen( $text ) > 255 ) {
+				if ( mb_strlen( urlencode( $text ) ) > 255 ) {
 					$this->customBuckets->addData(
 						'invalid-titles',
 						'length', $title,
@@ -1115,7 +1124,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 					$hasInvalidTitles = true;
 				}
 			} else {
-				if ( mb_strlen( $title ) > 255 ) {
+				if ( mb_strlen( urlencode( $title ) ) > 255 ) {
 					$this->customBuckets->addData(
 						'invalid-titles',
 						'length', $title,
