@@ -23,4 +23,18 @@ class ConvertStatusMacro extends ConvertMacroToTemplateBase {
 	protected function getWikiTextTemplateName(): string {
 		return 'Status';
 	}
+
+	/**
+	 * @return bool
+	 */
+	protected function addLinebreakInsideTemplate(): bool {
+		return false;
+	}
+
+	/**
+	 * @return bool
+	 */
+	protected function addLinebreakAfterTemplate(): bool {
+		return false;
+	}
 }

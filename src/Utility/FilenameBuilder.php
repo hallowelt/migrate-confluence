@@ -36,6 +36,32 @@ class FilenameBuilder {
 	}
 
 	/**
+	 * @param int $spaceId
+	 * @param string $originalFilename
+	 * @param string $assocTitle
+	 * @return string
+	 */
+	public function buildFromAttachmentData( int $spaceId, string $originalFilename, string $assocTitle ): string {
+		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
+		$this->builder->setNamespace( $spaceId );
+
+		if ( !empty( $assocTitle ) ) {
+			$assocTitle = str_replace( '/', '_', $assocTitle );
+			// Unset potential namespace prefix to avoid duplications
+			$this->builder->setNamespace( 0 );
+			$this->builder->appendTitleSegment( "-{$originalFilename}" );
+			$this->builder->appendTitleSegment( $assocTitle );
+		} else {
+			$this->builder->appendTitleSegment( "{$originalFilename}" );
+		}
+		$builtTitle = $this->builder->invertTitleSegments()->build();
+
+		$filename = new WindowsFilename( $builtTitle );
+
+		return (string)$filename;
+	}
+
+	/**
 	 *
 	 * @param DOMElement $attachmentNode
 	 * @param string $assocTitle

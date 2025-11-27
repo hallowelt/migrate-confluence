@@ -9,7 +9,6 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
 class Analyze extends CommandAnalyze {
-
 	/**
 	 *
 	 * @inheritDoc
@@ -60,6 +59,8 @@ class Analyze extends CommandAnalyze {
 					$yaml = Yaml::parse( $content );
 					$config = array_merge( $config, $yaml );
 				} catch ( ParseException $e ) {
+					$this->output->writeln( 'Invalid config file provided' );
+					exit( true );
 				}
 			}
 		}

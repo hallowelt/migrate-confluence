@@ -48,6 +48,11 @@ class ConversionDataLookup {
 	private $confluenceUserMap = [];
 
 	/**
+	 * @var array
+	 */
+	private $attachmentConfluenceFileKeyToTargetTitlemap = [];
+
+	/**
 	 *
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataLookup
@@ -65,7 +70,6 @@ class ConversionDataLookup {
 	}
 
 	/**
-	 *
 	 * @param array $spaceIdPrefixMap
 	 * @param array $confluencePageKeyTargetTitleMap
 	 * @param array $confluenceFilenameTargetFiletitleMap
@@ -89,8 +93,7 @@ class ConversionDataLookup {
 			$this->confluencePageKeyTargetTitleMap[$normalConfluencePageKey] = $targetTitle;
 		}
 		foreach ( $confluenceFilenameTargetFiletitleMap as $confluenceFileKey => $targetTitle ) {
-			$normalConfluenceFileKey = str_replace( ' ', '_', $confluenceFileKey );
-			$this->confluenceFilenameTargetFiletitleMap[$normalConfluenceFileKey] = $targetTitle;
+			$this->confluenceFilenameTargetFiletitleMap = $confluenceFilenameTargetFiletitleMap;
 		}
 		foreach ( $confluenceAttachmentOrigFilenameToTargetFilenameMap as $origFilename => $filenames ) {
 			$filename = str_replace( ' ', '_', $origFilename );
@@ -157,12 +160,18 @@ class ConversionDataLookup {
 	 * @return string
 	 */
 	public function getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey ) {
+		if ( isset( $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey] ) ) {
+			return $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey];
+		}
+
 		$confluenceFileKey = str_replace( ' ', '_', $confluenceFileKey );
 		if ( isset( $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey] ) ) {
 			return $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey];
 		}
+
 		$confluenceFileKeyParts = explode( '---', $confluenceFileKey );
 		$confluenceFilename = $confluenceFileKeyParts[2];
+
 		$md5File = '';
 		$filename = '';
 		if ( isset( $this->confluenceAttachmentOrigFilenameToTargetFilenameMap[$confluenceFilename] ) ) {

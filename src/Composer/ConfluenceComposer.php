@@ -29,6 +29,9 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	 */
 	private $output = null;
 
+	/** @var array */
+	private $advancedConfig = [];
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -44,7 +47,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			'body-contents-to-pages-map',
 			'title-attachments',
 			'title-revisions',
-			'files'
+			'files',
+			'additional-files'
 		] );
 
 		$this->customBuckets = new DataBuckets( [
@@ -53,6 +57,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		] );
 
 		$this->dataBuckets->loadFromWorkspace( $this->workspace );
+
+		if ( isset( $config['config'] ) ) {
+			$this->advancedConfig = $config['config'];
+		}
 	}
 
 	/**
@@ -130,37 +138,58 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 				}
 			}
 
-			$builder->addRevision( $pageTitle, $pageContent, $timestamp );
+			$namespace = $this->getNamespace( $pageTitle );
+			if (
+				isset( $this->advancedConfig['composer-include-namespace'] )
+				&& in_array( $namespace, $this->advancedConfig['composer-include-namespace'] )
+			) {
+				$builder->addRevision( $pageTitle, $pageContent, $timestamp );
 
-			// Append attachments
-			if ( !empty( $pageAttachmentsMap[$pageTitle] ) ) {
-				$this->output->writeln( "\nPage has attachments. Adding them...\n" );
+				// Append attachments
+				if ( !empty( $pageAttachmentsMap[$pageTitle] ) ) {
+					$this->output->writeln( "\nPage has attachments. Adding them...\n" );
 
-				$attachments = $pageAttachmentsMap[$pageTitle];
-				foreach ( $attachments as $attachment ) {
-					$this->output->writeln( "Attachment: $attachment" );
+					$attachments = $pageAttachmentsMap[$pageTitle];
+					foreach ( $attachments as $attachment ) {
+						$this->output->writeln( "Attachment: $attachment" );
 
-					$drawIoFileHandler = new DrawIOFileHandler();
+						$drawIoFileHandler = new DrawIOFileHandler();
 
-					// We do not need DrawIO data files in our wiki, just PNG image
-					if ( $drawIoFileHandler->isDrawIODataFile( $attachment ) ) {
-						continue;
-					}
+						// We do not need DrawIO data files in our wiki, just PNG image
+						if ( $drawIoFileHandler->isDrawIODataFile( $attachment ) ) {
+							continue;
+						}
 
-					if ( isset( $filesMap[$attachment] ) ) {
-						$filePath = $filesMap[$attachment][0];
-						$attachmentContent = file_get_contents( $filePath );
+						if ( isset( $filesMap[$attachment] ) ) {
+							$filePath = $filesMap[$attachment][0];
+							$attachmentContent = file_get_contents( $filePath );
 
-						$this->workspace->saveUploadFile( $attachment, $attachmentContent );
-						$this->customBuckets->addData( 'title-uploads', $pageTitle, $attachment );
-					} else {
-						$this->output->writeln( "Attachment file was not found!" );
-						$this->customBuckets->addData( 'title-uploads-fail', $pageTitle, $attachment );
+							$this->workspace->saveUploadFile( $attachment, $attachmentContent );
+							$this->customBuckets->addData( 'title-uploads', $pageTitle, $attachment );
+						} else {
+							$this->output->writeln( "Attachment file was not found!" );
+							$this->customBuckets->addData( 'title-uploads-fail', $pageTitle, $attachment );
+						}
 					}
 				}
+			} else {
+				$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
 			}
 		}
+
 		$this->customBuckets->saveToWorkspace( $this->workspace );
+	}
+
+	/**
+	 * @param string $title
+	 * @return string
+	 */
+	private function getNamespace( string $title ): string {
+		$collonPos = strpos( $title, ':' );
+		if ( !$collonPos ) {
+			return 'NS_MAIN';
+		}
+		return substr( $title, 0, $collonPos );
 	}
 
 	/**

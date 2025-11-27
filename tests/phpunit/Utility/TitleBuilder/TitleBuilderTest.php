@@ -17,7 +17,7 @@ class TitleBuilderTest extends TestCase {
 		$helper = new XMLHelper( $dom );
 
 		$spaceIdHomepages = [
-			32973 => 32974,
+			32973 => 32974567,
 			99999 => -1
 		];
 
@@ -27,8 +27,27 @@ class TitleBuilderTest extends TestCase {
 			99999 => 'TestNS_NoMain_Page:'
 		];
 
-		$this->useDefaultMainpage( $spaceIdPrefixMap, $spaceIdHomepages, $helper );
-		$this->useCustomMainpage( $spaceIdPrefixMap, $spaceIdHomepages, $helper, 'CustomMainpage' );
+		$pageIdParentPageIdMap = [
+			229472 => 32974567,
+			262231 => 229472,
+			999902 => 999901
+		];
+
+		$pageIdConfluenceTitleMap = [
+			999902 => 'Roadmap',
+			999901 => 'Dokumentation',
+			262231 => 'Detailed_planning',
+			229472 => 'Roadmap',
+			262211 => 'Roadmap',
+			32974567 => 'Dokumentation'
+		];
+
+		$this->useDefaultMainpage(
+			$spaceIdPrefixMap, $spaceIdHomepages, $helper, $pageIdParentPageIdMap,
+			$pageIdConfluenceTitleMap );
+		$this->useCustomMainpage(
+			$spaceIdPrefixMap, $spaceIdHomepages, $helper, 'CustomMainpage',
+			$pageIdParentPageIdMap, $pageIdConfluenceTitleMap );
 
 		$spaceIdPrefixMap = [
 			32973 => 'TestNS:32973/',
@@ -36,19 +55,28 @@ class TitleBuilderTest extends TestCase {
 			99999 => 'TestNS_NoMain_Page:'
 		];
 
-		$this->useDefaultMainpageWithRootPage( $spaceIdPrefixMap, $spaceIdHomepages, $helper );
-		$this->useCustomMainpageWithRootPage( $spaceIdPrefixMap, $spaceIdHomepages, $helper, 'CustomMainpage' );
+		$this->useDefaultMainpageWithRootPage(
+			$spaceIdPrefixMap, $spaceIdHomepages, $helper, $pageIdParentPageIdMap,
+			$pageIdConfluenceTitleMap );
+		$this->useCustomMainpageWithRootPage(
+			$spaceIdPrefixMap, $spaceIdHomepages, $helper, 'CustomMainpage',
+			$pageIdParentPageIdMap, $pageIdConfluenceTitleMap );
 	}
 
 	/**
 	 * @param array $spaceIdPrefixMap
 	 * @param array $spaceIdHomepages
 	 * @param XMLHelper $helper
+	 * @param array $pageIdParentPageIdMap
+	 * @param array $pageIdConfluenceTitleMap
 	 * @return void
 	 */
-	private function useDefaultMainpage( $spaceIdPrefixMap, $spaceIdHomepages, $helper ): void {
-		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $helper );
-		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
+	private function useDefaultMainpage(
+		$spaceIdPrefixMap, $spaceIdHomepages, $helper, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap ): void {
+		$titleBuilder = new TitleBuilder(
+			$spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap, $helper );
+		$actualTitles = $this->buildTitles(
+			$titleBuilder, $helper );
 
 		$expectedTitles = [
 			"TestNS:Main_Page",
@@ -66,10 +94,16 @@ class TitleBuilderTest extends TestCase {
 	 * @param array $spaceIdHomepages
 	 * @param XMLHelper $helper
 	 * @param string $customMainpage
+	 * @param array $pageIdParentPageIdMap
+	 * @param array $pageIdConfluenceTitleMap
 	 * @return void
 	 */
-	private function useCustomMainpage( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage ): void {
-		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage );
+	private function useCustomMainpage(
+		$spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage, $pageIdParentPageIdMap,
+		$pageIdConfluenceTitleMap ): void {
+		$titleBuilder = new TitleBuilder(
+			$spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap,
+			$helper, $customMainpage );
 		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
 
 		$expectedTitles = [
@@ -87,10 +121,14 @@ class TitleBuilderTest extends TestCase {
 	 * @param array $spaceIdPrefixMap
 	 * @param array $spaceIdHomepages
 	 * @param XMLHelper $helper
+	 * @param array $pageIdParentPageIdMap
+	 * @param array $pageIdConfluenceTitleMap
 	 * @return void
 	 */
-	private function useDefaultMainpageWithRootPage( $spaceIdPrefixMap, $spaceIdHomepages, $helper ): void {
-		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $helper );
+	private function useDefaultMainpageWithRootPage(
+		$spaceIdPrefixMap, $spaceIdHomepages, $helper, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap ): void {
+		$titleBuilder = new TitleBuilder(
+			$spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap, $helper );
 		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
 
 		$expectedTitles = [
@@ -109,12 +147,17 @@ class TitleBuilderTest extends TestCase {
 	 * @param array $spaceIdHomepages
 	 * @param XMLHelper $helper
 	 * @param string $customMainpage
+	 * @param array $pageIdParentPageIdMap
+	 * @param array $pageIdConfluenceTitleMap
 	 * @return void
 	 */
 	private function useCustomMainpageWithRootPage(
-		$spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage
+		$spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage, $pageIdParentPageIdMap,
+		$pageIdConfluenceTitleMap
 	): void {
-		$titleBuilder = new TitleBuilder( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $customMainpage );
+		$titleBuilder = new TitleBuilder(
+			$spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap,
+			$helper, $customMainpage );
 		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
 
 		$expectedTitles = [

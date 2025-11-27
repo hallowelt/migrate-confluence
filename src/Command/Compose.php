@@ -2,19 +2,18 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
-use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
+use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
-class Convert extends CommandConvert {
+class Compose extends CommandCompose {
 
 	/**
 	 *
-	 * @var string
+	 * @inheritDoc
 	 */
-	private $targetBasePath = '';
-
 	protected function configure() {
 		$config = parent::configure();
 
@@ -34,15 +33,18 @@ class Convert extends CommandConvert {
 
 	/**
 	 * @param array $config
-	 * @return Convert
+	 * @return Compose
 	 */
-	public static function factory( $config ): Convert {
+	public static function factory( $config ): Compose {
 		return new static( $config );
 	}
 
-	protected function doProcessFile(): bool {
+	/**
+	 * @return bool
+	 */
+	protected function processFiles() {
 		$this->readConfigFile( $this->config );
-		return parent::doProcessFile();
+		parent::processFiles();
 	}
 
 	/**

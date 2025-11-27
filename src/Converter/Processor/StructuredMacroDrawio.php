@@ -212,6 +212,10 @@ class StructuredMacroDrawio extends StructuredMacroProcessorBase {
 
 		// PNG image file found, "bake" diagram data into it and replace file content
 		$imageFileContent = $this->dataLookup->getConfluenceFileContent( $drawioImageFilename );
+		if ( $dataFileContent === null || $imageFileContent === null ) {
+			echo ( "Drawio error $this->rawPageTitle: $drawioImageFilename, $drawioDataFilename" );
+			return;
+		}
 		$imageFileContent =	$drawIoFileHandler->bakeDiagramDataIntoImage( $imageFileContent, $dataFileContent );
 
 		$this->conversionDataWriter->replaceConfluenceFileContent( $drawioImageFilename, $imageFileContent );

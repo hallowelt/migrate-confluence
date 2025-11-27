@@ -31,6 +31,16 @@ class TitleBuilder {
 	private $spaceIdHomepages = [];
 
 	/**
+	 * @var array
+	 */
+	private $pageIdParentPageIdMap = [];
+
+	/**
+	 * @var array
+	 */
+	private $pageIConfluenceTitledMap = [];
+
+	/**
 	 *
 	 * @var int
 	 */
@@ -42,15 +52,21 @@ class TitleBuilder {
 	private $mainpage = '';
 
 	/**
-	 *
 	 * @param array $spaceIdPrefixMap
 	 * @param array $spaceIdHomepages
+	 * @param array $pageIdParentPageIdMap
+	 * @param array $pageIConfluenceTitledMap
 	 * @param XMLHelper $helper
 	 * @param string $mainpage
 	 */
-	public function __construct( $spaceIdPrefixMap, $spaceIdHomepages, $helper, $mainpage = 'Main_Page' ) {
+	public function __construct(
+		array $spaceIdPrefixMap, array $spaceIdHomepages, array $pageIdParentPageIdMap,
+		array $pageIConfluenceTitledMap, XMLHelper $helper, string $mainpage = 'Main_Page'
+	) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdHomepages = $spaceIdHomepages;
+		$this->pageIdParentPageIdMap = $pageIdParentPageIdMap;
+		$this->pageIConfluenceTitledMap = $pageIConfluenceTitledMap;
 		$this->helper = $helper;
 		$this->mainpage = $mainpage;
 	}
@@ -79,6 +95,12 @@ class TitleBuilder {
 		$titles = $this->addParentTitles( $pageNode );
 
 		foreach ( $titles as $title ) {
+			$title = str_replace(
+				[ ':', '%', '?', '#', '<', '>', '+', '[', ']', '{', '}', '|' ],
+				'_',
+				$title
+			);
+			$title = str_replace( '__', '_', $title );
 			$this->builder->appendTitleSegment( $title );
 		}
 
@@ -110,24 +132,34 @@ class TitleBuilder {
 	 * @return array
 	 */
 	private function addParentTitles( $pageNode ) {
+		$pageId = $this->helper->getIDNodeValue( $pageNode );
 		$title = $this->helper->getPropertyValue( 'title', $pageNode );
 
-		$titles = [ $title ];
+		$titles = [];
+		if ( $pageId === $this->currentTitlesSpaceHomePageId ) {
+				$title[] = $this->mainpage;
+		} else {
+			$titles[] = $title;
+		}
 
-		$parentPageId = $this->helper->getPropertyValue( 'parent', $pageNode );
-		if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
+		if ( isset( $this->pageIdParentPageIdMap[$pageId] ) ) {
+			$parentPageId = $this->pageIdParentPageIdMap[$pageId];
+		} else {
 			$parentPageId = null;
 		}
 
-		while ( is_int( $parentPageId ) ) {
-			$parentPage = $this->helper->getObjectNodeById( $parentPageId, 'Page' );
-			$parentTitle = $this->helper->getPropertyValue( 'title', $parentPage );
+		while ( $parentPageId !== null ) {
+			if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
+				break;
+			} else {
+				$parentTitle = $this->pageIConfluenceTitledMap[$parentPageId];
+			}
 
 			$titles[] = $parentTitle;
 
-			$parentPageId = $this->helper->getPropertyValue( 'parent', $parentPage );
-
-			if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
+			if ( isset( $this->pageIdParentPageIdMap[$parentPageId] ) ) {
+				$parentPageId = $this->pageIdParentPageIdMap[$parentPageId];
+			} else {
 				$parentPageId = null;
 			}
 		}
