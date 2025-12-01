@@ -92,6 +92,9 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		$bodyContentIDMainpageID = [];
 		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );
 		foreach ( $spaceIDHomepagesMap as $spaceID => $homepageID ) {
+			if ( !isset( $pagesToBodyContents[$homepageID] ) ) {
+				continue;
+			}
 			$bodyContentsID = $pagesToBodyContents[$homepageID];
 			$bodyContentIDMainpageID[$bodyContentsID] = $homepageID;
 		}
