@@ -8,6 +8,7 @@ use DOMNode;
 use DOMXPath;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
@@ -134,7 +135,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$this->customBuckets = new DataBuckets( [
 			'title-uploads',
-			'title-uploads-fail'
+			'title-uploads-fail',
+			'converter-body-content-id-execution-time',
 		] );
 	}
 
@@ -149,6 +151,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @inheritDoc
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
+		$executionTime = new ExecutionTime();
 		$this->output->writeln( $file->getPathname() );
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->dataBuckets );
 		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->dataBuckets );
@@ -217,6 +220,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$this->postProcessLinks();
 		$this->postprocessWikiText();
+
+		$executionTimeString = $executionTime->getHumanReadableTime();
+		$this->customBuckets->addData(
+			'converter-body-content-id-execution-time',
+			$bodyContentId,
+			$executionTimeString,
+			false,
+			true
+		);
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 
@@ -782,7 +794,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return string
 	 */
 	private function getCurrentPageTitle(): string {
+		$prefix = '';
 		$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
+		if ( !isset( $spaceIdPrefixMap[$this->currentSpace] ) ) {
+			$this->output->writeln( "SpaceId {$this->currentSpace} not found in spaceIdPrefixMap" );
+		}
 		$prefix = $spaceIdPrefixMap[$this->currentSpace];
 		$currentPageTitle = $this->currentPageTitle;
 

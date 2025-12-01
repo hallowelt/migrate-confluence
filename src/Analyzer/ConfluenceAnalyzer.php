@@ -95,6 +95,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		parent::__construct( $config, $workspace, $buckets );
 		$this->customBuckets = new DataBuckets( [
 			'space-id-to-prefix-map',
+			'space-id-to-space-key-map',
 			'space-key-to-prefix-map',
 			'space-name-to-prefix-map',
 			'space-id-to-name-map',
@@ -350,6 +351,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		);
 		$this->customBuckets->addData(
 			'space-key-to-prefix-map', $spaceKey, $customSpacePrefix, false, true
+		);
+		$this->customBuckets->addData(
+			'space-id-to-space-key-map', $spaceId, $spaceKey, false, true
 		);
 		$this->customBuckets->addData(
 			'space-name-to-prefix-map', $spaceName, $customSpacePrefix, false, true
@@ -619,6 +623,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private function buildPageMaps( DOMDocument $dom ): void {
 		$spaceIdToPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
+		$spaceIdToSpaceKeyMap = $this->customBuckets->getBucketData( 'space-id-to-space-key-map' );
 		$spaceIdHomepages = $this->customBuckets->getBucketData( 'space-id-homepages' );
 		$pageIdParentPageIdMap = $this->customBuckets->getBucketData( 'page-id-to-parent-page-id-map' );
 		$pageIdConfluendTitleMap = $this->customBuckets->getBucketData( 'page-id-to-confluence-title-map' );
@@ -643,13 +648,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		if ( $spaceId === null ) {
 			return;
 		}
-		if ( !isset( $spaceIdToPrefixMap[$spaceId] ) ) {
+		if ( !isset( $spaceIdToSpaceKeyMap[$spaceId] ) ) {
 			return;
 		}
-		$prefix = $spaceIdToPrefixMap[$spaceId];
+		$spaceKey = $spaceIdToSpaceKeyMap[$spaceId];
+
 		if (
 			isset( $this->advancedConfig['analyzer-include-spacekey'] )
-			&& !in_array( strtolower( $prefix ), $this->advancedConfig['analyzer-include-spacekey'] )
+			&& !in_array( strtolower( $spaceKey ), $this->advancedConfig['analyzer-include-spacekey'] )
 		) {
 			return;
 		}
@@ -1078,7 +1084,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	}
 
 	private function checkTitles(): void {
-		$spacePrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
 		$pagesTitlesMap = $this->customBuckets->getBucketData( 'pages-titles-map' );
 
 		$hasInvalidTitles = false;
@@ -1115,7 +1120,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 					$hasInvalidNamespaces = true;
 				}
 
-				if ( mb_strlen( urlencode( $text ) ) > 255 ) {
+				if ( strlen( $text ) > 255 ) {
 					$this->customBuckets->addData(
 						'invalid-titles',
 						'length', $title,
@@ -1124,7 +1129,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 					$hasInvalidTitles = true;
 				}
 			} else {
-				if ( mb_strlen( urlencode( $title ) ) > 255 ) {
+				if ( strlen( $title ) > 255 ) {
 					$this->customBuckets->addData(
 						'invalid-titles',
 						'length', $title,
