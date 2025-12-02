@@ -24,20 +24,9 @@ use XMLReader;
 class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface {
 
 	/**
-	 *
-	 * @var DOMDocument
-	 */
-	private $dom = null;
-
-	/**
 	 * @var DataBuckets
 	 */
 	private $customBuckets = null;
-
-	/**
-	 * @var XMLHelper
-	 */
-	private $helper = null;
 
 	/**
 	 * @var LoggerInterface
@@ -123,15 +112,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'attachment-orig-filename-target-filename-map',
 			'attachment-id-to-target-filename-map',
 			'filenames-to-filetitles-map',
+			'invalid-titles-page-id-to-title',
+			'invalid-titles-attachment-id-to-title',
 
 			'invalid-titles',
 			'invalid-namespaces',
 
-			'debug-attachment-id-to-target-filename',
-			'debug-missing-attachment-id-to-filename',
-			'debug-attachment-page-to-attachment-id',
-			'debug-fallback-attachment-id-to-target-filename',
-			'debug-additional-attachment-id-to-target-filename',
 		] );
 
 		$this->logger = new NullLogger();
@@ -673,12 +659,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		try {
 			$targetTitle = $titleBuilder->buildTitle( $pageNode );
 		} catch ( InvalidTitleException $ex ) {
-			$this->buckets->addData( 'title-invalids', $pageId, $ex->getInvalidTitle() );
-			return;
+			$this->customBuckets->addData( 'invalid-titles-page-id-to-title', $pageId, $ex->getInvalidTitle() );
+			// We don't want to loose this page. Title can be modified after analyze process
+			$targetTitle = $ex->getInvalidTitle();
 		}
 
 		if ( $targetTitle === '' ) {
-			$this->buckets->addData( 'title-invalids', $pageId, $targetTitle );
+			$this->customBuckets->addData( 'invalid-titles-page-id-to-title', $pageId, $targetTitle );
 			return;
 		}
 
@@ -1023,7 +1010,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$targetName = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId, $attachmentOrigFilename, $shortTargetTitle );
 			} catch ( InvalidTitleException $ex ) {
-				$this->buckets->addData( 'title-invalids', $attachmentId, $ex->getInvalidTitle() );
+				$this->customBuckets->addData( 'invalid-titles-attachment-id-to-title', $attachmentId, $ex->getInvalidTitle() );
 				$this->logger->error( $ex->getMessage() );
 				return '###INVALID###';
 			}

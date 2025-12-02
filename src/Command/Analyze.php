@@ -65,4 +65,16 @@ class Analyze extends CommandAnalyze {
 			}
 		}
 	}
+
+	/**
+	 *
+	 * @inheritDoc
+	 */
+	protected function getBucketKeys() {
+		return [
+			'files',
+			'title-attachments',
+			'title-revisions'
+		];
+	}
 }
