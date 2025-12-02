@@ -144,8 +144,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			$namespace = $this->getNamespace( $pageTitle );
 			if (
 				isset( $this->advancedConfig['composer-include-namespace'] )
-				&& in_array( $namespace, $this->advancedConfig['composer-include-namespace'] )
+				&& !in_array( $namespace, $this->advancedConfig['composer-include-namespace'] )
 			) {
+				$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
+			} else {
 				$builder->addRevision( $pageTitle, $pageContent, $timestamp );
 
 				// Append attachments
@@ -175,8 +177,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 						}
 					}
 				}
-			} else {
-				$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
 			}
 		}
 
