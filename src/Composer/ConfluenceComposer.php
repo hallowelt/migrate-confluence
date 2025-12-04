@@ -17,11 +17,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	/**
 	 * @var DataBuckets
 	 */
-	private $dataBuckets;
-
-	/**
-	 * @var DataBuckets
-	 */
 	private $customBuckets;
 
 	/**
@@ -40,23 +35,12 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
 
-		$this->dataBuckets = new DataBuckets( [
-			'space-id-homepages',
-			'space-id-to-description-id-map',
-			'space-description-id-to-body-id-map',
-			'body-contents-to-pages-map',
-			'title-attachments',
-			'title-revisions',
-			'files',
-			'additional-files'
-		] );
-
 		$this->customBuckets = new DataBuckets( [
 			'title-uploads',
 			'title-uploads-fail'
 		] );
 
-		$this->dataBuckets->loadFromWorkspace( $this->workspace );
+		$this->customBuckets->loadFromWorkspace( $this->workspace );
 
 		if ( isset( $config['config'] ) ) {
 			$this->advancedConfig = $config['config'];
@@ -78,16 +62,16 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		$this->appendDefaultPages( $builder );
 		$this->addDefaultFiles();
 
-		$bodyContentsToPagesMap = $this->dataBuckets->getBucketData( 'body-contents-to-pages-map' );
-		$spaceIDHomepagesMap = $this->dataBuckets->getBucketData( 'space-id-homepages' );
+		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
+		$spaceIDHomepagesMap = $this->buckets->getBucketData( 'global-space-id-homepages' );
 
 		$homepageSpaceIDMap = array_flip( $spaceIDHomepagesMap );
-		$spaceIDDescriptionIDMap = $this->dataBuckets->getBucketData( 'space-id-to-description-id-map' );
-		$spaceDescriptionIDBodyIDMap = $this->dataBuckets->getBucketData( 'space-description-id-to-body-id-map' );
+		$spaceIDDescriptionIDMap = $this->buckets->getBucketData( 'global-space-id-to-description-id-map' );
+		$spaceDescriptionIDBodyIDMap = $this->buckets->getBucketData( 'global-space-description-id-to-body-id-map' );
 
-		$pagesRevisions = $this->dataBuckets->getBucketData( 'title-revisions' );
-		$filesMap = $this->dataBuckets->getBucketData( 'files' );
-		$pageAttachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
+		$pagesRevisions = $this->buckets->getBucketData( 'global-title-revisions' );
+		$filesMap = $this->buckets->getBucketData( 'global-files' );
+		$pageAttachmentsMap = $this->buckets->getBucketData( 'global-title-attachments' );
 
 		$bodyContentIDMainpageID = [];
 		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );

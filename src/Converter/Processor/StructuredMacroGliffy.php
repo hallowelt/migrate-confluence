@@ -114,7 +114,7 @@ class StructuredMacroGliffy extends StructuredMacroProcessorBase {
 				$params['name'] = $filename;
 			}
 
-			$this->dataBuckets->addData( 'gliffy-map', $key, $filename, true, true );
+			$this->dataBuckets->addData( 'global-gliffy-map', $key, $filename, true, true );
 		} else {
 			return '';
 		}
