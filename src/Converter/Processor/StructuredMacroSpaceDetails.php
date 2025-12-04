@@ -11,7 +11,7 @@ class StructuredMacroSpaceDetails extends StructuredMacroProcessorBase {
 	 * @return string
 	 */
 	protected function getMacroName(): string {
-		return 'global-space-details';
+		return 'space-details';
 	}
 
 	/**
