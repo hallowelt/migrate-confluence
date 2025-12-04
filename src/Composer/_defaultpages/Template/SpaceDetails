@@ -1,4 +1,4 @@
-<noinclude>Template for macro "global-space-details"
+<noinclude>Template for macro "space-details"
 </noinclude><includeonly>{| class="wikitable" style="width:{{{width}}}"
 |-
 | Name || {{NAMESPACE}}
