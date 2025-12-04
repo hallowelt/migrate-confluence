@@ -6,7 +6,7 @@ class TitleValidityChecker {
 
 	/**
 	 * @param string $title
-	 * @return boolean
+	 * @return bool
 	 */
 	public function validate( string $title ): bool {
 		if ( !$this->hasValidEnding( $title ) ) {
@@ -17,7 +17,7 @@ class TitleValidityChecker {
 			if ( $this->hasDoubleCollon( $title ) ) {
 				return false;
 			}
-			
+
 			$namespace = substr( $title, 0, strpos( $title, ':' ) );
 			$text = substr( $title, strpos( $title, ':' ) + 1 );
 
@@ -39,7 +39,7 @@ class TitleValidityChecker {
 
 	/**
 	 * @param string $title
-	 * @return boolean
+	 * @return bool
 	 */
 	public function hasValidEnding( string $title ): bool {
 		if ( str_ends_with( $title, '_' ) ) {
@@ -50,7 +50,7 @@ class TitleValidityChecker {
 
 	/**
 	 * @param string $title
-	 * @return boolean
+	 * @return bool
 	 */
 	public function hasDoubleCollon( string $title ): bool {
 		if ( strpos( $title, ':' ) !== strrpos( $title, ':' ) ) {
@@ -61,7 +61,7 @@ class TitleValidityChecker {
 
 	/**
 	 * @param string $namespace
-	 * @return boolean
+	 * @return bool
 	 */
 	public function hasValidNamespace( string $namespace ): bool {
 		$matches = [];
@@ -74,7 +74,7 @@ class TitleValidityChecker {
 
 	/**
 	 * @param string $title
-	 * @return boolean
+	 * @return bool
 	 */
 	public function hasValidLength( string $title ): bool {
 		if ( strlen( $title ) > 255 ) {
