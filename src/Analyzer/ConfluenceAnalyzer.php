@@ -13,6 +13,7 @@ use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
+use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -1068,12 +1069,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 	private function checkTitles(): void {
 		$pagesTitlesMap = $this->buckets->getBucketData( 'global-pages-titles-map' );
-		
+
+		$validityChecker = new TitleValidityChecker();
 
 		$hasInvalidTitles = false;
 		$hasInvalidNamespaces = false;
 		foreach ( $pagesTitlesMap as $key => $title ) {
-			if ( str_ends_with( 'title', '_' ) ) {
+			if ( !$validityChecker->hasValidEnding( $title ) ) {
 				$this->customBuckets->addData(
 					'warning-analyze-invalid-titles',
 					'invalid_ending', $title,
@@ -1082,7 +1084,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$hasInvalidTitles = true;
 			}
 			if ( str_contains( $title, ':' ) ) {
-				if ( strpos( $title, ':' ) !== strrpos( $title, ':' ) ) {
+				if ( $validityChecker->hasDoubleCollon( $title ) ) {
 					$this->customBuckets->addData(
 						'warning-analyze-invalid-titles',
 						'multiple_collons', $title,
@@ -1093,9 +1095,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$namespace = substr( $title, 0, strpos( $title, ':' ) );
 				$text = substr( $title, strpos( $title, ':' ) + 1 );
 
-				$matches = [];
-				preg_match( '#(\d*)([a-zA-Z0-9_]*)#', $namespace, $matches );
-				if ( empty( $matches ) || $matches[1] !== '' ) {
+				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
 					$this->customBuckets->addData(
 						'warning-analyze-invalid-namespaces',
 						'invalid_char', $namespace,
@@ -1104,7 +1104,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 					$hasInvalidNamespaces = true;
 				}
 
-				if ( strlen( $text ) > 255 ) {
+				if ( !$validityChecker->hasValidLength( $text ) ) {
 					$this->customBuckets->addData(
 						'warning-analyze-invalid-titles',
 						'length', $title,
@@ -1113,7 +1113,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 					$hasInvalidTitles = true;
 				}
 			} else {
-				if ( strlen( $title ) > 255 ) {
+				if ( !$validityChecker->hasValidLength( $title ) ) {
 					$this->customBuckets->addData(
 						'warning-analyze-invalid-titles',
 						'length', $title,
@@ -1127,7 +1127,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$files = $this->buckets->getBucketData( 'global-files' );
 		$hasInvalidFilenames = false;
 		foreach ( $files as $title => $paths ) {
-			if ( strlen( $title ) > 255 ) {
+			if ( $validityChecker->hasValidLength( $title ) ) {
 				$this->customBuckets->addData(
 					'warning-analyze-invalid-filenames',
 					'length', $title,
