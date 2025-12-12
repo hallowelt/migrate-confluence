@@ -30,6 +30,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 */
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
+		
 		$this->customBuckets = new DataBuckets( [
 			'extract-labelling-id-to-label-id-map',
 			'extract-label-id-to-name-map',
@@ -41,6 +42,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @return bool
 	 */
 	protected function doExtract( SplFileInfo $file ): bool {
+		$this->buckets->loadFromWorkspace( $this->workspace );
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 
 		if ( isset( $this->config['config']['categories'] ) ) {
@@ -109,11 +111,16 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @return void
 	 */
 	private function extractBodyContents( DOMDocument $dom ): void {
+		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
+
 		$xmlHelper = new XMLHelper( $dom );
 
 		$bodyContents = $xmlHelper->getObjectNodes( 'BodyContent' );
 		foreach ( $bodyContents as $bodyContent ) {
 			$id = $xmlHelper->getIDNodeValue( $bodyContent );
+			if ( !isset( $bodyContentsToPagesMap[ $id ] ) ) {
+				continue;
+			}
 			$bodyContentHTML = $this->getBodyContentHTML( $xmlHelper, $bodyContent );
 			$targetFileName = $this->workspace->saveRawContent( $id, $bodyContentHTML );
 			$this->addRevisionContent( $id, $targetFileName );
@@ -229,7 +236,7 @@ class ConfluenceExtractor extends ExtractorBase {
 				'categories' => $categories
 			];
 
-			$this->buckets->addData( 'global-title-metadata', $id, $meta, false );
+			$this->addTitleMetaData( $id, $meta );
 		}
 	}
 

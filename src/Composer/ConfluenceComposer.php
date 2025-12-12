@@ -83,55 +83,70 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			$bodyContentIDMainpageID[$bodyContentsID] = $homepageID;
 		}
 
-		foreach ( $pagesRevisions as $pageTitle => $pageRevision ) {
+		foreach ( $pagesRevisions as $pageTitle => $pageRevisions ) {
 			$this->output->writeln( "\nProcessing: $pageTitle\n" );
 
-			$pageRevisionData = explode( '@', $pageRevision[0] );
-
-			$timestamp = explode( '-', $pageRevisionData[1] )[1];
-
-			$bodyContentIds = $pageRevisionData[0];
-			$bodyContentIdsArr = explode( '/', $bodyContentIds );
-
-			$pageContent = "";
-			foreach ( $bodyContentIdsArr as $bodyContentId ) {
-				if ( $bodyContentId === '' ) {
-					// Skip if no reference to a body content is not set
-					continue;
-				}
-
-				$this->output->writeln( "Getting '$bodyContentId' body content..." );
-
-				$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
-
-				// Add space description to homepage
-				if ( isset( $bodyContentIDMainpageID[$bodyContentId] ) ) {
-					// get homepage id if it is a homepage
-					$mainpageID = $bodyContentIDMainpageID[$bodyContentId];
-					if ( isset( $homepageSpaceIDMap[$mainpageID] ) ) {
-						// get space id
-						$spaceID = $homepageSpaceIDMap[$mainpageID];
-						if ( isset( $spaceIDDescriptionIDMap[$spaceID] ) ) {
-							// get description id
-							$descID = $spaceIDDescriptionIDMap[$spaceID];
-							if ( isset( $spaceDescriptionIDBodyIDMap[$descID] ) ) {
-								// get description id
-								$descBodyID = $spaceDescriptionIDBodyIDMap[$descID];
-								$description = $this->workspace->getConvertedContent( $descBodyID );
-								$pageContent .= "[[Space description::$description]]\n";
-							}
-						}
-					}
-				}
-			}
-
+			// Sometimes not all namespaces should be used for the import. To skip this namespaces
+			// use this option
 			$namespace = $this->getNamespace( $pageTitle );
 			if (
 				isset( $this->advancedConfig['composer-include-namespace'] )
 				&& !in_array( $namespace, $this->advancedConfig['composer-include-namespace'] )
 			) {
+				$this->output->writeln( "Namespace {$namespace} skipped by configuration" );
+				continue;
+			}
+
+			// Sometimes titles have contents >256kB which might break the import. To skip this titles
+			// use this option
+			if (
+				isset( $this->advancedConfig['composer-skip-titles'] )
+				&& in_array( $pageTitle, $this->advancedConfig['composer-skip-titles'] )
+			) {
 				$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
-			} else {
+				continue;
+			}
+
+			foreach( $pageRevisions as $pageRevision ) {
+				$pageRevisionData = explode( '@', $pageRevision );
+
+				$timestamp = explode( '-', $pageRevisionData[1] )[1];
+
+				$bodyContentIds = $pageRevisionData[0];
+				$bodyContentIdsArr = explode( '/', $bodyContentIds );
+
+				$pageContent = "";
+				foreach ( $bodyContentIdsArr as $bodyContentId ) {
+					if ( $bodyContentId === '' ) {
+						// Skip if no reference to a body content is not set
+						continue;
+					}
+
+					$this->output->writeln( "Getting '$bodyContentId' body content..." );
+
+					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
+
+					// Add space description to homepage
+					if ( isset( $bodyContentIDMainpageID[$bodyContentId] ) ) {
+						// get homepage id if it is a homepage
+						$mainpageID = $bodyContentIDMainpageID[$bodyContentId];
+						if ( isset( $homepageSpaceIDMap[$mainpageID] ) ) {
+							// get space id
+							$spaceID = $homepageSpaceIDMap[$mainpageID];
+							if ( isset( $spaceIDDescriptionIDMap[$spaceID] ) ) {
+								// get description id
+								$descID = $spaceIDDescriptionIDMap[$spaceID];
+								if ( isset( $spaceDescriptionIDBodyIDMap[$descID] ) ) {
+									// get description id
+									$descBodyID = $spaceDescriptionIDBodyIDMap[$descID];
+									$description = $this->workspace->getConvertedContent( $descBodyID );
+									$pageContent .= "[[Space description::$description]]\n";
+								}
+							}
+						}
+					}
+				}
+
 				$builder->addRevision( $pageTitle, $pageContent, $timestamp );
 
 				// Append attachments

@@ -4,7 +4,15 @@ config:
                 ABC: "MY_NAMESPACE:ABC/"
                 DEF: "MY_NAMESPACE:DEf/"
                 GHI: "GHI_NAMESPACE:"
+        analyzer-include-spacekey:
+          - ABC
+          - DEF
+        composer-include-namespace:
+          - ABC
+        composer-skip-titles:
+          - ABC:DEF/GHI
         categories:
                 - My Category 1
                 - My Category 2
         ext-ns-file-repo-compat: true
+        include-history: false

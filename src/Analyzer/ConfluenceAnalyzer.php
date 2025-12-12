@@ -5,16 +5,19 @@ namespace HalloWelt\MigrateConfluence\Analyzer;
 use DOMDocument;
 use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
+use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
+use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
+use phpDocumentor\Reflection\Types\Boolean;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -55,11 +58,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private $addedAttachmentIds = [];
 
-	/**
-	 *
-	 * @var string
-	 */
-	private $pageConfluenceTitle = '';
+	/** @var array */
+	private $pagesTitlesMap = [];
+
+	/** @var array */
+	private $pageIdToTitleMap = [];
+
+	/** @var array */
+	private $titleRevision = [];
 
 	/**
 	 * @var string
@@ -76,6 +82,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private $advancedConfig = [];
 
+	/** @var Boolean */
+	private $includeHistory = false;
+
 	/**
 	 *
 	 * @param array $config
@@ -89,6 +98,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-space-name-to-prefix-map',
 			'analyze-space-id-to-name-map',
 			'analyze-space-key-to-name-map',
+			'analyze-pages-titles-map',
+			'analyze-page-id-to-title-map',
 			'analyze-page-id-to-confluence-title-map',
 			'analyze-page-id-to-parent-page-id-map',
 			'analyze-body-content-id-to-page-id-map',
@@ -100,6 +111,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-page-id-to-confluence-key-map',
 			'analyze-title-to-attachment-title',
 			'analyze-attachment-id-to-target-filename-map',
+			'analzye-title-revisions',
 
 			'debug-analyze-invalid-titles-page-id-to-title',
 			'debug-analyze-invalid-titles-attachment-id-to-title',
@@ -139,6 +151,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$normalizedAnalyzerIncludeSpacekey[] = strtolower( $key );
 			}
 			$this->advancedConfig['analyzer-include-spacekey'] = $normalizedAnalyzerIncludeSpacekey;
+		}
+
+		if ( isset( $this->advancedConfig['include-history'] ) ) {
+			if ( is_bool( $this->advancedConfig['include-history'] ) ) {
+				$this->includeHistory = $this->advancedConfig['include-history'];
+			}
 		}
 	}
 
@@ -251,6 +269,29 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$read = $xmlReader->next();
 		}
 		$xmlReader->close();
+
+		// compress title lenght and create pages-titles-map and page-id-to-title-map
+		$titleCompressor = new TitleCompressor();
+		$compressedTitlesMap = $titleCompressor->execute( $this->pagesTitlesMap );
+
+		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
+		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $this->pagesTitlesMap );
+		foreach ( $compressedPagesTitlesMap as $key => $title ) {
+			$this->buckets->addData( 'global-pages-titles-map', $key, $title, false, true );
+		}
+		$compressedPageIdToTitleMap = $applyCompressedTitles->toMapValues( $this->pageIdToTitleMap );
+		ksort( $compressedPageIdToTitleMap );
+		foreach ( $compressedPageIdToTitleMap as $id => $title ) {
+			$this->buckets->addData( 'global-page-id-to-title-map', $id, $title, false, true );
+		}
+
+		$compressedTitleRevison = $applyCompressedTitles->toMapKeys( $this->titleRevision );
+		ksort( $compressedTitleRevison );
+		foreach ( $compressedTitleRevison as $title => $revisions ) {
+			foreach( $revisions as $revision ) {
+				$this->addTitleRevision( $title, $revision );
+			}
+		}
 
 		// Process title attachments fallback
 		$xmlReader->open( $file->getPathname() );
@@ -624,7 +665,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return;
 		}
 		$status = $xmlHelper->getPropertyValue( 'contentStatus', $pageNode );
-		if ( $status !== 'current' ) {
+		if ( !$this->includeHistory && ( $status !== 'current' ) ) {
 			return;
 		}
 		$spaceId = $xmlHelper->getPropertyValue( 'space', $pageNode );
@@ -672,8 +713,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->output->writeln( "Add page '$targetTitle' (ID:$pageId)" );
 
 		/**
-		 * Adds data bucket "global-pages-titles-map", which contains mapping from page title itself to full page title.
+		 * Adds data bucket "analyze-pages-titles-map", which contains mapping from page title itself to full page title.
 		 * Full page title contains parent pages and namespace (if it is not general space).
+		 * 
+		 * After testing for title validity and sanitizing titles they will be added to global-pages-titles-map later.
 		 * Example:
 		 * "Detailed_planning" -> "Dokumentation/Detailed_planning"
 		 */
@@ -686,17 +729,19 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$pageConfluenceTitle = "$spaceId---{$pageConfluenceTitle}";
 		// Some normalization
 		$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
-		$this->buckets->addData( 'global-pages-titles-map', $pageConfluenceTitle, $targetTitle, false, true );
 		$this->customBuckets->addData(
 			'analyze-page-id-to-confluence-key-map',
 			$pageId, $pageConfluenceTitle, false, true
 		);
 
+		$this->buckets->addData( 'analyze-pages-titles-map', $pageConfluenceTitle, $targetTitle, false, true );
+		$this->pagesTitlesMap[$pageConfluenceTitle] = $targetTitle;
 		// Also add pages IDs in Confluence to full page title mapping.
 		// It is needed to have enough context on converting stage,
 		// to know from filename which page is currently being converted.
-		$this->buckets->addData( 'global-page-id-to-title-map', $pageId, $targetTitle, false, true );
+		$this->buckets->addData( 'analyze-page-id-to-title-map', $pageId, $targetTitle, false, true );
 		$this->buckets->addData( 'global-page-id-to-space-id', $pageId, $spaceId, false, true );
+		$this->pageIdToTitleMap[$pageId] = $targetTitle;
 
 		$revisionTimestamp = $this->buildRevisionTimestamp( $xmlHelper, $pageNode );
 		$bodyContentIds = $this->getBodyContentIds( $xmlHelper, $pageNode );
@@ -725,8 +770,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		$version = $xmlHelper->getPropertyValue( 'version', $pageNode );
+		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
 
-		$this->addTitleRevision( $targetTitle, implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp" );
+		if ( !isset( $this->titleRevision[$targetTitle] ) ) {
+			$this->titleRevision[$targetTitle] = [];
+		}
+		$this->titleRevision[$targetTitle][] = $revision;
+		$this->addAnalyzerTitleRevision( $targetTitle, $revision );
 
 		// Find attachments
 
@@ -751,8 +801,17 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$attachmentIdToReferenceMap = $this->customBuckets->getBucketData( 'analyze-attachment-id-to-reference-map' );
 
 		$pageId = $xmlHelper->getIDNodeValue( $element );
+		if ( !isset( $pageIdConflueTitleMap[$pageId] ) ) {
+			return;
+		}
 		$confluenceTitle = $pageIdConflueTitleMap[$pageId];
+		if ( !isset( $pageIdConfluenKeyMap[$pageId] ) ) {
+			return;
+		}
 		$confluenceKey = $pageIdConfluenKeyMap[$pageId];
+		if ( !isset( $pagesTitlesMap[$confluenceKey] ) ) {
+			return;
+		}
 		$wikiTitle = $pagesTitlesMap[$confluenceKey];
 
 		// In case of ERM34465 this seems to be empty because
@@ -1198,6 +1257,16 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				"\nbefore continuing with extract step"
 			);
 		}
+	}
+
+	/**
+	 *
+	 * @param string $titleText
+	 * @param string $contentReference
+	 * @return void
+	 */
+	private function addAnalyzerTitleRevision( $titleText, $contentReference = 'n/a' ) {
+		$this->buckets->addData( 'analzye-title-revisions', $titleText, $contentReference );
 	}
 
 	/**

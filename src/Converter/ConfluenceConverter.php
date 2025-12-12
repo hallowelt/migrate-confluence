@@ -73,6 +73,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/** @var DataBuckets */
 	private $buckets = null;
 
+	/** @var DataBuckets */
+	private $customBuckets = null;
+
 	/** @var ConversionDataLookup */
 	private $dataLookup = null;
 
@@ -127,13 +130,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-files',
 			'global-userkey-to-username-map',
 			'global-space-description-id-to-body-id-map',
-			'global-gliffy-map'
+			'global-gliffy-map',
 		] );
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
 
+		$this->customBuckets = new DataBuckets( [
+			'warning-convert-body-content-id-content-size',
+		] );
 		$this->executionTimeBuckets = new DataBuckets( [
-			'converter-body-content-id-execution-time',
+			'convert-body-content-id-execution-time',
 		] );
 	}
 
@@ -149,6 +155,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
 		$executionTime = new ExecutionTime();
+
+		$this->customBuckets->loadFromWorkspace( $this->workspace );
+		$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
+
 		$this->output->writeln( $file->getPathname() );
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->buckets );
 		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
@@ -218,16 +228,36 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->postProcessLinks();
 		$this->postprocessWikiText();
 
+		// Content size sometimes breakes import
+		$exceed = '';
+		$wikiTextLength = strlen( $this->wikiText );
+		$wikiTextLength = $wikiTextLength / 1000;
+		if ( $wikiTextLength > 512 ) {
+			$exceed = '512';
+		} elseif ( $wikiTextLength > 256 ) {
+			$exceed = '256';
+		} elseif ( $wikiTextLength > 100 ) {
+			$exceed = '100';
+		}
+		if ( $exceed !== '' ) {
+			$this->buckets->addData(
+				'warning-convert-body-content-id-content-size',
+				$exceed,
+				$bodyContentId
+			);
+			$this->output->writeln( "bodyContentId {$this->currentSpace} contains large content" );
+		}
+
 		$executionTimeString = $executionTime->getHumanReadableTime();
 		$this->executionTimeBuckets->addData(
-			'converter-body-content-id-execution-time',
+			'convert-body-content-id-execution-time',
 			$bodyContentId,
 			$executionTimeString,
 			false,
 			true
 		);
-
 		$this->executionTimeBuckets->saveToWorkspace( $this->workspace );
+		$this->customBuckets->saveToWorkspace( $this->workspace );
 
 		return $this->wikiText;
 	}
