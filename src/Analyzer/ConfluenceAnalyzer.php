@@ -154,7 +154,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		if ( isset( $this->advancedConfig['include-history'] ) ) {
-			if ( is_bool( $this->advancedConfig['include-history'] ) ) {
+			if ( $this->advancedConfig['include-history'] === true ) {
 				$this->includeHistory = $this->advancedConfig['include-history'];
 			}
 		}
@@ -288,6 +288,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$compressedTitleRevison = $applyCompressedTitles->toMapKeys( $this->titleRevision );
 		ksort( $compressedTitleRevison );
 		foreach ( $compressedTitleRevison as $title => $revisions ) {
+			$revisions = array_unique( $revisions );
 			foreach( $revisions as $revision ) {
 				$this->addTitleRevision( $title, $revision );
 			}
@@ -657,7 +658,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$pages = $xmlHelper->getObjectNodes( 'Page' );
 		if ( count( $pages ) < 1 ) {
-
 			return;
 		}
 		$pageNode = $pages->item( 0 );

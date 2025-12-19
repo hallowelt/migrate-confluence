@@ -107,12 +107,29 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 				continue;
 			}
 
+			$sortedRevisions = [];
 			foreach( $pageRevisions as $pageRevision ) {
 				$pageRevisionData = explode( '@', $pageRevision );
-
-				$timestamp = explode( '-', $pageRevisionData[1] )[1];
-
 				$bodyContentIds = $pageRevisionData[0];
+
+				$versionTimestamp = explode( '-', $pageRevisionData[1] );
+				$version = $versionTimestamp[0];
+				$timestamp = $versionTimestamp[1];
+
+				$sortedRevisions[$timestamp] = $bodyContentIds;
+			}
+
+			ksort( $sortedRevisions );
+			if ( !isset( $this->advancedConfig['include-history'] )
+				|| $this->advancedConfig['include-history'] !== true
+			) {
+				$bodyContentIds = end( $sortedRevisions );
+				$timestamp = array_search( $bodyContentIds, $sortedRevisions );
+				$sortedRevisions = []; // Reset sortedRevisions
+				$sortedRevisions[$timestamp] = $bodyContentIds;
+			}
+
+			foreach( $sortedRevisions as $timestamp => $bodyContentIds ) {
 				$bodyContentIdsArr = explode( '/', $bodyContentIds );
 
 				$pageContent = "";
