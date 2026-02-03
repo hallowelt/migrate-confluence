@@ -12,6 +12,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
@@ -309,7 +310,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new FixImagesWithExternalUrl(),
 			new RestoreCode(),
 			new NestedHeadings(),
-			new RestoreStructuredMacroTasksReport()
+			new RestoreStructuredMacroTasksReport(),
+			new FixMultilineTemplate()
 		];
 
 		/** @var IPostprocessor $postProcessor */
