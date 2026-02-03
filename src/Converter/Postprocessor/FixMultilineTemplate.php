@@ -12,9 +12,9 @@ class FixMultilineTemplate implements IPostprocessor {
 	public function postprocess( string $wikiText ): string {
 		$wikiText = preg_replace_callback(
 			'/\{\{(.*?)\}\}/s',
-			function( $match ) {
+			static function ( $match ) {
 				$lines = explode( "###BREAK###", $match[0] );
-				for( $index = 0; $index < count( $lines ); $index++ ) {
+				for ( $index = 0; $index < count( $lines ); $index++ ) {
 					$line = $lines[$index];
 					if ( strpos( $line, ' ' ) === 0 ) {
 						$lines[$index] = substr( $line, 1 );

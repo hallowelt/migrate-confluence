@@ -2,10 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMDocument;
-use DOMNode;
-use HalloWelt\MigrateConfluence\Converter\IProcessor;
-
 /**
  * <ac:structured-macro ac:name="details" ac:schema-version="1" ac:macro-id="...">
  *   <ac:parameter ac:name="id">control</ac:parameter>
@@ -19,7 +15,7 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
  *     ...
  * </ac:structured-macro>
  */
-class DetailsMacro  extends ConvertMacroToTemplateBase {
+class DetailsMacro extends ConvertMacroToTemplateBase {
 
 	/**
 	 * @return string
