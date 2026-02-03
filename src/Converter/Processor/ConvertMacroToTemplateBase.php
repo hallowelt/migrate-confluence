@@ -56,7 +56,7 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 				$paramValue = $parameterEl->nodeValue;
 				// We add a "###BREAK###", as `pandoc` will eat up regular line breaks.
 				// They will be restored in a "Postprocessor"
-				$praramString = " |$paramName = $paramValue";
+				$praramString = "|$paramName = $paramValue";
 				if ( $this->addLinebreakInsideTemplate() ) {
 					$praramString .= "###BREAK###\n";
 				}
@@ -73,7 +73,7 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 			}
 
 			if ( !empty( $richTextBodyEls ) ) {
-				$bodyString = " |body = ";
+				$bodyString = "|body = ";
 				if ( $this->addLinebreakInsideTemplate() ) {
 					$bodyString .= "###BREAK###\n";
 				}
@@ -85,6 +85,7 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 					// will give children of `$dom->firstChild`.
 					// Using `iterator_to_array` as an workaround here.
 					$childNodes = iterator_to_array( $richTextBodyEl->childNodes );
+					$childNodeCount = count( $childNodes );
 					foreach ( $childNodes as $richTextBodyChildEl ) {
 						if ( $richTextBodyChildEl === $actualMacro ) {
 							continue;
