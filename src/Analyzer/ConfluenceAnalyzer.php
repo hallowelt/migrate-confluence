@@ -17,7 +17,6 @@ use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
-use phpDocumentor\Reflection\Types\Boolean;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -82,7 +81,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private $advancedConfig = [];
 
-	/** @var Boolean */
+	/** @var bool */
 	private $includeHistory = false;
 
 	/**
@@ -111,7 +110,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-page-id-to-confluence-key-map',
 			'analyze-title-to-attachment-title',
 			'analyze-attachment-id-to-target-filename-map',
-			'analzye-title-revisions',
+			'analyze-title-revisions',
+
+			'analyze-orig-title-compressed-title-map',
+			'analyze-compressed-title-revisions-title-map',
 
 			'debug-analyze-invalid-titles-page-id-to-title',
 			'debug-analyze-invalid-titles-attachment-id-to-title',
@@ -270,27 +272,47 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 		$xmlReader->close();
 
-		// compress title lenght and create pages-titles-map and page-id-to-title-map
+		// compress title lenght
 		$titleCompressor = new TitleCompressor();
-		$compressedTitlesMap = $titleCompressor->execute( $this->pagesTitlesMap );
+		$analyzePagesTitlesMap = $this->customBuckets->getBucketData( 'analyze-pages-titles-map' );
+		$compressedTitlesMap = $titleCompressor->execute( $analyzePagesTitlesMap );
+		foreach ( $compressedTitlesMap as $origTitle => $compressedTitle ) {
+			$this->buckets->addData(
+				'analyze-orig-title-compressed-title-map',
+				$origTitle, $compressedTitle, false, true
+			);
+		}
 
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
-		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $this->pagesTitlesMap );
+
+		// pages-titles-map
+		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $analyzePagesTitlesMap );
+		ksort( $compressedPagesTitlesMap );
 		foreach ( $compressedPagesTitlesMap as $key => $title ) {
 			$this->buckets->addData( 'global-pages-titles-map', $key, $title, false, true );
 		}
-		$compressedPageIdToTitleMap = $applyCompressedTitles->toMapValues( $this->pageIdToTitleMap );
+
+		// page-id-to-titles
+		$analyzePageIdToTitleMap = $this->customBuckets->getBucketData( 'analyze-page-id-to-title-map' );
+		$compressedPageIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzePageIdToTitleMap );
 		ksort( $compressedPageIdToTitleMap );
 		foreach ( $compressedPageIdToTitleMap as $id => $title ) {
 			$this->buckets->addData( 'global-page-id-to-title-map', $id, $title, false, true );
 		}
 
-		$compressedTitleRevison = $applyCompressedTitles->toMapKeys( $this->titleRevision );
+		// title-revisions
+		$analyzeTitleRevisionsMap = $this->customBuckets->getBucketData( 'analyze-title-revisions' );
+		$compressedTitleRevison = $applyCompressedTitles->toMapKeys( $analyzeTitleRevisionsMap );
 		ksort( $compressedTitleRevison );
+		$titlesAdded = [];
+		$revisionsAdded = [];
 		foreach ( $compressedTitleRevison as $title => $revisions ) {
-			$revisions = array_unique( $revisions );
-			foreach( $revisions as $revision ) {
-				$this->addTitleRevision( $title, $revision );
+			$titlesAdded[] = $title;
+			if ( is_array( $revisions ) ) {
+				foreach ( $revisions as $revision ) {
+					$this->addTitleRevision( $title, $revision );
+					$revisionsAdded[] = "{$title} - {$revision}";
+				}
 			}
 		}
 
@@ -713,9 +735,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->output->writeln( "Add page '$targetTitle' (ID:$pageId)" );
 
 		/**
-		 * Adds data bucket "analyze-pages-titles-map", which contains mapping from page title itself to full page title.
+		 * Adds data bucket "analyze-pages-titles-map", which contains mapping from page title itself to
+		 * full page title.
 		 * Full page title contains parent pages and namespace (if it is not general space).
-		 * 
+		 *
 		 * After testing for title validity and sanitizing titles they will be added to global-pages-titles-map later.
 		 * Example:
 		 * "Detailed_planning" -> "Dokumentation/Detailed_planning"
@@ -734,14 +757,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$pageId, $pageConfluenceTitle, false, true
 		);
 
-		$this->buckets->addData( 'analyze-pages-titles-map', $pageConfluenceTitle, $targetTitle, false, true );
-		$this->pagesTitlesMap[$pageConfluenceTitle] = $targetTitle;
+		$this->customBuckets->addData( 'analyze-pages-titles-map', $pageConfluenceTitle, $targetTitle, false, true );
 		// Also add pages IDs in Confluence to full page title mapping.
 		// It is needed to have enough context on converting stage,
 		// to know from filename which page is currently being converted.
-		$this->buckets->addData( 'analyze-page-id-to-title-map', $pageId, $targetTitle, false, true );
+		$this->customBuckets->addData( 'analyze-page-id-to-title-map', $pageId, $targetTitle, false, true );
 		$this->buckets->addData( 'global-page-id-to-space-id', $pageId, $spaceId, false, true );
-		$this->pageIdToTitleMap[$pageId] = $targetTitle;
 
 		$revisionTimestamp = $this->buildRevisionTimestamp( $xmlHelper, $pageNode );
 		$bodyContentIds = $this->getBodyContentIds( $xmlHelper, $pageNode );
@@ -772,14 +793,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$version = $xmlHelper->getPropertyValue( 'version', $pageNode );
 		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
 
-		if ( !isset( $this->titleRevision[$targetTitle] ) ) {
-			$this->titleRevision[$targetTitle] = [];
-		}
-		$this->titleRevision[$targetTitle][] = $revision;
 		$this->addAnalyzerTitleRevision( $targetTitle, $revision );
 
 		// Find attachments
-
 		$this->getAttachmentsFromCollection( $xmlHelper, $pageNode, $spaceId );
 	}
 
@@ -1266,7 +1282,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return void
 	 */
 	private function addAnalyzerTitleRevision( $titleText, $contentReference = 'n/a' ) {
-		$this->buckets->addData( 'analzye-title-revisions', $titleText, $contentReference );
+		$this->customBuckets->addData( 'analyze-title-revisions', $titleText, $contentReference, true, true );
 	}
 
 	/**
@@ -1276,7 +1292,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return void
 	 */
 	protected function addTitleRevision( $titleText, $contentReference = 'n/a' ) {
-		$this->buckets->addData( 'global-title-revisions', $titleText, $contentReference );
+		$this->buckets->addData( 'global-title-revisions', $titleText, $contentReference, true, true );
 	}
 
 	/**

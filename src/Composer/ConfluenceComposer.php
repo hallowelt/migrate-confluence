@@ -108,7 +108,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 			}
 
 			$sortedRevisions = [];
-			foreach( $pageRevisions as $pageRevision ) {
+			foreach ( $pageRevisions as $pageRevision ) {
 				$pageRevisionData = explode( '@', $pageRevision );
 				$bodyContentIds = $pageRevisionData[0];
 
@@ -116,20 +116,23 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 				$version = $versionTimestamp[0];
 				$timestamp = $versionTimestamp[1];
 
-				$sortedRevisions[$timestamp] = $bodyContentIds;
+				$sortedRevisions[$bodyContentIds] = $timestamp;
 			}
-
-			ksort( $sortedRevisions );
+			// Sorting revisions with timestamps
+			natsort( $sortedRevisions );
+			$sortedRevisions = array_flip( $sortedRevisions );
+			// Using history revisions?
 			if ( !isset( $this->advancedConfig['include-history'] )
 				|| $this->advancedConfig['include-history'] !== true
 			) {
 				$bodyContentIds = end( $sortedRevisions );
 				$timestamp = array_search( $bodyContentIds, $sortedRevisions );
-				$sortedRevisions = []; // Reset sortedRevisions
+				// Reset sortedRevisions
+				$sortedRevisions = [];
 				$sortedRevisions[$timestamp] = $bodyContentIds;
 			}
 
-			foreach( $sortedRevisions as $timestamp => $bodyContentIds ) {
+			foreach ( $sortedRevisions as $timestamp => $bodyContentIds ) {
 				$bodyContentIdsArr = explode( '/', $bodyContentIds );
 
 				$pageContent = "";

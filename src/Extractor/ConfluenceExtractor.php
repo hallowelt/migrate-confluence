@@ -30,7 +30,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 */
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
-		
+
 		$this->customBuckets = new DataBuckets( [
 			'extract-labelling-id-to-label-id-map',
 			'extract-label-id-to-name-map',
