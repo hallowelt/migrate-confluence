@@ -1,5 +1,1 @@
-{{SimplePanel
-|type=note
-|title={{{title|}}}
-|body={{{body|}}}
-}}
+{{Textbox|boxtype=note|header={{{title|}}}|text={{{body|}}}|icon=yes}}
