@@ -1,5 +1,1 @@
-{{SimplePanel
-|type=warning
-|title={{{title|}}}
-|body={{{body|}}}
-}}
+{{Textbox|boxtype=warning|header={{{title|}}}|text={{{body|}}}|icon=yes}}
