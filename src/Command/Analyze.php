@@ -71,6 +71,7 @@ class Analyze extends CommandAnalyze {
 	 * @inheritDoc
 	 */
 	protected function getBucketKeys() {
+		return [];
 		return [
 			'global-files',
 			'global-title-attachments',
