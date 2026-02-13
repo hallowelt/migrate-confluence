@@ -65,4 +65,30 @@ class Analyze extends CommandAnalyze {
 			}
 		}
 	}
+
+	/**
+	 *
+	 * @inheritDoc
+	 */
+	protected function getBucketKeys() {
+		return [
+			'global-files',
+			'global-title-attachments',
+			'global-title-revisions',
+			'global-space-id-to-prefix-map',
+			'global-space-key-to-prefix-map',
+			'global-space-id-homepages',
+			'global-space-id-to-description-id-map',
+			'global-space-description-id-to-body-id-map',
+			'global-space-details',
+			'global-userkey-to-username-map',
+			'global-pages-titles-map',
+			'global-page-id-to-title-map',
+			'global-page-id-to-space-id',
+			'global-body-contents-to-pages-map',
+			'global-additional-files',
+			'global-attachment-orig-filename-target-filename-map',
+			'global-filenames-to-filetitles-map',
+		];
+	}
 }

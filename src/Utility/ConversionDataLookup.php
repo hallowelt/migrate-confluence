@@ -59,13 +59,13 @@ class ConversionDataLookup {
 	 */
 	public static function newFromBuckets( DataBuckets $buckets ) {
 		return new static(
-			$buckets->getBucketData( 'space-id-to-prefix-map' ),
-			$buckets->getBucketData( 'pages-titles-map' ),
-			$buckets->getBucketData( 'filenames-to-filetitles-map' ),
-			$buckets->getBucketData( 'attachment-orig-filename-target-filename-map' ),
-			$buckets->getBucketData( 'files' ),
-			$buckets->getBucketData( 'userkey-to-username-map' ),
-			$buckets->getBucketData( 'space-key-to-prefix-map' ),
+			$buckets->getBucketData( 'global-space-id-to-prefix-map' ),
+			$buckets->getBucketData( 'global-pages-titles-map' ),
+			$buckets->getBucketData( 'global-filenames-to-filetitles-map' ),
+			$buckets->getBucketData( 'global-attachment-orig-filename-target-filename-map' ),
+			$buckets->getBucketData( 'global-files' ),
+			$buckets->getBucketData( 'global-userkey-to-username-map' ),
+			$buckets->getBucketData( 'global-space-key-to-prefix-map' ),
 		);
 	}
 

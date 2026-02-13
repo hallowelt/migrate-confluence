@@ -30,9 +30,10 @@ class ConfluenceExtractor extends ExtractorBase {
 	 */
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
+
 		$this->customBuckets = new DataBuckets( [
-			'labelling-id-to-label-id-map',
-			'label-id-to-name-map',
+			'extract-labelling-id-to-label-id-map',
+			'extract-label-id-to-name-map',
 		] );
 	}
 
@@ -41,6 +42,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @return bool
 	 */
 	protected function doExtract( SplFileInfo $file ): bool {
+		$this->buckets->loadFromWorkspace( $this->workspace );
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 
 		if ( isset( $this->config['config']['categories'] ) ) {
@@ -109,11 +111,16 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @return void
 	 */
 	private function extractBodyContents( DOMDocument $dom ): void {
+		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
+
 		$xmlHelper = new XMLHelper( $dom );
 
 		$bodyContents = $xmlHelper->getObjectNodes( 'BodyContent' );
 		foreach ( $bodyContents as $bodyContent ) {
 			$id = $xmlHelper->getIDNodeValue( $bodyContent );
+			if ( !isset( $bodyContentsToPagesMap[ $id ] ) ) {
+				continue;
+			}
 			$bodyContentHTML = $this->getBodyContentHTML( $xmlHelper, $bodyContent );
 			$targetFileName = $this->workspace->saveRawContent( $id, $bodyContentHTML );
 			$this->addRevisionContent( $id, $targetFileName );
@@ -140,12 +147,12 @@ class ConfluenceExtractor extends ExtractorBase {
 
 		$labelProp = $xmlHelper->getPropertyNode( 'label', $labelling );
 		$labelId = $xmlHelper->getIDNodeValue( $labelProp );
-		$labelMap = $this->customBuckets->getBucketData( 'label-id-to-name-map' );
+		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
 		if ( isset( $labelMap[$labelId] ) ) {
 			$categories[] = $labelMap[$labelId];
 		}
 
-		$this->customBuckets->addData( 'labelling-id-to-label-id-map', $id, $labelId, false, true );
+		$this->customBuckets->addData( 'extract-labelling-id-to-label-id-map', $id, $labelId, false, true );
 	}
 
 	/**
@@ -173,7 +180,7 @@ class ConfluenceExtractor extends ExtractorBase {
 		$id = $xmlHelper->getIDNodeValue( $label );
 		$name = $xmlHelper->getPropertyValue( 'name', $label );
 
-		$this->customBuckets->addData( 'label-id-to-name-map', $id, $name, false, true );
+		$this->customBuckets->addData( 'extract-label-id-to-name-map', $id, $name, false, true );
 	}
 
 	/**
@@ -193,8 +200,8 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @return void
 	 */
 	private function extractPageMetaData( DOMDocument $dom ) {
-		$labellingMap = $this->customBuckets->getBucketData( 'labelling-id-to-label-id-map' );
-		$labelMap = $this->customBuckets->getBucketData( 'label-id-to-name-map' );
+		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
+		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
 
 		$xmlHelper = new XMLHelper( $dom );
 
@@ -229,7 +236,25 @@ class ConfluenceExtractor extends ExtractorBase {
 				'categories' => $categories
 			];
 
-			$this->buckets->addData( 'title-metadata', $id, $meta, false );
+			$this->addTitleMetaData( $id, $meta );
 		}
+	}
+
+	/**
+	 *
+	 * @param string $revisionReference
+	 * @param string $contentReference
+	 */
+	protected function addRevisionContent( $revisionReference, $contentReference = 'n/a' ) {
+		$this->buckets->addData( 'global-revision-contents', $revisionReference, $contentReference );
+	}
+
+	/**
+	 *
+	 * @param string $titleText
+	 * @param string $meta
+	 */
+	protected function addTitleMetaData( $titleText, $meta = [] ) {
+		$this->buckets->addData( 'global-title-metadata', $titleText, $meta, false );
 	}
 }

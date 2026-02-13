@@ -5,13 +5,17 @@ namespace HalloWelt\MigrateConfluence\Analyzer;
 use DOMDocument;
 use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
+use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
+use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
+use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
+use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -24,20 +28,9 @@ use XMLReader;
 class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface {
 
 	/**
-	 *
-	 * @var DOMDocument
-	 */
-	private $dom = null;
-
-	/**
 	 * @var DataBuckets
 	 */
 	private $customBuckets = null;
-
-	/**
-	 * @var XMLHelper
-	 */
-	private $helper = null;
 
 	/**
 	 * @var LoggerInterface
@@ -64,11 +57,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private $addedAttachmentIds = [];
 
-	/**
-	 *
-	 * @var string
-	 */
-	private $pageConfluenceTitle = '';
+	/** @var array */
+	private $pagesTitlesMap = [];
+
+	/** @var array */
+	private $pageIdToTitleMap = [];
+
+	/** @var array */
+	private $titleRevision = [];
 
 	/**
 	 * @var string
@@ -85,6 +81,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private $advancedConfig = [];
 
+	/** @var bool */
+	private $includeHistory = false;
+
 	/**
 	 *
 	 * @param array $config
@@ -94,43 +93,34 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
 		$this->customBuckets = new DataBuckets( [
-			'space-id-to-prefix-map',
-			'space-key-to-prefix-map',
-			'space-name-to-prefix-map',
-			'space-id-to-name-map',
-			'space-key-to-name-map',
-			'space-id-homepages',
-			'space-id-to-description-id-map',
-			'space-description-id-to-body-id-map',
-			'space-details',
-			'page-id-to-confluence-title-map',
-			'page-id-to-parent-page-id-map',
-			'body-content-id-to-page-id-map',
-			'attachment-id-to-orig-filename-map',
-			'attachment-id-to-space-id-map',
-			'attachment-id-to-reference-map',
-			'attachment-id-to-container-content-id-map',
-			'attachment-id-to-content-status-map',
-			'userkey-to-username-map',
-			'pages-titles-map',
-			'page-id-to-confluence-key-map',
-			'page-id-to-title-map',
-			'page-id-to-space-id',
-			'body-contents-to-pages-map',
-			'title-files',
-			'additional-files',
-			'attachment-orig-filename-target-filename-map',
-			'attachment-id-to-target-filename-map',
-			'filenames-to-filetitles-map',
+			'analyze-space-id-to-space-key-map',
+			'analyze-space-name-to-prefix-map',
+			'analyze-space-id-to-name-map',
+			'analyze-space-key-to-name-map',
+			'analyze-pages-titles-map',
+			'analyze-page-id-to-title-map',
+			'analyze-page-id-to-confluence-title-map',
+			'analyze-page-id-to-parent-page-id-map',
+			'analyze-body-content-id-to-page-id-map',
+			'analyze-attachment-id-to-orig-filename-map',
+			'analyze-attachment-id-to-space-id-map',
+			'analyze-attachment-id-to-reference-map',
+			'analyze-attachment-id-to-container-content-id-map',
+			'analyze-attachment-id-to-content-status-map',
+			'analyze-page-id-to-confluence-key-map',
+			'analyze-title-to-attachment-title',
+			'analyze-attachment-id-to-target-filename-map',
+			'analyze-title-revisions',
 
-			'invalid-titles',
-			'invalid-namespaces',
+			'analyze-orig-title-compressed-title-map',
+			'analyze-compressed-title-revisions-title-map',
 
-			'debug-attachment-id-to-target-filename',
-			'debug-missing-attachment-id-to-filename',
-			'debug-attachment-page-to-attachment-id',
-			'debug-fallback-attachment-id-to-target-filename',
-			'debug-additional-attachment-id-to-target-filename',
+			'debug-analyze-invalid-titles-page-id-to-title',
+			'debug-analyze-invalid-titles-attachment-id-to-title',
+
+			'warning-analyze-invalid-namespaces',
+			'warning-analyze-invalid-titles',
+			'warning-analyze-invalid-filenames',
 		] );
 
 		$this->logger = new NullLogger();
@@ -163,6 +153,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$normalizedAnalyzerIncludeSpacekey[] = strtolower( $key );
 			}
 			$this->advancedConfig['analyzer-include-spacekey'] = $normalizedAnalyzerIncludeSpacekey;
+		}
+
+		if ( isset( $this->advancedConfig['include-history'] ) ) {
+			if ( $this->advancedConfig['include-history'] === true ) {
+				$this->includeHistory = $this->advancedConfig['include-history'];
+			}
 		}
 	}
 
@@ -276,6 +272,50 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 		$xmlReader->close();
 
+		// compress title lenght
+		$titleCompressor = new TitleCompressor();
+		$analyzePagesTitlesMap = $this->customBuckets->getBucketData( 'analyze-pages-titles-map' );
+		$compressedTitlesMap = $titleCompressor->execute( $analyzePagesTitlesMap );
+		foreach ( $compressedTitlesMap as $origTitle => $compressedTitle ) {
+			$this->buckets->addData(
+				'analyze-orig-title-compressed-title-map',
+				$origTitle, $compressedTitle, false, true
+			);
+		}
+
+		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
+
+		// pages-titles-map
+		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $analyzePagesTitlesMap );
+		ksort( $compressedPagesTitlesMap );
+		foreach ( $compressedPagesTitlesMap as $key => $title ) {
+			$this->buckets->addData( 'global-pages-titles-map', $key, $title, false, true );
+		}
+
+		// page-id-to-titles
+		$analyzePageIdToTitleMap = $this->customBuckets->getBucketData( 'analyze-page-id-to-title-map' );
+		$compressedPageIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzePageIdToTitleMap );
+		ksort( $compressedPageIdToTitleMap );
+		foreach ( $compressedPageIdToTitleMap as $id => $title ) {
+			$this->buckets->addData( 'global-page-id-to-title-map', $id, $title, false, true );
+		}
+
+		// title-revisions
+		$analyzeTitleRevisionsMap = $this->customBuckets->getBucketData( 'analyze-title-revisions' );
+		$compressedTitleRevison = $applyCompressedTitles->toMapKeys( $analyzeTitleRevisionsMap );
+		ksort( $compressedTitleRevison );
+		$titlesAdded = [];
+		$revisionsAdded = [];
+		foreach ( $compressedTitleRevison as $title => $revisions ) {
+			$titlesAdded[] = $title;
+			if ( is_array( $revisions ) ) {
+				foreach ( $revisions as $revision ) {
+					$this->addTitleRevision( $title, $revision );
+					$revisionsAdded[] = "{$title} - {$revision}";
+				}
+			}
+		}
+
 		// Process title attachments fallback
 		$xmlReader->open( $file->getPathname() );
 		$read = $xmlReader->read();
@@ -345,20 +385,23 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return;
 		}
 
-		$this->customBuckets->addData(
-			'space-id-to-prefix-map', $spaceId, $customSpacePrefix, false, true
+		$this->buckets->addData(
+			'global-space-id-to-prefix-map', $spaceId, $customSpacePrefix, false, true
+		);
+		$this->buckets->addData(
+			'global-space-key-to-prefix-map', $spaceKey, $customSpacePrefix, false, true
 		);
 		$this->customBuckets->addData(
-			'space-key-to-prefix-map', $spaceKey, $customSpacePrefix, false, true
+			'analyze-space-id-to-space-key-map', $spaceId, $spaceKey, false, true
 		);
 		$this->customBuckets->addData(
-			'space-name-to-prefix-map', $spaceName, $customSpacePrefix, false, true
+			'analyze-space-name-to-prefix-map', $spaceName, $customSpacePrefix, false, true
 		);
 		$this->customBuckets->addData(
-			'space-id-to-name-map', $spaceId, $spaceName, false, true
+			'analyze-space-id-to-name-map', $spaceId, $spaceName, false, true
 		);
 		$this->customBuckets->addData(
-			'space-key-to-name-map', $spaceKey, $spaceName, false, true
+			'analyze-space-key-to-name-map', $spaceKey, $spaceName, false, true
 		);
 
 		$homePageId = -1;
@@ -367,7 +410,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$homePageId = $xmlHelper->getIDNodeValue( $homePagePropertyNode );
 		}
 		if ( $homePageId > -1 ) {
-			$this->customBuckets->addData( 'space-id-homepages', $spaceId, $homePageId, false, true );
+			$this->buckets->addData( 'global-space-id-homepages', $spaceId, $homePageId, false, true );
 		}
 
 		$details = [];
@@ -390,8 +433,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$propertyNode = $xmlHelper->getPropertyNode( 'description' );
 		if ( $propertyNode !== null ) {
 			$details['description'] = $xmlHelper->getIDNodeValue( $propertyNode );
-			$this->customBuckets->addData(
-				'space-id-to-description-id-map',
+			$this->buckets->addData(
+				'global-space-id-to-description-id-map',
 				$spaceId,
 				$details['description'],
 				false,
@@ -419,7 +462,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		if ( !empty( $details ) ) {
-			$this->customBuckets->addData( 'space-details', $spaceId, $details, false, true );
+			$this->buckets->addData( 'global-space-details', $spaceId, $details, false, true );
 			$this->output->writeln( "Add details description ($spaceId)" );
 		}
 	}
@@ -443,7 +486,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$bodyContents = $xmlHelper->getElementsFromCollection( 'bodyContents', $spaceDescription );
 		foreach ( $bodyContents as $bodyContent ) {
 			$id = $xmlHelper->getIDNodeValue( $bodyContent );
-			$this->customBuckets->addData( 'space-description-id-to-body-id-map', $descID, $id, false, true );
+			$this->buckets->addData( 'global-space-description-id-to-body-id-map', $descID, $id, false, true );
 			$this->output->writeln( "\nAdd space description ($id)" );
 		}
 	}
@@ -480,13 +523,19 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$pageId = $xmlHelper->getIDNodeValue( $pageNode );
 		$parentPageId = $xmlHelper->getPropertyValue( 'parent', $pageNode );
 		if ( $parentPageId !== null ) {
-			$this->customBuckets->addData( 'page-id-to-parent-page-id-map', $pageId, $parentPageId, false, true );
+			$this->customBuckets->addData(
+				'analyze-page-id-to-parent-page-id-map',
+				$pageId, $parentPageId, false, true
+			);
 		}
 
 		$pageId = $xmlHelper->getIDNodeValue( $pageNode );
 		$confluenceTitle = $xmlHelper->getPropertyValue( 'title', $pageNode );
 		if ( $confluenceTitle !== null ) {
-			$this->customBuckets->addData( 'page-id-to-confluence-title-map', $pageId, $confluenceTitle, false, true );
+			$this->customBuckets->addData(
+				'analyze-page-id-to-confluence-title-map',
+				$pageId, $confluenceTitle, false, true
+			);
 		}
 	}
 
@@ -507,7 +556,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$bodyContentId = $xmlHelper->getIDNodeValue( $bodyContentObject );
 		$pageId = $xmlHelper->getPropertyValue( 'content', $bodyContentObject );
-		$this->customBuckets->addData( 'body-content-id-to-page-id-map',
+		$this->customBuckets->addData( 'analyze-body-content-id-to-page-id-map',
 			$bodyContentId,	$pageId,	false, true );
 	}
 
@@ -540,29 +589,31 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		if ( $attachmentFilename !== '' && is_int( $attachmentId ) ) {
 			$this->customBuckets->addData(
-				'attachment-id-to-orig-filename-map', $attachmentId, $attachmentFilename, false, true );
+				'analyze-attachment-id-to-orig-filename-map', $attachmentId, $attachmentFilename, false, true );
 		}
 		$attachmentSpaceId = $xmlHelper->getPropertyValue( 'space', $attachmentNode );
 		if ( is_int( $attachmentId ) ) {
 			$this->customBuckets->addData(
-				'attachment-id-to-space-id-map', $attachmentId, $attachmentSpaceId, false, true );
+				'analyze-attachment-id-to-space-id-map', $attachmentId, $attachmentSpaceId, false, true );
 		}
 		$attachmentReference = $this->makeAttachmentReference( $xmlHelper, $attachmentNode );
 		if ( $attachmentReference !== '' ) {
 			$this->customBuckets->addData(
-				'attachment-id-to-reference-map', $attachmentId, $attachmentReference, false, true );
+				'analyze-attachment-id-to-reference-map', $attachmentId, $attachmentReference, false, true );
 		}
 		$containerContent = $xmlHelper->getPropertyNode( 'containerContent', $attachmentNode );
 		if ( $containerContent instanceof DOMElement ) {
 			$containerContentId = $xmlHelper->getIDNodeValue( $containerContent );
 			if ( $containerContentId >= 0 ) {
 				$this->customBuckets->addData(
-					'attachment-id-to-container-content-id-map', $attachmentId, $containerContentId, false, true );
+					'analyze-attachment-id-to-container-content-id-map',
+					$attachmentId, $containerContentId, false, true
+				);
 			}
 		}
 		$attachmentNodeContentStatus = $xmlHelper->getPropertyValue( 'contentStatus', $attachmentNode );
 		$this->customBuckets->addData(
-			'attachment-id-to-content-status-map', $attachmentId, $attachmentNodeContentStatus, false, true );
+			'analyze-attachment-id-to-content-status-map', $attachmentId, $attachmentNodeContentStatus, false, true );
 	}
 
 	/**
@@ -593,8 +644,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$mediaWikiUsername = $this->makeMWUserName( $lcUserName );
 
-		$this->customBuckets->addData(
-			'userkey-to-username-map',
+		$this->buckets->addData(
+			'global-userkey-to-username-map',
 			$userImplKey,
 			$mediaWikiUsername,
 			false
@@ -618,17 +669,17 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return void
 	 */
 	private function buildPageMaps( DOMDocument $dom ): void {
-		$spaceIdToPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
-		$spaceIdHomepages = $this->customBuckets->getBucketData( 'space-id-homepages' );
-		$pageIdParentPageIdMap = $this->customBuckets->getBucketData( 'page-id-to-parent-page-id-map' );
-		$pageIdConfluendTitleMap = $this->customBuckets->getBucketData( 'page-id-to-confluence-title-map' );
-		$bodyContents = $this->customBuckets->getBucketData( 'body-content-id-to-page-id-map' );
+		$spaceIdToPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
+		$spaceIdToSpaceKeyMap = $this->customBuckets->getBucketData( 'analyze-space-id-to-space-key-map' );
+		$spaceIdHomepages = $this->buckets->getBucketData( 'global-space-id-homepages' );
+		$pageIdParentPageIdMap = $this->customBuckets->getBucketData( 'analyze-page-id-to-parent-page-id-map' );
+		$pageIdConfluendTitleMap = $this->customBuckets->getBucketData( 'analyze-page-id-to-confluence-title-map' );
+		$bodyContents = $this->customBuckets->getBucketData( 'analyze-body-content-id-to-page-id-map' );
 
 		$xmlHelper = new XMLHelper( $dom );
 
 		$pages = $xmlHelper->getObjectNodes( 'Page' );
 		if ( count( $pages ) < 1 ) {
-
 			return;
 		}
 		$pageNode = $pages->item( 0 );
@@ -636,20 +687,21 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return;
 		}
 		$status = $xmlHelper->getPropertyValue( 'contentStatus', $pageNode );
-		if ( $status !== 'current' ) {
+		if ( !$this->includeHistory && ( $status !== 'current' ) ) {
 			return;
 		}
 		$spaceId = $xmlHelper->getPropertyValue( 'space', $pageNode );
 		if ( $spaceId === null ) {
 			return;
 		}
-		if ( !isset( $spaceIdToPrefixMap[$spaceId] ) ) {
+		if ( !isset( $spaceIdToSpaceKeyMap[$spaceId] ) ) {
 			return;
 		}
-		$prefix = $spaceIdToPrefixMap[$spaceId];
+		$spaceKey = $spaceIdToSpaceKeyMap[$spaceId];
+
 		if (
 			isset( $this->advancedConfig['analyzer-include-spacekey'] )
-			&& !in_array( strtolower( $prefix ), $this->advancedConfig['analyzer-include-spacekey'] )
+			&& !in_array( strtolower( $spaceKey ), $this->advancedConfig['analyzer-include-spacekey'] )
 		) {
 			return;
 		}
@@ -667,20 +719,27 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		try {
 			$targetTitle = $titleBuilder->buildTitle( $pageNode );
 		} catch ( InvalidTitleException $ex ) {
-			$this->buckets->addData( 'title-invalids', $pageId, $ex->getInvalidTitle() );
-			return;
+			$this->customBuckets->addData(
+				'debug-analyze-invalid-titles-page-id-to-title',
+				$pageId, $ex->getInvalidTitle()
+			);
+			// We don't want to loose this page. Title can be modified after analyze process
+			$targetTitle = $ex->getInvalidTitle();
 		}
 
 		if ( $targetTitle === '' ) {
-			$this->buckets->addData( 'title-invalids', $pageId, $targetTitle );
+			$this->customBuckets->addData( 'debug-analyze-invalid-titles-page-id-to-title', $pageId, $targetTitle );
 			return;
 		}
 
 		$this->output->writeln( "Add page '$targetTitle' (ID:$pageId)" );
 
 		/**
-		 * Adds data bucket "pages-titles-map", which contains mapping from page title itself to full page title.
+		 * Adds data bucket "analyze-pages-titles-map", which contains mapping from page title itself to
+		 * full page title.
 		 * Full page title contains parent pages and namespace (if it is not general space).
+		 *
+		 * After testing for title validity and sanitizing titles they will be added to global-pages-titles-map later.
 		 * Example:
 		 * "Detailed_planning" -> "Dokumentation/Detailed_planning"
 		 */
@@ -693,14 +752,17 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$pageConfluenceTitle = "$spaceId---{$pageConfluenceTitle}";
 		// Some normalization
 		$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
-		$this->customBuckets->addData( 'pages-titles-map', $pageConfluenceTitle, $targetTitle, false, true );
-		$this->customBuckets->addData( 'page-id-to-confluence-key-map', $pageId, $pageConfluenceTitle, false, true );
+		$this->customBuckets->addData(
+			'analyze-page-id-to-confluence-key-map',
+			$pageId, $pageConfluenceTitle, false, true
+		);
 
+		$this->customBuckets->addData( 'analyze-pages-titles-map', $pageConfluenceTitle, $targetTitle, false, true );
 		// Also add pages IDs in Confluence to full page title mapping.
 		// It is needed to have enough context on converting stage,
 		// to know from filename which page is currently being converted.
-		$this->customBuckets->addData( 'page-id-to-title-map', $pageId, $targetTitle, false, true );
-		$this->customBuckets->addData( 'page-id-to-space-id', $pageId, $spaceId, false, true );
+		$this->customBuckets->addData( 'analyze-page-id-to-title-map', $pageId, $targetTitle, false, true );
+		$this->buckets->addData( 'global-page-id-to-space-id', $pageId, $spaceId, false, true );
 
 		$revisionTimestamp = $this->buildRevisionTimestamp( $xmlHelper, $pageNode );
 		$bodyContentIds = $this->getBodyContentIds( $xmlHelper, $pageNode );
@@ -708,7 +770,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			foreach ( $bodyContentIds as $bodyContentId ) {
 				// TODO: Add UserImpl-key or directly MediaWiki username
 				// (could also be done in `extract` as "metadata" )
-				$this->customBuckets->addData( 'body-contents-to-pages-map', $bodyContentId, $pageId, false, true );
+				$this->buckets->addData( 'global-body-contents-to-pages-map', $bodyContentId, $pageId, false, true );
 			}
 		} else {
 			$bodyContentIds = [];
@@ -717,8 +779,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				if ( $pageId === $contentPageId ) {
 					$bodyContentIds[] = $bodyContentId;
 
-					$this->customBuckets->addData(
-						'body-contents-to-pages-map',
+					$this->buckets->addData(
+						'global-body-contents-to-pages-map',
 						$bodyContentId,
 						$pageId,
 						false,
@@ -729,11 +791,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		$version = $xmlHelper->getPropertyValue( 'version', $pageNode );
+		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
 
-		$this->addTitleRevision( $targetTitle, implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp" );
+		$this->addAnalyzerTitleRevision( $targetTitle, $revision );
 
 		// Find attachments
-
 		$this->getAttachmentsFromCollection( $xmlHelper, $pageNode, $spaceId );
 	}
 
@@ -744,17 +806,28 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return void
 	 */
 	private function getAttachmentsFromCollection( XMLHelper $xmlHelper, DOMElement $element, int $spaceId ): void {
-		$pageIdConflueTitleMap = $this->customBuckets->getBucketData( 'page-id-to-confluence-title-map' );
-		$pageIdConfluenKeyMap = $this->customBuckets->getBucketData( 'page-id-to-confluence-key-map' );
-		$pagesTitlesMap = $this->customBuckets->getBucketData( 'pages-titles-map' );
-		$spaceIdToPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
-		$attachmentIdToOrigFilenameMap = $this->customBuckets->getBucketData( 'attachment-id-to-orig-filename-map' );
-		$attachmentIdToSpaceIdMap = $this->customBuckets->getBucketData( 'attachment-id-to-space-id-map' );
-		$attachmentIdToReferenceMap = $this->customBuckets->getBucketData( 'attachment-id-to-reference-map' );
+		$pageIdConflueTitleMap = $this->customBuckets->getBucketData( 'analyze-page-id-to-confluence-title-map' );
+		$pageIdConfluenKeyMap = $this->customBuckets->getBucketData( 'analyze-page-id-to-confluence-key-map' );
+		$pagesTitlesMap = $this->buckets->getBucketData( 'global-pages-titles-map' );
+		$spaceIdToPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
+		$attachmentIdToOrigFilenameMap = $this->customBuckets->getBucketData(
+			'analyze-attachment-id-to-orig-filename-map'
+		);
+		$attachmentIdToSpaceIdMap = $this->customBuckets->getBucketData( 'analyze-attachment-id-to-space-id-map' );
+		$attachmentIdToReferenceMap = $this->customBuckets->getBucketData( 'analyze-attachment-id-to-reference-map' );
 
 		$pageId = $xmlHelper->getIDNodeValue( $element );
+		if ( !isset( $pageIdConflueTitleMap[$pageId] ) ) {
+			return;
+		}
 		$confluenceTitle = $pageIdConflueTitleMap[$pageId];
+		if ( !isset( $pageIdConfluenKeyMap[$pageId] ) ) {
+			return;
+		}
 		$confluenceKey = $pageIdConfluenKeyMap[$pageId];
+		if ( !isset( $pagesTitlesMap[$confluenceKey] ) ) {
+			return;
+		}
 		$wikiTitle = $pagesTitlesMap[$confluenceKey];
 
 		// In case of ERM34465 this seems to be empty because
@@ -778,6 +851,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$confluenceTitle, $attachmentId, $attachmentSpaceId,
 				$attachmentOrigFilename, $wikiTitle, $spaceIdToPrefixMap
 			);
+			if ( $attachmentTargetFilename === '' ) {
+				$this->customBuckets->addData(
+					'debug-analyze-invalid-titles-attachment-id-to-title',
+					$attachmentId, $attachmentTargetFilename
+				);
+				continue;
+			}
 			if ( !isset( $attachmentIdToReferenceMap[$attachmentId] ) ) {
 				continue;
 			}
@@ -786,12 +866,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			// In case of ERM34465 no files are added to title-attachments
 			$this->addTitleAttachment( $wikiTitle, $attachmentTargetFilename );
 			$this->addFile( $attachmentTargetFilename, $attachmentReference );
-			$this->customBuckets->addData( 'title-files', $wikiTitle, $attachmentTargetFilename, false, true );
+			$this->customBuckets->addData(
+				'analyze-title-to-attachment-title',
+				$wikiTitle, $attachmentTargetFilename, false, true
+			);
 			$this->addedAttachmentIds[] = $attachmentId;
 
 			$confluenceFileKey = str_replace( ' ', '_', "{$spaceId}---{$confluenceTitle}---{$attachmentOrigFilename}" );
-			$this->customBuckets->addData(
-				'filenames-to-filetitles-map',
+			$this->buckets->addData(
+				'global-filenames-to-filetitles-map',
 				$confluenceFileKey,
 				$attachmentTargetFilename,
 				false,
@@ -799,13 +882,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			);
 
 			$this->customBuckets->addData(
-				'attachment-id-to-target-filename-map',
+				'analyze-attachment-id-to-target-filename-map',
 				$attachmentId,
 				$attachmentTargetFilename
 			);
 
-			$this->customBuckets->addData(
-				'attachment-orig-filename-target-filename-map',
+			$this->buckets->addData(
+				'global-attachment-orig-filename-target-filename-map',
 				$attachmentOrigFilename,
 				$attachmentTargetFilename
 			);
@@ -817,12 +900,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return void
 	 */
 	private function buildTitleAttachmentsFallbackMaps( DOMDocument $dom ): void {
-		$spaceIdPrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
-		$attachmentIdToOrigFilenameMap = $this->customBuckets->getBucketData( 'attachment-id-to-orig-filename-map' );
-		$attachmentIdToReferenceMap = $this->customBuckets->getBucketData( 'attachment-id-to-reference-map' );
-		$attachmentIdToSpaceIdMap = $this->customBuckets->getBucketData( 'attachment-id-to-space-id-map' );
-		$pageIdToTitleMap = $this->customBuckets->getBucketData( 'page-id-to-title-map' );
-		$pageIdToConfluenceKey = $this->customBuckets->getBucketData( 'page-id-to-confluence-key-map' );
+		$spaceIdPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
+		$attachmentIdToOrigFilenameMap = $this->customBuckets->getBucketData(
+			'analyze-attachment-id-to-orig-filename-map'
+		);
+		$attachmentIdToReferenceMap = $this->customBuckets->getBucketData( 'analyze-attachment-id-to-reference-map' );
+		$attachmentIdToSpaceIdMap = $this->customBuckets->getBucketData( 'analyze-attachment-id-to-space-id-map' );
+		$pageIdToTitleMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
+		$pageIdToConfluenceKey = $this->customBuckets->getBucketData( 'analyze-page-id-to-confluence-key-map' );
 
 		$xmlHelper = new XMLHelper( $dom );
 
@@ -873,6 +958,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$confluenceKey, $attachmentId, $attachmentSpaceId, $attachmentOrigFilename,
 			$targetTitle, $spaceIdPrefixMap
 		);
+		if ( $attachmentTargetFilename === '' ) {
+			$this->customBuckets->addData(
+				'debug-analyze-invalid-titles-attachment-id-to-title',
+				$attachmentId, $attachmentTargetFilename
+			);
+			return;
+		}
 
 		if ( !isset( $attachmentIdToReferenceMap[$attachmentId] ) ) {
 			$this->output->writeln(
@@ -888,8 +980,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
 			$this->output->writeln( "Add attachment $attachmentTargetFilename (fallback: {$confluenceKey})" );
 		} else {
-			$this->customBuckets->addData(
-				'additional-files', $attachmentTargetFilename, $attachmentReference, false, true );
+			$this->buckets->addData(
+				'global-additional-files', $attachmentTargetFilename, $attachmentReference, false, true );
 			$this->output->writeln( "Add attachment $attachmentTargetFilename (additional)" );
 		}
 
@@ -897,8 +989,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->addedAttachmentIds[] = $attachmentId;
 
 		$confluenceFileKey = str_replace( ' ', '',  "{$confluenceKey}---{$attachmentOrigFilename}" );
-		$this->customBuckets->addData(
-			'filenames-to-filetitles-map',
+		$this->buckets->addData(
+			'global-filenames-to-filetitles-map',
 			$confluenceFileKey,
 			$attachmentTargetFilename,
 			false,
@@ -906,13 +998,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		);
 
 		$this->customBuckets->addData(
-			'attachment-id-to-target-filename-map',
+			'analyze-attachment-id-to-target-filename-map',
 			$attachmentId,
 			$attachmentTargetFilename
 		);
 
-		$this->customBuckets->addData(
-			'attachment-orig-filename-target-filename-map',
+		$this->buckets->addData(
+			'global-attachment-orig-filename-target-filename-map',
 			$attachmentOrigFilename,
 			$attachmentTargetFilename
 		);
@@ -1017,9 +1109,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$targetName = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId, $attachmentOrigFilename, $shortTargetTitle );
 			} catch ( InvalidTitleException $ex ) {
-				$this->buckets->addData( 'title-invalids', $attachmentId, $ex->getInvalidTitle() );
+				$this->customBuckets->addData(
+					'debug-analyze-invalid-titles-attachment-id-to-title',
+					$attachmentId, $ex->getInvalidTitle()
+				);
 				$this->logger->error( $ex->getMessage() );
-				return '###INVALID###';
+				$targetName = $ex->getInvalidTitle();
 			}
 		}
 
@@ -1039,7 +1134,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$fileKey = "{$pageConfluenceTitle}---$attachmentOrigFilename";
 		// Some normalization
 		$fileKey = str_replace( ' ', '_', $fileKey );
-		$this->customBuckets->addData( 'filenames-to-filetitles-map', $fileKey, $targetName, false, true );
+		$this->buckets->addData( 'global-filenames-to-filetitles-map', $fileKey, $targetName, false, true );
 
 		return $targetName;
 	}
@@ -1078,24 +1173,25 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	}
 
 	private function checkTitles(): void {
-		$spacePrefixMap = $this->customBuckets->getBucketData( 'space-id-to-prefix-map' );
-		$pagesTitlesMap = $this->customBuckets->getBucketData( 'pages-titles-map' );
+		$pagesTitlesMap = $this->buckets->getBucketData( 'global-pages-titles-map' );
+
+		$validityChecker = new TitleValidityChecker();
 
 		$hasInvalidTitles = false;
 		$hasInvalidNamespaces = false;
 		foreach ( $pagesTitlesMap as $key => $title ) {
-			if ( str_ends_with( 'title', '_' ) ) {
+			if ( !$validityChecker->hasValidEnding( $title ) ) {
 				$this->customBuckets->addData(
-					'invalid-titles',
+					'warning-analyze-invalid-titles',
 					'invalid_ending', $title,
 					true, true
 				);
 				$hasInvalidTitles = true;
 			}
 			if ( str_contains( $title, ':' ) ) {
-				if ( strpos( $title, ':' ) !== strrpos( $title, ':' ) ) {
+				if ( $validityChecker->hasDoubleCollon( $title ) ) {
 					$this->customBuckets->addData(
-						'invalid-titles',
+						'warning-analyze-invalid-titles',
 						'multiple_collons', $title,
 						true, true
 					);
@@ -1104,34 +1200,45 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$namespace = substr( $title, 0, strpos( $title, ':' ) );
 				$text = substr( $title, strpos( $title, ':' ) + 1 );
 
-				$matches = [];
-				preg_match( '#(\d*)([a-zA-Z0-9_]*)#', $namespace, $matches );
-				if ( empty( $matches ) || $matches[1] !== '' ) {
+				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
 					$this->customBuckets->addData(
-						'invalid-namespaces',
+						'warning-analyze-invalid-namespaces',
 						'invalid_char', $namespace,
 						true, true
 					);
 					$hasInvalidNamespaces = true;
 				}
 
-				if ( mb_strlen( urlencode( $text ) ) > 255 ) {
+				if ( !$validityChecker->hasValidLength( $text ) ) {
 					$this->customBuckets->addData(
-						'invalid-titles',
+						'warning-analyze-invalid-titles',
 						'length', $title,
 						true, true
 					);
 					$hasInvalidTitles = true;
 				}
 			} else {
-				if ( mb_strlen( urlencode( $title ) ) > 255 ) {
+				if ( !$validityChecker->hasValidLength( $title ) ) {
 					$this->customBuckets->addData(
-						'invalid-titles',
+						'warning-analyze-invalid-titles',
 						'length', $title,
 						true, true
 					);
 					$hasInvalidTitles = true;
 				}
+			}
+		}
+
+		$files = $this->buckets->getBucketData( 'global-files' );
+		$hasInvalidFilenames = false;
+		foreach ( $files as $title => $paths ) {
+			if ( $validityChecker->hasValidLength( $title ) ) {
+				$this->customBuckets->addData(
+					'warning-analyze-invalid-filenames',
+					'length', $title,
+					true, true
+				);
+				$hasInvalidFilenames = true;
 			}
 		}
 
@@ -1146,9 +1253,75 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$this->output->writeln( ' - Analyze process found invalid titles' );
 			}
 
+			if ( $hasInvalidFilenames === true ) {
+				$this->output->writeln( ' - Analyze process found invalid filenames' );
+			}
+
 			$this->output->writeln(
-				"\nPlease check invalid-namespaces.php and/or invalid-titles.php before continuing with extract step"
+				"\nPlease check"
+			);
+			$this->output->writeln(
+				"\n - \"warning-analyze-invalid-namespaces.php\""
+			);
+			$this->output->writeln(
+				"\n - \"warning-analyze-invalid-titles.php\""
+			);
+			$this->output->writeln(
+				"\n - \"warning-analyze-invalid-filenames.php\""
+			);
+			$this->output->writeln(
+				"\nbefore continuing with extract step"
 			);
 		}
+	}
+
+	/**
+	 *
+	 * @param string $titleText
+	 * @param string $contentReference
+	 * @return void
+	 */
+	private function addAnalyzerTitleRevision( $titleText, $contentReference = 'n/a' ) {
+		$this->customBuckets->addData( 'analyze-title-revisions', $titleText, $contentReference, true, true );
+	}
+
+	/**
+	 *
+	 * @param string $titleText
+	 * @param string $contentReference
+	 * @return void
+	 */
+	protected function addTitleRevision( $titleText, $contentReference = 'n/a' ) {
+		$this->buckets->addData( 'global-title-revisions', $titleText, $contentReference, true, true );
+	}
+
+	/**
+	 *
+	 * @param string $titleText
+	 * @param string $attachmentReference
+	 * @return void
+	 */
+	protected function addTitleAttachment( $titleText, $attachmentReference = 'n/a' ) {
+		$this->buckets->addData( 'global-title-attachments', $titleText, $attachmentReference );
+	}
+
+	/**
+	 *
+	 * @param string $rawFilename
+	 * @param string $attachmentReference
+	 * @return void
+	 */
+	protected function addFile( $rawFilename, $attachmentReference = 'n/a' ) {
+		try {
+			$filename = $this->getFilename( $rawFilename, $attachmentReference );
+			$filename = ( new WindowsFilename( $filename ) ) . '';
+		} catch ( InvalidTitleException $ex ) {
+			$this->logger->error( $ex->getMessage() );
+			return;
+		}
+
+		$prefixedFilename = $this->maybePrefixFilename( $filename );
+
+		$this->buckets->addData( 'global-files', $prefixedFilename, $attachmentReference );
 	}
 }

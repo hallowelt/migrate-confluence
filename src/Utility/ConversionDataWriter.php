@@ -18,7 +18,7 @@ class ConversionDataWriter {
 	 */
 	public static function newFromBuckets( DataBuckets $buckets ) {
 		return new static(
-			$buckets->getBucketData( 'files' )
+			$buckets->getBucketData( 'global-files' )
 		);
 	}
 

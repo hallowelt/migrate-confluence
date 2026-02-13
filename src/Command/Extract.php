@@ -69,4 +69,17 @@ class Extract extends CommandExtract {
 			}
 		}
 	}
+
+	/**
+	 *
+	 * @inheritDoc
+	 */
+	protected function getBucketKeys() {
+		return [
+			// From this step
+			'global-title-metadata',
+			'global-revision-contents',
+			'global-body-contents-to-pages-map',
+		];
+	}
 }

@@ -17,11 +17,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	/**
 	 * @var DataBuckets
 	 */
-	private $dataBuckets;
-
-	/**
-	 * @var DataBuckets
-	 */
 	private $customBuckets;
 
 	/**
@@ -40,23 +35,12 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
 
-		$this->dataBuckets = new DataBuckets( [
-			'space-id-homepages',
-			'space-id-to-description-id-map',
-			'space-description-id-to-body-id-map',
-			'body-contents-to-pages-map',
-			'title-attachments',
-			'title-revisions',
-			'files',
-			'additional-files'
-		] );
-
 		$this->customBuckets = new DataBuckets( [
 			'title-uploads',
 			'title-uploads-fail'
 		] );
 
-		$this->dataBuckets->loadFromWorkspace( $this->workspace );
+		$this->customBuckets->loadFromWorkspace( $this->workspace );
 
 		if ( isset( $config['config'] ) ) {
 			$this->advancedConfig = $config['config'];
@@ -78,71 +62,111 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 		$this->appendDefaultPages( $builder );
 		$this->addDefaultFiles();
 
-		$bodyContentsToPagesMap = $this->dataBuckets->getBucketData( 'body-contents-to-pages-map' );
-		$spaceIDHomepagesMap = $this->dataBuckets->getBucketData( 'space-id-homepages' );
+		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
+		$spaceIDHomepagesMap = $this->buckets->getBucketData( 'global-space-id-homepages' );
 
 		$homepageSpaceIDMap = array_flip( $spaceIDHomepagesMap );
-		$spaceIDDescriptionIDMap = $this->dataBuckets->getBucketData( 'space-id-to-description-id-map' );
-		$spaceDescriptionIDBodyIDMap = $this->dataBuckets->getBucketData( 'space-description-id-to-body-id-map' );
+		$spaceIDDescriptionIDMap = $this->buckets->getBucketData( 'global-space-id-to-description-id-map' );
+		$spaceDescriptionIDBodyIDMap = $this->buckets->getBucketData( 'global-space-description-id-to-body-id-map' );
 
-		$pagesRevisions = $this->dataBuckets->getBucketData( 'title-revisions' );
-		$filesMap = $this->dataBuckets->getBucketData( 'files' );
-		$pageAttachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
+		$pagesRevisions = $this->buckets->getBucketData( 'global-title-revisions' );
+		$filesMap = $this->buckets->getBucketData( 'global-files' );
+		$pageAttachmentsMap = $this->buckets->getBucketData( 'global-title-attachments' );
 
 		$bodyContentIDMainpageID = [];
 		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );
 		foreach ( $spaceIDHomepagesMap as $spaceID => $homepageID ) {
+			if ( !isset( $pagesToBodyContents[$homepageID] ) ) {
+				continue;
+			}
 			$bodyContentsID = $pagesToBodyContents[$homepageID];
 			$bodyContentIDMainpageID[$bodyContentsID] = $homepageID;
 		}
 
-		foreach ( $pagesRevisions as $pageTitle => $pageRevision ) {
+		foreach ( $pagesRevisions as $pageTitle => $pageRevisions ) {
 			$this->output->writeln( "\nProcessing: $pageTitle\n" );
 
-			$pageRevisionData = explode( '@', $pageRevision[0] );
+			// Sometimes not all namespaces should be used for the import. To skip this namespaces
+			// use this option
+			$namespace = $this->getNamespace( $pageTitle );
+			if (
+				isset( $this->advancedConfig['composer-include-namespace'] )
+				&& !in_array( $namespace, $this->advancedConfig['composer-include-namespace'] )
+			) {
+				$this->output->writeln( "Namespace {$namespace} skipped by configuration" );
+				continue;
+			}
 
-			$timestamp = explode( '-', $pageRevisionData[1] )[1];
+			// Sometimes titles have contents >256kB which might break the import. To skip this titles
+			// use this option
+			if (
+				isset( $this->advancedConfig['composer-skip-titles'] )
+				&& in_array( $pageTitle, $this->advancedConfig['composer-skip-titles'] )
+			) {
+				$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
+				continue;
+			}
 
-			$bodyContentIds = $pageRevisionData[0];
-			$bodyContentIdsArr = explode( '/', $bodyContentIds );
+			$sortedRevisions = [];
+			foreach ( $pageRevisions as $pageRevision ) {
+				$pageRevisionData = explode( '@', $pageRevision );
+				$bodyContentIds = $pageRevisionData[0];
 
-			$pageContent = "";
-			foreach ( $bodyContentIdsArr as $bodyContentId ) {
-				if ( $bodyContentId === '' ) {
-					// Skip if no reference to a body content is not set
-					continue;
-				}
+				$versionTimestamp = explode( '-', $pageRevisionData[1] );
+				$version = $versionTimestamp[0];
+				$timestamp = $versionTimestamp[1];
 
-				$this->output->writeln( "Getting '$bodyContentId' body content..." );
+				$sortedRevisions[$bodyContentIds] = $timestamp;
+			}
+			// Sorting revisions with timestamps
+			natsort( $sortedRevisions );
+			$sortedRevisions = array_flip( $sortedRevisions );
+			// Using history revisions?
+			if ( !isset( $this->advancedConfig['include-history'] )
+				|| $this->advancedConfig['include-history'] !== true
+			) {
+				$bodyContentIds = end( $sortedRevisions );
+				$timestamp = array_search( $bodyContentIds, $sortedRevisions );
+				// Reset sortedRevisions
+				$sortedRevisions = [];
+				$sortedRevisions[$timestamp] = $bodyContentIds;
+			}
 
-				$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
+			foreach ( $sortedRevisions as $timestamp => $bodyContentIds ) {
+				$bodyContentIdsArr = explode( '/', $bodyContentIds );
 
-				// Add space description to homepage
-				if ( isset( $bodyContentIDMainpageID[$bodyContentId] ) ) {
-					// get homepage id if it is a homepage
-					$mainpageID = $bodyContentIDMainpageID[$bodyContentId];
-					if ( isset( $homepageSpaceIDMap[$mainpageID] ) ) {
-						// get space id
-						$spaceID = $homepageSpaceIDMap[$mainpageID];
-						if ( isset( $spaceIDDescriptionIDMap[$spaceID] ) ) {
-							// get description id
-							$descID = $spaceIDDescriptionIDMap[$spaceID];
-							if ( isset( $spaceDescriptionIDBodyIDMap[$descID] ) ) {
+				$pageContent = "";
+				foreach ( $bodyContentIdsArr as $bodyContentId ) {
+					if ( $bodyContentId === '' ) {
+						// Skip if no reference to a body content is not set
+						continue;
+					}
+
+					$this->output->writeln( "Getting '$bodyContentId' body content..." );
+
+					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
+
+					// Add space description to homepage
+					if ( isset( $bodyContentIDMainpageID[$bodyContentId] ) ) {
+						// get homepage id if it is a homepage
+						$mainpageID = $bodyContentIDMainpageID[$bodyContentId];
+						if ( isset( $homepageSpaceIDMap[$mainpageID] ) ) {
+							// get space id
+							$spaceID = $homepageSpaceIDMap[$mainpageID];
+							if ( isset( $spaceIDDescriptionIDMap[$spaceID] ) ) {
 								// get description id
-								$descBodyID = $spaceDescriptionIDBodyIDMap[$descID];
-								$description = $this->workspace->getConvertedContent( $descBodyID );
-								$pageContent .= "[[Space description::$description]]\n";
+								$descID = $spaceIDDescriptionIDMap[$spaceID];
+								if ( isset( $spaceDescriptionIDBodyIDMap[$descID] ) ) {
+									// get description id
+									$descBodyID = $spaceDescriptionIDBodyIDMap[$descID];
+									$description = $this->workspace->getConvertedContent( $descBodyID );
+									$pageContent .= "[[Space description::$description]]\n";
+								}
 							}
 						}
 					}
 				}
-			}
 
-			$namespace = $this->getNamespace( $pageTitle );
-			if (
-				isset( $this->advancedConfig['composer-include-namespace'] )
-				&& in_array( $namespace, $this->advancedConfig['composer-include-namespace'] )
-			) {
 				$builder->addRevision( $pageTitle, $pageContent, $timestamp );
 
 				// Append attachments
@@ -172,8 +196,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 						}
 					}
 				}
-			} else {
-				$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
 			}
 		}
 

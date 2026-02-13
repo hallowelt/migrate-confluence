@@ -8,6 +8,7 @@ use DOMNode;
 use DOMXPath;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
@@ -67,7 +68,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	protected $bodyContentFile = null;
 
 	/** @var DataBuckets */
-	private $dataBuckets = null;
+	private $executionTimeBuckets = null;
+
+	/** @var DataBuckets */
+	private $buckets = null;
 
 	/** @var DataBuckets */
 	private $customBuckets = null;
@@ -112,29 +116,30 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	public function __construct( $config, Workspace $workspace ) {
 		parent::__construct( $config, $workspace );
 
-		$this->dataBuckets = new DataBuckets( [
-			'page-id-to-title-map',
-			'pages-titles-map',
-			'title-attachments',
-			'body-contents-to-pages-map',
-			'page-id-to-space-id',
-			'space-id-to-prefix-map',
-			'space-key-to-prefix-map',
-			'filenames-to-filetitles-map',
-			'title-metadata',
-			'attachment-orig-filename-target-filename-map',
-			'files',
-			'userkey-to-username-map',
-			'space-description-id-to-body-id-map',
-			'gliffy-map',
-			'attachment-confluence-file-key-to-target-filename-map'
+		$this->buckets = new DataBuckets( [
+			'global-page-id-to-title-map',
+			'global-pages-titles-map',
+			'global-title-attachments',
+			'global-body-contents-to-pages-map',
+			'global-page-id-to-space-id',
+			'global-space-id-to-prefix-map',
+			'global-space-key-to-prefix-map',
+			'global-filenames-to-filetitles-map',
+			'global-title-metadata',
+			'global-attachment-orig-filename-target-filename-map',
+			'global-files',
+			'global-userkey-to-username-map',
+			'global-space-description-id-to-body-id-map',
+			'global-gliffy-map',
 		] );
 
-		$this->dataBuckets->loadFromWorkspace( $this->workspace );
+		$this->buckets->loadFromWorkspace( $this->workspace );
 
 		$this->customBuckets = new DataBuckets( [
-			'title-uploads',
-			'title-uploads-fail'
+			'warning-convert-body-content-id-content-size',
+		] );
+		$this->executionTimeBuckets = new DataBuckets( [
+			'convert-body-content-id-execution-time',
 		] );
 	}
 
@@ -149,9 +154,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @inheritDoc
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
+		$executionTime = new ExecutionTime();
+
+		$this->customBuckets->loadFromWorkspace( $this->workspace );
+		$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
+
 		$this->output->writeln( $file->getPathname() );
-		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->dataBuckets );
-		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->dataBuckets );
+		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->buckets );
+		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
 		$this->rawFile = $file;
 
 		if ( isset( $this->config['config']['ext-ns-file-repo-compat'] )
@@ -174,7 +184,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 		$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
 
-		$pagesIdsToTitlesMap = $this->dataBuckets->getBucketData( 'page-id-to-title-map' );
+		$pagesIdsToTitlesMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
 		if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
 			$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
 		} else {
@@ -218,6 +228,35 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->postProcessLinks();
 		$this->postprocessWikiText();
 
+		// Content size sometimes breakes import
+		$exceed = '';
+		$wikiTextLength = strlen( $this->wikiText );
+		$wikiTextLength = $wikiTextLength / 1000;
+		if ( $wikiTextLength > 512 ) {
+			$exceed = '512';
+		} elseif ( $wikiTextLength > 256 ) {
+			$exceed = '256';
+		} elseif ( $wikiTextLength > 100 ) {
+			$exceed = '100';
+		}
+		if ( $exceed !== '' ) {
+			$this->buckets->addData(
+				'warning-convert-body-content-id-content-size',
+				$exceed,
+				$bodyContentId
+			);
+			$this->output->writeln( "bodyContentId {$this->currentSpace} contains large content" );
+		}
+
+		$executionTimeString = $executionTime->getHumanReadableTime();
+		$this->executionTimeBuckets->addData(
+			'convert-body-content-id-execution-time',
+			$bodyContentId,
+			$executionTimeString,
+			false,
+			true
+		);
+		$this->executionTimeBuckets->saveToWorkspace( $this->workspace );
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 
 		return $this->wikiText;
@@ -274,7 +313,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			),
 			new StructuredMacroGliffy(
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
-				$currentPageTitle, $this->customBuckets, $this->nsFileRepoCompat
+				$currentPageTitle, $this->buckets, $this->nsFileRepoCompat
 			),
 			new StructuredMacroContenByLabel( $this->currentPageTitle ),
 			new StructuredMacroAttachments(),
@@ -335,7 +374,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return int
 	 */
 	private function getPageIdFromBodyContentId( $bodyContentId ) {
-		$map = $this->dataBuckets->getBucketData( 'body-contents-to-pages-map' );
+		$map = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
 		return $map[$bodyContentId] ?? -1;
 	}
 
@@ -345,7 +384,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return int
 	 */
 	private function getSpaceDescriptionIDFromBodyContentId( $bodyContentId ) {
-		$map = $this->dataBuckets->getBucketData( 'space-description-id-to-body-id-map' );
+		$map = $this->buckets->getBucketData( 'global-space-description-id-to-body-id-map' );
 		$map = array_flip( $map );
 		return $map[$bodyContentId] ?? -1;
 	}
@@ -356,7 +395,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return int
 	 */
 	private function getSpaceIdFromPageId( $pageId ) {
-		$map = $this->dataBuckets->getBucketData( 'page-id-to-space-id' );
+		$map = $this->buckets->getBucketData( 'global-page-id-to-space-id' );
 		return $map[$pageId] ?? -1;
 	}
 
@@ -415,7 +454,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'panel',
 				'recently-updated',
 				'section',
-				'space-details',
+				'global-space-details',
 				'status',
 				'task',
 				'task-list',
@@ -532,7 +571,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sContent = str_replace( '</ac:layout', '</div', $sContent );
 
 		// Append categories
-		$categorieMap = $this->dataBuckets->getBucketData( 'title-metadata' );
+		$categorieMap = $this->buckets->getBucketData( 'global-title-metadata' );
 		$categories = '';
 		if ( isset( $categorieMap[$pageId] ) && isset( $categorieMap[$pageId]['categories'] ) ) {
 			foreach ( $categorieMap[$pageId]['categories'] as $key => $category ) {
@@ -667,7 +706,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return void
 	 */
 	public function postProcessLinks() {
-		$oldToNewTitlesMap = $this->dataBuckets->getBucketData( 'pages-titles-map' );
+		$oldToNewTitlesMap = $this->buckets->getBucketData( 'global-pages-titles-map' );
 
 		$this->wikiText = preg_replace_callback(
 			"/\[\[Media:(.*)]]/",
@@ -723,7 +762,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function addAdditionalAttachments(): string {
 		$wikiText = '';
 
-		$attachmentsMap = $this->dataBuckets->getBucketData( 'title-attachments' );
+		$attachmentsMap = $this->buckets->getBucketData( 'global-title-attachments' );
 
 		$currentPageTitle = $this->getCurrentPageTitle();
 
@@ -782,7 +821,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return string
 	 */
 	private function getCurrentPageTitle(): string {
-		$spaceIdPrefixMap = $this->dataBuckets->getBucketData( 'space-id-to-prefix-map' );
+		$prefix = '';
+		$spaceIdPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
+		if ( !isset( $spaceIdPrefixMap[$this->currentSpace] ) ) {
+			$this->output->writeln( "SpaceId {$this->currentSpace} not found in spaceIdPrefixMap" );
+		}
 		$prefix = $spaceIdPrefixMap[$this->currentSpace];
 		$currentPageTitle = $this->currentPageTitle;
 

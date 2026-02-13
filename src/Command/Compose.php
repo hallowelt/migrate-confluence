@@ -66,4 +66,21 @@ class Compose extends CommandCompose {
 			}
 		}
 	}
+
+	/**
+	 *
+	 * @inheritDoc
+	 */
+	protected function getBucketKeys() {
+		return [
+			'global-space-id-homepages',
+			'global-space-id-to-description-id-map',
+			'global-space-description-id-to-body-id-map',
+			'global-body-contents-to-pages-map',
+			'global-title-attachments',
+			'global-title-revisions',
+			'global-files',
+			'global-additional-files'
+		];
+	}
 }
