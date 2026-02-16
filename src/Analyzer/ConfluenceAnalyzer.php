@@ -3,13 +3,11 @@
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
 use DOMDocument;
-use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
@@ -17,15 +15,11 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\AttachmentFallback;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\Pages;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
-use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
-use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
-use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -55,6 +49,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @var Output
 	 */
 	private $output = null;
+
+	/** @var SplFileInfo */
+	private $file;
 
 	/**
 	 * @var string
@@ -92,6 +89,27 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
 		$this->customBuckets = new DataBuckets( [
+			'analyze-space-id-to-space-key-map',
+			'analyze-space-name-to-prefix-map',
+			'analyze-space-id-to-name-map',
+			'analyze-space-key-to-name-map',
+			'analyze-pages-titles-map',
+			'analyze-page-id-to-title-map',
+			'analyze-page-id-to-confluence-title-map',
+			'analyze-page-id-to-parent-page-id-map',
+			'analyze-body-content-id-to-page-id-map',
+			'analyze-attachment-id-to-orig-filename-map',
+			'analyze-attachment-id-to-space-id-map',
+			'analyze-attachment-id-to-reference-map',
+			'analyze-attachment-id-to-container-content-id-map',
+			'analyze-attachment-id-to-content-status-map',
+			'analyze-page-id-to-confluence-key-map',
+			'analyze-title-to-attachment-title',
+			'analyze-attachment-id-to-target-filename-map',
+			'analyze-title-revisions',
+			'analyze-orig-title-compressed-title-map',
+			'debug-analyze-invalid-titles-page-id-to-title',
+			'debug-analyze-invalid-titles-attachment-id-to-title',
 			'warning-analyze-invalid-namespaces',
 			'warning-analyze-invalid-titles',
 			'warning-analyze-invalid-filenames',
@@ -168,7 +186,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return bool
 	 */
 	public function analyze( SplFileInfo $file ): bool {
-		if ( $file->getFilename() !== 'entities.xml' ) {
+		$this->file = $file;
+		if ( $this->file->getFilename() !== 'entities.xml' ) {
 			return true;
 		}
 
@@ -222,6 +241,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		//$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
 
+		// Perform validity checks
 		//$this->checkTitles();
 
 		//$this->customBuckets->saveToWorkspace( $this->workspace );
@@ -229,83 +249,64 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	}
 
 	/**
-	 *
-	 * @param SplFileInfo $file
-	 * @return bool
+	 * @return array
 	 */
-	protected function doAnalyze( SplFileInfo $file ): bool {
-		$xmlReader = new XMLReader();
-
-		// Process Space and BodyContents objects (needed by other objects)
-		$this->output->writeln( "\nPreprocess data:" );
-
-		$preprocessors = [
+	private function getPreProcessors(): array {
+		return [
 			'Space' => new Spaces( $this->spacePrefixMap ),
 			'SpaceDescription' => new SpaceDescription(),
 			'Page' => new ParentPages(),
 			'BodyContent' => new BodyContents(),
-			'Attachment' => new Attachments( $file ),
+			'Attachment' => new Attachments( $this->file ),
 			'ConfluenceUserImpl' => new Users(),
 		];
-		foreach ( $preprocessors as $preprocessor ) {
-			if ( $preprocessor instanceof IAnalyzerProcessor ) {
-				$preprocessor->setOutput( $this->output );
-				$preprocessor->setLogger( $this->logger );
-			}
-		}
+	}
 
-		$xmlReader->open( $file->getPathname() );
-		$read = $xmlReader->read();
-		while ( $read ) {
-			if ( $xmlReader->name !== 'object' ) {
-				// Usually all root nodes should be objects.
-				$read = $xmlReader->read();
-				continue;
-			}
-
-			$objectXML = $xmlReader->readOuterXml();
-
-			$objectDom = new DOMDocument();
-			$objectDom->loadXML( $objectXML );
-
-			$preprocessor = null;
-			$class = $xmlReader->getAttribute( 'class' );
-			if ( isset( $preprocessors[$class] ) ) {
-				var_dump( $class );
-				$preprocessor = $preprocessors[$class];
-			}
-
-			if ( $preprocessor instanceof IAnalyzerProcessor ) {
-				$preprocessor->setData( $this->data );
-				$preprocessor->execute( $objectDom );
-				$keys = $preprocessor->getKeys();
-				foreach( $keys as $key ) {
-					$this->data[$key] = $preprocessor->getData( $key );
-				}
-			}
-
-			$read = $xmlReader->next();
-		}
-		$xmlReader->close();
-
-		// Process Page objects (needed by other objects)
-		$this->output->writeln( "\nProcess data:" );
-
-		$processors = [
+	/**
+	 * @return array
+	 */
+	private function getProcessors(): array {
+		return [
 			'Page' => new Page(
 				$this->includeSpaceKey,
 				$this->mainpage,
 				$this->includeHistory
 			),
 		];
-		foreach ( $processors as $processor ) {
-			if ( $processor instanceof IAnalyzerProcessor ) {
-				$processor->setOutput( $this->output );
-				$processor->setLogger( $this->logger );
+	}
+
+	/**
+	 * @return array
+	 */
+	private function getPostProcessors(): array {
+		return [
+			'Attachment' => new AttachmentFallback()
+		];
+	}
+
+	/**
+	 * @param array $processors
+	 * @return void
+	 */
+	private function initProcessors( array $processors ): void {
+		foreach ( $processors as $preprocessor ) {
+			if ( $preprocessor instanceof IAnalyzerProcessor ) {
+				$preprocessor->setOutput( $this->output );
+				$preprocessor->setLogger( $this->logger );
 			}
 		}
+	}
 
-		$xmlReader->open( $file->getPathname() );
+	/**
+	 * @param array $processors
+	 * @return void
+	 */
+	private function processFile( array $processors ): void {
+		$this->initProcessors( $processors );
+
+		$xmlReader = new XMLReader();
+		$xmlReader->open( $this->file->getPathname() );
+
 		$read = $xmlReader->read();
 		while ( $read ) {
 			if ( $xmlReader->name !== 'object' ) {
@@ -322,7 +323,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$processor = null;
 			$class = $xmlReader->getAttribute( 'class' );
 			if ( isset( $processors[$class] ) ) {
-				//$this->buildPageMaps( $objectDom );
 				$processor = $processors[$class];
 			}
 
@@ -338,114 +338,107 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$read = $xmlReader->next();
 		}
 		$xmlReader->close();
+	}
 
+	/**
+	 * @return void
+	 */
+	private function compressLongTitles(): void {
 		// compress title lenght
 		$titleCompressor = new TitleCompressor();
+
 		//$analyzePagesTitlesMap = $this->customBuckets->getBucketData( 'analyze-pages-titles-map' );
 		$analyzePagesTitlesMap = $this->data['analyze-pages-titles-map'];
 		$compressedTitlesMap = $titleCompressor->execute( $analyzePagesTitlesMap );
+		/*
 		foreach ( $compressedTitlesMap as $origTitle => $compressedTitle ) {
-			/*
 			$this->buckets->addData(
 				'analyze-orig-title-compressed-title-map',
 				$origTitle, $compressedTitle, false, true
 			);
-			*/
 			$this->data['analyze-orig-title-compressed-title-map'][$origTitle] = $compressedTitle;
 		}
+		*/
+		$this->data['analyze-orig-title-compressed-title-map'] = $compressedTitlesMap;
 
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
 
 		// pages-titles-map
 		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $analyzePagesTitlesMap );
 		ksort( $compressedPagesTitlesMap );
+		/*
 		foreach ( $compressedPagesTitlesMap as $key => $title ) {
-			//$this->buckets->addData( 'global-pages-titles-map', $key, $title, false, true );
-			$this->data['global-pages-titles-map'][$key] = $title;
+			$this->buckets->addData( 'global-pages-titles-map', $key, $title, false, true );
 		}
+		*/
+		$this->data['global-pages-titles-map'] = $compressedPagesTitlesMap;
 
 		// page-id-to-titles
 		//$analyzePageIdToTitleMap = $this->customBuckets->getBucketData( 'analyze-page-id-to-title-map' );
 		$analyzePageIdToTitleMap = $this->data['analyze-page-id-to-title-map'];
 		$compressedPageIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzePageIdToTitleMap );
 		ksort( $compressedPageIdToTitleMap );
+		/*
 		foreach ( $compressedPageIdToTitleMap as $id => $title ) {
-			//$this->buckets->addData( 'global-page-id-to-title-map', $id, $title, false, true );
-			$this->data['global-page-id-to-title-map'][$id] = $title;
+			$this->buckets->addData( 'global-page-id-to-title-map', $id, $title, false, true );
 		}
+		*/
+		$this->data['global-page-id-to-title-map'] = $compressedPageIdToTitleMap;
 
 		// title-revisions
 		//$analyzeTitleRevisionsMap = $this->customBuckets->getBucketData( 'analyze-title-revisions' );
 		$analyzeTitleRevisionsMap = $this->data['analyze-title-revisions'];
 		$compressedTitleRevison = $applyCompressedTitles->toMapKeys( $analyzeTitleRevisionsMap );
 		ksort( $compressedTitleRevison );
+		/*
 		foreach ( $compressedTitleRevison as $title => $revisions ) {
-			$this->data['global-title-revisions'][$title] = $revisions;
-			/*
 			if ( is_array( $revisions ) ) {
 				foreach ( $revisions as $revision ) {
 					$this->addTitleRevision( $title, $revision );
 				}
 			}
-			*/
 		}
+		*/
+		$this->data['global-title-revisions'] = $compressedTitleRevison;
+	}
 
+
+	/**
+	 *
+	 * @param SplFileInfo $file
+	 * @return bool
+	 */
+	protected function doAnalyze( SplFileInfo $file ): bool {
+		// Process Space and BodyContents objects (needed by other objects)
+		$this->output->writeln( "\nPreprocess data:" );
+		$preprocessors = $this->getPreProcessors();
+		$this->processFile( $preprocessors );
+
+		// Process Page objects (needed by other objects)
+		$this->output->writeln( "\nProcess data:" );
+		$processors = $this->getProcessors();
+		$this->processFile( $processors );
+
+
+		// Reduce title length if lenght exceeds 255 characters
+		$this->compressLongTitles();
+		
 		// Process title attachments fallback
 		$this->output->writeln( "\nPostprocess data:" );
+		$postprocessors = $this->getPostProcessors();
+		$this->processFile( $postprocessors );
 
-		$postprocessors = [
-			'Attachment' => new AttachmentFallback()
-		];
-		foreach ( $postprocessors as $postprocessor ) {
-			if ( $postprocessor instanceof IAnalyzerProcessor ) {
-				$postprocessor->setOutput( $this->output );
-				$postprocessor->setLogger( $this->logger );
-			}
-		}
-
-		$xmlReader->open( $file->getPathname() );
-		$read = $xmlReader->read();
-		while ( $read ) {
-			if ( $xmlReader->name !== 'object' ) {
-				// Usually all root nodes should be objects.
-				$read = $xmlReader->read();
-				continue;
-			}
-
-			$nodeXML = $xmlReader->readOuterXml();
-
-			$objectDom = new DOMDocument();
-			$objectDom->loadXML( $nodeXML );
-
-			$postprocessor = null;
-			$class = $xmlReader->getAttribute( 'class' );
-			if ( isset( $postprocessor[$class] ) ) {
-				//$this->buildPageMaps( $objectDom );
-				$postprocessor = $postprocessors[$class];
-			}
-
-			if ( $postprocessor instanceof IAnalyzerProcessor ) {
-				$postprocessor->setData( $this->data );
-				$postprocessor->execute( $objectDom );
-				$keys = $postprocessor->getKeys();
-				foreach( $keys as $key ) {
-					$this->data[$key] = $postprocessor->getData( $key );
-				}
-			}
-
-			$read = $xmlReader->next();
-		}
-		$xmlReader->close();
-
+		// Add files
 		foreach ( $this->data['analyze-add-file'] as $filename => $reference ) {
 			$this->addFile( $filename, $reference );
 		}
 
+		// Save buckets
 		foreach ( $this->data as $bucket => $bucketData ) {
 			if ( empty( $bucketData ) ) {
 				continue;
 			}
-			$this->workspace->saveData( "{$bucket}.php", $bucketData );
+			$this->workspace->saveData( "{$bucket}", $bucketData );
 		}
 
 		return true;

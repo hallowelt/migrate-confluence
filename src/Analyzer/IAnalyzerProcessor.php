@@ -32,6 +32,12 @@ interface IAnalyzerProcessor {
 	public function getData( string $key ): array;
 
 	/**
+	 * @param array $data
+	 * @return void
+	 */
+	public function setData( array $data ): void;
+
+	/**
 	 * @param OutputInterface $output
 	 */
 	public function setOutput( OutputInterface $output ): void;
