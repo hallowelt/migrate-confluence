@@ -49,9 +49,9 @@ class CheckResult extends Command {
 	/**
 	 * @param Input\InputInterface $input
 	 * @param OutputInterface $output
-	 * @return void
+	 * @return int
 	 */
-	protected function execute( InputInterface $input, OutputInterface $output ) {
+	protected function execute( InputInterface $input, OutputInterface $output ): int {
 		$this->input = $input;
 		$this->output = $output;
 
@@ -74,6 +74,8 @@ class CheckResult extends Command {
 		}
 
 		$this->createReport();
+		
+		return Command::SUCCESS;
 	}
 
 	/**

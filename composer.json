@@ -25,15 +25,15 @@
 		"hallowelt/mediawiki-lib-migration": "~2",
 		"hallowelt/mediawiki-lib-wikitext": "~1",
 		"ext-dom": "*",
-		"symfony/yaml": "~4"
+		"symfony/yaml": "^7.0"
 	},
 	"require-dev": {
-		"mediawiki/mediawiki-codesniffer": "41.0.0",
-		"mediawiki/mediawiki-phan-config": "0.14.0",
-		"mediawiki/minus-x": "1.1.1",
-		"php-parallel-lint/php-console-highlighter": "1.0.0",
-		"php-parallel-lint/php-parallel-lint": "1.3.2",
-		"phpunit/phpunit": "^8"
+		"mediawiki/mediawiki-codesniffer": "^45.0",
+		"mediawiki/mediawiki-phan-config": "^0.14",
+		"mediawiki/minus-x": "^1.1",
+		"php-parallel-lint/php-console-highlighter": "^1.0",
+		"php-parallel-lint/php-parallel-lint": "^1.4",
+		"phpunit/phpunit": "^9.5"
 	},
 	"autoload": {
 		"psr-4": {
@@ -57,5 +57,10 @@
 		"lint": [
 			"phan --no-progress-bar -m text | sed 's, ,:,'"
 		]
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
 	}
 }
