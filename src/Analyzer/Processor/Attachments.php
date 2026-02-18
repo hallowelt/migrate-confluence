@@ -74,7 +74,7 @@ class Attachments  extends ProcessorBase {
 			$attachmentFilename = $properties['fileName'];
 		}
 		if ( $attachmentFilename === '' && isset( $properties['fileName'] ) ) {
-			$attachmentFilename = $porperties['title'];
+			$attachmentFilename = $properties['title'];
 		}
 		if ( $attachmentFilename !== '' && is_int( $attachmentId ) ) {
 			/*
