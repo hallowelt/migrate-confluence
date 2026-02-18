@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 	{{Info###BREAK###
- |title = Some nice title###BREAK###
- |body = ###BREAK###
+|title = Some nice title###BREAK###
+|body = ###BREAK###
 
 			<h3>Some heading:</h3>
 			<ol>

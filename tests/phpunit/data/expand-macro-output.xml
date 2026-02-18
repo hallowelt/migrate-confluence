@@ -1,7 +1,7 @@
 <xml xmlns:ac="sample_namespace">
     {{Expand###BREAK###
- |title = click here to expand###BREAK###
- |body = ###BREAK###
+|title = click here to expand###BREAK###
+|body = ###BREAK###
 
             <ul>
                 <li>something
