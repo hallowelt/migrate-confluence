@@ -2,17 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use DOMDocument;
-use DOMElement;
-use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
-use HalloWelt\MigrateConfluence\Utility\XMLHelper;
-use Symfony\Component\Console\Output\OutputInterface;
+use XMLReader;
 
-class BodyContents  extends ProcessorBase {
-
-	/** @var XMLHelper */
-	protected $xmlHelper;
-
+class BodyContents extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
@@ -25,24 +17,31 @@ class BodyContents  extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function execute( DOMDocument $dom ): void {
-		$this->xmlHelper = new XMLHelper( $dom );
+	public function doExecute(): void {
+		$bodyContentId = '';
+		$properties = [];
 
-		$objectNodes = $this->xmlHelper->getObjectNodes( 'BodyContent' );
-		if ( count( $objectNodes ) < 1 ) {
-			return;
+		$this->xmlReader->read();
+		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
+			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+				$name = $this->xmlReader->getAttribute( 'name' );
+				if ( $name === 'key' ) {
+					$bodyContentId = $this->getCDATAValue();
+				} else {
+					$bodyContentId = $this->getTextValue();
+				}
+			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
+				$properties = $this->processPropertyNodes( $properties );
+			}
+			$this->xmlReader->next();
 		}
-		$objectNode = $objectNodes->item( 0 );
-		if ( $objectNode instanceof DOMElement === false ) {
-			return;
-		}
-		$bodyContentId = $this->xmlHelper->getIDNodeValue( $objectNode );
-		$pageId = $this->xmlHelper->getPropertyValue( 'content', $objectNode );
+
+		$pageId = trim( $properties['content'] );
+		$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $pageId;
 		/*
 		$this->customBuckets->addData( 'analyze-body-content-id-to-page-id-map',
 			$bodyContentId,	$pageId,	false, true );
 		*/
-		$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = trim( $pageId );
 	}
 
 }

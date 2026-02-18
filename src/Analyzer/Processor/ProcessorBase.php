@@ -2,10 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use DOMDocument;
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use XMLReader;
 
 abstract class ProcessorBase implements IAnalyzerProcessor {
 
@@ -14,6 +14,9 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 
 	/** @var LoggerInterface */
 	protected $logger;
+
+	/** @var XMLReader */
+	protected $xmlReader;
 
 	/** @var array */
 	protected $data = [];
@@ -59,10 +62,10 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	}
 
 	/**
-	 * @param DOMDocument $dom
+	 * @param XMLReader $xmlReader
 	 * @return void
 	 */
-	public function execute( DOMDocument $dom ): void	{
+	public function execute( XMLReader $xmlReader ): void	{
 		$keys = array_merge(
 			$this->getRequiredKeys(),
 			$this->getKeys()
@@ -72,14 +75,114 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 				$this->data[$key] = [];
 			}
 		}
-		$this->doExecute( $dom );
+		$this->xmlReader = $xmlReader;
+		$this->doExecute();
 	}
 
 	/**
-	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	protected function doExecute( DOMDocument $dom ): void {
-
+	protected function doExecute(): void {
 	}
+
+
+	protected function processIdNode() {
+		$id = '';
+		if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+			$name = $this->xmlReader->getAttribute( 'name' );
+			if ( $name === 'key' ) {
+				$id = $this->getCDATAValue();
+			} else {
+				$id = $this->getTextValue();
+			}
+		}
+		return $id;
+	}
+
+	protected function getCDATAValue() {
+		return $this->xmlReader->value;
+	}
+
+	protected function getTextValue() {
+		return $this->xmlReader->readString();
+	}
+
+	protected function processElementNode( array $data = [] ): mixed {
+		if ( $this->xmlReader->isEmptyElement ) {
+			$data = '';
+			return $data;
+		}
+
+		$this->xmlReader->read();
+		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
+			if ( $this->processIdNode() !== '' ) {
+				$data = $this->processIdNode();
+			} elseif ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
+				$data = $this->getCDATAValue();
+			} elseif ( $this->xmlReader->nodeType === XMLReader::TEXT ) {
+				$data = $this->getTextValue();
+			} elseif ( $this->xmlReader->nodeType === XMLReader::ELEMENT ) {
+				$data = $this->processElementNode();
+			}
+
+			$this->xmlReader->next();
+		}
+		return $data;
+	}
+
+	protected function processPropertyNodes( array $properties = [] ): array {
+		$name = $this->xmlReader->getAttribute( 'name' );
+
+		if ( $this->xmlReader->isEmptyElement ) {
+			$properties[$name] = '';
+			return $properties;
+		}
+
+		$this->xmlReader->read();
+		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
+			if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
+				$properties[$name] = $this->getCDATAValue();
+			} elseif ( $this->xmlReader->nodeType === XMLReader::TEXT ) {
+				$properties[$name] = $this->getTextValue();
+			} elseif ( $this->xmlReader->nodeType === XMLReader::ELEMENT ) {
+				$properties[$name] = $this->processElementNode();
+			}
+
+			$this->xmlReader->next();
+		}
+		return $properties;
+	}
+
+	protected function processCollectionNodes( array $collection = [], $name = '' ): array {
+		$elementName = $this->xmlReader->getAttribute( 'name' );
+
+		if ( $name !== '' && $elementName !== $name ) {
+			return $collection;
+		}
+
+		if ( $this->xmlReader->isEmptyElement ) {
+			$collection[$name] = [];
+			return $collection;
+		}
+
+		$this->xmlReader->read();
+		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
+			if ( $this->xmlReader->name !== 'element' ) {
+				$this->xmlReader->next();
+				continue;
+			}
+
+			if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
+				$collection[$elementName][] = $this->getCDATAValue();
+			} elseif ( $this->xmlReader->nodeType === XMLReader::TEXT ) {
+				$collection[$elementName][] = $this->getTextValue();
+			} elseif ( $this->xmlReader->nodeType === XMLReader::ELEMENT ) {
+				$collection[$elementName][] = $this->processElementNode();
+			}
+
+			$this->xmlReader->next();
+		}
+		return $collection;
+	}
+
 }

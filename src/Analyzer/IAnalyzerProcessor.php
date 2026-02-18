@@ -2,18 +2,17 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
-use DOMDocument;
-use DOMElement;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use XMLReader;
 
 interface IAnalyzerProcessor {
 
 	/**
-	 * @param DOMElement $node
+	 * @param XMLReader $xmlReader
 	 * @return void
 	 */
-	public function execute( DOMDocument $dom ): void;
+	public function execute( XMLReader $xmlReader ): void;
 
 	/**
 	 * @return array

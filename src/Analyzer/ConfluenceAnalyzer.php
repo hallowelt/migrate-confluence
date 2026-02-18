@@ -255,10 +255,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		return [
 			'Space' => new Spaces( $this->spacePrefixMap ),
 			'SpaceDescription' => new SpaceDescription(),
-			'Page' => new ParentPages(),
 			'BodyContent' => new BodyContents(),
-			'Attachment' => new Attachments( $this->file ),
 			'ConfluenceUserImpl' => new Users(),
+			'Page' => new ParentPages(),
+			'Attachment' => new Attachments( $this->file ),
+			
 		];
 	}
 
@@ -309,16 +310,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$read = $xmlReader->read();
 		while ( $read ) {
-			if ( $xmlReader->name !== 'object' ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
 				// Usually all root nodes should be objects.
 				$read = $xmlReader->read();
 				continue;
 			}
-
-			$nodeXML = $xmlReader->readOuterXml();
-
-			$objectDom = new DOMDocument();
-			$objectDom->loadXML( $nodeXML );
 
 			$processor = null;
 			$class = $xmlReader->getAttribute( 'class' );
@@ -328,7 +324,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
 				$processor->setData( $this->data );
-				$processor->execute( $objectDom );
+				$processor->execute( $xmlReader );
 				$keys = $processor->getKeys();
 				foreach( $keys as $key ) {
 					$this->data[$key] = $processor->getData( $key );
@@ -418,7 +414,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->output->writeln( "\nProcess data:" );
 		$processors = $this->getProcessors();
 		$this->processFile( $processors );
-
 
 		// Reduce title length if lenght exceeds 255 characters
 		$this->compressLongTitles();

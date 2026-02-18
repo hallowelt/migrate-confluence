@@ -2,9 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use DOMDocument;
-use DOMElement;
-use HalloWelt\MigrateConfluence\Utility\XMLHelper;
+use XMLReader;
 
 class ParentPages  extends ProcessorBase {
 
@@ -24,31 +22,53 @@ class ParentPages  extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function doExecute( DOMDocument $dom ): void {
-		$this->xmlHelper = new XMLHelper( $dom );
+	public function doExecute(): void {
+		$pageId = '';
+		$properties = [];
 
-		$objectNodes = $this->xmlHelper->getObjectNodes( 'Page' );
-		if ( count( $objectNodes ) < 1 ) {
+		$this->xmlReader->read();
+		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
+			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+				$name = $this->xmlReader->getAttribute( 'name' );
+				if ( $name === 'key' ) {
+					$pageId = $this->getCDATAValue();
+				} else {
+					$pageId = $this->getTextValue();
+				}
+			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
+				$properties = $this->processPropertyNodes( $properties );
+			}
+			$this->xmlReader->next();
+		}
+
+		$status = null;
+		if ( isset( $properties['contentStatus'] ) ) {
+			$status = $properties['contentStatus'];
+		}
+		if ( strtolower( $status ) !== 'current' ) {
 			return;
 		}
-		$objectNode = $objectNodes->item( 0 );
-		if ( $objectNode instanceof DOMElement === false ) {
-			return;
+
+		$spaceId = null;
+		if ( isset( $properties['space'] ) ) {
+			$spaceId = $properties['space'];
 		}
-		$status = $this->xmlHelper->getPropertyValue( 'contentStatus', $objectNode );
-		if ( $status !== 'current' ) {
-			return;
-		}
-		$spaceId = $this->xmlHelper->getPropertyValue( 'space', $objectNode );
 		if ( $spaceId === null ) {
 			return;
 		}
-		$originalVersionID = $this->xmlHelper->getPropertyValue( 'originalVersion', $objectNode );
+
+		$originalVersionID = null;
+		if ( isset( $properties['originalVersion'] ) ) {
+			$originalVersionID = $properties['originalVersion'];
+		}
 		if ( $originalVersionID !== null ) {
 			return;
 		}
-		$pageId = $this->xmlHelper->getIDNodeValue( $objectNode );
-		$parentPageId = $this->xmlHelper->getPropertyValue( 'parent', $objectNode );
+
+		$parentPageId = null;
+		if ( isset( $properties['parent'] ) ) {
+			$parentPageId = $properties['parent'];
+		}
 		if ( $parentPageId !== null ) {
 			/*
 			$this->customBuckets->addData(
@@ -59,8 +79,10 @@ class ParentPages  extends ProcessorBase {
 			$this->data['analyze-page-id-to-parent-page-id-map'][$pageId] = trim( $parentPageId );
 		}
 
-		$pageId = $this->xmlHelper->getIDNodeValue( $objectNode );
-		$confluenceTitle = $this->xmlHelper->getPropertyValue( 'title', $objectNode );
+		$confluenceTitle = null;
+		if ( isset( $properties['title'] ) ) {
+			$confluenceTitle = $properties['title'];
+		}
 		if ( $confluenceTitle !== null ) {
 			/*
 			$this->customBuckets->addData(
