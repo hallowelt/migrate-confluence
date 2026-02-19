@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
+use DOMElement;
 use DOMNodeList;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
@@ -64,36 +65,7 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 				$parentNode->insertBefore( $paramTextNode, $actualMacro );
 			}
 
-			// Extract rich text bodies
-			/** @var DOMNodeList $richTextBodies */
-			$richTextBodies = $actualMacro->getElementsByTagName( 'rich-text-body' );
-			$richTextBodyEls = [];
-			foreach ( $richTextBodies as $richTextBody ) {
-				$richTextBodyEls[] = $richTextBody;
-			}
-
-			if ( !empty( $richTextBodyEls ) ) {
-				$bodyString = "|body = ";
-				if ( $this->addLinebreakInsideTemplate() ) {
-					$bodyString .= "###BREAK###\n";
-				}
-				$wikitextTemplateEndTextNode = $dom->createTextNode( $bodyString );
-				$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
-
-				foreach ( $richTextBodyEls as $richTextBodyEl ) {
-					// For some odd reason, iterating `$richTextBodyEl->childNodes` directly
-					// will give children of `$dom->firstChild`.
-					// Using `iterator_to_array` as an workaround here.
-					$childNodes = iterator_to_array( $richTextBodyEl->childNodes );
-					$childNodeCount = count( $childNodes );
-					foreach ( $childNodes as $richTextBodyChildEl ) {
-						if ( $richTextBodyChildEl === $actualMacro ) {
-							continue;
-						}
-						$parentNode->insertBefore( $richTextBodyChildEl, $actualMacro );
-					}
-				}
-			}
+			$this->extractBodyElements( $actualMacro, $parentNode );
 
 			$closeTemplate = "}}";
 			if ( $this->addLinebreakAfterTemplate() ) {
@@ -103,6 +75,44 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 			$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
 
 			$parentNode->removeChild( $actualMacro );
+		}
+	}
+
+	/**
+	 * Extract rich text bodies
+	 *
+	 * @param DOMElement $actualMacro
+	 * @param DOMElement $parentNode
+	 * @return void
+	 */
+	protected function extractBodyElements( DOMElement $actualMacro, DOMElement $parentNode ): void {
+		/** @var DOMNodeList $richTextBodies */
+		$richTextBodies = $actualMacro->getElementsByTagName( 'rich-text-body' );
+		$richTextBodyEls = [];
+		foreach ( $richTextBodies as $richTextBody ) {
+			$richTextBodyEls[] = $richTextBody;
+		}
+
+		if ( !empty( $richTextBodyEls ) ) {
+			$bodyString = "|body = ";
+			if ( $this->addLinebreakInsideTemplate() ) {
+				$bodyString .= "###BREAK###\n";
+			}
+			$wikitextTemplateEndTextNode = $actualMacro->ownerDocument->createTextNode( $bodyString );
+			$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
+
+			foreach ( $richTextBodyEls as $richTextBodyEl ) {
+				// For some odd reason, iterating `$richTextBodyEl->childNodes` directly
+				// will give children of `$dom->firstChild`.
+				// Using `iterator_to_array` as an workaround here.
+				$childNodes = iterator_to_array( $richTextBodyEl->childNodes );
+				foreach ( $childNodes as $richTextBodyChildEl ) {
+					if ( $richTextBodyChildEl === $actualMacro ) {
+						continue;
+					}
+					$parentNode->insertBefore( $richTextBodyChildEl, $actualMacro );
+				}
+			}
 		}
 	}
 

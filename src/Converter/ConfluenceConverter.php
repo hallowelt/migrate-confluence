@@ -56,6 +56,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdat
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroToc;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroViewFile;
+use HalloWelt\MigrateConfluence\Converter\Processor\TableFilter;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\Widget;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
@@ -328,7 +329,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle, $this->nsFileRepoCompat
 			),
 			new Widget(),
-			new PreservePStyleTag()
+			new PreservePStyleTag(),
+			new TableFilter(),
 		];
 
 		/** @var IProcessor $processor */
@@ -467,7 +469,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'warning',
 				'jira',
 				'widget',
-				'gliffy'
+				'gliffy',
+				'table-filter',
 			]
 		) ) {
 			return;
