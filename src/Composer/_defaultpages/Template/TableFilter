@@ -1,0 +1,3 @@
+<div class="macro-table-filter">
+	{{body|}}
+</div>

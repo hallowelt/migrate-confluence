@@ -13,6 +13,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
@@ -54,6 +55,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TocMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
@@ -328,7 +330,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle, $this->nsFileRepoCompat
 			),
 			new Widget(),
-			new PreservePStyleTag()
+			new PreservePStyleTag(),
+			new TableFilterMacro(),
 		];
 
 		/** @var IProcessor $processor */
@@ -350,7 +353,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new RestoreCode(),
 			new NestedHeadings(),
 			new RestoreStructuredMacroTasksReport(),
-			new FixMultilineTemplate()
+			new FixMultilineTemplate(),
+			new FixMultilineTable(),
 		];
 
 		/** @var IPostprocessor $postProcessor */
@@ -467,7 +471,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'warning',
 				'jira',
 				'widget',
-				'gliffy'
+				'gliffy',
+				'table-filter',
 			]
 		) ) {
 			return;

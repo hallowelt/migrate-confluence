@@ -1,0 +1,54 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+{{TableFilter
+|inverse=,
+|sparkName=Sparkline
+|column=Status
+|limitHeight"=
+|separator=Point (.)
+|default=,
+|isFirstTimeEnter=true
+|cell-width=,
+|userfilter=Thema
+|datepattern=dd.mm.yy
+|id=1234567890123_-456789017
+|updateSelectOptions=true
+|worklog=365|5|8|y w d h m|y w d h m
+|isOR=AND
+|order=0,1
+|body=
+
+		<table class="fixed-table wrapped datagrid">
+			<colgroup>
+				<col style="width: 38.0px;" />
+				<col style="width: 227.0px;" />
+				<col style="width: 728.0px;" />
+				<col style="width: 166.0px;" />
+				<col style="width: 137.0px;" />
+			</colgroup>
+			<tbody>
+				<tr>
+					<th>Position</th>
+					<th>Name</th>
+					<th>Process</th>
+					<th colspan="1">User?</th>
+					<th>Status</th>
+				</tr>
+				<tr>
+					<td>1</td>
+					<td>Test 1</td>
+					<td>Process 1</td>
+					<td colspan="1">Sysop</td>
+					<td style="text-align: center;">done</td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td>Process 2</td>
+					<td><br /></td>
+					<td colspan="1"><br /></td>
+					<td><br /></td>
+				</tr>
+			</tbody>
+		</table>
+
+}}
+</xml>
