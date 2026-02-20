@@ -21,44 +21,44 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreStructuredMacroTasksReport;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
-use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInfoMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ConvertInlineCommentMarkerMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ConvertNoteMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ConvertPlaceholderMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ConvertStatusMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTaskListMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ConvertTipMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ConvertWarningMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ContenByLabelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
+use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
-use HalloWelt\MigrateConfluence\Converter\Processor\MacroAlign;
+use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarkerMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PanelMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PlaceholderMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
-use HalloWelt\MigrateConfluence\Converter\Processor\PreserveStructuredMacroTasksReport;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroAttachments;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroChildren;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroColumn;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroContenByLabel;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroDrawio;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroExcerptInclude;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroGliffy;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroInclude;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroJira;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroNoFormat;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPageTree;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroPanel;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroRecentlyUpdated;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroSection;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroToc;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroViewFile;
+use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\StatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Widget;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
@@ -274,27 +274,27 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$processors = [
-			new ConvertPlaceholderMacro(),
-			new ConvertInlineCommentMarkerMacro(),
+			new PlaceholderMacro(),
+			new InlineCommentMarkerMacro(),
 			new PreserveTimeTag(),
-			new ConvertTipMacro(),
-			new ConvertInfoMacro(),
-			new ConvertNoteMacro(),
-			new ConvertWarningMacro(),
-			new ConvertStatusMacro(),
-			new StructuredMacroToc(),
-			new StructuredMacroPanel(),
-			new StructuredMacroColumn(),
-			new StructuredMacroSection(),
-			new StructuredMacroChildren( $this->currentPageTitle ),
-			new StructuredMacroPageTree(
+			new TipMacro(),
+			new InfoMacro(),
+			new NoteMacro(),
+			new WarningMacro(),
+			new StatusMacro(),
+			new TocMacro(),
+			new PanelMacro(),
+			new ColumnMacro(),
+			new SectionMacro(),
+			new ChildrenMacro( $this->currentPageTitle ),
+			new PageTreeMacro(
 				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->mainpage
 			),
-			new StructuredMacroRecentlyUpdated( $this->currentPageTitle ),
-			new StructuredMacroInclude( $this->dataLookup, $this->currentSpace ),
-			new StructuredMacroExcerptInclude( $this->dataLookup, $this->currentSpace ),
+			new RecentlyUpdatedMacro( $this->currentPageTitle ),
+			new IncludeMacro( $this->dataLookup, $this->currentSpace ),
+			new ExcerptIncludeMacro( $this->dataLookup, $this->currentSpace ),
 			new Emoticon(),
-			new PreserveStructuredMacroTasksReport( $this->dataLookup ),
+			new PreserveTasksReportMacro( $this->dataLookup ),
 			new Image(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
@@ -308,24 +308,24 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new PreserveCode(),
-			new StructuredMacroNoFormat(),
-			new ConvertTaskListMacro(),
-			new StructuredMacroDrawio(
+			new NoFormatMacro(),
+			new TaskListMacro(),
+			new DrawioMacro(
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat
 			),
-			new StructuredMacroGliffy(
+			new GliffyMacro(
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
 				$currentPageTitle, $this->buckets, $this->nsFileRepoCompat
 			),
-			new StructuredMacroContenByLabel( $this->currentPageTitle ),
-			new StructuredMacroAttachments(),
+			new ContenByLabelMacro( $this->currentPageTitle ),
+			new AttachmentsMacro(),
 			new ExpandMacro(),
 			new DetailsMacro(),
 			new DetailsSummaryMacro(),
-			new MacroAlign(),
-			new StructuredMacroJira(),
-			new StructuredMacroViewFile(
+			new AlignMacro(),
+			new JiraMacro(),
+			new ViewFileMacro(
 				$this->dataLookup, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat
 			),

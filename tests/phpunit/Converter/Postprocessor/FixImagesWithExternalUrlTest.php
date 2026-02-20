@@ -26,7 +26,7 @@ class FixImagesWithExternalUrlTest extends TestCase {
 	 */
 	private function getInput(): string {
 		$content = file_get_contents(
-			dirname( dirname( __DIR__ ) ) . '/data/fiximageswithexternalurl-input.wikitext'
+			dirname( dirname( __DIR__ ) ) . '/data/fix-images-with-external-url-input.wikitext'
 		);
 		return $content;
 	}
@@ -36,7 +36,7 @@ class FixImagesWithExternalUrlTest extends TestCase {
 	 */
 	private function getExpectedOutput(): string {
 		$content = file_get_contents(
-			dirname( dirname( __DIR__ ) ) . '/data/fiximageswithexternalurl-output.wikitext'
+			dirname( dirname( __DIR__ ) ) . '/data/fix-images-with-external-url-output.wikitext'
 		);
 		return $content;
 	}
