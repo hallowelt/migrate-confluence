@@ -18,5 +18,12 @@ class CQLParserTest extends TestCase {
 		$actual = $cqlParser->parse( $input );
 
 		$this->assertEquals( $expected, $actual );
+
+		$input = 'label = "label_1" or label = "label_2"';
+		$expected = '[[Category:Label_1]]|[[Category:Label_2]]';
+
+		$actual = $cqlParser->parse( $input );
+
+		$this->assertEquals( $expected, $actual );
 	}
 }
