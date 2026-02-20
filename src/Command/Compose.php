@@ -2,7 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
+use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
+use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use SplFileInfo;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -44,7 +48,22 @@ class Compose extends CommandCompose {
 	 */
 	protected function processFiles() {
 		$this->readConfigFile( $this->config );
-		parent::processFiles();
+		$this->ensureTargetDirs();
+		$this->workspace = new Workspace( new SplFileInfo( $this->src ) );
+
+		$this->initExecutionTime();
+
+		$this->buckets = new DataBuckets( $this->getBucketKeys() );
+		$this->buckets->loadFromWorkspace( $this->workspace );
+		$composers = $this->makeComposers();
+		$mediawikixmlbuilder = new Builder();
+		foreach ( $composers as $composer ) {
+			$composer->setDestinationPath( $this->dest );
+			$composer->buildXML( $mediawikixmlbuilder );
+
+		}
+
+		$this->logExecutionTime();
 	}
 
 	/**
@@ -82,5 +101,17 @@ class Compose extends CommandCompose {
 			'global-files',
 			'global-additional-files'
 		];
+	}
+
+	/**
+	 * ToDo: Set this method in composer to protected
+	 *
+	 * @return void
+	 */
+	private function ensureTargetDirs() {
+		$path = "{$this->dest}/result/images";
+		if ( !file_exists( $path ) ) {
+			mkdir( $path, 0755, true );
+		}
 	}
 }

@@ -27,6 +27,9 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	/** @var array */
 	private $advancedConfig = [];
 
+	/** @var string */
+	private $dest = '';
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -48,6 +51,14 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 	}
 
 	/**
+	 * @param string $dest
+	 * @return void
+	 */
+	public function setDestinationPath( string $dest ): void {
+		$this->dest = $dest;
+	}
+
+	/**
 	 * @param Output $output
 	 */
 	public function setOutput( Output $output ) {
@@ -56,17 +67,33 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 
 	/**
 	 * @param Builder $builder
+	 * @param string $name
+	 * @return Builder
+	 */
+	private function writeOutputFile( Builder $builder, string $name ): Builder {
+		$name = "output-{$name}.xml";
+
+		$builder->buildAndSave( $this->dest . "/result/{$name}" );
+
+		return new Builder();
+	}
+
+	/**
+	 * @param Builder $builder
 	 * @return void
 	 */
 	public function buildXML( Builder $builder ) {
+		/** Add default pages ( e.g. templates) */
 		$this->appendDefaultPages( $builder );
 		$this->addDefaultFiles();
+		$builder = $this->writeOutputFile( $builder, 'default' );
 
+		/** Prepare content pages */
 		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
 		$spaceIDHomepagesMap = $this->buckets->getBucketData( 'global-space-id-homepages' );
 
 		$homepageSpaceIDMap = array_flip( $spaceIDHomepagesMap );
-		$spaceIDDescriptionIDMap = $this->buckets->getBucketData( 'global-space-id-to-description-id-map' );
+		$spaceIdDescriptionIdMap = $this->buckets->getBucketData( 'global-space-id-to-description-id-map' );
 		$spaceDescriptionIDBodyIDMap = $this->buckets->getBucketData( 'global-space-description-id-to-body-id-map' );
 
 		$pagesRevisions = $this->buckets->getBucketData( 'global-title-revisions' );
@@ -75,17 +102,17 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 
 		$bodyContentIDMainpageID = [];
 		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );
-		foreach ( $spaceIDHomepagesMap as $spaceID => $homepageID ) {
-			if ( !isset( $pagesToBodyContents[$homepageID] ) ) {
+		foreach ( $spaceIDHomepagesMap as $spaceId => $homepageId ) {
+			if ( !isset( $pagesToBodyContents[$homepageId] ) ) {
 				continue;
 			}
-			$bodyContentsID = $pagesToBodyContents[$homepageID];
-			$bodyContentIDMainpageID[$bodyContentsID] = $homepageID;
+			$bodyContentsID = $pagesToBodyContents[$homepageId];
+			$bodyContentIDMainpageID[$bodyContentsID] = $homepageId;
 		}
 
+		/** Sort pages by namespace and skip namespaces or titles by configuration */
+		$namespaceTitlesMap = [];
 		foreach ( $pagesRevisions as $pageTitle => $pageRevisions ) {
-			$this->output->writeln( "\nProcessing: $pageTitle\n" );
-
 			// Sometimes not all namespaces should be used for the import. To skip this namespaces
 			// use this option
 			$namespace = $this->getNamespace( $pageTitle );
@@ -107,20 +134,32 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 				continue;
 			}
 
+			if ( !isset( $namespaceTitlesMap[$namespace] ) ) {
+				$namespaceTitlesMap[$namespace] = [];
+			}
+			$namespaceTitlesMap[$namespace] = $pageTitle;
+		}
+
+		/** Add pages grouped by namespace */
+		foreach ( $namespaceTitlesMap as $namespace => $pageTitle ) {
+			$pageRevisions = $pagesRevisions[$pageTitle];
+
 			$sortedRevisions = [];
 			foreach ( $pageRevisions as $pageRevision ) {
 				$pageRevisionData = explode( '@', $pageRevision );
 				$bodyContentIds = $pageRevisionData[0];
 
 				$versionTimestamp = explode( '-', $pageRevisionData[1] );
-				$version = $versionTimestamp[0];
+				// $version = $versionTimestamp[0];
 				$timestamp = $versionTimestamp[1];
 
 				$sortedRevisions[$bodyContentIds] = $timestamp;
 			}
+
 			// Sorting revisions with timestamps
 			natsort( $sortedRevisions );
 			$sortedRevisions = array_flip( $sortedRevisions );
+
 			// Using history revisions?
 			if ( !isset( $this->advancedConfig['include-history'] )
 				|| $this->advancedConfig['include-history'] !== true
@@ -153,9 +192,9 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 						if ( isset( $homepageSpaceIDMap[$mainpageID] ) ) {
 							// get space id
 							$spaceID = $homepageSpaceIDMap[$mainpageID];
-							if ( isset( $spaceIDDescriptionIDMap[$spaceID] ) ) {
+							if ( isset( $spaceIdDescriptionIdMap[$spaceID] ) ) {
 								// get description id
-								$descID = $spaceIDDescriptionIDMap[$spaceID];
+								$descID = $spaceIdDescriptionIdMap[$spaceID];
 								if ( isset( $spaceDescriptionIDBodyIDMap[$descID] ) ) {
 									// get description id
 									$descBodyID = $spaceDescriptionIDBodyIDMap[$descID];
@@ -197,6 +236,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
 					}
 				}
 			}
+
+			$builder = $this->writeOutputFile( $builder, $namespace );
 		}
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
