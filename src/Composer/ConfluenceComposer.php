@@ -12,7 +12,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Console\Output\Output;
 
-class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface {
+class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
 
 	/**
 	 * @var DataBuckets

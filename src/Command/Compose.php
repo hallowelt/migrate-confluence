@@ -6,6 +6,7 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\IDestinationPathAware;
 use SplFileInfo;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
@@ -58,7 +59,9 @@ class Compose extends CommandCompose {
 		$composers = $this->makeComposers();
 		$mediawikixmlbuilder = new Builder();
 		foreach ( $composers as $composer ) {
-			$composer->setDestinationPath( $this->dest );
+			if ( $composer instanceof IDestinationPathAware ) {
+				$composer->setDestinationPath( $this->dest );
+			}
 			$composer->buildXML( $mediawikixmlbuilder );
 
 		}
