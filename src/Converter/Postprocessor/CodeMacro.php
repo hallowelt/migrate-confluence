@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Postprocessor;
 
 use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 
-class RestoreCode implements IPostprocessor {
+class CodeMacro implements IPostprocessor {
 
 	/**
 	 * @inheritDoc

@@ -3,11 +3,11 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTasksReportMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
-class PreserveTasksReportMacroTest extends TestCase {
+class TasksReportMacroTest extends TestCase {
 
 	/**
 	 * @var ConversionDataLookup
@@ -20,7 +20,7 @@ class PreserveTasksReportMacroTest extends TestCase {
 	private $dir = '';
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PreserveTasksReportMacro::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro::preprocess
 	 * @return void
 	 */
 	public function testPreprocess() {
@@ -51,7 +51,7 @@ class PreserveTasksReportMacroTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new PreserveTasksReportMacro( $this->dataLookup );
+		$processor = new TasksReportMacro( $this->dataLookup );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
@@ -62,10 +62,10 @@ class PreserveTasksReportMacroTest extends TestCase {
 	}
 
 	protected function getInput(): string {
-		return file_get_contents( $this->dir . '/task-report-macro-input.xml' );
+		return file_get_contents( $this->dir . '/task-report-macro-preserve-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( $this->dir . '/task-report-macro-output.xml' );
+		return file_get_contents( $this->dir . '/task-report-macro-preserve-output.xml' );
 	}
 }

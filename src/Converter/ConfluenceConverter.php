@@ -16,9 +16,9 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreStructuredMacroTasksReport;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
@@ -37,17 +37,17 @@ use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarkerMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarker;
 use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PanelMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\PlaceholderMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
+use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
+use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro as PreserveCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
-use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTasksReportMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro as PreserveTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
@@ -55,11 +55,11 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\TocMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\Toc;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\Widget;
+use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use SplFileInfo;
@@ -274,15 +274,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$processors = [
-			new PlaceholderMacro(),
-			new InlineCommentMarkerMacro(),
+			new Placeholder(),
+			new InlineCommentMarker(),
 			new PreserveTimeTag(),
 			new TipMacro(),
 			new InfoMacro(),
 			new NoteMacro(),
 			new WarningMacro(),
 			new StatusMacro(),
-			new TocMacro(),
+			new Toc(),
 			new PanelMacro(),
 			new ColumnMacro(),
 			new SectionMacro(),
@@ -307,7 +307,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new UserLink(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
-			new PreserveCode(),
+			new PreserveCodeMacro(),
 			new NoFormatMacro(),
 			new TaskListMacro(),
 			new DrawioMacro(
@@ -329,7 +329,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat
 			),
-			new Widget(),
+			new WidgetMacro(),
 			new PreservePStyleTag(),
 			new TableFilterMacro(),
 		];
@@ -350,9 +350,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
-			new RestoreCode(),
+			new RestoreCodeMacro(),
 			new NestedHeadings(),
-			new RestoreStructuredMacroTasksReport(),
+			new RestoreTasksReportMacro(),
 			new FixMultilineTemplate(),
 			new FixMultilineTable(),
 		];

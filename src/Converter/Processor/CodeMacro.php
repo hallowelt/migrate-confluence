@@ -5,9 +5,9 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 /**
  * Unfortunately `pandoc` eats <syntaxhighlight> tags.
  * Therefore we preserve the information in the DOM and restore it in the post processing.
- * @see HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode
+ * @see HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro
  */
-class PreserveCode extends StructuredMacroProcessorBase {
+class CodeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 *

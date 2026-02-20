@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Postprocessor;
 
 use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 
-class RestoreStructuredMacroTasksReport implements IPostprocessor {
+class TasksReportMacro implements IPostprocessor {
 
 	/**
 	 * @inheritDoc

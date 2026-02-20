@@ -2,10 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Preprocessor;
 
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreStructuredMacroTasksReport;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro;
 use PHPUnit\Framework\TestCase;
 
-class RestoreStructuredMacroTasksReportTest extends TestCase {
+class TasksReportMacroTest extends TestCase {
 
 	/**
 	 * @var string
@@ -13,7 +13,7 @@ class RestoreStructuredMacroTasksReportTest extends TestCase {
 	private $dir = '';
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreStructuredMacroTasksReport::postprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro::postprocess
 	 * @return void
 	 */
 	public function testPostprocess() {
@@ -21,7 +21,7 @@ class RestoreStructuredMacroTasksReportTest extends TestCase {
 
 		$input = $this->getInput();
 
-		$preprocessor = new RestoreStructuredMacroTasksReport();
+		$preprocessor = new TasksReportMacro();
 		$actualOutput = $preprocessor->postprocess( $input );
 
 		$expectedOutput = $this->getExpectedOutput();
@@ -30,10 +30,10 @@ class RestoreStructuredMacroTasksReportTest extends TestCase {
 	}
 
 	protected function getInput(): string {
-		return file_get_contents( $this->dir . '/restore-task-report-macro-input.xml' );
+		return file_get_contents( $this->dir . '/task-report-macro-restore-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( $this->dir . '/restore-task-report-macro-output.xml' );
+		return file_get_contents( $this->dir . '/task-report-macro-restore-output.xml' );
 	}
 }
