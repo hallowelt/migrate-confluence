@@ -6,7 +6,7 @@ use DOMElement;
 use DOMText;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
-class PreserveTasksReportMacro extends StructuredMacroProcessorBase {
+class TasksReportMacro extends StructuredMacroProcessorBase {
 
 	/** @var ConversionDataLookup */
 	protected $dataLookup;

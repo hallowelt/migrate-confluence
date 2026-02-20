@@ -2,13 +2,13 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Preprocessor;
 
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro;
 use PHPUnit\Framework\TestCase;
 
-class RestoreCodeTest extends TestCase {
+class CodeMacroTest extends TestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreCode::postprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro::postprocess
 	 * @return void
 	 */
 	public function testPostprocess() {
@@ -17,7 +17,7 @@ class RestoreCodeTest extends TestCase {
 		$input = file_get_contents( "$dir/data/code-input.wikitext" );
 		$expectedOutput = file_get_contents( "$dir/data/code-output.wikitext" );
 
-		$preprocessor = new RestoreCode();
+		$preprocessor = new CodeMacro();
 		$actualOutput = $preprocessor->postprocess( $input );
 
 		$this->assertEquals( $expectedOutput, $actualOutput );

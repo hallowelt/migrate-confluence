@@ -7,7 +7,7 @@ use DOMNode;
 
 /**
  */
-class Widget extends StructuredMacroProcessorBase {
+class WidgetMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 *

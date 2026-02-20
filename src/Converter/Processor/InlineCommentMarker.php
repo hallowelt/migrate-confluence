@@ -8,12 +8,12 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
 /**
  *
  */
-class PlaceholderMacro implements IProcessor {
+class InlineCommentMarker implements IProcessor {
 	/**
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
-		$processorNodes = $dom->getElementsByTagName( 'placeholder' );
+		$processorNodes = $dom->getElementsByTagName( 'inline-comment-marker' );
 
 		$macroNodes = [];
 		foreach ( $processorNodes as $processorNode ) {
@@ -23,7 +23,7 @@ class PlaceholderMacro implements IProcessor {
 		foreach ( $macroNodes as $macroNode ) {
 			$macroNode->parentNode->replaceChild(
 				$macroNode->ownerDocument->createTextNode(
-					"<!-- $macroNode->textContent -->"
+					"{{InlineComment|{$macroNode->nodeValue}}}"
 				),
 				$macroNode
 			);

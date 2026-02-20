@@ -3,15 +3,15 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode;
+use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro;
 use PHPUnit\Framework\TestCase;
 
-class PreserveCodeTest extends TestCase {
+class CodeMacroTest extends TestCase {
 
 	/**
 	 * @param string $inputFile
 	 * @param string $expectedOutputFile
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PreserveCode::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro::process
 	 * @dataProvider provideTestProcessData
 	 * @return void
 	 */
@@ -19,7 +19,7 @@ class PreserveCodeTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->load( $inputFile );
 
-		$codeMacroProcessor = new PreserveCode();
+		$codeMacroProcessor = new CodeMacro();
 		$codeMacroProcessor->process( $dom );
 
 		$expectedDom = new DOMDocument();
