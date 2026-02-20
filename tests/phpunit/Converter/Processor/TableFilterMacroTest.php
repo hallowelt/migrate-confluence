@@ -3,10 +3,10 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\TableFilter;
+use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
 use PHPUnit\Framework\TestCase;
 
-class TableFilterTest extends TestCase {
+class TableFilterMacroTest extends TestCase {
 
 	/**
 	 * @var string
@@ -14,7 +14,7 @@ class TableFilterTest extends TestCase {
 	private $dir = '';
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\TableFilter::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
@@ -25,7 +25,7 @@ class TableFilterTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new TableFilter();
+		$processor = new TableFilterMacro();
 		$processor->process( $dom );
 
 		$expectedDOM = new DOMDocument();
