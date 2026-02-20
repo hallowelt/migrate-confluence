@@ -30,10 +30,10 @@ class RestoreStructuredMacroTasksReportTest extends TestCase {
 	}
 
 	protected function getInput(): string {
-		return file_get_contents( $this->dir . '/restore.structured-macro-task-report-input.xml' );
+		return file_get_contents( $this->dir . '/restore-task-report-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( $this->dir . '/restore.structured-macro-task-report-output.xml' );
+		return file_get_contents( $this->dir . '/restore-task-report-macro-output.xml' );
 	}
 }
