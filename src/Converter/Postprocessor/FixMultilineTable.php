@@ -26,17 +26,17 @@ class FixMultilineTable implements IPostprocessor {
 					}
 
 					$line = $lines[$index];
-					
+
 					if ( strpos( $line, '|-' ) === 0 ) {
 						continue;
-					} else if ( strpos( $line, '|' ) === 0 ) {
+					} elseif ( strpos( $line, '|' ) === 0 ) {
 						continue;
-					} else if ( strpos( $line, '!' ) === 0 ) {
+					} elseif ( strpos( $line, '!' ) === 0 ) {
 						continue;
 					}
 
 					$detectedLines[] = $index;
-					$problematicLines[] = $index -1 ;
+					$problematicLines[] = $index - 1;
 				}
 
 				$fixedLines = [];
