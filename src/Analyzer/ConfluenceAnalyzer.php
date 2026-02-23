@@ -36,6 +36,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private $customBuckets = null;
 
 	/**
+	 * @var DataBuckets
+	 */
+	private $dataKeys = null;
+
+	/**
 	 * @var LoggerInterface
 	 */
 	private $logger = null;
@@ -115,6 +120,49 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'warning-analyze-invalid-filenames',
 		] );
 
+		$this->dataKeys = [
+			'analyze-added-attachment-id',
+			'analyze-add-file',
+			'analyze-attachment-available-ids',
+			'analyze-attachment-id-to-container-content-id-map',
+			'analyze-attachment-id-to-content-status-map',
+			'analyze-attachment-id-to-orig-filename-map',
+			'analyze-attachment-id-to-reference-map',
+			'analyze-attachment-id-to-space-id-map',
+			'analyze-attachment-id-to-target-filename-map',
+			'analyze-body-content-id-to-page-id-map',
+			'analyze-orig-title-compressed-title-map',
+			'analyze-page-id-to-confluence-key-map',
+			'analyze-page-id-to-confluence-title-map',
+			'analyze-page-id-to-parent-page-id-map',
+			'analyze-page-id-to-title-map',
+			'analyze-pages-titles-map',
+			'analyze-space-id-to-name-map',
+			'analyze-space-id-to-space-key-map',
+			'analyze-space-key-to-name-map',
+			'analyze-space-name-to-prefix-map',
+			'analyze-title-revisions',
+			'analyze-title-to-attachment-title',
+			'debug-analyze-invalid-titles-attachment-id-to-title',
+			'debug-analyze-invalid-titles-page-id-to-title',
+			'global-attachment-orig-filename-target-filename-map',
+			'global-body-contents-to-pages-map',
+			'global-filenames-to-filetitles-map',
+			'global-page-id-to-space-id',
+			'global-page-id-to-title-map',
+			'global-pages-titles-map',
+			'global-space-description-id-to-body-id-map',
+			'global-space-details',
+			'global-space-id-homepages',
+			'global-space-id-to-description-id-map',
+			'global-space-id-to-prefix-map',
+			'global-space-key-to-prefix-map',
+			'global-title-attachments',
+			'global-title-revisions',
+			'global-userkey-to-username-map',
+			'users',
+		];
+
 		$this->logger = new NullLogger();
 
 		$this->setConfigVars();
@@ -191,60 +239,17 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return true;
 		}
 
-		$keys = [
-			'analyze-added-attachment-id',
-			'analyze-add-file',
-			'analyze-attachment-available-ids',
-			'analyze-attachment-id-to-container-content-id-map',
-			'analyze-attachment-id-to-content-status-map',
-			'analyze-attachment-id-to-orig-filename-map',
-			'analyze-attachment-id-to-reference-map',
-			'analyze-attachment-id-to-space-id-map',
-			'analyze-attachment-id-to-target-filename-map',
-			'analyze-body-content-id-to-page-id-map',
-			'analyze-orig-title-compressed-title-map',
-			'analyze-page-id-to-confluence-key-map',
-			'analyze-page-id-to-confluence-title-map',
-			'analyze-page-id-to-parent-page-id-map',
-			'analyze-page-id-to-title-map',
-			'analyze-pages-titles-map',
-			'analyze-space-id-to-name-map',
-			'analyze-space-id-to-space-key-map',
-			'analyze-space-key-to-name-map',
-			'analyze-space-name-to-prefix-map',
-			'analyze-title-revisions',
-			'analyze-title-to-attachment-title',
-			'debug-analyze-invalid-titles-attachment-id-to-title',
-			'debug-analyze-invalid-titles-page-id-to-title',
-			'global-attachment-orig-filename-target-filename-map',
-			'global-body-contents-to-pages-map',
-			'global-filenames-to-filetitles-map',
-			'global-files',
-			'global-page-id-to-space-id',
-			'global-page-id-to-title-map',
-			'global-pages-titles-map',
-			'global-space-description-id-to-body-id-map',
-			'global-space-details',
-			'global-space-id-homepages',
-			'global-space-id-to-description-id-map',
-			'global-space-id-to-prefix-map',
-			'global-space-key-to-prefix-map',
-			'global-title-attachments',
-			'global-title-revisions',
-			'global-userkey-to-username-map',
-			'users',
-		];
-		foreach ( $keys as $key ) {
+		foreach ( $this->dataKeys as $key ) {
 			$this->data[$key] = $this->workspace->loadData( $key );
 		}
 
-		// $this->customBuckets->loadFromWorkspace( $this->workspace );
+		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
 
 		// Perform validity checks
-		//$this->checkTitles();
+		$this->checkTitles();
 
-		//$this->customBuckets->saveToWorkspace( $this->workspace );
+		$this->customBuckets->saveToWorkspace( $this->workspace );
 		return $result;
 	}
 
@@ -347,18 +352,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		// compress title lenght
 		$titleCompressor = new TitleCompressor();
 
-		// $analyzePagesTitlesMap = $this->customBuckets->getBucketData( 'analyze-pages-titles-map' );
 		$analyzePagesTitlesMap = $this->data['analyze-pages-titles-map'];
 		$compressedTitlesMap = $titleCompressor->execute( $analyzePagesTitlesMap );
-		/*
-		foreach ( $compressedTitlesMap as $origTitle => $compressedTitle ) {
-			$this->buckets->addData(
-				'analyze-orig-title-compressed-title-map',
-				$origTitle, $compressedTitle, false, true
-			);
-			$this->data['analyze-orig-title-compressed-title-map'][$origTitle] = $compressedTitle;
-		}
-		*/
+		
 		$this->data['analyze-orig-title-compressed-title-map'] = $compressedTitlesMap;
 
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
@@ -366,39 +362,21 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		// pages-titles-map
 		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $analyzePagesTitlesMap );
 		ksort( $compressedPagesTitlesMap );
-		/*
-		foreach ( $compressedPagesTitlesMap as $key => $title ) {
-			$this->buckets->addData( 'global-pages-titles-map', $key, $title, false, true );
-		}
-		*/
+		
 		$this->data['global-pages-titles-map'] = $compressedPagesTitlesMap;
 
 		// page-id-to-titles
-		//$analyzePageIdToTitleMap = $this->customBuckets->getBucketData( 'analyze-page-id-to-title-map' );
 		$analyzePageIdToTitleMap = $this->data['analyze-page-id-to-title-map'];
 		$compressedPageIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzePageIdToTitleMap );
 		ksort( $compressedPageIdToTitleMap );
-		/*
-		foreach ( $compressedPageIdToTitleMap as $id => $title ) {
-			$this->buckets->addData( 'global-page-id-to-title-map', $id, $title, false, true );
-		}
-		*/
+		
 		$this->data['global-page-id-to-title-map'] = $compressedPageIdToTitleMap;
 
 		// title-revisions
-		//$analyzeTitleRevisionsMap = $this->customBuckets->getBucketData( 'analyze-title-revisions' );
 		$analyzeTitleRevisionsMap = $this->data['analyze-title-revisions'];
 		$compressedTitleRevison = $applyCompressedTitles->toMapKeys( $analyzeTitleRevisionsMap );
 		ksort( $compressedTitleRevison );
-		/*
-		foreach ( $compressedTitleRevison as $title => $revisions ) {
-			if ( is_array( $revisions ) ) {
-				foreach ( $revisions as $revision ) {
-					$this->addTitleRevision( $title, $revision );
-				}
-			}
-		}
-		*/
+		
 		$this->data['global-title-revisions'] = $compressedTitleRevison;
 	}
 
