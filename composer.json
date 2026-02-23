@@ -21,8 +21,8 @@
 	"require": {
 		"psr/log": "~1.1",
 		"hallowelt/mediawiki-lib-mediawikixml": "~1",
-		"hallowelt/mediawiki-lib-commandline-tools": "~1",
-		"hallowelt/mediawiki-lib-migration": "~2",
+		"hallowelt/mediawiki-lib-commandline-tools": "~2",
+		"hallowelt/mediawiki-lib-migration": "~3",
 		"hallowelt/mediawiki-lib-wikitext": "~1",
 		"ext-dom": "*",
 		"symfony/yaml": "^7.0"
