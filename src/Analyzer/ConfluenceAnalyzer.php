@@ -354,7 +354,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$analyzePagesTitlesMap = $this->data['analyze-pages-titles-map'];
 		$compressedTitlesMap = $titleCompressor->execute( $analyzePagesTitlesMap );
-		
+
 		$this->data['analyze-orig-title-compressed-title-map'] = $compressedTitlesMap;
 
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
@@ -362,21 +362,21 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		// pages-titles-map
 		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $analyzePagesTitlesMap );
 		ksort( $compressedPagesTitlesMap );
-		
+
 		$this->data['global-pages-titles-map'] = $compressedPagesTitlesMap;
 
 		// page-id-to-titles
 		$analyzePageIdToTitleMap = $this->data['analyze-page-id-to-title-map'];
 		$compressedPageIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzePageIdToTitleMap );
 		ksort( $compressedPageIdToTitleMap );
-		
+
 		$this->data['global-page-id-to-title-map'] = $compressedPageIdToTitleMap;
 
 		// title-revisions
 		$analyzeTitleRevisionsMap = $this->data['analyze-title-revisions'];
 		$compressedTitleRevison = $applyCompressedTitles->toMapKeys( $analyzeTitleRevisionsMap );
 		ksort( $compressedTitleRevison );
-		
+
 		$this->data['global-title-revisions'] = $compressedTitleRevison;
 	}
 
