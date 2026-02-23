@@ -3,14 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
 use DOMDocument;
-use DOMElement;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 interface IAnalyzerProcessor {
 
 	/**
-	 * @param DOMElement $node
+	 * @param DOMDocument $dom
 	 * @return void
 	 */
 	public function execute( DOMDocument $dom ): void;

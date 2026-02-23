@@ -238,7 +238,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$this->data[$key] = $this->workspace->loadData( $key );
 		}
 
-		//$this->customBuckets->loadFromWorkspace( $this->workspace );
+		// $this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
 
 		// Perform validity checks
@@ -330,7 +330,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$processor->setData( $this->data );
 				$processor->execute( $objectDom );
 				$keys = $processor->getKeys();
-				foreach( $keys as $key ) {
+				foreach ( $keys as $key ) {
 					$this->data[$key] = $processor->getData( $key );
 				}
 			}
@@ -347,7 +347,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		// compress title lenght
 		$titleCompressor = new TitleCompressor();
 
-		//$analyzePagesTitlesMap = $this->customBuckets->getBucketData( 'analyze-pages-titles-map' );
+		// $analyzePagesTitlesMap = $this->customBuckets->getBucketData( 'analyze-pages-titles-map' );
 		$analyzePagesTitlesMap = $this->data['analyze-pages-titles-map'];
 		$compressedTitlesMap = $titleCompressor->execute( $analyzePagesTitlesMap );
 		/*
@@ -402,7 +402,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->data['global-title-revisions'] = $compressedTitleRevison;
 	}
 
-
 	/**
 	 *
 	 * @param SplFileInfo $file
@@ -419,10 +418,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$processors = $this->getProcessors();
 		$this->processFile( $processors );
 
-
 		// Reduce title length if lenght exceeds 255 characters
 		$this->compressLongTitles();
-		
+
 		// Process title attachments fallback
 		$this->output->writeln( "\nPostprocess data:" );
 		$postprocessors = $this->getPostProcessors();

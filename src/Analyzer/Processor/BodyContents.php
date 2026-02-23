@@ -4,11 +4,9 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use DOMDocument;
 use DOMElement;
-use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
-use Symfony\Component\Console\Output\OutputInterface;
 
-class BodyContents  extends ProcessorBase {
+class BodyContents extends ProcessorBase {
 
 	/** @var XMLHelper */
 	protected $xmlHelper;

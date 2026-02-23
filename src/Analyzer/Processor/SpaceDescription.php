@@ -4,9 +4,7 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use DOMDocument;
 use DOMElement;
-use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class SpaceDescription extends ProcessorBase {
 
@@ -21,7 +19,6 @@ class SpaceDescription extends ProcessorBase {
 			'global-space-description-id-to-body-id-map'
 		];
 	}
-
 
 	/**
 	 * @inheritDoc
@@ -42,7 +39,7 @@ class SpaceDescription extends ProcessorBase {
 		$bodyContents = $this->xmlHelper->getElementsFromCollection( 'bodyContents', $objectNode );
 		foreach ( $bodyContents as $bodyContent ) {
 			$id = $this->xmlHelper->getIDNodeValue( $bodyContent );
-			//$this->buckets->addData( 'global-space-description-id-to-body-id-map', $descID, $id, false, true );
+			// $this->buckets->addData( 'global-space-description-id-to-body-id-map', $descID, $id, false, true );
 			$this->data['global-space-description-id-to-body-id-map'][$descId] = $id;
 			$this->output->writeln( "\nAdd space description ($id)" );
 		}

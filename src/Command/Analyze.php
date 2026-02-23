@@ -72,6 +72,7 @@ class Analyze extends CommandAnalyze {
 	 */
 	protected function getBucketKeys() {
 		return [];
+		/*
 		return [
 			'global-files',
 			'global-title-attachments',
@@ -91,5 +92,6 @@ class Analyze extends CommandAnalyze {
 			'global-attachment-orig-filename-target-filename-map',
 			'global-filenames-to-filetitles-map',
 		];
+		*/
 	}
 }

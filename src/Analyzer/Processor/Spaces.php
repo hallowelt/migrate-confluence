@@ -125,7 +125,7 @@ class Spaces extends ProcessorBase {
 			$homePageId = $this->xmlHelper->getIDNodeValue( $homePagePropertyNode );
 		}
 		if ( $homePageId > -1 ) {
-			//$this->buckets->addData( 'global-space-id-homepages', $spaceId, $homePageId, false, true );
+			// $this->buckets->addData( 'global-space-id-homepages', $spaceId, $homePageId, false, true );
 			$this->data['global-space-id-homepages'][$spaceId] = $homePageId;
 		}
 
@@ -181,7 +181,7 @@ class Spaces extends ProcessorBase {
 		}
 
 		if ( !empty( $details ) ) {
-			//$this->buckets->addData( 'global-space-details', $spaceId, $details, false, true );
+			// $this->buckets->addData( 'global-space-details', $spaceId, $details, false, true );
 			$this->data['global-space-details'][$spaceId] = $details;
 			$this->output->writeln( "Add details description ($spaceId)" );
 		}

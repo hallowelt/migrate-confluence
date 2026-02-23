@@ -62,7 +62,7 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	public function execute( DOMDocument $dom ): void	{
+	public function execute( DOMDocument $dom ): void {
 		$keys = array_merge(
 			$this->getRequiredKeys(),
 			$this->getKeys()
@@ -80,6 +80,5 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	 * @return void
 	 */
 	protected function doExecute( DOMDocument $dom ): void {
-
 	}
 }

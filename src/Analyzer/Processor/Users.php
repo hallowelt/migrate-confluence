@@ -37,7 +37,6 @@ class Users extends ProcessorBase {
 			return;
 		}
 
-		
 		// Can not use `XMLHelper::getIDNodeValue` here, as the key is not an integer
 		$idNode = $objectNode->getElementsByTagName( 'id' )->item( 0 );
 		$objectNodeKey = $idNode->nodeValue;

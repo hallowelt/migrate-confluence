@@ -6,7 +6,7 @@ use DOMDocument;
 use DOMElement;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 
-class ParentPages  extends ProcessorBase {
+class ParentPages extends ProcessorBase {
 
 	/** @var XMLHelper */
 	protected $xmlHelper;

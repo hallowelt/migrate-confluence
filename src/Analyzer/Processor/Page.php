@@ -31,9 +31,14 @@ class Page extends ProcessorBase {
 	/** @var mixed */
 	private $pageId;
 
-	/* @var string */
+	/** @var string */
 	private $targetTitle = '';
-	
+
+	/**
+	 * @param array $includeSpaceKey
+	 * @param string $mainpage
+	 * @param bool $includeHistory
+	 */
 	public function __construct(
 		array $includeSpaceKey,
 		string $mainpage,
@@ -47,7 +52,7 @@ class Page extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function getRequiredKeys(): array{
+	public function getRequiredKeys(): array {
 		return [
 			'global-space-id-to-prefix-map',
 			'analyze-space-id-to-space-key-map',
@@ -128,7 +133,8 @@ class Page extends ProcessorBase {
 		$this->pageId = $this->xmlHelper->getIDNodeValue( $objectNode );
 
 		$titleBuilder = new TitleBuilder(
-			$this->data['global-space-id-to-prefix-map'], $this->data['global-space-id-homepages'], $this->data['analyze-page-id-to-parent-page-id-map'],
+			$this->data['global-space-id-to-prefix-map'], $this->data['global-space-id-homepages'],
+			$this->data['analyze-page-id-to-parent-page-id-map'],
 			$this->data['analyze-page-id-to-confluence-title-map'], $this->xmlHelper, $this->mainpage
 		);
 		try {
@@ -140,14 +146,18 @@ class Page extends ProcessorBase {
 				$this->pageId, $ex->getInvalidTitle()
 			);
 			*/
-			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [ $this->pageId => $ex->getInvalidTitle() ];
+			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
+				$this->pageId => $ex->getInvalidTitle()
+			];
 			// We don't want to loose this page. Title can be modified after analyze process
 			$this->targetTitle = $ex->getInvalidTitle();
 		}
 
 		if ( $this->targetTitle === '' ) {
-			//$this->customBuckets->addData( 'debug-analyze-invalid-titles-page-id-to-title', $this->pageId, $targetTitle );
-			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [ $this->pageId =>$this->targetTitle ];
+			// $this->customBuckets->addData(
+			// 'debug-analyze-invalid-titles-page-id-to-title', $this->pageId, $targetTitle
+			// );
+			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [ $this->pageId => $this->targetTitle ];
 			return;
 		}
 
@@ -187,15 +197,19 @@ class Page extends ProcessorBase {
 		*/
 		$this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceTitle;
 
-		//$this->customBuckets->addData( 'analyze-pages-titles-map', $pageConfluenceTitle, $this->targetTitle, false, true );
+		// $this->customBuckets->addData(
+		// 'analyze-pages-titles-map', $pageConfluenceTitle, $this->targetTitle, false, true
+		// );
 		$this->data['analyze-pages-titles-map'][$pageConfluenceTitle] = $this->targetTitle;
 		// Also add pages IDs in Confluence to full page title mapping.
 		// It is needed to have enough context on converting stage,
 		// to know from filename which page is currently being converted.
-		
-		//$this->customBuckets->addData( 'analyze-page-id-to-title-map', $this->pageId, $this->targetTitle, false, true );
+
+		//$this->customBuckets->addData(
+		// 'analyze-page-id-to-title-map', $this->pageId, $this->targetTitle, false, true
+		// );
 		$this->data['analyze-page-id-to-title-map'][$this->pageId] = $this->targetTitle;
-		//$this->buckets->addData( 'global-page-id-to-space-id', $this->pageId, $this->spaceId, false, true );
+		// $this->buckets->addData( 'global-page-id-to-space-id', $this->pageId, $this->spaceId, false, true );
 		$this->data['global-page-id-to-space-id'][$this->pageId] = $this->spaceId;
 
 		$revisionTimestamp = $this->buildRevisionTimestamp( $this->xmlHelper, $node );
@@ -204,8 +218,10 @@ class Page extends ProcessorBase {
 			foreach ( $bodyContentIds as $bodyContentId ) {
 				// TODO: Add UserImpl-key or directly MediaWiki username
 				// (could also be done in `extract` as "metadata" )
-				
-				//$this->buckets->addData( 'global-body-contents-to-pages-map', $bodyContentId, $this->pageId, false, true );
+
+				//$this->buckets->addData(
+				//	'global-body-contents-to-pages-map', $bodyContentId, $this->pageId, false, true
+				// );
 				$this->data['global-body-contents-to-pages-map'][$bodyContentId] = $this->pageId;
 			}
 		} else {
@@ -231,7 +247,7 @@ class Page extends ProcessorBase {
 		$version = $this->xmlHelper->getPropertyValue( 'version', $node );
 		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
 
-		//$this->addAnalyzerTitleRevision( $this->targetTitle, $revision );
+		// $this->addAnalyzerTitleRevision( $this->targetTitle, $revision );
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
 
 		// Find attachments
@@ -265,7 +281,6 @@ class Page extends ProcessorBase {
 		return $ids;
 	}
 
-
 	/**
 	 * @param XMLHelper $xmlHelper
 	 * @param DOMElement $element
@@ -290,7 +305,7 @@ class Page extends ProcessorBase {
 		// In case of ERM34465 this seems to be empty because
 		// title-attachments and debug-missing-attachment-id-to-filename are empty
 		$attachmentRefs = $xmlHelper->getElementsFromCollection( 'attachments', $element );
-		
+
 		foreach ( $attachmentRefs as $attachmentRef ) {
 			$attachmentId = $xmlHelper->getIDNodeValue( $attachmentRef );
 			if ( in_array( $attachmentId, $this->data['analyze-added-attachment-id'] ) ) {
@@ -316,7 +331,8 @@ class Page extends ProcessorBase {
 					$attachmentId, $attachmentTargetFilename
 				);
 				*/
-				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId] = $attachmentTargetFilename;
+				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId]
+					= $attachmentTargetFilename;
 				continue;
 			}
 			if ( !isset( $this->data['analyze-attachment-id-to-reference-map'][$attachmentId] ) ) {
@@ -327,7 +343,7 @@ class Page extends ProcessorBase {
 			// In case of ERM34465 no files are added to title-attachments
 			//$this->addTitleAttachment( $wikiTitle, $attachmentTargetFilename );
 			$this->data['global-title-attachments'][$wikiTitle][] = $attachmentTargetFilename;
-			//$this->addFile( $attachmentTargetFilename, $attachmentReference );
+			// $this->addFile( $attachmentTargetFilename, $attachmentReference );
 			$this->data['analyze-add-file'][$attachmentTargetFilename] = $attachmentReference;
 			/*
 			$this->customBuckets->addData(
@@ -360,9 +376,12 @@ class Page extends ProcessorBase {
 				$attachmentTargetFilename
 			);
 			*/
-			$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey] = $attachmentTargetFilename;
-			$this->data['analyze-attachment-id-to-target-filename-map'][$attachmentId] = $attachmentTargetFilename;
-			$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] = $attachmentTargetFilename;
+			$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey]
+				= $attachmentTargetFilename;
+			$this->data['analyze-attachment-id-to-target-filename-map'][$attachmentId]
+				= $attachmentTargetFilename;
+			$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename]
+				= $attachmentTargetFilename;
 		}
 	}
 
@@ -396,7 +415,8 @@ class Page extends ProcessorBase {
 					$attachmentId, $ex->getInvalidTitle()
 				);
 				*/
-				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId] = $ex->getInvalidTitle();
+				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId]
+					= $ex->getInvalidTitle();
 				$this->logger->error( $ex->getMessage() );
 				$targetName = $ex->getInvalidTitle();
 			}
@@ -418,7 +438,7 @@ class Page extends ProcessorBase {
 		$fileKey = "{$pageConfluenceTitle}---$attachmentOrigFilename";
 		// Some normalization
 		$fileKey = str_replace( ' ', '_', $fileKey );
-		//$this->buckets->addData( 'global-filenames-to-filetitles-map', $fileKey, $targetName, false, true );
+		// $this->buckets->addData( 'global-filenames-to-filetitles-map', $fileKey, $targetName, false, true );
 		$this->data['global-filenames-to-filetitles-map'][$fileKey] = $targetName;
 
 		return $targetName;

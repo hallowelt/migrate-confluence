@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 use DOMDocument;
 use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
-use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use SplFileInfo;
@@ -42,6 +41,7 @@ class AttachmentFallback extends ProcessorBase {
 			'global-title-attachments'
 		];
 	}
+
 	/**
 	 * @inheritDoc
 	 */
@@ -122,7 +122,8 @@ class AttachmentFallback extends ProcessorBase {
 				$this->attachmentId, $attachmentTargetFilename
 			);
 			*/
-			$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$this->attachmentId] = $attachmentTargetFilename;
+			$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$this->attachmentId]
+				= $attachmentTargetFilename;
 			return;
 		}
 
@@ -137,7 +138,7 @@ class AttachmentFallback extends ProcessorBase {
 		$attachmentReference = $this->data['analyze-attachment-id-to-reference-map'][$this->attachmentId];
 
 		if ( $confluenceKey !== '' ) {
-			//$this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
+			// $this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
 			$this->data['global-title-attachments'][$targetTitle][] = $attachmentTargetFilename;
 			$this->output->writeln( "Add attachment $attachmentTargetFilename (fallback: {$confluenceKey})" );
 		} else {
@@ -149,7 +150,7 @@ class AttachmentFallback extends ProcessorBase {
 			$this->output->writeln( "Add attachment $attachmentTargetFilename (additional)" );
 		}
 
-		//$this->addFile( $attachmentTargetFilename, $attachmentReference );
+		// $this->addFile( $attachmentTargetFilename, $attachmentReference );
 		$this->data['analyze-add-file'][$attachmentTargetFilename] = $attachmentReference;
 		$this->data['analyze-added-attachment-id'][] = $this->attachmentId;
 
@@ -175,11 +176,13 @@ class AttachmentFallback extends ProcessorBase {
 			$attachmentTargetFilename
 		);
 		*/
-		$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey] = $attachmentTargetFilename;
-		$this->data['analyze-attachment-id-to-target-filename-map'][$this->attachmentId] = $attachmentTargetFilename;
-		$this->data['global-attachment-orig-filename-target-filename-map'][$this->attachmentOrigFilename] = $attachmentTargetFilename;
+		$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey]
+			= $attachmentTargetFilename;
+		$this->data['analyze-attachment-id-to-target-filename-map'][$this->attachmentId]
+			= $attachmentTargetFilename;
+		$this->data['global-attachment-orig-filename-target-filename-map'][$this->attachmentOrigFilename]
+			= $attachmentTargetFilename;
 	}
-
 
 	/**
 	 * @param string $pageConfluenceTitle
@@ -212,7 +215,8 @@ class AttachmentFallback extends ProcessorBase {
 					$attachmentId, $ex->getInvalidTitle()
 				);
 				*/
-				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId] = $ex->getInvalidTitle();
+				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId]
+					= $ex->getInvalidTitle();
 				$this->logger->error( $ex->getMessage() );
 				$targetName = $ex->getInvalidTitle();
 			}
@@ -234,7 +238,7 @@ class AttachmentFallback extends ProcessorBase {
 		$fileKey = "{$pageConfluenceTitle}---$attachmentOrigFilename";
 		// Some normalization
 		$fileKey = str_replace( ' ', '_', $fileKey );
-		//$this->buckets->addData( 'global-filenames-to-filetitles-map', $fileKey, $targetName, false, true );
+		// $this->buckets->addData( 'global-filenames-to-filetitles-map', $fileKey, $targetName, false, true );
 		$this->data['global-filenames-to-filetitles-map'][$fileKey] = $targetName;
 
 		return $targetName;

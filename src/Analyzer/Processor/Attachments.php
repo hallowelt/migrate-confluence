@@ -7,7 +7,7 @@ use DOMElement;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use SplFileInfo;
 
-class Attachments  extends ProcessorBase {
+class Attachments extends ProcessorBase {
 
 	/** @var SplFileInfo */
 	private $file;
@@ -59,7 +59,6 @@ class Attachments  extends ProcessorBase {
 	 * @return void
 	 */
 	private function process( DOMElement $node ): void {
-
 		$attachmentId = $this->xmlHelper->getIDNodeValue( $node );
 		if ( $attachmentId < 0 ) {
 			return;
@@ -114,7 +113,6 @@ class Attachments  extends ProcessorBase {
 		*/
 		$this->data['analyze-attachment-id-to-content-status-map'][$attachmentId] = $attachmentNodeContentStatus;
 	}
-
 
 	/**
 	 * @param XMLHelper $xmlHelper
