@@ -90,27 +90,6 @@ class Spaces extends ProcessorBase {
 			return;
 		}
 
-		/*
-		$this->buckets->addData(
-			'global-space-id-to-prefix-map', $spaceId, $customSpacePrefix, false, true
-		);
-		$this->buckets->addData(
-			'global-space-key-to-prefix-map', $spaceKey, $customSpacePrefix, false, true
-		);
-		$this->customBuckets->addData(
-			'analyze-space-id-to-space-key-map', $spaceId, $spaceKey, false, true
-		);
-		$this->customBuckets->addData(
-			'analyze-space-name-to-prefix-map', $spaceName, $customSpacePrefix, false, true
-		);
-		$this->customBuckets->addData(
-			'analyze-space-id-to-name-map', $spaceId, $spaceName, false, true
-		);
-		$this->customBuckets->addData(
-			'analyze-space-key-to-name-map', $spaceKey, $spaceName, false, true
-		);
-		*/
-
 		$this->data['global-space-id-to-prefix-map'][$spaceId] = $customSpacePrefix;
 		$this->data['global-space-key-to-prefix-map'][$spaceKey] = $customSpacePrefix;
 
@@ -125,7 +104,6 @@ class Spaces extends ProcessorBase {
 			$homePageId = $this->xmlHelper->getIDNodeValue( $homePagePropertyNode );
 		}
 		if ( $homePageId > -1 ) {
-			// $this->buckets->addData( 'global-space-id-homepages', $spaceId, $homePageId, false, true );
 			$this->data['global-space-id-homepages'][$spaceId] = $homePageId;
 		}
 
@@ -149,15 +127,7 @@ class Spaces extends ProcessorBase {
 		$propertyNode = $this->xmlHelper->getPropertyNode( 'description' );
 		if ( $propertyNode !== null ) {
 			$details['description'] = $this->xmlHelper->getIDNodeValue( $propertyNode );
-			/*
-			$this->buckets->addData(
-				'global-space-id-to-description-id-map',
-				$spaceId,
-				$details['description'],
-				false,
-				true
-			);
-			*/
+
 			$this->data['global-space-id-to-description-id-map'][$spaceId] = $details['description'];
 
 			$this->output->writeln( "Add space description ($spaceId)" );
@@ -181,7 +151,6 @@ class Spaces extends ProcessorBase {
 		}
 
 		if ( !empty( $details ) ) {
-			// $this->buckets->addData( 'global-space-details', $spaceId, $details, false, true );
 			$this->data['global-space-details'][$spaceId] = $details;
 			$this->output->writeln( "Add details description ($spaceId)" );
 		}

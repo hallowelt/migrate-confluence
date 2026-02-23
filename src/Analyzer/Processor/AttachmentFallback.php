@@ -116,12 +116,6 @@ class AttachmentFallback extends ProcessorBase {
 			$targetTitle, $this->data['global-space-id-to-prefix-map']
 		);
 		if ( $attachmentTargetFilename === '' ) {
-			/*
-			$this->customBuckets->addData(
-				'debug-analyze-invalid-titles-attachment-id-to-title',
-				$this->attachmentId, $attachmentTargetFilename
-			);
-			*/
 			$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$this->attachmentId]
 				= $attachmentTargetFilename;
 			return;
@@ -138,44 +132,18 @@ class AttachmentFallback extends ProcessorBase {
 		$attachmentReference = $this->data['analyze-attachment-id-to-reference-map'][$this->attachmentId];
 
 		if ( $confluenceKey !== '' ) {
-			// $this->addTitleAttachment( $targetTitle, $attachmentTargetFilename );
 			$this->data['global-title-attachments'][$targetTitle][] = $attachmentTargetFilename;
 			$this->output->writeln( "Add attachment $attachmentTargetFilename (fallback: {$confluenceKey})" );
 		} else {
-			/*
-			$this->buckets->addData(
-				'global-additional-files', $attachmentTargetFilename, $attachmentReference, false, true );
-			*/
 			$this->data['global-additional-files'][$attachmentTargetFilename] = $attachmentReference;
 			$this->output->writeln( "Add attachment $attachmentTargetFilename (additional)" );
 		}
 
-		// $this->addFile( $attachmentTargetFilename, $attachmentReference );
 		$this->data['analyze-add-file'][$attachmentTargetFilename] = $attachmentReference;
 		$this->data['analyze-added-attachment-id'][] = $this->attachmentId;
 
 		$confluenceFileKey = str_replace( ' ', '',  "{$confluenceKey}---{$this->attachmentOrigFilename}" );
-		/*
-		$this->buckets->addData(
-			'global-filenames-to-filetitles-map',
-			$confluenceFileKey,
-			$attachmentTargetFilename,
-			false,
-			true
-		);
 
-		$this->customBuckets->addData(
-			'analyze-attachment-id-to-target-filename-map',
-			$attachmentId,
-			$attachmentTargetFilename
-		);
-
-		$this->buckets->addData(
-			'global-attachment-orig-filename-target-filename-map',
-			$attachmentOrigFilename,
-			$attachmentTargetFilename
-		);
-		*/
 		$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey]
 			= $attachmentTargetFilename;
 		$this->data['analyze-attachment-id-to-target-filename-map'][$this->attachmentId]
@@ -209,12 +177,6 @@ class AttachmentFallback extends ProcessorBase {
 				$targetName = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId, $attachmentOrigFilename, $shortTargetTitle );
 			} catch ( InvalidTitleException $ex ) {
-				/*
-				$this->customBuckets->addData(
-					'debug-analyze-invalid-titles-attachment-id-to-title',
-					$attachmentId, $ex->getInvalidTitle()
-				);
-				*/
 				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId]
 					= $ex->getInvalidTitle();
 				$this->logger->error( $ex->getMessage() );
@@ -238,7 +200,6 @@ class AttachmentFallback extends ProcessorBase {
 		$fileKey = "{$pageConfluenceTitle}---$attachmentOrigFilename";
 		// Some normalization
 		$fileKey = str_replace( ' ', '_', $fileKey );
-		// $this->buckets->addData( 'global-filenames-to-filetitles-map', $fileKey, $targetName, false, true );
 		$this->data['global-filenames-to-filetitles-map'][$fileKey] = $targetName;
 
 		return $targetName;

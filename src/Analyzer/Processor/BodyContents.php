@@ -36,10 +36,7 @@ class BodyContents extends ProcessorBase {
 		}
 		$bodyContentId = $this->xmlHelper->getIDNodeValue( $objectNode );
 		$pageId = $this->xmlHelper->getPropertyValue( 'content', $objectNode );
-		/*
-		$this->customBuckets->addData( 'analyze-body-content-id-to-page-id-map',
-			$bodyContentId,	$pageId,	false, true );
-		*/
+
 		$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = trim( $pageId );
 	}
 

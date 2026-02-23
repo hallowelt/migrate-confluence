@@ -50,24 +50,12 @@ class ParentPages extends ProcessorBase {
 		$pageId = $this->xmlHelper->getIDNodeValue( $objectNode );
 		$parentPageId = $this->xmlHelper->getPropertyValue( 'parent', $objectNode );
 		if ( $parentPageId !== null ) {
-			/*
-			$this->customBuckets->addData(
-				'analyze-page-id-to-parent-page-id-map',
-				$pageId, $parentPageId, false, true
-			);
-			*/
 			$this->data['analyze-page-id-to-parent-page-id-map'][$pageId] = trim( $parentPageId );
 		}
 
 		$pageId = $this->xmlHelper->getIDNodeValue( $objectNode );
 		$confluenceTitle = $this->xmlHelper->getPropertyValue( 'title', $objectNode );
 		if ( $confluenceTitle !== null ) {
-			/*
-			$this->customBuckets->addData(
-				'analyze-page-id-to-confluence-title-map',
-				$pageId, $confluenceTitle, false, true
-			);
-			*/
 			$this->data['analyze-page-id-to-confluence-title-map'][$pageId] = $confluenceTitle;
 		}
 	}

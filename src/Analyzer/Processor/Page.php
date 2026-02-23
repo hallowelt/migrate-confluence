@@ -140,12 +140,6 @@ class Page extends ProcessorBase {
 		try {
 			$this->targetTitle = $titleBuilder->buildTitle( $objectNode );
 		} catch ( InvalidTitleException $ex ) {
-			/*
-			$this->customBuckets->addData(
-				'debug-analyze-invalid-titles-page-id-to-title',
-				$this->pageId, $ex->getInvalidTitle()
-			);
-			*/
 			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
 				$this->pageId => $ex->getInvalidTitle()
 			];
@@ -154,9 +148,6 @@ class Page extends ProcessorBase {
 		}
 
 		if ( $this->targetTitle === '' ) {
-			// $this->customBuckets->addData(
-			// 'debug-analyze-invalid-titles-page-id-to-title', $this->pageId, $targetTitle
-			// );
 			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [ $this->pageId => $this->targetTitle ];
 			return;
 		}
@@ -189,27 +180,13 @@ class Page extends ProcessorBase {
 		$pageConfluenceTitle = "$this->spaceId---{$pageConfluenceTitle}";
 		// Some normalization
 		$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
-		/*
-		$this->customBuckets->addData(
-			'analyze-page-id-to-confluence-key-map',
-			$this->pageId, $pageConfluenceTitle, false, true
-		);
-		*/
 		$this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceTitle;
-
-		// $this->customBuckets->addData(
-		// 'analyze-pages-titles-map', $pageConfluenceTitle, $this->targetTitle, false, true
-		// );
 		$this->data['analyze-pages-titles-map'][$pageConfluenceTitle] = $this->targetTitle;
 		// Also add pages IDs in Confluence to full page title mapping.
 		// It is needed to have enough context on converting stage,
 		// to know from filename which page is currently being converted.
 
-		//$this->customBuckets->addData(
-		// 'analyze-page-id-to-title-map', $this->pageId, $this->targetTitle, false, true
-		// );
 		$this->data['analyze-page-id-to-title-map'][$this->pageId] = $this->targetTitle;
-		// $this->buckets->addData( 'global-page-id-to-space-id', $this->pageId, $this->spaceId, false, true );
 		$this->data['global-page-id-to-space-id'][$this->pageId] = $this->spaceId;
 
 		$revisionTimestamp = $this->buildRevisionTimestamp( $this->xmlHelper, $node );
@@ -218,10 +195,6 @@ class Page extends ProcessorBase {
 			foreach ( $bodyContentIds as $bodyContentId ) {
 				// TODO: Add UserImpl-key or directly MediaWiki username
 				// (could also be done in `extract` as "metadata" )
-
-				//$this->buckets->addData(
-				//	'global-body-contents-to-pages-map', $bodyContentId, $this->pageId, false, true
-				// );
 				$this->data['global-body-contents-to-pages-map'][$bodyContentId] = $this->pageId;
 			}
 		} else {
@@ -230,15 +203,6 @@ class Page extends ProcessorBase {
 				if ( $this->pageId === $contentPageId ) {
 					$bodyContentIds[] = $bodyContentId;
 
-					/*
-					$this->buckets->addData(
-						'global-body-contents-to-pages-map',
-						$bodyContentId,
-						$this->pageId,
-						false,
-						true
-					);
-					*/
 					$this->data['global-body-contents-to-pages-map'][$bodyContentId] = $this->pageId;
 				}
 			}
@@ -247,7 +211,6 @@ class Page extends ProcessorBase {
 		$version = $this->xmlHelper->getPropertyValue( 'version', $node );
 		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
 
-		// $this->addAnalyzerTitleRevision( $this->targetTitle, $revision );
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
 
 		// Find attachments
@@ -325,12 +288,6 @@ class Page extends ProcessorBase {
 				$attachmentOrigFilename, $wikiTitle, $this->data['global-space-id-to-prefix-map']
 			);
 			if ( $attachmentTargetFilename === '' ) {
-				/*
-				$this->customBuckets->addData(
-					'debug-analyze-invalid-titles-attachment-id-to-title',
-					$attachmentId, $attachmentTargetFilename
-				);
-				*/
 				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId]
 					= $attachmentTargetFilename;
 				continue;
@@ -345,37 +302,11 @@ class Page extends ProcessorBase {
 			$this->data['global-title-attachments'][$wikiTitle][] = $attachmentTargetFilename;
 			// $this->addFile( $attachmentTargetFilename, $attachmentReference );
 			$this->data['analyze-add-file'][$attachmentTargetFilename] = $attachmentReference;
-			/*
-			$this->customBuckets->addData(
-				'analyze-title-to-attachment-title',
-				$wikiTitle, $attachmentTargetFilename, false, true
-			);
-			*/
 			$this->data['analyze-title-to-attachment-title'][$wikiTitle] = $attachmentTargetFilename;
 			$this->data['analyze-added-attachment-id'][] = $attachmentId;
 
 			$confluenceFileKey = str_replace( ' ', '_', "{$spaceId}---{$confluenceTitle}---{$attachmentOrigFilename}" );
-			/*
-			$this->buckets->addData(
-				'global-filenames-to-filetitles-map',
-				$confluenceFileKey,
-				$attachmentTargetFilename,
-				false,
-				true
-			);
 
-			$this->customBuckets->addData(
-				'analyze-attachment-id-to-target-filename-map',
-				$attachmentId,
-				$attachmentTargetFilename
-			);
-
-			$this->buckets->addData(
-				'global-attachment-orig-filename-target-filename-map',
-				$attachmentOrigFilename,
-				$attachmentTargetFilename
-			);
-			*/
 			$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey]
 				= $attachmentTargetFilename;
 			$this->data['analyze-attachment-id-to-target-filename-map'][$attachmentId]
@@ -409,12 +340,6 @@ class Page extends ProcessorBase {
 				$targetName = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId, $attachmentOrigFilename, $shortTargetTitle );
 			} catch ( InvalidTitleException $ex ) {
-				/*
-				$this->customBuckets->addData(
-					'debug-analyze-invalid-titles-attachment-id-to-title',
-					$attachmentId, $ex->getInvalidTitle()
-				);
-				*/
 				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId]
 					= $ex->getInvalidTitle();
 				$this->logger->error( $ex->getMessage() );
@@ -438,7 +363,7 @@ class Page extends ProcessorBase {
 		$fileKey = "{$pageConfluenceTitle}---$attachmentOrigFilename";
 		// Some normalization
 		$fileKey = str_replace( ' ', '_', $fileKey );
-		// $this->buckets->addData( 'global-filenames-to-filetitles-map', $fileKey, $targetName, false, true );
+
 		$this->data['global-filenames-to-filetitles-map'][$fileKey] = $targetName;
 
 		return $targetName;

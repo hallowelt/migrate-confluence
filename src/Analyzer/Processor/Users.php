@@ -49,25 +49,6 @@ class Users extends ProcessorBase {
 
 		$mediaWikiUsername = $this->makeMWUserName( $lcUserName );
 
-		/*
-		$this->buckets->addData(
-			'global-userkey-to-username-map',
-			$objectNodeKey,
-			$mediaWikiUsername,
-			false
-		);
-
-		$this->customBuckets->addData(
-			'users',
-			$mediaWikiUsername,
-			[
-				'email' => $email === null ? '' : $email
-			],
-			false,
-			true
-		);
-		*/
-
 		$this->data['global-userkey-to-username-map'][$objectNodeKey] = $mediaWikiUsername;
 		$this->data['users'][$mediaWikiUsername] = [
 			'email' => $email === null ? '' : $email

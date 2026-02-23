@@ -71,46 +71,24 @@ class Attachments extends ProcessorBase {
 		}
 
 		if ( $attachmentFilename !== '' && is_int( $attachmentId ) ) {
-			/*
-			$this->customBuckets->addData(
-				'analyze-attachment-id-to-orig-filename-map', $attachmentId, $attachmentFilename, false, true );
-			*/
 			$this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId] = $attachmentFilename;
 		}
 		$attachmentSpaceId = $this->xmlHelper->getPropertyValue( 'space', $node );
 		if ( is_int( $attachmentId ) ) {
-			/*
-			$this->customBuckets->addData(
-				'analyze-attachment-id-to-space-id-map', $attachmentId, $attachmentSpaceId, false, true );
-			*/
 			$this->data['analyze-attachment-id-to-space-id-map'][$attachmentId] = $attachmentSpaceId;
 		}
 		$attachmentReference = $this->makeAttachmentReference( $this->xmlHelper, $node );
 		if ( $attachmentReference !== '' ) {
-			/*
-			$this->customBuckets->addData(
-				'analyze-attachment-id-to-reference-map', $attachmentId, $attachmentReference, false, true );
-			*/
 			$this->data['analyze-attachment-id-to-reference-map'][$attachmentId] = $attachmentReference;
 		}
 		$containerContent = $this->xmlHelper->getPropertyNode( 'containerContent', $node );
 		if ( $containerContent instanceof DOMElement ) {
 			$containerContentId = $this->xmlHelper->getIDNodeValue( $containerContent );
 			if ( $containerContentId >= 0 ) {
-				/*
-				$this->customBuckets->addData(
-					'analyze-attachment-id-to-container-content-id-map',
-					$attachmentId, $containerContentId, false, true
-				);
-				*/
 				$this->data['analyze-attachment-id-to-container-content-id-map'][$attachmentId] = $containerContentId;
 			}
 		}
 		$attachmentNodeContentStatus = $this->xmlHelper->getPropertyValue( 'contentStatus', $node );
-		/*
-		$this->customBuckets->addData(
-			'analyze-attachment-id-to-content-status-map', $attachmentId, $attachmentNodeContentStatus, false, true );
-		*/
 		$this->data['analyze-attachment-id-to-content-status-map'][$attachmentId] = $attachmentNodeContentStatus;
 	}
 

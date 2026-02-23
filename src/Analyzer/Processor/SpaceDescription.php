@@ -39,7 +39,7 @@ class SpaceDescription extends ProcessorBase {
 		$bodyContents = $this->xmlHelper->getElementsFromCollection( 'bodyContents', $objectNode );
 		foreach ( $bodyContents as $bodyContent ) {
 			$id = $this->xmlHelper->getIDNodeValue( $bodyContent );
-			// $this->buckets->addData( 'global-space-description-id-to-body-id-map', $descID, $id, false, true );
+
 			$this->data['global-space-description-id-to-body-id-map'][$descId] = $id;
 			$this->output->writeln( "\nAdd space description ($id)" );
 		}
