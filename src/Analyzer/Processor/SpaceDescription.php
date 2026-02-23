@@ -2,7 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use XMLReader;
+use DOMDocument;
+use DOMElement;
+use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
+use HalloWelt\MigrateConfluence\Utility\XMLHelper;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class SpaceDescription extends ProcessorBase {
 
@@ -22,49 +26,26 @@ class SpaceDescription extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function doExecute(): void {
-		$descriptionId = '';
-		$properties = [];
-		$collection = [];
-		$bodyContents = [];
-		$labellings = [];
+	public function doExecute( DOMDocument $dom ): void {
+		$this->xmlHelper = new XMLHelper( $dom );
 
-		$this->xmlReader->read();
-		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
-				$name = $this->xmlReader->getAttribute( 'name' );
-				if ( $name === 'key' ) {
-					$descriptionId = $this->getCDATAValue();
-				} else {
-					$descriptionId = $this->getTextValue();
-				}
-			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
-				$properties = $this->processPropertyNodes( $properties );
-			} elseif ( strtolower( $this->xmlReader->name ) === 'collection' ) {
-				$collection = $this->processCollectionNodes( $collection );
-			}
-	
-			$this->xmlReader->next();
+		$objectNodes = $this->xmlHelper->getObjectNodes( 'SpaceDescription' );
+		if ( count( $objectNodes ) < 1 ) {
+			return;
+		}
+		$objectNode = $objectNodes->item( 0 );
+		if ( $objectNode instanceof DOMElement === false ) {
+			return;
 		}
 
-		if ( isset( $collection['bodyContents'] ) ) {
-			$bodyContents = $collection['bodyContents'];
-		}
-		if ( isset( $collection['labellings'] ) ) {
-			$labellings = $collection['labellings'];
-		}
-
-		/*
+		$descId = $this->xmlHelper->getIDNodeValue( $objectNode );
+		$bodyContents = $this->xmlHelper->getElementsFromCollection( 'bodyContents', $objectNode );
 		foreach ( $bodyContents as $bodyContent ) {
+			$id = $this->xmlHelper->getIDNodeValue( $bodyContent );
 			//$this->buckets->addData( 'global-space-description-id-to-body-id-map', $descID, $id, false, true );
+			$this->data['global-space-description-id-to-body-id-map'][$descId] = $id;
+			$this->output->writeln( "\nAdd space description ($id)" );
 		}
-		*/
-		if ( !is_array( $this->data['global-space-description-id-to-body-id-map'][$descriptionId] ) ) {
-			$this->data['global-space-description-id-to-body-id-map'][$descriptionId] = [];
-		}
-		$this->data['global-space-description-id-to-body-id-map'][$descriptionId][] = $bodyContents;
-		$this->output->writeln( "\nAdd space description ($descriptionId)" );
-
-		return;
 	}
+
 }

@@ -2,8 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use DOMDocument;
+use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
-use XMLReader;
+use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 
 class Users extends ProcessorBase {
 
@@ -23,40 +25,30 @@ class Users extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function doExecute(): void {
-		$userId = '';
-		$properties = [];
+	public function doExecute( DOMDocument $dom ): void {
+		$this->xmlHelper = new XMLHelper( $dom );
 
-		$this->xmlReader->read();
-		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
-				$name = $this->xmlReader->getAttribute( 'name' );
-				if ( $name === 'key' ) {
-					$userId = $this->getCDATAValue();
-				} else {
-					$userId = $this->getTextValue();
-				}
-			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
-				$properties = $this->processPropertyNodes( $properties );
-			}
-			$this->xmlReader->next();
+		$objectNodes = $this->xmlHelper->getObjectNodes( 'ConfluenceUserImpl' );
+		if ( count( $objectNodes ) < 1 ) {
+			return;
 		}
-
-		if ( !isset( $properties['lowerName'] ) || $properties['lowerName'] === ''  ) {
-			$this->output->writeln( "\033[31m User $userId has no username\033[39m" );
+		$objectNode = $objectNodes->item( 0 );
+		if ( $objectNode instanceof DOMElement === false ) {
 			return;
 		}
 
-		$mediaWikiUsername = $this->makeMWUserName( $properties['lowerName'] );
-
-		if ( !isset( $properties['email'] ) ) {
-			$properties['email'] = '';
+		
+		// Can not use `XMLHelper::getIDNodeValue` here, as the key is not an integer
+		$idNode = $objectNode->getElementsByTagName( 'id' )->item( 0 );
+		$objectNodeKey = $idNode->nodeValue;
+		$lcUserName = $this->xmlHelper->getPropertyValue( 'lowerName', $objectNode );
+		$email = $this->xmlHelper->getPropertyValue( 'email', $objectNode );
+		if ( !$lcUserName ) {
+			$this->output->writeln( "\033[31m User $objectNodeKey has no username\033[39m" );
+			return;
 		}
 
-		$this->data['global-userkey-to-username-map'][$userId] = $mediaWikiUsername;
-		$this->data['users'][$mediaWikiUsername] = $properties;
-
-		$this->output->writeln( "Add user '$mediaWikiUsername' (ID:$userId)" );
+		$mediaWikiUsername = $this->makeMWUserName( $lcUserName );
 
 		/*
 		$this->buckets->addData(
@@ -76,6 +68,13 @@ class Users extends ProcessorBase {
 			true
 		);
 		*/
+
+		$this->data['global-userkey-to-username-map'][$objectNodeKey] = $mediaWikiUsername;
+		$this->data['users'][$mediaWikiUsername] = [
+			'email' => $email === null ? '' : $email
+		];
+
+		$this->output->writeln( "Add user '$mediaWikiUsername' (ID:$objectNodeKey)" );
 	}
 
 	/**

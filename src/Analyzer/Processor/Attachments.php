@@ -2,14 +2,18 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
+use DOMDocument;
+use DOMElement;
+use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use SplFileInfo;
-use XMLReader;
 
 class Attachments  extends ProcessorBase {
 
 	/** @var SplFileInfo */
 	private $file;
+
+	/** @var XMLHelper */
+	protected $xmlHelper;
 
 	/**
 	 * @param SplFileInfo $file
@@ -35,47 +39,38 @@ class Attachments  extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function doExecute(): void {
-		$attachmentId = null;
-		$properties = [];
+	public function execute( DOMDocument $dom ): void {
+		$this->xmlHelper = new XMLHelper( $dom );
 
-		$this->xmlReader->read();
-		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
-				$name = $this->xmlReader->getAttribute( 'name' );
-				if ( $name === 'key' ) {
-					$attachmentId = $this->getCDATAValue();
-				} else {
-					$attachmentId = $this->getTextValue();
-				}
-			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
-				$properties = $this->processPropertyNodes( $properties );
-			}
-			$this->xmlReader->next();
+		$objectNodes = $this->xmlHelper->getObjectNodes( 'Attachment' );
+		if ( count( $objectNodes ) < 1 ) {
+			return;
 		}
-
-		if ( $attachmentId === null ) {
+		$objectNode = $objectNodes->item( 0 );
+		if ( $objectNode instanceof DOMElement === false ) {
 			return;
 		}
 
-		$this->process( (int) $attachmentId, $properties );
+		$this->process( $objectNode );
 	}
 
 	/**
-	 * @param int $attachmentId
-	 * @param array $properties
+	 * @param DOMElement $node
 	 * @return void
 	 */
-	private function process( int $attachmentId, array $properties ): void {
+	private function process( DOMElement $node ): void {
+
+		$attachmentId = $this->xmlHelper->getIDNodeValue( $node );
+		if ( $attachmentId < 0 ) {
+			return;
+		}
 		$this->data['analyze-attachment-available-ids'][] = $attachmentId;
 
-		$attachmentFilename = '';
-		if ( isset( $properties['fileName'] ) ) {
-			$attachmentFilename = $properties['fileName'];
+		$attachmentFilename = $this->xmlHelper->getPropertyValue( 'fileName', $node );
+		if ( $attachmentFilename === null ) {
+			$attachmentFilename = $this->xmlHelper->getPropertyValue( 'title', $node );
 		}
-		if ( $attachmentFilename === '' && isset( $properties['fileName'] ) ) {
-			$attachmentFilename = $properties['title'];
-		}
+
 		if ( $attachmentFilename !== '' && is_int( $attachmentId ) ) {
 			/*
 			$this->customBuckets->addData(
@@ -83,11 +78,7 @@ class Attachments  extends ProcessorBase {
 			*/
 			$this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId] = $attachmentFilename;
 		}
-
-		$attachmentSpaceId = null;
-		if ( isset( $properties['space'] ) ) {
-			$attachmentFilename = $properties['space'];
-		}
+		$attachmentSpaceId = $this->xmlHelper->getPropertyValue( 'space', $node );
 		if ( is_int( $attachmentId ) ) {
 			/*
 			$this->customBuckets->addData(
@@ -95,8 +86,7 @@ class Attachments  extends ProcessorBase {
 			*/
 			$this->data['analyze-attachment-id-to-space-id-map'][$attachmentId] = $attachmentSpaceId;
 		}
-
-		$attachmentReference = $this->makeAttachmentReference( $attachmentId, $properties );
+		$attachmentReference = $this->makeAttachmentReference( $this->xmlHelper, $node );
 		if ( $attachmentReference !== '' ) {
 			/*
 			$this->customBuckets->addData(
@@ -104,25 +94,20 @@ class Attachments  extends ProcessorBase {
 			*/
 			$this->data['analyze-attachment-id-to-reference-map'][$attachmentId] = $attachmentReference;
 		}
-
-		$containerContentId = -1;
-		if ( isset( $properties['containerContent'] ) ) {
-			$containerContentId = $properties['containerContent'];
-		}		
-		if ( $containerContentId >= 0 ) {
-			/*
-			$this->customBuckets->addData(
-				'analyze-attachment-id-to-container-content-id-map',
-				$attachmentId, $containerContentId, false, true
-			);
-			*/
-			$this->data['analyze-attachment-id-to-container-content-id-map'][$attachmentId] = $containerContentId;
+		$containerContent = $this->xmlHelper->getPropertyNode( 'containerContent', $node );
+		if ( $containerContent instanceof DOMElement ) {
+			$containerContentId = $this->xmlHelper->getIDNodeValue( $containerContent );
+			if ( $containerContentId >= 0 ) {
+				/*
+				$this->customBuckets->addData(
+					'analyze-attachment-id-to-container-content-id-map',
+					$attachmentId, $containerContentId, false, true
+				);
+				*/
+				$this->data['analyze-attachment-id-to-container-content-id-map'][$attachmentId] = $containerContentId;
+			}
 		}
-
-		$attachmentNodeContentStatus = '';
-		if ( isset( $properties['contentStatus'] ) ) {
-			$attachmentNodeContentStatus = $properties['contentStatus'];
-		}		
+		$attachmentNodeContentStatus = $this->xmlHelper->getPropertyValue( 'contentStatus', $node );
 		/*
 		$this->customBuckets->addData(
 			'analyze-attachment-id-to-content-status-map', $attachmentId, $attachmentNodeContentStatus, false, true );
@@ -132,33 +117,27 @@ class Attachments  extends ProcessorBase {
 
 
 	/**
-	 * @param int $attachmentId
-	 * @param array $properties
-	 * @return string
+	 * @param XMLHelper $xmlHelper
+	 * @param DOMElement $attachment
+	 * @return void
 	 */
-	private function makeAttachmentReference( int $attachmentId, array $properties ): string {
+	private function makeAttachmentReference( XMLHelper $xmlHelper, DOMElement $attachment ) {
 		$basePath = $this->file->getPath() . '/attachments';
-	
-		$containerId = '';
-		if ( isset( $properties['content'] ) ) {
-			$containerId = $properties['content'];
+		$attachmentId = $xmlHelper->getIDNodeValue( $attachment );
+		$containerId = $xmlHelper->getPropertyValue( 'content', $attachment );
+		if ( empty( $containerId ) ) {
+			$containerId = $xmlHelper->getPropertyValue( 'containerContent', $attachment );
 		}
-		if ( $containerId === '' && isset( $properties['containerContent'] ) ) {
-			$containerId = $properties['containerContent'];
+		$attachmentVersion = $xmlHelper->getPropertyValue( 'attachmentVersion', $attachment );
+		if ( empty( $attachmentVersion ) ) {
+			$attachmentVersion = $xmlHelper->getPropertyValue( 'version', $attachment );
 		}
-	
-		$attachmentVersion = '';
-		if ( isset( $properties['attachmentVersion'] ) ) {
-			$attachmentVersion = $properties['attachmentVersion'];
-		}
-		if ( $attachmentVersion === '' ) {
-			$attachmentVersion = $properties['version'];
-		}
-		if ( $attachmentVersion === '' ) {
-			/**
-			 * Sometimes there is no explicit version set in the "attachment" object. In such cases
-			 * there we always fetch the highest number from the respective directory
-			 */
+
+		/**
+		 * Sometimes there is no explicit version set in the "attachment" object. In such cases
+		 * there we always fetch the highest number from the respective directory
+		 */
+		if ( empty( $attachmentVersion ) ) {
 			$attachmentVersion = '__LATEST__';
 		}
 

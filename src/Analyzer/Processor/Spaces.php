@@ -2,7 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use XMLReader;
+use DOMDocument;
+use DOMElement;
+use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 
 class Spaces extends ProcessorBase {
 
@@ -40,40 +42,33 @@ class Spaces extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function doExecute(): void {
-		$spaceId = '';
-		$properties = [];
+	public function doExecute( DOMDocument $dom ): void {
+		$this->xmlHelper = new XMLHelper( $dom );
 
-		$this->xmlReader->read();
-		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
-				$name = $this->xmlReader->getAttribute( 'name' );
-				if ( $name === 'key' ) {
-					$spaceId = $this->getCDATAValue();
-				} else {
-					$spaceId = $this->getTextValue();
-				}
-			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
-				$properties = $this->processPropertyNodes( $properties );
-			}
-			$this->xmlReader->next();
+		$objectNodes = $this->xmlHelper->getObjectNodes( 'Space' );
+		if ( count( $objectNodes ) < 1 ) {
+			return;
+		}
+		$objectNode = $objectNodes->item( 0 );
+		if ( $objectNode instanceof DOMElement === false ) {
+			return;
 		}
 
-		$this->process( $spaceId, $properties );
+		$this->process( $objectNode );
 	}
 
 	/**
-	 * @param int|string $id
-	 * @param array $properties
+	 * @param DOMElement $node
 	 * @return void
 	 */
-	private function process( $spaceId, array $properties ): void {
+	private function process( DOMElement $node ): void {
+		$spaceId = $this->xmlHelper->getIDNodeValue( $node );
 		if ( $spaceId === -1 ) {
 			return;
 		}
 
-		$spaceKey = isset( $properties['key'] )? $properties['key'] : '';
-		$spaceName = isset( $properties['key'] )? $properties['name'] : '';
+		$spaceKey = $this->xmlHelper->getPropertyValue( 'key', $node );
+		$spaceName = $this->xmlHelper->getPropertyValue( 'name', $node );
 		if ( substr( $spaceKey, 0, 1 ) === '~' ) {
 			// User namespaces
 			$spaceKey = $this->sanitizeUserSpaceKey( $spaceKey, $spaceName );
@@ -86,9 +81,6 @@ class Spaces extends ProcessorBase {
 		if ( $spaceKey === 'GENERAL' ) {
 			$spaceKey = '';
 		}
-
-		// Update property key
-        $details['key'] = $spaceKey;
 
 		if ( isset( $this->spacePrefixMap[$spaceKey] ) ) {
 			$customSpacePrefix = $this->spacePrefixMap[$spaceKey];
@@ -127,18 +119,36 @@ class Spaces extends ProcessorBase {
 		$this->data['analyze-space-id-to-name-map'][$spaceId] = $spaceName;
 		$this->data['analyze-space-key-to-name-map'][$spaceKey] = $spaceName;
 
-		$homePageId = isset( $properties['homePage'] )? $properties['homePage'] : -1;
-
+		$homePageId = -1;
+		$homePagePropertyNode = $this->xmlHelper->getPropertyNode( 'homePage', $node );
+		if ( $homePagePropertyNode !== null ) {
+			$homePageId = $this->xmlHelper->getIDNodeValue( $homePagePropertyNode );
+		}
 		if ( $homePageId > -1 ) {
 			//$this->buckets->addData( 'global-space-id-homepages', $spaceId, $homePageId, false, true );
 			$this->data['global-space-id-homepages'][$spaceId] = $homePageId;
 		}
 
+		$details = [];
 		// Property id
-		$properties['id'] = $spaceId;
+		$details['id'] = $spaceId;
+
+		// Property key
+		$details['key'] = $spaceKey;
+
+		// Text only propterties
+		$properties = [
+			'name', 'creationDate', 'lastModificationDate', 'spaceType', 'spaceStatus'
+		];
+
+		foreach ( $properties as $property ) {
+			$details[$property] = $this->xmlHelper->getPropertyValue( $property, $node );
+		}
 
 		// ID (int) node propterties
-		if ( isset( $details['description'] ) ) {
+		$propertyNode = $this->xmlHelper->getPropertyNode( 'description' );
+		if ( $propertyNode !== null ) {
+			$details['description'] = $this->xmlHelper->getIDNodeValue( $propertyNode );
 			/*
 			$this->buckets->addData(
 				'global-space-id-to-description-id-map',
@@ -151,6 +161,23 @@ class Spaces extends ProcessorBase {
 			$this->data['global-space-id-to-description-id-map'][$spaceId] = $details['description'];
 
 			$this->output->writeln( "Add space description ($spaceId)" );
+		}
+
+		$propertyNode = $this->xmlHelper->getPropertyNode( 'homePage' );
+		if ( $propertyNode !== null ) {
+			$details['homePage'] = $this->xmlHelper->getIDNodeValue( $propertyNode );
+		}
+
+		// ID (key) node propterties
+		$properties = [
+			'creator', 'lastModifier'
+		];
+
+		foreach ( $properties as $property ) {
+			$propertyNode = $this->xmlHelper->getPropertyNode( $property );
+			if ( $propertyNode !== null ) {
+				$details[$property] = $this->xmlHelper->getKeyNodeValue( $propertyNode );
+			}
 		}
 
 		if ( !empty( $details ) ) {

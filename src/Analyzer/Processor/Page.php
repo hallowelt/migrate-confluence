@@ -2,14 +2,19 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use DOMDocument;
+use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
+use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use SplFileInfo;
-use XMLReader;
 
 class Page extends ProcessorBase {
+
+	/** @var XMLHelper */
+	protected $xmlHelper;
 
 	/** @var array */
 	private $includeSpaceKey = [];
@@ -85,76 +90,49 @@ class Page extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function doExecute(): void {
-		$properties = [];
-		$collection = [];
+	public function doExecute( DOMDocument $dom ): void {
+		$this->xmlHelper = new XMLHelper( $dom );
 
-		$this->xmlReader->read();
-		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
-				$name = $this->xmlReader->getAttribute( 'name' );
-				if ( $name === 'key' ) {
-					$this->pageId = $this->getCDATAValue();
-				} else {
-					$this->pageId = $this->getTextValue();
-				}
-			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
-				$properties = $this->processPropertyNodes( $properties );
-			} elseif ( strtolower( $this->xmlReader->name ) === 'collection' ) {
-				$collection = $this->processCollectionNodes( $collection );
-			}
-			$this->xmlReader->next();
+		$objectNodes = $this->xmlHelper->getObjectNodes( 'Page' );
+		if ( count( $objectNodes ) < 1 ) {
+			return;
 		}
-
-		$status = null;
-		if ( isset( $properties['contentStatus'] ) ) {
-			$status = $properties['contentStatus'];
+		$objectNode = $objectNodes->item( 0 );
+		if ( $objectNode instanceof DOMElement === false ) {
+			return;
 		}
+		$status = $this->xmlHelper->getPropertyValue( 'contentStatus', $objectNode );
 		if ( !$this->includeHistory && ( $status !== 'current' ) ) {
 			return;
 		}
-
-		$this->spaceId = null;
-		if ( isset( $properties['space'] ) ) {
-			$this->spaceId = $properties['space'];
-		}
+		$this->spaceId = $this->xmlHelper->getPropertyValue( 'space', $objectNode );
 		if ( $this->spaceId === null ) {
 			return;
 		}
-
 		if ( !isset( $this->data['analyze-space-id-to-space-key-map'][$this->spaceId] ) ) {
 			return;
 		}
 		$spaceKey = $this->data['analyze-space-id-to-space-key-map'][$this->spaceId];
 
-		if ( !empty( $this->includeSpaceKey )
+		if (
+			!empty( $this->includeSpaceKey )
 			&& !in_array( strtolower( $spaceKey ), $this->includeSpaceKey )
 		) {
 			return;
 		}
-
-		$originalVersionID = null;
-		if ( isset( $properties['originalVersion'] ) ) {
-			$originalVersionID = $properties['originalVersion'];
-		}
+		$originalVersionID = $this->xmlHelper->getPropertyValue( 'originalVersion', $objectNode );
 		if ( $originalVersionID !== null ) {
 			return;
 		}
 
-		$title = null;
-		if ( isset( $properties['title'] ) ) {
-			$title = $properties['title'];
-		}
+		$this->pageId = $this->xmlHelper->getIDNodeValue( $objectNode );
 
 		$titleBuilder = new TitleBuilder(
-			$this->data['global-space-id-to-prefix-map'],
-			$this->data['global-space-id-homepages'],
-			$this->data['analyze-page-id-to-parent-page-id-map'],
-			$this->data['analyze-page-id-to-confluence-title-map'],
-			$this->mainpage
+			$this->data['global-space-id-to-prefix-map'], $this->data['global-space-id-homepages'], $this->data['analyze-page-id-to-parent-page-id-map'],
+			$this->data['analyze-page-id-to-confluence-title-map'], $this->xmlHelper, $this->mainpage
 		);
 		try {
-			$this->targetTitle = $titleBuilder->buildTitle( $this->spaceId, $this->pageId, $title );
+			$this->targetTitle = $titleBuilder->buildTitle( $objectNode );
 		} catch ( InvalidTitleException $ex ) {
 			/*
 			$this->customBuckets->addData(
@@ -175,16 +153,14 @@ class Page extends ProcessorBase {
 
 		$this->output->writeln( "Add page '$this->targetTitle' (ID:$this->pageId)" );
 
-		$this->process( $title, $properties, $collection );
+		$this->process( $objectNode );
 	}
 
 	/**
-	 * @param string $title
-	 * @param array $properties
-	 * @param array $collection
+	 * @param DOMElement $node
 	 * @return void
 	 */
-	private function process( string $title, array $properties, array $collection ): void {
+	private function process( DOMElement $node ): void {
 		/**
 		 * Adds data bucket "analyze-pages-titles-map", which contains mapping from page title itself to
 		 * full page title.
@@ -194,7 +170,7 @@ class Page extends ProcessorBase {
 		 * Example:
 		 * "Detailed_planning" -> "Dokumentation/Detailed_planning"
 		 */
-		$pageConfluenceTitle = $title;
+		$pageConfluenceTitle = $this->xmlHelper->getPropertyValue( 'title', $node );
 		$genericTitleBuilder = new GenericTitleBuilder( [] );
 		$pageConfluenceTitle = $genericTitleBuilder
 			->appendTitleSegment( $pageConfluenceTitle )->build();
@@ -222,16 +198,8 @@ class Page extends ProcessorBase {
 		//$this->buckets->addData( 'global-page-id-to-space-id', $this->pageId, $this->spaceId, false, true );
 		$this->data['global-page-id-to-space-id'][$this->pageId] = $this->spaceId;
 
-		$lastModificationDate = 'lastModificationDate';
-		if ( isset( $properties['title'] ) ) {
-			$lastModificationDate = $properties['title'];
-		}
-		$revisionTimestamp = $this->buildRevisionTimestamp( $lastModificationDate );
-
-		$bodyContentIds = [];
-		if ( isset( $properties['bodyContents'] ) ) {
-			$bodyContentIds = $properties['bodyContents'];
-		}
+		$revisionTimestamp = $this->buildRevisionTimestamp( $this->xmlHelper, $node );
+		$bodyContentIds = $this->getBodyContentIds( $this->xmlHelper, $node );
 		if ( !empty( $bodyContentIds ) ) {
 			foreach ( $bodyContentIds as $bodyContentId ) {
 				// TODO: Add UserImpl-key or directly MediaWiki username
@@ -260,43 +228,60 @@ class Page extends ProcessorBase {
 			}
 		}
 
-		$version = '';
-		if ( isset( $version['version'] ) ) {
-			$version = $properties['version'];
-		}
-		$revision = implode( '/', $bodyContentIds ) . "@{$version}-{$revisionTimestamp}";
+		$version = $this->xmlHelper->getPropertyValue( 'version', $node );
+		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
+
 		//$this->addAnalyzerTitleRevision( $this->targetTitle, $revision );
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
 
 		// Find attachments
-		$this->getAttachmentsFromCollection( $this->spaceId, $properties, $collection );
+		$this->getAttachmentsFromCollection( $this->xmlHelper, $node, $this->spaceId );
 	}
 
 	/**
-	 * @param string $lastModificationDate
+	 * @param XMLHelper $xmlHelper
+	 * @param DOMElement $pageNode
 	 * @return string
 	 */
-	private function buildRevisionTimestamp( string $lastModificationDate ): string {
+	private function buildRevisionTimestamp( XMLHelper $xmlHelper, DOMElement $pageNode ): string {
+		$lastModificationDate = $xmlHelper->getPropertyValue( 'lastModificationDate', $pageNode );
 		$time = strtotime( $lastModificationDate );
 		$mwTimestamp = date( 'YmdHis', $time );
 		return $mwTimestamp;
 	}
 
 	/**
+	 * @param XMLHelper $xmlHelper
+	 * @param DOMElement $pageNode
+	 * @return array
+	 */
+	private function getBodyContentIds( XMLHelper $xmlHelper, DOMElement $pageNode ): array {
+		$ids = [];
+		$bodyContentEl = $xmlHelper->getElementsFromCollection( 'bodyContents', $pageNode );
+
+		foreach ( $bodyContentEl as $bodyContentElement ) {
+			$ids[] = $xmlHelper->getIDNodeValue( $bodyContentElement );
+		}
+		return $ids;
+	}
+
+
+	/**
+	 * @param XMLHelper $xmlHelper
+	 * @param DOMElement $element
 	 * @param int $spaceId
-	 * @param array $properties
-	 * @param array $collection
 	 * @return void
 	 */
-	private function getAttachmentsFromCollection( int $spaceId, array $properties, array $collection ): void {
-		if ( !isset( $this->data['analyze-page-id-to-confluence-title-map'][$this->pageId] ) ) {
+	private function getAttachmentsFromCollection( XMLHelper $xmlHelper, DOMElement $element, int $spaceId ): void {
+		$pageId = $xmlHelper->getIDNodeValue( $element );
+		if ( !isset( $this->data['analyze-page-id-to-confluence-title-map'][$pageId] ) ) {
 			return;
 		}
-		$confluenceTitle = $this->data['analyze-page-id-to-confluence-title-map'][$this->pageId];
-		if ( !isset( $this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] ) ) {
+		$confluenceTitle = $this->data['analyze-page-id-to-confluence-title-map'][$pageId];
+		if ( !isset( $this->data['analyze-page-id-to-confluence-key-map'][$pageId] ) ) {
 			return;
 		}
-		$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$this->pageId];
+		$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$pageId];
 		if ( !isset( $this->data['analyze-pages-titles-map'][$confluenceKey] ) ) {
 			return;
 		}
@@ -304,12 +289,10 @@ class Page extends ProcessorBase {
 
 		// In case of ERM34465 this seems to be empty because
 		// title-attachments and debug-missing-attachment-id-to-filename are empty
-		$attachmentRefs = [];
-		if ( isset( $collection['attachments'] ) ) {
-			$attachmentRefs = $collection['attachments'];
-		}
+		$attachmentRefs = $xmlHelper->getElementsFromCollection( 'attachments', $element );
 		
-		foreach ( $attachmentRefs as $attachmentId ) {
+		foreach ( $attachmentRefs as $attachmentRef ) {
+			$attachmentId = $xmlHelper->getIDNodeValue( $attachmentRef );
 			if ( in_array( $attachmentId, $this->data['analyze-added-attachment-id'] ) ) {
 				continue;
 			}
