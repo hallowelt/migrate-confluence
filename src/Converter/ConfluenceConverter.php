@@ -22,6 +22,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
@@ -283,6 +284,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$processors = [
+			new AnchorMacro(),
 			new Placeholder(),
 			new InlineCommentMarker(),
 			new PreserveTimeTag(),
@@ -462,49 +464,48 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sMacroName = $match->getAttribute( 'ac:name' );
 
 		// Exclude macros that are handled by an `IProcessor`
-		if (
-			in_array(
-				$sMacroName,
-				[
-					'align',
-					'attachments',
-					'children',
-					'code',
-					'column',
-					'contentbylabel',
-					'details',
-					'detailssummary',
-					'drawio',
-					'excerpt-include',
-					'expand',
-					'gallery',
-					'include',
-					'info',
-					'inline-comment-marker',
-					'markdown',
-					'noformat',
-					'note',
-					'pagetree',
-					'placeholder',
-					'panel',
-					'recently-updated',
-					'section',
-					'global-space-details',
-					'status',
-					'task',
-					'task-list',
-					'tasks-report-macro',
-					'tip',
-					'toc',
-					'view-file',
-					'warning',
-					'jira',
-					'widget',
-					'gliffy',
-					'table-filter',
-				]
-			)
-		) {
+		if ( in_array(
+			$sMacroName,
+			[
+				'align',
+				'anchor',
+				'attachments',
+				'children',
+				'code',
+				'column',
+				'contentbylabel',
+				'details',
+				'detailssummary',
+				'drawio',
+				'excerpt-include',
+				'expand',
+				'gallery',
+				'include',
+				'info',
+				'inline-comment-marker',
+				'markdown',
+				'noformat',
+				'note',
+				'pagetree',
+				'placeholder',
+				'panel',
+				'recently-updated',
+				'section',
+				'global-space-details',
+				'status',
+				'task',
+				'task-list',
+				'tasks-report-macro',
+				'tip',
+				'toc',
+				'view-file',
+				'warning',
+				'jira',
+				'widget',
+				'gliffy',
+				'table-filter',
+			]
+		) ) {
 			return;
 		}
 
@@ -515,7 +516,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
 			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
 		} else {
-			// TODO: 'calendar', 'contributors', 'anchor',
+			// TODO: 'calendar', 'contributors',
 			// 'navitabs', 'include', 'listlabels', 'content-report-table'
 			$this->logMarkup( $match );
 			$replacement .= "[[Category:Broken_macro/$sMacroName]]";
@@ -828,6 +829,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 					continue;
 				}
 
+				if ( str_ends_with( $matches[2], '.unknown' ) ) {
+					continue;
+				}
+
 				$attachmentList[] = $mediaLink;
 			}
 
@@ -850,14 +855,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return array
 	 */
 	private function buildMediaExcludeList( $wikiText ): array {
-		$excludes = [
-			'File',
-			'Media'
-		];
+		$excludes = [ 'File', 'Media' ];
+		$exclude = implode( '|', $excludes );
 
 		$matches = [];
-		$excludes = implode( '|', $excludes );
-		preg_match_all( "#\[\[\s*(File|Media):(.*?)\s*[\|*|\]\]]#im", $wikiText, $matches );
+		preg_match_all( "#\[\[\s*($exclude):(.*?)\s*[\|*|\]\]]#im", $wikiText, $matches );
 		$exludeList = [];
 		foreach ( $matches[2] as $match ) {
 			$exludeList[] = $match;
