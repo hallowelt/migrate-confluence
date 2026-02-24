@@ -43,7 +43,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	private $limit = 0;
 
 	/** @var bool */
-	private $isMulitXML = false;
+	private $mulitXmlOutputEnabled = false;
 
 	/**
 	 * @param array $config
@@ -65,7 +65,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		}
 		if ( isset( $this->advancedConfig['composer-page-per-xml-limit'] ) ) {
 			$this->limit = $this->advancedConfig['composer-page-per-xml-limit'];
-			$this->isMulitXML = true;
+			$this->mulitXmlOutputEnabled = true;
 		}
 	}
 
@@ -154,7 +154,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$this->builder->addRevision( $wikiPageName, $wikiText );
 		$this->addedRevisions++;
 
-		if ( $this->isMulitXML ) {
+		if ( $this->mulitXmlOutputEnabled ) {
 			if ( $this->addedRevisions >= $this->limit ) {
 				$this->writeOutputFile();
 				$this->addedRevisions = 0;
@@ -167,7 +167,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 */
 	private function writeOutputFile(): void {
 		$name = "output.xml";
-		if ( $this->isMulitXML ) {
+		if ( $this->mulitXmlOutputEnabled ) {
 			$this->xmlNumber++;
 			$num = (string)$this->xmlNumber;
 			$name = "output-{$num}.xml";
