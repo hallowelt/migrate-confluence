@@ -34,8 +34,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
@@ -169,10 +169,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
 		$this->rawFile = $file;
 
-		if ( isset( $this->config['config']['ext-ns-file-repo-compat'] )
-			&& $this->config['config']['ext-ns-file-repo-compat'] === true
-			) {
-				$this->nsFileRepoCompat = true;
+		if (
+			isset( $this->config['config']['ext-ns-file-repo-compat'] ) &&
+			$this->config['config']['ext-ns-file-repo-compat'] === true
+		) {
+			$this->nsFileRepoCompat = true;
 		}
 
 		if ( isset( $this->config['config']['mainpage'] ) ) {
@@ -215,7 +216,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				// See: https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
 				call_user_func_array(
 					$callback,
-					[ $this, $match, $dom, $xpath ]
+					[
+						$this,
+						$match,
+						$dom,
+						$xpath
+					]
 				);
 			}
 		}
@@ -270,6 +276,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/**
 	 *
 	 * @param DOMDocument $dom
+	 *
 	 * @return void
 	 */
 	private function runProcessors( $dom ) {
@@ -313,12 +320,19 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new NoFormatMacro(),
 			new TaskListMacro(),
 			new DrawioMacro(
-				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
-				$currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup,
+				$this->conversionDataWriter,
+				$this->currentSpace,
+				$currentPageTitle,
+				$this->nsFileRepoCompat
 			),
 			new GliffyMacro(
-				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
-				$currentPageTitle, $this->buckets, $this->nsFileRepoCompat
+				$this->dataLookup,
+				$this->conversionDataWriter,
+				$this->currentSpace,
+				$currentPageTitle,
+				$this->buckets,
+				$this->nsFileRepoCompat
 			),
 			new ContenByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
@@ -332,8 +346,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new JiraMacro(),
 			new MarkdownMacro(),
 			new ViewFileMacro(
-				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
 			),
 			new WidgetMacro(),
 			new PreservePStyleTag(),
@@ -377,37 +390,44 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		// e.g. "67856345.mraw"
 		$filename = $this->rawFile->getFilename();
 		$filenameParts = explode( '.', $filename, 2 );
+
 		return (int)$filenameParts[0];
 	}
 
 	/**
 	 *
 	 * @param int $bodyContentId
+	 *
 	 * @return int
 	 */
 	private function getPageIdFromBodyContentId( $bodyContentId ) {
 		$map = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
+
 		return $map[$bodyContentId] ?? -1;
 	}
 
 	/**
 	 *
 	 * @param int $bodyContentId
+	 *
 	 * @return int
 	 */
 	private function getSpaceDescriptionIDFromBodyContentId( $bodyContentId ) {
 		$map = $this->buckets->getBucketData( 'global-space-description-id-to-body-id-map' );
 		$map = array_flip( $map );
+
 		return $map[$bodyContentId] ?? -1;
 	}
 
 	/**
 	 *
 	 * @param int $pageId
+	 *
 	 * @return int
 	 */
 	private function getSpaceIdFromPageId( $pageId ) {
 		$map = $this->buckets->getBucketData( 'global-page-id-to-space-id' );
+
 		return $map[$pageId] ?? -1;
 	}
 
@@ -442,46 +462,49 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sMacroName = $match->getAttribute( 'ac:name' );
 
 		// Exclude macros that are handled by an `IProcessor`
-		if ( in_array(
-			$sMacroName,
-			[
-				'align',
-				'attachments',
-				'children',
-				'code',
-				'column',
-				'contentbylabel',
-				'details',
-				'detailssummary',
-				'drawio',
-				'excerpt-include',
-				'expand',
-				'include',
-				'info',
-				'inline-comment-marker',
-				'markdown',
-				'noformat',
-				'note',
-				'pagetree',
-				'placeholder',
-				'panel',
-				'recently-updated',
-				'section',
-				'global-space-details',
-				'status',
-				'task',
-				'task-list',
-				'tasks-report-macro',
-				'tip',
-				'toc',
-				'view-file',
-				'warning',
-				'jira',
-				'widget',
-				'gliffy',
-				'table-filter',
-			]
-		) ) {
+		if (
+			in_array(
+				$sMacroName,
+				[
+					'align',
+					'attachments',
+					'children',
+					'code',
+					'column',
+					'contentbylabel',
+					'details',
+					'detailssummary',
+					'drawio',
+					'excerpt-include',
+					'expand',
+					'gallery',
+					'include',
+					'info',
+					'inline-comment-marker',
+					'markdown',
+					'noformat',
+					'note',
+					'pagetree',
+					'placeholder',
+					'panel',
+					'recently-updated',
+					'section',
+					'global-space-details',
+					'status',
+					'task',
+					'task-list',
+					'tasks-report-macro',
+					'tip',
+					'toc',
+					'view-file',
+					'warning',
+					'jira',
+					'widget',
+					'gliffy',
+					'table-filter',
+				]
+			)
+		) {
 			return;
 		}
 
@@ -518,8 +541,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		error_log(
-			"NODE: \n" .
-			$oNode->ownerDocument->saveXML( $oNode )
+			"NODE: \n" . $oNode->ownerDocument->saveXML( $oNode )
 		);
 	}
 
@@ -529,14 +551,21 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function makeReplacings() {
 		return [
-			'//ac:macro' => [ $this, 'processMacro' ],
-			'//ac:structured-macro' => [ $this, 'processMacro' ]
+			'//ac:macro' => [
+				$this,
+				'processMacro'
+			],
+			'//ac:structured-macro' => [
+				$this,
+				'processMacro'
+			]
 		];
 	}
 
 	/**
 	 *
 	 * @param SplFileInfo $oHTMLSourceFile
+	 *
 	 * @return string
 	 */
 	protected function preprocessHTMLSource( $oHTMLSourceFile ) {
@@ -611,6 +640,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * </ac:macro>
 	 * </ac:rich-text-body>
 	 * </ac:macro>
+	 *
 	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
@@ -724,10 +754,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$this->wikiText = preg_replace_callback(
 			"/\[\[Media:(.*)]]/",
-			static function ( $matches ) use( $oldToNewTitlesMap ) {
+			static function ( $matches ) use ( $oldToNewTitlesMap ) {
 				if ( isset( $oldToNewTitlesMap[$matches[1]] ) ) {
 					return $oldToNewTitlesMap[$matches[1]];
 				}
+
 				return $matches[0];
 			},
 			$this->wikiText
@@ -815,10 +846,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/**
 	 *
 	 * @param string $wikiText
+	 *
 	 * @return array
 	 */
 	private function buildMediaExcludeList( $wikiText ): array {
-		$excludes = [ 'File', 'Media' ];
+		$excludes = [
+			'File',
+			'Media'
+		];
 
 		$matches = [];
 		$excludes = implode( '|', $excludes );

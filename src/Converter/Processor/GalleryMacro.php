@@ -8,7 +8,15 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 class GalleryMacro extends StructuredMacroProcessorBase {
 
 	private const IMAGE_EXTENSIONS = [
-		'jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp', 'tiff', 'tif',
+		'jpg',
+		'jpeg',
+		'png',
+		'gif',
+		'svg',
+		'bmp',
+		'webp',
+		'tiff',
+		'tif',
 	];
 
 	/** @var ConversionDataLookup */
@@ -26,7 +34,9 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 * @param string $rawPageTitle
 	 */
 	public function __construct(
-		ConversionDataLookup $dataLookup, int $currentSpaceId, string $rawPageTitle
+		ConversionDataLookup $dataLookup,
+		int $currentSpaceId,
+		string $rawPageTitle
 	) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
@@ -42,6 +52,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return void
 	 */
 	protected function doProcessMacro( $node ): void {
@@ -53,6 +64,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategroy() ),
 				$node
 			);
+
 			return;
 		}
 
@@ -77,6 +89,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param array $params
+	 *
 	 * @return string[]
 	 */
 	private function getImageFiles( array $params ): array {
@@ -110,34 +123,41 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param string $include Comma-separated filenames
+	 *
 	 * @return string[]
 	 */
 	private function resolveIncludedFiles( string $include ): array {
 		$filenames = array_map( 'trim', explode( ',', $include ) );
 		$files = [];
 		foreach ( $filenames as $filename ) {
-			$key = $this->currentSpaceId . '---'
-				. str_replace( ' ', '_', basename( $this->rawPageTitle ) )
-				. '---' . str_replace( ' ', '_', $filename );
+			$key = $this->currentSpaceId .
+				'---' .
+				str_replace( ' ', '_', basename( $this->rawPageTitle ) ) .
+				'---' .
+				str_replace( ' ', '_', $filename );
 			$targetTitle = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $key );
 			if ( $targetTitle !== '' ) {
 				$files[] = $targetTitle;
 			}
 		}
+
 		return $files;
 	}
 
 	/**
 	 * @param string $filename
+	 *
 	 * @return bool
 	 */
 	private function isImageFile( string $filename ): bool {
 		$ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+
 		return in_array( $ext, self::IMAGE_EXTENSIONS );
 	}
 
 	/**
 	 * @param DOMNode $macro
+	 *
 	 * @return array
 	 */
 	private function getMacroParams( $macro ): array {
@@ -151,6 +171,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 				$params[$paramName] = $childNode->nodeValue;
 			}
 		}
+
 		return $params;
 	}
 }
