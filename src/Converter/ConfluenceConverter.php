@@ -455,6 +455,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'include',
 				'info',
 				'inline-comment-marker',
+				'markdown',
 				'noformat',
 				'note',
 				'pagetree',
