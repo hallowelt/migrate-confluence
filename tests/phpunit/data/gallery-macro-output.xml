@@ -1,0 +1,8 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Before</p>
+	&lt;gallery caption="My Gallery" perrow="3"&gt;
+image1.png
+image2.jpg
+&lt;/gallery&gt;
+	<p>After</p>
+</xml>

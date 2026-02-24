@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Before</p>
+	<ac:structured-macro ac:name="gallery" ac:schema-version="1" ac:macro-id="abc-111">
+		<ac:parameter ac:name="title">My Gallery</ac:parameter>
+		<ac:parameter ac:name="columns">3</ac:parameter>
+	</ac:structured-macro>
+	<p>After</p>
+</xml>
