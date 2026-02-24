@@ -796,6 +796,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 					continue;
 				}
 
+				if ( str_ends_with( $matches[2], '.unknown' ) ) {
+					continue;
+				}
+
 				$attachmentList[] = $mediaLink;
 			}
 
@@ -818,10 +822,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function buildMediaExcludeList( $wikiText ): array {
 		$excludes = [ 'File', 'Media' ];
+		$exclude = implode( '|', $excludes );
 
 		$matches = [];
-		$excludes = implode( '|', $excludes );
-		preg_match_all( "#\[\[\s*(File|Media):(.*?)\s*[\|*|\]\]]#im", $wikiText, $matches );
+		preg_match_all( "#\[\[\s*($exclude):(.*?)\s*[\|*|\]\]]#im", $wikiText, $matches );
 		$exludeList = [];
 		foreach ( $matches[2] as $match ) {
 			$exludeList[] = $match;
