@@ -69,7 +69,6 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 	}
 
 	/**
-	 *
 	 * @param DOMNode $macro
 	 * @param DOMElement $macroReplacement
 	 * @return void
@@ -83,5 +82,13 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 				}
 			}
 		}
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getBrokenMacroCategroy(): string {
+		$sMacroName = $this->getMacroName();
+		return "[[Category:Broken_macro/$sMacroName]]";
 	}
 }

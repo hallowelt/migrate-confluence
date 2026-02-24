@@ -2,54 +2,61 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use DOMNode;
+use Michelf\MarkdownExtra;
 
-class MarkdownMacro implements IProcessor {
+class MarkdownMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
 	 */
-	public function process( DOMDocument $dom ): void {
-		$structuredMacros = $dom->getElementsByTagName( 'structured-macro' );
+	protected function getMacroName(): string {
+		return 'markdown';
+	}
 
-		$macros = [];
-		foreach ( $structuredMacros as $structuredMacro ) {
-			if ( $structuredMacro->getAttribute( 'ac:name' ) === 'markdown' ) {
-				$macros[] = $structuredMacro;
-			}
+	/**
+	 * @param DOMNode $node
+	 * @return void
+	 */
+	protected function doProcessMacro( $node ): void {
+		$brokenMacro = false;
+
+		$markdownContent = '';
+		$plainTextBodies = $node->getElementsByTagName( 'plain-text-body' );
+		foreach ( $plainTextBodies as $plainTextBody ) {
+			$markdownContent = $plainTextBody->nodeValue;
+			break;
 		}
 
-		foreach ( $macros as $macro ) {
-			$markdownContent = '';
-			$plainTextBodies = $macro->getElementsByTagName( 'plain-text-body' );
-			foreach ( $plainTextBodies as $plainTextBody ) {
-				$markdownContent = $plainTextBody->nodeValue;
-				break;
-			}
+		if ( $markdownContent === '' ) {
+			$brokenMacro = true;
+		}
 
-			if ( $markdownContent === '' ) {
-				continue;
-			}
+		$replacement = null;
 
+		if ( !$brokenMacro ) {
 			$html = $this->convertMarkdownToHtml( $markdownContent );
 			if ( $html === '' ) {
-				continue;
+				$brokenMacro = true;
+			} else {
+				$wrapper = $node->ownerDocument->createElement( 'div' );
+				$wrapper->setAttribute( 'class', 'ac-markdown' );
+
+				$fragment = $node->ownerDocument->createDocumentFragment();
+				$fragment->appendXML( $html );
+				$wrapper->appendChild( $fragment );
+
+				$replacement = $wrapper;
 			}
-
-			$wrapper = $dom->createElement( 'div' );
-			$wrapper->setAttribute( 'class', 'ac-markdown' );
-
-			$htmlDoc = new DOMDocument();
-			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-			@$htmlDoc->loadHTML( '<html><body>' . $html . '</body></html>' );
-			$bodyNode = $htmlDoc->getElementsByTagName( 'body' )->item( 0 );
-			foreach ( $bodyNode->childNodes as $child ) {
-				$wrapper->appendChild( $dom->importNode( $child, true ) );
-			}
-
-			$macro->parentNode->replaceChild( $wrapper, $macro );
 		}
+
+		if ( $brokenMacro ) {
+			$replacement = $node->ownerDocument->createTextNode(
+				$this->getBrokenMacroCategroy()
+			);
+		}
+
+		$node->parentNode->replaceChild( $replacement, $node );
 	}
 
 	/**
@@ -57,20 +64,6 @@ class MarkdownMacro implements IProcessor {
 	 * @return string
 	 */
 	private function convertMarkdownToHtml( string $markdown ): string {
-		$tmpFile = tempnam( sys_get_temp_dir(), 'ac_markdown_' );
-		file_put_contents( $tmpFile, $markdown );
-
-		$command = 'pandoc -f markdown -t html ' . escapeshellarg( $tmpFile );
-		$result = [];
-		// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.exec
-		exec( $command, $result, $returnCode );
-
-		unlink( $tmpFile );
-
-		if ( $returnCode !== 0 ) {
-			return '';
-		}
-
-		return implode( "\n", $result );
+		return MarkdownExtra::defaultTransform( $markdown );
 	}
 }

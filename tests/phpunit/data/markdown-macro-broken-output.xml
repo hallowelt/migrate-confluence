@@ -1,8 +1,5 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 	<p>Before</p>
-	<div class="ac-markdown"><h1>Hello</h1>
-
-<p>Some <strong>bold</strong> text</p>
-</div>
+	[[Category:Broken_macro/markdown]]
 	<p>After</p>
 </xml>
