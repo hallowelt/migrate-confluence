@@ -1,0 +1,7 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Some text before</p>
+	<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:macro-id="abc-123">
+		<ac:parameter ac:name="">my-anchor</ac:parameter>
+	</ac:structured-macro>
+	<p>Some text after</p>
+</xml>

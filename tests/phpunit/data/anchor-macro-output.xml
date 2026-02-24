@@ -1,0 +1,5 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Some text before</p>
+	<span id="my-anchor"/>
+	<p>Some text after</p>
+</xml>

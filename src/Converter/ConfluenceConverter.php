@@ -22,6 +22,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
@@ -274,6 +275,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$processors = [
+			new AnchorMacro(),
 			new Placeholder(),
 			new InlineCommentMarker(),
 			new PreserveTimeTag(),
@@ -485,7 +487,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
 			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
 		} else {
-			// TODO: 'calendar', 'contributors', 'anchor',
+			// TODO: 'calendar', 'contributors',
 			// 'navitabs', 'include', 'listlabels', 'content-report-table'
 			$this->logMarkup( $match );
 			$replacement .= "[[Category:Broken_macro/$sMacroName]]";
