@@ -2,41 +2,40 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use DOMNode;
 
-class AnchorMacro implements IProcessor {
+class AnchorMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
 	 */
-	public function process( DOMDocument $dom ): void {
-		$structuredMacros = $dom->getElementsByTagName( 'structured-macro' );
+	protected function getMacroName(): string {
+		return 'anchor';
+	}
 
-		$macros = [];
-		foreach ( $structuredMacros as $structuredMacro ) {
-			if ( $structuredMacro->getAttribute( 'ac:name' ) === 'anchor' ) {
-				$macros[] = $structuredMacro;
+	/**
+	 * @param DOMNode $node
+	 * @return void
+	 */
+	protected function doProcessMacro( $node ): void {
+		$anchorName = '';
+		foreach ( $node->childNodes as $childNode ) {
+			if ( $childNode->nodeName === 'ac:parameter'
+				&& $childNode->getAttribute( 'ac:name' ) === '' ) {
+				$anchorName = trim( $childNode->nodeValue );
+				break;
 			}
 		}
 
-		foreach ( $macros as $macro ) {
-			$anchorName = '';
-			foreach ( $macro->childNodes as $childNode ) {
-				if ( $childNode->nodeName === 'ac:parameter'
-					&& $childNode->getAttribute( 'ac:name' ) === '' ) {
-					$anchorName = trim( $childNode->nodeValue );
-					break;
-				}
-			}
-
-			if ( $anchorName === '' ) {
-				continue;
-			}
-
-			$span = $dom->createElement( 'span' );
-			$span->setAttribute( 'id', $anchorName );
-			$macro->parentNode->replaceChild( $span, $macro );
+		if ( $anchorName === '' ) {
+			$replacement = $node->ownerDocument->createTextNode(
+				$this->getBrokenMacroCategroy()
+			);
+		} else {
+			$replacement = $node->ownerDocument->createElement( 'span' );
+			$replacement->setAttribute( 'id', $anchorName );
 		}
+
+		$node->parentNode->replaceChild( $replacement, $node );
 	}
 }

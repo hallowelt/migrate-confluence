@@ -444,6 +444,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$sMacroName,
 			[
 				'align',
+				'anchor',
 				'attachments',
 				'children',
 				'code',
