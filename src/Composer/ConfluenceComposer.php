@@ -30,6 +30,21 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/** @var string */
 	private $dest = '';
 
+	/** @var XMLBuilder */
+	private $builder = null;
+
+	/** @var int */
+	private $addedRevisions = 0;
+
+	/** @var int */
+	private $xmlNumber = 0;
+
+	/** @var int */
+	private $limit = 0;
+
+	/** @var bool */
+	private $isMulitXML = false;
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -48,14 +63,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		if ( isset( $config['config'] ) ) {
 			$this->advancedConfig = $config['config'];
 		}
-	}
-
-	/**
-	 * @param string $dest
-	 * @return void
-	 */
-	public function setDestinationPath( string $dest ): void {
-		$this->dest = $dest;
+		if ( isset( $this->advancedConfig['composer-page-per-xml-limit'] ) ) {
+			$this->limit = $this->advancedConfig['composer-page-per-xml-limit'];
+			$this->isMulitXML = true;
+		}
 	}
 
 	/**
@@ -66,16 +77,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
-	 * @param Builder $builder
-	 * @param string $name
-	 * @return Builder
+	 * @inheritDoc
 	 */
-	private function writeOutputFile( Builder $builder, string $name ): Builder {
-		$name = "output-{$name}.xml";
-
-		$builder->buildAndSave( $this->dest . "/result/{$name}" );
-
-		return new Builder();
+	public function setDestinationPath( string $dest ): void {
+		$this->dest = $dest;
 	}
 
 	/**
@@ -83,80 +88,99 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @return void
 	 */
 	public function buildXML( Builder $builder ) {
+		$this->builder = $builder;
+
 		/** Add default pages ( e.g. templates) */
-		$this->appendDefaultPages( $builder );
+		$this->appendDefaultPages();
 		$this->addDefaultFiles();
-		$builder = $this->writeOutputFile( $builder, 'default' );
 
 		/** Add content pages */
 		$spaceIDHomepagesMap = $this->buckets->getBucketData( 'global-space-id-homepages' );
 		$homepageSpaceIDMap = array_flip( $spaceIDHomepagesMap );
 		$spaceIdDescriptionIdMap = $this->buckets->getBucketData( 'global-space-id-to-description-id-map' );
 		$spaceDescriptionIDBodyIDMap = $this->buckets->getBucketData( 'global-space-description-id-to-body-id-map' );
-		$pagesRevisions = $this->buckets->getBucketData( 'global-title-revisions' );
+		$titleRevisions = $this->buckets->getBucketData( 'global-title-revisions' );
 
 		/** Prepare required maps */
 		$bodyContentIDMainpageID = $this->buildMainpageContentMap( $spaceIDHomepagesMap );
-		$namespaceTitlesMap = $this->buildNamespaceTitlesMap( $pagesRevisions );
 
-		/** Add pages grouped by namespace */
-		foreach ( $namespaceTitlesMap as $namespace => $pageTitles ) {
-			foreach ( $pageTitles as $pageTitle ) {
-				$pageRevisions = $pagesRevisions[$pageTitle];
-
-				$sortedRevisions = $this->sortRevisions( $pageRevisions );
-				foreach ( $sortedRevisions as $timestamp => $bodyContentIds ) {
-					$bodyContentIdsArr = explode( '/', $bodyContentIds );
-
-					$pageContent = "";
-					foreach ( $bodyContentIdsArr as $bodyContentId ) {
-						if ( $bodyContentId === '' ) {
-							// Skip if no reference to a body content is not set
-							continue;
-						}
-
-						$this->output->writeln( "Getting '$bodyContentId' body content..." );
-
-						$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
-						$pageContent .= $this->addSpaceDescriptionToMainPage(
-							$bodyContentId,
-							$bodyContentIDMainpageID,
-							$homepageSpaceIDMap,
-							$spaceIdDescriptionIdMap,
-							$spaceDescriptionIDBodyIDMap
-						);
-					}
-
-					$builder->addRevision( $pageTitle, $pageContent, $timestamp );
-
-					// Add attachments
-					$this->addTitleAttachments( $namespace, $pageTitle );
-				}
+		/** Add grouped pages */
+		foreach ( $titleRevisions as $pageTitle => $pageRevisions ) {
+			if ( $this->skipTitle( $pageTitle ) ) {
+				continue;
 			}
 
-			$builder = $this->writeOutputFile( $builder, $namespace );
+			$sortedRevisions = $this->sortRevisions( $pageRevisions );
+			foreach ( $sortedRevisions as $timestamp => $bodyContentIds ) {
+				$bodyContentIdsArr = explode( '/', $bodyContentIds );
+
+				$pageContent = "";
+				foreach ( $bodyContentIdsArr as $bodyContentId ) {
+					if ( $bodyContentId === '' ) {
+						// Skip if no reference to a body content is not set
+						continue;
+					}
+
+					$this->output->writeln( "Getting '$bodyContentId' body content..." );
+
+					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
+					$pageContent .= $this->addSpaceDescriptionToMainPage(
+						$bodyContentId,
+						$bodyContentIDMainpageID,
+						$homepageSpaceIDMap,
+						$spaceIdDescriptionIdMap,
+						$spaceDescriptionIDBodyIDMap
+					);
+				}
+
+				$builder = $this->addRevision( $pageTitle, $pageContent, $timestamp );
+
+				// Add attachments
+				$this->addTitleAttachments( $pageTitle );
+			}
 		}
+
+		$builder = $this->writeOutputFile();
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 	}
 
 	/**
-	 * @param string $title
-	 * @return string
+	 * @param string $wikiPageName
+	 * @param string $wikiText
+	 * @return void
 	 */
-	private function getNamespace( string $title ): string {
-		$collonPos = strpos( $title, ':' );
-		if ( !$collonPos ) {
-			return 'NS_MAIN';
+	private function addRevision( string $wikiPageName, string $wikiText ): void {
+		$this->builder->addRevision( $wikiPageName, $wikiText );
+		$this->addedRevisions++;
+
+		if ( $this->isMulitXML ) {
+			if ( $this->addedRevisions >= $this->limit ) {
+				$this->writeOutputFile();
+				$this->addedRevisions = 0;
+			}
 		}
-		return substr( $title, 0, $collonPos );
 	}
 
 	/**
-	 * @param Builder $builder
 	 * @return void
 	 */
-	private function appendDefaultPages( Builder $builder ) {
+	private function writeOutputFile(): void {
+		$name = "output.xml";
+		if ( $this->isMulitXML ) {
+			$this->xmlNumber++;
+			$num = (string)$this->xmlNumber;
+			$name = "output-{$num}.xml";
+		}
+
+		$this->builder->buildAndSave( $this->dest . "/result/{$name}" );
+		$this->builder = new Builder();
+	}
+
+	/**
+	 * @return void
+	 */
+	private function appendDefaultPages() {
 		$basepath = __DIR__ . '/_defaultpages/';
 		$files = new RecursiveIteratorIterator(
 			new RecursiveDirectoryIterator( $basepath ),
@@ -173,7 +197,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$wikiPageName = "$namespacePrefix:$pageName";
 			$wikiText = file_get_contents( $file );
 
-			$builder->addRevision( $wikiPageName, $wikiText );
+			$this->addRevision( $wikiPageName, $wikiText );
 		}
 	}
 
@@ -203,14 +227,14 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * Sometimes not all namespaces should be used for the import.
 	 * To skip this namespaces use this option.
 	 *
-	 * @param string $namespace
 	 * @param string $pageTitle
 	 * @return bool
 	 */
-	private function skipTitle( string $namespace, string $pageTitle ): bool {
+	private function skipTitle( string $pageTitle ): bool {
+		$namespace = $this->getNamespace( $pageTitle );
 		if (
-			isset( $this->advancedConfig['composer-include-namespace'] )
-			&& !in_array( $namespace, $this->advancedConfig['composer-include-namespace'] )
+			isset( $this->advancedConfig['composer-skip-namespace'] )
+			&& in_array( $namespace, $this->advancedConfig['composer-skip-namespace'] )
 		) {
 			$this->output->writeln( "Namespace {$namespace} skipped by configuration" );
 			return true;
@@ -229,6 +253,18 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
+	 * @param string $title
+	 * @return string
+	 */
+	private function getNamespace( string $title ): string {
+		$collonPos = strpos( $title, ':' );
+		if ( !$collonPos ) {
+			return 'NS_MAIN';
+		}
+		return substr( $title, 0, $collonPos );
+	}
+
+	/**
 	 * @return bool
 	 */
 	private function includeHistory(): bool {
@@ -242,11 +278,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
-	 * @param string $namespace
 	 * @param string $pageTitle
 	 * @return void
 	 */
-	private function addTitleAttachments( string $namespace, string $pageTitle ): void {
+	private function addTitleAttachments( string $pageTitle ): void {
 		$pageAttachmentsMap = $this->buckets->getBucketData( 'global-title-attachments' );
 		$filesMap = $this->buckets->getBucketData( 'global-files' );
 
@@ -268,7 +303,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 					$filePath = $filesMap[$attachment][0];
 					$attachmentContent = file_get_contents( $filePath );
 
-					$this->workspace->saveUploadFile( $attachment, $attachmentContent, "result/images/{$namespace}" );
+					$this->workspace->saveUploadFile( $attachment, $attachmentContent );
 					$this->customBuckets->addData( 'title-uploads', $pageTitle, $attachment );
 				} else {
 					$this->output->writeln( "Attachment file was not found!" );
@@ -296,31 +331,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		}
 
 		return $bodyContentIDMainpageID;
-	}
-
-	/**
-	 * Sort pages by namespace
-	 * and skip namespaces or titles by configuration.
-	 *
-	 * @param array $pagesRevisions
-	 * @return array
-	 */
-	private function buildNamespaceTitlesMap( array $pagesRevisions ): array {
-		$namespaceTitlesMap = [];
-		foreach ( $pagesRevisions as $pageTitle => $pageRevisions ) {
-			$namespace = $this->getNamespace( $pageTitle );
-			if ( $this->skipTitle( $namespace, $pageTitle ) ) {
-				continue;
-			}
-
-			// Build a map with titles per namespace
-			if ( !isset( $namespaceTitlesMap[$namespace] ) ) {
-				$namespaceTitlesMap[$namespace] = [];
-			}
-			$namespaceTitlesMap[$namespace][] = $pageTitle;
-		}
-
-		return $namespaceTitlesMap;
 	}
 
 	/**

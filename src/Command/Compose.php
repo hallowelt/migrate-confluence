@@ -50,7 +50,7 @@ class Compose extends CommandCompose {
 	protected function processFiles() {
 		$this->readConfigFile( $this->config );
 		$this->ensureTargetDirs();
-		$this->workspace = new Workspace( new SplFileInfo( $this->src ) );
+		$this->workspace = new Workspace( new SplFileInfo( $this->dest ) );
 
 		$this->initExecutionTime();
 
