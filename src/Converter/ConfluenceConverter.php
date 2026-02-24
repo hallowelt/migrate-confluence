@@ -35,6 +35,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
@@ -321,6 +322,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			),
 			new ContenByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
+			new GalleryMacro(
+				$this->dataLookup, $this->currentSpace, $currentPageTitle
+			),
 			new ExpandMacro(),
 			new DetailsMacro(),
 			new DetailsSummaryMacro(),
