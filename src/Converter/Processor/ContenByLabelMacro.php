@@ -62,7 +62,7 @@ class ContenByLabelMacro extends StructuredMacroProcessorBase {
 			$templateParams .= "|$key=$value\n";
 		}
 		if ( empty( $params ) ) {
-			$text = $node->ownerDocument->createTextNode( "[[Category:Broken_macro/" . $this->getMacroName() . "]]" );
+			$text = $node->ownerDocument->createTextNode( $this->getBrokenMacroCategroy() );
 		} else {
 			// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
 			$text = $node->ownerDocument->createTextNode( "{{ContentByLabel\n$templateParams}}" );

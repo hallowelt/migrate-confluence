@@ -70,19 +70,11 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 		$template .= "}}";
 
 		if ( $brokenMacro ) {
-			$template .= $this->getBrokenMacroCategroy();
+			$template .= ' ' . $this->getBrokenMacroCategroy();
 		}
 
 		$macroReplacement = $node->ownerDocument->createTextNode( $template );
 		$node->parentNode->replaceChild( $macroReplacement, $node );
-	}
-
-	/**
-	 * @return string
-	 */
-	private function getBrokenMacroCategroy(): string {
-		$sMacroName = $this->getMacroName();
-		return " [[Category:Broken_macro/$sMacroName]]";
 	}
 
 	/**
