@@ -40,6 +40,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarker;
 use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\MarkdownMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
@@ -325,6 +326,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new DetailsSummaryMacro(),
 			new AlignMacro(),
 			new JiraMacro(),
+			new MarkdownMacro(),
 			new ViewFileMacro(
 				$this->dataLookup, $this->currentSpace,
 				$currentPageTitle, $this->nsFileRepoCompat
@@ -453,6 +455,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'include',
 				'info',
 				'inline-comment-marker',
+				'markdown',
 				'noformat',
 				'note',
 				'pagetree',
