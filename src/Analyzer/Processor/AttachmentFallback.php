@@ -142,7 +142,7 @@ class AttachmentFallback extends ProcessorBase {
 		$this->data['analyze-add-file'][$attachmentTargetFilename] = $attachmentReference;
 		$this->data['analyze-added-attachment-id'][] = $this->attachmentId;
 
-		$confluenceFileKey = str_replace( ' ', '',  "{$confluenceKey}---{$this->attachmentOrigFilename}" );
+		$confluenceFileKey = str_replace( ' ', '', "{$confluenceKey}---{$this->attachmentOrigFilename}" );
 
 		$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey]
 			= $attachmentTargetFilename;
