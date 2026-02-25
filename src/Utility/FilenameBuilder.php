@@ -9,7 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 class FilenameBuilder {
 
 	/**
-	 * @var XMLHelper
+	 * @var XMLHelper|null
 	 */
 	private $helper = null;
 
@@ -28,7 +28,7 @@ class FilenameBuilder {
 	/**
 	 *
 	 * @param array $spaceIdPrefixMap
-	 * @param XMLHelper $helper
+	 * @param XMLHelper|null $helper
 	 */
 	public function __construct( $spaceIdPrefixMap, $helper ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
@@ -68,6 +68,9 @@ class FilenameBuilder {
 	 * @return string
 	 */
 	public function buildFilename( $attachmentNode, $assocTitle ) {
+		if ( !$this->helper ) {
+			return '';
+		}
 		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 
 		// In some cases attachments don't have a `space`-id set. We fall back to NS_MAIN then
