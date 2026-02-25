@@ -2,13 +2,13 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
+use Exception;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IDestinationPathAware;
 use SplFileInfo;
-use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -16,13 +16,10 @@ use Symfony\Component\Yaml\Yaml;
 class Compose extends CommandCompose {
 
 	/**
-	 *
 	 * @inheritDoc
 	 */
-	protected function configure() {
-		$config = parent::configure();
-
-		/** @var InputDefinition */
+	protected function configure(): void {
+		parent::configure();
 		$definition = $this->getDefinition();
 		$definition->addOption(
 			new InputOption(
@@ -32,8 +29,6 @@ class Compose extends CommandCompose {
 				'Specifies the path to the config yaml file'
 			)
 		);
-
-		return $config;
 	}
 
 	/**
@@ -45,9 +40,10 @@ class Compose extends CommandCompose {
 	}
 
 	/**
-	 * @return bool
+	 * @return int
+	 * @throws Exception
 	 */
-	protected function processFiles() {
+	protected function processFiles(): int {
 		$this->readConfigFile( $this->config );
 		$this->ensureTargetDirs();
 		$this->workspace = new Workspace( new SplFileInfo( $this->dest ) );
