@@ -24,7 +24,7 @@ class ExcerptIncludeMacroTest extends TestCase {
 	public function testPreprocess() {
 		$dataLookup = new ConversionDataLookup(
 			[
-				42 => 'ABC'
+				42 => 'ABC:'
 			],
 			[
 				'42---Some Confluence page name' => 'ABC:Some_MediaWiki_page_name',
@@ -32,7 +32,10 @@ class ExcerptIncludeMacroTest extends TestCase {
 			[],
 			[],
 			[],
-			[]
+			[],
+			[
+				42 => 'ABC',
+			]
 		);
 		$currentSpaceId = 42;
 

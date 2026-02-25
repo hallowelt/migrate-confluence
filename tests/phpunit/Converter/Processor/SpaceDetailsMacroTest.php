@@ -8,11 +8,6 @@ use PHPUnit\Framework\TestCase;
 class SpaceDetailsMacroTest extends TestCase {
 
 	/**
-	 * @var ConversionDataLookup
-	 */
-	private $dataLookup;
-
-	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\SpaceDetailsMacroTest::process
 	 * @return void
 	 */

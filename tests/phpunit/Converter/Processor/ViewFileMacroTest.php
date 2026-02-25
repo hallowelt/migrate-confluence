@@ -20,8 +20,8 @@ class ViewFileMacroTest extends TestCase {
 	public function testProcess() {
 		$this->dataLookup = new ConversionDataLookup(
 			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
+				42 => 'ABC:',
+				23 => 'DEVOPS:'
 			],
 			[
 				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
@@ -36,7 +36,11 @@ class ViewFileMacroTest extends TestCase {
 			],
 			[],
 			[],
-			[]
+			[],
+			[
+				42 => 'ABC',
+				23 => 'DEVOPS'
+			]
 		);
 
 		/** SpaceId GENERAL */

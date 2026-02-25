@@ -127,6 +127,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-title-attachments',
 			'global-body-contents-to-pages-map',
 			'global-page-id-to-space-id',
+			'global-space-id-to-key-map',
 			'global-space-id-to-prefix-map',
 			'global-space-key-to-prefix-map',
 			'global-filenames-to-filetitles-map',

@@ -20,27 +20,31 @@ class UserLinkTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$currentSpaceId = 42;
-		$currentRawPagename = 'SomePage';
-		$dataLookup = new ConversionDataLookup(
-			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[
-				'42---Page Title' => 'ABC:Page_Title',
-				'42---Page Title2' => 'ABC:Page_Title2',
-				'42---Page Title3' => 'ABC:Page_Title3',
-				'23---Page Title3' => 'DEVOPS:Page_Title3',
-			],
-			[],
-			[],
-			[],
-			[
-				'123456' => 'TheFirstUser',
-				'789456' => 'TheSecondUser',
-			]
-		);
+			$currentSpaceId = 42;
+			$currentRawPagename = 'SomePage';
+			$dataLookup = new ConversionDataLookup(
+				[
+					42 => 'ABC',
+					23 => 'DEVOPS'
+				],
+				[
+					'42---Page Title' => 'ABC:Page_Title',
+					'42---Page Title2' => 'ABC:Page_Title2',
+					'42---Page Title3' => 'ABC:Page_Title3',
+					'23---Page Title3' => 'DEVOPS:Page_Title3',
+				],
+				[],
+				[],
+				[],
+				[
+					'123456' => 'TheFirstUser',
+					'789456' => 'TheSecondUser',
+				],
+				[
+					42 => 'ABC',
+					23 => 'DEVOPS'
+				]
+			);
 
 		$processor = new UserLink( $dataLookup, $currentSpaceId, $currentRawPagename, false );
 		$processor->process( $dom );

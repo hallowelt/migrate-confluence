@@ -28,8 +28,8 @@ class GliffyMacroTest extends TestCase {
 	public function testPreprocess() {
 		$this->dataLookup = new ConversionDataLookup(
 			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
+				42 => 'ABC:',
+				23 => 'DEVOPS:'
 			],
 			[
 				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
@@ -48,7 +48,11 @@ class GliffyMacroTest extends TestCase {
 			],
 			[],
 			[],
-			[]
+			[],
+			[
+				42 => 'ABC',
+				23 => 'DEVOPS'
+			]
 		);
 		$this->conversionDataWriter = new ConversionDataWriter( [] );
 
