@@ -95,9 +95,9 @@ class Attachments extends ProcessorBase {
 	/**
 	 * @param XMLHelper $xmlHelper
 	 * @param DOMElement $attachment
-	 * @return void
+	 * @return string
 	 */
-	private function makeAttachmentReference( XMLHelper $xmlHelper, DOMElement $attachment ) {
+	private function makeAttachmentReference( XMLHelper $xmlHelper, DOMElement $attachment ): string {
 		$basePath = $this->file->getPath() . '/attachments';
 		$attachmentId = $xmlHelper->getIDNodeValue( $attachment );
 		$containerId = $xmlHelper->getPropertyValue( 'content', $attachment );

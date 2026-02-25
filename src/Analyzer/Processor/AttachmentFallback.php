@@ -215,7 +215,7 @@ class AttachmentFallback extends ProcessorBase {
 		}
 		// Evil hack for Names like "02.1 Some-Workflow File"
 		if ( strlen( $file->getExtension() ) > 10 ) {
-
+			return true;
 		}
 		return false;
 	}
