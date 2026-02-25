@@ -24,8 +24,8 @@ class UserLinkTest extends TestCase {
 			$currentRawPagename = 'SomePage';
 			$dataLookup = new ConversionDataLookup(
 				[
-					42 => 'ABC',
-					23 => 'DEVOPS'
+					42 => 'ABC:',
+					23 => 'DEVOPS:'
 				],
 				[
 					'42---Page Title' => 'ABC:Page_Title',
@@ -39,6 +39,10 @@ class UserLinkTest extends TestCase {
 				[
 					'123456' => 'TheFirstUser',
 					'789456' => 'TheSecondUser',
+				],
+				[
+					42 => 'ABC',
+					23 => 'DEVOPS'
 				]
 			);
 

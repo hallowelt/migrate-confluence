@@ -28,8 +28,8 @@ class TasksReportMacroTest extends TestCase {
 
 		$this->dataLookup = new ConversionDataLookup(
 			[
-				42 => 'MT',
-				23 => 'AB'
+				42 => 'MT:',
+				23 => 'AB:'
 			],
 			[
 				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
@@ -43,6 +43,10 @@ class TasksReportMacroTest extends TestCase {
 			[
 				'123456' => 'TheFirstUser',
 				'789456' => 'TheSecondUser',
+			],
+			[
+				42 => 'MT',
+				23 => 'AB'
 			]
 		);
 

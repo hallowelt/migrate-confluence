@@ -22,6 +22,12 @@ class ConversionDataLookup {
 	 *
 	 * @var array
 	 */
+	private $spaceKeyToIdMap = [];
+
+	/**
+	 *
+	 * @var array
+	 */
 	private $pagesTitlesMap = [];
 
 	/**
@@ -79,6 +85,8 @@ class ConversionDataLookup {
 		$files, $userMap, $spaceIdToKeyMap ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
+		$this->spaceKeyToIdMap = array_flip( $this->spaceIdToKeyMap );
+		
 
 		// This is some quickfix solution. It must be changed as soon as possible!
 		// The real issue is in the way the `analyze` step constructs the "conflucence-keys"
@@ -125,12 +133,19 @@ class ConversionDataLookup {
 	 * @return int
 	 */
 	public function getSpacePrefixFromSpaceKey( $spaceKey ) {
+		$id = -1;
+		if ( isset( $this->spaceKeyToIdMap[$spaceKey] ) ) {
+			$id = $this->spaceKeyToIdMap[$spaceKey];
+		}
+
 		$spacePrefix = '';
-		if ( isset( $this->spaceKeyPrefixMap[$spaceKey] ) ) {
-			$spacePrefix = $this->spaceKeyPrefixMap[$spaceKey];
+		if ( isset( $this->spaceIdPrefixMap[$id] ) ) {
+			$spacePrefix = $this->spaceIdPrefixMap[$id];
 			// See `ConfluenceAnalyzer::makeSpacesMap`
 			if ( $spacePrefix === 'GENERAL' ) {
 				$spacePrefix = '';
+			} else {
+				$spacePrefix = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) );
 			}
 			return $spacePrefix;
 		}

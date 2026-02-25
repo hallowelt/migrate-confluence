@@ -26,8 +26,8 @@ class PageLinkTest extends TestCase {
 				// space-id-to-prefix-map
 				[
 					0 => '',
-					42 => 'ABC',
-					23 => 'DEVOPS'
+					42 => 'ABC:',
+					23 => 'DEVOPS:'
 				],
 				// pages-titles-map
 				[
@@ -43,7 +43,12 @@ class PageLinkTest extends TestCase {
 				[],
 				[],
 				[],
-				[]
+				[],
+				[
+					0 => '',
+					42 => 'ABC',
+					23 => 'DEVOPS'
+				]
 			);
 
 			$processor = new PageLink( $dataLookup, $currentSpaceId, $currentRawPagename, false );
