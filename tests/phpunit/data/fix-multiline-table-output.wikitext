@@ -1,0 +1,27 @@
+Lorem ipsum Dolor
+{| class="wikitable wrapped"
+|-
+! Lorem
+! Ipsum
+! Dolor
+|-
+| highlight-colour="#F00"| Lorem
+|
+* Sit
+* Amet
+
+| Lorem
+|}
+
+sit Amet
+
+{| class="wikitable wrapped"
+|-
+| highlight-colour="#00F"| Lorem
+|
+* Sit
+* Amet
+
+| Lorem
+|}
+dolor

@@ -20,7 +20,7 @@ class DetailsSummaryMacroTest extends TestCase {
 	public function testProcess() {
 		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
 
-		$input = file_get_contents( "$this->dir/detailssummary-macro-input.xml" );
+		$input = file_get_contents( "$this->dir/details-summary-macro-input.xml" );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
@@ -29,7 +29,7 @@ class DetailsSummaryMacroTest extends TestCase {
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
-		$expectedOutput = file_get_contents( "$this->dir/detailssummary-macro-output.xml" );
+		$expectedOutput = file_get_contents( "$this->dir/details-summary-macro-output.xml" );
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
 	}

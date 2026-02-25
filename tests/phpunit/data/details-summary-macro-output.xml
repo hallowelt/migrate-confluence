@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace">
+    {{DetailsSummary###BREAK###
+|firstcolumn = Col 1###BREAK###
+|headings = Heading 1, Heading 2, Heading 3, Heading 4###BREAK###
+|sortBy = Title###BREAK###
+|cql = label = "Label 1" and parent = currentContent ( )###BREAK###
+}}###BREAK###
+
+</xml>

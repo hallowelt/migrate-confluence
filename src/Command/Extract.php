@@ -11,19 +11,14 @@ use Symfony\Component\Yaml\Yaml;
 class Extract extends CommandExtract {
 
 	/**
-	 *
 	 * @var IExtractor[]
 	 */
 	protected $extractors = [];
 
 	/**
-	 *
 	 * @inheritDoc
 	 */
-	protected function configure() {
-		$config = parent::configure();
-
-		/** @var InputDefinition */
+	protected function configure(): void {
 		$definition = $this->getDefinition();
 		$definition->addOption(
 			new InputOption(
@@ -33,8 +28,6 @@ class Extract extends CommandExtract {
 				'Specifies the path to the config yaml file'
 			)
 		);
-
-		return $config;
 	}
 
 	/**

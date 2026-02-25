@@ -9,14 +9,11 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
 class Analyze extends CommandAnalyze {
+
 	/**
-	 *
 	 * @inheritDoc
 	 */
-	protected function configure() {
-		$config = parent::configure();
-
-		/** @var InputDefinition */
+	protected function configure(): void {
 		$definition = $this->getDefinition();
 		$definition->addOption(
 			new InputOption(
@@ -26,8 +23,6 @@ class Analyze extends CommandAnalyze {
 				'Specifies the path to the config yaml file'
 			)
 		);
-
-		return $config;
 	}
 
 	/**

@@ -1,0 +1,55 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+   <ac:structured-macro ac:name="table-filter" ac:schema-version="1" ac:macro-id="21c39d21-e755-48b6-a672-bc568addb84e">
+		<ac:parameter ac:name="inverse">,</ac:parameter>
+		<ac:parameter ac:name="sparkName">Sparkline</ac:parameter>
+		<ac:parameter ac:name="column">Status</ac:parameter>
+		<ac:parameter ac:name="limitHeight" />
+		<ac:parameter ac:name="separator">Point (.)</ac:parameter>
+		<ac:parameter ac:name="default">,</ac:parameter>
+		<ac:parameter ac:name="isFirstTimeEnter">true</ac:parameter>
+		<ac:parameter ac:name="cell-width">,</ac:parameter>
+		<ac:parameter ac:name="userfilter">Thema</ac:parameter>
+		<ac:parameter ac:name="datepattern">dd.mm.yy</ac:parameter>
+		<ac:parameter ac:name="id">1234567890123_-456789017</ac:parameter>
+		<ac:parameter ac:name="updateSelectOptions">true</ac:parameter>
+		<ac:parameter ac:name="worklog">365|5|8|y w d h m|y w d h m</ac:parameter>
+		<ac:parameter ac:name="isOR">AND</ac:parameter>
+		<ac:parameter ac:name="order">0,1</ac:parameter>
+		<ac:rich-text-body>
+			<p class="auto-cursor-target"><br /></p>
+			<table class="fixed-table wrapped">
+				<colgroup>
+					<col style="width: 38.0px;" />
+					<col style="width: 227.0px;" />
+					<col style="width: 728.0px;" />
+					<col style="width: 166.0px;" />
+					<col style="width: 137.0px;" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<th>Position</th>
+						<th>Name</th>
+						<th>Process</th>
+						<th colspan="1">User?</th>
+						<th>Status</th>
+					</tr>
+					<tr>
+						<td>1</td>
+						<td>Test 1</td>
+						<td>Process 1</td>
+						<td colspan="1">Sysop</td>
+						<td style="text-align: center;">done</td>
+					</tr>
+					<tr>
+						<td>2</td>
+						<td>Process 2</td>
+						<td><br /></td>
+						<td colspan="1"><br /></td>
+						<td><br /></td>
+					</tr>
+				</tbody>
+			</table>
+			<p class="auto-cursor-target"><br /></p>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>

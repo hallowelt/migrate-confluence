@@ -10,15 +10,9 @@ use Symfony\Component\Yaml\Yaml;
 class Convert extends CommandConvert {
 
 	/**
-	 *
-	 * @var string
+	 * @return void
 	 */
-	private $targetBasePath = '';
-
-	protected function configure() {
-		$config = parent::configure();
-
-		/** @var InputDefinition */
+	protected function configure(): void {
 		$definition = $this->getDefinition();
 		$definition->addOption(
 			new InputOption(
@@ -28,8 +22,6 @@ class Convert extends CommandConvert {
 				'Specifies the path to the config yaml file'
 			)
 		);
-
-		return $config;
 	}
 
 	/**

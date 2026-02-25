@@ -1,0 +1,3 @@
+{{Details|id=test-id|hidden=false|body=Lorem ipsum}}
+
+{{Details###BREAK### |id=test-id###BREAK### |hidden=false###BREAK### |body=text###BREAK### Lorem ipsum sit amet}}###BREAK###

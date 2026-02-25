@@ -2,8 +2,13 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
+use Exception;
+use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
-use Symfony\Component\Console\Input\InputDefinition;
+use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\IDestinationPathAware;
+use SplFileInfo;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -11,13 +16,9 @@ use Symfony\Component\Yaml\Yaml;
 class Compose extends CommandCompose {
 
 	/**
-	 *
 	 * @inheritDoc
 	 */
-	protected function configure() {
-		$config = parent::configure();
-
-		/** @var InputDefinition */
+	protected function configure(): void {
 		$definition = $this->getDefinition();
 		$definition->addOption(
 			new InputOption(
@@ -27,8 +28,6 @@ class Compose extends CommandCompose {
 				'Specifies the path to the config yaml file'
 			)
 		);
-
-		return $config;
 	}
 
 	/**
@@ -40,11 +39,31 @@ class Compose extends CommandCompose {
 	}
 
 	/**
-	 * @return bool
+	 * @return int
+	 * @throws Exception
 	 */
 	protected function processFiles(): int {
 		$this->readConfigFile( $this->config );
-		return parent::processFiles();
+		$this->ensureTargetDirs();
+		$this->workspace = new Workspace( new SplFileInfo( $this->dest ) );
+
+		$this->initExecutionTime();
+
+		$this->buckets = new DataBuckets( $this->getBucketKeys() );
+		$this->buckets->loadFromWorkspace( $this->workspace );
+		$composers = $this->makeComposers();
+		$mediawikixmlbuilder = new Builder();
+		foreach ( $composers as $composer ) {
+			if ( $composer instanceof IDestinationPathAware ) {
+				$composer->setDestinationPath( $this->dest );
+			}
+			$composer->buildXML( $mediawikixmlbuilder );
+
+		}
+
+		$this->logExecutionTime();
+
+		return true;
 	}
 
 	/**
@@ -82,5 +101,17 @@ class Compose extends CommandCompose {
 			'global-files',
 			'global-additional-files'
 		];
+	}
+
+	/**
+	 * ToDo: Set this method in composer to protected
+	 *
+	 * @return void
+	 */
+	private function ensureTargetDirs() {
+		$path = "{$this->dest}/result/images";
+		if ( !file_exists( $path ) ) {
+			mkdir( $path, 0755, true );
+		}
 	}
 }

@@ -1,6 +1,12 @@
 <xml xmlns:ac="sample_namespace">
-    <div class="details" data-id="Lorem" data-something="we have never seen before">
-        <h3>Ipsum dolor</h3>
-        <h3>There may be multiple rich texts</h3>
-    </div>
+    {{Details###BREAK###
+|id = Lorem###BREAK###
+|something = we have never seen before###BREAK###
+|body = ###BREAK###
+
+            <h3>Ipsum dolor</h3>
+        
+            <h3>There may be multiple rich texts</h3>
+        }}###BREAK###
+
 </xml>

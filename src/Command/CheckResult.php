@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CheckResult extends Command {
 
 	/**
-	 * @var Input\InputInterface
+	 * @var InputInterface
 	 */
 	private $input = null;
 
@@ -31,7 +31,10 @@ class CheckResult extends Command {
 	 */
 	private $titles = [];
 
-	protected function configure() {
+	/**
+	 * @return void
+	 */
+	protected function configure(): void {
 		$this->setName( 'checkresult' );
 		$this
 			->setDefinition( new InputDefinition( [
@@ -42,12 +45,10 @@ class CheckResult extends Command {
 					'Specifies the path to the result directory'
 				)
 			] ) );
-
-		return parent::configure();
 	}
 
 	/**
-	 * @param Input\InputInterface $input
+	 * @param InputInterface $input
 	 * @param OutputInterface $output
 	 * @return int
 	 */
