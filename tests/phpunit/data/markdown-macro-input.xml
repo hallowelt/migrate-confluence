@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Before</p>
+	<ac:structured-macro ac:name="markdown" ac:schema-version="1" ac:macro-id="abc-456">
+		<ac:plain-text-body># Hello
+
+Some **bold** text
+</ac:plain-text-body>
+	</ac:structured-macro>
+	<p>After</p>
+</xml>

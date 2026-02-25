@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Some text before</p>
+	<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:macro-id="abc-456"/>
+	<p>Some text after</p>
+</xml>
