@@ -55,7 +55,7 @@ class Page extends ProcessorBase {
 	public function getRequiredKeys(): array {
 		return [
 			'global-space-id-to-prefix-map',
-			'analyze-space-id-to-space-key-map',
+			'global-space-id-to-key-map',
 			'global-space-id-homepages',
 			'analyze-page-id-to-parent-page-id-map',
 			'analyze-attachment-id-to-orig-filename-map',
@@ -114,10 +114,10 @@ class Page extends ProcessorBase {
 		if ( $this->spaceId === null ) {
 			return;
 		}
-		if ( !isset( $this->data['analyze-space-id-to-space-key-map'][$this->spaceId] ) ) {
+		if ( !isset( $this->data['global-space-id-to-key-map'][$this->spaceId] ) ) {
 			return;
 		}
-		$spaceKey = $this->data['analyze-space-id-to-space-key-map'][$this->spaceId];
+		$spaceKey = $this->data['global-space-id-to-key-map'][$this->spaceId];
 
 		if (
 			!empty( $this->includeSpaceKey )

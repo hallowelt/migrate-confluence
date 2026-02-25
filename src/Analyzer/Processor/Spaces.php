@@ -26,13 +26,13 @@ class Spaces extends ProcessorBase {
 	 */
 	public function getKeys(): array {
 		return [
+			'global-space-id-to-key-map',
 			'global-space-id-to-prefix-map',
 			'global-space-key-to-prefix-map',
 			'global-space-id-homepages',
 			'global-space-id-to-description-id-map',
 			'global-space-details',
 
-			'analyze-space-id-to-space-key-map',
 			'analyze-space-name-to-prefix-map',
 			'analyze-space-id-to-name-map',
 			'analyze-space-key-to-name-map',
@@ -90,10 +90,10 @@ class Spaces extends ProcessorBase {
 			return;
 		}
 
+		$this->data['global-space-id-to-key-map'][$spaceId] = $spaceKey;
 		$this->data['global-space-id-to-prefix-map'][$spaceId] = $customSpacePrefix;
 		$this->data['global-space-key-to-prefix-map'][$spaceKey] = $customSpacePrefix;
 
-		$this->data['analyze-space-id-to-space-key-map'][$spaceId] = $spaceKey;
 		$this->data['analyze-space-name-to-prefix-map'][$spaceName] = $customSpacePrefix;
 		$this->data['analyze-space-id-to-name-map'][$spaceId] = $spaceName;
 		$this->data['analyze-space-key-to-name-map'][$spaceKey] = $spaceName;

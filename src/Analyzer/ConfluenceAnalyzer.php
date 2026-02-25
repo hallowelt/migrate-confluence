@@ -94,7 +94,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
 		$this->customBuckets = new DataBuckets( [
-			'analyze-space-id-to-space-key-map',
+			'global-space-id-to-key-map',
 			'analyze-space-name-to-prefix-map',
 			'analyze-space-id-to-name-map',
 			'analyze-space-key-to-name-map',
@@ -138,7 +138,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-page-id-to-title-map',
 			'analyze-pages-titles-map',
 			'analyze-space-id-to-name-map',
-			'analyze-space-id-to-space-key-map',
+			'global-space-id-to-key-map',
 			'analyze-space-key-to-name-map',
 			'analyze-space-name-to-prefix-map',
 			'analyze-title-revisions',
@@ -248,6 +248,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		// Perform validity checks
 		$this->checkTitles();
+
+		// Save buckets
+		foreach ( $this->data as $bucket => $bucketData ) {
+			if ( empty( $bucketData ) ) {
+				continue;
+			}
+			$this->workspace->saveData( "{$bucket}", $bucketData );
+		}
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 		return $result;
@@ -409,14 +417,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$this->addFile( $filename, $reference );
 		}
 
-		// Save buckets
-		foreach ( $this->data as $bucket => $bucketData ) {
-			if ( empty( $bucketData ) ) {
-				continue;
-			}
-			$this->workspace->saveData( "{$bucket}", $bucketData );
-		}
-
 		return true;
 	}
 
@@ -424,7 +424,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return void
 	 */
 	private function checkTitles(): void {
-		$pagesTitlesMap = $this->buckets->getBucketData( 'global-pages-titles-map' );
+		$pagesTitlesMap = $this->data['global-pages-titles-map'];
 
 		$validityChecker = new TitleValidityChecker();
 
