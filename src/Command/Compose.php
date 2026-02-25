@@ -67,6 +67,8 @@ class Compose extends CommandCompose {
 		}
 
 		$this->logExecutionTime();
+
+		return true;
 	}
 
 	/**

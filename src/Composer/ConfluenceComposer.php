@@ -30,7 +30,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/** @var string */
 	private $dest = '';
 
-	/** @var XMLBuilder */
+	/** @var Builder */
 	private $builder = null;
 
 	/** @var int */
@@ -133,14 +133,14 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 					);
 				}
 
-				$builder = $this->addRevision( $pageTitle, $pageContent, $timestamp );
+				$this->addRevision( $pageTitle, $pageContent, $timestamp );
 
 				// Add attachments
 				$this->addTitleAttachments( $pageTitle );
 			}
 		}
 
-		$builder = $this->writeOutputFile();
+		$this->writeOutputFile();
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 	}
@@ -150,8 +150,13 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @param string $wikiText
 	 * @return void
 	 */
-	private function addRevision( string $wikiPageName, string $wikiText ): void {
-		$this->builder->addRevision( $wikiPageName, $wikiText );
+	private function addRevision(
+		string $wikiPageName, string $wikiText, string $timestamp = '',
+		string $username = '', string $model = '', string $format = ''
+	): void {
+		$this->builder->addRevision(
+			$wikiPageName, $wikiText, $timestamp, $username, $model, $format
+		);
 		$this->addedRevisions++;
 
 		if ( $this->mulitXmlOutputEnabled ) {
