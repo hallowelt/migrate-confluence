@@ -86,7 +86,6 @@ class ConversionDataLookup {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
 		$this->spaceKeyToIdMap = array_flip( $this->spaceIdToKeyMap );
-		
 
 		// This is some quickfix solution. It must be changed as soon as possible!
 		// The real issue is in the way the `analyze` step constructs the "conflucence-keys"
