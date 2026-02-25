@@ -13,6 +13,7 @@ class Convert extends CommandConvert {
 	 * @return void
 	 */
 	protected function configure(): void {
+		parent::configure();
 		$definition = $this->getDefinition();
 		$definition->addOption(
 			new InputOption(

@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Command;
 
 use HalloWelt\MediaWiki\Lib\Migration\Command\Analyze as CommandAnalyze;
-use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -14,6 +13,7 @@ class Analyze extends CommandAnalyze {
 	 * @inheritDoc
 	 */
 	protected function configure(): void {
+		parent::configure();
 		$definition = $this->getDefinition();
 		$definition->addOption(
 			new InputOption(

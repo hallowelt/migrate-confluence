@@ -75,7 +75,7 @@ class CheckResult extends Command {
 		}
 
 		$this->createReport();
-		
+
 		return Command::SUCCESS;
 	}
 

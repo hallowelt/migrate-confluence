@@ -557,7 +557,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$bodyContentId = $xmlHelper->getIDNodeValue( $bodyContentObject );
 		$pageId = $xmlHelper->getPropertyValue( 'content', $bodyContentObject );
 		$this->customBuckets->addData( 'analyze-body-content-id-to-page-id-map',
-			$bodyContentId,	$pageId,	false, true );
+			$bodyContentId,	$pageId, false, true );
 	}
 
 	/**
@@ -988,7 +988,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->addFile( $attachmentTargetFilename, $attachmentReference );
 		$this->addedAttachmentIds[] = $attachmentId;
 
-		$confluenceFileKey = str_replace( ' ', '',  "{$confluenceKey}---{$attachmentOrigFilename}" );
+		$confluenceFileKey = str_replace( ' ', '', "{$confluenceKey}---{$attachmentOrigFilename}" );
 		$this->buckets->addData(
 			'global-filenames-to-filetitles-map',
 			$confluenceFileKey,

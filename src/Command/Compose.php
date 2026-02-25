@@ -19,6 +19,7 @@ class Compose extends CommandCompose {
 	 * @inheritDoc
 	 */
 	protected function configure(): void {
+		parent::configure();
 		$definition = $this->getDefinition();
 		$definition->addOption(
 			new InputOption(
