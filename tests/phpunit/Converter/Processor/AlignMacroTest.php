@@ -12,23 +12,23 @@ class AlignMacroTest extends TestCase {
 		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\AlignMacroTest::preprocess
 		 * @return void
 		 */
-		public function testPreprocess() {
-			$dir = dirname( dirname( __DIR__ ) ) . '/data';
-			$input = file_get_contents( "$dir/align-macro-input.xml" );
+	public function testPreprocess() {
+		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$input = file_get_contents( "$dir/align-macro-input.xml" );
 
-			$dom = new DOMDocument();
-			$dom->loadXML( $input );
+		$dom = new DOMDocument();
+		$dom->loadXML( $input );
 
-			$processor = new AlignMacro();
-			$processor->process( $dom );
+		$processor = new AlignMacro();
+		$processor->process( $dom );
 
-			$actualOutput = $dom->saveXML( $dom->documentElement );
+		$actualOutput = $dom->saveXML( $dom->documentElement );
 
-			$input = file_get_contents( "$dir/align-macro-output.xml" );
-			$expectedDom = new DOMDocument();
-			$expectedDom->loadXML( $input );
-			$expectedOutput = $expectedDom->saveXML( $expectedDom->documentElement );
+		$input = file_get_contents( "$dir/align-macro-output.xml" );
+		$expectedDom = new DOMDocument();
+		$expectedDom->loadXML( $input );
+		$expectedOutput = $expectedDom->saveXML( $expectedDom->documentElement );
 
-			$this->assertEquals( $expectedOutput, $actualOutput );
-		}
+		$this->assertEquals( $expectedOutput, $actualOutput );
+	}
 }

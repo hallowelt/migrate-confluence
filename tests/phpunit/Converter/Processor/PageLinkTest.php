@@ -13,12 +13,12 @@ class PageLinkTest extends TestCase {
 		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageLink::preprocess
 		 * @return void
 		 */
-		public function testPreprocess() {
-			$dir = dirname( dirname( __DIR__ ) ) . '/data';
-			$input = file_get_contents( "$dir/pagelinktest-input.xml" );
+	public function testPreprocess() {
+		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$input = file_get_contents( "$dir/pagelinktest-input.xml" );
 
-			$dom = new DOMDocument();
-			$dom->loadXML( $input );
+		$dom = new DOMDocument();
+		$dom->loadXML( $input );
 
 			$currentSpaceId = 42;
 			$currentRawPagename = 'SomePage';
@@ -26,8 +26,8 @@ class PageLinkTest extends TestCase {
 				// space-id-to-prefix-map
 				[
 					0 => '',
-					42 => 'ABC:',
-					23 => 'DEVOPS:'
+					42 => 'ABC',
+					23 => 'DEVOPS'
 				],
 				// pages-titles-map
 				[
@@ -51,12 +51,12 @@ class PageLinkTest extends TestCase {
 				]
 			);
 
-			$processor = new PageLink( $dataLookup, $currentSpaceId, $currentRawPagename, false );
-			$processor->process( $dom );
+		$processor = new PageLink( $dataLookup, $currentSpaceId, $currentRawPagename, false );
+		$processor->process( $dom );
 
-			$actualOutput = $dom->saveXML( $dom->documentElement );
-			$expectedOutput = file_get_contents( "$dir/pagelinktest-output.xml" );
+		$actualOutput = $dom->saveXML( $dom->documentElement );
+		$expectedOutput = file_get_contents( "$dir/pagelinktest-output.xml" );
 
-			$this->assertEquals( $expectedOutput, $actualOutput );
-		}
+		$this->assertEquals( $expectedOutput, $actualOutput );
+	}
 }
