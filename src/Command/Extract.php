@@ -73,7 +73,7 @@ class Extract extends CommandExtract {
 			// From this step
 			'global-title-metadata',
 			'global-revision-contents',
-			'global-body-contents-to-pages-map',
+			'global-body-content-id-to-page-id-map',
 		];
 	}
 }

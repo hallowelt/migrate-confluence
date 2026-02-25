@@ -323,7 +323,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @return array
 	 */
 	private function buildMainpageContentMap( array $spaceIDHomepagesMap ): array {
-		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
+		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-content-id-to-page-id-map' );
 
 		$bodyContentIDMainpageID = [];
 		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );

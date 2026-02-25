@@ -61,7 +61,7 @@ class Page extends ProcessorBase {
 			'analyze-attachment-id-to-orig-filename-map',
 			'analyze-attachment-id-to-space-id-map',
 			'analyze-attachment-id-to-reference-map',
-			'analyze-body-content-id-to-page-id-map',
+			'global-body-content-id-to-page-id-map',
 			'analyze-pages-titles-map',
 			'analyze-page-id-to-confluence-key-map',
 		];
@@ -82,8 +82,8 @@ class Page extends ProcessorBase {
 			'analyze-attachment-id-to-target-filename-map',
 			'analyze-add-file',
 			'analyze-added-attachment-id',
-			'global-page-id-to-space-id',
-			'global-body-contents-to-pages-map',
+			'global-page-id-to-space-id-map',
+			'global-body-content-id-to-page-id-map',
 			'global-filenames-to-filetitles-map',
 			'global-attachment-orig-filename-target-filename-map',
 			'global-filenames-to-filetitles-map',
@@ -187,7 +187,7 @@ class Page extends ProcessorBase {
 		// to know from filename which page is currently being converted.
 
 		$this->data['analyze-page-id-to-title-map'][$this->pageId] = $this->targetTitle;
-		$this->data['global-page-id-to-space-id'][$this->pageId] = $this->spaceId;
+		$this->data['global-page-id-to-space-id-map'][$this->pageId] = $this->spaceId;
 
 		$revisionTimestamp = $this->buildRevisionTimestamp( $this->xmlHelper, $node );
 		$bodyContentIds = $this->getBodyContentIds( $this->xmlHelper, $node );
@@ -195,15 +195,15 @@ class Page extends ProcessorBase {
 			foreach ( $bodyContentIds as $bodyContentId ) {
 				// TODO: Add UserImpl-key or directly MediaWiki username
 				// (could also be done in `extract` as "metadata" )
-				$this->data['global-body-contents-to-pages-map'][$bodyContentId] = $this->pageId;
+				$this->data['global-body-content-id-to-page-id-map'][$bodyContentId] = $this->pageId;
 			}
 		} else {
 			$bodyContentIds = [];
-			foreach ( $this->data['analyze-body-content-id-to-page-id-map'] as $bodyContentId => $contentPageId ) {
+			foreach ( $this->data['global-body-content-id-to-page-id-map'] as $bodyContentId => $contentPageId ) {
 				if ( $this->pageId === $contentPageId ) {
 					$bodyContentIds[] = $bodyContentId;
 
-					$this->data['global-body-contents-to-pages-map'][$bodyContentId] = $this->pageId;
+					$this->data['global-body-content-id-to-page-id-map'][$bodyContentId] = $this->pageId;
 				}
 			}
 		}

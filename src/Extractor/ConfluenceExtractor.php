@@ -111,7 +111,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @return void
 	 */
 	private function extractBodyContents( DOMDocument $dom ): void {
-		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
+		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-content-id-to-page-id-map' );
 
 		$xmlHelper = new XMLHelper( $dom );
 

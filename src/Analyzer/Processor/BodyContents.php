@@ -16,7 +16,7 @@ class BodyContents extends ProcessorBase {
 	 */
 	public function getKeys(): array {
 		return [
-			'analyze-body-content-id-to-page-id-map'
+			'global-body-content-id-to-page-id-map'
 		];
 	}
 
@@ -37,7 +37,7 @@ class BodyContents extends ProcessorBase {
 		$bodyContentId = $this->xmlHelper->getIDNodeValue( $objectNode );
 		$pageId = $this->xmlHelper->getPropertyValue( 'content', $objectNode );
 
-		$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = trim( $pageId );
+		$this->data['global-body-content-id-to-page-id-map'][$bodyContentId] = trim( $pageId );
 	}
 
 }
