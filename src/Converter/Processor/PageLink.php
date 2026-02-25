@@ -28,7 +28,10 @@ class PageLink extends LinkProcessorBase {
 
 			$confluencePageKey = $this->generatePageConfluenceKey( $spaceId, $rawPageTitle );
 
+			var_dump( $confluencePageKey );
+
 			$targetTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
+			var_dump( $targetTitle );
 			if ( !empty( $targetTitle ) ) {
 				$linkParts[] = $targetTitle;
 			} else {
@@ -36,6 +39,9 @@ class PageLink extends LinkProcessorBase {
 				$linkParts[] = $this->generateConfluenceKey( $spaceId, $rawPageTitle );
 				$isBrokenLink = true;
 			}
+
+			var_dump( $linkParts );
+			var_dump( '---' );
 
 			$this->getLinkBody( $node, $linkParts );
 
@@ -62,7 +68,7 @@ class PageLink extends LinkProcessorBase {
 		$spaceKey = $node->getAttribute( 'ri:space-key' );
 
 		if ( !empty( $spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $spaceKey );
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 		}
 
 		return $spaceId;
