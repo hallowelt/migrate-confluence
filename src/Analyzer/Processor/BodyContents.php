@@ -16,7 +16,8 @@ class BodyContents extends ProcessorBase {
 	 */
 	public function getKeys(): array {
 		return [
-			'analyze-body-content-id-to-page-id-map'
+			'analyze-body-content-id-to-page-id-map',
+			'analyze-body-content-id-to-space-description-id-map'
 		];
 	}
 
@@ -35,9 +36,15 @@ class BodyContents extends ProcessorBase {
 			return;
 		}
 		$bodyContentId = $this->xmlHelper->getIDNodeValue( $objectNode );
+
 		$pageId = $this->xmlHelper->getPropertyValue( 'content', $objectNode );
 
-		$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = trim( $pageId );
+		$propertyNode = $this->xmlHelper->getPropertyNode( 'content', $objectNode );
+		if ( $propertyNode->getAttribute( 'class' ) === 'Page' ) {
+			$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = trim( $pageId );
+		} else if ( $propertyNode->getAttribute( 'class' ) === 'SpaceDescription' ) {
+			$this->data['analyze-body-content-id-to-space-description-id-map'][$bodyContentId] = trim( $pageId );
+		}
 	}
 
 }

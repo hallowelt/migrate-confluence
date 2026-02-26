@@ -83,7 +83,7 @@ class Page extends ProcessorBase {
 			'analyze-add-file',
 			'analyze-added-attachment-id',
 			'global-page-id-to-space-id',
-			'global-body-contents-to-pages-map',
+			'global-body-content-id-to-page-id-map',
 			'global-filenames-to-filetitles-map',
 			'global-attachment-orig-filename-target-filename-map',
 			'global-filenames-to-filetitles-map',
@@ -195,7 +195,7 @@ class Page extends ProcessorBase {
 			foreach ( $bodyContentIds as $bodyContentId ) {
 				// TODO: Add UserImpl-key or directly MediaWiki username
 				// (could also be done in `extract` as "metadata" )
-				$this->data['global-body-contents-to-pages-map'][$bodyContentId] = $this->pageId;
+				$this->data['global-body-content-id-to-page-id-map'][$bodyContentId] = $this->pageId;
 			}
 		} else {
 			$bodyContentIds = [];
@@ -203,7 +203,7 @@ class Page extends ProcessorBase {
 				if ( $this->pageId === $contentPageId ) {
 					$bodyContentIds[] = $bodyContentId;
 
-					$this->data['global-body-contents-to-pages-map'][$bodyContentId] = $this->pageId;
+					$this->data['global-body-content-id-to-page-id-map'][$bodyContentId] = $this->pageId;
 				}
 			}
 		}
@@ -311,7 +311,10 @@ class Page extends ProcessorBase {
 				= $attachmentTargetFilename;
 			$this->data['analyze-attachment-id-to-target-filename-map'][$attachmentId]
 				= $attachmentTargetFilename;
-			$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename]
+			if ( !isset( $this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] ) ) {
+				$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] = [];
+			}
+			$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename][]
 				= $attachmentTargetFilename;
 		}
 	}

@@ -111,14 +111,17 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @return void
 	 */
 	private function extractBodyContents( DOMDocument $dom ): void {
-		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
+		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-content-id-to-page-id-map' );
+		$spaceDescritipionIdtoBodyContentsMap = $this->buckets->getBucketData( 'analyze-body-content-id-to-space-description-id-map' );
+		$bodySpaceDescrtiptionMap = array_flip( $spaceDescritipionIdtoBodyContentsMap );
 
 		$xmlHelper = new XMLHelper( $dom );
 
 		$bodyContents = $xmlHelper->getObjectNodes( 'BodyContent' );
 		foreach ( $bodyContents as $bodyContent ) {
 			$id = $xmlHelper->getIDNodeValue( $bodyContent );
-			if ( !isset( $bodyContentsToPagesMap[ $id ] ) ) {
+			if ( !isset( $bodyContentsToPagesMap[ $id ] ) && !isset( $bodySpaceDescrtiptionMap[ $id ] ) ) {
+			#if ( !isset( $bodyContentsToPagesMap[ $id ] ) ) {
 				continue;
 			}
 			$bodyContentHTML = $this->getBodyContentHTML( $xmlHelper, $bodyContent );

@@ -125,11 +125,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-page-id-to-title-map',
 			'global-pages-titles-map',
 			'global-title-attachments',
-			'global-body-contents-to-pages-map',
+			'global-body-content-id-to-page-id-map',
 			'global-page-id-to-space-id',
 			'global-space-id-to-key-map',
 			'global-space-id-to-prefix-map',
 			'global-space-key-to-prefix-map',
+			'global-space-id-homepages',
 			'global-filenames-to-filetitles-map',
 			'global-title-metadata',
 			'global-attachment-orig-filename-target-filename-map',
@@ -385,7 +386,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return int
 	 */
 	private function getPageIdFromBodyContentId( $bodyContentId ) {
-		$map = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
+		$map = $this->buckets->getBucketData( 'global-body-content-id-to-page-id-map' );
 		return $map[$bodyContentId] ?? -1;
 	}
 
