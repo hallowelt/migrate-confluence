@@ -38,12 +38,13 @@ class BodyContents extends ProcessorBase {
 		$bodyContentId = $this->xmlHelper->getIDNodeValue( $objectNode );
 
 		$pageId = $this->xmlHelper->getPropertyValue( 'content', $objectNode );
+		$pageId = (int)trim( $pageId );
 
 		$propertyNode = $this->xmlHelper->getPropertyNode( 'content', $objectNode );
 		if ( $propertyNode->getAttribute( 'class' ) === 'Page' ) {
-			$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = trim( $pageId );
+			$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $pageId;
 		} elseif ( $propertyNode->getAttribute( 'class' ) === 'SpaceDescription' ) {
-			$this->data['analyze-body-content-id-to-space-description-id-map'][$bodyContentId] = trim( $pageId );
+			$this->data['analyze-body-content-id-to-space-description-id-map'][$bodyContentId] = $pageId;
 		}
 	}
 
