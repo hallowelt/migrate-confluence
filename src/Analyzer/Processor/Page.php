@@ -311,7 +311,9 @@ class Page extends ProcessorBase {
 				= $attachmentTargetFilename;
 			$this->data['analyze-attachment-id-to-target-filename-map'][$attachmentId]
 				= $attachmentTargetFilename;
-			if ( !isset( $this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] ) ) {
+			if (
+				!isset( $this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] )
+			) {
 				$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] = [];
 			}
 			$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename][]
