@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2021-02-16 10:21:02">
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">300</id>
+        <property name="content" class="SpaceDescription">
+            <id name="id">400</id>
+        </property>
+    </object>
+
+</hibernate-generic>
