@@ -5,8 +5,8 @@
 	],
 	"finder": [
 		{
-			"name": "*.php",
-			"exclude": ["tests", "dist"],
+			"name": "{\\.(php|bash|fish|zsh)}",
+			"exclude": ["tests", "dist", "docker"],
 			"in": "vendor"
 		}
 	],
