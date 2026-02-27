@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2021-02-16 10:21:02">
+
+    <object class="Page" package="com.atlassian.confluence.pages">
+        <id name="id">500</id>
+        <property name="contentStatus">current</property>
+        <property name="space" class="Space">
+            <id name="id">10</id>
+        </property>
+        <property name="title"><![CDATA[Test Page]]></property>
+        <property name="parent" class="Page">
+            <id name="id">600</id>
+        </property>
+    </object>
+
+</hibernate-generic>
