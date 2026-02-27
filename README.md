@@ -11,6 +11,9 @@ This is a command line tool to convert the contents of a Confluence space into a
 2. Make sure the file is executable. E.g. by running `chmod +x migrate-confluence.phar`
 3. Move `migrate-confluence.phar` to `/usr/local/bin/migrate-confluence` (or somewhere else in the `PATH`)
 
+## Doker
+ docker build -t hallowelt/migrate-confluence .
+ docker run  -v $(pwd)/input:/input -v $(pwd)/workspace:/workspace  hallowelt/migrate-confluence:latest analyze --src=input --dest=workspace
 ## Workflow
 
 ### Export "space" from Confluence
