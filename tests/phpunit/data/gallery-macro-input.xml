@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Before</p>
+	<ac:structured-macro ac:name="gallery" ac:schema-version="1" ac:macro-id="abc-111">
+		<ac:parameter ac:name="title">Assets Gallery (All Image Types)</ac:parameter>
+		<ac:parameter ac:name="columns">4</ac:parameter>
+		<ac:image>
+			<ri:attachment ri:filename="dashboard.png"/>
+		</ac:image>
+		<ac:image>
+			<ri:attachment ri:filename="photo.jpg"/>
+		</ac:image>
+		<ac:image>
+			<ri:attachment ri:filename="loading.gif"/>
+		</ac:image>
+		<ac:image>
+			<ri:attachment ri:filename="illustration.webp"/>
+		</ac:image>
+		<ac:image>
+			<ri:attachment ri:filename="raw-scan.bmp"/>
+		</ac:image>
+		<ac:image>
+			<ri:attachment ri:filename="blueprint.tiff"/>
+		</ac:image>
+		<ac:image>
+			<ri:attachment ri:filename="icon.svg"/>
+		</ac:image>
+		<ac:image>
+			<ri:attachment ri:filename="logo.png">
+				<ri:page ri:content-title="Brand Assets"/>
+			</ri:attachment>
+		</ac:image>
+		<ac:image>
+			<ri:attachment ri:filename="team.jpg">
+				<ri:page ri:space-key="MKT" ri:content-title="Team Photos"/>
+			</ri:attachment>
+		</ac:image>
+		<ac:image>
+			<ri:attachment ri:filename="document.pdf"/>
+		</ac:image>
+		<ac:image>
+			<ri:url ri:value="https://example.com/images/hero.png"/>
+		</ac:image>
+		<ac:image>
+			<ri:url ri:value="https://cdn.example.org/assets/promo.jpg"/>
+		</ac:image>
+		<ac:image>
+			<ri:url ri:value="https://media.example.net/anim.gif"/>
+		</ac:image>
+		<ac:image>
+			<ri:url ri:value="https://static.example.com/diagram.webp"/>
+		</ac:image>
+		<ac:image>
+			<ri:url ri:value="https://assets.example.com/vector/icon.svg"/>
+		</ac:image>
+	</ac:structured-macro>
+	<p>After</p>
+</xml>

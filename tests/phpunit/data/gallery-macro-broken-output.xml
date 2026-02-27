@@ -1,0 +1,5 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Before</p>
+	[[Category:Broken_macro/gallery]]
+	<p>After</p>
+</xml>

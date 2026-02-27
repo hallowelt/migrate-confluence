@@ -1,0 +1,16 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Before</p>
+	&lt;gallery caption="Assets Gallery (All Image Types)" perrow="4"&gt;
+dashboard.png
+photo.jpg
+loading.gif
+illustration.webp
+raw-scan.bmp
+blueprint.tiff
+icon.svg
+logo.png
+team.jpg
+document.pdf
+&lt;/gallery&gt;
+	<p>After</p>
+</xml>

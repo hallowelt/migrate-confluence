@@ -207,6 +207,24 @@ class ConversionDataLookup {
 	}
 
 	/**
+	 * Returns all target file titles attached to a given page.
+	 *
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return string[]
+	 */
+	public function getTargetFileTitlesForPage( int $spaceId, string $rawPageTitle ): array {
+		$prefix = $spaceId . '---' . str_replace( ' ', '_', basename( $rawPageTitle ) ) . '---';
+		$results = [];
+		foreach ( $this->filenamesToFiletitlesMap as $key => $targetTitle ) {
+			if ( strpos( $key, $prefix ) === 0 && $targetTitle !== '' ) {
+				$results[] = $targetTitle;
+			}
+		}
+		return $results;
+	}
+
+	/**
 	 * @param string $userKey
 	 * @return string
 	 */
