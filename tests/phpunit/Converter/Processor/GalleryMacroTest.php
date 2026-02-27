@@ -12,9 +12,9 @@ class GalleryMacroTest extends TestCase {
 	/**
 	 * @return ConversionDataLookup
 	 */
-	private function makeDataLookup( array $fileMap = [] ): ConversionDataLookup {
+	private function makeDataLookup( array $fileMap = [], array $spaceIdPrefixMap = [] ): ConversionDataLookup {
 		return new ConversionDataLookup(
-			[],
+			$spaceIdPrefixMap,
 			[],
 			$fileMap,
 			[],
@@ -31,11 +31,19 @@ class GalleryMacroTest extends TestCase {
 		$dir = dirname( dirname( __DIR__ ) ) . '/data';
 
 		$fileMap = [
-			'1---MyPage---image1.png' => 'image1.png',
-			'1---MyPage---image2.jpg' => 'image2.jpg',
+			'1---MyPage---dashboard.png' => 'dashboard.png',
+			'1---MyPage---photo.jpg' => 'photo.jpg',
+			'1---MyPage---loading.gif' => 'loading.gif',
+			'1---MyPage---illustration.webp' => 'illustration.webp',
+			'1---MyPage---raw-scan.bmp' => 'raw-scan.bmp',
+			'1---MyPage---blueprint.tiff' => 'blueprint.tiff',
+			'1---MyPage---icon.svg' => 'icon.svg',
+			'1---Brand_Assets---logo.png' => 'logo.png',
+			'2---Team_Photos---team.jpg' => 'team.jpg',
 			'1---MyPage---document.pdf' => 'document.pdf',
 		];
-		$dataLookup = $this->makeDataLookup( $fileMap );
+		$spaceIdPrefixMap = [ 2 => 'MKT' ];
+		$dataLookup = $this->makeDataLookup( $fileMap, $spaceIdPrefixMap );
 		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage' );
 
 		$dom = new DOMDocument();

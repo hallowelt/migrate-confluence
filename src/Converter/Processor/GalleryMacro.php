@@ -7,18 +7,6 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
 class GalleryMacro extends StructuredMacroProcessorBase {
 
-	private const IMAGE_EXTENSIONS = [
-		'jpg',
-		'jpeg',
-		'png',
-		'gif',
-		'svg',
-		'bmp',
-		'webp',
-		'tiff',
-		'tif',
-	];
-
 	/** @var ConversionDataLookup */
 	private $dataLookup;
 
@@ -57,7 +45,13 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 */
 	protected function doProcessMacro( $node ): void {
 		$params = $this->getMacroParams( $node );
-		$files = $this->getImageFiles( $params );
+		$bodyImages = $this->getBodyImages( $node );
+
+		if ( !empty( $bodyImages ) ) {
+			$files = $this->resolveBodyImages( $bodyImages );
+		} else {
+			$files = $this->getImageFiles( $params );
+		}
 
 		if ( empty( $files ) ) {
 			$node->parentNode->replaceChild(
@@ -109,9 +103,6 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 		$files = [];
 		foreach ( $allFiles as $file ) {
-			if ( !$this->isImageFile( $file ) ) {
-				continue;
-			}
 			if ( in_array( $file, $exclude ) ) {
 				continue;
 			}
@@ -145,14 +136,102 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param string $filename
-	 *
-	 * @return bool
+	 * @param DOMNode $macro
+	 * @return DOMNode[]
 	 */
-	private function isImageFile( string $filename ): bool {
-		$ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+	private function getBodyImages( DOMNode $macro ): array {
+		$images = [];
+		foreach ( $macro->childNodes as $childNode ) {
+			if ( $childNode->nodeName === 'ac:image' ) {
+				$images[] = $childNode;
+			}
+		}
+		return $images;
+	}
 
-		return in_array( $ext, self::IMAGE_EXTENSIONS );
+	/**
+	 * @param DOMNode[] $imageNodes
+	 * @return string[]
+	 */
+	private function resolveBodyImages( array $imageNodes ): array {
+		$files = [];
+		foreach ( $imageNodes as $imageNode ) {
+			$attachment = null;
+			$isUrl = false;
+
+			foreach ( $imageNode->childNodes as $child ) {
+				if ( $child->nodeName === 'ri:attachment' ) {
+					$attachment = $child;
+				} elseif ( $child->nodeName === 'ri:url' ) {
+					$isUrl = true;
+				}
+			}
+
+			// External URLs are not supported by MediaWiki gallery
+			if ( $isUrl || $attachment === null ) {
+				continue;
+			}
+
+			$filename = $attachment->getAttribute( 'ri:filename' );
+			if ( $filename === '' ) {
+				continue;
+			}
+
+			$spaceId = $this->currentSpaceId;
+			$pageTitle = $this->rawPageTitle;
+
+			$page = null;
+			foreach ( $attachment->childNodes as $child ) {
+				if ( $child->nodeName === 'ri:page' ) {
+					$page = $child;
+					break;
+				}
+			}
+
+			if ( $page !== null ) {
+				$contentTitle = $page->getAttribute( 'ri:content-title' );
+				if ( $contentTitle !== '' ) {
+					$pageTitle = $contentTitle;
+				}
+				$spaceKey = $page->getAttribute( 'ri:space-key' );
+				if ( $spaceKey !== '' ) {
+					$resolvedSpaceId = $this->resolveSpaceId( $spaceKey );
+					if ( $resolvedSpaceId !== -1 ) {
+						$spaceId = $resolvedSpaceId;
+					} else {
+						continue;
+					}
+				}
+			}
+
+			$key = $spaceId .
+				'---' .
+				str_replace( ' ', '_', basename( $pageTitle ) ) .
+				'---' .
+				str_replace( ' ', '_', $filename );
+			$targetTitle = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $key );
+			if ( $targetTitle !== '' ) {
+				$files[] = $targetTitle;
+			}
+		}
+
+		return $files;
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @return int
+	 */
+	private function resolveSpaceId( string $spaceKey ): int {
+		$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $spaceKey );
+		if ( $spaceId !== -1 ) {
+			return $spaceId;
+		}
+		$prefix = $this->dataLookup->getSpacePrefixFromSpaceKey( $spaceKey );
+		if ( $prefix !== -1 && $prefix !== '' ) {
+			return $this->dataLookup->getSpaceIdFromSpacePrefix( $prefix );
+		}
+		return -1;
 	}
 
 	/**
