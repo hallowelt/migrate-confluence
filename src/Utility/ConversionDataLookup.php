@@ -216,7 +216,7 @@ class ConversionDataLookup {
 	public function getTargetFileTitlesForPage( int $spaceId, string $rawPageTitle ): array {
 		$prefix = $spaceId . '---' . str_replace( ' ', '_', basename( $rawPageTitle ) ) . '---';
 		$results = [];
-		foreach ( $this->confluenceFilenameTargetFiletitleMap as $key => $targetTitle ) {
+		foreach ( $this->filenamesToFiletitlesMap as $key => $targetTitle ) {
 			if ( strpos( $key, $prefix ) === 0 && $targetTitle !== '' ) {
 				$results[] = $targetTitle;
 			}

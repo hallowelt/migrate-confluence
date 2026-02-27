@@ -223,15 +223,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 * @return int
 	 */
 	private function resolveSpaceId( string $spaceKey ): int {
-		$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $spaceKey );
-		if ( $spaceId !== -1 ) {
-			return $spaceId;
-		}
-		$prefix = $this->dataLookup->getSpacePrefixFromSpaceKey( $spaceKey );
-		if ( $prefix !== -1 && $prefix !== '' ) {
-			return $this->dataLookup->getSpaceIdFromSpacePrefix( $prefix );
-		}
-		return -1;
+		return $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 	}
 
 	/**

@@ -12,14 +12,15 @@ class GalleryMacroTest extends TestCase {
 	/**
 	 * @return ConversionDataLookup
 	 */
-	private function makeDataLookup( array $fileMap = [], array $spaceIdPrefixMap = [] ): ConversionDataLookup {
+	private function makeDataLookup( array $fileMap = [], array $spaceIdToKeyMap = [] ): ConversionDataLookup {
 		return new ConversionDataLookup(
-			$spaceIdPrefixMap,
+			[],
 			[],
 			$fileMap,
 			[],
 			[],
-			[]
+			[],
+			$spaceIdToKeyMap
 		);
 	}
 
@@ -42,8 +43,8 @@ class GalleryMacroTest extends TestCase {
 			'2---Team_Photos---team.jpg' => 'team.jpg',
 			'1---MyPage---document.pdf' => 'document.pdf',
 		];
-		$spaceIdPrefixMap = [ 2 => 'MKT' ];
-		$dataLookup = $this->makeDataLookup( $fileMap, $spaceIdPrefixMap );
+		$spaceIdToKeyMap = [ 2 => 'MKT' ];
+		$dataLookup = $this->makeDataLookup( $fileMap, $spaceIdToKeyMap );
 		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage' );
 
 		$dom = new DOMDocument();
