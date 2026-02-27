@@ -113,17 +113,15 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$sortedRevisions = $this->sortRevisions( $pageRevisions );
 			foreach ( $sortedRevisions as $timestamp => $bodyContentIds ) {
 				$bodyContentIdsArr = explode( '/', $bodyContentIds );
-
 				$pageContent = "";
 				foreach ( $bodyContentIdsArr as $bodyContentId ) {
 					if ( $bodyContentId === '' ) {
 						// Skip if no reference to a body content is not set
 						continue;
 					}
-
 					$this->output->writeln( "Getting '$bodyContentId' body content..." );
-
 					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
+					/* Has to be fixed
 					$pageContent .= $this->addSpaceDescriptionToMainPage(
 						$bodyContentId,
 						$bodyContentIDMainpageID,
@@ -131,6 +129,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 						$spaceIdDescriptionIdMap,
 						$spaceDescriptionIDBodyIDMap
 					);
+				*/
 				}
 
 				$this->addRevision( $pageTitle, $pageContent, $timestamp );
@@ -323,7 +322,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @return array
 	 */
 	private function buildMainpageContentMap( array $spaceIDHomepagesMap ): array {
-		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-contents-to-pages-map' );
+		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-content-id-to-page-id-map' );
 
 		$bodyContentIDMainpageID = [];
 		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );

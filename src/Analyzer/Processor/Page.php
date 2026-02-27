@@ -83,7 +83,7 @@ class Page extends ProcessorBase {
 			'analyze-add-file',
 			'analyze-added-attachment-id',
 			'global-page-id-to-space-id',
-			'global-body-contents-to-pages-map',
+			'global-body-content-id-to-page-id-map',
 			'global-filenames-to-filetitles-map',
 			'global-attachment-orig-filename-target-filename-map',
 			'global-filenames-to-filetitles-map',
@@ -195,7 +195,7 @@ class Page extends ProcessorBase {
 			foreach ( $bodyContentIds as $bodyContentId ) {
 				// TODO: Add UserImpl-key or directly MediaWiki username
 				// (could also be done in `extract` as "metadata" )
-				$this->data['global-body-contents-to-pages-map'][$bodyContentId] = $this->pageId;
+				$this->data['global-body-content-id-to-page-id-map'][$bodyContentId] = $this->pageId;
 			}
 		} else {
 			$bodyContentIds = [];
@@ -203,7 +203,7 @@ class Page extends ProcessorBase {
 				if ( $this->pageId === $contentPageId ) {
 					$bodyContentIds[] = $bodyContentId;
 
-					$this->data['global-body-contents-to-pages-map'][$bodyContentId] = $this->pageId;
+					$this->data['global-body-content-id-to-page-id-map'][$bodyContentId] = $this->pageId;
 				}
 			}
 		}
@@ -298,9 +298,7 @@ class Page extends ProcessorBase {
 			$attachmentReference = $this->data['analyze-attachment-id-to-reference-map'][$attachmentId];
 
 			// In case of ERM34465 no files are added to title-attachments
-			//$this->addTitleAttachment( $wikiTitle, $attachmentTargetFilename );
 			$this->data['global-title-attachments'][$wikiTitle][] = $attachmentTargetFilename;
-			// $this->addFile( $attachmentTargetFilename, $attachmentReference );
 			$this->data['analyze-add-file'][$attachmentTargetFilename] = $attachmentReference;
 			$this->data['analyze-title-to-attachment-title'][$wikiTitle] = $attachmentTargetFilename;
 			$this->data['analyze-added-attachment-id'][] = $attachmentId;
@@ -311,7 +309,12 @@ class Page extends ProcessorBase {
 				= $attachmentTargetFilename;
 			$this->data['analyze-attachment-id-to-target-filename-map'][$attachmentId]
 				= $attachmentTargetFilename;
-			$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename]
+			if (
+				!isset( $this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] )
+			) {
+				$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] = [];
+			}
+			$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename][]
 				= $attachmentTargetFilename;
 		}
 	}
