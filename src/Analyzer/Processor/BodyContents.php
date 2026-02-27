@@ -38,7 +38,7 @@ class BodyContents extends ProcessorBase {
 		$bodyContentId = $this->xmlHelper->getIDNodeValue( $objectNode );
 
 		$pageId = $this->xmlHelper->getPropertyValue( 'content', $objectNode );
-		$pageId = (int) trim( $pageId );
+		$pageId = (int)trim( $pageId );
 
 		$propertyNode = $this->xmlHelper->getPropertyNode( 'content', $objectNode );
 		if ( $propertyNode->getAttribute( 'class' ) === 'Page' ) {
