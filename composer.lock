@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "da5f4231b068e9860f4964ffa6c95b5c",
+    "content-hash": "a039f45ff6a6835ae43c082d879bb108",
     "packages": [
         {
             "name": "hallowelt/mediawiki-lib-commandline-tools",
@@ -239,62 +239,6 @@
             ],
             "description": "Class library for dealing with MediaWiki WikiText",
             "time": "2022-01-26T14:06:37+00:00"
-        },
-        {
-            "name": "michelf/php-markdown",
-            "version": "2.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/michelf/php-markdown.git",
-                "reference": "eb176f173fbac58a045aff78e55f833264b34e71"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/michelf/php-markdown/zipball/eb176f173fbac58a045aff78e55f833264b34e71",
-                "reference": "eb176f173fbac58a045aff78e55f833264b34e71",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.4"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.0",
-                "phpstan/phpstan": ">=1.0",
-                "phpstan/phpstan-phpunit": ">=1.0",
-                "phpunit/phpunit": "^9.5"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Michelf\\": "Michelf/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Michel Fortin",
-                    "email": "michel.fortin@michelf.ca",
-                    "homepage": "https://michelf.ca/",
-                    "role": "Developer"
-                },
-                {
-                    "name": "John Gruber",
-                    "homepage": "https://daringfireball.net/"
-                }
-            ],
-            "description": "PHP Markdown",
-            "homepage": "https://michelf.ca/projects/php-markdown/",
-            "keywords": [
-                "markdown"
-            ],
-            "support": {
-                "issues": "https://github.com/michelf/php-markdown/issues",
-                "source": "https://github.com/michelf/php-markdown/tree/2.0.0"
-            },
-            "time": "2022-09-26T12:21:08+00:00"
         },
         {
             "name": "psr/container",

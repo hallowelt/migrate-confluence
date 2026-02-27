@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
-use Michelf\MarkdownExtra;
 
 class MarkdownMacro extends StructuredMacroProcessorBase {
 
@@ -35,19 +34,12 @@ class MarkdownMacro extends StructuredMacroProcessorBase {
 		$replacement = null;
 
 		if ( !$brokenMacro ) {
-			$html = $this->convertMarkdownToHtml( $markdownContent );
-			if ( $html === '' ) {
-				$brokenMacro = true;
-			} else {
-				$wrapper = $node->ownerDocument->createElement( 'div' );
-				$wrapper->setAttribute( 'class', 'ac-markdown' );
+			$wrapper = $node->ownerDocument->createElement( 'markdown' );
+			$wrapper->appendChild(
+				$node->ownerDocument->createTextNode( $markdownContent )
+			);
 
-				$fragment = $node->ownerDocument->createDocumentFragment();
-				$fragment->appendXML( $html );
-				$wrapper->appendChild( $fragment );
-
-				$replacement = $wrapper;
-			}
+			$replacement = $wrapper;
 		}
 
 		if ( $brokenMacro ) {
@@ -57,13 +49,5 @@ class MarkdownMacro extends StructuredMacroProcessorBase {
 		}
 
 		$node->parentNode->replaceChild( $replacement, $node );
-	}
-
-	/**
-	 * @param string $markdown
-	 * @return string
-	 */
-	private function convertMarkdownToHtml( string $markdown ): string {
-		return MarkdownExtra::defaultTransform( $markdown );
 	}
 }
