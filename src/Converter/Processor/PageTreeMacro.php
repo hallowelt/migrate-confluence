@@ -201,7 +201,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				default:
 					// create new content-title from space key and content title
 					if ( isset( $params['space-key'] ) ) {
-						$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $params['space-key'] );
+						$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] );
 					} else {
 						$spaceId = $this->currentSpace;
 					}
@@ -224,7 +224,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 			// if content-title is not set fallback to {{FULLPAGENAME}}
 			$params['content-title'] = '{{FULLPAGENAME}}';
 			if ( isset( $params['space-key'] ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpacePrefix( $params['space-key'] );
+				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] );
 			} else {
 				$spaceId = $this->currentSpace;
 			}

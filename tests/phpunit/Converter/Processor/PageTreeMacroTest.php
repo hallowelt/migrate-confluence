@@ -21,8 +21,8 @@ class PageTreeMacroTest extends TestCase {
 		$this->dataLookup = new ConversionDataLookup(
 			[
 				0 => '',
-				42 => 'ABC',
-				23 => 'DEVOPS'
+				42 => 'ABC:',
+				23 => 'DEVOPS:'
 			],
 			[
 				'23---Main_Page' => 'DEVOPS:Main Page',
@@ -38,7 +38,9 @@ class PageTreeMacroTest extends TestCase {
 			[],
 			[],
 			[
-				'DEVOPS' => 'DEVOPS'
+				0 => '',
+				42 => 'ABC',
+				23 => 'DEVOPS'
 			]
 		);
 

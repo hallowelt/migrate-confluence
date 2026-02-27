@@ -28,8 +28,8 @@ class ImageTest extends TestCase {
 
 		$this->dataLookup = new ConversionDataLookup(
 			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
+				42 => 'ABC:',
+				23 => 'DEVOPS:'
 			],
 			[
 				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
@@ -40,7 +40,11 @@ class ImageTest extends TestCase {
 			],
 			[],
 			[],
-			[]
+			[],
+			[
+				42 => 'ABC',
+				23 => 'DEVOPS'
+			]
 		);
 
 		/** SpaceId GENERAL */

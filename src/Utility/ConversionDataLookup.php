@@ -16,41 +16,42 @@ class ConversionDataLookup {
 	 *
 	 * @var array
 	 */
-	private $spaceKeyPrefixMap = [];
+	private $spaceIdToKeyMap = [];
 
 	/**
 	 *
 	 * @var array
 	 */
-	private $confluencePageKeyTargetTitleMap = [];
+	private $spaceKeyToIdMap = [];
 
 	/**
 	 *
 	 * @var array
 	 */
-	private $confluenceFilenameTargetFiletitleMap = [];
+	private $pagesTitlesMap = [];
 
 	/**
 	 *
 	 * @var array
 	 */
-	private $confluenceAttachmentOrigFilenameToTargetFilenameMap = [];
+	private $filenamesToFiletitlesMap = [];
 
 	/**
 	 *
 	 * @var array
 	 */
-	private $confluenceFiles = [];
+	private $attachmentOrigFilenameToTargetFilenameMap = [];
+
+	/**
+	 *
+	 * @var array
+	 */
+	private $files = [];
 
 	/**
 	 * @var array
 	 */
-	private $confluenceUserMap = [];
-
-	/**
-	 * @var array
-	 */
-	private $attachmentConfluenceFileKeyToTargetTitlemap = [];
+	private $userMap = [];
 
 	/**
 	 *
@@ -65,55 +66,57 @@ class ConversionDataLookup {
 			$buckets->getBucketData( 'global-attachment-orig-filename-target-filename-map' ),
 			$buckets->getBucketData( 'global-files' ),
 			$buckets->getBucketData( 'global-userkey-to-username-map' ),
-			$buckets->getBucketData( 'global-space-key-to-prefix-map' ),
+			$buckets->getBucketData( 'global-space-id-to-key-map' ),
 		);
 	}
 
 	/**
 	 * @param array $spaceIdPrefixMap
-	 * @param array $confluencePageKeyTargetTitleMap
-	 * @param array $confluenceFilenameTargetFiletitleMap
-	 * @param array $confluenceAttachmentOrigFilenameToTargetFilenameMap
-	 * @param array $confluenceFiles
-	 * @param array $confluenceUserMap
-	 * @param array $spaceKeyPrefixMap
+	 * @param array $pagesTitlesMap
+	 * @param array $filenamesToFiletitlesMap
+	 * @param array $attachmentOrigFilenameToTargetFilenameMap
+	 * @param array $files
+	 * @param array $userMap
+	 * @param array $spaceIdToKeyMap
 	 */
-	public function __construct( $spaceIdPrefixMap, $confluencePageKeyTargetTitleMap,
-		$confluenceFilenameTargetFiletitleMap, $confluenceAttachmentOrigFilenameToTargetFilenameMap,
-		$confluenceFiles, $confluenceUserMap, $spaceKeyPrefixMap = [] ) {
+	public function __construct(
+		$spaceIdPrefixMap, $pagesTitlesMap,
+		$filenamesToFiletitlesMap, $attachmentOrigFilenameToTargetFilenameMap,
+		$files, $userMap, $spaceIdToKeyMap ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
-		$this->spaceKeyPrefixMap = $spaceKeyPrefixMap;
+		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
+		$this->spaceKeyToIdMap = array_flip( $this->spaceIdToKeyMap );
 
 		// This is some quickfix solution. It must be changed as soon as possible!
 		// The real issue is in the way the `analyze` step constructs the "conflucence-keys"
 		// within the "maps". It does no normalization there. This whole mechanism should be
 		// reviewed.
-		foreach ( $confluencePageKeyTargetTitleMap as $confluencePageKey => $targetTitle ) {
+		foreach ( $pagesTitlesMap as $confluencePageKey => $targetTitle ) {
 			$normalConfluencePageKey = str_replace( ' ', '_', $confluencePageKey );
-			$this->confluencePageKeyTargetTitleMap[$normalConfluencePageKey] = $targetTitle;
+			$this->pagesTitlesMap[$normalConfluencePageKey] = $targetTitle;
 		}
-		foreach ( $confluenceFilenameTargetFiletitleMap as $confluenceFileKey => $targetTitle ) {
-			$this->confluenceFilenameTargetFiletitleMap = $confluenceFilenameTargetFiletitleMap;
+		foreach ( $filenamesToFiletitlesMap as $confluenceFileKey => $targetTitle ) {
+			$this->filenamesToFiletitlesMap = $filenamesToFiletitlesMap;
 		}
-		foreach ( $confluenceAttachmentOrigFilenameToTargetFilenameMap as $origFilename => $filenames ) {
+		foreach ( $attachmentOrigFilenameToTargetFilenameMap as $origFilename => $filenames ) {
 			$filename = str_replace( ' ', '_', $origFilename );
-			$this->confluenceAttachmentOrigFilenameToTargetFilenameMap[$filename] = $filenames;
+			$this->attachmentOrigFilenameToTargetFilenameMap[$filename] = $filenames;
 		}
-		$this->confluenceFiles = $confluenceFiles;
-		$this->confluenceUserMap = $confluenceUserMap;
+		$this->files = $files;
+		$this->userMap = $userMap;
 	}
 
 	/**
 	 * @param string $spaceKey
 	 * @return int
 	 */
-	public function getSpaceIdFromSpacePrefix( $spaceKey ) {
+	public function getSpaceIdFromSpaceKey( $spaceKey ) {
 		// See `ConfluenceAnalyzer::makeSpacesMap`
 		if ( $spaceKey === 'GENERAL' ) {
 			$spaceKey = '';
 		}
-		foreach ( $this->spaceIdPrefixMap as $spaceId => $prefix ) {
-			if ( $prefix === $spaceKey ) {
+		foreach ( $this->spaceIdToKeyMap as $spaceId => $key ) {
+			if ( $key === $spaceKey ) {
 				return $spaceId;
 			}
 		}
@@ -129,12 +132,19 @@ class ConversionDataLookup {
 	 * @return int
 	 */
 	public function getSpacePrefixFromSpaceKey( $spaceKey ) {
+		$id = -1;
+		if ( isset( $this->spaceKeyToIdMap[$spaceKey] ) ) {
+			$id = $this->spaceKeyToIdMap[$spaceKey];
+		}
+
 		$spacePrefix = '';
-		if ( isset( $this->spaceKeyPrefixMap[$spaceKey] ) ) {
-			$spacePrefix = $this->spaceKeyPrefixMap[$spaceKey];
+		if ( isset( $this->spaceIdPrefixMap[$id] ) ) {
+			$spacePrefix = $this->spaceIdPrefixMap[$id];
 			// See `ConfluenceAnalyzer::makeSpacesMap`
 			if ( $spacePrefix === 'GENERAL' ) {
 				$spacePrefix = '';
+			} else {
+				$spacePrefix = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) );
 			}
 			return $spacePrefix;
 		}
@@ -148,8 +158,8 @@ class ConversionDataLookup {
 	 */
 	public function getTargetTitleFromConfluencePageKey( $confluencePageKey ) {
 		$confluencePageKey = str_replace( ' ', '_', $confluencePageKey );
-		if ( isset( $this->confluencePageKeyTargetTitleMap[$confluencePageKey] ) ) {
-			return $this->confluencePageKeyTargetTitleMap[$confluencePageKey];
+		if ( isset( $this->pagesTitlesMap[$confluencePageKey] ) ) {
+			return $this->pagesTitlesMap[$confluencePageKey];
 		}
 		return '';
 	}
@@ -160,13 +170,13 @@ class ConversionDataLookup {
 	 * @return string
 	 */
 	public function getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey ) {
-		if ( isset( $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey] ) ) {
-			return $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey];
+		if ( isset( $this->filenamesToFiletitlesMap[$confluenceFileKey] ) ) {
+			return $this->filenamesToFiletitlesMap[$confluenceFileKey];
 		}
 
 		$confluenceFileKey = str_replace( ' ', '_', $confluenceFileKey );
-		if ( isset( $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey] ) ) {
-			return $this->confluenceFilenameTargetFiletitleMap[$confluenceFileKey];
+		if ( isset( $this->filenamesToFiletitlesMap[$confluenceFileKey] ) ) {
+			return $this->filenamesToFiletitlesMap[$confluenceFileKey];
 		}
 
 		$confluenceFileKeyParts = explode( '---', $confluenceFileKey );
@@ -174,13 +184,13 @@ class ConversionDataLookup {
 
 		$md5File = '';
 		$filename = '';
-		if ( isset( $this->confluenceAttachmentOrigFilenameToTargetFilenameMap[$confluenceFilename] ) ) {
-			$filenames = $this->confluenceAttachmentOrigFilenameToTargetFilenameMap[$confluenceFilename];
+		if ( isset( $this->attachmentOrigFilenameToTargetFilenameMap[$confluenceFilename] ) ) {
+			$filenames = $this->attachmentOrigFilenameToTargetFilenameMap[$confluenceFilename];
 			foreach ( $filenames as $curFilename ) {
-				if ( !isset( $this->confluenceFiles[$curFilename] ) ) {
+				if ( !isset( $this->files[$curFilename] ) ) {
 					continue;
 				}
-				$paths = $this->confluenceFiles[$curFilename];
+				$paths = $this->files[$curFilename];
 				$curFile = file_get_contents( $paths[0] );
 				$curFileMd5 = md5( $curFile );
 				if ( $md5File === '' ) {
@@ -219,8 +229,8 @@ class ConversionDataLookup {
 	 * @return string
 	 */
 	public function getUsernameFromUserKey( string $userKey ): string {
-		if ( isset( $this->confluenceUserMap[ $userKey ] ) ) {
-			return $this->confluenceUserMap[ $userKey ];
+		if ( isset( $this->userMap[ $userKey ] ) ) {
+			return $this->userMap[ $userKey ];
 		}
 
 		return $userKey;
@@ -231,8 +241,8 @@ class ConversionDataLookup {
 	 * @return string|null
 	 */
 	public function getConfluenceFileContent( string $fileName ): ?string {
-		if ( isset( $this->confluenceFiles[$fileName] ) ) {
-			return file_get_contents( $this->confluenceFiles[$fileName][0] );
+		if ( isset( $this->files[$fileName] ) ) {
+			return file_get_contents( $this->files[$fileName][0] );
 		}
 
 		return null;
