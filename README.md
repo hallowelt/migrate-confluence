@@ -1,6 +1,6 @@
 # Migrate Confluence XML export to MediaWiki import data
 
-This is a command line tool to convert the contents of a Confluence space into a MediaWiki import data format.
+This is a command line tool to convert the contents of a Confluence space into a MediaWiki import data format. See also the [official BlueSpice Helpdesk entry](https://en.wiki.bluespice.com/wiki/Confluence_migration).
 
 ## Prerequisites
 1. PHP >= 8.2 with the `xml` extension must be installed
