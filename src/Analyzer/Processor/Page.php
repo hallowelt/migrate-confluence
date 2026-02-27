@@ -298,9 +298,7 @@ class Page extends ProcessorBase {
 			$attachmentReference = $this->data['analyze-attachment-id-to-reference-map'][$attachmentId];
 
 			// In case of ERM34465 no files are added to title-attachments
-			//$this->addTitleAttachment( $wikiTitle, $attachmentTargetFilename );
 			$this->data['global-title-attachments'][$wikiTitle][] = $attachmentTargetFilename;
-			// $this->addFile( $attachmentTargetFilename, $attachmentReference );
 			$this->data['analyze-add-file'][$attachmentTargetFilename] = $attachmentReference;
 			$this->data['analyze-title-to-attachment-title'][$wikiTitle] = $attachmentTargetFilename;
 			$this->data['analyze-added-attachment-id'][] = $attachmentId;
