@@ -118,6 +118,9 @@ class ConfluenceExtractor extends ExtractorBase {
 			'analyze-body-content-id-to-space-description-id-map'
 		);
 		$bodySpaceDescrtiptionMap = array_flip( $spaceDescritipionIdtoBodyContentsMap );
+		$bodyContentsToCommentsMap = $this->buckets->getBucketData(
+			'global-body-content-id-to-comment-id-map'
+		);
 
 		$xmlHelper = new XMLHelper( $dom );
 
@@ -127,11 +130,17 @@ class ConfluenceExtractor extends ExtractorBase {
 			if (
 				!isset( $bodyContentsToPagesMap[ $id ] )
 				&& !isset( $bodySpaceDescrtiptionMap[ $id ] )
+				&& !isset( $bodyContentsToCommentsMap[ $id ] )
 			) {
 				continue;
 			}
 			$bodyContentHTML = $this->getBodyContentHTML( $xmlHelper, $bodyContent );
 			$targetFileName = $this->workspace->saveRawContent( $id, $bodyContentHTML );
+			if ( isset( $bodyContentsToCommentsMap[ $id ] ) ) {
+				// Comment body contents are only saved to workspace for conversion;
+				// they do not become page revisions themselves.
+				continue;
+			}
 			$this->addRevisionContent( $id, $targetFileName );
 		}
 	}

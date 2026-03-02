@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Composer;
 
+use DOMDocument;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
@@ -141,6 +142,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 		$this->writeOutputFile();
 
+		$this->buildCommentsXML();
+
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 	}
 
@@ -164,6 +167,157 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 				$this->addedRevisions = 0;
 			}
 		}
+	}
+
+	/**
+	 * Generates output-comments.xml containing Talk pages with cs-comments
+	 * JSON slot for pages that have Confluence page-level comments.
+	 *
+	 * @return void
+	 */
+	private function buildCommentsXML(): void {
+		$pageIdToCommentIds = $this->buckets->getBucketData( 'global-page-id-to-comment-ids-map' );
+		$commentIdToMetadata = $this->buckets->getBucketData( 'global-comment-id-to-metadata-map' );
+		$pageIdToTitleMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
+		$userkeyToUsernameMap = $this->buckets->getBucketData( 'global-userkey-to-username-map' );
+
+		if ( empty( $pageIdToCommentIds ) ) {
+			return;
+		}
+
+		$dom = new DOMDocument( '1.0', 'UTF-8' );
+		$dom->formatOutput = true;
+		$root = $dom->createElement( 'mediawiki' );
+		$dom->appendChild( $root );
+
+		foreach ( $pageIdToCommentIds as $pageId => $commentIds ) {
+			if ( !isset( $pageIdToTitleMap[$pageId] ) ) {
+				$this->output->writeln( "Warning: No title found for page ID $pageId, skipping comments." );
+				continue;
+			}
+			$pageTitle = $pageIdToTitleMap[$pageId];
+			$talkTitle = 'Talk:' . $pageTitle;
+
+			$commentsData = [];
+			$index = 1;
+			foreach ( $commentIds as $commentId ) {
+				if ( !isset( $commentIdToMetadata[$commentId] ) ) {
+					continue;
+				}
+				$metadata = $commentIdToMetadata[$commentId];
+				$bodyContentId = $metadata['body_content_id'];
+
+				$wikitext = $this->workspace->getConvertedContent( $bodyContentId );
+				if ( $wikitext === false ) {
+					$this->output->writeln(
+						"Warning: No converted content for comment $commentId (body content $bodyContentId), skipping."
+					);
+					continue;
+				}
+
+				$creatorKey = $metadata['creator_key'];
+				$username = isset( $userkeyToUsernameMap[$creatorKey] )
+					? $userkeyToUsernameMap[$creatorKey]
+					: $creatorKey;
+
+				$commentsData[$index] = [
+					'type' => 'comment',
+					'author' => '>' . $username,
+					'created' => $this->toMwTimestamp( $metadata['created'] ),
+					'modified' => $this->toMwTimestamp( $metadata['modified'] ),
+					'title' => '',
+					'block' => null,
+					'wikitext' => trim( $wikitext ),
+				];
+				$index++;
+			}
+
+			if ( empty( $commentsData ) ) {
+				continue;
+			}
+
+			$this->output->writeln( "Adding comments for Talk page '$talkTitle'..." );
+			$this->appendTalkPageWithComments( $dom, $root, $talkTitle, $commentsData );
+		}
+
+		$destFile = $this->dest . '/result/output-comments.xml';
+		$dom->save( $destFile );
+		$this->output->writeln( "Comments XML written to '$destFile'." );
+	}
+
+	/**
+	 * @param DOMDocument $dom
+	 * @param \DOMElement $root
+	 * @param string $talkTitle
+	 * @param array $commentsData
+	 * @return void
+	 */
+	private function appendTalkPageWithComments(
+		DOMDocument $dom, \DOMElement $root, string $talkTitle, array $commentsData
+	): void {
+		$pageEl = $dom->createElement( 'page' );
+
+		$titleEl = $dom->createElement( 'title' );
+		$titleEl->appendChild( $dom->createTextNode( $talkTitle ) );
+		$pageEl->appendChild( $titleEl );
+
+		$nsEl = $dom->createElement( 'ns' );
+		$nsEl->appendChild( $dom->createTextNode( '1' ) );
+		$pageEl->appendChild( $nsEl );
+
+		$revisionEl = $dom->createElement( 'revision' );
+
+		// Main slot: empty wikitext
+		$modelEl = $dom->createElement( 'model' );
+		$modelEl->appendChild( $dom->createTextNode( 'wikitext' ) );
+		$revisionEl->appendChild( $modelEl );
+
+		$formatEl = $dom->createElement( 'format' );
+		$formatEl->appendChild( $dom->createTextNode( 'text/x-wiki' ) );
+		$revisionEl->appendChild( $formatEl );
+
+		$textEl = $dom->createElement( 'text' );
+		$textEl->setAttribute( 'bytes', '0' );
+		$textEl->setAttribute( 'xml:space', 'preserve' );
+		$revisionEl->appendChild( $textEl );
+
+		// cs-comments content slot
+		$contentEl = $dom->createElement( 'content' );
+
+		$roleEl = $dom->createElement( 'role' );
+		$roleEl->appendChild( $dom->createTextNode( 'cs-comments' ) );
+		$contentEl->appendChild( $roleEl );
+
+		$slotModelEl = $dom->createElement( 'model' );
+		$slotModelEl->appendChild( $dom->createTextNode( 'json' ) );
+		$contentEl->appendChild( $slotModelEl );
+
+		$slotFormatEl = $dom->createElement( 'format' );
+		$slotFormatEl->appendChild( $dom->createTextNode( 'application/json' ) );
+		$contentEl->appendChild( $slotFormatEl );
+
+		$slotTextEl = $dom->createElement( 'text' );
+		$slotTextEl->appendChild( $dom->createTextNode( json_encode( $commentsData, JSON_UNESCAPED_UNICODE ) ) );
+		$contentEl->appendChild( $slotTextEl );
+
+		$revisionEl->appendChild( $contentEl );
+		$pageEl->appendChild( $revisionEl );
+		$root->appendChild( $pageEl );
+	}
+
+	/**
+	 * Converts a Confluence datetime string (e.g. "2026-02-12 17:09:43.563")
+	 * to a MediaWiki timestamp (e.g. "20260212170943").
+	 *
+	 * @param string $confluenceDate
+	 * @return string
+	 */
+	private function toMwTimestamp( string $confluenceDate ): string {
+		$time = strtotime( $confluenceDate );
+		if ( $time === false ) {
+			return '';
+		}
+		return date( 'YmdHis', $time );
 	}
 
 	/**

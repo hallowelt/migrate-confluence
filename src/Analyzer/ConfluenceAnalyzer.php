@@ -14,6 +14,8 @@ use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\AttachmentFallback;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\Comments;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\CommentsContentProperties;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
@@ -111,6 +113,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-attachment-id-to-target-filename-map',
 			'analyze-body-content-id-to-page-id-map',
 			'analyze-body-content-id-to-space-description-id-map',
+			'analyze-body-content-id-to-comment-id-map',
+			'analyze-inline-comment-ids',
 			'analyze-orig-title-compressed-title-map',
 			'analyze-page-id-to-confluence-key-map',
 			'analyze-page-id-to-confluence-title-map',
@@ -127,7 +131,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'debug-analyze-invalid-titles-page-id-to-title',
 			'global-attachment-orig-filename-target-filename-map',
 			'global-body-content-id-to-page-id-map',
+			'global-body-content-id-to-comment-id-map',
+			'global-comment-id-to-metadata-map',
 			'global-filenames-to-filetitles-map',
+			'global-page-id-to-comment-ids-map',
 			'global-page-id-to-space-id',
 			'global-page-id-to-title-map',
 			'global-pages-titles-map',
@@ -252,6 +259,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'BodyContent' => new BodyContents(),
 			'Attachment' => new Attachments( $this->file ),
 			'ConfluenceUserImpl' => new Users(),
+			'ContentProperty' => new CommentsContentProperties(),
 		];
 	}
 
@@ -265,6 +273,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$this->mainpage,
 				$this->includeHistory
 			),
+			'Comment' => new Comments(),
 		];
 	}
 
