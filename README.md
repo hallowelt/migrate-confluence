@@ -2,14 +2,8 @@
 
 This is a command line tool to convert the contents of a Confluence space into a MediaWiki import data format. See also the [official BlueSpice Helpdesk entry](https://en.wiki.bluespice.com/wiki/Confluence_migration).
 
-## Prerequisites
-1. PHP >= 8.2 with the `xml` extension must be installed
-2. `pandoc` >= 3.1.6. The `pandoc` tool must be installed and available in the `PATH` (https://pandoc.org/installing.html).
-
-## Installation
-1. Download `migrate-confluence.phar` from https://github.com/hallowelt/migrate-confluence/releases/latest/download/migrate-confluence.phar
-2. Make sure the file is executable. E.g. by running `chmod +x migrate-confluence.phar`
-3. Move `migrate-confluence.phar` to `/usr/local/bin/migrate-confluence` (or somewhere else in the `PATH`)
+## Doker
+ The migrate confluence tool is available as docker image. (This section has to be updated once the tool is released as docker image)
 
 ## Workflow
 
@@ -38,11 +32,11 @@ Step 3:
 
 ### Migrate the contents
 1. Create the "workspace" directory (e.g. `/tmp/confluence/workspace/` )
-2. From the parent directory (e.g. `/tmp/confluence/` ), run the migration commands
-	1. Run `migrate-confluence analyze --src input/ --dest workspace/` to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
-	2. Run `migrate-confluence extract --src input/ --dest workspace/` to extract all contents, like wikipage contents, attachments and images into the workspace
-	3. Run `migrate-confluence convert --src workspace/ --dest workspace/` (yes, `--src workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText
-	4. Run `migrate-confluence compose --src workspace/ --dest workspace/` (yes, `--src workspace/` ) to create importable data
+2. From the parent directory (e.g. `/tmp/` ), run the migration commands
+	1. Run `docker run -v $(pwd)/confluence:/data hallowelt/migrate-confluence:latest analyze --src=data/input --dest=data/workspace` to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
+	2. Run `docker run -v $(pwd)/confluence:/data hallowelt/migrate-confluence:latest extract --src=data/input --dest=data/workspace` to extract all contents, like wikipage contents, attachments and images into the workspace
+	3. Run `docker run -v $(pwd)/confluence:/data hallowelt/migrate-confluence:latest convert --src=data/workspace --dest=data/workspace` (yes, `--src workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText
+	4. Run `docker run -v $(pwd)/confluence:/data hallowelt/migrate-confluence:latest compose --src=data/workspace --dest=data/workspace` (yes, `--src workspace/` ) to create importable data
 
 If you re-run the scripts you will need to clean up the "workspace" directory!
 
