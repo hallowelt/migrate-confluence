@@ -44,7 +44,7 @@ class Convert extends CommandConvert {
 	 */
 	private function readConfigFile( &$config ): void {
 		$filename = $this->input->getOption( 'config' );
-		if ( is_file( $filename ) ) {
+		if ( is_string( $filename ) && is_file( $filename ) ) {
 			$content = file_get_contents( $filename );
 			if ( $content ) {
 				try {

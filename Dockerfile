@@ -4,24 +4,24 @@ WORKDIR /
 
 RUN apt-get update && apt-get -y --no-install-recommends install \
     pandoc \
-    vim \
-    nano \
     git \
     unzip \
-    && rm -rf /var/lib/apt/lists/* \
-    && useradd -m app
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN mkdir app
 COPY ./bin /app/bin
 COPY ./src /app/src
-COPY ./vendor /app/vendor
 COPY ./composer.json /app/composer.json
-COPY ./composer.lock /app/composer.lock
+COPY ./LICENSE /app/LICENSE
+COPY ./README.md /app/README.md
 RUN chmod -R 755 /app
 
-RUN mkdir /input
-RUN mkdir /workspace
+WORKDIR /app
+RUN composer update
+WORKDIR /
+
+RUN mkdir /data
 
 ENTRYPOINT ["php", "/app/bin/migrate-confluence"]
