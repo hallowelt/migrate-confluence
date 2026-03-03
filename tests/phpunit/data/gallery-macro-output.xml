@@ -1,6 +1,6 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 	<p>Before</p>
-	&lt;gallery caption="Assets Gallery (All Image Types)" perrow="4"&gt;
+	<div class="ac-gallery" data-params="{&quot;title&quot;:&quot;Assets Gallery (All Image Types)&quot;,&quot;columns&quot;:&quot;4&quot;}">&lt;gallery caption="Assets Gallery (All Image Types)" perrow="4"&gt;
 dashboard.png
 photo.jpg
 loading.gif
@@ -11,6 +11,6 @@ icon.svg
 logo.png
 team.jpg
 document.pdf
-&lt;/gallery&gt;
+&lt;/gallery&gt;</div>
 	<p>After</p>
 </xml>

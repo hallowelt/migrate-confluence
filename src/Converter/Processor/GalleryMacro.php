@@ -2,9 +2,14 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
+/**
+ * @see https://confluence.atlassian.com/doc/gallery-macro-139434.html for documentation
+ * @see tests/phpunit/date/gallery-macro-input.xml for example input
+ */
 class GalleryMacro extends StructuredMacroProcessorBase {
 
 	/** @var ConversionDataLookup */
@@ -42,8 +47,14 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 * @param DOMNode $node
 	 *
 	 * @return void
+	 * @throws DOMException
 	 */
 	protected function doProcessMacro( $node ): void {
+		$macroName = $node->getAttribute( 'ac:name' );
+
+		$macroReplacement = $node->ownerDocument->createElement( 'div' );
+		$macroReplacement->setAttribute( 'class', "ac-$macroName" );
+
 		$params = $this->getMacroParams( $node );
 		$bodyImages = $this->getBodyImages( $node );
 
@@ -75,10 +86,14 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		}
 		$galleryTag .= '</gallery>';
 
-		$node->parentNode->replaceChild(
-			$node->ownerDocument->createTextNode( $galleryTag ),
-			$node
-		);
+		$galleryTagNode = $node->ownerDocument->createTextNode( $galleryTag );
+		$macroReplacement->appendChild( $galleryTagNode );
+
+		if ( !empty( $params ) ) {
+			$macroReplacement->setAttribute( 'data-params', json_encode( $params ) );
+		}
+
+		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
 
 	/**
@@ -231,7 +246,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 *
 	 * @return array
 	 */
-	private function getMacroParams( $macro ): array {
+	private function getMacroParams( DOMNode $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
