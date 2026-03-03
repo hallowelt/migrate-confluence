@@ -78,16 +78,12 @@ class Spaces extends ProcessorBase {
 		}
 
 		// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
-		if ( $spaceKey === 'GENERAL' ) {
-			$spaceKey = '';
-		}
-
 		if ( isset( $this->spacePrefixMap[$spaceKey] ) ) {
 			$customSpacePrefix = $this->spacePrefixMap[$spaceKey];
-		} elseif ( $spaceKey !== '' ) {
+		} elseif ( $spaceKey !== 'GENERAL' ) {
 			$customSpacePrefix = "{$spaceKey}:";
 		} else {
-			return;
+			$customSpacePrefix = '';
 		}
 
 		$this->data['global-space-id-to-key-map'][$spaceId] = $spaceKey;

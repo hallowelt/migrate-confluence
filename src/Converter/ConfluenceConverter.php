@@ -115,6 +115,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/** @var string */
 	private $mainpage = 'Main Page';
 
+	/** @var bool */
+	private $isSpaceDescriptionContent = false;
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -127,6 +130,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-pages-titles-map',
 			'global-title-attachments',
 			'global-body-content-id-to-page-id-map',
+			'global-space-id-to-description-id-map',
 			'global-page-id-to-space-id',
 			'global-space-id-to-key-map',
 			'global-space-id-to-prefix-map',
@@ -137,7 +141,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-attachment-orig-filename-target-filename-map',
 			'global-files',
 			'global-userkey-to-username-map',
-			'global-space-description-id-to-body-id-map',
+			'global-body-content-id-to-space-description-id-map',
 			'global-gliffy-map',
 		] );
 
@@ -182,10 +186,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->mainpage = $this->config['config']['mainpage'];
 		}
 
+		$this->isSpaceDescriptionContent = false;
 		$bodyContentId = $this->getBodyContentIdFromFilename();
 		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
 		if ( $pageId === -1 ) {
-			$pageId = $this->getSpaceDescriptionIDFromBodyContentId( $bodyContentId );
+			$spaceDescId = $this->getSpaceDescriptionIdFromBodyContentId( $bodyContentId );
+			$spaceId = $this->getSpaceIdFromSpaceDescriptionId( $spaceDescId );
+			$pageId = $this->getSpaceHomepageId( $spaceId );
+			$this->isSpaceDescriptionContent = true;
 		}
 		if ( $pageId === -1 ) {
 			return '<-- No context page id found -->';
@@ -399,10 +407,28 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @param int $bodyContentId
 	 * @return int
 	 */
-	private function getSpaceDescriptionIDFromBodyContentId( $bodyContentId ) {
-		$map = $this->buckets->getBucketData( 'global-space-description-id-to-body-id-map' );
-		$map = array_flip( $map );
+	private function getSpaceDescriptionIdFromBodyContentId( int $bodyContentId ): int {
+		$map = $this->buckets->getBucketData( 'global-body-content-id-to-space-description-id-map' );
 		return $map[$bodyContentId] ?? -1;
+	}
+
+	/**
+	 * @param int $spaceDescId
+	 * @return int
+	 */
+	private function getSpaceIdFromSpaceDescriptionId( int $spaceDescId ): int {
+		$map = $this->buckets->getBucketData( 'global-space-id-to-description-id-map' );
+		$mapFlipped = array_flip( $map );
+		return $mapFlipped[$spaceDescId] ?? -1;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @return int
+	 */
+	private function getSpaceHomepageId( int $spaceId ): int {
+		$map = $this->buckets->getBucketData( 'global-space-id-homepages' );
+		return $map[$spaceId] ?? -1;
 	}
 
 	/**
@@ -771,7 +797,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->wikiText
 		);
 
-		$this->wikiText .= $this->addAdditionalAttachments();
+		if ( !$this->isSpaceDescriptionContent ) {
+			$this->wikiText .= $this->addAdditionalAttachments();
+		}
 
 		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";
 	}
