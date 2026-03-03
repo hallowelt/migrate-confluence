@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-01-01 00:00:00">
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">800</id>
+        <property name="content" class="Comment" package="com.atlassian.confluence.pages">
+            <id name="id">600</id>
+        </property>
+    </object>
+
+</hibernate-generic>

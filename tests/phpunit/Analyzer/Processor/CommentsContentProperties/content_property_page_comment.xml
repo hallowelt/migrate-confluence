@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-01-01 00:00:00">
+
+    <object class="ContentProperty" package="com.atlassian.confluence.content">
+        <id name="id">1003</id>
+        <property name="name">comment-uuid</property>
+        <property name="stringValue">4adf9221-6072-53e2-2545-33a6b659e54c</property>
+        <property name="content" class="Comment" package="com.atlassian.confluence.pages">
+            <id name="id">502</id>
+        </property>
+    </object>
+
+</hibernate-generic>
