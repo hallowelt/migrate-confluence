@@ -106,10 +106,14 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			return $this->resolveIncludedFiles( $params['include'] );
 		}
 
-		$allFiles = $this->dataLookup->getTargetFileTitlesForPage(
-			$this->currentSpaceId,
-			$this->rawPageTitle
-		);
+		if ( isset( $params['page'] ) && $params['page'] !== '' ) {
+			$allFiles = $this->resolvePageFiles( $params['page'] );
+		} else {
+			$allFiles = $this->dataLookup->getTargetFileTitlesForPage(
+				$this->currentSpaceId,
+				$this->rawPageTitle
+			);
+		}
 
 		$exclude = [];
 		if ( isset( $params['exclude'] ) && $params['exclude'] !== '' ) {
@@ -124,6 +128,38 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			$files[] = $file;
 		}
 
+		return $files;
+	}
+
+	/**
+	 * Resolves files from a comma-separated list of page references.
+	 * Each entry may optionally be prefixed with a space key: "SPACEKEY:Page Title".
+	 *
+	 * @param string $pageParam Comma-separated page references
+	 * @return string[]
+	 */
+	private function resolvePageFiles( string $pageParam ): array {
+		$pageRefs = array_map( 'trim', explode( ',', $pageParam ) );
+		$files = [];
+		foreach ( $pageRefs as $pageRef ) {
+			$spaceId = $this->currentSpaceId;
+			$pageTitle = $pageRef;
+
+			if ( strpos( $pageRef, ':' ) !== false ) {
+				[ $spaceKey, $pageTitle ] = explode( ':', $pageRef, 2 );
+				$resolvedSpaceId = $this->resolveSpaceId( trim( $spaceKey ) );
+				if ( $resolvedSpaceId === -1 ) {
+					continue;
+				}
+				$spaceId = $resolvedSpaceId;
+				$pageTitle = trim( $pageTitle );
+			}
+
+			$pageFiles = $this->dataLookup->getTargetFileTitlesForPage( $spaceId, $pageTitle );
+			foreach ( $pageFiles as $file ) {
+				$files[] = $file;
+			}
+		}
 		return $files;
 	}
 

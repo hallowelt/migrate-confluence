@@ -63,6 +63,34 @@ class GalleryMacroTest extends TestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro::process
 	 * @return void
 	 */
+	public function testProcessPageParam() {
+		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+
+		$fileMap = [
+			'1---OtherPage---report.pdf' => 'report.pdf',
+			'1---OtherPage---chart.png' => 'chart.png',
+			'2---Marketing_Assets---logo.png' => 'logo.png',
+		];
+		$spaceIdToKeyMap = [ 2 => 'MKT' ];
+		$dataLookup = $this->makeDataLookup( $fileMap, $spaceIdToKeyMap );
+		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage' );
+
+		$dom = new DOMDocument();
+		$dom->loadXML( file_get_contents( "$dir/gallery-macro-page-input.xml" ) );
+		$processor->process( $dom );
+		$actualOutput = $dom->saveXML( $dom->documentElement );
+
+		$expectedDom = new DOMDocument();
+		$expectedDom->loadXML( file_get_contents( "$dir/gallery-macro-page-output.xml" ) );
+		$expectedOutput = $expectedDom->saveXML( $expectedDom->documentElement );
+
+		$this->assertEquals( $expectedOutput, $actualOutput );
+	}
+
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro::process
+	 * @return void
+	 */
 	public function testProcessBrokenMacro() {
 		$dir = dirname( dirname( __DIR__ ) ) . '/data';
 
