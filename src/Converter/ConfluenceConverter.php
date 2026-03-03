@@ -116,6 +116,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	/** @var bool */
 	private $isSpaceDescriptionContent = false;
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace

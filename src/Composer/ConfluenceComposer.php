@@ -95,11 +95,19 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$this->addDefaultFiles();
 
 		/** Add content pages */
-		$spaceIdHomepagesMap = $this->buckets->getBucketData( 'global-space-id-homepages' );
+		$spaceIdHomepagesMap = $this->buckets->getBucketData(
+			'global-space-id-homepages'
+		);
 		$homepagespaceIdMap = array_flip( $spaceIdHomepagesMap );
-		$spaceIdDescriptionIdMap = $this->buckets->getBucketData( 'global-space-id-to-description-id-map' );
-		$spaceBodyIdDescriptionIdBodyIDMap = $this->buckets->getBucketData( 'global-body-content-id-to-space-description-id-map' );
-		$titleRevisions = $this->buckets->getBucketData( 'global-title-revisions' );
+		$spaceIdDescriptionIdMap = $this->buckets->getBucketData(
+			'global-space-id-to-description-id-map'
+		);
+		$spaceBodyIdDescriptionIdBodyIDMap = $this->buckets->getBucketData(
+			'global-body-content-id-to-space-description-id-map'
+		);
+		$titleRevisions = $this->buckets->getBucketData(
+			'global-title-revisions'
+		);
 
 		/** Prepare required maps */
 		$bodyContentIdMainpageId = $this->buildMainpageContentMap( $spaceIdHomepagesMap );
