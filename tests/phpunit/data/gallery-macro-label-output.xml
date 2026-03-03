@@ -1,7 +1,0 @@
-<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<p>Before</p>
-	<div class="ac-gallery" data-params="{&quot;title&quot;:&quot;Label Filtered Gallery&quot;,&quot;includeLabel&quot;:&quot;featured&quot;,&quot;excludeLabel&quot;:&quot;draft&quot;}">&lt;gallery caption="Label Filtered Gallery"&gt;
-photo.jpg
-&lt;/gallery&gt;</div>
-	<p>After</p>
-</xml>
