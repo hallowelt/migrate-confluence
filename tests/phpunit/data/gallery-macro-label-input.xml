@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Before</p>
+	<ac:structured-macro ac:name="gallery" ac:schema-version="1" ac:macro-id="abc-222">
+		<ac:parameter ac:name="title">Label Filtered Gallery</ac:parameter>
+		<ac:parameter ac:name="includeLabel">featured</ac:parameter>
+		<ac:parameter ac:name="excludeLabel">draft</ac:parameter>
+	</ac:structured-macro>
+	<p>After</p>
+</xml>
