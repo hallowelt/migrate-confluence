@@ -103,7 +103,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-added-attachment-id',
 			'analyze-add-file',
 			'analyze-attachment-available-ids',
-			'analyze-attachment-id-to-container-content-id-map',
+			'analyze-attachment-id-to-page-id-map',
 			'analyze-attachment-id-to-content-status-map',
 			'analyze-attachment-id-to-orig-filename-map',
 			'analyze-attachment-id-to-reference-map',
@@ -118,7 +118,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-page-id-to-title-map',
 			'analyze-pages-titles-map',
 			'analyze-space-id-to-name-map',
-			'global-space-id-to-key-map',
 			'analyze-space-key-to-name-map',
 			'analyze-space-name-to-prefix-map',
 			'analyze-title-revisions',
@@ -131,14 +130,16 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'global-page-id-to-space-id',
 			'global-page-id-to-title-map',
 			'global-pages-titles-map',
-			'global-space-description-id-to-body-id-map',
 			'global-space-details',
 			'global-space-id-homepages',
 			'global-space-id-to-description-id-map',
 			'global-space-id-to-prefix-map',
+			'global-space-id-to-key-map',
 			'global-space-key-to-prefix-map',
+			'global-body-content-id-to-space-description-id-map',
 			'global-title-attachments',
 			'global-title-revisions',
+			'global-attachment-revisions',
 			'global-userkey-to-username-map',
 			'users',
 		];
@@ -250,7 +251,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'SpaceDescription' => new SpaceDescription(),
 			'Page' => new ParentPages(),
 			'BodyContent' => new BodyContents(),
-			'Attachment' => new Attachments( $this->file ),
+			'Attachment' => new Attachments( $this->file, $this->includeHistory ),
 			'ConfluenceUserImpl' => new Users(),
 		];
 	}
@@ -273,7 +274,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private function getPostProcessors(): array {
 		return [
-			'Attachment' => new AttachmentFallback()
+			'Attachment' => new AttachmentFallback( $this->includeHistory )
 		];
 	}
 
