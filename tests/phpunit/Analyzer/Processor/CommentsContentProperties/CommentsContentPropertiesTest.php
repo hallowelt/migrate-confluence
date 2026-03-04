@@ -47,6 +47,6 @@ class CommentsContentPropertiesTest extends TestCase {
 		$processor->execute( $dom );
 
 		$ids = $processor->getData( 'analyze-inline-comment-ids' );
-		$this->assertEmpty( $ids );
+		$this->assertSame( [], $ids );
 	}
 }

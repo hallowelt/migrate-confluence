@@ -57,10 +57,10 @@ class CommentsTest extends TestCase {
 		$processor->execute( $dom );
 
 		$commentIdsMap = $processor->getData( 'global-page-id-to-comment-ids-map' );
-		$this->assertEmpty( $commentIdsMap );
+		$this->assertSame( [], $commentIdsMap );
 
 		$metadataMap = $processor->getData( 'global-comment-id-to-metadata-map' );
-		$this->assertEmpty( $metadataMap );
+		$this->assertSame( [], $metadataMap );
 	}
 
 	/**
@@ -82,6 +82,6 @@ class CommentsTest extends TestCase {
 		$processor->execute( $dom );
 
 		$commentIdsMap = $processor->getData( 'global-page-id-to-comment-ids-map' );
-		$this->assertEmpty( $commentIdsMap );
+		$this->assertSame( [], $commentIdsMap );
 	}
 }

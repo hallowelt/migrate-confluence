@@ -176,8 +176,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
-	 * Generates output-comments.xml containing Talk pages with cs-comments
-	 * JSON slot for pages that have Confluence page-level comments.
+	 * Generates Talk pages with cs-comments JSON slot for pages that have
+	 * Confluence page-level comments, and appends them to the main output file.
 	 *
 	 * @return void
 	 */
@@ -192,7 +192,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		}
 
 		$dom = new DOMDocument( '1.0', 'UTF-8' );
-		$dom->formatOutput = true;
 		$root = $dom->createElement( 'mediawiki' );
 		$dom->appendChild( $root );
 
@@ -202,7 +201,14 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 				continue;
 			}
 			$pageTitle = $pageIdToTitleMap[$pageId];
-			$talkTitle = 'Talk:' . $pageTitle;
+			// Build the correct Talk page title respecting namespaces:
+			// "NS:Page" → "NS_Talk:Page", plain "Page" → "Talk:Page"
+			if ( strpos( $pageTitle, ':' ) !== false ) {
+				[ $ns, $titlePart ] = explode( ':', $pageTitle, 2 );
+				$talkTitle = $ns . '_Talk:' . $titlePart;
+			} else {
+				$talkTitle = 'Talk:' . $pageTitle;
+			}
 
 			$commentsData = [];
 			$index = 1;
@@ -228,7 +234,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 				$commentsData[$index] = [
 					'type' => 'comment',
-					'author' => '>' . $username,
+					'author' => $username,
 					'created' => $this->toMwTimestamp( $metadata['created'] ),
 					'modified' => $this->toMwTimestamp( $metadata['modified'] ),
 					'title' => '',
@@ -246,9 +252,33 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$this->appendTalkPageWithComments( $dom, $root, $talkTitle, $commentsData );
 		}
 
-		$destFile = $this->dest . '/result/output-comments.xml';
-		$dom->save( $destFile );
-		$this->output->writeln( "Comments XML written to '$destFile'." );
+		if ( !$root->hasChildNodes() ) {
+			return;
+		}
+
+		// Append comment <page> elements into the main output file instead of a separate file
+		$outputFileName = $this->mulitXmlOutputEnabled
+			? "output-{$this->xmlNumber}.xml"
+			: "output.xml";
+		$destFile = $this->dest . '/result/' . $outputFileName;
+
+		$mainDom = new DOMDocument();
+		$mainDom->load( $destFile );
+		$mainRoot = $mainDom->documentElement;
+
+		// Collect nodes first to avoid iterating a live NodeList
+		$nodes = [];
+		foreach ( $root->childNodes as $node ) {
+			$nodes[] = $node;
+		}
+		foreach ( $nodes as $node ) {
+			$mainRoot->appendChild( $mainDom->importNode( $node, true ) );
+		}
+
+		// Do NOT set formatOutput — it would corrupt text-node content (e.g. JSON)
+		// by injecting indentation whitespace inside <text> elements.
+		$mainDom->save( $destFile );
+		$this->output->writeln( "Comments appended to '$destFile'." );
 	}
 
 	/**
@@ -266,10 +296,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$titleEl = $dom->createElement( 'title' );
 		$titleEl->appendChild( $dom->createTextNode( $talkTitle ) );
 		$pageEl->appendChild( $titleEl );
-
-		$nsEl = $dom->createElement( 'ns' );
-		$nsEl->appendChild( $dom->createTextNode( '1' ) );
-		$pageEl->appendChild( $nsEl );
 
 		$revisionEl = $dom->createElement( 'revision' );
 
@@ -303,7 +329,12 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$contentEl->appendChild( $slotFormatEl );
 
 		$slotTextEl = $dom->createElement( 'text' );
-		$slotTextEl->appendChild( $dom->createTextNode( json_encode( $commentsData, JSON_UNESCAPED_UNICODE ) ) );
+		$slotTextEl->setAttribute( 'xml:space', 'preserve' );
+		// JSON_HEX_TAG | JSON_HEX_AMP: hex-escape <, >, & so the JSON contains no XML-special
+		// characters and the serialiser never needs to entity-encode them (&lt; etc.).
+		$slotTextEl->appendChild( $dom->createTextNode(
+			json_encode( $commentsData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP )
+		) );
 		$contentEl->appendChild( $slotTextEl );
 
 		$revisionEl->appendChild( $contentEl );
