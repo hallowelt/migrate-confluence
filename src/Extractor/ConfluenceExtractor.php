@@ -34,6 +34,7 @@ class ConfluenceExtractor extends ExtractorBase {
 		$this->customBuckets = new DataBuckets( [
 			'extract-labelling-id-to-label-id-map',
 			'extract-label-id-to-name-map',
+			'extract-attachment-id-to-label-names-map',
 		] );
 	}
 
@@ -95,6 +96,8 @@ class ConfluenceExtractor extends ExtractorBase {
 			$class = $xmlReader->getAttribute( 'class' );
 			if ( $class === 'Page' ) {
 				$this->extractPageMetaData( $objectDom );
+			} elseif ( $class === 'Attachment' ) {
+				$this->extractAttachmentLabelData( $objectDom );
 			}
 
 			$read = $xmlReader->next();
@@ -189,6 +192,50 @@ class ConfluenceExtractor extends ExtractorBase {
 		$name = $xmlHelper->getPropertyValue( 'name', $label );
 
 		$this->customBuckets->addData( 'extract-label-id-to-name-map', $id, $name, false, true );
+	}
+
+	/**
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	private function extractAttachmentLabelData( DOMDocument $dom ): void {
+		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
+		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
+
+		$xmlHelper = new XMLHelper( $dom );
+
+		$attachmentObjs = $xmlHelper->getObjectNodes( 'Attachment' );
+		if ( count( $attachmentObjs ) < 1 ) {
+			return;
+		}
+		$attachment = $attachmentObjs->item( 0 );
+		if ( $attachment instanceof DOMElement === false ) {
+			return;
+		}
+
+		$attachmentId = $xmlHelper->getIDNodeValue( $attachment );
+		if ( $attachmentId < 0 ) {
+			return;
+		}
+
+		$labelNames = [];
+		$labellingEls = $xmlHelper->getElementsFromCollection( 'labellings', $attachment );
+		foreach ( $labellingEls as $labellingEl ) {
+			$labellingId = $xmlHelper->getIDNodeValue( $labellingEl );
+			if ( !isset( $labellingMap[$labellingId] ) ) {
+				continue;
+			}
+			$labelId = $labellingMap[$labellingId];
+			if ( isset( $labelMap[$labelId] ) ) {
+				$labelNames[] = $labelMap[$labelId];
+			}
+		}
+
+		if ( !empty( $labelNames ) ) {
+			$this->customBuckets->addData(
+				'extract-attachment-id-to-label-names-map', $attachmentId, $labelNames, false
+			);
+		}
 	}
 
 	/**

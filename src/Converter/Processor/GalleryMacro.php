@@ -106,8 +106,24 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			return $this->resolveIncludedFiles( $params['include'] );
 		}
 
+		$includeLabels = [];
+		if ( isset( $params['includeLabel'] ) && $params['includeLabel'] !== '' ) {
+			$includeLabels = array_map( 'trim', explode( ',', $params['includeLabel'] ) );
+		}
+		$excludeLabels = [];
+		if ( isset( $params['excludeLabel'] ) && $params['excludeLabel'] !== '' ) {
+			$excludeLabels = array_map( 'trim', explode( ',', $params['excludeLabel'] ) );
+		}
+
 		if ( isset( $params['page'] ) && $params['page'] !== '' ) {
-			$allFiles = $this->resolvePageFiles( $params['page'] );
+			$allFiles = $this->resolvePageFiles( $params['page'], $includeLabels, $excludeLabels );
+		} elseif ( !empty( $includeLabels ) || !empty( $excludeLabels ) ) {
+			$allFiles = $this->dataLookup->getTargetFileTitlesForPageByLabel(
+				$this->currentSpaceId,
+				$this->rawPageTitle,
+				$includeLabels,
+				$excludeLabels
+			);
 		} else {
 			$allFiles = $this->dataLookup->getTargetFileTitlesForPage(
 				$this->currentSpaceId,
@@ -136,9 +152,11 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 * Each entry may optionally be prefixed with a space key: "SPACEKEY:Page Title".
 	 *
 	 * @param string $pageParam Comma-separated page references
+	 * @param string[] $includeLabels
+	 * @param string[] $excludeLabels
 	 * @return string[]
 	 */
-	private function resolvePageFiles( string $pageParam ): array {
+	private function resolvePageFiles( string $pageParam, array $includeLabels = [], array $excludeLabels = [] ): array {
 		$pageRefs = array_map( 'trim', explode( ',', $pageParam ) );
 		$files = [];
 		foreach ( $pageRefs as $pageRef ) {
@@ -155,7 +173,13 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 				$pageTitle = trim( $pageTitle );
 			}
 
-			$pageFiles = $this->dataLookup->getTargetFileTitlesForPage( $spaceId, $pageTitle );
+			if ( !empty( $includeLabels ) || !empty( $excludeLabels ) ) {
+				$pageFiles = $this->dataLookup->getTargetFileTitlesForPageByLabel(
+					$spaceId, $pageTitle, $includeLabels, $excludeLabels
+				);
+			} else {
+				$pageFiles = $this->dataLookup->getTargetFileTitlesForPage( $spaceId, $pageTitle );
+			}
 			foreach ( $pageFiles as $file ) {
 				$files[] = $file;
 			}

@@ -12,7 +12,9 @@ class GalleryMacroTest extends TestCase {
 	/**
 	 * @return ConversionDataLookup
 	 */
-	private function makeDataLookup( array $fileMap = [], array $spaceIdToKeyMap = [] ): ConversionDataLookup {
+	private function makeDataLookup(
+		array $fileMap = [], array $spaceIdToKeyMap = [], array $labelsMap = []
+	): ConversionDataLookup {
 		return new ConversionDataLookup(
 			[],
 			[],
@@ -20,7 +22,8 @@ class GalleryMacroTest extends TestCase {
 			[],
 			[],
 			[],
-			$spaceIdToKeyMap
+			$spaceIdToKeyMap,
+			$labelsMap
 		);
 	}
 
@@ -54,6 +57,49 @@ class GalleryMacroTest extends TestCase {
 
 		$expectedDom = new DOMDocument();
 		$expectedDom->loadXML( file_get_contents( "$dir/gallery-macro-output.xml" ) );
+		$expectedOutput = $expectedDom->saveXML( $expectedDom->documentElement );
+
+		$this->assertEquals( $expectedOutput, $actualOutput );
+	}
+
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro::process
+	 * @return void
+	 */
+	public function testProcessWithLabelFilter() {
+		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+
+		// dashboard.png:  no labels              → excluded (missing both required labels)
+		// photo.jpg:      [featured]              → excluded (AND: missing 'approved')
+		// loading.gif:    [featured, draft]       → excluded (has 'draft')
+		// approved.png:   [approved]              → excluded (AND: missing 'featured')
+		// hero.jpg:       [featured, approved]    → included ✓
+		// rejected.png:   [featured, approved, draft] → excluded (has 'draft')
+		$fileMap = [
+			'1---MyPage---dashboard.png' => 'dashboard.png',
+			'1---MyPage---photo.jpg' => 'photo.jpg',
+			'1---MyPage---loading.gif' => 'loading.gif',
+			'1---MyPage---approved.png' => 'approved.png',
+			'1---MyPage---hero.jpg' => 'hero.jpg',
+			'1---MyPage---rejected.png' => 'rejected.png',
+		];
+		$labelsMap = [
+			'1---MyPage---photo.jpg' => [ 'featured' ],
+			'1---MyPage---loading.gif' => [ 'featured', 'draft' ],
+			'1---MyPage---approved.png' => [ 'approved' ],
+			'1---MyPage---hero.jpg' => [ 'featured', 'approved' ],
+			'1---MyPage---rejected.png' => [ 'featured', 'approved', 'draft' ],
+		];
+		$dataLookup = $this->makeDataLookup( $fileMap, [], $labelsMap );
+		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage' );
+
+		$dom = new DOMDocument();
+		$dom->loadXML( file_get_contents( "$dir/gallery-macro-label-input.xml" ) );
+		$processor->process( $dom );
+		$actualOutput = $dom->saveXML( $dom->documentElement );
+
+		$expectedDom = new DOMDocument();
+		$expectedDom->loadXML( file_get_contents( "$dir/gallery-macro-label-output.xml" ) );
 		$expectedOutput = $expectedDom->saveXML( $expectedDom->documentElement );
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
