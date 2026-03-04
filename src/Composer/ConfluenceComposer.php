@@ -96,14 +96,22 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$this->addDefaultFiles();
 
 		/** Add content pages */
-		$spaceIDHomepagesMap = $this->buckets->getBucketData( 'global-space-id-homepages' );
-		$homepageSpaceIDMap = array_flip( $spaceIDHomepagesMap );
-		$spaceIdDescriptionIdMap = $this->buckets->getBucketData( 'global-space-id-to-description-id-map' );
-		$spaceDescriptionIDBodyIDMap = $this->buckets->getBucketData( 'global-space-description-id-to-body-id-map' );
-		$titleRevisions = $this->buckets->getBucketData( 'global-title-revisions' );
+		$spaceIdHomepagesMap = $this->buckets->getBucketData(
+			'global-space-id-homepages'
+		);
+		$homepagespaceIdMap = array_flip( $spaceIdHomepagesMap );
+		$spaceIdDescriptionIdMap = $this->buckets->getBucketData(
+			'global-space-id-to-description-id-map'
+		);
+		$spaceBodyIdDescriptionIdBodyIDMap = $this->buckets->getBucketData(
+			'global-body-content-id-to-space-description-id-map'
+		);
+		$titleRevisions = $this->buckets->getBucketData(
+			'global-title-revisions'
+		);
 
 		/** Prepare required maps */
-		$bodyContentIDMainpageID = $this->buildMainpageContentMap( $spaceIDHomepagesMap );
+		$bodyContentIdMainpageId = $this->buildMainpageContentMap( $spaceIdHomepagesMap );
 
 		/** Add grouped pages */
 		foreach ( $titleRevisions as $pageTitle => $pageRevisions ) {
@@ -122,15 +130,13 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 					}
 					$this->output->writeln( "Getting '$bodyContentId' body content..." );
 					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
-					/* Has to be fixed
 					$pageContent .= $this->addSpaceDescriptionToMainPage(
 						$bodyContentId,
-						$bodyContentIDMainpageID,
-						$homepageSpaceIDMap,
+						$bodyContentIdMainpageId,
+						$homepagespaceIdMap,
 						$spaceIdDescriptionIdMap,
-						$spaceDescriptionIDBodyIDMap
+						array_flip( $spaceBodyIdDescriptionIdBodyIDMap )
 					);
-				*/
 				}
 
 				$this->addRevision( $pageTitle, $pageContent, $timestamp );
@@ -472,23 +478,23 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
-	 * @param array $spaceIDHomepagesMap
+	 * @param array $spaceIdHomepagesMap
 	 * @return array
 	 */
-	private function buildMainpageContentMap( array $spaceIDHomepagesMap ): array {
+	private function buildMainpageContentMap( array $spaceIdHomepagesMap ): array {
 		$bodyContentsToPagesMap = $this->buckets->getBucketData( 'global-body-content-id-to-page-id-map' );
 
-		$bodyContentIDMainpageID = [];
+		$bodyContentIdMainpageId = [];
 		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );
-		foreach ( $spaceIDHomepagesMap as $homepageId ) {
+		foreach ( $spaceIdHomepagesMap as $homepageId ) {
 			if ( !isset( $pagesToBodyContents[$homepageId] ) ) {
 				continue;
 			}
 			$bodyContentsID = $pagesToBodyContents[$homepageId];
-			$bodyContentIDMainpageID[$bodyContentsID] = $homepageId;
+			$bodyContentIdMainpageId[$bodyContentsID] = $homepageId;
 		}
 
-		return $bodyContentIDMainpageID;
+		return $bodyContentIdMainpageId;
 	}
 
 	/**
@@ -528,33 +534,35 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * Add space description to homepage
 	 *
 	 * @param string|int $bodyContentId
-	 * @param array $bodyContentIDMainpageID
-	 * @param array $homepageSpaceIDMap
+	 * @param array $bodyContentIdMainpageId
+	 * @param array $homepagespaceIdMap
 	 * @param array $spaceIdDescriptionIdMap
-	 * @param array $spaceDescriptionIDBodyIDMap
+	 * @param array $spaceDescriptionIdBodyIdMap
 	 * @return string
 	 */
 	private function addSpaceDescriptionToMainPage(
-		$bodyContentId, array $bodyContentIDMainpageID,
-		array $homepageSpaceIDMap, array $spaceIdDescriptionIdMap,
-		array $spaceDescriptionIDBodyIDMap
+		$bodyContentId, array $bodyContentIdMainpageId,
+		array $homepagespaceIdMap, array $spaceIdDescriptionIdMap,
+		array $spaceDescriptionIdBodyIdMap
 	): string {
 		$pageContent = '';
 
-		if ( isset( $bodyContentIDMainpageID[$bodyContentId] ) ) {
+		if ( isset( $bodyContentIdMainpageId[$bodyContentId] ) ) {
 			// get homepage id if it is a homepage
-			$mainpageID = $bodyContentIDMainpageID[$bodyContentId];
-			if ( isset( $homepageSpaceIDMap[$mainpageID] ) ) {
+			$mainpageID = $bodyContentIdMainpageId[$bodyContentId];
+			if ( isset( $homepagespaceIdMap[$mainpageID] ) ) {
 				// get space id
-				$spaceID = $homepageSpaceIDMap[$mainpageID];
-				if ( isset( $spaceIdDescriptionIdMap[$spaceID] ) ) {
+				$spaceId = $homepagespaceIdMap[$mainpageID];
+				if ( isset( $spaceIdDescriptionIdMap[$spaceId] ) ) {
 					// get description id
-					$descID = $spaceIdDescriptionIdMap[$spaceID];
-					if ( isset( $spaceDescriptionIDBodyIDMap[$descID] ) ) {
+					$descId = $spaceIdDescriptionIdMap[$spaceId];
+					if ( isset( $spaceDescriptionIdBodyIdMap[$descId] ) ) {
 						// get description id
-						$descBodyID = $spaceDescriptionIDBodyIDMap[$descID];
-						$description = $this->workspace->getConvertedContent( $descBodyID );
-						$pageContent .= "[[Space description::$description]]\n";
+						$descBodyId = $spaceDescriptionIdBodyIdMap[$descId];
+						$description = $this->workspace->getConvertedContent( $descBodyId );
+						if ( $description !== '' ) {
+							$pageContent .= "[[Space description::$description]]\n";
+						}
 					}
 				}
 			}

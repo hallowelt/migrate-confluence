@@ -114,10 +114,9 @@ class ConfluenceExtractor extends ExtractorBase {
 		$bodyContentsToPagesMap = $this->buckets->getBucketData(
 			'global-body-content-id-to-page-id-map'
 		);
-		$spaceDescritipionIdtoBodyContentsMap = $this->buckets->getBucketData(
+		$bodyContentsToSpaceDescriptionMap = $this->buckets->getBucketData(
 			'analyze-body-content-id-to-space-description-id-map'
 		);
-		$bodySpaceDescrtiptionMap = array_flip( $spaceDescritipionIdtoBodyContentsMap );
 		$bodyContentsToCommentsMap = $this->buckets->getBucketData(
 			'global-body-content-id-to-comment-id-map'
 		);
@@ -129,7 +128,7 @@ class ConfluenceExtractor extends ExtractorBase {
 			$id = $xmlHelper->getIDNodeValue( $bodyContent );
 			if (
 				!isset( $bodyContentsToPagesMap[ $id ] )
-				&& !isset( $bodySpaceDescrtiptionMap[ $id ] )
+				&& !isset( $bodyContentsToSpaceDescriptionMap[ $id ] )
 				&& !isset( $bodyContentsToCommentsMap[ $id ] )
 			) {
 				continue;

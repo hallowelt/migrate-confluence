@@ -95,7 +95,7 @@ class Compose extends CommandCompose {
 		return [
 			'global-space-id-homepages',
 			'global-space-id-to-description-id-map',
-			'global-space-description-id-to-body-id-map',
+			'global-body-content-id-to-space-description-id-map',
 			'global-body-content-id-to-page-id-map',
 			'global-title-attachments',
 			'global-title-revisions',
