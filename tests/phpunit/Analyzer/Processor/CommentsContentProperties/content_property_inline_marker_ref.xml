@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-01-01 00:00:00">
+
+    <object class="ContentProperty" package="com.atlassian.confluence.content">
+        <id name="id">1002</id>
+        <property name="name">inline-marker-ref</property>
+        <property name="stringValue">some-uuid-value</property>
+        <property name="content" class="Comment" package="com.atlassian.confluence.pages">
+            <id name="id">501</id>
+        </property>
+    </object>
+
+</hibernate-generic>

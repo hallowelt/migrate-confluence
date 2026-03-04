@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-01-01 00:00:00">
+
+    <object class="Comment" package="com.atlassian.confluence.pages">
+        <id name="id">601</id>
+        <property name="hibernateVersion">1</property>
+        <property name="version">1</property>
+        <property name="creationDate">2026-02-12 17:10:00.000</property>
+        <property name="lastModificationDate">2026-02-12 17:10:00.000</property>
+        <property name="contentStatus">current</property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user">
+            <id name="key">userkey-abc</id>
+        </property>
+        <property name="containerContent" class="Page" package="com.atlassian.confluence.pages">
+            <id name="id">700</id>
+        </property>
+    </object>
+
+</hibernate-generic>
