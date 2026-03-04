@@ -95,7 +95,7 @@ class ConversionDataLookup {
 	 * @param array $files
 	 * @param array $userMap
 	 * @param array $spaceIdToKeyMap
-	 * @param array $labelsMap  confluence-file-key → label names array
+	 * @param array $labelsMap confluence-file-key → label names array
 	 */
 	public function __construct(
 		$spaceIdPrefixMap, $pagesTitlesMap,
@@ -251,8 +251,8 @@ class ConversionDataLookup {
 	 *
 	 * @param int $spaceId
 	 * @param string $rawPageTitle
-	 * @param string[] $includeLabels  only files that carry every one of these labels are included
-	 * @param string[] $excludeLabels  files with any of these labels are excluded
+	 * @param string[] $includeLabels only files that carry every one of these labels are included
+	 * @param string[] $excludeLabels files with any of these labels are excluded
 	 * @return string[]
 	 */
 	public function getTargetFileTitlesForPageByLabel(
@@ -266,7 +266,8 @@ class ConversionDataLookup {
 			}
 			$fileLabels = $this->labelsMap[$key] ?? [];
 			// includeLabels: file must carry ALL specified labels (AND)
-			if ( !empty( $includeLabels ) && count( array_intersect( $includeLabels, $fileLabels ) ) !== count( $includeLabels ) ) {
+			if ( !empty( $includeLabels )
+				&& count( array_intersect( $includeLabels, $fileLabels ) ) !== count( $includeLabels ) ) {
 				continue;
 			}
 			// excludeLabels: skip file if it has ANY excluded label (OR)

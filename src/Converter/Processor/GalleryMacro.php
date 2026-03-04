@@ -156,7 +156,11 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 * @param string[] $excludeLabels
 	 * @return string[]
 	 */
-	private function resolvePageFiles( string $pageParam, array $includeLabels = [], array $excludeLabels = [] ): array {
+	private function resolvePageFiles(
+		string $pageParam,
+		array $includeLabels = [],
+		array $excludeLabels = []
+	): array {
 		$pageRefs = array_map( 'trim', explode( ',', $pageParam ) );
 		$files = [];
 		foreach ( $pageRefs as $pageRef ) {
