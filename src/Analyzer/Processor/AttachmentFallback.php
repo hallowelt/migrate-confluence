@@ -14,11 +14,24 @@ class AttachmentFallback extends ProcessorBase {
 	/** @var XMLHelper */
 	protected $xmlHelper;
 
+	/** @var bool */
+	private $includeHistory = false;
+
 	/** @var mixed */
 	private $attachmentId;
 
+	/** @var mixed */
+	private $originalVersionId;
+
 	/** @var string */
 	private $attachmentOrigFilename = '';
+
+	/**
+	 * @param boolean $includeHistory
+	 */
+	public function __construct( bool $includeHistory ) {
+		$this->includeHistory = $includeHistory;
+	}
 
 	/**
 	 * @inheritDoc
@@ -38,7 +51,8 @@ class AttachmentFallback extends ProcessorBase {
 			'debug-analyze-invalid-titles-attachment-id-to-title',
 			'global-filenames-to-filetitles-map',
 			'analyze-attachment-id-to-target-filename-map',
-			'global-title-attachments'
+			'global-title-attachments',
+			'global-attachment-revisions'
 		];
 	}
 
@@ -53,7 +67,8 @@ class AttachmentFallback extends ProcessorBase {
 			'global-attachment-orig-filename-target-filename-map',
 			'global-filenames-to-filetitles-map',
 			'analyze-attachment-id-to-target-filename-map',
-			'global-title-attachments'
+			'global-title-attachments',
+			'global-attachment-revisions'
 		];
 	}
 
@@ -72,17 +87,32 @@ class AttachmentFallback extends ProcessorBase {
 			return;
 		}
 
+		$this->attachmentId = $this->xmlHelper->getIDNodeValue( $objectNode );
+		if ( in_array( $this->attachmentId, $this->data['analyze-added-attachment-id'] ) ) {
+			// Attachment was already added in Page processor
+			return;
+		}
+
 		$attachmentNodeContentStatus = $this->xmlHelper->getPropertyValue( 'contentStatus', $objectNode );
 		if ( strtolower( $attachmentNodeContentStatus ) !== 'current' ) {
 			return;
 		}
-		$this->attachmentId = $this->xmlHelper->getIDNodeValue( $objectNode );
-		if ( in_array( $this->attachmentId, $this->data['analyze-added-attachment-id'] ) ) {
+
+		// Process only latest version of attachments as long as history is not required by config
+		$originalVersionId = $this->xmlHelper->getPropertyValue( 'originalVersion', $objectNode );
+		if ( !$originalVersionId ) {
+			$originalVersionId = $this->xmlHelper->getPropertyValue( 'originalVersionId', $objectNode );
+			$originalVersionId = ( (int)$originalVersionId > 0 )? (int)$originalVersionId: null;
+		}
+		$this->originalVersionId = $originalVersionId;
+		// All attachments have tag originalVersionid but in latest version it is empty
+		if ( !$this->includeHistory && ( $originalVersionId !== null ) ) {
 			return;
 		}
-		if ( !in_array( $this->attachmentId, $this->data['analyze-attachment-available-ids'] ) ) {
-			return;
+		if ( $originalVersionId === null ) {
+			$originalVersionId = $this->attachmentId;
 		}
+
 		if ( !isset( $this->data['analyze-attachment-id-to-orig-filename-map'][$this->attachmentId] ) ) {
 			return;
 		}
@@ -102,15 +132,17 @@ class AttachmentFallback extends ProcessorBase {
 			}
 			if ( isset( $data['analyze-page-id-to-confluence-key-map'][$containerContentId] ) ) {
 				$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId];
-			} else {
-				return;
 			}
 		}
-		// TODO: Is this wise?
-		$attachmentSpaceId = 0;
+
+		$attachmentSpaceId = null;
 		if ( isset( $data['analyze-attachment-id-to-space-id-map'][$this->attachmentId] ) ) {
 			$attachmentSpaceId = $this->data['analyze-attachment-id-to-space-id-map'][$this->attachmentId];
 		}
+		if ( $attachmentSpaceId === null ) {
+			return;
+		}
+
 		$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
 			$confluenceKey, $this->attachmentId, $attachmentSpaceId, $this->attachmentOrigFilename,
 			$targetTitle, $this->data['global-space-id-to-prefix-map']
@@ -128,7 +160,6 @@ class AttachmentFallback extends ProcessorBase {
 			);
 			return;
 		}
-
 		$attachmentReference = $this->data['analyze-attachment-id-to-reference-map'][$this->attachmentId];
 
 		if ( $confluenceKey !== '' ) {
@@ -157,6 +188,25 @@ class AttachmentFallback extends ProcessorBase {
 		}
 		$this->data['global-attachment-orig-filename-target-filename-map'][$this->attachmentOrigFilename][]
 			= $attachmentTargetFilename;
+
+		$attachmentVersion = $this->xmlHelper->getPropertyValue( 'attachmentVersion', $node );
+		if ( empty( $attachmentVersion ) ) {
+			$attachmentVersion = $this->xmlHelper->getPropertyValue( 'version', $node );
+		}
+		/**
+		 * Sometimes there is no explicit version set in the "attachment" object. In such cases
+		 * there we always fetch the highest number from the respective directory
+		 */
+		if ( empty( $attachmentVersion ) ) {
+			$attachmentVersion = '__LATEST__';
+		}
+
+		$lastModificationDate = $this->xmlHelper->getPropertyValue( 'creationDate', $node );
+		$time = strtotime( $lastModificationDate );
+		$attachmentTimestamp = date( 'YmdHis', $time );
+
+		$this->data['global-attachment-revisions'][$$this->originalVersionId][] =
+			$$this->attachmentId . '@' . $attachmentVersion . '-' . $attachmentTimestamp;
 	}
 
 	/**

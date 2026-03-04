@@ -103,7 +103,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-added-attachment-id',
 			'analyze-add-file',
 			'analyze-attachment-available-ids',
-			'analyze-attachment-id-to-container-content-id-map',
+			'analyze-attachment-id-to-page-id-map',
 			'analyze-attachment-id-to-content-status-map',
 			'analyze-attachment-id-to-orig-filename-map',
 			'analyze-attachment-id-to-reference-map',
@@ -139,6 +139,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'global-body-content-id-to-space-description-id-map',
 			'global-title-attachments',
 			'global-title-revisions',
+			'global-attachment-revisions',
 			'global-userkey-to-username-map',
 			'users',
 		];
@@ -250,7 +251,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'SpaceDescription' => new SpaceDescription(),
 			'Page' => new ParentPages(),
 			'BodyContent' => new BodyContents(),
-			'Attachment' => new Attachments( $this->file ),
+			'Attachment' => new Attachments( $this->file, $this->includeHistory ),
 			'ConfluenceUserImpl' => new Users(),
 		];
 	}
@@ -273,7 +274,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private function getPostProcessors(): array {
 		return [
-			'Attachment' => new AttachmentFallback()
+			'Attachment' => new AttachmentFallback( $this->includeHistory )
 		];
 	}
 

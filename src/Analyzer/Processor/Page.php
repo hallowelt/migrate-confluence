@@ -106,8 +106,18 @@ class Page extends ProcessorBase {
 		if ( $objectNode instanceof DOMElement === false ) {
 			return;
 		}
+		// Process only latest version of pages as long as history is not required by config
+		$originalVersionId = $this->xmlHelper->getPropertyValue( 'originalVersion', $objectNode );
+		if ( !$originalVersionId ) {
+			$originalVersionId = $this->xmlHelper->getPropertyValue( 'originalVersionId', $objectNode );
+			$originalVersionId = ( (int)$originalVersionId > 0 )? (int)$originalVersionId: null;
+		}
+		if ( !$this->includeHistory && ( $originalVersionId !== null ) ) {
+			return;
+		}
+
 		$status = $this->xmlHelper->getPropertyValue( 'contentStatus', $objectNode );
-		if ( !$this->includeHistory && ( $status !== 'current' ) ) {
+		if ( $status !== 'current' ) {
 			return;
 		}
 		$this->spaceId = $this->xmlHelper->getPropertyValue( 'space', $objectNode );
@@ -123,10 +133,6 @@ class Page extends ProcessorBase {
 			!empty( $this->includeSpaceKey )
 			&& !in_array( strtolower( $spaceKey ), $this->includeSpaceKey )
 		) {
-			return;
-		}
-		$originalVersionID = $this->xmlHelper->getPropertyValue( 'originalVersion', $objectNode );
-		if ( $originalVersionID !== null ) {
 			return;
 		}
 
@@ -252,14 +258,17 @@ class Page extends ProcessorBase {
 	 */
 	private function getAttachmentsFromCollection( XMLHelper $xmlHelper, DOMElement $element, int $spaceId ): void {
 		$pageId = $xmlHelper->getIDNodeValue( $element );
+
 		if ( !isset( $this->data['analyze-page-id-to-confluence-title-map'][$pageId] ) ) {
 			return;
 		}
 		$confluenceTitle = $this->data['analyze-page-id-to-confluence-title-map'][$pageId];
+
 		if ( !isset( $this->data['analyze-page-id-to-confluence-key-map'][$pageId] ) ) {
 			return;
 		}
 		$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$pageId];
+
 		if ( !isset( $this->data['analyze-pages-titles-map'][$confluenceKey] ) ) {
 			return;
 		}
@@ -271,18 +280,23 @@ class Page extends ProcessorBase {
 
 		foreach ( $attachmentRefs as $attachmentRef ) {
 			$attachmentId = $xmlHelper->getIDNodeValue( $attachmentRef );
+			if ( $attachmentId < 0  ) {
+				continue;
+			}
 			if ( in_array( $attachmentId, $this->data['analyze-added-attachment-id'] ) ) {
 				continue;
 			}
 			if ( !isset( $this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId] ) ) {
 				continue;
 			}
+
 			$attachmentOrigFilename = $this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId];
 			if ( isset( $this->data['analyze-attachment-id-to-space-id-map'][$attachmentId] ) ) {
 				$attachmentSpaceId = $this->data['analyze-attachment-id-to-space-id-map'][$attachmentId];
 			} else {
 				$attachmentSpaceId = $spaceId;
 			}
+
 			$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
 				$confluenceTitle, $attachmentId, $attachmentSpaceId,
 				$attachmentOrigFilename, $wikiTitle, $this->data['global-space-id-to-prefix-map']
@@ -292,6 +306,7 @@ class Page extends ProcessorBase {
 					= $attachmentTargetFilename;
 				continue;
 			}
+
 			if ( !isset( $this->data['analyze-attachment-id-to-reference-map'][$attachmentId] ) ) {
 				continue;
 			}
