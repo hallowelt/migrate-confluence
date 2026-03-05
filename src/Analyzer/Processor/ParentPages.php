@@ -28,6 +28,11 @@ class ParentPages extends ProcessorBase {
 		$this->xmlHelper = new XMLHelper( $dom );
 
 		$objectNodes = $this->xmlHelper->getObjectNodes( 'Page' );
+		$isBlogPost = false;
+		if ( count( $objectNodes ) < 1 ) {
+			$objectNodes = $this->xmlHelper->getObjectNodes( 'BlogPost' );
+			$isBlogPost = true;
+		}
 		if ( count( $objectNodes ) < 1 ) {
 			return;
 		}
@@ -48,12 +53,13 @@ class ParentPages extends ProcessorBase {
 			return;
 		}
 		$pageId = $this->xmlHelper->getIDNodeValue( $objectNode );
-		$parentPageId = $this->xmlHelper->getPropertyValue( 'parent', $objectNode );
-		if ( $parentPageId !== null ) {
-			$this->data['analyze-page-id-to-parent-page-id-map'][$pageId] = (int)trim( $parentPageId );
+		if ( !$isBlogPost ) {
+			$parentPageId = $this->xmlHelper->getPropertyValue( 'parent', $objectNode );
+			if ( $parentPageId !== null ) {
+				$this->data['analyze-page-id-to-parent-page-id-map'][$pageId] = (int)trim( $parentPageId );
+			}
 		}
 
-		$pageId = $this->xmlHelper->getIDNodeValue( $objectNode );
 		$confluenceTitle = $this->xmlHelper->getPropertyValue( 'title', $objectNode );
 		if ( $confluenceTitle !== null ) {
 			$this->data['analyze-page-id-to-confluence-title-map'][$pageId] = $confluenceTitle;
