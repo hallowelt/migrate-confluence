@@ -9,6 +9,9 @@ use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 
 class BlogPost extends ProcessorBase {
 
+	/** @var string */
+	protected const BLOG_GENERAL_PREFIX = 'Blog:General';
+
 	/** @var XMLHelper */
 	protected $xmlHelper;
 
@@ -113,9 +116,9 @@ class BlogPost extends ProcessorBase {
 			$rawTitle
 		);
 		$sanitizedTitle = str_replace( '__', '_', $sanitizedTitle );
-		$this->targetTitle = 'Blog:General/' . $sanitizedTitle;
+		$this->targetTitle = self::BLOG_GENERAL_PREFIX . '/' . $sanitizedTitle;
 
-		if ( $this->targetTitle === 'Blog:General/' ) {
+		if ( empty( $sanitizedTitle ) ) {
 			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
 				$this->pageId => $this->targetTitle
 			];
