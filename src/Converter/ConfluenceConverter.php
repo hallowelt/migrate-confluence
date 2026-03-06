@@ -35,6 +35,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
@@ -142,6 +143,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-userkey-to-username-map',
 			'global-body-content-id-to-space-description-id-map',
 			'global-gliffy-map',
+			'global-attachment-metadata',
+			'analyze-attachment-id-to-confluence-file-key-map',
 		] );
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
@@ -333,6 +336,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			),
 			new ContenByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
+			new GalleryMacro(
+				$this->dataLookup, $this->currentSpace, $currentPageTitle
+			),
 			new ExpandMacro(),
 			new DetailsMacro(),
 			new DetailsSummaryMacro(),
@@ -483,6 +489,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'drawio',
 				'excerpt-include',
 				'expand',
+				'gallery',
 				'include',
 				'info',
 				'inline-comment-marker',

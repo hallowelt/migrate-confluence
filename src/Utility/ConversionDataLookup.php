@@ -54,11 +54,26 @@ class ConversionDataLookup {
 	private $userMap = [];
 
 	/**
+	 * confluence-file-key → label names array
 	 *
+	 * @var array
+	 */
+	private $attachmentLabelsMap = [];
+
+	/**
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataLookup
 	 */
 	public static function newFromBuckets( DataBuckets $buckets ) {
+		$attachmentMetadataMap = $buckets->getBucketData( 'global-attachment-metadata' );
+		$attachmentIdToFileKeyMap = $buckets->getBucketData( 'analyze-attachment-id-to-confluence-file-key-map' );
+		$attachmentLabelsMap = [];
+		foreach ( $attachmentMetadataMap as $attachmentId => $meta ) {
+			if ( isset( $attachmentIdToFileKeyMap[$attachmentId] ) && isset( $meta['labels'] ) ) {
+				$attachmentLabelsMap[$attachmentIdToFileKeyMap[$attachmentId]] = $meta['labels'];
+			}
+		}
+
 		return new static(
 			$buckets->getBucketData( 'global-space-id-to-prefix-map' ),
 			$buckets->getBucketData( 'global-pages-titles-map' ),
@@ -67,6 +82,7 @@ class ConversionDataLookup {
 			$buckets->getBucketData( 'global-files' ),
 			$buckets->getBucketData( 'global-userkey-to-username-map' ),
 			$buckets->getBucketData( 'global-space-id-to-key-map' ),
+			$attachmentLabelsMap,
 		);
 	}
 
@@ -78,11 +94,12 @@ class ConversionDataLookup {
 	 * @param array $files
 	 * @param array $userMap
 	 * @param array $spaceIdToKeyMap
+	 * @param array $attachmentLabelsMap
 	 */
 	public function __construct(
 		$spaceIdPrefixMap, $pagesTitlesMap,
 		$filenamesToFiletitlesMap, $attachmentOrigFilenameToTargetFilenameMap,
-		$files, $userMap, $spaceIdToKeyMap ) {
+		$files, $userMap, $spaceIdToKeyMap, $attachmentLabelsMap = [] ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
 		$this->spaceKeyToIdMap = array_flip( $this->spaceIdToKeyMap );
@@ -104,6 +121,7 @@ class ConversionDataLookup {
 		}
 		$this->files = $files;
 		$this->userMap = $userMap;
+		$this->attachmentLabelsMap = $attachmentLabelsMap;
 	}
 
 	/**
@@ -204,6 +222,60 @@ class ConversionDataLookup {
 			}
 		}
 		return $filename;
+	}
+
+	/**
+	 * Returns all target file titles attached to a given page.
+	 *
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return string[]
+	 */
+	public function getTargetFileTitlesForPage( int $spaceId, string $rawPageTitle ): array {
+		$prefix = $spaceId . '---' . str_replace( ' ', '_', basename( $rawPageTitle ) ) . '---';
+		$results = [];
+		foreach ( $this->filenamesToFiletitlesMap as $key => $targetTitle ) {
+			if ( strpos( $key, $prefix ) === 0 && $targetTitle !== '' ) {
+				$results[] = $targetTitle;
+			}
+		}
+		return $results;
+	}
+
+	/**
+	 * Returns target file titles attached to a page, filtered by label include/exclude lists.
+	 *
+	 * includeLabels: AND logic – the file must have ALL specified labels (Confluence behaviour).
+	 * excludeLabels: OR logic  – the file is excluded if it has ANY of the specified labels.
+	 *
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @param string[] $includeLabels only files that carry every one of these labels are included
+	 * @param string[] $excludeLabels files with any of these labels are excluded
+	 * @return string[]
+	 */
+	public function getTargetFileTitlesForPageByLabel(
+		int $spaceId, string $rawPageTitle, array $includeLabels = [], array $excludeLabels = []
+	): array {
+		$prefix = $spaceId . '---' . str_replace( ' ', '_', basename( $rawPageTitle ) ) . '---';
+		$results = [];
+		foreach ( $this->filenamesToFiletitlesMap as $key => $targetTitle ) {
+			if ( strpos( $key, $prefix ) !== 0 || $targetTitle === '' ) {
+				continue;
+			}
+			$fileLabels = $this->attachmentLabelsMap[$key] ?? [];
+			// includeLabels: file must carry ALL specified labels (AND)
+			if ( !empty( $includeLabels )
+				&& count( array_intersect( $includeLabels, $fileLabels ) ) !== count( $includeLabels ) ) {
+				continue;
+			}
+			// excludeLabels: skip file if it has ANY excluded label (OR)
+			if ( !empty( $excludeLabels ) && !empty( array_intersect( $excludeLabels, $fileLabels ) ) ) {
+				continue;
+			}
+			$results[] = $targetTitle;
+		}
+		return $results;
 	}
 
 	/**
