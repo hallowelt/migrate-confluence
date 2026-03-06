@@ -41,7 +41,8 @@ class BodyContents extends ProcessorBase {
 		$pageId = (int)trim( $pageId );
 
 		$propertyNode = $this->xmlHelper->getPropertyNode( 'content', $objectNode );
-		if ( $propertyNode->getAttribute( 'class' ) === 'Page' ) {
+		$contentClass = $propertyNode->getAttribute( 'class' );
+		if ( $contentClass === 'Page' || $contentClass === 'BlogPost' ) {
 			$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $pageId;
 		} elseif ( $propertyNode->getAttribute( 'class' ) === 'SpaceDescription' ) {
 			$this->data['analyze-body-content-id-to-space-description-id-map'][$bodyContentId] = $pageId;

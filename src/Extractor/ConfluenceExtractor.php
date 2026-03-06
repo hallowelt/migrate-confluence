@@ -93,7 +93,7 @@ class ConfluenceExtractor extends ExtractorBase {
 			$objectDom->loadXML( $objectXML );
 
 			$class = $xmlReader->getAttribute( 'class' );
-			if ( $class === 'Page' ) {
+			if ( $class === 'Page' || $class === 'BlogPost' ) {
 				$this->extractPageMetaData( $objectDom );
 			}
 
@@ -214,6 +214,9 @@ class ConfluenceExtractor extends ExtractorBase {
 		$xmlHelper = new XMLHelper( $dom );
 
 		$pageObjs = $xmlHelper->getObjectNodes( 'Page' );
+		if ( count( $pageObjs ) < 1 ) {
+			$pageObjs = $xmlHelper->getObjectNodes( 'BlogPost' );
+		}
 		if ( count( $pageObjs ) < 1 ) {
 			return;
 		}
