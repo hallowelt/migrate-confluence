@@ -143,7 +143,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-userkey-to-username-map',
 			'global-body-content-id-to-space-description-id-map',
 			'global-gliffy-map',
-			'extract-attachment-id-to-label-names-map',
+			'global-attachment-metadata',
 			'analyze-attachment-id-to-confluence-file-key-map',
 		] );
 

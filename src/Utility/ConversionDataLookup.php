@@ -58,20 +58,19 @@ class ConversionDataLookup {
 	 *
 	 * @var array
 	 */
-	private $labelsMap = [];
+	private $attachmentLabelsMap = [];
 
 	/**
-	 *
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataLookup
 	 */
 	public static function newFromBuckets( DataBuckets $buckets ) {
-		$attachmentLabelNamesMap = $buckets->getBucketData( 'extract-attachment-id-to-label-names-map' );
+		$attachmentMetadataMap = $buckets->getBucketData( 'global-attachment-metadata' );
 		$attachmentIdToFileKeyMap = $buckets->getBucketData( 'analyze-attachment-id-to-confluence-file-key-map' );
-		$labelsMap = [];
-		foreach ( $attachmentLabelNamesMap as $attachmentId => $labelNames ) {
-			if ( isset( $attachmentIdToFileKeyMap[$attachmentId] ) ) {
-				$labelsMap[$attachmentIdToFileKeyMap[$attachmentId]] = $labelNames;
+		$attachmentLabelsMap = [];
+		foreach ( $attachmentMetadataMap as $attachmentId => $meta ) {
+			if ( isset( $attachmentIdToFileKeyMap[$attachmentId] ) && isset( $meta['labels'] ) ) {
+				$attachmentLabelsMap[$attachmentIdToFileKeyMap[$attachmentId]] = $meta['labels'];
 			}
 		}
 
@@ -83,7 +82,7 @@ class ConversionDataLookup {
 			$buckets->getBucketData( 'global-files' ),
 			$buckets->getBucketData( 'global-userkey-to-username-map' ),
 			$buckets->getBucketData( 'global-space-id-to-key-map' ),
-			$labelsMap,
+			$attachmentLabelsMap,
 		);
 	}
 
@@ -95,12 +94,12 @@ class ConversionDataLookup {
 	 * @param array $files
 	 * @param array $userMap
 	 * @param array $spaceIdToKeyMap
-	 * @param array $labelsMap confluence-file-key → label names array
+	 * @param array $attachmentLabelsMap
 	 */
 	public function __construct(
 		$spaceIdPrefixMap, $pagesTitlesMap,
 		$filenamesToFiletitlesMap, $attachmentOrigFilenameToTargetFilenameMap,
-		$files, $userMap, $spaceIdToKeyMap, $labelsMap = [] ) {
+		$files, $userMap, $spaceIdToKeyMap, $attachmentLabelsMap = [] ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
 		$this->spaceKeyToIdMap = array_flip( $this->spaceIdToKeyMap );
@@ -122,7 +121,7 @@ class ConversionDataLookup {
 		}
 		$this->files = $files;
 		$this->userMap = $userMap;
-		$this->labelsMap = $labelsMap;
+		$this->attachmentLabelsMap = $attachmentLabelsMap;
 	}
 
 	/**
@@ -264,7 +263,7 @@ class ConversionDataLookup {
 			if ( strpos( $key, $prefix ) !== 0 || $targetTitle === '' ) {
 				continue;
 			}
-			$fileLabels = $this->labelsMap[$key] ?? [];
+			$fileLabels = $this->attachmentLabelsMap[$key] ?? [];
 			// includeLabels: file must carry ALL specified labels (AND)
 			if ( !empty( $includeLabels )
 				&& count( array_intersect( $includeLabels, $fileLabels ) ) !== count( $includeLabels ) ) {

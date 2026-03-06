@@ -34,7 +34,6 @@ class ConfluenceExtractor extends ExtractorBase {
 		$this->customBuckets = new DataBuckets( [
 			'extract-labelling-id-to-label-id-map',
 			'extract-label-id-to-name-map',
-			'extract-attachment-id-to-label-names-map',
 		] );
 	}
 
@@ -232,9 +231,7 @@ class ConfluenceExtractor extends ExtractorBase {
 		}
 
 		if ( !empty( $labelNames ) ) {
-			$this->customBuckets->addData(
-				'extract-attachment-id-to-label-names-map', $attachmentId, $labelNames, false
-			);
+			$this->addAttachmentMetaData( $attachmentId, [ 'labels' => $labelNames ] );
 		}
 	}
 
@@ -307,9 +304,18 @@ class ConfluenceExtractor extends ExtractorBase {
 	/**
 	 *
 	 * @param string $titleText
-	 * @param string $meta
+	 * @param array $meta
 	 */
 	protected function addTitleMetaData( $titleText, $meta = [] ) {
 		$this->buckets->addData( 'global-title-metadata', $titleText, $meta, false );
+	}
+
+	/**
+	 *
+	 * @param int $attachmentId
+	 * @param array $meta
+	 */
+	protected function addAttachmentMetaData( $attachmentId, $meta = [] ) {
+		$this->buckets->addData( 'global-attachment-metadata', $attachmentId, $meta, false );
 	}
 }
