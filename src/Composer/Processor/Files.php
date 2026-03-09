@@ -23,7 +23,11 @@ class Files extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		ini_set( "memory_limit", "-1" );
+		/**
+		 * base64 hash of files may exceed php memory limit.
+		 * Make sure enought memory is available or set
+		 * ini_set( "memory_limit", "-1" );
+		 */
 
 		$this->customBuckets = new DataBuckets( [
 			'title-uploads',

@@ -91,7 +91,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$this->builder = $builder;
 
 		$processors = [
-			#new Users( $builder ),
 			new Files(
 				$builder, $this->buckets, $this->workspace,
 				$this->output, $this->dest, $this->advancedConfig
