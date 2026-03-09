@@ -29,7 +29,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/** @var string */
 	private $dest = '';
 
-
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
