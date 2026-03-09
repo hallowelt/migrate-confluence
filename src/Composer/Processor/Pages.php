@@ -72,7 +72,6 @@ class Pages extends ProcessorBase {
 				$this->addRevision( $pageTitle, $pageContent, $timestamp );
 			}
 		}
-
 	}
 
 	/**

@@ -7,13 +7,8 @@ use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Composer\Processor\DefaultFiles;
-use HalloWelt\MigrateConfluence\Composer\Processor\DefaultPages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Files;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
-use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use Symfony\Component\Console\Output\Output;
 
 class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
@@ -34,20 +29,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/** @var string */
 	private $dest = '';
 
-	/** @var Builder */
-	private $builder = null;
-
-	/** @var int */
-	private $addedRevisions = 0;
-
-	/** @var int */
-	private $xmlNumber = 0;
-
-	/** @var int */
-	private $limit = 0;
-
-	/** @var bool */
-	private $mulitXmlOutputEnabled = false;
 
 	/**
 	 * @param array $config
@@ -97,7 +78,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			),
 			new Pages(
 				$builder, $this->buckets, $this->workspace,
-				$this->output,$this->dest, $this->advancedConfig
+				$this->output, $this->dest, $this->advancedConfig
 			),
 		];
 

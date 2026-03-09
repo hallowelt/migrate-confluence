@@ -43,6 +43,8 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	/**
 	 * @param Builder $builder
 	 * @param DataBuckets $buckets
+	 * @param Workspace $workspace
+	 * @param Output $output
 	 * @param string $dest
 	 * @param array $config
 	 */
@@ -85,9 +87,14 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		}
 	}
 
-		/**
-	 * @param string $wikiPageName
-	 * @param string $wikiText
+	/**
+	 * @param string $filename
+	 * @param string $wikitext
+	 * @param string $base64Contents
+	 * @param string $timestamp
+	 * @param string $username
+	 * @param string $model
+	 * @param string $format
 	 * @return void
 	 */
 	protected function addFileRevision(
@@ -124,7 +131,6 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		$this->builder->buildAndSave( $this->dest . "/result/{$name}" );
 		$this->builder->reset();
 	}
-
 
 	/**
 	 * @return bool
