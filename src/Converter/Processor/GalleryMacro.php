@@ -118,12 +118,11 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		if ( isset( $params['page'] ) && $params['page'] !== '' ) {
 			$allFiles = $this->resolvePageFiles( $params['page'], $includeLabels, $excludeLabels );
 		} elseif ( !empty( $includeLabels ) || !empty( $excludeLabels ) ) {
-			$allFiles = $this->dataLookup->getTargetFileTitlesForPageByLabel(
+			$allAttachments = $this->dataLookup->getAttachmentMetadataForPage(
 				$this->currentSpaceId,
-				$this->rawPageTitle,
-				$includeLabels,
-				$excludeLabels
+				$this->rawPageTitle
 			);
+			$allFiles = $this->filterAttachmentsByLabel( $allAttachments, $includeLabels, $excludeLabels );
 		} else {
 			$allFiles = $this->dataLookup->getTargetFileTitlesForPage(
 				$this->currentSpaceId,
@@ -178,9 +177,8 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			}
 
 			if ( !empty( $includeLabels ) || !empty( $excludeLabels ) ) {
-				$pageFiles = $this->dataLookup->getTargetFileTitlesForPageByLabel(
-					$spaceId, $pageTitle, $includeLabels, $excludeLabels
-				);
+				$pageAttachments = $this->dataLookup->getAttachmentMetadataForPage( $spaceId, $pageTitle );
+				$pageFiles = $this->filterAttachmentsByLabel( $pageAttachments, $includeLabels, $excludeLabels );
 			} else {
 				$pageFiles = $this->dataLookup->getTargetFileTitlesForPage( $spaceId, $pageTitle );
 			}
@@ -192,8 +190,35 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param string $include Comma-separated filenames
+	 * Filters an attachment metadata map by include/exclude label lists.
 	 *
+	 * includeLabels: AND logic – the attachment must carry ALL specified labels.
+	 * excludeLabels: OR logic  – the attachment is excluded if it has ANY of the specified labels.
+	 *
+	 * @param array<string, array> $attachments Map of confluenceFileKey => metadata (with 'targetTitle')
+	 * @param string[] $includeLabels
+	 * @param string[] $excludeLabels
+	 * @return string[]
+	 */
+	private function filterAttachmentsByLabel(
+		array $attachments, array $includeLabels, array $excludeLabels
+	): array {
+		$files = [];
+		foreach ( $attachments as $meta ) {
+			$fileLabels = $meta['labels'] ?? [];
+			if ( !empty( $includeLabels )
+				&& count( array_intersect( $includeLabels, $fileLabels ) ) !== count( $includeLabels ) ) {
+				continue;
+			}
+			if ( !empty( $excludeLabels ) && !empty( array_intersect( $excludeLabels, $fileLabels ) ) ) {
+				continue;
+			}
+			$files[] = $meta['targetTitle'];
+		}
+		return $files;
+	}
+
+	/**
 	 * @return string[]
 	 */
 	private function resolveIncludedFiles( string $include ): array {

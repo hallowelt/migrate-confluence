@@ -54,11 +54,11 @@ class ConversionDataLookup {
 	private $userMap = [];
 
 	/**
-	 * confluence-file-key → label names array
+	 * confluence-file-key → full attachment metadata array
 	 *
 	 * @var array
 	 */
-	private $attachmentLabelsMap = [];
+	private $attachmentMetadataMap = [];
 
 	/**
 	 * @param DataBuckets $buckets
@@ -114,13 +114,13 @@ class ConversionDataLookup {
 		$this->userMap = $userMap;
 
 
-		$attachmentLabelsMap = [];
+		$attachmentMetadataMap = [];
 		foreach ( $attachmentMetadata as $attachmentId => $meta ) {
-			if ( isset( $attachmentIdToFileKeyMap[$attachmentId] ) && isset( $meta['labels'] ) ) {
-				$attachmentLabelsMap[$attachmentIdToFileKeyMap[$attachmentId]] = $meta['labels'];
+			if ( isset( $attachmentIdToFileKeyMap[$attachmentId] ) ) {
+				$attachmentMetadataMap[$attachmentIdToFileKeyMap[$attachmentId]] = $meta;
 			}
 		}
-		$this->attachmentLabelsMap = $attachmentLabelsMap;
+		$this->attachmentMetadataMap = $attachmentMetadataMap;
 	}
 
 	/**
@@ -242,37 +242,25 @@ class ConversionDataLookup {
 	}
 
 	/**
-	 * Returns target file titles attached to a page, filtered by label include/exclude lists.
-	 *
-	 * includeLabels: AND logic – the file must have ALL specified labels (Confluence behaviour).
-	 * excludeLabels: OR logic  – the file is excluded if it has ANY of the specified labels.
+	 * Returns target file titles with their full metadata for all attachments on a page.
+	 * The returned array is keyed by confluence file key. Each value contains 'targetTitle'
+	 * plus any additional metadata fields (e.g. 'labels', 'mediaType', etc.).
 	 *
 	 * @param int $spaceId
 	 * @param string $rawPageTitle
-	 * @param string[] $includeLabels only files that carry every one of these labels are included
-	 * @param string[] $excludeLabels files with any of these labels are excluded
-	 * @return string[]
+	 * @return array<string, array> Map of confluenceFileKey => metadata (including 'targetTitle')
 	 */
-	public function getTargetFileTitlesForPageByLabel(
-		int $spaceId, string $rawPageTitle, array $includeLabels = [], array $excludeLabels = []
-	): array {
+	public function getAttachmentMetadataForPage( int $spaceId, string $rawPageTitle ): array {
 		$prefix = $spaceId . '---' . str_replace( ' ', '_', basename( $rawPageTitle ) ) . '---';
 		$results = [];
 		foreach ( $this->filenamesToFiletitlesMap as $key => $targetTitle ) {
 			if ( strpos( $key, $prefix ) !== 0 || $targetTitle === '' ) {
 				continue;
 			}
-			$fileLabels = $this->attachmentLabelsMap[$key] ?? [];
-			// includeLabels: file must carry ALL specified labels (AND)
-			if ( !empty( $includeLabels )
-				&& count( array_intersect( $includeLabels, $fileLabels ) ) !== count( $includeLabels ) ) {
-				continue;
-			}
-			// excludeLabels: skip file if it has ANY excluded label (OR)
-			if ( !empty( $excludeLabels ) && !empty( array_intersect( $excludeLabels, $fileLabels ) ) ) {
-				continue;
-			}
-			$results[] = $targetTitle;
+			$results[$key] = array_merge(
+				$this->attachmentMetadataMap[$key] ?? [],
+				[ 'targetTitle' => $targetTitle ]
+			);
 		}
 		return $results;
 	}
