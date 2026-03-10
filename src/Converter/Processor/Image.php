@@ -189,18 +189,24 @@ class Image implements IProcessor {
 	}
 
 	/**
+	 * MediaWiki does not render an img tag.
+	 * But with $wgAllowExternalImages it can show external images.
+	 * If this varaiable is false we show at least the url as link.
+	 *
 	 * @param DOMElement $node
 	 * @return DOMNode
 	 */
 	private function makeImageUrlReplacement( $node ): DOMNode {
 		$attributes = $this->getImageAttributes( $node->parentNode );
-		$attributes['src'] = $node->getAttribute( 'ri:value' );
+		$src = $node->getAttribute( 'ri:value' );
 
-		$replacementNode = $node->ownerDocument->createElement( 'img' );
+		$replacementNode = $node->ownerDocument->createElement( 'span' );
 
 		foreach ( $attributes as $name => $value ) {
 			$replacementNode->setAttribute( $name, $value );
 		}
+
+		$replacementNode->nodeValue = $src;
 
 		return $replacementNode;
 	}
