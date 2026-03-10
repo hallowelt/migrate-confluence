@@ -96,7 +96,7 @@ class ConfluenceExtractor extends ExtractorBase {
 			if ( $class === 'Page' ) {
 				$this->extractPageMetaData( $objectDom );
 			} elseif ( $class === 'Attachment' ) {
-				$this->extractAttachmentLabelData( $objectDom );
+				$this->extractAttachmentMetaData( $objectDom );
 			}
 
 			$read = $xmlReader->next();
@@ -197,7 +197,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function extractAttachmentLabelData( DOMDocument $dom ): void {
+	private function extractAttachmentMetaData( DOMDocument $dom ): void {
 		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
 		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
 

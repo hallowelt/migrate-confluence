@@ -13,7 +13,8 @@ class GalleryMacroTest extends TestCase {
 	 * @return ConversionDataLookup
 	 */
 	private function makeDataLookup(
-		array $fileMap = [], array $spaceIdToKeyMap = [], array $labelsMap = []
+		array $fileMap = [], array $spaceIdToKeyMap = [],
+		array $attachmentMetadata = [], array $attachmentIdToFileKeyMap = []
 	): ConversionDataLookup {
 		return new ConversionDataLookup(
 			[],
@@ -23,7 +24,8 @@ class GalleryMacroTest extends TestCase {
 			[],
 			[],
 			$spaceIdToKeyMap,
-			$labelsMap
+			$attachmentMetadata,
+			$attachmentIdToFileKeyMap
 		);
 	}
 
@@ -83,14 +85,21 @@ class GalleryMacroTest extends TestCase {
 			'1---MyPage---hero.jpg' => 'hero.jpg',
 			'1---MyPage---rejected.png' => 'rejected.png',
 		];
-		$labelsMap = [
-			'1---MyPage---photo.jpg' => [ 'featured' ],
-			'1---MyPage---loading.gif' => [ 'featured', 'draft' ],
-			'1---MyPage---approved.png' => [ 'approved' ],
-			'1---MyPage---hero.jpg' => [ 'featured', 'approved' ],
-			'1---MyPage---rejected.png' => [ 'featured', 'approved', 'draft' ],
+		$attachmentMetadata = [
+			'att1' => [ 'labels' => [ 'featured' ] ],
+			'att2' => [ 'labels' => [ 'featured', 'draft' ] ],
+			'att3' => [ 'labels' => [ 'approved' ] ],
+			'att4' => [ 'labels' => [ 'featured', 'approved' ] ],
+			'att5' => [ 'labels' => [ 'featured', 'approved', 'draft' ] ],
 		];
-		$dataLookup = $this->makeDataLookup( $fileMap, [], $labelsMap );
+		$attachmentIdToFileKeyMap = [
+			'att1' => '1---MyPage---photo.jpg',
+			'att2' => '1---MyPage---loading.gif',
+			'att3' => '1---MyPage---approved.png',
+			'att4' => '1---MyPage---hero.jpg',
+			'att5' => '1---MyPage---rejected.png',
+		];
+		$dataLookup = $this->makeDataLookup( $fileMap, [], $attachmentMetadata, $attachmentIdToFileKeyMap );
 		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage' );
 
 		$dom = new DOMDocument();

@@ -144,7 +144,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-body-content-id-to-space-description-id-map',
 			'global-gliffy-map',
 			'global-attachment-metadata',
-			'analyze-attachment-id-to-confluence-file-key-map',
+			'global-attachment-id-to-confluence-file-key-map',
 		] );
 
 		$this->buckets->loadFromWorkspace( $this->workspace );

@@ -65,15 +65,6 @@ class ConversionDataLookup {
 	 * @return ConversionDataLookup
 	 */
 	public static function newFromBuckets( DataBuckets $buckets ) {
-		$attachmentMetadataMap = $buckets->getBucketData( 'global-attachment-metadata' );
-		$attachmentIdToFileKeyMap = $buckets->getBucketData( 'analyze-attachment-id-to-confluence-file-key-map' );
-		$attachmentLabelsMap = [];
-		foreach ( $attachmentMetadataMap as $attachmentId => $meta ) {
-			if ( isset( $attachmentIdToFileKeyMap[$attachmentId] ) && isset( $meta['labels'] ) ) {
-				$attachmentLabelsMap[$attachmentIdToFileKeyMap[$attachmentId]] = $meta['labels'];
-			}
-		}
-
 		return new static(
 			$buckets->getBucketData( 'global-space-id-to-prefix-map' ),
 			$buckets->getBucketData( 'global-pages-titles-map' ),
@@ -82,7 +73,8 @@ class ConversionDataLookup {
 			$buckets->getBucketData( 'global-files' ),
 			$buckets->getBucketData( 'global-userkey-to-username-map' ),
 			$buckets->getBucketData( 'global-space-id-to-key-map' ),
-			$attachmentLabelsMap,
+			$buckets->getBucketData( 'global-attachment-metadata' ),
+			$buckets->getBucketData( 'global-attachment-id-to-confluence-file-key-map' )
 		);
 	}
 
@@ -94,12 +86,11 @@ class ConversionDataLookup {
 	 * @param array $files
 	 * @param array $userMap
 	 * @param array $spaceIdToKeyMap
-	 * @param array $attachmentLabelsMap
 	 */
 	public function __construct(
 		$spaceIdPrefixMap, $pagesTitlesMap,
 		$filenamesToFiletitlesMap, $attachmentOrigFilenameToTargetFilenameMap,
-		$files, $userMap, $spaceIdToKeyMap, $attachmentLabelsMap = [] ) {
+		$files, $userMap, $spaceIdToKeyMap, $attachmentMetadata, $attachmentIdToFileKeyMap  ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
 		$this->spaceKeyToIdMap = array_flip( $this->spaceIdToKeyMap );
@@ -121,6 +112,14 @@ class ConversionDataLookup {
 		}
 		$this->files = $files;
 		$this->userMap = $userMap;
+
+
+		$attachmentLabelsMap = [];
+		foreach ( $attachmentMetadata as $attachmentId => $meta ) {
+			if ( isset( $attachmentIdToFileKeyMap[$attachmentId] ) && isset( $meta['labels'] ) ) {
+				$attachmentLabelsMap[$attachmentIdToFileKeyMap[$attachmentId]] = $meta['labels'];
+			}
+		}
 		$this->attachmentLabelsMap = $attachmentLabelsMap;
 	}
 
