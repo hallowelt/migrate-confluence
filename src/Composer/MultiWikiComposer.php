@@ -316,7 +316,7 @@ class MultiWikiComposer {
 	/**
 	 * Add attachments belonging to $pageTitle into the wiki-specific images folder.
 	 *
-	 * @param string $pageTitle  The original (global-prefix) title used as bucket key.
+	 * @param string $pageTitle The original (global-prefix) title used as bucket key.
 	 * @param string $wikiName
 	 * @return void
 	 */
