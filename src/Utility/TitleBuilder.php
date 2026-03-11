@@ -56,32 +56,28 @@ class TitleBuilder {
 	 * @param array $spaceIdHomepages
 	 * @param array $pageIdParentPageIdMap
 	 * @param array $pageIConfluenceTitledMap
-	 * @param XMLHelper $helper
 	 * @param string $mainpage
 	 */
 	public function __construct(
 		array $spaceIdPrefixMap, array $spaceIdHomepages, array $pageIdParentPageIdMap,
-		array $pageIConfluenceTitledMap, XMLHelper $helper, string $mainpage = 'Main_Page'
+		array $pageIConfluenceTitledMap, string $mainpage = 'Main_Page'
 	) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdHomepages = $spaceIdHomepages;
 		$this->pageIdParentPageIdMap = $pageIdParentPageIdMap;
 		$this->pageIConfluenceTitledMap = $pageIConfluenceTitledMap;
-		$this->helper = $helper;
 		$this->mainpage = $mainpage;
 	}
 
 	/**
-	 *
-	 * @param DOMElement $pageNode
+	 * @param int $pageId
+	 * @param array $properties
 	 * @return string
 	 */
-	public function buildTitle( $pageNode ) {
-		$spaceId = $this->getSpaceId( $pageNode );
+	public function buildTitle( int $spaceId, int $pageId, string $title ) {
 		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$this->builder->setNamespace( $spaceId );
 
-		$pageId = $this->helper->getIDNodeValue( $pageNode );
 		$this->currentTitlesSpaceHomePageId = -1;
 		if ( isset( $this->spaceIdHomepages[$spaceId] ) ) {
 			$this->currentTitlesSpaceHomePageId = $this->spaceIdHomepages[$spaceId];
@@ -92,7 +88,7 @@ class TitleBuilder {
 			return $this->builder->build();
 		}
 
-		$titles = $this->addParentTitles( $pageNode );
+		$titles = $this->addParentTitles( $pageId, $title );
 
 		foreach ( $titles as $title ) {
 			$title = str_replace(
@@ -108,33 +104,10 @@ class TitleBuilder {
 	}
 
 	/**
-	 *
-	 * @param DOMElement $pageNode
-	 * @return int
+	 * @param int $pageId
+	 * @param string $title
 	 */
-	private function getSpaceId( $pageNode ) {
-		$spaceId = $this->helper->getPropertyValue( 'space', $pageNode );
-		if ( is_int( $spaceId ) ) {
-			return $spaceId;
-		}
-
-		$originalVersion = $this->helper->getPropertyValue( 'originalVersion', $pageNode );
-		if ( $originalVersion !== null ) {
-			$origPage = $this->helper->getObjectNodeById( $originalVersion, 'Page' );
-			return $this->getSpaceId( $origPage );
-		}
-		return 0;
-	}
-
-	/**
-	 *
-	 * @param DOMElement $pageNode
-	 * @return array
-	 */
-	private function addParentTitles( $pageNode ) {
-		$pageId = $this->helper->getIDNodeValue( $pageNode );
-		$title = $this->helper->getPropertyValue( 'title', $pageNode );
-
+	private function addParentTitles( int $pageId, string $title ) {
 		$titles = [];
 		if ( $pageId === $this->currentTitlesSpaceHomePageId ) {
 				$title[] = $this->mainpage;

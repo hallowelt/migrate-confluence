@@ -393,18 +393,28 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	): string {
 		$pageContent = '';
 
+		var_dump( __METHOD__ );
+		var_dump( $bodyContentId );
 		if ( isset( $bodyContentIdMainpageId[$bodyContentId] ) ) {
 			// get homepage id if it is a homepage
 			$mainpageID = $bodyContentIdMainpageId[$bodyContentId];
+			var_dump( __LINE__ );
+			var_dump( $mainpageID );
 			if ( isset( $homepagespaceIdMap[$mainpageID] ) ) {
 				// get space id
 				$spaceId = $homepagespaceIdMap[$mainpageID];
+				var_dump( __LINE__ );
+				var_dump( $spaceId );
 				if ( isset( $spaceIdDescriptionIdMap[$spaceId] ) ) {
 					// get description id
 					$descId = $spaceIdDescriptionIdMap[$spaceId];
+					var_dump( __LINE__ );
+					var_dump( $descId );
 					if ( isset( $spaceDescriptionIdBodyIdMap[$descId] ) ) {
 						// get description id
 						$descBodyId = $spaceDescriptionIdBodyIdMap[$descId];
+						var_dump( __LINE__ );
+						var_dump( $descBodyId );
 						$description = $this->workspace->getConvertedContent( $descBodyId );
 						if ( $description !== '' ) {
 							$pageContent .= "[[Space description::$description]]\n";

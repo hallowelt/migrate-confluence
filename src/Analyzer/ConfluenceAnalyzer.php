@@ -109,17 +109,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-attachment-id-to-reference-map',
 			'analyze-attachment-id-to-space-id-map',
 			'analyze-attachment-id-to-target-filename-map',
-			'analyze-body-content-id-to-page-id-map',
-			'analyze-body-content-id-to-space-description-id-map',
 			'analyze-orig-title-compressed-title-map',
+			'analyze-body-content-id-to-page-id-map',
 			'analyze-page-id-to-confluence-key-map',
 			'analyze-page-id-to-confluence-title-map',
 			'analyze-page-id-to-parent-page-id-map',
 			'analyze-page-id-to-title-map',
 			'analyze-pages-titles-map',
-			'analyze-space-id-to-name-map',
-			'analyze-space-key-to-name-map',
-			'analyze-space-name-to-prefix-map',
 			'analyze-title-revisions',
 			'analyze-title-to-attachment-title',
 			'debug-analyze-invalid-titles-attachment-id-to-title',
@@ -135,8 +131,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'global-space-id-to-description-id-map',
 			'global-space-id-to-prefix-map',
 			'global-space-id-to-key-map',
-			'global-space-key-to-prefix-map',
 			'global-body-content-id-to-space-description-id-map',
+			'global--space-labelling-id-to-body-content-id-map',
 			'global-title-attachments',
 			'global-title-revisions',
 			'global-userkey-to-username-map',
@@ -302,16 +298,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$read = $xmlReader->read();
 		while ( $read ) {
-			if ( $xmlReader->name !== 'object' ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
 				// Usually all root nodes should be objects.
 				$read = $xmlReader->read();
 				continue;
 			}
-
-			$nodeXML = $xmlReader->readOuterXml();
-
-			$objectDom = new DOMDocument();
-			$objectDom->loadXML( $nodeXML );
 
 			$processor = null;
 			$class = $xmlReader->getAttribute( 'class' );
@@ -321,7 +312,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
 				$processor->setData( $this->data );
-				$processor->execute( $objectDom );
+				$processor->execute( $xmlReader );
 				$keys = $processor->getKeys();
 				foreach ( $keys as $key ) {
 					$this->data[$key] = $processor->getData( $key );

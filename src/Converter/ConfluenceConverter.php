@@ -133,7 +133,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-page-id-to-space-id',
 			'global-space-id-to-key-map',
 			'global-space-id-to-prefix-map',
-			'global-space-key-to-prefix-map',
 			'global-space-id-homepages',
 			'global-filenames-to-filetitles-map',
 			'global-title-metadata',
@@ -197,7 +196,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		if ( $pageId === -1 ) {
 			return '<-- No context page id found -->';
 		}
-		$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
+		$this->currentSpace = $this->getSpaceIdFromPageId( (int)$pageId );
+		if ( $this->currentSpace === -1 ) {
+			return '<-- No context space id found -->';
+		}
 
 		$pagesIdsToTitlesMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
 		if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
