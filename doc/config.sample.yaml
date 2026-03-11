@@ -16,3 +16,17 @@ config:
                 - My Category 2
         ext-ns-file-repo-compat: true
         include-history: false
+        # Multi-wiki output: define which Confluence spaces go into which import file.
+        # Each top-level key becomes a separate output file: output-{WikiName}.xml
+        # Under 'spaces', map each Confluence space key to the target namespace prefix
+        # inside that wiki.  Use "" for NS_MAIN (no prefix), or e.g. "MyNS:" for a
+        # custom namespace.  Cross-space links automatically use the source-space key
+        # as namespace (e.g. a page in SpaceA linking to SpaceB produces [[B:PageB]]).
+        wikis:
+                WikiA:
+                        spaces:
+                                A: ""         # Space A → NS_MAIN in WikiA
+                                C: "MyNS:"    # Space C → MyNS: namespace in WikiA
+                WikiB:
+                        spaces:
+                                B: ""         # Space B → NS_MAIN in WikiB
