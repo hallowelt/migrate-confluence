@@ -100,7 +100,11 @@ class Compose extends CommandCompose {
 			'global-title-attachments',
 			'global-title-revisions',
 			'global-files',
-			'global-additional-files'
+			'global-additional-files',
+			'global-page-id-to-comment-ids-map',
+			'global-comment-id-to-metadata-map',
+			'global-page-id-to-title-map',
+			'global-userkey-to-username-map',
 		];
 	}
 

@@ -17,7 +17,8 @@ class BodyContents extends ProcessorBase {
 	public function getKeys(): array {
 		return [
 			'analyze-body-content-id-to-page-id-map',
-			'analyze-body-content-id-to-space-description-id-map'
+			'analyze-body-content-id-to-space-description-id-map',
+			'analyze-body-content-id-to-comment-id-map',
 		];
 	}
 
@@ -45,6 +46,8 @@ class BodyContents extends ProcessorBase {
 			$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $pageId;
 		} elseif ( $propertyNode->getAttribute( 'class' ) === 'SpaceDescription' ) {
 			$this->data['analyze-body-content-id-to-space-description-id-map'][$bodyContentId] = $pageId;
+		} elseif ( $propertyNode->getAttribute( 'class' ) === 'Comment' ) {
+			$this->data['analyze-body-content-id-to-comment-id-map'][$bodyContentId] = $pageId;
 		}
 	}
 
