@@ -148,6 +148,8 @@ class AttachmentFallback extends ProcessorBase {
 			= $attachmentTargetFilename;
 		$this->data['analyze-attachment-id-to-target-filename-map'][$this->attachmentId]
 			= $attachmentTargetFilename;
+		$this->data['global-attachment-id-to-confluence-file-key-map'][$this->attachmentId]
+			= $confluenceFileKey;
 		if ( !isset(
 			$this->data['global-attachment-orig-filename-target-filename-map'][$this->attachmentOrigFilename]
 		) ) {
