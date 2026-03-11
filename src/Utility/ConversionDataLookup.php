@@ -86,11 +86,13 @@ class ConversionDataLookup {
 	 * @param array $files
 	 * @param array $userMap
 	 * @param array $spaceIdToKeyMap
+	 * @param array $attachmentMetadata
+	 * @param array $attachmentIdToFileKeyMap
 	 */
 	public function __construct(
 		$spaceIdPrefixMap, $pagesTitlesMap,
 		$filenamesToFiletitlesMap, $attachmentOrigFilenameToTargetFilenameMap,
-		$files, $userMap, $spaceIdToKeyMap, $attachmentMetadata, $attachmentIdToFileKeyMap  ) {
+		$files, $userMap, $spaceIdToKeyMap, $attachmentMetadata, $attachmentIdToFileKeyMap ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
 		$this->spaceKeyToIdMap = array_flip( $this->spaceIdToKeyMap );
@@ -112,7 +114,6 @@ class ConversionDataLookup {
 		}
 		$this->files = $files;
 		$this->userMap = $userMap;
-
 
 		$attachmentMetadataMap = [];
 		foreach ( $attachmentMetadata as $attachmentId => $meta ) {
