@@ -173,7 +173,6 @@ class TitleBuilderTest extends TestCase {
 
 	/**
 	 * @param TitleBuilder $titleBuilder
-	 * @param XMLHelper $helper
 	 * @return array
 	 */
 	private function buildTitles( $titleBuilder ): array {
