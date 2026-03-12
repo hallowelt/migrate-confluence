@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\BodyContents;
 
-use DOMDocument;
+use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use PHPUnit\Framework\TestCase;
 use XMLReader;
@@ -16,10 +16,30 @@ class BodyContentsTest extends TestCase {
 		$xmlReader = new XMLReader();
 		$xmlReader->open( __DIR__ . '/body_content_page.xml' );
 
-		$processor = new BodyContents();
-		$processor->execute( $xmlReader );
+		$read = $xmlReader->read();
+		while ( $read ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
+				// Usually all root nodes should be objects.
+				$read = $xmlReader->read();
+				continue;
+			}
 
-		$map = $processor->getData( 'global-body-content-id-to-page-id-map' );
+			$processor = null;
+			$class = $xmlReader->getAttribute( 'class' );
+			if ( $class !== 'BodyContent' ) {
+				continue;
+			}
+			$processor = new BodyContents();
+
+			if ( $processor instanceof IAnalyzerProcessor ) {
+				$processor->execute( $xmlReader );
+			}
+
+			$read = $xmlReader->next();
+		}
+		$xmlReader->close();
+
+		$map = $processor->getData( 'analyze-body-content-id-to-page-id-map' );
 		$this->assertArrayHasKey( 100, $map );
 		$this->assertIsInt( $map[100], 'Page ID in body-content-id-to-page-id-map must be int' );
 		$this->assertSame( 200, $map[100] );

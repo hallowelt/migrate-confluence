@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ParentPages;
 
-use DOMDocument;
+use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
@@ -17,9 +17,28 @@ class ParentPagesTest extends TestCase {
 		$xmlReader = new XMLReader();
 		$xmlReader->open( __DIR__ . '/parent_page.xml' );
 
-		$processor = new ParentPages();
-		$processor->setOutput( new NullOutput() );
-		$processor->execute( $xmlReader );
+		$read = $xmlReader->read();
+		while ( $read ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
+				// Usually all root nodes should be objects.
+				$read = $xmlReader->read();
+				continue;
+			}
+
+			$processor = null;
+			$class = $xmlReader->getAttribute( 'class' );
+			if ( $class !== 'Page' ) {
+				continue;
+			}
+			$processor = new ParentPages();
+
+			if ( $processor instanceof IAnalyzerProcessor ) {
+				$processor->execute( $xmlReader );
+			}
+
+			$read = $xmlReader->next();
+		}
+		$xmlReader->close();
 
 		$map = $processor->getData( 'analyze-page-id-to-parent-page-id-map' );
 		$this->assertArrayHasKey( 500, $map );
@@ -34,9 +53,28 @@ class ParentPagesTest extends TestCase {
 		$xmlReader = new XMLReader();
 		$xmlReader->open( __DIR__ . '/parent_page.xml' );
 
-		$processor = new ParentPages();
-		$processor->setOutput( new NullOutput() );
-		$processor->execute( $xmlReader );
+		$read = $xmlReader->read();
+		while ( $read ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
+				// Usually all root nodes should be objects.
+				$read = $xmlReader->read();
+				continue;
+			}
+
+			$processor = null;
+			$class = $xmlReader->getAttribute( 'class' );
+			if ( $class !== 'Page' ) {
+				continue;
+			}
+			$processor = new ParentPages();
+
+			if ( $processor instanceof IAnalyzerProcessor ) {
+				$processor->execute( $xmlReader );
+			}
+
+			$read = $xmlReader->next();
+		}
+		$xmlReader->close();
 
 		$map = $processor->getData( 'analyze-page-id-to-confluence-title-map' );
 		$this->assertArrayHasKey( 500, $map );
