@@ -151,7 +151,6 @@ class Page extends ProcessorBase {
 		if ( isset( $properties['title'] ) ) {
 			$title = $properties['title'];
 		}
-	
 
 		$titleBuilder = new TitleBuilder(
 			$this->data['global-space-id-to-prefix-map'],
@@ -209,7 +208,30 @@ class Page extends ProcessorBase {
 
 
 		$this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceKey;
-		$this->data['analyze-pages-titles-map'][$pageConfluenceKey] = $this->targetTitle;
+
+		/**
+		 * pages-titles-map is used to resolve link targets. It can be that the pageConfluenceKey
+		 * has duplicates. This can be if a leaf page title is used more then one time in the same
+		 * space. We don't want this duplicates in the pages-titles-map.
+		 */
+		if (
+			!isset( $this->data['analyze-pages-titles-map'][$pageConfluenceKey] )
+			&& !isset( $this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey] )
+		) {
+			$this->data['analyze-pages-titles-map'][$pageConfluenceKey] = $this->targetTitle;
+		} elseif (
+			isset( $this->data['analyze-pages-titles-map'][$pageConfluenceKey] )
+			&& !isset( $this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey] )
+		) {
+			$doubleKeyTitle = $this->data['analyze-pages-titles-map'][$pageConfluenceKey];
+			unset( $this->data['analyze-pages-titles-map'][$pageConfluenceKey] );
+			$this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey] = [
+				$doubleKeyTitle,
+				$this->targetTitle
+			];
+		} else {
+			$this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey][] = $this->targetTitle;
+		}
 
 		// Also add pages IDs in Confluence to full page title mapping.
 		// It is needed to have enough context on converting stage,
@@ -282,12 +304,11 @@ class Page extends ProcessorBase {
 		if ( !isset( $this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] ) ) {
 			return;
 		}
-		$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$this->pageId];
 		
-		if ( !isset( $this->data['analyze-pages-titles-map'][$confluenceKey] ) ) {
+		if ( !isset( $this->data['analyze-page-id-to-title-map'][$this->pageId] ) ) {
 			return;
 		}
-		$wikiTitle = $this->data['analyze-pages-titles-map'][$confluenceKey];
+		$wikiTitle = $this->data['analyze-page-id-to-title-map'][$this->pageId];
 
 		// In case of ERM34465 this seems to be empty because
 		// title-attachments and debug-missing-attachment-id-to-filename are empty

@@ -331,14 +331,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		// compress title lenght
 		$titleCompressor = new TitleCompressor();
 
-		$analyzePagesTitlesMap = $this->data['analyze-pages-titles-map'];
-		$compressedTitlesMap = $titleCompressor->execute( $analyzePagesTitlesMap );
+		$pageIdToTitlesMap = $this->data['analyze-page-id-to-title-map'];
+		$compressedTitlesMap = $titleCompressor->execute( $pageIdToTitlesMap );
 
 		$this->data['analyze-orig-title-compressed-title-map'] = $compressedTitlesMap;
 
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
 
 		// pages-titles-map
+		$analyzePagesTitlesMap = $this->data['analyze-pages-titles-map'];
 		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $analyzePagesTitlesMap );
 		ksort( $compressedPagesTitlesMap );
 
