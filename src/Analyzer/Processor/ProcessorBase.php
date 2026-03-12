@@ -144,7 +144,6 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 
 	/**
 	 * @param array $properties
-	 * @param string $class
 	 * @return array
 	 */
 	protected function processPropertyNodes( array $properties = [] ): array {

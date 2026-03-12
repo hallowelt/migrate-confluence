@@ -298,7 +298,7 @@ class Page extends ProcessorBase {
 			return;
 		}
 		$confluenceTitle = $this->data['analyze-page-id-to-confluence-title-map'][$this->pageId];
-		
+
 		if ( !isset( $this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] ) ) {
 			return;
 		}

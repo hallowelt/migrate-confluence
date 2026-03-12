@@ -57,7 +57,7 @@ class Spaces extends ProcessorBase {
 	}
 
 	/**
-	 * @param int $id
+	 * @param int $spaceId
 	 * @param array $properties
 	 * @return void
 	 */

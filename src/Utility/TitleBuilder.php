@@ -2,15 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 
 class TitleBuilder {
-
-	/**
-	 * @var XMLHelper
-	 */
-	private $helper = null;
 
 	/**
 	 *
@@ -70,9 +64,10 @@ class TitleBuilder {
 	}
 
 	/**
+	 * @param int $spaceId
 	 * @param int $pageId
-	 * @param array $properties
-	 * @return string
+	 * @param string $title
+	 * @return void
 	 */
 	public function buildTitle( int $spaceId, int $pageId, string $title ) {
 		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
@@ -104,7 +99,7 @@ class TitleBuilder {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @param string $title
 	 * @return array
 	 */
