@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ParentPages;
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Output\NullOutput;
 use XMLReader;
 
 class ParentPagesTest extends TestCase {
