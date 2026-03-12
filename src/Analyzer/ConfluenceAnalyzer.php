@@ -395,13 +395,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return void
 	 */
 	private function checkTitles(): void {
-		$pagesTitlesMap = $this->data['global-pages-titles-map'];
+		$titlesMap = $this->data['global-title-revisions'];
 
 		$validityChecker = new TitleValidityChecker();
 
 		$hasInvalidTitles = false;
 		$hasInvalidNamespaces = false;
-		foreach ( $pagesTitlesMap as $key => $title ) {
+		foreach ( $titlesMap as $title => $revisons ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
 				$this->customBuckets->addData(
 					'warning-analyze-invalid-titles',
