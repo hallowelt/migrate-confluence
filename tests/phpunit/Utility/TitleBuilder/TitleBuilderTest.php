@@ -74,7 +74,7 @@ class TitleBuilderTest extends TestCase {
 	private function useDefaultMainpage(
 		$spaceIdPrefixMap, $spaceIdHomepages, $helper, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap ): void {
 		$titleBuilder = new TitleBuilder(
-			$spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap, $helper );
+			$spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap );
 		$actualTitles = $this->buildTitles(
 			$titleBuilder, $helper );
 
@@ -103,7 +103,7 @@ class TitleBuilderTest extends TestCase {
 		$pageIdConfluenceTitleMap ): void {
 		$titleBuilder = new TitleBuilder(
 			$spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap,
-			$helper, $customMainpage );
+			$customMainpage );
 		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
 
 		$expectedTitles = [
@@ -128,7 +128,7 @@ class TitleBuilderTest extends TestCase {
 	private function useDefaultMainpageWithRootPage(
 		$spaceIdPrefixMap, $spaceIdHomepages, $helper, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap ): void {
 		$titleBuilder = new TitleBuilder(
-			$spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap, $helper );
+			$spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap );
 		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
 
 		$expectedTitles = [
@@ -157,7 +157,7 @@ class TitleBuilderTest extends TestCase {
 	): void {
 		$titleBuilder = new TitleBuilder(
 			$spaceIdPrefixMap, $spaceIdHomepages, $pageIdParentPageIdMap, $pageIdConfluenceTitleMap,
-			$helper, $customMainpage );
+			$customMainpage );
 		$actualTitles = $this->buildTitles( $titleBuilder, $helper );
 
 		$expectedTitles = [
@@ -173,23 +173,26 @@ class TitleBuilderTest extends TestCase {
 
 	/**
 	 * @param TitleBuilder $titleBuilder
-	 * @param XMLHelper $helper
 	 * @return array
 	 */
-	private function buildTitles( $titleBuilder, $helper ): array {
-		$pageNodes = $helper->getObjectNodes( "Page" );
-
+	private function buildTitles( $titleBuilder ): array {
 		$actualTitles = [];
-		foreach ( $pageNodes as $pageNode ) {
-			$fullTitle = $titleBuilder->buildTitle( $pageNode );
 
-			$originalVersionID = $helper->getPropertyValue( 'originalVersion', $pageNode );
-			if ( $originalVersionID !== null ) {
-				continue;
-			}
+		$fullTitle = $titleBuilder->buildTitle( 32973, 32974567, "Dokumentation" );
+		$actualTitles[] = $fullTitle;
 
-			$actualTitles[] = $fullTitle;
-		}
+		$fullTitle = $titleBuilder->buildTitle( 32973, 229472, "Roadmap" );
+		$actualTitles[] = $fullTitle;
+
+		$fullTitle = $titleBuilder->buildTitle( 32973, 262231, "Detailed planning" );
+		$actualTitles[] = $fullTitle;
+
+		$fullTitle = $titleBuilder->buildTitle( 99999, 32974567, "Dokumentation" );
+		$actualTitles[] = $fullTitle;
+
+		$fullTitle = $titleBuilder->buildTitle( 99999, 999902, "Roadmap" );
+		$actualTitles[] = $fullTitle;
+
 		return $actualTitles;
 	}
 }

@@ -2,9 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use DOMDocument;
-use DOMElement;
-use HalloWelt\MigrateConfluence\Utility\XMLHelper;
+use XMLReader;
 
 class Spaces extends ProcessorBase {
 
@@ -28,47 +26,48 @@ class Spaces extends ProcessorBase {
 		return [
 			'global-space-id-to-key-map',
 			'global-space-id-to-prefix-map',
-			'global-space-key-to-prefix-map',
 			'global-space-id-homepages',
 			'global-space-id-to-description-id-map',
 			'global-space-details',
-
-			'analyze-space-name-to-prefix-map',
-			'analyze-space-id-to-name-map',
-			'analyze-space-key-to-name-map',
 		];
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function doExecute( DOMDocument $dom ): void {
-		$this->xmlHelper = new XMLHelper( $dom );
+	public function doExecute(): void {
+		$spaceId = '';
+		$properties = [];
 
-		$objectNodes = $this->xmlHelper->getObjectNodes( 'Space' );
-		if ( count( $objectNodes ) < 1 ) {
-			return;
-		}
-		$objectNode = $objectNodes->item( 0 );
-		if ( $objectNode instanceof DOMElement === false ) {
-			return;
+		$this->xmlReader->read();
+		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
+			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
+					$spaceId = $this->getCDATAValue();
+				} else {
+					$spaceId = $this->getTextValue();
+				}
+			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
+				$properties = $this->processPropertyNodes( $properties );
+			}
+			$this->xmlReader->next();
 		}
 
-		$this->process( $objectNode );
+		$this->process( (int)$spaceId, $properties );
 	}
 
 	/**
-	 * @param DOMElement $node
+	 * @param int $spaceId
+	 * @param array $properties
 	 * @return void
 	 */
-	private function process( DOMElement $node ): void {
-		$spaceId = $this->xmlHelper->getIDNodeValue( $node );
+	private function process( int $spaceId, array $properties ): void {
 		if ( $spaceId === -1 ) {
 			return;
 		}
 
-		$spaceKey = $this->xmlHelper->getPropertyValue( 'key', $node );
-		$spaceName = $this->xmlHelper->getPropertyValue( 'name', $node );
+		$spaceKey = isset( $properties['key'] ) ? $properties['key'] : '';
+		$spaceName = isset( $properties['key'] ) ? $properties['name'] : '';
 		if ( substr( $spaceKey, 0, 1 ) === '~' ) {
 			// User namespaces
 			$spaceKey = $this->sanitizeUserSpaceKey( $spaceKey, $spaceName );
@@ -76,6 +75,9 @@ class Spaces extends ProcessorBase {
 		} else {
 			$this->output->writeln( "Add space $spaceKey (ID:$spaceId)" );
 		}
+
+		// Update property key
+		$properties['key'] = $spaceKey;
 
 		// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
 		if ( isset( $this->spacePrefixMap[$spaceKey] ) ) {
@@ -88,67 +90,28 @@ class Spaces extends ProcessorBase {
 
 		$this->data['global-space-id-to-key-map'][$spaceId] = $spaceKey;
 		$this->data['global-space-id-to-prefix-map'][$spaceId] = $customSpacePrefix;
-		$this->data['global-space-key-to-prefix-map'][$spaceKey] = $customSpacePrefix;
 
-		$this->data['analyze-space-name-to-prefix-map'][$spaceName] = $customSpacePrefix;
-		$this->data['analyze-space-id-to-name-map'][$spaceId] = $spaceName;
-		$this->data['analyze-space-key-to-name-map'][$spaceKey] = $spaceName;
-
-		$homePageId = -1;
-		$homePagePropertyNode = $this->xmlHelper->getPropertyNode( 'homePage', $node );
-		if ( $homePagePropertyNode !== null ) {
-			$homePageId = $this->xmlHelper->getIDNodeValue( $homePagePropertyNode );
-		}
+		$homePageId = isset( $properties['homePage'] ) ? (int)$properties['homePage'] : -1;
 		if ( $homePageId > -1 ) {
 			$this->data['global-space-id-homepages'][$spaceId] = $homePageId;
 		}
 
-		$details = [];
 		// Property id
-		$details['id'] = $spaceId;
+		$properties['id'] = $spaceId;
 
 		// Property key
-		$details['key'] = $spaceKey;
-
-		// Text only propterties
-		$properties = [
-			'name', 'creationDate', 'lastModificationDate', 'spaceType', 'spaceStatus'
-		];
-
-		foreach ( $properties as $property ) {
-			$details[$property] = $this->xmlHelper->getPropertyValue( $property, $node );
-		}
+		$properties['key'] = $spaceKey;
 
 		// ID (int) node propterties
-		$propertyNode = $this->xmlHelper->getPropertyNode( 'description' );
-		if ( $propertyNode !== null ) {
-			$details['description'] = $this->xmlHelper->getIDNodeValue( $propertyNode );
-
-			$this->data['global-space-id-to-description-id-map'][$spaceId] = $details['description'];
+		if ( isset( $properties['description'] ) ) {
+			$this->data['global-space-id-to-description-id-map'][$spaceId] = (int)$properties['description'];
 
 			$this->output->writeln( "Add space description ($spaceId)" );
 		}
 
-		$propertyNode = $this->xmlHelper->getPropertyNode( 'homePage' );
-		if ( $propertyNode !== null ) {
-			$details['homePage'] = $this->xmlHelper->getIDNodeValue( $propertyNode );
-		}
-
-		// ID (key) node propterties
-		$properties = [
-			'creator', 'lastModifier'
-		];
-
-		foreach ( $properties as $property ) {
-			$propertyNode = $this->xmlHelper->getPropertyNode( $property );
-			if ( $propertyNode !== null ) {
-				$details[$property] = $this->xmlHelper->getKeyNodeValue( $propertyNode );
-			}
-		}
-
-		if ( !empty( $details ) ) {
-			$this->data['global-space-details'][$spaceId] = $details;
-			$this->output->writeln( "Add details description ($spaceId)" );
+		if ( !empty( $properties ) ) {
+			$this->data['global-space-details'][$spaceId] = $properties;
+			$this->output->writeln( "Add space details ($spaceId)" );
 		}
 	}
 
