@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use XMLReader;
+
 class ParentPages extends ProcessorBase {
 
 	/**

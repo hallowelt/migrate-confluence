@@ -49,7 +49,7 @@ class Users extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 
-		if ( !isset( $properties['lowerName'] ) || $properties['lowerName'] === ''  ) {
+		if ( !isset( $properties['lowerName'] ) || $properties['lowerName'] === '' ) {
 			$this->output->writeln( "\033[31m User $userKey has no username\033[39m" );
 			return;
 		}

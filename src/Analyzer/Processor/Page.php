@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
@@ -21,13 +20,13 @@ class Page extends ProcessorBase {
 	/** @var bool */
 	private $includeHistory = false;
 
-	/** @var mixed */
+	/** @var int|null */
 	private $spaceId;
 
-	/** @var mixed */
+	/** @var int|null */
 	private $pageId;
 
-	/* @var string */
+	/** @var string */
 	private $targetTitle = '';
 
 	/**
@@ -206,7 +205,6 @@ class Page extends ProcessorBase {
 		// Some normalization
 		$pageConfluenceKey = str_replace( ' ', '_', $pageConfluenceKey );
 
-
 		$this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceKey;
 
 		/**
@@ -304,7 +302,6 @@ class Page extends ProcessorBase {
 		if ( !isset( $this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] ) ) {
 			return;
 		}
-		
 		if ( !isset( $this->data['analyze-page-id-to-title-map'][$this->pageId] ) ) {
 			return;
 		}
@@ -403,7 +400,7 @@ class Page extends ProcessorBase {
 				$targetName = $ex->getInvalidTitle();
 			}
 		}
-			
+
 		/*
 		 * Some attachments do not have a file extension available. We try
 		 * to find an extension by looking a the content type, but

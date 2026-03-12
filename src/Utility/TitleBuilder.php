@@ -104,10 +104,11 @@ class TitleBuilder {
 	}
 
 	/**
-	 * @param int $pageId
+	 * @param integer $pageId
 	 * @param string $title
+	 * @return array
 	 */
-	private function addParentTitles( int $pageId, string $title ) {
+	private function addParentTitles( int $pageId, string $title ): array {
 		$titles = [];
 		if ( $pageId === $this->currentTitlesSpaceHomePageId ) {
 				$title[] = $this->mainpage;

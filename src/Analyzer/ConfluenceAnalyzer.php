@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
-use DOMDocument;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;

@@ -10,7 +10,7 @@ use XMLReader;
  * 	<property name="hibernateVersion">0</property>
  * 	<property name="title"/>
  * 	<property name="lowerTitle"/>
- * 	<collection name="bodyContents" class="java.util.Collection(com.atlassian.confluence.core.ContentEntityObject.bodyContents)">
+ * 	<collection name="bodyContents" ...>
  * 		<element class="BodyContent" package="com.atlassian.confluence.core">
  * 			<id name="id">987654</id>
  * 		</element>
@@ -19,7 +19,7 @@ use XMLReader;
  * 	<property name="creationDate">2013-05-10 14:33:31.000</property>
  * 	<property name="lastModificationDate">2013-05-10 14:36:36.000</property>
  * 	<property name="versionComment"><![CDATA[]]></property>
- * 	<property name="originalVersion" class="SpaceDescription" package="com.atlassian.confluence.spaces"><id name="id">1234567</id>
+ * 	<property name="originalVersion" class="SpaceDescription"><id name="id">1234567</id>
  * 	</property>
  * 	<property name="originalVersionId">1234567</property>
  * 	<property name="contentStatus"><![CDATA[current]]></property>
@@ -62,7 +62,7 @@ class SpaceDescription extends ProcessorBase {
 			} elseif ( strtolower( $this->xmlReader->name ) === 'collection' ) {
 				$collection = $this->processCollectionNodes( $collection );
 			}
-	
+
 			$this->xmlReader->next();
 		}
 

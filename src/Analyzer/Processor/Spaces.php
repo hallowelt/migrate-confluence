@@ -57,7 +57,7 @@ class Spaces extends ProcessorBase {
 	}
 
 	/**
-	 * @param int|string $id
+	 * @param int $id
 	 * @param array $properties
 	 * @return void
 	 */
@@ -66,8 +66,8 @@ class Spaces extends ProcessorBase {
 			return;
 		}
 
-		$spaceKey = isset( $properties['key'] )? $properties['key'] : '';
-		$spaceName = isset( $properties['key'] )? $properties['name'] : '';
+		$spaceKey = isset( $properties['key'] ) ? $properties['key'] : '';
+		$spaceName = isset( $properties['key'] ) ? $properties['name'] : '';
 		if ( substr( $spaceKey, 0, 1 ) === '~' ) {
 			// User namespaces
 			$spaceKey = $this->sanitizeUserSpaceKey( $spaceKey, $spaceName );
@@ -77,7 +77,7 @@ class Spaces extends ProcessorBase {
 		}
 
 		// Update property key
-        $properties['key'] = $spaceKey;
+		$properties['key'] = $spaceKey;
 
 		// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
 		if ( isset( $this->spacePrefixMap[$spaceKey] ) ) {
@@ -91,7 +91,7 @@ class Spaces extends ProcessorBase {
 		$this->data['global-space-id-to-key-map'][$spaceId] = $spaceKey;
 		$this->data['global-space-id-to-prefix-map'][$spaceId] = $customSpacePrefix;
 
-		$homePageId = isset( $properties['homePage'] )? (int)$properties['homePage'] : -1;
+		$homePageId = isset( $properties['homePage'] ) ? (int)$properties['homePage'] : -1;
 		if ( $homePageId > -1 ) {
 			$this->data['global-space-id-homepages'][$spaceId] = $homePageId;
 		}

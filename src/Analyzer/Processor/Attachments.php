@@ -2,11 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use SplFileInfo;
 use XMLReader;
 
-class Attachments  extends ProcessorBase {
+class Attachments extends ProcessorBase {
 
 	/** @var SplFileInfo */
 	private $file;
@@ -95,7 +94,7 @@ class Attachments  extends ProcessorBase {
 		$containerContentId = -1;
 		if ( isset( $properties['containerContent'] ) ) {
 			$containerContentId = (int)$properties['containerContent'];
-		}		
+		}
 		if ( $containerContentId >= 0 ) {
 			$this->data['analyze-attachment-id-to-container-content-id-map'][$attachmentId] = $containerContentId;
 		}
@@ -122,7 +121,7 @@ class Attachments  extends ProcessorBase {
 		if ( $containerId === '' && isset( $properties['containerContent'] ) ) {
 			$containerId = $properties['containerContent'];
 		}
-		
+
 		$attachmentVersion = '';
 		if ( isset( $properties['attachmentVersion'] ) ) {
 			$attachmentVersion = $properties['attachmentVersion'];

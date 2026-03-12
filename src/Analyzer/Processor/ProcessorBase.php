@@ -65,7 +65,7 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	 * @param XMLReader $xmlReader
 	 * @return void
 	 */
-	public function execute( XMLReader $xmlReader ): void	{
+	public function execute( XMLReader $xmlReader ): void {
 		$keys = array_merge(
 			$this->getRequiredKeys(),
 			$this->getKeys()
@@ -85,7 +85,9 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	protected function doExecute(): void {
 	}
 
-
+	/**
+	 * @return void
+	 */
 	protected function processIdNode() {
 		$id = '';
 		if ( strtolower( $this->xmlReader->name ) === 'id' ) {
@@ -99,14 +101,24 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 		return $id;
 	}
 
+	/**
+	 * @return void
+	 */
 	protected function getCDATAValue() {
 		return $this->xmlReader->value;
 	}
 
+	/**
+	 * @return void
+	 */
 	protected function getTextValue() {
 		return $this->xmlReader->readString();
 	}
 
+	/**
+	 * @param array $data
+	 * @return mixed
+	 */
 	protected function processElementNode( array $data = [] ): mixed {
 		if ( $this->xmlReader->isEmptyElement ) {
 			$data = '';
@@ -135,7 +147,7 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	 * @param string $class
 	 * @return array
 	 */
-	protected function processPropertyNodes( array $properties = [], $attributes = [] ): array {
+	protected function processPropertyNodes( array $properties = [] ): array {
 		$name = $this->xmlReader->getAttribute( 'name' );
 
 		if ( $this->xmlReader->isEmptyElement ) {
@@ -158,6 +170,11 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 		return $properties;
 	}
 
+	/**
+	 * @param array $collection
+	 * @param string $name
+	 * @return array
+	 */
 	protected function processCollectionNodes( array $collection = [], $name = '' ): array {
 		$elementName = $this->xmlReader->getAttribute( 'name' );
 
@@ -189,5 +206,4 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 		}
 		return $collection;
 	}
-
 }
