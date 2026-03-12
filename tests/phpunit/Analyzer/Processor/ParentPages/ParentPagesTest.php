@@ -6,6 +6,7 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
+use XMLReader;
 
 class ParentPagesTest extends TestCase {
 
@@ -13,12 +14,12 @@ class ParentPagesTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages::doExecute
 	 */
 	public function testParentPageIdIsStoredAsInt() {
-		$dom = new DOMDocument();
-		$dom->load( __DIR__ . '/parent_page.xml' );
+		$xmlReader = new XMLReader();
+		$xmlReader->open( __DIR__ . '/parent_page.xml' );
 
 		$processor = new ParentPages();
 		$processor->setOutput( new NullOutput() );
-		$processor->execute( $dom );
+		$processor->execute( $xmlReader );
 
 		$map = $processor->getData( 'analyze-page-id-to-parent-page-id-map' );
 		$this->assertArrayHasKey( 500, $map );
@@ -30,12 +31,12 @@ class ParentPagesTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages::doExecute
 	 */
 	public function testConfluenceTitleIsStored() {
-		$dom = new DOMDocument();
-		$dom->load( __DIR__ . '/parent_page.xml' );
+		$xmlReader = new XMLReader();
+		$xmlReader->open( __DIR__ . '/parent_page.xml' );
 
 		$processor = new ParentPages();
 		$processor->setOutput( new NullOutput() );
-		$processor->execute( $dom );
+		$processor->execute( $xmlReader );
 
 		$map = $processor->getData( 'analyze-page-id-to-confluence-title-map' );
 		$this->assertArrayHasKey( 500, $map );
