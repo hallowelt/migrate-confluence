@@ -95,6 +95,8 @@ class ConfluenceExtractor extends ExtractorBase {
 			$class = $xmlReader->getAttribute( 'class' );
 			if ( $class === 'Page' ) {
 				$this->extractPageMetaData( $objectDom );
+			} elseif ( $class === 'Attachment' ) {
+				$this->extractAttachmentMetaData( $objectDom );
 			}
 
 			$read = $xmlReader->next();
@@ -187,6 +189,48 @@ class ConfluenceExtractor extends ExtractorBase {
 	}
 
 	/**
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	private function extractAttachmentMetaData( DOMDocument $dom ): void {
+		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
+		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
+
+		$xmlHelper = new XMLHelper( $dom );
+
+		$attachmentObjs = $xmlHelper->getObjectNodes( 'Attachment' );
+		if ( count( $attachmentObjs ) < 1 ) {
+			return;
+		}
+		$attachment = $attachmentObjs->item( 0 );
+		if ( $attachment instanceof DOMElement === false ) {
+			return;
+		}
+
+		$attachmentId = $xmlHelper->getIDNodeValue( $attachment );
+		if ( $attachmentId < 0 ) {
+			return;
+		}
+
+		$labelNames = [];
+		$labellingEls = $xmlHelper->getElementsFromCollection( 'labellings', $attachment );
+		foreach ( $labellingEls as $labellingEl ) {
+			$labellingId = $xmlHelper->getIDNodeValue( $labellingEl );
+			if ( !isset( $labellingMap[$labellingId] ) ) {
+				continue;
+			}
+			$labelId = $labellingMap[$labellingId];
+			if ( isset( $labelMap[$labelId] ) ) {
+				$labelNames[] = $labelMap[$labelId];
+			}
+		}
+
+		if ( !empty( $labelNames ) ) {
+			$this->addAttachmentMetaData( $attachmentId, [ 'labels' => $labelNames ] );
+		}
+	}
+
+	/**
 	 * @param XMLHelper $xmlHelper
 	 * @param DOMElement $bodyContent
 	 *
@@ -256,9 +300,18 @@ class ConfluenceExtractor extends ExtractorBase {
 	/**
 	 *
 	 * @param string $titleText
-	 * @param string $meta
+	 * @param array $meta
 	 */
 	protected function addTitleMetaData( $titleText, $meta = [] ) {
 		$this->buckets->addData( 'global-title-metadata', $titleText, $meta, false );
+	}
+
+	/**
+	 *
+	 * @param int $attachmentId
+	 * @param array $meta
+	 */
+	protected function addAttachmentMetaData( $attachmentId, $meta = [] ) {
+		$this->buckets->addData( 'global-attachment-metadata', $attachmentId, $meta, false );
 	}
 }
