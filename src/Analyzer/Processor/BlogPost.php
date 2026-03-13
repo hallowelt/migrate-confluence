@@ -7,9 +7,6 @@ use XMLReader;
 
 class BlogPost extends ProcessorBase {
 
-	/** @var string */
-	protected const BLOG_GENERAL_PREFIX = 'Blog:General';
-
 	/** @var array */
 	private $includeSpaceKey = [];
 
@@ -133,7 +130,7 @@ class BlogPost extends ProcessorBase {
 			$rawTitle
 		);
 		$sanitizedTitle = str_replace( '__', '_', $sanitizedTitle );
-		$this->targetTitle = self::BLOG_GENERAL_PREFIX . '/' . $sanitizedTitle;
+		$this->targetTitle = $this->getBlogPrefix() . '/' . $sanitizedTitle;
 
 		if ( empty( $sanitizedTitle ) ) {
 			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
@@ -196,6 +193,13 @@ class BlogPost extends ProcessorBase {
 
 		$revision = implode( '/', $bodyContentIds ) . "@{$version}-{$revisionTimestamp}";
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
+	}
+
+	/**
+	 * @return string
+	 */
+	private function getBlogPrefix(): string {
+		return 'Blog:' . $this->spaceId;
 	}
 
 	/**

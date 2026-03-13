@@ -63,12 +63,12 @@ class BlogPostTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost::doExecute
 	 */
-	public function testTargetTitleIsBlogGeneralPrefixed() {
+	public function testTargetTitleUsesSpaceIdPrefix() {
 		$processor = $this->runProcessor( __DIR__ . '/blog_post.xml' );
 
 		$map = $processor->getData( 'analyze-page-id-to-title-map' );
 		$this->assertArrayHasKey( 262251, $map );
-		$this->assertSame( 'Blog:General/Our new tool', $map[262251] );
+		$this->assertSame( 'Blog:32973/Our new tool', $map[262251] );
 	}
 
 	/**
