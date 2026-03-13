@@ -55,7 +55,7 @@ class ContenByLabelMacro extends StructuredMacroProcessorBase {
 
 		if ( isset( $params['labels' ] ) ) {
 			$value = $params['labels' ];
-			$values = explode( ',',  $value );
+			$values = explode( ',', $value );
 			$vals = [];
 			foreach ( $values as $val ) {
 				if ( strpos( $val, '+' ) === 0 || strpos( $val, '-' ) === 0 ) {
