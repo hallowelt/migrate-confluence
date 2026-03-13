@@ -22,6 +22,15 @@ class Files extends ProcessorBase {
 	/**
 	 * @return void
 	 */
+	protected function writeOutputFile(): void {
+		// As long as we have no import script for files embeded in xml
+		// we do not write a files.xml
+		return;
+	}
+
+	/**
+	 * @return void
+	 */
 	public function execute(): void {
 		/**
 		 * base64 hash of files may exceed php memory limit.
@@ -80,7 +89,9 @@ class Files extends ProcessorBase {
 			$filename = basename( $file );
 			$data = file_get_contents( $file );
 
-			$this->addFileRevision( $filename, '', $data );
+			// XML containing files is supported by MediaWiki dumpBackup but can not be imported
+			#$this->addFileRevision( $filename, '', $data );
+			$this->workspace->saveUploadFile( $filename, $data );
 		}
 	}
 
@@ -143,7 +154,9 @@ class Files extends ProcessorBase {
 					$filePath = $filesMap[$attachment][0];
 					$attachmentContent = file_get_contents( $filePath );
 
-					$this->builder->addFileRevision( $attachment, '', $attachmentContent );
+					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
+					#$this->builder->addFileRevision( $attachment, '', $attachmentContent );
+					$this->workspace->saveUploadFile( $attachment, $attachmentContent );
 					$this->customBuckets->addData( 'title-uploads', $pageTitle, $attachment );
 				} else {
 					$this->output->writeln( "Attachment file was not found!" );

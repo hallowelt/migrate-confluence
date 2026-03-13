@@ -68,8 +68,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @return void
 	 */
 	public function buildXML( Builder $builder ) {
-		$this->builder = $builder;
-
 		$processors = [
 			new Files(
 				$builder, $this->buckets, $this->workspace,
