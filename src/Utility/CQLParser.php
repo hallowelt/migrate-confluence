@@ -16,10 +16,10 @@ class CQLParser {
 			$label = ucfirst( $label );
 			return "[[Category:$label]]";
 		}, $cql );
-		$parsedCQL = preg_replace_callback( '#\]\]\s*(and|AND)\s*#', function () {
+		$parsedCQL = preg_replace_callback( '#\]\]\s*(and|AND)\s*#', static function () {
 			return "]]";
 		}, $parsedCQL );
-		$parsedCQL = preg_replace_callback( '#\]\]\s*(or|OR)\s*#', function () {
+		$parsedCQL = preg_replace_callback( '#\]\]\s*(or|OR)\s*#', static function () {
 			return "]]|";
 		}, $parsedCQL );
 
