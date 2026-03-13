@@ -126,7 +126,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'global-space-id-to-prefix-map',
 			'global-space-id-to-key-map',
 			'global-body-content-id-to-space-description-id-map',
-			'global--space-labelling-id-to-body-content-id-map',
+			'global-space-labelling-id-to-body-content-id-map',
 			'global-title-attachments',
 			'global-title-revisions',
 			'global-userkey-to-username-map',

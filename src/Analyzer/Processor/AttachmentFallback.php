@@ -97,6 +97,10 @@ class AttachmentFallback extends ProcessorBase {
 		$this->process( $properties );
 	}
 
+	/**
+	 * @param array $properties
+	 * @return void
+	 */
 	private function process( array $properties ): void {
 		// Check to which page attachment belongs
 		$targetTitle = '';

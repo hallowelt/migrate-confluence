@@ -96,7 +96,7 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	}
 
 	/**
-	 * @return void
+	 * @return string
 	 */
 	protected function processIdNode() {
 		$id = '';
@@ -112,14 +112,14 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	}
 
 	/**
-	 * @return void
+	 * @return string
 	 */
 	protected function getCDATAValue() {
 		return $this->xmlReader->value;
 	}
 
 	/**
-	 * @return void
+	 * @return string
 	 */
 	protected function getTextValue() {
 		return $this->xmlReader->readString();

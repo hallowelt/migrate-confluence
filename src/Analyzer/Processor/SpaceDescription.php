@@ -35,7 +35,7 @@ class SpaceDescription extends ProcessorBase {
 	public function getKeys(): array {
 		return [
 			'global-body-content-id-to-space-description-id-map',
-			'global--space-labelling-id-to-body-content-id-map'
+			'global-space-labelling-id-to-body-content-id-map'
 		];
 	}
 
