@@ -44,8 +44,8 @@ class DrawioMacroTest extends TestCase {
 			[
 				'0---SomePage---drawio.png' => 'SomePage_drawio.png',
 				'0---SomePage---SomeImage2.png' => 'SomePage_SomeImage2.png',
-				'23---SomePage---drawio.png' => 'DEVOPS_SomePage_drawio.png',
-				'23---SomePage---SomeImage2.png' => 'DEVOPS_SomePage_SomeImage2.png'
+				'23---SomePage---drawio.png' => 'DEVOPS:SomePage_drawio.png',
+				'23---SomePage---SomeImage2.png' => 'DEVOPS:SomePage_SomeImage2.png'
 			],
 			[],
 			[],
@@ -60,15 +60,13 @@ class DrawioMacroTest extends TestCase {
 		$this->conversionDataWriter = new ConversionDataWriter( [] );
 
 		/** SpaceId GENERAL */
-		$this->doTest( 0, false, 'drawio-macro-input.xml', 'drawio-macro-output-1.xml' );
-		$this->doTest( 0, true, 'drawio-macro-input.xml', 'drawio-macro-output-1.xml' );
+		$this->doTest( 0, 'drawio-macro-input.xml', 'drawio-macro-output-1.xml' );
 
 		/** Random SpaceId */
-		$this->doTest( 23, false, 'drawio-macro-input.xml', 'drawio-macro-output-2.xml' );
-		$this->doTest( 23, true, 'drawio-macro-input.xml', 'drawio-macro-output-3.xml' );
+		$this->doTest( 23, 'drawio-macro-input.xml', 'drawio-macro-output-2.xml' );
 	}
 
-	private function doTest( $spaceId, $nsFileRepoCompat, $input, $output ) {
+	private function doTest( $spaceId, $input, $output ) {
 		$input = file_get_contents( dirname( dirname( __DIR__ ) ) . "/data/$input" );
 		$expectedOutput = file_get_contents( dirname( dirname( __DIR__ ) ) . "/data/$output" );
 
@@ -76,7 +74,7 @@ class DrawioMacroTest extends TestCase {
 		$dom->loadXML( $input );
 
 		$processor = new DrawioMacro( $this->dataLookup, $this->conversionDataWriter,
-			$spaceId, 'SomePage', $nsFileRepoCompat );
+			$spaceId, 'SomePage' );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 
