@@ -25,7 +25,6 @@ class Files extends ProcessorBase {
 	protected function writeOutputFile(): void {
 		// As long as we have no import script for files embeded in xml
 		// we do not write a files.xml
-		return;
 	}
 
 	/**
