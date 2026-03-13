@@ -52,7 +52,9 @@ class GliffyMacroTest extends TestCase {
 			[
 				42 => 'ABC',
 				23 => 'DEVOPS'
-			]
+			],
+			[],
+			[]
 		);
 		$this->conversionDataWriter = new ConversionDataWriter( [] );
 

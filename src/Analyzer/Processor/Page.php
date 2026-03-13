@@ -84,6 +84,7 @@ class Page extends ProcessorBase {
 			'global-filenames-to-filetitles-map',
 			'global-title-attachments',
 			'analyze-page-id-to-confluence-title-map',
+			'global-attachment-id-to-confluence-file-key-map',
 		];
 	}
 
@@ -360,6 +361,8 @@ class Page extends ProcessorBase {
 			$this->data['analyze-attachment-id-to-target-filename-map'][$attachmentId]
 				= $attachmentTargetFilename;
 
+			$this->data['global-attachment-id-to-confluence-file-key-map'][$attachmentId]
+				= $confluenceFileKey;
 			if (
 				!isset( $this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] )
 			) {

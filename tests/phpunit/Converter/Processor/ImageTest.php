@@ -44,7 +44,9 @@ class ImageTest extends TestCase {
 			[
 				42 => 'ABC',
 				23 => 'DEVOPS'
-			]
+			],
+			[],
+			[]
 		);
 
 		/** SpaceId GENERAL */
