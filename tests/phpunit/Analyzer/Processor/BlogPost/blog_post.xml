@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2021-02-16 10:21:02">
+
+    <object class="BlogPost" package="com.atlassian.confluence.pages">
+        <id name="id">262251</id>
+        <property name="title"><![CDATA[Our new tool]]></property>
+        <property name="contentStatus"><![CDATA[current]]></property>
+        <property name="version">1</property>
+        <property name="lastModificationDate">2020-11-09 16:07:42.492</property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces">
+            <id name="id">32973</id>
+        </property>
+        <collection name="bodyContents" class="java.util.Collection">
+            <element class="BodyContent" package="com.atlassian.confluence.core">
+                <id name="id">262252</id>
+            </element>
+        </collection>
+    </object>
+
+</hibernate-generic>

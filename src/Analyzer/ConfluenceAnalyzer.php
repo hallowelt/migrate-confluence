@@ -12,6 +12,7 @@ use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\AttachmentFallback;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
@@ -233,6 +234,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'Space' => new Spaces( $this->spacePrefixMap ),
 			'SpaceDescription' => new SpaceDescription(),
 			'Page' => new ParentPages(),
+			'BlogPost' => new ParentPages(),
 			'BodyContent' => new BodyContents(),
 			'Attachment' => new Attachments( $this->file ),
 			'ConfluenceUserImpl' => new Users(),
@@ -247,6 +249,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'Page' => new Page(
 				$this->includeSpaceKey,
 				$this->mainpage,
+				$this->includeHistory
+			),
+			'BlogPost' => new BlogPost(
+				$this->includeSpaceKey,
 				$this->includeHistory
 			),
 		];
