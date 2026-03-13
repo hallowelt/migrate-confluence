@@ -29,7 +29,6 @@ class Image implements IProcessor {
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param bool $nsFileRepoCompat
 	 */
 	public function __construct( ConversionDataLookup $dataLookup,
 		int $currentSpaceId, string $rawPageTitle ) {

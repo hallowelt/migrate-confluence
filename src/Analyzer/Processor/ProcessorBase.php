@@ -25,7 +25,7 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	protected $data = [];
 
 	/**
-	 * @param Output $output
+	 * @param array $config
 	 */
 	public function setConfig( array $config ): void {
 		$this->config = $config;

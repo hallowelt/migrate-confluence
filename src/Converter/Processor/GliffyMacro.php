@@ -162,7 +162,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	 */
 	private function getFilename( string $confluenceFileKey ): string {
 		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
-		
+
 		return $filename;
 	}
 }

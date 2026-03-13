@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 
@@ -64,7 +63,7 @@ class FilenameBuilder {
 			&& $this->config['ext-ns-file-repo-compat'] === true
 		) {
 			$filePrefix = $this->spaceIdPrefixMap[$spaceId];
-			if( $filePrefix !== '' ) {
+			if ( $filePrefix !== '' ) {
 				$namespacePart = substr( $filePrefix, 0, strpos( $filePrefix, ':' ) );
 				if ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
 					$filename = "{$namespacePart}:" . substr( $filename, strlen( "{$namespacePart}_" ) );
