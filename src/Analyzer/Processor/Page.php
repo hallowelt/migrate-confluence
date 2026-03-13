@@ -84,6 +84,7 @@ class Page extends ProcessorBase {
 			'global-filenames-to-filetitles-map',
 			'global-title-attachments',
 			'analyze-page-id-to-confluence-title-map',
+			'global-attachment-id-to-confluence-file-key-map',
 		];
 	}
 
@@ -332,7 +333,7 @@ class Page extends ProcessorBase {
 
 			$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
 				$confluenceTitle, $attachmentId, $attachmentSpaceId,
-				$attachmentOrigFilename, $wikiTitle, $this->data['global-space-id-to-prefix-map']
+				$attachmentOrigFilename, $wikiTitle
 			);
 
 			if ( $attachmentTargetFilename === '' ) {
@@ -360,6 +361,8 @@ class Page extends ProcessorBase {
 			$this->data['analyze-attachment-id-to-target-filename-map'][$attachmentId]
 				= $attachmentTargetFilename;
 
+			$this->data['global-attachment-id-to-confluence-file-key-map'][$attachmentId]
+				= $confluenceFileKey;
 			if (
 				!isset( $this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] )
 			) {
@@ -382,7 +385,7 @@ class Page extends ProcessorBase {
 		string $pageConfluenceTitle, int $attachmentId, int $attachmentSpaceId,
 		string $attachmentOrigFilename, string $containerTitle
 	): string {
-		$filenameBuilder = new FilenameBuilder( $this->data['global-space-id-to-prefix-map'], null );
+		$filenameBuilder = new FilenameBuilder( $this->data['global-space-id-to-prefix-map'], $this->config );
 		try {
 			$targetName = $filenameBuilder->buildFromAttachmentData(
 				$attachmentSpaceId, $attachmentOrigFilename, $containerTitle );

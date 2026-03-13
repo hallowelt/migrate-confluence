@@ -43,7 +43,9 @@ class UserLinkTest extends TestCase {
 				[
 					42 => 'ABC',
 					23 => 'DEVOPS'
-				]
+				],
+				[],
+				[]
 			);
 
 		$processor = new UserLink( $dataLookup, $currentSpaceId, $currentRawPagename, false );

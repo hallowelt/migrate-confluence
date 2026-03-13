@@ -26,22 +26,15 @@ class Image implements IProcessor {
 	protected $rawPageTitle;
 
 	/**
-	 * @var bool
-	 */
-	protected $nsFileRepoCompat = false;
-
-	/**
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param bool $nsFileRepoCompat
 	 */
 	public function __construct( ConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, bool $nsFileRepoCompat = false ) {
+		int $currentSpaceId, string $rawPageTitle ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
-		$this->nsFileRepoCompat = $nsFileRepoCompat;
 	}
 
 	/**
@@ -378,10 +371,6 @@ class Image implements IProcessor {
 	public function makeImageLink( DOMDocument $dom, array $params ): DOMNode {
 		$params = array_map( 'trim', $params );
 
-		if ( $this->nsFileRepoCompat === true ) {
-			$params = $this->buildNsFileReopCompatParams( $params );
-		}
-
 		$replacementText = $this->getImageReplacement( $params );
 
 		return $dom->createTextNode( $replacementText );
@@ -400,31 +389,12 @@ class Image implements IProcessor {
 
 		if ( empty( $params ) || empty( $params[0] ) ) {
 			$debug .= " ###BROKENIMAGE $confluenceFileKey ###";
-		} elseif ( $this->nsFileRepoCompat === true ) {
-			$params = $this->buildNsFileReopCompatParams( $params );
 		}
 
 		$replacementText = $this->getImageReplacement( $params );
 		$replacementText .= $debug;
 
 		return $dom->createTextNode( $replacementText );
-	}
-
-	/**
-	 * @param array $params
-	 * @return array
-	 */
-	private function buildNsFileReopCompatParams( $params ): array {
-		$filename = $params[0];
-
-		$filenameParts = explode( '_', $filename );
-		if ( count( $filenameParts ) > 2 ) {
-			$namespace = array_shift( $filenameParts );
-			$params[0] = "$namespace:";
-			$params[0] .= implode( '_', $filenameParts );
-		}
-
-		return $params;
 	}
 
 	/**

@@ -148,18 +148,20 @@ class Files extends ProcessorBase {
 				if ( $drawIoFileHandler->isDrawIODataFile( $attachment ) ) {
 					continue;
 				}
+				/** Generalize file title. I can contain a namespace. */
+				$filename = str_replace( ':', '_', $attachment );
 
-				if ( isset( $filesMap[$attachment] ) ) {
-					$filePath = $filesMap[$attachment][0];
+				if ( isset( $filesMap[$filename] ) ) {
+					$filePath = $filesMap[$filename][0];
 					$attachmentContent = file_get_contents( $filePath );
 
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					#$this->builder->addFileRevision( $attachment, '', $attachmentContent );
-					$this->workspace->saveUploadFile( $attachment, $attachmentContent );
-					$this->customBuckets->addData( 'title-uploads', $pageTitle, $attachment );
+					$this->workspace->saveUploadFile( $filename, $attachmentContent );
+					$this->customBuckets->addData( 'title-uploads', $pageTitle, $filename );
 				} else {
 					$this->output->writeln( "Attachment file was not found!" );
-					$this->customBuckets->addData( 'title-uploads-fail', $pageTitle, $attachment );
+					$this->customBuckets->addData( 'title-uploads-fail', $pageTitle, $filename );
 				}
 			}
 		}

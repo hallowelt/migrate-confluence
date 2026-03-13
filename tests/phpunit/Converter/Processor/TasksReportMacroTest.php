@@ -47,7 +47,9 @@ class TasksReportMacroTest extends TestCase {
 			[
 				42 => 'MT',
 				23 => 'AB'
-			]
+			],
+			[],
+			[]
 		);
 
 		$input = $this->getInput();

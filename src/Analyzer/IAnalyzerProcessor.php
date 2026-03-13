@@ -46,4 +46,10 @@ interface IAnalyzerProcessor {
 	 * @return void
 	 */
 	public function setLogger( LoggerInterface $logger ): void;
+
+	/**
+	 * @param array $config
+	 * @return void
+	 */
+	public function setConfig( array $config ): void;
 }

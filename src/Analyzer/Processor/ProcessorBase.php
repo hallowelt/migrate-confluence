@@ -9,6 +9,9 @@ use XMLReader;
 
 abstract class ProcessorBase implements IAnalyzerProcessor {
 
+	/** @var array */
+	protected $config = [];
+
 	/** @var OutputInterface */
 	protected $output;
 
@@ -20,6 +23,13 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 
 	/** @var array */
 	protected $data = [];
+
+	/**
+	 * @param array $config
+	 */
+	public function setConfig( array $config ): void {
+		$this->config = $config;
+	}
 
 	/**
 	 * @param Output $output
@@ -86,7 +96,7 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	}
 
 	/**
-	 * @return void
+	 * @return string
 	 */
 	protected function processIdNode() {
 		$id = '';
@@ -102,14 +112,14 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	}
 
 	/**
-	 * @return void
+	 * @return string
 	 */
 	protected function getCDATAValue() {
 		return $this->xmlReader->value;
 	}
 
 	/**
-	 * @return void
+	 * @return string
 	 */
 	protected function getTextValue() {
 		return $this->xmlReader->readString();

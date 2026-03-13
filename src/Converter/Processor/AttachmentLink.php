@@ -103,17 +103,6 @@ class AttachmentLink extends LinkProcessorBase {
 		*/
 		$linkParts = array_map( 'trim', $linkParts );
 
-		if ( $this->nsFileRepoCompat ) {
-			$filename = $linkParts[0];
-
-			$pos = strpos( $filename, '_' );
-			if ( $pos !== false ) {
-				$namespace = substr( $filename, 0, $pos );
-				if ( $namespace !== false ) {
-					$linkParts[0] = str_replace( $namespace . '_', $namespace . ':', $filename );
-				}
-			}
-		}
 		return '[[Media:' . implode( '|', $linkParts ) . ']]';
 	}
 }

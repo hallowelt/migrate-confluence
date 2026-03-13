@@ -67,7 +67,7 @@ class TitleBuilder {
 	 * @param int $spaceId
 	 * @param int $pageId
 	 * @param string $title
-	 * @return void
+	 * @return string
 	 */
 	public function buildTitle( int $spaceId, int $pageId, string $title ) {
 		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
@@ -106,7 +106,7 @@ class TitleBuilder {
 	private function addParentTitles( int $pageId, string $title ): array {
 		$titles = [];
 		if ( $pageId === $this->currentTitlesSpaceHomePageId ) {
-				$title[] = $this->mainpage;
+				$titles[] = $this->mainpage;
 		} else {
 			$titles[] = $title;
 		}

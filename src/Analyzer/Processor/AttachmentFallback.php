@@ -97,6 +97,10 @@ class AttachmentFallback extends ProcessorBase {
 		$this->process( $properties );
 	}
 
+	/**
+	 * @param array $properties
+	 * @return void
+	 */
 	private function process( array $properties ): void {
 		// Check to which page attachment belongs
 		$targetTitle = '';
@@ -158,6 +162,8 @@ class AttachmentFallback extends ProcessorBase {
 			= $attachmentTargetFilename;
 		$this->data['analyze-attachment-id-to-target-filename-map'][$this->attachmentId]
 			= $attachmentTargetFilename;
+		$this->data['global-attachment-id-to-confluence-file-key-map'][$this->attachmentId]
+			= $confluenceFileKey;
 		if ( !isset(
 			$this->data['global-attachment-orig-filename-target-filename-map'][$this->attachmentOrigFilename]
 		) ) {
@@ -182,7 +188,7 @@ class AttachmentFallback extends ProcessorBase {
 		string $pageConfluenceTitle, int $attachmentId, int $attachmentSpaceId,
 		string $attachmentOrigFilename, string $containerTitle, array $spaceIdToPrefixMap
 	): string {
-		$filenameBuilder = new FilenameBuilder( $spaceIdToPrefixMap, null );
+		$filenameBuilder = new FilenameBuilder( $spaceIdToPrefixMap, $this->config );
 		try {
 			$targetName = $filenameBuilder->buildFromAttachmentData(
 				$attachmentSpaceId, $attachmentOrigFilename, $containerTitle );

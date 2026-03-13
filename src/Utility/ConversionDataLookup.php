@@ -54,7 +54,13 @@ class ConversionDataLookup {
 	private $userMap = [];
 
 	/**
+	 * confluence-file-key → full attachment metadata array
 	 *
+	 * @var array
+	 */
+	private $attachmentMetadataMap = [];
+
+	/**
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataLookup
 	 */
@@ -67,6 +73,8 @@ class ConversionDataLookup {
 			$buckets->getBucketData( 'global-files' ),
 			$buckets->getBucketData( 'global-userkey-to-username-map' ),
 			$buckets->getBucketData( 'global-space-id-to-key-map' ),
+			$buckets->getBucketData( 'global-attachment-metadata' ),
+			$buckets->getBucketData( 'global-attachment-id-to-confluence-file-key-map' )
 		);
 	}
 
@@ -78,11 +86,13 @@ class ConversionDataLookup {
 	 * @param array $files
 	 * @param array $userMap
 	 * @param array $spaceIdToKeyMap
+	 * @param array $attachmentMetadata
+	 * @param array $attachmentIdToFileKeyMap
 	 */
 	public function __construct(
 		$spaceIdPrefixMap, $pagesTitlesMap,
 		$filenamesToFiletitlesMap, $attachmentOrigFilenameToTargetFilenameMap,
-		$files, $userMap, $spaceIdToKeyMap ) {
+		$files, $userMap, $spaceIdToKeyMap, $attachmentMetadata, $attachmentIdToFileKeyMap ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
 		$this->spaceKeyToIdMap = array_flip( $this->spaceIdToKeyMap );
@@ -104,6 +114,14 @@ class ConversionDataLookup {
 		}
 		$this->files = $files;
 		$this->userMap = $userMap;
+
+		$attachmentMetadataMap = [];
+		foreach ( $attachmentMetadata as $attachmentId => $meta ) {
+			if ( isset( $attachmentIdToFileKeyMap[$attachmentId] ) ) {
+				$attachmentMetadataMap[$attachmentIdToFileKeyMap[$attachmentId]] = $meta;
+			}
+		}
+		$this->attachmentMetadataMap = $attachmentMetadataMap;
 	}
 
 	/**
@@ -204,6 +222,48 @@ class ConversionDataLookup {
 			}
 		}
 		return $filename;
+	}
+
+	/**
+	 * Returns all target file titles attached to a given page.
+	 *
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return string[]
+	 */
+	public function getTargetFileTitlesForPage( int $spaceId, string $rawPageTitle ): array {
+		$prefix = $spaceId . '---' . str_replace( ' ', '_', basename( $rawPageTitle ) ) . '---';
+		$results = [];
+		foreach ( $this->filenamesToFiletitlesMap as $key => $targetTitle ) {
+			if ( strpos( $key, $prefix ) === 0 && $targetTitle !== '' ) {
+				$results[] = $targetTitle;
+			}
+		}
+		return $results;
+	}
+
+	/**
+	 * Returns target file titles with their full metadata for all attachments on a page.
+	 * The returned array is keyed by confluence file key. Each value contains 'targetTitle'
+	 * plus any additional metadata fields (e.g. 'labels', 'mediaType', etc.).
+	 *
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return array<string, array> Map of confluenceFileKey => metadata (including 'targetTitle')
+	 */
+	public function getAttachmentMetadataForPage( int $spaceId, string $rawPageTitle ): array {
+		$prefix = $spaceId . '---' . str_replace( ' ', '_', basename( $rawPageTitle ) ) . '---';
+		$results = [];
+		foreach ( $this->filenamesToFiletitlesMap as $key => $targetTitle ) {
+			if ( strpos( $key, $prefix ) !== 0 || $targetTitle === '' ) {
+				continue;
+			}
+			$results[$key] = array_merge(
+				$this->attachmentMetadataMap[$key] ?? [],
+				[ 'targetTitle' => $targetTitle ]
+			);
+		}
+		return $results;
 	}
 
 	/**

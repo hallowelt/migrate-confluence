@@ -64,11 +64,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private $mainpage = 'Main Page';
 
 	/**
-	 * @var bool
-	 */
-	private $extNsFileRepoCompat = false;
-
-	/**
 	 * @var array
 	 */
 	private $advancedConfig = [];
@@ -132,7 +127,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'global-space-id-to-prefix-map',
 			'global-space-id-to-key-map',
 			'global-body-content-id-to-space-description-id-map',
-			'global--space-labelling-id-to-body-content-id-map',
+			'global-space-labelling-id-to-body-content-id-map',
 			'global-title-attachments',
 			'global-title-revisions',
 			'global-userkey-to-username-map',
@@ -154,12 +149,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		if ( isset( $this->advancedConfig['space-prefix'] ) ) {
 			$this->spacePrefixMap = $this->advancedConfig['space-prefix'];
-		}
-
-		if ( isset( $this->advancedConfig['ext-ns-file-repo-compat'] ) ) {
-			if ( is_bool( $this->advancedConfig['ext-ns-file-repo-compat'] ) ) {
-				$this->extNsFileRepoCompat = $this->advancedConfig['ext-ns-file-repo-compat'];
-			}
 		}
 
 		if ( isset( $this->advancedConfig['mainpage'] ) ) {
@@ -283,10 +272,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return void
 	 */
 	private function initProcessors( array $processors ): void {
-		foreach ( $processors as $preprocessor ) {
-			if ( $preprocessor instanceof IAnalyzerProcessor ) {
-				$preprocessor->setOutput( $this->output );
-				$preprocessor->setLogger( $this->logger );
+		foreach ( $processors as $processor ) {
+			if ( $processor instanceof IAnalyzerProcessor ) {
+				$processor->setConfig( $this->advancedConfig );
+				$processor->setOutput( $this->output );
+				$processor->setLogger( $this->logger );
 			}
 		}
 	}

@@ -23,22 +23,15 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	protected $rawPageTitle;
 
 	/**
-	 * @var bool
-	 */
-	protected $nsFileRepoCompat = false;
-
-	/**
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param bool $nsFileRepoCompat
 	 */
 	public function __construct( ConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, bool $nsFileRepoCompat = false ) {
+		int $currentSpaceId, string $rawPageTitle ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
-		$this->nsFileRepoCompat = $nsFileRepoCompat;
 	}
 
 	/**
@@ -111,16 +104,6 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 
 		$confluenceFileKey = str_replace( ' ', '_', "$spaceId---$rawPageTitle---" . $name );
 		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
-
-		if ( $this->nsFileRepoCompat && $this->currentSpaceId !== 0 ) {
-			$filenameParts = explode( '_', $filename );
-
-			if ( count( $filenameParts ) > 2 ) {
-				$filename = $filenameParts[0];
-				array_shift( $filenameParts );
-				$filename .= ':' . implode( '_', $filenameParts );
-			}
-		}
 
 		return $filename;
 	}

@@ -29,24 +29,17 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	protected $rawPageTitle;
 
 	/**
-	 * @var bool
-	 */
-	protected $nsFileRepoCompat = false;
-
-	/**
 	 * @param ConversionDataLookup $dataLookup
 	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param bool $nsFileRepoCompat
 	 */
 	public function __construct( ConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
-		int $currentSpaceId, string $rawPageTitle, bool $nsFileRepoCompat = false ) {
+		int $currentSpaceId, string $rawPageTitle ) {
 		$this->dataLookup = $dataLookup;
 		$this->conversionDataWriter = $conversionDataWriter;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
-		$this->nsFileRepoCompat = $nsFileRepoCompat;
 	}
 
 	/**
@@ -164,16 +157,6 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		if ( ( $drawioDataFilename !== '' ) && ( $drawioImageFilename !== '' ) ) {
 			// Bring image and data together
 			$this->bakeDrawIODataInPNG( $drawioDataFilename, $drawioImageFilename );
-		}
-
-		if ( $this->nsFileRepoCompat ) {
-			$filenameParts = explode( '_', $filename );
-
-			if ( count( $filenameParts ) > 2 ) {
-				$filename = $filenameParts[0];
-				array_shift( $filenameParts );
-				$filename .= ':' . implode( '_', $filenameParts );
-			}
 		}
 
 		return $filename;

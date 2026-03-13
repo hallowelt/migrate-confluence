@@ -99,9 +99,6 @@ class Spaces extends ProcessorBase {
 		// Property id
 		$properties['id'] = $spaceId;
 
-		// Property key
-		$properties['key'] = $spaceKey;
-
 		// ID (int) node propterties
 		if ( isset( $properties['description'] ) ) {
 			$this->data['global-space-id-to-description-id-map'][$spaceId] = (int)$properties['description'];
