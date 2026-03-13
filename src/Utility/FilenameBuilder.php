@@ -9,9 +9,9 @@ use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 class FilenameBuilder {
 
 	/**
-	 * @var XMLHelper|null
+	 * @var array
 	 */
-	private $helper = null;
+	private $config = [];
 
 	/**
 	 *
@@ -28,11 +28,11 @@ class FilenameBuilder {
 	/**
 	 *
 	 * @param array $spaceIdPrefixMap
-	 * @param XMLHelper|null $helper
+	 * @param array $config
 	 */
-	public function __construct( $spaceIdPrefixMap, $helper ) {
+	public function __construct( array $spaceIdPrefixMap, array $config = [] ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
-		$this->helper = $helper;
+		$this->config = $config;
 	}
 
 	/**
@@ -57,61 +57,21 @@ class FilenameBuilder {
 		$builtTitle = $this->builder->invertTitleSegments()->build();
 
 		$filename = new WindowsFilename( $builtTitle );
+		$filename = (string)$filename;
 
-		return (string)$filename;
-	}
-
-	/**
-	 *
-	 * @param DOMElement $attachmentNode
-	 * @param string $assocTitle
-	 * @return string
-	 */
-	public function buildFilename( $attachmentNode, $assocTitle ) {
-		if ( !$this->helper ) {
-			return '';
-		}
-		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
-
-		// In some cases attachments don't have a `space`-id set. We fall back to NS_MAIN then
-		$spaceId = $this->getSpaceId( $attachmentNode );
-		$this->builder->setNamespace( $spaceId );
-
-		$title = $this->helper->getPropertyValue( 'fileName', $attachmentNode );
-		if ( empty( $title ) ) {
-			$title = $this->helper->getPropertyValue( 'title', $attachmentNode );
-		}
-		$this->builder->appendTitleSegment( "-{$title}" );
-		if ( !empty( $assocTitle ) ) {
-			$assocTitle = str_replace( '/', '_', $assocTitle );
-			// Unset potential namespace prefix to avoid duplications
-			$this->builder->setNamespace( 0 );
-			$this->builder->appendTitleSegment( $assocTitle );
-		}
-		$builtTitle = $this->builder->invertTitleSegments()->build();
-
-		$filename = new WindowsFilename( $builtTitle );
-
-		return (string)$filename;
-	}
-
-	/**
-	 *
-	 * @param DOMElement $attachmentNode
-	 * @return int
-	 */
-	private function getSpaceId( $attachmentNode ) {
-		$spaceId = $this->helper->getPropertyValue( 'space', $attachmentNode );
-		if ( is_int( $spaceId ) ) {
-			return $spaceId;
+		if (
+			isset( $this->config['ext-ns-file-repo-compat'] )
+			&& $this->config['ext-ns-file-repo-compat'] === true
+		) {
+			$filePrefix = $this->spaceIdPrefixMap[$spaceId];
+			if( $filePrefix !== '' ) {
+				$namespacePart = substr( $filePrefix, 0, strpos( $filePrefix, ':' ) );
+				if ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
+					$filename = "{$namespacePart}:" . substr( $filename, strlen( "{$namespacePart}_" ) );
+				}
+			}
 		}
 
-		$originalVersion = $this->helper->getPropertyValue( 'originalVersion', $attachmentNode );
-		if ( $originalVersion !== null ) {
-			$origPage = $this->helper->getObjectNodeById( $originalVersion, 'Page' );
-			return $this->getSpaceId( $origPage );
-		}
-
-		return 0;
+		return $filename;
 	}
 }

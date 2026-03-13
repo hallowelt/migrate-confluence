@@ -332,7 +332,7 @@ class Page extends ProcessorBase {
 
 			$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
 				$confluenceTitle, $attachmentId, $attachmentSpaceId,
-				$attachmentOrigFilename, $wikiTitle, $this->data['global-space-id-to-prefix-map']
+				$attachmentOrigFilename, $wikiTitle
 			);
 
 			if ( $attachmentTargetFilename === '' ) {
@@ -382,7 +382,7 @@ class Page extends ProcessorBase {
 		string $pageConfluenceTitle, int $attachmentId, int $attachmentSpaceId,
 		string $attachmentOrigFilename, string $containerTitle
 	): string {
-		$filenameBuilder = new FilenameBuilder( $this->data['global-space-id-to-prefix-map'], null );
+		$filenameBuilder = new FilenameBuilder( $this->data['global-space-id-to-prefix-map'], $this->config );
 		try {
 			$targetName = $filenameBuilder->buildFromAttachmentData(
 				$attachmentSpaceId, $attachmentOrigFilename, $containerTitle );

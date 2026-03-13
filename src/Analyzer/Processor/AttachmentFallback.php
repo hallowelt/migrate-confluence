@@ -182,7 +182,7 @@ class AttachmentFallback extends ProcessorBase {
 		string $pageConfluenceTitle, int $attachmentId, int $attachmentSpaceId,
 		string $attachmentOrigFilename, string $containerTitle, array $spaceIdToPrefixMap
 	): string {
-		$filenameBuilder = new FilenameBuilder( $spaceIdToPrefixMap, null );
+		$filenameBuilder = new FilenameBuilder( $spaceIdToPrefixMap, $this->config );
 		try {
 			$targetName = $filenameBuilder->buildFromAttachmentData(
 				$attachmentSpaceId, $attachmentOrigFilename, $containerTitle );

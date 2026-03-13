@@ -108,9 +108,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/** @var Output */
 	private $output = null;
 
-	/** @var bool */
-	private $nsFileRepoCompat = false;
-
 	/** @var string */
 	private $mainpage = 'Main Page';
 
@@ -173,12 +170,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->buckets );
 		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
 		$this->rawFile = $file;
-
-		if ( isset( $this->config['config']['ext-ns-file-repo-compat'] )
-			&& $this->config['config']['ext-ns-file-repo-compat'] === true
-			) {
-				$this->nsFileRepoCompat = true;
-		}
 
 		if ( isset( $this->config['config']['mainpage'] ) ) {
 			$this->mainpage = $this->config['config']['mainpage'];
@@ -311,27 +302,27 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new Emoticon(),
 			new PreserveTasksReportMacro( $this->dataLookup ),
 			new Image(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle
 			),
 			new AttachmentLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle
 			),
 			new PageLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle
 			),
 			new UserLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle
 			),
 			new PreserveCodeMacro(),
 			new NoFormatMacro(),
 			new TaskListMacro(),
 			new DrawioMacro(
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
-				$currentPageTitle, $this->nsFileRepoCompat
+				$currentPageTitle
 			),
 			new GliffyMacro(
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
-				$currentPageTitle, $this->buckets, $this->nsFileRepoCompat
+				$currentPageTitle, $this->buckets
 			),
 			new ContenByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
@@ -343,7 +334,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new MarkdownMacro(),
 			new ViewFileMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle, $this->nsFileRepoCompat
+				$currentPageTitle
 			),
 			new WidgetMacro(),
 			new PreservePStyleTag(),
@@ -716,7 +707,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$currentPageTitle = $this->getCurrentPageTitle();
 
 			$linkProcessor = new AttachmentLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
+				$this->dataLookup, $this->currentSpace, $currentPageTitle
 			);
 
 			$oContainer = $dom->createElement(
@@ -812,7 +803,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$linkProcessor = new AttachmentLink(
-			$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->nsFileRepoCompat
+			$this->dataLookup, $this->currentSpace, $currentPageTitle
 		);
 
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
