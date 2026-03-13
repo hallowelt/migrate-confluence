@@ -2,9 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use DOMDocument;
-use DOMElement;
-use HalloWelt\MigrateConfluence\Utility\XMLHelper;
+use XMLReader;
 
 class BodyContents extends ProcessorBase {
 
@@ -17,36 +15,34 @@ class BodyContents extends ProcessorBase {
 	public function getKeys(): array {
 		return [
 			'analyze-body-content-id-to-page-id-map',
-			'analyze-body-content-id-to-space-description-id-map'
 		];
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function execute( DOMDocument $dom ): void {
-		$this->xmlHelper = new XMLHelper( $dom );
+	public function doExecute(): void {
+		$bodyContentId = '';
+		$properties = [];
+		$attributes = [];
 
-		$objectNodes = $this->xmlHelper->getObjectNodes( 'BodyContent' );
-		if ( count( $objectNodes ) < 1 ) {
-			return;
+		$this->xmlReader->read();
+		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
+			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
+					$bodyContentId = (int)$this->getCDATAValue();
+				} else {
+					$bodyContentId = (int)$this->getTextValue();
+				}
+			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
+				$properties = $this->processPropertyNodes( $properties, $attributes );
+			}
+			$this->xmlReader->next();
 		}
-		$objectNode = $objectNodes->item( 0 );
-		if ( $objectNode instanceof DOMElement === false ) {
-			return;
-		}
-		$bodyContentId = $this->xmlHelper->getIDNodeValue( $objectNode );
 
-		$pageId = $this->xmlHelper->getPropertyValue( 'content', $objectNode );
-		$pageId = (int)trim( $pageId );
+		$pageId = (int)trim( $properties['content'] );
 
-		$propertyNode = $this->xmlHelper->getPropertyNode( 'content', $objectNode );
-		$contentClass = $propertyNode->getAttribute( 'class' );
-		if ( $contentClass === 'Page' || $contentClass === 'BlogPost' ) {
-			$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $pageId;
-		} elseif ( $propertyNode->getAttribute( 'class' ) === 'SpaceDescription' ) {
-			$this->data['analyze-body-content-id-to-space-description-id-map'][$bodyContentId] = $pageId;
-		}
+		$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $pageId;
 	}
 
 }

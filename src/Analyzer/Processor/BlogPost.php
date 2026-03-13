@@ -2,18 +2,13 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use DOMDocument;
-use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
-use HalloWelt\MigrateConfluence\Utility\XMLHelper;
+use XMLReader;
 
 class BlogPost extends ProcessorBase {
 
 	/** @var string */
 	protected const BLOG_GENERAL_PREFIX = 'Blog:General';
-
-	/** @var XMLHelper */
-	protected $xmlHelper;
 
 	/** @var array */
 	private $includeSpaceKey = [];
@@ -72,25 +67,42 @@ class BlogPost extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function doExecute( DOMDocument $dom ): void {
-		$this->xmlHelper = new XMLHelper( $dom );
+	public function doExecute(): void {
+		$properties = [];
+		$collection = [];
 
-		$objectNodes = $this->xmlHelper->getObjectNodes( 'BlogPost' );
-		if ( count( $objectNodes ) < 1 ) {
-			return;
+		$this->xmlReader->read();
+		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
+			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
+					$this->pageId = (int)$this->getCDATAValue();
+				} else {
+					$this->pageId = (int)$this->getTextValue();
+				}
+			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
+				$properties = $this->processPropertyNodes( $properties );
+			} elseif ( strtolower( $this->xmlReader->name ) === 'collection' ) {
+				$collection = $this->processCollectionNodes( $collection );
+			}
+			$this->xmlReader->next();
 		}
-		$objectNode = $objectNodes->item( 0 );
-		if ( $objectNode instanceof DOMElement === false ) {
-			return;
+
+		$status = null;
+		if ( isset( $properties['contentStatus'] ) ) {
+			$status = $properties['contentStatus'];
 		}
-		$status = $this->xmlHelper->getPropertyValue( 'contentStatus', $objectNode );
 		if ( !$this->includeHistory && ( $status !== 'current' ) ) {
 			return;
 		}
-		$this->spaceId = $this->xmlHelper->getPropertyValue( 'space', $objectNode );
+
+		$this->spaceId = null;
+		if ( isset( $properties['space'] ) ) {
+			$this->spaceId = (int)$properties['space'];
+		}
 		if ( $this->spaceId === null ) {
 			return;
 		}
+
 		if ( !isset( $this->data['global-space-id-to-key-map'][$this->spaceId] ) ) {
 			return;
 		}
@@ -102,14 +114,19 @@ class BlogPost extends ProcessorBase {
 		) {
 			return;
 		}
-		$originalVersionID = $this->xmlHelper->getPropertyValue( 'originalVersion', $objectNode );
+
+		$originalVersionID = null;
+		if ( isset( $properties['originalVersion'] ) ) {
+			$originalVersionID = $properties['originalVersion'];
+		}
 		if ( $originalVersionID !== null ) {
 			return;
 		}
 
-		$this->pageId = $this->xmlHelper->getIDNodeValue( $objectNode );
-
-		$rawTitle = $this->xmlHelper->getPropertyValue( 'title', $objectNode );
+		$rawTitle = '';
+		if ( isset( $properties['title'] ) ) {
+			$rawTitle = $properties['title'];
+		}
 		$sanitizedTitle = str_replace(
 			[ ':', '%', '?', '#', '<', '>', '+', '[', ']', '{', '}', '|' ],
 			'_',
@@ -127,33 +144,43 @@ class BlogPost extends ProcessorBase {
 
 		$this->output->writeln( "Add blog post '$this->targetTitle' (ID:$this->pageId)" );
 
-		$this->process( $objectNode );
+		$this->process( $rawTitle, $properties, $collection );
 	}
 
 	/**
-	 * @param DOMElement $node
+	 * @param string $title
+	 * @param array $properties
+	 * @param array $collection
 	 * @return void
 	 */
-	private function process( DOMElement $node ): void {
-		$pageConfluenceTitle = $this->xmlHelper->getPropertyValue( 'title', $node );
+	private function process( string $title, array $properties, array $collection ): void {
 		$genericTitleBuilder = new GenericTitleBuilder( [] );
 		$pageConfluenceTitle = $genericTitleBuilder
-			->appendTitleSegment( $pageConfluenceTitle )->build();
+			->appendTitleSegment( $title )->build();
 		$pageConfluenceTitle = "$this->spaceId---{$pageConfluenceTitle}";
 		$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
+
 		$this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceTitle;
 		$this->data['analyze-pages-titles-map'][$pageConfluenceTitle] = $this->targetTitle;
 		$this->data['analyze-page-id-to-title-map'][$this->pageId] = $this->targetTitle;
 		$this->data['global-page-id-to-space-id'][$this->pageId] = $this->spaceId;
 
-		$revisionTimestamp = $this->buildRevisionTimestamp( $this->xmlHelper, $node );
-		$bodyContentIds = $this->getBodyContentIds( $this->xmlHelper, $node );
+		$lastModificationDate = '';
+		if ( isset( $properties['lastModificationDate'] ) ) {
+			$lastModificationDate = $properties['lastModificationDate'];
+		}
+		$revisionTimestamp = $this->buildRevisionTimestamp( $lastModificationDate );
+
+		$bodyContentIds = [];
+		if ( isset( $collection['bodyContents'] ) ) {
+			$bodyContentIds = $collection['bodyContents'];
+		}
+
 		if ( !empty( $bodyContentIds ) ) {
 			foreach ( $bodyContentIds as $bodyContentId ) {
 				$this->data['global-body-content-id-to-page-id-map'][$bodyContentId] = $this->pageId;
 			}
 		} else {
-			$bodyContentIds = [];
 			foreach ( $this->data['analyze-body-content-id-to-page-id-map'] as $bodyContentId => $contentPageId ) {
 				if ( $this->pageId === $contentPageId ) {
 					$bodyContentIds[] = $bodyContentId;
@@ -162,34 +189,22 @@ class BlogPost extends ProcessorBase {
 			}
 		}
 
-		$version = $this->xmlHelper->getPropertyValue( 'version', $node );
-		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
+		$version = '';
+		if ( isset( $properties['version'] ) ) {
+			$version = $properties['version'];
+		}
+
+		$revision = implode( '/', $bodyContentIds ) . "@{$version}-{$revisionTimestamp}";
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
 	}
 
 	/**
-	 * @param XMLHelper $xmlHelper
-	 * @param DOMElement $pageNode
+	 * @param string $lastModificationDate
 	 * @return string
 	 */
-	private function buildRevisionTimestamp( XMLHelper $xmlHelper, DOMElement $pageNode ): string {
-		$lastModificationDate = $xmlHelper->getPropertyValue( 'lastModificationDate', $pageNode );
+	private function buildRevisionTimestamp( string $lastModificationDate ): string {
 		$time = strtotime( $lastModificationDate );
 		$mwTimestamp = date( 'YmdHis', $time );
 		return $mwTimestamp;
-	}
-
-	/**
-	 * @param XMLHelper $xmlHelper
-	 * @param DOMElement $pageNode
-	 * @return array
-	 */
-	private function getBodyContentIds( XMLHelper $xmlHelper, DOMElement $pageNode ): array {
-		$ids = [];
-		$bodyContentEl = $xmlHelper->getElementsFromCollection( 'bodyContents', $pageNode );
-		foreach ( $bodyContentEl as $bodyContentElement ) {
-			$ids[] = $xmlHelper->getIDNodeValue( $bodyContentElement );
-		}
-		return $ids;
 	}
 }

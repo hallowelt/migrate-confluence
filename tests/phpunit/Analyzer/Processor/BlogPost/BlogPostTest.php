@@ -2,10 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\BlogPost;
 
-use DOMDocument;
+use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\Console\Output\Output;
+use XMLReader;
 
 class BlogPostTest extends TestCase {
 
@@ -17,17 +18,53 @@ class BlogPostTest extends TestCase {
 		'analyze-page-id-to-confluence-key-map' => [],
 	];
 
+	/** @return Output */
+	private function makeOutput(): Output {
+		return new class extends Output {
+			public function doWrite( string $message, bool $newline ): void {
+			}
+		};
+	}
+
+	/**
+	 * @param string $xmlFile
+	 * @param array $data
+	 * @return BlogPost
+	 */
+	private function runProcessor( string $xmlFile, array $data = [] ): BlogPost {
+		$processor = new BlogPost( [], false );
+		$processor->setOutput( $this->makeOutput() );
+		$processor->setData( $data ?: $this->requiredData );
+
+		$xmlReader = new XMLReader();
+		$xmlReader->open( $xmlFile );
+
+		$read = $xmlReader->read();
+		while ( $read ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
+				$read = $xmlReader->read();
+				continue;
+			}
+			$class = $xmlReader->getAttribute( 'class' );
+			if ( $class !== 'BlogPost' ) {
+				$read = $xmlReader->next();
+				continue;
+			}
+			if ( $processor instanceof IAnalyzerProcessor ) {
+				$processor->execute( $xmlReader );
+			}
+			$read = $xmlReader->next();
+		}
+		$xmlReader->close();
+
+		return $processor;
+	}
+
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost::doExecute
 	 */
 	public function testTargetTitleIsBlogGeneralPrefixed() {
-		$dom = new DOMDocument();
-		$dom->load( __DIR__ . '/blog_post.xml' );
-
-		$processor = new BlogPost( [], false );
-		$processor->setOutput( new NullOutput() );
-		$processor->setData( $this->requiredData );
-		$processor->execute( $dom );
+		$processor = $this->runProcessor( __DIR__ . '/blog_post.xml' );
 
 		$map = $processor->getData( 'analyze-page-id-to-title-map' );
 		$this->assertArrayHasKey( 262251, $map );
@@ -38,13 +75,7 @@ class BlogPostTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost::doExecute
 	 */
 	public function testBodyContentIdIsMappedToPageId() {
-		$dom = new DOMDocument();
-		$dom->load( __DIR__ . '/blog_post.xml' );
-
-		$processor = new BlogPost( [], false );
-		$processor->setOutput( new NullOutput() );
-		$processor->setData( $this->requiredData );
-		$processor->execute( $dom );
+		$processor = $this->runProcessor( __DIR__ . '/blog_post.xml' );
 
 		$map = $processor->getData( 'global-body-content-id-to-page-id-map' );
 		$this->assertArrayHasKey( 262252, $map );
@@ -68,13 +99,27 @@ class BlogPostTest extends TestCase {
         </property>
     </object>
 </hibernate-generic>';
-		$dom = new DOMDocument();
-		$dom->loadXML( $xml );
 
 		$processor = new BlogPost( [], false );
-		$processor->setOutput( new NullOutput() );
+		$processor->setOutput( $this->makeOutput() );
 		$processor->setData( $this->requiredData );
-		$processor->execute( $dom );
+
+		$xmlReader = XMLReader::XML( $xml );
+		$read = $xmlReader->read();
+		while ( $read ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
+				$read = $xmlReader->read();
+				continue;
+			}
+			$class = $xmlReader->getAttribute( 'class' );
+			if ( $class !== 'BlogPost' ) {
+				$read = $xmlReader->next();
+				continue;
+			}
+			$processor->execute( $xmlReader );
+			$read = $xmlReader->next();
+		}
+		$xmlReader->close();
 
 		$map = $processor->getData( 'analyze-page-id-to-title-map' );
 		$this->assertArrayNotHasKey( 999, $map );

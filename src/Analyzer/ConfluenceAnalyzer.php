@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
-use DOMDocument;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
@@ -110,17 +109,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-attachment-id-to-reference-map',
 			'analyze-attachment-id-to-space-id-map',
 			'analyze-attachment-id-to-target-filename-map',
-			'analyze-body-content-id-to-page-id-map',
-			'analyze-body-content-id-to-space-description-id-map',
 			'analyze-orig-title-compressed-title-map',
+			'analyze-body-content-id-to-page-id-map',
 			'analyze-page-id-to-confluence-key-map',
 			'analyze-page-id-to-confluence-title-map',
 			'analyze-page-id-to-parent-page-id-map',
 			'analyze-page-id-to-title-map',
 			'analyze-pages-titles-map',
-			'analyze-space-id-to-name-map',
-			'analyze-space-key-to-name-map',
-			'analyze-space-name-to-prefix-map',
 			'analyze-title-revisions',
 			'analyze-title-to-attachment-title',
 			'debug-analyze-invalid-titles-attachment-id-to-title',
@@ -136,8 +131,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'global-space-id-to-description-id-map',
 			'global-space-id-to-prefix-map',
 			'global-space-id-to-key-map',
-			'global-space-key-to-prefix-map',
 			'global-body-content-id-to-space-description-id-map',
+			'global--space-labelling-id-to-body-content-id-map',
 			'global-title-attachments',
 			'global-title-revisions',
 			'global-userkey-to-username-map',
@@ -308,16 +303,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$read = $xmlReader->read();
 		while ( $read ) {
-			if ( $xmlReader->name !== 'object' ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
 				// Usually all root nodes should be objects.
 				$read = $xmlReader->read();
 				continue;
 			}
-
-			$nodeXML = $xmlReader->readOuterXml();
-
-			$objectDom = new DOMDocument();
-			$objectDom->loadXML( $nodeXML );
 
 			$processor = null;
 			$class = $xmlReader->getAttribute( 'class' );
@@ -327,7 +317,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
 				$processor->setData( $this->data );
-				$processor->execute( $objectDom );
+				$processor->execute( $xmlReader );
 				$keys = $processor->getKeys();
 				foreach ( $keys as $key ) {
 					$this->data[$key] = $processor->getData( $key );
@@ -346,14 +336,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		// compress title lenght
 		$titleCompressor = new TitleCompressor();
 
-		$analyzePagesTitlesMap = $this->data['analyze-pages-titles-map'];
-		$compressedTitlesMap = $titleCompressor->execute( $analyzePagesTitlesMap );
+		$pageIdToTitlesMap = $this->data['analyze-page-id-to-title-map'];
+		$compressedTitlesMap = $titleCompressor->execute( $pageIdToTitlesMap );
 
 		$this->data['analyze-orig-title-compressed-title-map'] = $compressedTitlesMap;
 
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
 
 		// pages-titles-map
+		$analyzePagesTitlesMap = $this->data['analyze-pages-titles-map'];
 		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $analyzePagesTitlesMap );
 		ksort( $compressedPagesTitlesMap );
 
@@ -410,13 +401,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return void
 	 */
 	private function checkTitles(): void {
-		$pagesTitlesMap = $this->data['global-pages-titles-map'];
+		$titlesMap = $this->data['global-title-revisions'];
 
 		$validityChecker = new TitleValidityChecker();
 
 		$hasInvalidTitles = false;
 		$hasInvalidNamespaces = false;
-		foreach ( $pagesTitlesMap as $key => $title ) {
+		foreach ( $titlesMap as $title => $revisons ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
 				$this->customBuckets->addData(
 					'warning-analyze-invalid-titles',
