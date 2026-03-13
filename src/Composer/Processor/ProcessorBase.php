@@ -88,6 +88,8 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	}
 
 	/**
+	 * This is not yet supported by MediaWiki
+	 *
 	 * @param string $filename
 	 * @param string $wikitext
 	 * @param string $base64Contents
