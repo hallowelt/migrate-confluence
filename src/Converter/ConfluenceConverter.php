@@ -96,9 +96,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/** @var string */
 	private $currentPageTitle = '';
 
-	/** @var string */
-	private $currentMainPage = '';
-
 	/** @var int */
 	private $currentSpace = 0;
 
@@ -224,7 +221,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		$this->runProcessors( $dom );
-		$this->postProcessDOM( $dom, $xpath );
+		$this->postProcessDOM( $xpath );
 
 		$dom->saveHTMLFile(
 			$this->preprocessedFile->getPathname()
@@ -506,11 +503,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		if ( $sMacroName === 'localtabgroup' || $sMacroName === 'localtab' ) {
-			$this->processLocalTabMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
+			$this->processLocalTabMacro( $match, $dom, $xpath, $sMacroName );
 		} elseif ( $sMacroName === 'excerpt' ) {
-			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
+			$this->processExcerptMacro( $match, $dom, $xpath );
 		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
-			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
+			$this->processViewXMacro( $match, $dom, $xpath, $sMacroName );
 		} else {
 			// TODO: 'calendar', 'contributors',
 			// 'navitabs', 'include', 'listlabels', 'content-report-table'
@@ -561,7 +558,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	protected function preprocessHTMLSource( $oHTMLSourceFile ) {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
-		$bodyContentId = $this->getBodyContentIdFromFilename( $oHTMLSourceFile->getFilename() );
+		$bodyContentId = $this->getBodyContentIdFromFilename();
 		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
 
 		$preprocessors = [
@@ -631,14 +628,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * </ac:macro>
 	 * </ac:rich-text-body>
 	 * </ac:macro>
-	 * @param ConfluenceConverter $sender
+	 *
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string &$replacement
 	 * @param string $sMacroName
+	 *
+	 * @throws \DOMException
 	 */
-	private function processLocalTabMacro( $sender, $match, $dom, $xpath, &$replacement, $sMacroName ) {
+	private function processLocalTabMacro( $match, $dom, $xpath, $sMacroName ) {
 		if ( $sMacroName === 'localtabgroup' ) {
 			// Append the "<headertabs />" tag
 			$match->parentNode->appendChild(
@@ -662,13 +660,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string &$replacement
+	 *
+	 * @throws \DOMException
 	 */
-	private function processExcerptMacro( $sender, $match, $dom, $xpath, &$replacement ) {
+	private function processExcerptMacro( $match, $dom, $xpath ) {
 		$oNewContainer = $dom->createElement( 'div' );
 		$oNewContainer->setAttribute( 'class', 'ac-excerpt' );
 
@@ -686,14 +684,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 * @param ConfluenceConverter $sender
 	 * @param DOMElement $match
 	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
-	 * @param string &$replacement
 	 * @param string $sMacroName
+	 *
+	 * @throws \DOMException
 	 */
-	private function processViewXMacro( $sender, $match, $dom, $xpath, &$replacement, $sMacroName ) {
+	private function processViewXMacro( $match, $dom, $xpath, $sMacroName ) {
 		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
 		$oRIAttachmentEl = $xpath->query( './ac:parameter/ri:attachment', $match )->item( 0 );
 		if ( $oNameParam instanceof DOMElement ) {
@@ -721,10 +719,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	/**
 	 *
-	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
 	 */
-	public function postProcessDOM( $dom, $xpath ) {
+	public function postProcessDOM( $xpath ) {
 		/*
 		 * BlueSpice VisualEditor breaks on <div>'s with data attributes
 		 * containing JSON
@@ -861,7 +858,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return string
 	 */
 	private function getCurrentPageTitle(): string {
-		$prefix = '';
 		$spaceIdPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
 		if ( !isset( $spaceIdPrefixMap[$this->currentSpace] ) ) {
 			$this->output->writeln( "SpaceId {$this->currentSpace} not found in spaceIdPrefixMap" );

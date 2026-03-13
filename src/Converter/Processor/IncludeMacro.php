@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 

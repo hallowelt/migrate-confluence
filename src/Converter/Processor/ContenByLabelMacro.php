@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\CQLParser;
 
 class ContenByLabelMacro extends StructuredMacroProcessorBase {

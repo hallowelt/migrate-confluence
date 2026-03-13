@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use XMLReader;
 
 class Spaces extends ProcessorBase {

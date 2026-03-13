@@ -9,8 +9,6 @@ class CQLParser {
 	 * @return string
 	 */
 	public function parse( string $cql ): string {
-		$parsedCQL = '';
-
 		$parsedCQL = preg_replace_callback(
 			'#\s*(.*?)\s*=\s*\"(.*?)\"\s*(and|or)*#',
 			'self::cqlReplacement',

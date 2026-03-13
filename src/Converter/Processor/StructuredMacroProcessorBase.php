@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 abstract class StructuredMacroProcessorBase implements IProcessor {

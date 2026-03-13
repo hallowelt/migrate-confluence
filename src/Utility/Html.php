@@ -12,7 +12,6 @@ class Html {
 	 * @return \DOMNode|null Necessary HTML element. Null if for some reason it was not created.
 	 */
 	public static function element( \DOMDocument $dom, string $tag, array $attributes ): ?\DOMNode {
-		$element = null;
 		switch ( $tag ) {
 			case 'img':
 				$element = $dom->createElement( 'img' );

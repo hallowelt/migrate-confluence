@@ -49,7 +49,6 @@ class NestedHeadings implements IPostprocessor {
 		preg_match( $this->regEx, $line, $matches );
 
 		if ( count( $matches ) > 0 ) {
-			$orig = $matches[0];
 			$headingLevel = $matches[2];
 			$text = $matches[3];
 
@@ -68,7 +67,6 @@ class NestedHeadings implements IPostprocessor {
 		$line = $lines[$index];
 		preg_match( $this->regEx, $line, $matches );
 		while ( count( $matches ) > 0 ) {
-			$orig = $matches[0];
 			$listLevel = $matches[1];
 			$text = $matches[3];
 

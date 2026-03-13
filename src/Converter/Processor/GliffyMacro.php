@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
@@ -29,7 +30,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	protected $rawPageTitle;
 
 	/**
-	 * @var DataBucktes
+	 * @var DataBuckets
 	 */
 	private $dataBuckets;
 

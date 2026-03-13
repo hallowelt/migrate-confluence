@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
+
 class ExcerptIncludeMacro extends IncludeMacro {
 
 	/**

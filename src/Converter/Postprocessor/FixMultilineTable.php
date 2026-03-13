@@ -39,7 +39,6 @@ class FixMultilineTable implements IPostprocessor {
 					$problematicLines[] = $index - 1;
 				}
 
-				$fixedLines = [];
 				foreach ( $problematicLines as $problematicLine ) {
 					$line = $lines[$problematicLine];
 					$newLine = "|\n";

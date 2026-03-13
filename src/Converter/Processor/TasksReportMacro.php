@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use DOMNode;
 use DOMText;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 

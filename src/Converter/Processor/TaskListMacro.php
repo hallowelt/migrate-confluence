@@ -61,7 +61,6 @@ class TaskListMacro implements IProcessor {
 					$newNode = $taskNode->cloneNode( true );
 					$macroReplacement->appendChild( $newNode );
 				}
-				continue;
 			}
 		}
 

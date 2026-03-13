@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\Output;
+use Symfony\Component\Console\Output\OutputInterface;
 use XMLReader;
 
 abstract class ProcessorBase implements IAnalyzerProcessor {

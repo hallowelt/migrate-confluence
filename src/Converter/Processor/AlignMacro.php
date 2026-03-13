@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
+use DOMElement;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
@@ -46,7 +47,7 @@ class AlignMacro implements IProcessor {
 
 		$macroReplacement->setAttribute( 'class', "ac-macro-$macroName" );
 
-		$macroParams = $this->getMacroParams( $node, $macroReplacement );
+		$macroParams = $this->getMacroParams( $node );
 		if ( !empty( $macroParams ) ) {
 			$macroReplacement->setAttribute( 'data-params', json_encode( $macroParams ) );
 		}
@@ -61,12 +62,11 @@ class AlignMacro implements IProcessor {
 	}
 
 	/**
-	 *
 	 * @param DOMNode $macro
-	 * @param DOMElement $macroReplacement
+	 *
 	 * @return array
 	 */
-	private function getMacroParams( $macro, $macroReplacement ): array {
+	private function getMacroParams( $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {

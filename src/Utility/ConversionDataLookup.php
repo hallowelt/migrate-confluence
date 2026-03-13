@@ -137,7 +137,6 @@ class ConversionDataLookup {
 			$id = $this->spaceKeyToIdMap[$spaceKey];
 		}
 
-		$spacePrefix = '';
 		if ( isset( $this->spaceIdPrefixMap[$id] ) ) {
 			$spacePrefix = $this->spaceIdPrefixMap[$id];
 			// See `ConfluenceAnalyzer::makeSpacesMap`

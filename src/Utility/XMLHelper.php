@@ -4,6 +4,8 @@ namespace HalloWelt\MigrateConfluence\Utility;
 
 use DOMDocument;
 use DOMElement;
+use DOMNameSpaceNode;
+use DOMNode;
 use DOMNodeList;
 use DOMXPath;
 use Psr\Log\LoggerAwareInterface;
@@ -140,7 +142,8 @@ class XMLHelper implements LoggerAwareInterface {
 	 *
 	 * @param string $propName
 	 * @param DOMElement|null $contextElement
-	 * @return DOMElement
+	 *
+	 * @return DOMNameSpaceNode|DOMNode|null
 	 */
 	public function getPropertyNode( $propName, $contextElement = null ) {
 		return $this->getPropertyNodes( $propName, $contextElement )->item( 0 );
@@ -189,17 +192,6 @@ class XMLHelper implements LoggerAwareInterface {
 	 */
 	public function getObjectNodes( $objectNodeClass ) {
 		return $this->xpath->query( '//object[@class="' . $objectNodeClass . '"]' );
-	}
-
-	/**
-	 *
-	 * @param int $id
-	 * @param string $objectNodeClass
-	 * @return DOMElement
-	 */
-	public function getObjectNodeById( $id, $objectNodeClass ) {
-		$xpathExpression = "//object[@class='$objectNodeClass' and id='$id']";
-		return $this->xpath->query( $xpathExpression )->item( 0 );
 	}
 
 	/**

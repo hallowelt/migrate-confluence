@@ -6,9 +6,6 @@ use XMLReader;
 
 class BodyContents extends ProcessorBase {
 
-	/** @var XMLHelper */
-	protected $xmlHelper;
-
 	/**
 	 * @inheritDoc
 	 */
@@ -24,7 +21,6 @@ class BodyContents extends ProcessorBase {
 	public function doExecute(): void {
 		$bodyContentId = '';
 		$properties = [];
-		$attributes = [];
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
@@ -35,7 +31,7 @@ class BodyContents extends ProcessorBase {
 					$bodyContentId = (int)$this->getTextValue();
 				}
 			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
-				$properties = $this->processPropertyNodes( $properties, $attributes );
+				$properties = $this->processPropertyNodes( $properties );
 			}
 			$this->xmlReader->next();
 		}

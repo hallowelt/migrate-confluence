@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
+use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use XMLReader;
 
 /**
