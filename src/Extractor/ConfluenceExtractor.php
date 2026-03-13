@@ -117,9 +117,8 @@ class ConfluenceExtractor extends ExtractorBase {
 			'global-body-content-id-to-page-id-map'
 		);
 		$bodyContentsToSpaceDescriptionMap = $this->buckets->getBucketData(
-			'analyze-body-content-id-to-space-description-id-map'
+			'global-body-content-id-to-space-description-id-map'
 		);
-
 		$xmlHelper = new XMLHelper( $dom );
 
 		$bodyContents = $xmlHelper->getObjectNodes( 'BodyContent' );

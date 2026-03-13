@@ -76,7 +76,6 @@ class Extract extends CommandExtract {
 			'global-revision-contents',
 			'global-body-content-id-to-page-id-map',
 			'global-body-content-id-to-space-description-id-map',
-			'analyze-body-content-id-to-space-description-id-map',
 		];
 	}
 }
