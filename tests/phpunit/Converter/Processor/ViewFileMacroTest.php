@@ -30,9 +30,9 @@ class ViewFileMacroTest extends TestCase {
 				'0---SomePage---Dummy_1.pdf' => 'SomePage_Dummy_1.pdf',
 				'0---SomePage---Dummy_2.docx' => 'SomePage_Dummy_2.docx',
 				'0---SomePage---Dummy_3.png' => 'SomePage_Dummy_3.png',
-				'23---SomePage---Dummy_1.pdf' => 'DEVOPS_SomePage_Dummy_1.pdf',
-				'23---SomePage---Dummy_2.docx' => 'DEVOPS_SomePage_Dummy_2.docx',
-				'23---SomePage---Dummy_3.png' => 'DEVOPS_SomePage_Dummy_3.png',
+				'23---SomePage---Dummy_1.pdf' => 'DEVOPS:SomePage_Dummy_1.pdf',
+				'23---SomePage---Dummy_2.docx' => 'DEVOPS:SomePage_Dummy_2.docx',
+				'23---SomePage---Dummy_3.png' => 'DEVOPS:SomePage_Dummy_3.png',
 			],
 			[],
 			[],
@@ -45,33 +45,26 @@ class ViewFileMacroTest extends TestCase {
 
 		/** SpaceId GENERAL */
 		$this->doTest(
-			0, "SomePage", false, 'view-file-macro-input.xml', 'view-file-macro-output-1.xml'
-		);
-		$this->doTest(
-			0, "SomePage", true, 'view-file-macro-input.xml', 'view-file-macro-output-1.xml'
+			0, "SomePage", 'view-file-macro-input.xml', 'view-file-macro-output-1.xml'
 		);
 
 		/** Random SpaceId */
 		$this->doTest(
-			23, "SomePage", false, 'view-file-macro-input.xml', 'view-file-macro-output-2.xml'
-		);
-		$this->doTest(
-			23, "SomePage", true, 'view-file-macro-input.xml', 'view-file-macro-output-3.xml'
+			23, "SomePage", 'view-file-macro-input.xml', 'view-file-macro-output-2.xml'
 		);
 	}
 
 	/**
 	 * @param int $spaceId
 	 * @param string $pageName
-	 * @param bool $nsFileRepoCompat
 	 * @param string $input
 	 * @param string $output
 	 */
-	private function doTest( $spaceId, $pageName, $nsFileRepoCompat, $input, $output ) {
+	private function doTest( $spaceId, $pageName, $input, $output ) {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new ViewFileMacro( $this->dataLookup, $spaceId, $pageName, $nsFileRepoCompat );
+		$processor = new ViewFileMacro( $this->dataLookup, $spaceId, $pageName );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );

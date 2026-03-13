@@ -19,12 +19,6 @@ class AttachmentLinkTest extends TestCase {
 			'attachmentlinktest-output.xml',
 			false
 		);
-
-		$this->doTestAttachments(
-			'attachmentlinktest-input.xml',
-			'attachmentlinktest-ns-file-repo-output.xml',
-			true
-		);
 	}
 
 	/**
