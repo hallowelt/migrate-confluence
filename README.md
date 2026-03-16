@@ -2,7 +2,7 @@
 
 This is a command line tool to convert the contents of a Confluence space into a MediaWiki import data format. See also the [official BlueSpice Helpdesk entry](https://en.wiki.bluespice.com/wiki/Confluence_migration).
 
-## Doker
+## Docker
  The migrate confluence tool is available as docker image.
 
 ## Workflow
@@ -33,10 +33,10 @@ Step 3:
 ### Migrate the contents
 1. Create the "workspace" directory (e.g. `/tmp/confluence/workspace/` )
 2. From the parent directory (e.g. `/tmp/` ), run the migration commands
-	1. Run `docker run -v $(pwd)/confluence:/data hallowelt/migrate-confluence:latest analyze --src=/data/input --dest=/data/workspace` to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
-	2. Run `docker run -v $(pwd)/confluence:/data hallowelt/migrate-confluence:latest extract --src=/data/input --dest=/data/workspace` to extract all contents, like wikipage contents, attachments and images into the workspace
-	3. Run `docker run -v $(pwd)/confluence:/data hallowelt/migrate-confluence:latest convert --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText
-	4. Run `docker run -v $(pwd)/confluence:/data hallowelt/migrate-confluence:latest compose --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to create importable data
+	1. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest analyze --src=/data/input --dest=/data/workspace` to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
+	2. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest extract --src=/data/input --dest=/data/workspace` to extract all contents, like wikipage contents, attachments and images into the workspace
+	3. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest convert --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText
+	4. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest compose --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to create importable data
 
 If you re-run the scripts you will need to clean up the "workspace" directory!
 
@@ -46,13 +46,13 @@ If you re-run the scripts you will need to clean up the "workspace" directory!
 3. Make sure you have the target namespaces set up properly. See `workspace/space-id-to-prefix-map.php` for reference.
 4. Make sure [$wgFileExtensions](https://www.mediawiki.org/wiki/Manual:$wgFileExtensions) is setup properly. See `workspace/attachment-file-extensions.php` for reference.
 5. Use `php maintenance/importImages.php /tmp/result/images/` to first import all attachment files and images
-6. Use `php maintenance/importDump.php /tmp/result/output.xml` to import the actual pages
+6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages
 
 You may need to update your MediaWiki search index afterwards.
 
 #### Config file
 It is possible to use a yaml file to configure the commands analyze, extract and convert. As an expample see `/doc/config.sample.yaml`.
-The configuration file can be applied by adding the option `--config /tmp/config.yaml`.
+The configuration file can be applied by adding the option `--config /data/config.yaml`.
 
 Not all parameters of `config.sample.yaml` have to be used in the config file. If something is not part of it the default will be used.
 
