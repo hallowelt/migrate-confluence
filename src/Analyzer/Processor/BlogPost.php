@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use XMLReader;
 
@@ -106,8 +107,7 @@ class BlogPost extends ProcessorBase {
 		$spaceKey = $this->data['global-space-id-to-key-map'][$this->spaceId];
 
 		if (
-			!empty( $this->includeSpaceKey )
-			&& !in_array( strtolower( $spaceKey ), $this->includeSpaceKey )
+			!empty( $this->includeSpaceKey ) && !in_array( strtolower( $spaceKey ), $this->includeSpaceKey )
 		) {
 			return;
 		}
@@ -124,18 +124,30 @@ class BlogPost extends ProcessorBase {
 		if ( isset( $properties['title'] ) ) {
 			$rawTitle = $properties['title'];
 		}
+
 		$sanitizedTitle = str_replace(
 			[ ':', '%', '?', '#', '<', '>', '+', '[', ']', '{', '}', '|' ],
 			'_',
 			$rawTitle
 		);
 		$sanitizedTitle = str_replace( '__', '_', $sanitizedTitle );
-		$this->targetTitle = $this->getBlogPrefix() . '/' . $sanitizedTitle;
 
 		if ( empty( $sanitizedTitle ) ) {
+			return;
+		}
+
+		$titleBuilder = new GenericTitleBuilder( [] );
+		$titleBuilder->setNamespace( $titleBuilder::NS_BLOG );
+		$titleBuilder->appendTitleSegment( $spaceKey );
+		$titleBuilder->appendTitleSegment( $sanitizedTitle );
+
+		try {
+			$this->targetTitle = $titleBuilder->build();
+		} catch ( InvalidTitleException $e ) {
 			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
-				$this->pageId => $this->targetTitle
+				$this->pageId => $e->getInvalidTitle()
 			];
+
 			return;
 		}
 
@@ -148,13 +160,14 @@ class BlogPost extends ProcessorBase {
 	 * @param string $title
 	 * @param array $properties
 	 * @param array $collection
+	 *
 	 * @return void
+	 * @throws InvalidTitleException
 	 */
 	private function process( string $title, array $properties, array $collection ): void {
 		$genericTitleBuilder = new GenericTitleBuilder( [] );
-		$pageConfluenceTitle = $genericTitleBuilder
-			->appendTitleSegment( $title )->build();
-		$pageConfluenceTitle = "$this->spaceId---{$pageConfluenceTitle}";
+		$pageConfluenceTitle = $genericTitleBuilder->appendTitleSegment( $title )->build();
+		$pageConfluenceTitle = "$this->spaceId---$pageConfluenceTitle";
 		$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
 
 		$this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceTitle;
@@ -196,19 +209,14 @@ class BlogPost extends ProcessorBase {
 	}
 
 	/**
-	 * @return string
-	 */
-	private function getBlogPrefix(): string {
-		return 'Blog:' . $this->spaceId;
-	}
-
-	/**
 	 * @param string $lastModificationDate
+	 *
 	 * @return string
 	 */
 	private function buildRevisionTimestamp( string $lastModificationDate ): string {
 		$time = strtotime( $lastModificationDate );
 		$mwTimestamp = date( 'YmdHis', $time );
+
 		return $mwTimestamp;
 	}
 }

@@ -68,7 +68,7 @@ class BlogPostTest extends TestCase {
 
 		$map = $processor->getData( 'analyze-page-id-to-title-map' );
 		$this->assertArrayHasKey( 262251, $map );
-		$this->assertSame( 'Blog:32973/Our new tool', $map[262251] );
+		$this->assertSame( 'Blog:TESTSPACE/Our_new_tool', $map[262251] );
 	}
 
 	/**
