@@ -111,6 +111,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-page-id-to-parent-page-id-map',
 			'analyze-page-id-to-title-map',
 			'analyze-pages-titles-map',
+			'analyze-blogpost-id-to-confluence-key-map',
+			'analyze-blogpost-id-to-title-map',
+			'analyze-blogposts-titles-map',
 			'analyze-title-revisions',
 			'analyze-title-to-attachment-title',
 			'debug-analyze-invalid-titles-attachment-id-to-title',
@@ -121,6 +124,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'global-page-id-to-space-id',
 			'global-page-id-to-title-map',
 			'global-pages-titles-map',
+			'global-blogpost-id-to-space-id',
+			'global-blogpost-id-to-title-map',
+			'global-blogposts-titles-map',
 			'global-space-details',
 			'global-space-id-homepages',
 			'global-space-id-to-description-id-map',
@@ -326,8 +332,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		// compress title lenght
 		$titleCompressor = new TitleCompressor();
 
+		// Merge page and blog post titles so long blog post titles are also compressed
 		$pageIdToTitlesMap = $this->data['analyze-page-id-to-title-map'];
-		$compressedTitlesMap = $titleCompressor->execute( $pageIdToTitlesMap );
+		$blogPostIdToTitlesMap = $this->data['analyze-blogpost-id-to-title-map'];
+		$compressedTitlesMap = $titleCompressor->execute(
+			array_merge( $pageIdToTitlesMap, $blogPostIdToTitlesMap )
+		);
 
 		$this->data['analyze-orig-title-compressed-title-map'] = $compressedTitlesMap;
 
@@ -340,12 +350,26 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$this->data['global-pages-titles-map'] = $compressedPagesTitlesMap;
 
+		// blogposts-titles-map
+		$analyzeBlogPostsTitlesMap = $this->data['analyze-blogposts-titles-map'];
+		$compressedBlogPostsTitlesMap = $applyCompressedTitles->toMapValues( $analyzeBlogPostsTitlesMap );
+		ksort( $compressedBlogPostsTitlesMap );
+
+		$this->data['global-blogposts-titles-map'] = $compressedBlogPostsTitlesMap;
+
 		// page-id-to-titles
 		$analyzePageIdToTitleMap = $this->data['analyze-page-id-to-title-map'];
 		$compressedPageIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzePageIdToTitleMap );
 		ksort( $compressedPageIdToTitleMap );
 
 		$this->data['global-page-id-to-title-map'] = $compressedPageIdToTitleMap;
+
+		// blogpost-id-to-titles
+		$analyzeBlogPostIdToTitleMap = $this->data['analyze-blogpost-id-to-title-map'];
+		$compressedBlogPostIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzeBlogPostIdToTitleMap );
+		ksort( $compressedBlogPostIdToTitleMap );
+
+		$this->data['global-blogpost-id-to-title-map'] = $compressedBlogPostIdToTitleMap;
 
 		// title-revisions
 		$analyzeTitleRevisionsMap = $this->data['analyze-title-revisions'];

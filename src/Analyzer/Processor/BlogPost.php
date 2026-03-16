@@ -42,8 +42,8 @@ class BlogPost extends ProcessorBase {
 		return [
 			'global-space-id-to-key-map',
 			'analyze-body-content-id-to-page-id-map',
-			'analyze-pages-titles-map',
-			'analyze-page-id-to-confluence-key-map',
+			'analyze-blogposts-titles-map',
+			'analyze-blogpost-id-to-confluence-key-map',
 		];
 	}
 
@@ -53,11 +53,11 @@ class BlogPost extends ProcessorBase {
 	public function getKeys(): array {
 		return [
 			'debug-analyze-invalid-titles-page-id-to-title',
-			'analyze-page-id-to-confluence-key-map',
-			'analyze-pages-titles-map',
-			'analyze-page-id-to-title-map',
+			'analyze-blogpost-id-to-confluence-key-map',
+			'analyze-blogposts-titles-map',
+			'analyze-blogpost-id-to-title-map',
 			'analyze-title-revisions',
-			'global-page-id-to-space-id',
+			'global-blogpost-id-to-space-id',
 			'global-body-content-id-to-page-id-map',
 		];
 	}
@@ -170,10 +170,10 @@ class BlogPost extends ProcessorBase {
 		$pageConfluenceTitle = "$this->spaceId---$pageConfluenceTitle";
 		$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
 
-		$this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceTitle;
-		$this->data['analyze-pages-titles-map'][$pageConfluenceTitle] = $this->targetTitle;
-		$this->data['analyze-page-id-to-title-map'][$this->pageId] = $this->targetTitle;
-		$this->data['global-page-id-to-space-id'][$this->pageId] = $this->spaceId;
+		$this->data['analyze-blogpost-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceTitle;
+		$this->data['analyze-blogposts-titles-map'][$pageConfluenceTitle] = $this->targetTitle;
+		$this->data['analyze-blogpost-id-to-title-map'][$this->pageId] = $this->targetTitle;
+		$this->data['global-blogpost-id-to-space-id'][$this->pageId] = $this->spaceId;
 
 		$lastModificationDate = '';
 		if ( isset( $properties['lastModificationDate'] ) ) {

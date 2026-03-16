@@ -14,8 +14,8 @@ class BlogPostTest extends TestCase {
 	private $requiredData = [
 		'global-space-id-to-key-map' => [ 32973 => 'TESTSPACE' ],
 		'analyze-body-content-id-to-page-id-map' => [],
-		'analyze-pages-titles-map' => [],
-		'analyze-page-id-to-confluence-key-map' => [],
+		'analyze-blogposts-titles-map' => [],
+		'analyze-blogpost-id-to-confluence-key-map' => [],
 	];
 
 	/** @return Output */
@@ -66,7 +66,7 @@ class BlogPostTest extends TestCase {
 	public function testTargetTitleUsesSpaceIdPrefix() {
 		$processor = $this->runProcessor( __DIR__ . '/blog_post.xml' );
 
-		$map = $processor->getData( 'analyze-page-id-to-title-map' );
+		$map = $processor->getData( 'analyze-blogpost-id-to-title-map' );
 		$this->assertArrayHasKey( 262251, $map );
 		$this->assertSame( 'Blog:TESTSPACE/Our_new_tool', $map[262251] );
 	}
@@ -121,7 +121,7 @@ class BlogPostTest extends TestCase {
 		}
 		$xmlReader->close();
 
-		$map = $processor->getData( 'analyze-page-id-to-title-map' );
+		$map = $processor->getData( 'analyze-blogpost-id-to-title-map' );
 		$this->assertArrayNotHasKey( 999, $map );
 	}
 }
