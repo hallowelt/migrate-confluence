@@ -41,7 +41,9 @@ class PageTreeMacroTest extends TestCase {
 				0 => '',
 				42 => 'ABC',
 				23 => 'DEVOPS'
-			]
+			],
+			[],
+			[]
 		);
 
 		/** SpaceId GENERAL */

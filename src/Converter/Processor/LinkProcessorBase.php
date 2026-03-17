@@ -26,11 +26,6 @@ abstract class LinkProcessorBase implements IProcessor {
 	protected $rawPageTitle;
 
 	/**
-	 * @var bool
-	 */
-	protected $nsFileRepoCompat = false;
-
-	/**
 	 * @var DOMNode
 	 */
 	private $linkNode;
@@ -39,14 +34,12 @@ abstract class LinkProcessorBase implements IProcessor {
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param bool $nsFileRepoCompat
 	 */
 	public function __construct( ConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, bool $nsFileRepoCompat = false ) {
+		int $currentSpaceId, string $rawPageTitle ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
-		$this->nsFileRepoCompat = $nsFileRepoCompat;
 	}
 
 	/**
