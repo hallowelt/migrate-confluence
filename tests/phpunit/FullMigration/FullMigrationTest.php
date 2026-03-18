@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\FullMigration;
 
+use DOMDocument;
+use DOMXPath;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
@@ -9,8 +11,6 @@ use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
 use HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor;
-use DOMDocument;
-use DOMXPath;
 use PHPUnit\Framework\TestCase;
 use SplFileInfo;
 use Symfony\Component\Console\Output\BufferedOutput;
