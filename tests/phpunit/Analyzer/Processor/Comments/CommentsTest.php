@@ -2,28 +2,57 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\Comments;
 
-use DOMDocument;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Comments;
 use PHPUnit\Framework\TestCase;
+use XMLReader;
 
 class CommentsTest extends TestCase {
+
+	/**
+	 * @param string $xmlFile
+	 * @param array $data
+	 * @return Comments
+	 */
+	private function runProcessor( string $xmlFile, array $data ): Comments {
+		$xmlReader = new XMLReader();
+		$xmlReader->open( $xmlFile );
+
+		$processor = new Comments();
+		$processor->setData( $data );
+
+		$read = $xmlReader->read();
+		while ( $read ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
+				$read = $xmlReader->read();
+				continue;
+			}
+
+			$class = $xmlReader->getAttribute( 'class' );
+			if ( $class === 'Comment' ) {
+				$processor->execute( $xmlReader );
+			}
+
+			$read = $xmlReader->next();
+		}
+		$xmlReader->close();
+
+		return $processor;
+	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\Comments::doExecute
 	 */
 	public function testPageLevelCommentIsStored() {
-		$dom = new DOMDocument();
-		$dom->load( __DIR__ . '/comment_page_level.xml' );
-
-		$processor = new Comments();
-		$processor->setData( [
-			'analyze-inline-comment-ids' => [],
-			'analyze-body-content-id-to-comment-id-map' => [ '800' => '600' ],
-			'global-page-id-to-comment-ids-map' => [],
-			'global-comment-id-to-metadata-map' => [],
-			'global-body-content-id-to-comment-id-map' => [],
-		] );
-		$processor->execute( $dom );
+		$processor = $this->runProcessor(
+			__DIR__ . '/comment_page_level.xml',
+			[
+				'analyze-inline-comment-ids' => [],
+				'analyze-body-content-id-to-comment-id-map' => [ '800' => '600' ],
+				'global-page-id-to-comment-ids-map' => [],
+				'global-comment-id-to-metadata-map' => [],
+				'global-body-content-id-to-comment-id-map' => [],
+			]
+		);
 
 		$commentIdsMap = $processor->getData( 'global-page-id-to-comment-ids-map' );
 		$this->assertArrayHasKey( 700, $commentIdsMap );
@@ -43,18 +72,16 @@ class CommentsTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\Comments::doExecute
 	 */
 	public function testInlineCommentIsSkipped() {
-		$dom = new DOMDocument();
-		$dom->load( __DIR__ . '/comment_inline.xml' );
-
-		$processor = new Comments();
-		$processor->setData( [
-			'analyze-inline-comment-ids' => [ '601' ],
-			'analyze-body-content-id-to-comment-id-map' => [ '801' => '601' ],
-			'global-page-id-to-comment-ids-map' => [],
-			'global-comment-id-to-metadata-map' => [],
-			'global-body-content-id-to-comment-id-map' => [],
-		] );
-		$processor->execute( $dom );
+		$processor = $this->runProcessor(
+			__DIR__ . '/comment_inline.xml',
+			[
+				'analyze-inline-comment-ids' => [ '601' ],
+				'analyze-body-content-id-to-comment-id-map' => [ '801' => '601' ],
+				'global-page-id-to-comment-ids-map' => [],
+				'global-comment-id-to-metadata-map' => [],
+				'global-body-content-id-to-comment-id-map' => [],
+			]
+		);
 
 		$commentIdsMap = $processor->getData( 'global-page-id-to-comment-ids-map' );
 		$this->assertSame( [], $commentIdsMap );
@@ -67,19 +94,17 @@ class CommentsTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\Comments::doExecute
 	 */
 	public function testCommentWithoutBodyContentIsSkipped() {
-		$dom = new DOMDocument();
-		$dom->load( __DIR__ . '/comment_page_level.xml' );
-
-		$processor = new Comments();
-		$processor->setData( [
-			'analyze-inline-comment-ids' => [],
-			// No entry for comment 600 in the body content map
-			'analyze-body-content-id-to-comment-id-map' => [],
-			'global-page-id-to-comment-ids-map' => [],
-			'global-comment-id-to-metadata-map' => [],
-			'global-body-content-id-to-comment-id-map' => [],
-		] );
-		$processor->execute( $dom );
+		$processor = $this->runProcessor(
+			__DIR__ . '/comment_page_level.xml',
+			[
+				'analyze-inline-comment-ids' => [],
+				// No entry for comment 600 in the body content map
+				'analyze-body-content-id-to-comment-id-map' => [],
+				'global-page-id-to-comment-ids-map' => [],
+				'global-comment-id-to-metadata-map' => [],
+				'global-body-content-id-to-comment-id-map' => [],
+			]
+		);
 
 		$commentIdsMap = $processor->getData( 'global-page-id-to-comment-ids-map' );
 		$this->assertSame( [], $commentIdsMap );

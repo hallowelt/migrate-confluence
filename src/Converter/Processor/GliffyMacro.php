@@ -34,26 +34,19 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	private $dataBuckets;
 
 	/**
-	 * @var bool
-	 */
-	protected $nsFileRepoCompat = false;
-
-	/**
 	 * @param ConversionDataLookup $dataLookup
 	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param DataBuckets &$dataBuckets
-	 * @param bool $nsFileRepoCompat
 	 */
 	public function __construct( ConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
-		int $currentSpaceId, string $rawPageTitle, DataBuckets &$dataBuckets, bool $nsFileRepoCompat = false ) {
+		int $currentSpaceId, string $rawPageTitle, DataBuckets &$dataBuckets ) {
 		$this->dataLookup = $dataLookup;
 		$this->conversionDataWriter = $conversionDataWriter;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
 		$this->dataBuckets = $dataBuckets;
-		$this->nsFileRepoCompat = $nsFileRepoCompat;
 	}
 
 	/**
@@ -169,15 +162,6 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	 */
 	private function getFilename( string $confluenceFileKey ): string {
 		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
-		if ( $this->nsFileRepoCompat ) {
-			$filenameParts = explode( '_', $filename );
-
-			if ( count( $filenameParts ) > 2 ) {
-				$filename = $filenameParts[0];
-				array_shift( $filenameParts );
-				$filename .= ':' . implode( '_', $filenameParts );
-			}
-		}
 
 		return $filename;
 	}

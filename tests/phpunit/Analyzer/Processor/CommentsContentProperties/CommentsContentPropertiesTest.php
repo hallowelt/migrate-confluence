@@ -2,21 +2,48 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\CommentsContentProperties;
 
-use DOMDocument;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\CommentsContentProperties;
 use PHPUnit\Framework\TestCase;
+use XMLReader;
 
 class CommentsContentPropertiesTest extends TestCase {
+
+	/**
+	 * @param string $xmlFile
+	 * @return CommentsContentProperties
+	 */
+	private function runProcessor( string $xmlFile ): CommentsContentProperties {
+		$xmlReader = new XMLReader();
+		$xmlReader->open( $xmlFile );
+
+		$processor = new CommentsContentProperties();
+
+		$read = $xmlReader->read();
+		while ( $read ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
+				$read = $xmlReader->read();
+				continue;
+			}
+
+			$class = $xmlReader->getAttribute( 'class' );
+			if ( $class === 'ContentProperty' ) {
+				$processor->execute( $xmlReader );
+			}
+
+			$read = $xmlReader->next();
+		}
+		$xmlReader->close();
+
+		return $processor;
+	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\CommentsContentProperties::execute
 	 */
 	public function testInlineCommentPropertyIsDetected() {
-		$dom = new DOMDocument();
-		$dom->load( __DIR__ . '/content_property_inline_comment.xml' );
-
-		$processor = new CommentsContentProperties();
-		$processor->execute( $dom );
+		$processor = $this->runProcessor(
+			__DIR__ . '/content_property_inline_comment.xml'
+		);
 
 		$ids = $processor->getData( 'analyze-inline-comment-ids' );
 		$this->assertContains( 500, $ids );
@@ -26,11 +53,9 @@ class CommentsContentPropertiesTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\CommentsContentProperties::execute
 	 */
 	public function testInlineMarkerRefPropertyIsDetected() {
-		$dom = new DOMDocument();
-		$dom->load( __DIR__ . '/content_property_inline_marker_ref.xml' );
-
-		$processor = new CommentsContentProperties();
-		$processor->execute( $dom );
+		$processor = $this->runProcessor(
+			__DIR__ . '/content_property_inline_marker_ref.xml'
+		);
 
 		$ids = $processor->getData( 'analyze-inline-comment-ids' );
 		$this->assertContains( 501, $ids );
@@ -40,11 +65,9 @@ class CommentsContentPropertiesTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\CommentsContentProperties::execute
 	 */
 	public function testPageCommentPropertyIsNotDetectedAsInline() {
-		$dom = new DOMDocument();
-		$dom->load( __DIR__ . '/content_property_page_comment.xml' );
-
-		$processor = new CommentsContentProperties();
-		$processor->execute( $dom );
+		$processor = $this->runProcessor(
+			__DIR__ . '/content_property_page_comment.xml'
+		);
 
 		$ids = $processor->getData( 'analyze-inline-comment-ids' );
 		$this->assertSame( [], $ids );

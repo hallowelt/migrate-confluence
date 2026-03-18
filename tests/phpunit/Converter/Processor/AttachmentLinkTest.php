@@ -19,12 +19,6 @@ class AttachmentLinkTest extends TestCase {
 			'attachmentlinktest-output.xml',
 			false
 		);
-
-		$this->doTestAttachments(
-			'attachmentlinktest-input.xml',
-			'attachmentlinktest-ns-file-repo-output.xml',
-			true
-		);
 	}
 
 	/**
@@ -59,7 +53,9 @@ class AttachmentLinkTest extends TestCase {
 			[
 				42 => 'ABC',
 				23 => 'DEVOPS'
-			]
+			],
+			[],
+			[]
 		);
 
 		$processor = new AttachmentLink( $dataLookup, $currentSpaceId, $currentRawPagename, $extNSFileRepo );

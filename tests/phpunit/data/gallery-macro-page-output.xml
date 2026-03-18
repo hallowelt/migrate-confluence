@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Before</p>
+	<div class="ac-gallery" data-params="{&quot;title&quot;:&quot;Cross-Page Gallery&quot;,&quot;page&quot;:&quot;OtherPage, MKT:Marketing Assets&quot;}">&lt;gallery caption="Cross-Page Gallery"&gt;
+report.pdf
+chart.png
+logo.png
+&lt;/gallery&gt;</div>
+	<p>After</p>
+</xml>

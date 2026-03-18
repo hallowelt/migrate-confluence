@@ -53,22 +53,45 @@ class ContenByLabelMacro extends StructuredMacroProcessorBase {
 			$params[$name] = $paramNode->nodeValue;
 		}
 
+		if ( isset( $params['labels' ] ) ) {
+			$value = $params['labels' ];
+			$values = explode( ',', $value );
+			$vals = [];
+			foreach ( $values as $val ) {
+				if ( strpos( $val, '+' ) === 0 || strpos( $val, '-' ) === 0 ) {
+					// "+" or "-" is sometimes added to label
+					$val = substr( $val, 1 );
+				}
+				$val = ucfirst( $val );
+				$vals[] = $val;
+			}
+			$params['labels'] = implode( ', ', $vals );
+		}
+
 		if ( isset( $params['cql'] ) ) {
 			$params['conditions'] = $this->getConditionsForCQL( $params['cql'] );
+		}
+
+		$matches = [];
+		preg_match_all( '#(\snot\s|\sNOT\s|!=)#', $params['cql'], $matches );
+		$cqlError = false;
+		if ( !empty( $matches[0] ) ) {
+			$cqlError = true;
 		}
 
 		$templateParams = '';
 		foreach ( $params as $key => $value ) {
 			$templateParams .= "|$key=$value\n";
 		}
-		if ( empty( $params ) ) {
-			$text = $node->ownerDocument->createTextNode( $this->getBrokenMacroCategroy() );
+
+		if ( empty( $params ) || $cqlError === true ) {
+			$textNode = $node->ownerDocument->createTextNode( $this->getBrokenMacroCategroy() );
 		} else {
 			// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
-			$text = $node->ownerDocument->createTextNode( "{{ContentByLabel\n$templateParams}}" );
+			$textNode = $node->ownerDocument->createTextNode( "{{ContentByLabel\n$templateParams}}" );
 		}
 
-		$node->parentNode->replaceChild( $text, $node );
+		$node->parentNode->replaceChild( $textNode, $node );
 	}
 
 	/**

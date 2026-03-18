@@ -2,17 +2,12 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use DOMDocument;
-use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
-use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use SplFileInfo;
+use XMLReader;
 
 class AttachmentFallback extends ProcessorBase {
-
-	/** @var XMLHelper */
-	protected $xmlHelper;
 
 	/** @var mixed */
 	private $attachmentId;
@@ -60,23 +55,34 @@ class AttachmentFallback extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function doExecute( DOMDocument $dom ): void {
-		$this->xmlHelper = new XMLHelper( $dom );
+	public function doExecute(): void {
+		$properties = [];
 
-		$objectNodes = $this->xmlHelper->getObjectNodes( 'Attachment' );
-		if ( count( $objectNodes ) < 1 ) {
-			return;
+		$this->xmlReader->read();
+		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
+			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
+					$this->attachmentId = $this->getCDATAValue();
+				} else {
+					$this->attachmentId = $this->getTextValue();
+				}
+			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
+				$properties = $this->processPropertyNodes( $properties );
+			}
+			$this->xmlReader->next();
 		}
-		$objectNode = $objectNodes->item( 0 );
-		if ( $objectNode instanceof DOMElement === false ) {
+
+		$attachmentContentStatus = '';
+		if ( isset( $properties['contentStatus'] ) ) {
+			$attachmentContentStatus = $properties['contentStatus'];
+		}
+		if ( strtolower( $attachmentContentStatus ) !== 'current' ) {
 			return;
 		}
 
-		$attachmentNodeContentStatus = $this->xmlHelper->getPropertyValue( 'contentStatus', $objectNode );
-		if ( strtolower( $attachmentNodeContentStatus ) !== 'current' ) {
+		if ( $this->attachmentId === null ) {
 			return;
 		}
-		$this->attachmentId = $this->xmlHelper->getIDNodeValue( $objectNode );
 		if ( in_array( $this->attachmentId, $this->data['analyze-added-attachment-id'] ) ) {
 			return;
 		}
@@ -88,14 +94,22 @@ class AttachmentFallback extends ProcessorBase {
 		}
 		$this->attachmentOrigFilename = $this->data['analyze-attachment-id-to-orig-filename-map'][$this->attachmentId];
 
-		$this->process( $objectNode );
+		$this->process( $properties );
 	}
 
-	private function process( DOMElement $node ): void {
+	/**
+	 * @param array $properties
+	 * @return void
+	 */
+	private function process( array $properties ): void {
 		// Check to which page attachment belongs
 		$targetTitle = '';
 		$confluenceKey = '';
-		$containerContentId = $this->xmlHelper->getPropertyValue( 'containerContent', $node );
+
+		$containerContentId = '';
+		if ( isset( $properties['containerContent'] ) ) {
+			$containerContentId = $properties['containerContent'];
+		}
 		if ( $containerContentId !== null ) {
 			if ( isset( $data['global-page-id-to-title-map'][$containerContentId] ) ) {
 				$targetTitle = $this->data['global-page-id-to-title-map'][$containerContentId];
@@ -106,6 +120,7 @@ class AttachmentFallback extends ProcessorBase {
 				return;
 			}
 		}
+
 		// TODO: Is this wise?
 		$attachmentSpaceId = 0;
 		if ( isset( $data['analyze-attachment-id-to-space-id-map'][$this->attachmentId] ) ) {
@@ -128,7 +143,6 @@ class AttachmentFallback extends ProcessorBase {
 			);
 			return;
 		}
-
 		$attachmentReference = $this->data['analyze-attachment-id-to-reference-map'][$this->attachmentId];
 
 		if ( $confluenceKey !== '' ) {
@@ -148,6 +162,8 @@ class AttachmentFallback extends ProcessorBase {
 			= $attachmentTargetFilename;
 		$this->data['analyze-attachment-id-to-target-filename-map'][$this->attachmentId]
 			= $attachmentTargetFilename;
+		$this->data['global-attachment-id-to-confluence-file-key-map'][$this->attachmentId]
+			= $confluenceFileKey;
 		if ( !isset(
 			$this->data['global-attachment-orig-filename-target-filename-map'][$this->attachmentOrigFilename]
 		) ) {
@@ -172,7 +188,7 @@ class AttachmentFallback extends ProcessorBase {
 		string $pageConfluenceTitle, int $attachmentId, int $attachmentSpaceId,
 		string $attachmentOrigFilename, string $containerTitle, array $spaceIdToPrefixMap
 	): string {
-		$filenameBuilder = new FilenameBuilder( $spaceIdToPrefixMap, null );
+		$filenameBuilder = new FilenameBuilder( $spaceIdToPrefixMap, $this->config );
 		try {
 			$targetName = $filenameBuilder->buildFromAttachmentData(
 				$attachmentSpaceId, $attachmentOrigFilename, $containerTitle );

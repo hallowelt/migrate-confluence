@@ -10,6 +10,8 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+COPY ./docker/php/php.ini /usr/local/etc/php/php.ini
+
 RUN mkdir app
 COPY ./bin /app/bin
 COPY ./src /app/src

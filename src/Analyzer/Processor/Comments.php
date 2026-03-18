@@ -40,7 +40,11 @@ class Comments extends ProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function doExecute( DOMDocument $dom ): void {
+	protected function doExecute(): void {
+		$objectXML = $this->xmlReader->readOuterXml();
+		$dom = new DOMDocument();
+		$dom->loadXML( $objectXML );
+
 		$this->xmlHelper = new XMLHelper( $dom );
 
 		$objectNodes = $this->xmlHelper->getObjectNodes( 'Comment' );
