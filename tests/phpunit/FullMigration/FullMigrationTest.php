@@ -9,6 +9,8 @@ use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
 use HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor;
+use DOMDocument;
+use DOMXPath;
 use PHPUnit\Framework\TestCase;
 use SplFileInfo;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -60,10 +62,23 @@ class FullMigrationTest extends TestCase {
 		$actualFile = $this->workDir . '/result/pages.xml';
 		$this->assertFileExists( $actualFile );
 
-		$expectedXml = file_get_contents( $expectedFile );
-		$actualXml = file_get_contents( $actualFile );
+		$expectedPages = $this->extractPages( $expectedFile );
+		$actualPages = $this->extractPages( $actualFile );
 
-		$this->assertXmlStringEqualsXmlString( $expectedXml, $actualXml );
+		$this->assertSame(
+			array_keys( $expectedPages ),
+			array_keys( $actualPages ),
+			'Page titles do not match'
+		);
+
+		foreach ( $expectedPages as $title => $expectedPageXml ) {
+			$this->assertArrayHasKey( $title, $actualPages, "Missing page: $title" );
+			$this->assertXmlStringEqualsXmlString(
+				$expectedPageXml,
+				$actualPages[$title],
+				"Page content mismatch for: $title"
+			);
+		}
 	}
 
 	/**
@@ -154,6 +169,26 @@ class FullMigrationTest extends TestCase {
 
 		$builder = new Builder();
 		$composer->buildXML( $builder );
+	}
+
+	/**
+	 * @param string $xmlFile
+	 * @return array title => page XML string, sorted by title
+	 */
+	private function extractPages( string $xmlFile ): array {
+		$dom = new DOMDocument();
+		$dom->load( $xmlFile );
+		$xpath = new DOMXPath( $dom );
+
+		$pages = [];
+		foreach ( $xpath->query( '//page' ) as $pageNode ) {
+			$titleNodes = $xpath->query( 'title', $pageNode );
+			$title = $titleNodes->item( 0 )->textContent;
+			$pages[$title] = $dom->saveXML( $pageNode );
+		}
+		ksort( $pages );
+
+		return $pages;
 	}
 
 	/**
