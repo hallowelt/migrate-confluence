@@ -15,6 +15,9 @@ jobs:
           php-version: 8.2
           tools: composer:2
 
+      - name: Install pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+
       - name: Install dependencies
         run: composer update
 
