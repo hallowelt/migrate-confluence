@@ -506,7 +506,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				'panel',
 				'recently-updated',
 				'section',
-				'global-space-details',
+				'space-details',
 				'status',
 				'task',
 				'task-list',
