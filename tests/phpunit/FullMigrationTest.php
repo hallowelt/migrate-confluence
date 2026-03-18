@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\FullMigration;
+namespace HalloWelt\MigrateConfluence\Tests;
 
 use DOMDocument;
 use DOMXPath;
@@ -18,12 +18,17 @@ use Symfony\Component\Console\Output\BufferedOutput;
 class FullMigrationTest extends TestCase {
 
 	/** @var string */
-	private $workDir;
+	private string $workDir;
+
+	/** @var string */
+	private string $dataDir;
 
 	protected function setUp(): void {
 		$this->workDir = sys_get_temp_dir() . '/confluence-migration-test-' . uniqid();
 		mkdir( $this->workDir, 0755, true );
 		mkdir( $this->workDir . '/result/images', 0755, true );
+
+		$this->dataDir = __DIR__ . '/data/FullMigration';
 	}
 
 	protected function tearDown(): void {
@@ -36,9 +41,10 @@ class FullMigrationTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverter
 	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
 	 */
-	public function testExternalImageUrlMigration(): void {
-		$sourceFile = __DIR__ . '/external_image_url_export_source.xml';
-		$expectedFile = __DIR__ . '/external_image_url_export_result.xml';
+	public function testMigration(): void {
+		$sourceFile = $this->dataDir . '/export_source.xml';
+		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
+		$expectedCommentsFile = $this->dataDir . '/result_comments.xml';
 
 		copy( $sourceFile, $this->workDir . '/entities.xml' );
 
@@ -62,7 +68,7 @@ class FullMigrationTest extends TestCase {
 		$actualFile = $this->workDir . '/result/pages.xml';
 		$this->assertFileExists( $actualFile );
 
-		$expectedPages = $this->extractPages( $expectedFile );
+		$expectedPages = $this->extractPages( $expectedPagesFile );
 		$actualPages = $this->extractPages( $actualFile );
 
 		$this->assertSame(
@@ -81,7 +87,6 @@ class FullMigrationTest extends TestCase {
 		}
 
 		// Verify comments.xml
-		$expectedCommentsFile = __DIR__ . '/external_image_url_export_result_comments.xml';
 		$actualCommentsFile = $this->workDir . '/result/comments.xml';
 		$this->assertFileExists( $actualCommentsFile );
 		$this->assertXmlFileEqualsXmlFile( $expectedCommentsFile, $actualCommentsFile );
