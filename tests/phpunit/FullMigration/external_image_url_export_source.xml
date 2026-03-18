@@ -1,5 +1,11 @@
 <hibernate-generic datetime="2020-01-01 00:00:00">
 
+    <object class="ConfluenceUserImpl" package="com.atlassian.confluence.user">
+        <id name="key"><![CDATA[000000000000000000000000000000001]]></id>
+        <property name="name"><![CDATA[testuser]]></property>
+        <property name="lowerName"><![CDATA[testuser]]></property>
+    </object>
+
     <object class="Space" package="com.atlassian.confluence.spaces">
         <id name="id">10000000</id>
         <property name="name">Confluence-Testbereich</property>
@@ -32,6 +38,22 @@
         <property name="body"><![CDATA[<h3>Image URL</h3><p><span class="confluence-embedded-file-wrapper"><ac:image ac:border="true"><ri:url ri:value="https://example.com/download/attachments/12345678/test-image.png?version=1&amp;modificationDate=1000000000000&amp;api=v2" /></ac:image></span></p>]]></property>
         <property name="bodyType">2</property>
         <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000001</id></property>
+    </object>
+
+    <object class="Comment" package="com.atlassian.confluence.pages">
+        <id name="id">30000001</id>
+        <property name="contentStatus">current</property>
+        <property name="creationDate">2020-01-02 10:00:00.000</property>
+        <property name="lastModificationDate">2020-01-02 10:05:00.000</property>
+        <property name="containerContent" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000001</id></property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000002</id>
+        <property name="body"><![CDATA[<p>This is a test comment.</p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Comment" package="com.atlassian.confluence.pages"><id name="id">30000001</id></property>
     </object>
 
 </hibernate-generic>

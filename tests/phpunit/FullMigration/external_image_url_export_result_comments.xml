@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mediawiki>
+  <page>
+    <title>CON_Talk:Test_Page</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="0" xml:space="preserve"/>
+      <content>
+        <role>cs-comments</role>
+        <model>json</model>
+        <format>application/json</format>
+        <text xml:space="preserve">{"1":{"type":"comment","author":"Testuser","created":"20200102100000","modified":"20200102100500","title":"","block":null,"wikitext":"This is a test comment.\n \u003C!-- From bodyContent 20000002.mraw --\u003E"}}</text>
+      </content>
+    </revision>
+  </page>
+</mediawiki>

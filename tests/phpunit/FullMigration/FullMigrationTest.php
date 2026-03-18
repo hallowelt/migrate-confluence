@@ -79,6 +79,12 @@ class FullMigrationTest extends TestCase {
 				"Page content mismatch for: $title"
 			);
 		}
+
+		// Verify comments.xml
+		$expectedCommentsFile = __DIR__ . '/external_image_url_export_result_comments.xml';
+		$actualCommentsFile = $this->workDir . '/result/comments.xml';
+		$this->assertFileExists( $actualCommentsFile );
+		$this->assertXmlFileEqualsXmlFile( $expectedCommentsFile, $actualCommentsFile );
 	}
 
 	/**
@@ -109,6 +115,7 @@ class FullMigrationTest extends TestCase {
 			'global-revision-contents',
 			'global-body-content-id-to-page-id-map',
 			'global-body-content-id-to-space-description-id-map',
+			'global-body-content-id-to-comment-id-map',
 		] );
 
 		$extractor = new ConfluenceExtractor( $config, $workspace, $buckets );
@@ -160,6 +167,10 @@ class FullMigrationTest extends TestCase {
 			'global-title-revisions',
 			'global-files',
 			'global-additional-files',
+			'global-page-id-to-comment-ids-map',
+			'global-comment-id-to-metadata-map',
+			'global-page-id-to-title-map',
+			'global-userkey-to-username-map',
 		] );
 		$buckets->loadFromWorkspace( $workspace );
 
