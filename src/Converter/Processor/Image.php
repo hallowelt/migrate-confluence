@@ -199,7 +199,9 @@ class Image implements IProcessor {
 			$replacementNode->setAttribute( $name, $value );
 		}
 
-		$replacementNode->nodeValue = $src;
+		$replacementNode->appendChild(
+			$node->ownerDocument->createTextNode( $src )
+		);
 
 		return $replacementNode;
 	}
