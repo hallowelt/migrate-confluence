@@ -876,12 +876,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return string
 	 */
 	private function getCurrentPageTitle(): string {
-		$prefix = '';
 		$spaceIdPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
 		if ( !isset( $spaceIdPrefixMap[$this->currentSpace] ) ) {
 			$this->output->writeln( "SpaceId {$this->currentSpace} not found in spaceIdPrefixMap" );
 		}
-		$prefix = $spaceIdPrefixMap[$this->currentSpace];
+		$prefix = $spaceIdPrefixMap[$this->currentSpace] ?? "";
 		$currentPageTitle = $this->currentPageTitle;
 
 		if ( substr( $currentPageTitle, 0, strlen( $prefix ) ) === $prefix ) {
