@@ -62,7 +62,6 @@ use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro as PreserveTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Toc;
-use HalloWelt\MigrateConfluence\Converter\UnhandledMacroConverter;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewDocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
