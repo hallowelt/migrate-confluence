@@ -512,11 +512,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			return;
 		}
 
-		if ( $sMacroName === 'excerpt' ) {
-			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
-			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
-		} else {
+		 {
 			// TODO: 'calendar', 'contributors',
 			// 'navitabs', 'include', 'listlabels', 'content-report-table'
 			$this->logMarkup( $match );
@@ -624,64 +620,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">' . $sContent . '</xml>';
 
 		return $sContent;
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processExcerptMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$oNewContainer = $dom->createElement( 'div' );
-		$oNewContainer->setAttribute( 'class', 'ac-excerpt' );
-
-		// TODO: reflect modes "INLINE" and "BLOCK"
-		//See https://confluence.atlassian.com/doc/excerpt-macro-148062.html
-
-		$match->parentNode->insertBefore( $oNewContainer, $match );
-
-		$oRTBody = $xpath->query( './ac:rich-text-body', $match )->item( 0 );
-		// Move all content out of <ac::rich-text-body>
-		while ( $oRTBody->childNodes->length > 0 ) {
-			$oChild = $oRTBody->childNodes->item( 0 );
-			$oNewContainer->appendChild( $oChild );
-		}
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 * @param string $sMacroName
-	 */
-	private function processViewXMacro( $sender, $match, $dom, $xpath, &$replacement, $sMacroName ) {
-		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
-		$oRIAttachmentEl = $xpath->query( './ac:parameter/ri:attachment', $match )->item( 0 );
-		if ( $oNameParam instanceof DOMElement ) {
-			$sTargetFile = $oNameParam->nodeValue;
-			// Sometimes the target is not the direct nodeValue but an
-			//atttribute value of a child <ri::attachment> element
-			if ( empty( $sTargetFile ) && $oRIAttachmentEl instanceof DOMElement ) {
-				$sTargetFile = $oRIAttachmentEl->getAttribute( 'ri:filename' );
-			}
-
-			$currentPageTitle = $this->getCurrentPageTitle();
-
-			$linkProcessor = new AttachmentLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle
-			);
-
-			$oContainer = $dom->createElement(
-				'span',
-				$linkProcessor->makeLink( [ $sTargetFile ] )
-			);
-			$oContainer->setAttribute( 'class', "ac-$sMacroName" );
-			$match->parentNode->insertBefore( $oContainer, $match );
-		}
 	}
 
 	/**
