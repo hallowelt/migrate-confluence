@@ -1,0 +1,38 @@
+<hibernate-generic datetime="2020-01-01 00:00:00">
+
+    <object class="Space" package="com.atlassian.confluence.spaces">
+        <id name="id">10000000</id>
+        <property name="name">Confluence-Testbereich</property>
+        <property name="key">CON</property>
+        <property name="lowerKey">con</property>
+        <property name="creationDate">2020-01-01 00:00:00.000</property>
+        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
+        <property name="spaceType">global</property>
+        <property name="spaceStatus" enum-class="SpaceStatus" package="com.atlassian.confluence.spaces">CURRENT
+        </property>
+    </object>
+
+    <object class="Page" package="com.atlassian.confluence.pages">
+        <id name="id">10000001</id>
+        <property name="hibernateVersion">1</property>
+        <property name="title">Test Page</property>
+        <property name="lowerTitle">test page</property>
+        <property name="version">1</property>
+        <property name="creationDate">2020-01-01 00:00:00.000</property>
+        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
+        <property name="versionComment"></property>
+        <property name="contentStatus">current</property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000001</id>
+        <property name="body"><![CDATA[<h3>Image URL</h3><p><span class="confluence-embedded-file-wrapper"><ac:image ac:border="true"><ri:url ri:value="https://example.com/download/attachments/12345678/test-image.png?version=1&amp;modificationDate=1000000000000&amp;api=v2" /></ac:image></span></p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000001</id></property>
+    </object>
+
+</hibernate-generic>
+
