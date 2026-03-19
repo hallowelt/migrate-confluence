@@ -1,22 +1,22 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\CommentsContentProperties;
+namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ContentProperties;
 
-use HalloWelt\MigrateConfluence\Analyzer\Processor\CommentsContentProperties;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties;
 use PHPUnit\Framework\TestCase;
 use XMLReader;
 
-class CommentsContentPropertiesTest extends TestCase {
+class ContentPropertiesTest extends TestCase {
 
 	/**
 	 * @param string $xmlFile
-	 * @return CommentsContentProperties
+	 * @return ContentProperties
 	 */
-	private function runProcessor( string $xmlFile ): CommentsContentProperties {
+	private function runProcessor( string $xmlFile ): ContentProperties {
 		$xmlReader = new XMLReader();
 		$xmlReader->open( $xmlFile );
 
-		$processor = new CommentsContentProperties();
+		$processor = new ContentProperties();
 
 		$read = $xmlReader->read();
 		while ( $read ) {
@@ -38,7 +38,7 @@ class CommentsContentPropertiesTest extends TestCase {
 	}
 
 	/**
-	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\CommentsContentProperties::execute
+	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties::execute
 	 */
 	public function testInlineCommentPropertyIsDetected() {
 		$processor = $this->runProcessor(
@@ -50,7 +50,7 @@ class CommentsContentPropertiesTest extends TestCase {
 	}
 
 	/**
-	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\CommentsContentProperties::execute
+	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties::execute
 	 */
 	public function testInlineMarkerRefPropertyIsDetected() {
 		$processor = $this->runProcessor(
@@ -62,7 +62,7 @@ class CommentsContentPropertiesTest extends TestCase {
 	}
 
 	/**
-	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\CommentsContentProperties::execute
+	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties::execute
 	 */
 	public function testPageCommentPropertyIsNotDetectedAsInline() {
 		$processor = $this->runProcessor(

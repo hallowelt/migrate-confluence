@@ -15,7 +15,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Comments;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\CommentsContentProperties;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentBlogPosts;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
@@ -254,7 +254,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'BodyContent' => new BodyContents(),
 			'Attachment' => new Attachments( $this->file ),
 			'ConfluenceUserImpl' => new Users(),
-			'ContentProperty' => new CommentsContentProperties(),
+			'ContentProperty' => new ContentProperties(),
 		];
 	}
 

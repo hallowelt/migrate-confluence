@@ -2,9 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use DOMDocument;
-use DOMElement;
-use HalloWelt\MigrateConfluence\Utility\XMLHelper;
+use XMLReader;
 
 /**
  * Processor that reads Comment objects and collects metadata for page-level
@@ -12,9 +10,6 @@ use HalloWelt\MigrateConfluence\Utility\XMLHelper;
  * Talk pages with CommentStreams data.
  */
 class Comments extends ProcessorBase {
-
-	/** @var XMLHelper */
-	protected $xmlHelper;
 
 	/**
 	 * @inheritDoc
@@ -41,27 +36,38 @@ class Comments extends ProcessorBase {
 	 * @inheritDoc
 	 */
 	protected function doExecute(): void {
-		$objectXML = $this->xmlReader->readOuterXml();
-		$dom = new DOMDocument();
-		$dom->loadXML( $objectXML );
+		$commentId = -1;
+		$containerContentClass = null;
+		$properties = [];
 
-		$this->xmlHelper = new XMLHelper( $dom );
-
-		$objectNodes = $this->xmlHelper->getObjectNodes( 'Comment' );
-		if ( count( $objectNodes ) < 1 ) {
-			return;
+		$this->xmlReader->read();
+		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
+			if (
+				$this->xmlReader->nodeType === XMLReader::ELEMENT &&
+				$this->xmlReader->name === 'id' &&
+				$this->xmlReader->getAttribute( 'name' ) === 'id'
+			) {
+				$commentId = (int)$this->xmlReader->readString();
+			} elseif (
+				$this->xmlReader->nodeType === XMLReader::ELEMENT &&
+				$this->xmlReader->name === 'property'
+			) {
+				if ( $this->xmlReader->getAttribute( 'name' ) === 'containerContent' ) {
+					$containerContentClass = $this->xmlReader->getAttribute( 'class' );
+				}
+				$properties = $this->processPropertyNodes( $properties );
+			}
+			$this->xmlReader->next();
 		}
-		$objectNode = $objectNodes->item( 0 );
-		if ( $objectNode instanceof DOMElement === false ) {
-			return;
-		}
 
-		$status = $this->xmlHelper->getPropertyValue( 'contentStatus', $objectNode );
+		$status = $properties['contentStatus'] ?? null;
 		if ( $status !== 'current' ) {
 			return;
 		}
 
-		$commentId = $this->xmlHelper->getIDNodeValue( $objectNode );
+		if ( $commentId === -1 ) {
+			return;
+		}
 
 		// Skip inline comments
 		if ( in_array( $commentId, $this->data['analyze-inline-comment-ids'] ) ) {
@@ -69,15 +75,11 @@ class Comments extends ProcessorBase {
 		}
 
 		// Only handle page-level comments (containerContent must be a Page)
-		$containerContentNode = $this->xmlHelper->getPropertyNode( 'containerContent', $objectNode );
-		if ( $containerContentNode === null ) {
-			return;
-		}
-		if ( $containerContentNode->getAttribute( 'class' ) !== 'Page' ) {
+		if ( $containerContentClass !== 'Page' ) {
 			return;
 		}
 
-		$pageId = $this->xmlHelper->getPropertyValue( 'containerContent', $objectNode );
+		$pageId = isset( $properties['containerContent'] ) ? (int)$properties['containerContent'] : null;
 		if ( $pageId === null ) {
 			return;
 		}
@@ -89,16 +91,9 @@ class Comments extends ProcessorBase {
 		}
 		$bodyContentId = $commentToBodyContentMap[$commentId];
 
-		$creatorNode = $this->xmlHelper->getPropertyNode( 'creator', $objectNode );
-		$creatorKey = null;
-		if ( $creatorNode !== null ) {
-			$idEl = $creatorNode->getElementsByTagName( 'id' )->item( 0 );
-			if ( $idEl !== null ) {
-				$creatorKey = $idEl->nodeValue;
-			}
-		}
-		$created = $this->xmlHelper->getPropertyValue( 'creationDate', $objectNode );
-		$modified = $this->xmlHelper->getPropertyValue( 'lastModificationDate', $objectNode );
+		$creatorKey = $properties['creator'] ?? null;
+		$created = $properties['creationDate'] ?? '';
+		$modified = $properties['lastModificationDate'] ?? '';
 
 		$this->data['global-comment-id-to-metadata-map'][$commentId] = [
 			'page_id' => $pageId,
