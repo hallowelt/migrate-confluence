@@ -134,6 +134,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-space-id-homepages',
 			'global-filenames-to-filetitles-map',
 			'global-title-metadata',
+			'global-blog-title-metadata',
 			'global-attachment-orig-filename-target-filename-map',
 			'global-files',
 			'global-userkey-to-username-map',
@@ -625,9 +626,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		// Append categories
 		$categorieMap = $this->buckets->getBucketData( 'global-title-metadata' );
+		$blogCategorieMap = $this->buckets->getBucketData( 'global-blog-title-metadata' );
+		$pageMeta = $categorieMap[$pageId] ?? $blogCategorieMap[$pageId] ?? [];
 		$categories = '';
-		if ( isset( $categorieMap[$pageId] ) && isset( $categorieMap[$pageId]['categories'] ) ) {
-			foreach ( $categorieMap[$pageId]['categories'] as $key => $category ) {
+		if ( isset( $pageMeta['categories'] ) ) {
+			foreach ( $pageMeta['categories'] as $key => $category ) {
 				$category = ucfirst( $category );
 				$categories .= "[[Category:$category]]\n";
 			}

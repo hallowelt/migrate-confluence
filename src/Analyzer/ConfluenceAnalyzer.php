@@ -15,6 +15,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentBlogPages;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
@@ -109,6 +110,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-page-id-to-confluence-key-map',
 			'analyze-page-id-to-confluence-title-map',
 			'analyze-page-id-to-parent-page-id-map',
+			'analyze-blogpost-id-to-confluence-title-map',
+			'analyze-blogpost-id-to-parent-page-id-map',
 			'analyze-page-id-to-title-map',
 			'analyze-pages-titles-map',
 			'analyze-blogpost-id-to-confluence-key-map',
@@ -240,7 +243,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'Space' => new Spaces( $this->spacePrefixMap ),
 			'SpaceDescription' => new SpaceDescription(),
 			'Page' => new ParentPages(),
-			'BlogPost' => new ParentPages(),
+			'BlogPost' => new ParentBlogPages(),
 			'BodyContent' => new BodyContents(),
 			'Attachment' => new Attachments( $this->file ),
 			'ConfluenceUserImpl' => new Users(),

@@ -4,9 +4,13 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
+use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use XMLReader;
 
 class BlogPost extends ProcessorBase {
+
+	/** @var string */
+	private const NS_BLOG_NAME = 'Blog';
 
 	/** @var array */
 	private $includeSpaceKey = [];
@@ -120,29 +124,20 @@ class BlogPost extends ProcessorBase {
 			return;
 		}
 
-		$rawTitle = '';
-		if ( isset( $properties['title'] ) ) {
-			$rawTitle = $properties['title'];
-		}
+		$title = $properties['title'] ?? "";
+		if ( empty( $title ) ) {
+			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
+				$this->pageId => "Invalid source title"
+			];
 
-		$sanitizedTitle = str_replace(
-			[ ':', '%', '?', '#', '<', '>', '+', '[', ']', '{', '}', '|' ],
-			'_',
-			$rawTitle
-		);
-		$sanitizedTitle = str_replace( '__', '_', $sanitizedTitle );
-
-		if ( empty( $sanitizedTitle ) ) {
 			return;
 		}
 
-		$titleBuilder = new GenericTitleBuilder( [] );
-		$titleBuilder->setNamespace( $titleBuilder::NS_BLOG );
-		$titleBuilder->appendTitleSegment( $spaceKey );
-		$titleBuilder->appendTitleSegment( $sanitizedTitle );
+		$blogName = self::NS_BLOG_NAME;
+		$titleBuilder = new TitleBuilder( [ $this->spaceId => "$blogName:$spaceKey/" ], [], [], [], );
 
 		try {
-			$this->targetTitle = $titleBuilder->build();
+			$this->targetTitle = $titleBuilder->buildTitle( $this->spaceId, $this->pageId, $title );
 		} catch ( InvalidTitleException $e ) {
 			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
 				$this->pageId => $e->getInvalidTitle()
@@ -153,7 +148,7 @@ class BlogPost extends ProcessorBase {
 
 		$this->output->writeln( "Add blog post '$this->targetTitle' (ID:$this->pageId)" );
 
-		$this->process( $rawTitle, $properties, $collection );
+		$this->process( $title, $properties, $collection );
 	}
 
 	/**
