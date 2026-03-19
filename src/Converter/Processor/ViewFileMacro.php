@@ -58,6 +58,9 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		);
 	}
 
+	/**
+	 * @return string
+	 */
 	protected function getWikiTextTemplateName(): string {
 		return 'ViewFile';
 	}

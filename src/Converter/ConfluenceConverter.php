@@ -34,6 +34,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
@@ -42,6 +43,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarker;
 use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\MarkdownMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
@@ -60,7 +63,9 @@ use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro as Preserve
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Toc;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\ViewDocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
@@ -222,28 +227,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$dom = $this->preprocessFile();
 
 		$xpath = new DOMXPath( $dom );
-		$xpath->registerNamespace( 'ac', 'some' );
-		$xpath->registerNamespace( 'ri', 'thing' );
-		$replacings = $this->makeReplacings();
-		foreach ( $replacings as $xpathQuery => $callback ) {
-			$matches = $xpath->query( $xpathQuery );
-			$nonLiveListMatches = [];
-			foreach ( $matches as $match ) {
-				$nonLiveListMatches[] = $match;
-			}
-			foreach ( $nonLiveListMatches as $match ) {
-				//phpcs:ignore Generic.Files.LineLength.TooLong
-				// See: https://wiki.hallowelt.com/index.php/Technik/Migration/Confluence_nach_MediaWiki#Inhalte
-				//phpcs:ignore Generic.Files.LineLength.TooLong
-				// See: https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
-				call_user_func_array(
-					$callback,
-					[ $this, $match, $dom, $xpath ]
-				);
-			}
-		}
 
 		$this->runProcessors( $dom );
+
+		$unhandledMacroProcessor = new UnhandledMacroConverter();
+		$unhandledMacroProcessor->process( $dom );
+
+		$xpath->registerNamespace( 'ac', 'some' );
+		$xpath->registerNamespace( 'ri', 'thing' );
 		$this->postProcessDOM( $dom, $xpath );
 
 		$dom->saveHTMLFile(
@@ -318,6 +309,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			),
 			new RecentlyUpdatedMacro( $this->currentPageTitle ),
 			new IncludeMacro( $this->dataLookup, $this->currentSpace ),
+			new ExcerptMacro(),
 			new ExcerptIncludeMacro( $this->dataLookup, $this->currentSpace ),
 			new Emoticon(),
 			new PreserveTasksReportMacro( $this->dataLookup ),
@@ -359,9 +351,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->currentSpace,
 				$currentPageTitle
 			),
+			new ViewDocMacro(
+				$this->dataLookup, $this->currentSpace,
+				$currentPageTitle
+			),
+			new ViewXlsMacro(
+				$this->dataLookup, $this->currentSpace,
+				$currentPageTitle
+			),
+			new ViewFileMacro(
+				$this->dataLookup, $this->currentSpace,
+				$currentPageTitle
+			),
 			new WidgetMacro(),
 			new PreservePStyleTag(),
 			new TableFilterMacro(),
+			new LocalTabMacro(),
+			new LocalTabGroupMacro()
 		];
 
 		/** @var IProcessor $processor */
@@ -478,85 +484,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 */
-	private function processMacro( $sender, $match, $dom, $xpath ) {
-		$replacement = '';
-		$sMacroName = $match->getAttribute( 'ac:name' );
-
-		// Exclude macros that are handled by an `IProcessor`
-		if ( in_array(
-			$sMacroName,
-			[
-				'align',
-				'anchor',
-				'attachments',
-				'children',
-				'code',
-				'column',
-				'contentbylabel',
-				'details',
-				'detailssummary',
-				'drawio',
-				'excerpt-include',
-				'expand',
-				'gallery',
-				'include',
-				'info',
-				'inline-comment-marker',
-				'markdown',
-				'noformat',
-				'note',
-				'pagetree',
-				'placeholder',
-				'panel',
-				'recently-updated',
-				'section',
-				'space-details',
-				'status',
-				'task',
-				'task-list',
-				'tasks-report-macro',
-				'tip',
-				'toc',
-				'view-file',
-				'warning',
-				'jira',
-				'widget',
-				'gliffy',
-				'table-filter',
-			]
-		) ) {
-			return;
-		}
-
-		if ( $sMacroName === 'localtabgroup' || $sMacroName === 'localtab' ) {
-			$this->processLocalTabMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
-		} elseif ( $sMacroName === 'excerpt' ) {
-			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
-		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
-			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
-		} else {
-			// TODO: 'calendar', 'contributors',
-			// 'navitabs', 'include', 'listlabels', 'content-report-table'
-			$this->logMarkup( $match );
-			$replacement .= "[[Category:Broken_macro/$sMacroName]]";
-		}
-
-		$parentNode = $match->parentNode;
-		if ( $parentNode === null ) {
-			return;
-		}
-		$parentNode->replaceChild(
-			$dom->createTextNode( $replacement ),
-			$match
-		);
-	}
-
-	/**
 	 *
 	 * @param DOMNode $oNode
 	 */
@@ -569,17 +496,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			"NODE: \n" .
 			$oNode->ownerDocument->saveXML( $oNode )
 		);
-	}
-
-	/**
-	 *
-	 * @return array
-	 */
-	private function makeReplacings() {
-		return [
-			'//ac:macro' => [ $this, 'processMacro' ],
-			'//ac:structured-macro' => [ $this, 'processMacro' ]
-		];
 	}
 
 	/**
@@ -649,104 +565,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">' . $sContent . '</xml>';
 
 		return $sContent;
-	}
-
-	/**
-	 *
-	 * <ac::macro ac:name="localtabgroup">
-	 * <ac::rich-text-body>
-	 * <ac::macro ac:name="localtab">
-	 * <ac::parameter ac:name="title">...</acparameter>
-	 * <ac::rich-text-body>...</acrich-text-body>
-	 * </ac:macro>
-	 * </ac:rich-text-body>
-	 * </ac:macro>
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 * @param string $sMacroName
-	 */
-	private function processLocalTabMacro( $sender, $match, $dom, $xpath, &$replacement, $sMacroName ) {
-		if ( $sMacroName === 'localtabgroup' ) {
-			// Append the "<headertabs />" tag
-			$match->parentNode->appendChild(
-				$dom->createTextNode( '<headertabs />' )
-			);
-		} elseif ( $sMacroName === 'localtab' ) {
-			$oTitleParam = $xpath->query( './ac:parameter[@ac:name="title"]', $match )->item( 0 );
-			// Prepend the heading
-			$match->parentNode->insertBefore(
-				$dom->createElement( 'h1', $oTitleParam->nodeValue ),
-				$match
-			);
-		}
-
-		$oRTBody = $xpath->query( './ac:rich-text-body', $match )->item( 0 );
-		// Move all content out of <ac:rich-text-body>
-		while ( $oRTBody->childNodes->length > 0 ) {
-			$oChild = $oRTBody->childNodes->item( 0 );
-			$match->parentNode->insertBefore( $oChild, $match );
-		}
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 */
-	private function processExcerptMacro( $sender, $match, $dom, $xpath, &$replacement ) {
-		$oNewContainer = $dom->createElement( 'div' );
-		$oNewContainer->setAttribute( 'class', 'ac-excerpt' );
-
-		// TODO: reflect modes "INLINE" and "BLOCK"
-		//See https://confluence.atlassian.com/doc/excerpt-macro-148062.html
-
-		$match->parentNode->insertBefore( $oNewContainer, $match );
-
-		$oRTBody = $xpath->query( './ac:rich-text-body', $match )->item( 0 );
-		// Move all content out of <ac::rich-text-body>
-		while ( $oRTBody->childNodes->length > 0 ) {
-			$oChild = $oRTBody->childNodes->item( 0 );
-			$oNewContainer->appendChild( $oChild );
-		}
-	}
-
-	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 * @param string $sMacroName
-	 */
-	private function processViewXMacro( $sender, $match, $dom, $xpath, &$replacement, $sMacroName ) {
-		$oNameParam = $xpath->query( './ac:parameter[@ac:name="name"]', $match )->item( 0 );
-		$oRIAttachmentEl = $xpath->query( './ac:parameter/ri:attachment', $match )->item( 0 );
-		if ( $oNameParam instanceof DOMElement ) {
-			$sTargetFile = $oNameParam->nodeValue;
-			// Sometimes the target is not the direct nodeValue but an
-			//atttribute value of a child <ri::attachment> element
-			if ( empty( $sTargetFile ) && $oRIAttachmentEl instanceof DOMElement ) {
-				$sTargetFile = $oRIAttachmentEl->getAttribute( 'ri:filename' );
-			}
-
-			$currentPageTitle = $this->getCurrentPageTitle();
-
-			$linkProcessor = new AttachmentLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle
-			);
-
-			$oContainer = $dom->createElement(
-				'span',
-				$linkProcessor->makeLink( [ $sTargetFile ] )
-			);
-			$oContainer->setAttribute( 'class', "ac-$sMacroName" );
-			$match->parentNode->insertBefore( $oContainer, $match );
-		}
 	}
 
 	/**

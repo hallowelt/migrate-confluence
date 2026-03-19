@@ -1,0 +1,7 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="viewxls">
+  <ac:parameter ac:name="name">
+    <ri:attachment ri:filename="Dummy_3.xls"/>
+  </ac:parameter>
+</ac:structured-macro>
+</xml>

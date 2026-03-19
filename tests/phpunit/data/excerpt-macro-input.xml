@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="excerpt">
+		<ac:parameter ac:name="hidden">true</ac:parameter>
+		<ac:parameter ac:name="atlassian-macro-output-type">BLOCK</ac:parameter>
+		<ac:rich-text-body>
+			<p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt macro.</p>
+  		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>
