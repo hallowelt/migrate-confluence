@@ -27,6 +27,8 @@ class AttachmentFallback extends ProcessorBase {
 			'analyze-attachment-id-to-reference-map',
 			'global-page-id-to-title-map',
 			'analyze-page-id-to-confluence-key-map',
+			'analyze-blogpost-id-to-confluence-key-map',
+			'global-blogpost-id-to-title-map',
 			'global-space-id-to-prefix-map',
 			'analyze-add-file',
 			'global-attachment-orig-filename-target-filename-map',
@@ -113,9 +115,13 @@ class AttachmentFallback extends ProcessorBase {
 		if ( $containerContentId !== null ) {
 			if ( isset( $data['global-page-id-to-title-map'][$containerContentId] ) ) {
 				$targetTitle = $this->data['global-page-id-to-title-map'][$containerContentId];
+			} elseif ( isset( $this->data['global-blogpost-id-to-title-map'][$containerContentId] ) ) {
+				$targetTitle = $this->data['global-blogpost-id-to-title-map'][$containerContentId];
 			}
 			if ( isset( $data['analyze-page-id-to-confluence-key-map'][$containerContentId] ) ) {
 				$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId];
+			} elseif ( isset( $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId] ) ) {
+				$confluenceKey = $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId];
 			} else {
 				return;
 			}

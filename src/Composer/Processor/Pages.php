@@ -69,9 +69,27 @@ class Pages extends ProcessorBase {
 					);
 				}
 
-				$this->addRevision( $pageTitle, $pageContent, $timestamp );
+				$this->addRevision(
+					$pageTitle,
+					$pageContent,
+					$timestamp,
+					'',
+					$this->getContentModel( $pageTitle )
+				);
 			}
 		}
+	}
+
+	/**
+	 * @param string $pageTitle
+	 * @return string
+	 */
+	private function getContentModel( string $pageTitle ): string {
+		if ( strpos( $pageTitle, 'Blog:' ) === 0 ) {
+			return 'blog_post';
+		}
+
+		return '';
 	}
 
 	/**

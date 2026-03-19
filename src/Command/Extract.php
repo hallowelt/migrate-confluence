@@ -72,6 +72,7 @@ class Extract extends CommandExtract {
 		return [
 			// From this step
 			'global-title-metadata',
+			'global-blog-title-metadata',
 			'global-attachment-metadata',
 			'global-revision-contents',
 			'global-body-content-id-to-page-id-map',
