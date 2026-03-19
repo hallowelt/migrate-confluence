@@ -512,9 +512,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			return;
 		}
 
-		if ( $sMacroName === 'localtabgroup' || $sMacroName === 'localtab' ) {
-			$this->processLocalTabMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
-		} elseif ( $sMacroName === 'excerpt' ) {
+		if ( $sMacroName === 'excerpt' ) {
 			$this->processExcerptMacro( $sender, $match, $dom, $xpath, $replacement );
 		} elseif ( $sMacroName === 'viewdoc' || $sMacroName === 'viewxls' || $sMacroName === 'viewpdf' ) {
 			$this->processViewXMacro( $sender, $match, $dom, $xpath, $replacement, $sMacroName );
@@ -626,46 +624,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">' . $sContent . '</xml>';
 
 		return $sContent;
-	}
-
-	/**
-	 *
-	 * <ac::macro ac:name="localtabgroup">
-	 * <ac::rich-text-body>
-	 * <ac::macro ac:name="localtab">
-	 * <ac::parameter ac:name="title">...</acparameter>
-	 * <ac::rich-text-body>...</acrich-text-body>
-	 * </ac:macro>
-	 * </ac:rich-text-body>
-	 * </ac:macro>
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 * @param string &$replacement
-	 * @param string $sMacroName
-	 */
-	private function processLocalTabMacro( $sender, $match, $dom, $xpath, &$replacement, $sMacroName ) {
-		if ( $sMacroName === 'localtabgroup' ) {
-			// Append the "<headertabs />" tag
-			$match->parentNode->appendChild(
-				$dom->createTextNode( '<headertabs />' )
-			);
-		} elseif ( $sMacroName === 'localtab' ) {
-			$oTitleParam = $xpath->query( './ac:parameter[@ac:name="title"]', $match )->item( 0 );
-			// Prepend the heading
-			$match->parentNode->insertBefore(
-				$dom->createElement( 'h1', $oTitleParam->nodeValue ),
-				$match
-			);
-		}
-
-		$oRTBody = $xpath->query( './ac:rich-text-body', $match )->item( 0 );
-		// Move all content out of <ac:rich-text-body>
-		while ( $oRTBody->childNodes->length > 0 ) {
-			$oChild = $oRTBody->childNodes->item( 0 );
-			$match->parentNode->insertBefore( $oChild, $match );
-		}
 	}
 
 	/**

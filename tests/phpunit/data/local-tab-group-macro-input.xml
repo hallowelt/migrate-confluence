@@ -1,0 +1,14 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:macro ac:name="localtabgroup">
+		<ac:rich-text-body>
+			<ac:macro ac:name="localtab">
+				<ac:parameter ac:name="title">Test</ac:parameter>
+				<ac:rich-text-body>
+					<p>
+						Lorem ipsum dolor
+					</p>
+				</ac:rich-text-body>
+			</ac:macro>
+		</ac:rich-text-body>
+	</ac:macro>
+</xml>
