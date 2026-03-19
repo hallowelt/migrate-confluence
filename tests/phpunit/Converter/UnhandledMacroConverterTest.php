@@ -1,9 +1,9 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
+namespace HalloWelt\MigrateConfluence\Tests\Converter;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\UnhandledMacroConverter;
+use HalloWelt\MigrateConfluence\Converter\UnhandledMacroConverter;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
@@ -41,7 +41,7 @@ class UnhandledMacroConverterTest extends TestCase {
 			[]
 		);
 
-		$dir = dirname( __DIR__, 2 ) . '/data';
+		$dir = dirname( __DIR__ ) . '/data';
 		$input = file_get_contents( "$dir/unhandled-macro-input.xml" );
 
 		$dom = new DOMDocument();

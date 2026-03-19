@@ -205,28 +205,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$dom = $this->preprocessFile();
 
 		$xpath = new DOMXPath( $dom );
-		$xpath->registerNamespace( 'ac', 'some' );
-		$xpath->registerNamespace( 'ri', 'thing' );
-		$replacings = $this->makeReplacings();
-		foreach ( $replacings as $xpathQuery => $callback ) {
-			$matches = $xpath->query( $xpathQuery );
-			$nonLiveListMatches = [];
-			foreach ( $matches as $match ) {
-				$nonLiveListMatches[] = $match;
-			}
-			foreach ( $nonLiveListMatches as $match ) {
-				//phpcs:ignore Generic.Files.LineLength.TooLong
-				// See: https://wiki.hallowelt.com/index.php/Technik/Migration/Confluence_nach_MediaWiki#Inhalte
-				//phpcs:ignore Generic.Files.LineLength.TooLong
-				// See: https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
-				call_user_func_array(
-					$callback,
-					[ $this, $match, $dom, $xpath ]
-				);
-			}
-		}
 
 		$this->runProcessors( $dom );
+
+		$xpath->registerNamespace( 'ac', 'some' );
+		$xpath->registerNamespace( 'ri', 'thing' );
 		$this->postProcessDOM( $dom, $xpath );
 
 		$dom->saveHTMLFile(
@@ -457,79 +440,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 * @param ConfluenceConverter $sender
-	 * @param DOMElement $match
-	 * @param DOMDocument $dom
-	 * @param DOMXPath $xpath
-	 */
-	private function processMacro( $sender, $match, $dom, $xpath ) {
-		$replacement = '';
-		$sMacroName = $match->getAttribute( 'ac:name' );
-
-		// Exclude macros that are handled by an `IProcessor`
-		if ( in_array(
-			$sMacroName,
-			[
-				'align',
-				'anchor',
-				'attachments',
-				'children',
-				'code',
-				'column',
-				'contentbylabel',
-				'details',
-				'detailssummary',
-				'drawio',
-				'excerpt-include',
-				'expand',
-				'gallery',
-				'include',
-				'info',
-				'inline-comment-marker',
-				'markdown',
-				'noformat',
-				'note',
-				'pagetree',
-				'placeholder',
-				'panel',
-				'recently-updated',
-				'section',
-				'space-details',
-				'status',
-				'task',
-				'task-list',
-				'tasks-report-macro',
-				'tip',
-				'toc',
-				'view-file',
-				'warning',
-				'jira',
-				'widget',
-				'gliffy',
-				'table-filter',
-			]
-		) ) {
-			return;
-		}
-
-		 {
-			// TODO: 'calendar', 'contributors',
-			// 'navitabs', 'include', 'listlabels', 'content-report-table'
-			$this->logMarkup( $match );
-			$replacement .= "[[Category:Broken_macro/$sMacroName]]";
-		}
-
-		$parentNode = $match->parentNode;
-		if ( $parentNode === null ) {
-			return;
-		}
-		$parentNode->replaceChild(
-			$dom->createTextNode( $replacement ),
-			$match
-		);
-	}
-
-	/**
 	 *
 	 * @param DOMNode $oNode
 	 */
@@ -542,17 +452,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			"NODE: \n" .
 			$oNode->ownerDocument->saveXML( $oNode )
 		);
-	}
-
-	/**
-	 *
-	 * @return array
-	 */
-	private function makeReplacings() {
-		return [
-			'//ac:macro' => [ $this, 'processMacro' ],
-			'//ac:structured-macro' => [ $this, 'processMacro' ]
-		];
 	}
 
 	/**

@@ -1,38 +1,10 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Converter\Processor;
+namespace HalloWelt\MigrateConfluence\Converter;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
 class UnhandledMacroConverter {
-
-	/**
-	 * @var ConversionDataLookup
-	 */
-	protected $dataLookup;
-
-	/**
-	 * @var int
-	 */
-	protected $currentSpaceId;
-
-	/**
-	 * @var string
-	 */
-	protected $rawPageTitle;
-
-	/**
-	 * @param ConversionDataLookup $dataLookup
-	 * @param int $currentSpaceId
-	 * @param string $rawPageTitle
-	 */
-	public function __construct( ConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle ) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
-	}
 
 	/**
 	 * @param DOMDocument $dom
