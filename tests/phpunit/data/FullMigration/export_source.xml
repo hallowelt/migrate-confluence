@@ -40,6 +40,30 @@
         <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000001</id></property>
     </object>
 
+    <object class="BlogPost" package="com.atlassian.confluence.pages">
+        <id name="id">10000002</id>
+        <property name="title"><![CDATA[My Blog Post]]></property>
+        <property name="contentStatus"><![CDATA[current]]></property>
+        <property name="version">1</property>
+        <property name="creationDate">2020-06-15 08:30:00.000</property>
+        <property name="lastModificationDate">2020-06-15 08:30:00.000</property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
+        <collection name="bodyContents" class="java.util.Collection">
+            <element class="BodyContent" package="com.atlassian.confluence.core">
+                <id name="id">20000003</id>
+            </element>
+        </collection>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000003</id>
+        <property name="body"><![CDATA[<p>Hello blog world.</p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="BlogPost" package="com.atlassian.confluence.pages"><id name="id">10000002</id></property>
+    </object>
+
     <object class="Comment" package="com.atlassian.confluence.pages">
         <id name="id">30000001</id>
         <property name="contentStatus">current</property>

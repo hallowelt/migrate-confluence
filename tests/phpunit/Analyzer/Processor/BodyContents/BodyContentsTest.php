@@ -83,4 +83,39 @@ class BodyContentsTest extends TestCase {
 		$pageMap = $processor->getData( 'analyze-body-content-id-to-page-id-map' );
 		$this->assertArrayNotHasKey( 800, $pageMap );
 	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents::execute
+	 */
+	public function testBlogPostIdIsStoredAsInt() {
+		$xmlReader = new XMLReader();
+		$xmlReader->open( __DIR__ . '/body_content_blog_post.xml' );
+
+		$read = $xmlReader->read();
+		while ( $read ) {
+			if ( strtolower( $xmlReader->name ) !== 'object' ) {
+				$read = $xmlReader->read();
+				continue;
+			}
+
+			$processor = null;
+			$class = $xmlReader->getAttribute( 'class' );
+			if ( $class !== 'BodyContent' ) {
+				continue;
+			}
+			$processor = new BodyContents();
+
+			if ( $processor instanceof IAnalyzerProcessor ) {
+				$processor->execute( $xmlReader );
+			}
+
+			$read = $xmlReader->next();
+		}
+		$xmlReader->close();
+
+		$map = $processor->getData( 'analyze-body-content-id-to-page-id-map' );
+		$this->assertArrayHasKey( 100, $map );
+		$this->assertIsInt( $map[100], 'BlogPost ID in body-content-id-to-page-id-map must be int' );
+		$this->assertSame( 200, $map[100] );
+	}
 }

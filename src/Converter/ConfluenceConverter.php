@@ -134,6 +134,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-space-id-homepages',
 			'global-filenames-to-filetitles-map',
 			'global-title-metadata',
+			'global-blog-title-metadata',
 			'global-attachment-orig-filename-target-filename-map',
 			'global-files',
 			'global-userkey-to-username-map',
@@ -142,6 +143,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-body-content-id-to-comment-id-map',
 			'global-attachment-metadata',
 			'global-attachment-id-to-confluence-file-key-map',
+			'global-blogpost-id-to-space-id',
+			'global-blogpost-id-to-title-map',
+			'global-blogposts-titles-map',
 		] );
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
@@ -206,7 +210,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
 				$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
 			} else {
-				$this->currentPageTitle = 'not_current_revision_' . $pageId;
+				$blogPostIdsToTitlesMap = $this->buckets->getBucketData( 'global-blogpost-id-to-title-map' );
+				if ( isset( $blogPostIdsToTitlesMap[$pageId] ) ) {
+					$this->currentPageTitle = $blogPostIdsToTitlesMap[$pageId];
+				} else {
+					$this->currentPageTitle = 'not_current_revision_' . $pageId;
+				}
 			}
 		}
 
@@ -441,7 +450,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	private function getSpaceIdFromPageId( $pageId ) {
 		$map = $this->buckets->getBucketData( 'global-page-id-to-space-id' );
-		return $map[$pageId] ?? -1;
+		if ( isset( $map[$pageId] ) ) {
+			return $map[$pageId];
+		}
+		$blogPostMap = $this->buckets->getBucketData( 'global-blogpost-id-to-space-id' );
+		return $blogPostMap[$pageId] ?? -1;
 	}
 
 	/**
@@ -621,9 +634,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		// Append categories
 		$categorieMap = $this->buckets->getBucketData( 'global-title-metadata' );
+		$blogCategorieMap = $this->buckets->getBucketData( 'global-blog-title-metadata' );
+		$pageMeta = $categorieMap[$pageId] ?? $blogCategorieMap[$pageId] ?? [];
 		$categories = '';
-		if ( isset( $categorieMap[$pageId] ) && isset( $categorieMap[$pageId]['categories'] ) ) {
-			foreach ( $categorieMap[$pageId]['categories'] as $key => $category ) {
+		if ( isset( $pageMeta['categories'] ) ) {
+			foreach ( $pageMeta['categories'] as $key => $category ) {
 				$category = ucfirst( $category );
 				$categories .= "[[Category:$category]]\n";
 			}
@@ -755,7 +770,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return void
 	 */
 	public function postProcessLinks() {
-		$oldToNewTitlesMap = $this->buckets->getBucketData( 'global-pages-titles-map' );
+		$oldToNewTitlesMap = array_merge(
+			$this->buckets->getBucketData( 'global-pages-titles-map' ),
+			$this->buckets->getBucketData( 'global-blogposts-titles-map' )
+		);
 
 		$this->wikiText = preg_replace_callback(
 			"/\[\[Media:(.*)]]/",
