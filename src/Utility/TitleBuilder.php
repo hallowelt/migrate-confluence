@@ -73,10 +73,6 @@ class TitleBuilder {
 	 * @throws InvalidTitleException
 	 */
 	public function buildTitle( int $spaceId, int $pageId, string $title ): string {
-		if ( empty( $title ) ) {
-			throw new InvalidTitleException( 'Title is empty' );
-		}
-
 		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$this->builder->setNamespace( $spaceId );
 
