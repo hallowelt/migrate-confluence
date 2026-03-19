@@ -34,6 +34,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
@@ -42,6 +43,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarker;
 use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\MarkdownMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
@@ -59,8 +62,11 @@ use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro as PreserveTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Toc;
+use HalloWelt\MigrateConfluence\Converter\Processor\UnhandledMacroConverter;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\ViewDocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
@@ -208,6 +214,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$this->runProcessors( $dom );
 
+		$unhandledMacroProcessor = new UnhandledMacroConverter();
+		$unhandledMacroProcessor->process( $dom );
+
 		$xpath->registerNamespace( 'ac', 'some' );
 		$xpath->registerNamespace( 'ri', 'thing' );
 		$this->postProcessDOM( $dom, $xpath );
@@ -284,6 +293,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			),
 			new RecentlyUpdatedMacro( $this->currentPageTitle ),
 			new IncludeMacro( $this->dataLookup, $this->currentSpace ),
+			new ExcerptMacro(),
 			new ExcerptIncludeMacro( $this->dataLookup, $this->currentSpace ),
 			new Emoticon(),
 			new PreserveTasksReportMacro( $this->dataLookup ),
@@ -325,9 +335,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->currentSpace,
 				$currentPageTitle
 			),
+			new ViewDocMacro(
+				$this->dataLookup, $this->currentSpace,
+				$currentPageTitle
+			),
+			new ViewXlsMacro(
+				$this->dataLookup, $this->currentSpace,
+				$currentPageTitle
+			),
+			new ViewFileMacro(
+				$this->dataLookup, $this->currentSpace,
+				$currentPageTitle
+			),
 			new WidgetMacro(),
 			new PreservePStyleTag(),
 			new TableFilterMacro(),
+			new LocalTabMacro(),
+			new LocalTabGroupMacro()
 		];
 
 		/** @var IProcessor $processor */
