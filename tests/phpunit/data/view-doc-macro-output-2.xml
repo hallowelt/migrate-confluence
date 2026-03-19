@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	{{ViewDoc|filename = DEVOPS:SomePage_Dummy_2.doc}}
+</xml>

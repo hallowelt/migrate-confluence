@@ -194,6 +194,13 @@ class FullMigrationTest extends TestCase {
 		foreach ( $xpath->query( '//page' ) as $pageNode ) {
 			$titleNodes = $xpath->query( 'title', $pageNode );
 			$title = $titleNodes->item( 0 )->textContent;
+
+			// Ignore Templates becaus otherwise each new Template
+			// will break the test
+			if ( str_starts_with( $title, 'Template:' ) ) {
+				continue;
+			}
+
 			$pages[$title] = $dom->saveXML( $pageNode );
 		}
 		ksort( $pages );
