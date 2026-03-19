@@ -11,9 +11,23 @@ class ParentPages extends ProcessorBase {
 	 */
 	public function getKeys(): array {
 		return [
-			'analyze-page-id-to-parent-page-id-map',
-			'analyze-page-id-to-confluence-title-map'
+			$this->getParentIdMapKey(),
+			$this->getConfluenceTitleMapKey()
 		];
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getParentIdMapKey(): string {
+		return 'analyze-page-id-to-parent-page-id-map';
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getConfluenceTitleMapKey(): string {
+		return 'analyze-page-id-to-confluence-title-map';
 	}
 
 	/**
@@ -66,7 +80,7 @@ class ParentPages extends ProcessorBase {
 			$parentPageId = $properties['parent'];
 		}
 		if ( $parentPageId !== null ) {
-			$this->data['analyze-page-id-to-parent-page-id-map'][$pageId] = (int)trim( $parentPageId );
+			$this->data[$this->getParentIdMapKey()][$pageId] = (int)trim( $parentPageId );
 		}
 
 		$confluenceTitle = null;
@@ -74,7 +88,7 @@ class ParentPages extends ProcessorBase {
 			$confluenceTitle = $properties['title'];
 		}
 		if ( $confluenceTitle !== null ) {
-			$this->data['analyze-page-id-to-confluence-title-map'][$pageId] = $confluenceTitle;
+			$this->data[$this->getConfluenceTitleMapKey()][$pageId] = $confluenceTitle;
 		}
 	}
 

@@ -147,9 +147,13 @@ class Page extends ProcessorBase {
 			return;
 		}
 
-		$title = null;
-		if ( isset( $properties['title'] ) ) {
-			$title = $properties['title'];
+		$title = $properties['title'] ?? "";
+		if ( empty( $title ) ) {
+			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
+				$this->pageId => "Invalid source title"
+			];
+
+			return;
 		}
 
 		$titleBuilder = new TitleBuilder(

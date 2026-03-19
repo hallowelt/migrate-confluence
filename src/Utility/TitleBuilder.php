@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
+use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 
 class TitleBuilder {
@@ -67,9 +68,11 @@ class TitleBuilder {
 	 * @param int $spaceId
 	 * @param int $pageId
 	 * @param string $title
+	 *
 	 * @return string
+	 * @throws InvalidTitleException
 	 */
-	public function buildTitle( int $spaceId, int $pageId, string $title ) {
+	public function buildTitle( int $spaceId, int $pageId, string $title ): string {
 		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$this->builder->setNamespace( $spaceId );
 

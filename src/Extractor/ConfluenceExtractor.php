@@ -95,6 +95,8 @@ class ConfluenceExtractor extends ExtractorBase {
 			$class = $xmlReader->getAttribute( 'class' );
 			if ( $class === 'Page' ) {
 				$this->extractPageMetaData( $objectDom );
+			} elseif ( $class === 'BlogPost' ) {
+				$this->extractBlogMetaData( $objectDom );
 			} elseif ( $class === 'Attachment' ) {
 				$this->extractAttachmentMetaData( $objectDom );
 			}
@@ -292,6 +294,51 @@ class ConfluenceExtractor extends ExtractorBase {
 	}
 
 	/**
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	private function extractBlogMetaData( DOMDocument $dom ) {
+		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
+		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
+
+		$xmlHelper = new XMLHelper( $dom );
+
+		$blogObjs = $xmlHelper->getObjectNodes( 'BlogPost' );
+		if ( count( $blogObjs ) < 1 ) {
+			return;
+		}
+
+		foreach ( $blogObjs as $blog ) {
+			if ( $blog instanceof DOMElement === false ) {
+				continue;
+			}
+			$id = $xmlHelper->getIDNodeValue( $blog );
+
+			// Currently we only extract "Categories"
+			$categories = [];
+			$labellingEls = $xmlHelper->getElementsFromCollection( 'labellings', $blog );
+			foreach ( $labellingEls as $labellingEl ) {
+				$labellingId = $xmlHelper->getIDNodeValue( $labellingEl );
+				if ( !isset( $labellingMap[$labellingId] ) ) {
+					continue;
+				}
+				$labelId = $labellingMap[$labellingId];
+				if ( isset( $labelMap[$labelId] ) ) {
+					$categories[] = $labelMap[$labelId];
+				}
+			}
+
+			$categories = array_merge( $categories, $this->categories );
+
+			$meta = [
+				'categories' => $categories
+			];
+
+			$this->addBlogTitleMetaData( $id, $meta );
+		}
+	}
+
+	/**
 	 *
 	 * @param string $revisionReference
 	 * @param string $contentReference
@@ -307,6 +354,15 @@ class ConfluenceExtractor extends ExtractorBase {
 	 */
 	protected function addTitleMetaData( $titleText, $meta = [] ) {
 		$this->buckets->addData( 'global-title-metadata', $titleText, $meta, false );
+	}
+
+	/**
+	 *
+	 * @param string $titleText
+	 * @param array $meta
+	 */
+	protected function addBlogTitleMetaData( $titleText, $meta = [] ) {
+		$this->buckets->addData( 'global-blog-title-metadata', $titleText, $meta, false );
 	}
 
 	/**
