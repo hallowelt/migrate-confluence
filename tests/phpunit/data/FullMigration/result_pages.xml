@@ -373,6 +373,17 @@
     </revision>
   </page>
   <page>
+    <title>Blog:CON/My_Blog_Post</title>
+    <revision>
+      <timestamp>20200615083000</timestamp>
+      <model>blog_post</model>
+      <format>text/x-wiki</format>
+      <text>Hello blog world.
+ &lt;!-- From bodyContent 20000003.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
     <title>CON:Test_Page</title>
     <revision>
       <timestamp>20200101000000</timestamp>

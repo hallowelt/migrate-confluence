@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\FullMigration;
+namespace HalloWelt\MigrateConfluence\Tests;
 
 use DOMDocument;
 use DOMXPath;
@@ -18,12 +18,17 @@ use Symfony\Component\Console\Output\BufferedOutput;
 class FullMigrationTest extends TestCase {
 
 	/** @var string */
-	private $workDir;
+	private string $workDir;
+
+	/** @var string */
+	private string $dataDir;
 
 	protected function setUp(): void {
 		$this->workDir = sys_get_temp_dir() . '/confluence-migration-test-' . uniqid();
 		mkdir( $this->workDir, 0755, true );
 		mkdir( $this->workDir . '/result/images', 0755, true );
+
+		$this->dataDir = __DIR__ . '/data/FullMigration';
 	}
 
 	protected function tearDown(): void {
@@ -36,9 +41,9 @@ class FullMigrationTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverter
 	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
 	 */
-	public function testExternalImageUrlMigration(): void {
-		$sourceFile = __DIR__ . '/external_image_url_export_source.xml';
-		$expectedFile = __DIR__ . '/external_image_url_export_result.xml';
+	public function testMigration(): void {
+		$sourceFile = $this->dataDir . '/export_source.xml';
+		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
 
 		copy( $sourceFile, $this->workDir . '/entities.xml' );
 
@@ -62,7 +67,7 @@ class FullMigrationTest extends TestCase {
 		$actualFile = $this->workDir . '/result/pages.xml';
 		$this->assertFileExists( $actualFile );
 
-		$expectedPages = $this->extractPages( $expectedFile );
+		$expectedPages = $this->extractPages( $expectedPagesFile );
 		$actualPages = $this->extractPages( $actualFile );
 
 		$this->assertSame(
@@ -109,6 +114,7 @@ class FullMigrationTest extends TestCase {
 			'global-revision-contents',
 			'global-body-content-id-to-page-id-map',
 			'global-body-content-id-to-space-description-id-map',
+			'global-body-content-id-to-comment-id-map',
 		] );
 
 		$extractor = new ConfluenceExtractor( $config, $workspace, $buckets );
@@ -160,6 +166,10 @@ class FullMigrationTest extends TestCase {
 			'global-title-revisions',
 			'global-files',
 			'global-additional-files',
+			'global-page-id-to-comment-ids-map',
+			'global-comment-id-to-metadata-map',
+			'global-page-id-to-title-map',
+			'global-userkey-to-username-map',
 		] );
 		$buckets->loadFromWorkspace( $workspace );
 
@@ -184,8 +194,8 @@ class FullMigrationTest extends TestCase {
 		foreach ( $xpath->query( '//page' ) as $pageNode ) {
 			$titleNodes = $xpath->query( 'title', $pageNode );
 			$title = $titleNodes->item( 0 )->textContent;
-			// Skip default pages in namespace Template
-			// Otherwise this test will break with each new Template
+			// Ignore Templates becaus otherwise each new Template
+			// will break the test
 			if ( str_starts_with( $title, 'Template:' ) ) {
 				continue;
 			}
