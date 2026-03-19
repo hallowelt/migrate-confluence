@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-class ParentBlogPages extends ParentPages {
+class ParentBlogPosts extends ParentPages {
 
 	/**
 	 * @inheritDoc

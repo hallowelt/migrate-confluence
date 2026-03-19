@@ -15,7 +15,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentBlogPages;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentBlogPosts;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
@@ -243,7 +243,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'Space' => new Spaces( $this->spacePrefixMap ),
 			'SpaceDescription' => new SpaceDescription(),
 			'Page' => new ParentPages(),
-			'BlogPost' => new ParentBlogPages(),
+			'BlogPost' => new ParentBlogPosts(),
 			'BodyContent' => new BodyContents(),
 			'Attachment' => new Attachments( $this->file ),
 			'ConfluenceUserImpl' => new Users(),
