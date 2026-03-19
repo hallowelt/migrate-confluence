@@ -52,7 +52,7 @@ abstract class MacroProcessorBase implements IProcessor {
 	 * @param DOMNode $macro
 	 * @return array
 	 */
-	protected function getMacroParams( $macro ): array  {
+	protected function getMacroParams( $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {

@@ -41,7 +41,6 @@ class UnhandledMacroConverter {
 				)
 			);
 
-
 			$macro->parentNode->replaceChild( $replacement, $macro );
 		}
 	}

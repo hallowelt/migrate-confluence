@@ -14,7 +14,7 @@ class ViewXlsMacroTest extends TestCase {
 	private $dataLookup;
 
 	protected function getInput(): string {
-		return file_get_contents(  dirname( __DIR__, 2 ) . '/data/view-xls-macro-input.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/view-xls-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
