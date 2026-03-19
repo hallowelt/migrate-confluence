@@ -112,8 +112,8 @@ class Comments extends ProcessorBase {
 			$commentsData[$index] = [
 				'type' => 'comment',
 				'author' => $username,
-				'created' => $this->toMwTimestamp( $metadata['created'] ),
-				'modified' => $this->toMwTimestamp( $metadata['modified'] ),
+				'created' => $metadata['created'],
+				'modified' => $metadata['modified'],
 				'title' => '',
 				'block' => null,
 				'wikitext' => trim( $wikitext ),
@@ -184,18 +184,4 @@ class Comments extends ProcessorBase {
 		$root->appendChild( $pageEl );
 	}
 
-	/**
-	 * Converts a Confluence datetime string (e.g. "2026-02-12 17:09:43.563")
-	 * to a MediaWiki timestamp (e.g. "20260212170943").
-	 *
-	 * @param string $confluenceDate
-	 * @return string
-	 */
-	private function toMwTimestamp( string $confluenceDate ): string {
-		$time = strtotime( $confluenceDate );
-		if ( $time === false ) {
-			return '';
-		}
-		return date( 'YmdHis', $time );
-	}
 }

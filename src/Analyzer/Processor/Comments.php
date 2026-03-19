@@ -104,8 +104,8 @@ class Comments extends ProcessorBase {
 			'page_id' => $pageId,
 			'body_content_id' => $bodyContentId,
 			'creator_key' => $creatorKey,
-			'created' => $created,
-			'modified' => $modified,
+			'created' => $this->buildTimestamp( $created ),
+			'modified' => $this->buildTimestamp( $modified ),
 		];
 
 		if ( !isset( $this->data['global-page-id-to-comment-ids-map'][$pageId] ) ) {
@@ -114,5 +114,17 @@ class Comments extends ProcessorBase {
 		$this->data['global-page-id-to-comment-ids-map'][$pageId][] = $commentId;
 
 		$this->data['global-body-content-id-to-comment-id-map'][$bodyContentId] = $commentId;
+	}
+
+	/**
+	 * @param string $confluenceDate
+	 * @return string MediaWiki timestamp (YmdHis)
+	 */
+	private function buildTimestamp( string $confluenceDate ): string {
+		$time = strtotime( $confluenceDate );
+		if ( $time === false ) {
+			return '';
+		}
+		return date( 'YmdHis', $time );
 	}
 }
