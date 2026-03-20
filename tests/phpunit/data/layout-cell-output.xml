@@ -1,0 +1,67 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+<ac:layout>
+	<ac:layout-section ac:type="fixed-width" ac:breakout-mode="default">
+		{{LayoutCell###BREAK###
+| body = ###BREAK###
+			<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:local-id="dba68efd22c5" ac:macro-id="6c24eab6-a197-46e3-aab4-a4f62f35647f">
+				<ac:parameter ac:name="panelIcon">:rocket:</ac:parameter>
+				<ac:parameter ac:name="panelIconId">1f680</ac:parameter>
+				<ac:parameter ac:name="panelIconText">🚀</ac:parameter>
+				<ac:parameter ac:name="bgColor">#F4F5F7</ac:parameter>
+				<ac:rich-text-body><p local-id="809c32088638">
+					<strong>Discover our family of products</strong>. Basic product knowledge that all employees should have!</p>
+				</ac:rich-text-body>
+				</ac:structured-macro>
+			}}
+		</ac:layout-section>
+		<ac:layout-section ac:type="two_equal" ac:breakout-mode="wide" ac:breakout-width="760" ac:local-id="a8af08eb717d">
+			{{LayoutCell###BREAK###
+| local-id = 6c8260238b47###BREAK###
+| body = ###BREAK###
+				<h2 local-id="89885367e48e">FlowChat</h2>
+				<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:local-id="1ddf853eeb98" ac:macro-id="c95c47f9-2721-4cd0-923a-9243c7dcf12a">
+					<ac:parameter ac:name="bgColor">#DEEBFF</ac:parameter>
+					<ac:rich-text-body>
+						lorem ipsum
+					</ac:rich-text-body>
+				</ac:structured-macro>
+			}}
+		{{LayoutCell###BREAK###
+| local-id = 478ec356c180###BREAK###
+| body = ###BREAK###
+			<h2 local-id="58ffd604e6e9">InsightHub</h2>
+				<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:local-id="b52095ba0f06" ac:macro-id="874bee89-fa63-4b21-9d70-0e1d1d5df440">
+					<ac:parameter ac:name="bgColor">#DEEBFF</ac:parameter>
+						<ac:rich-text-body>
+							lorem ipsum
+						</ac:rich-text-body>
+					</ac:structured-macro>
+				}}
+			</ac:layout-section>
+			<ac:layout-section ac:type="two_equal" ac:breakout-mode="wide" ac:breakout-width="760" ac:local-id="32a7dcdaaa19">
+				{{LayoutCell###BREAK###
+| local-id = f1336427497e###BREAK###
+| body = ###BREAK###
+					<h2 local-id="3d785de1e071">PowerKnow</h2>
+					<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:local-id="00a693b5c6e5" ac:macro-id="c0a56ba3-7bf3-446d-b029-5b83f2eced55">
+						<ac:parameter ac:name="bgColor">#DEEBFF</ac:parameter>
+						<ac:rich-text-body>
+							lorem impsum
+						</ac:rich-text-body>
+					</ac:structured-macro>
+				}}
+			{{LayoutCell###BREAK###
+| local-id = 35e4acdc9530###BREAK###
+| body = ###BREAK###
+				<h2 local-id="98882cc43b4a">TaskRules</h2>
+					<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:local-id="deb378a357ca" ac:macro-id="49af81c0-69b8-4650-aebd-2e1a1a423f04">
+						<ac:parameter ac:name="bgColor">#DEEBFF</ac:parameter>
+						<ac:rich-text-body>
+							lorem ipsum
+						<p local-id="033392ffaa2b"/>
+					</ac:rich-text-body>
+				</ac:structured-macro>
+			}}
+		</ac:layout-section>
+	</ac:layout>
+</xml>
