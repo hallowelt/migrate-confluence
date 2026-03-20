@@ -65,6 +65,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Toc;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewDocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ViewPdfMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
@@ -348,6 +349,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle
 			),
 			new ViewXlsMacro(
+				$this->dataLookup, $this->currentSpace,
+				$currentPageTitle
+			),
+			new ViewPdfMacro(
 				$this->dataLookup, $this->currentSpace,
 				$currentPageTitle
 			),
