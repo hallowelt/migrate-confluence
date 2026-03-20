@@ -31,7 +31,7 @@ class UnhandledMacroConverter {
 
 			$replacement->appendChild(
 				$replacement->ownerDocument->createTextNode(
-					'<!--' . $macro->ownerDocument->saveXML( $macro ) . '-->'
+					'###HTMLCOMMENTOPEN###' . $macro->ownerDocument->saveXML( $macro ) . '###HTMLCOMMENTCLOSE###'
 				)
 			);
 
