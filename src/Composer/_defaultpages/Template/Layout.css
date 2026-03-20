@@ -1,35 +1,35 @@
-.ac-layout-section {
+.ac-section {
 	display: flex;
 }
 
-.ac-layout-section.three_equal .ac-layout-cell {
+.ac-section.three_equal .ac-layout-cell {
 	flex: 33%;
 }
 
-.ac-layout-section.two_equal .ac-layout-cell {
+.ac-section.two_equal .ac-layout-cell {
 	flex: 50%;
 }
 
-.ac-layout-section.three_with_sidebars .ac-layout-cell:nth-child(1) {
+.ac-section.three_with_sidebars .ac-layout-cell:nth-child(1) {
 	flex: 25%;
 }
-.ac-layout-section.three_with_sidebars .ac-layout-cell:nth-child(2) {
+.ac-section.three_with_sidebars .ac-layout-cell:nth-child(2) {
 	flex: 50%;
 }
-.ac-layout-section.three_with_sidebars .ac-layout-cell:nth-child(3) {
+.ac-section.three_with_sidebars .ac-layout-cell:nth-child(3) {
 	flex: 25%;
 }
 
-.ac-layout-section.two_right_sidebar .ac-layout-cell:nth-child(1) {
+.ac-section.two_right_sidebar .ac-layout-cell:nth-child(1) {
 	flex: 66%;
 }
-.ac-layout-section.two_right_sidebar .ac-layout-cell:nth-child(2) {
+.ac-section.two_right_sidebar .ac-layout-cell:nth-child(2) {
 	flex: 33%;
 }
 
-.ac-layout-section.two_left_sidebar .ac-layout-cell:nth-child(1) {
+.ac-section.two_left_sidebar .ac-layout-cell:nth-child(1) {
 	flex: 33%;
 }
-.ac-layout-section.two_left_sidebar .ac-layout-cell:nth-child(2) {
+.ac-section.two_left_sidebar .ac-layout-cell:nth-child(2) {
 	flex: 66%;
 }
