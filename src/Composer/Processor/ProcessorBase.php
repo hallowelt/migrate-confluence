@@ -72,10 +72,10 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 */
 	protected function addRevision(
 		string $wikiPageName, string $wikiText, string $timestamp = '',
-		string $username = '', string $model = '', string $format = ''
+		string $username = '', string $model = '', string $format = '', array $slotData = []
 	): void {
 		$this->builder->addRevision(
-			$wikiPageName, $wikiText, $timestamp, $username, $model, $format
+			$wikiPageName, $wikiText, $timestamp, $username, $model, $format, $slotData
 		);
 		$this->numOfRevisions++;
 

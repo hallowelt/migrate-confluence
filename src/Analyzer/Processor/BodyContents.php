@@ -15,6 +15,7 @@ class BodyContents extends ProcessorBase {
 	public function getKeys(): array {
 		return [
 			'analyze-body-content-id-to-page-id-map',
+			'analyze-body-content-id-to-comment-id-map',
 		];
 	}
 
@@ -24,7 +25,7 @@ class BodyContents extends ProcessorBase {
 	public function doExecute(): void {
 		$bodyContentId = '';
 		$properties = [];
-		$attributes = [];
+		$contentClass = '';
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
@@ -35,14 +36,22 @@ class BodyContents extends ProcessorBase {
 					$bodyContentId = (int)$this->getTextValue();
 				}
 			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
-				$properties = $this->processPropertyNodes( $properties, $attributes );
+				$name = $this->xmlReader->getAttribute( 'name' );
+				if ( $name === 'content' ) {
+					$contentClass = $this->xmlReader->getAttribute( 'class' ) ?? '';
+				}
+				$properties = $this->processPropertyNodes( $properties );
 			}
 			$this->xmlReader->next();
 		}
 
-		$pageId = (int)trim( $properties['content'] );
+		$contentId = (int)trim( $properties['content'] );
 
-		$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $pageId;
+		if ( $contentClass === 'Comment' ) {
+			$this->data['analyze-body-content-id-to-comment-id-map'][$bodyContentId] = $contentId;
+		} else {
+			$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $contentId;
+		}
 	}
 
 }

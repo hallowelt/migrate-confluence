@@ -2,7 +2,7 @@
 <phpunit bootstrap="vendor/autoload.php">
     <testsuites>
         <testsuite name="Converter">
-            <directory suffix="Test.php">./tests/Converter</directory>
+            <directory suffix="Test.php">./tests/phpunit</directory>
         </testsuite>
     </testsuites>
 </phpunit>

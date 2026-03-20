@@ -146,6 +146,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-userkey-to-username-map',
 			'global-body-content-id-to-space-description-id-map',
 			'global-gliffy-map',
+			'global-body-content-id-to-comment-id-map',
 			'global-attachment-metadata',
 			'global-attachment-id-to-confluence-file-key-map',
 			'global-blogpost-id-to-space-id',
@@ -198,22 +199,29 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->isSpaceDescriptionContent = true;
 		}
 		if ( $pageId === -1 ) {
-			return '<-- No context page id found -->';
-		}
-		$this->currentSpace = $this->getSpaceIdFromPageId( (int)$pageId );
-		if ( $this->currentSpace === -1 ) {
-			return '<-- No context space id found -->';
-		}
-
-		$pagesIdsToTitlesMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
-		if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
-			$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
+			$commentBodyMap = $this->buckets->getBucketData( 'global-body-content-id-to-comment-id-map' );
+			if ( !isset( $commentBodyMap[$bodyContentId] ) ) {
+				return '<-- No context page id found -->';
+			}
+			// Comment body content: convert with minimal context (no page-specific macros expected)
+			$this->currentSpace = 0;
+			$this->currentPageTitle = '';
 		} else {
-			$blogPostIdsToTitlesMap = $this->buckets->getBucketData( 'global-blogpost-id-to-title-map' );
-			if ( isset( $blogPostIdsToTitlesMap[$pageId] ) ) {
-				$this->currentPageTitle = $blogPostIdsToTitlesMap[$pageId];
+			$this->currentSpace = $this->getSpaceIdFromPageId( (int)$pageId );
+			if ( $this->currentSpace === -1 ) {
+				return '<-- No context space id found -->';
+			}
+
+			$pagesIdsToTitlesMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
+			if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
+				$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
 			} else {
-				$this->currentPageTitle = 'not_current_revision_' . $pageId;
+				$blogPostIdsToTitlesMap = $this->buckets->getBucketData( 'global-blogpost-id-to-title-map' );
+				if ( isset( $blogPostIdsToTitlesMap[$pageId] ) ) {
+					$this->currentPageTitle = $blogPostIdsToTitlesMap[$pageId];
+				} else {
+					$this->currentPageTitle = 'not_current_revision_' . $pageId;
+				}
 			}
 		}
 
@@ -709,12 +717,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return string
 	 */
 	private function getCurrentPageTitle(): string {
-		$prefix = '';
 		$spaceIdPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
 		if ( !isset( $spaceIdPrefixMap[$this->currentSpace] ) ) {
 			$this->output->writeln( "SpaceId {$this->currentSpace} not found in spaceIdPrefixMap" );
 		}
-		$prefix = $spaceIdPrefixMap[$this->currentSpace];
+		$prefix = $spaceIdPrefixMap[$this->currentSpace] ?? "";
 		$currentPageTitle = $this->currentPageTitle;
 
 		if ( substr( $currentPageTitle, 0, strlen( $prefix ) ) === $prefix ) {

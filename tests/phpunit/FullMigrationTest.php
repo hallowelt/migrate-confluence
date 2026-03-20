@@ -44,6 +44,7 @@ class FullMigrationTest extends TestCase {
 	public function testMigration(): void {
 		$sourceFile = $this->dataDir . '/export_source.xml';
 		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
+		$expectedCommentsFile = $this->dataDir . '/result_comments.xml';
 
 		copy( $sourceFile, $this->workDir . '/entities.xml' );
 
@@ -84,6 +85,11 @@ class FullMigrationTest extends TestCase {
 				"Page content mismatch for: $title"
 			);
 		}
+
+		// Verify comments.xml
+		$actualCommentsFile = $this->workDir . '/result/comments.xml';
+		$this->assertFileExists( $actualCommentsFile );
+		$this->assertXmlFileEqualsXmlFile( $expectedCommentsFile, $actualCommentsFile );
 	}
 
 	/**
