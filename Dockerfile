@@ -21,7 +21,7 @@ COPY ./README.md /app/README.md
 RUN chmod -R 755 /app
 
 WORKDIR /app
-RUN composer update
+RUN composer update --prefer-source --no-dev --optimize-autoloader
 WORKDIR /
 
 RUN mkdir /data
