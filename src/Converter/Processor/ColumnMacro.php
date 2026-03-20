@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-class ColumnMacro extends StructuredMacroProcessorBase {
+class ColumnMacro extends ConvertMacroToTemplateBase {
 
 	/**
 	 *
@@ -10,5 +10,13 @@ class ColumnMacro extends StructuredMacroProcessorBase {
 	 */
 	protected function getMacroName(): string {
 		return 'column';
+	}
+
+	/**
+	 *
+	 * @inheritDoc
+	 */
+	protected function getWikiTextTemplateName(): string {
+		return 'Column';
 	}
 }

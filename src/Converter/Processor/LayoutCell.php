@@ -2,20 +2,19 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-class PanelMacro extends ConvertMacroToTemplateBase {
+class LayoutCell extends Layout {
 
 	/**
-	 *
-	 * @inheritDoc
+	 * @return string
 	 */
-	public function getMacroName(): string {
-		return 'panel';
+	protected function getTagName(): string {
+		return 'layout-cell';
 	}
 
 	/**
 	 * @return string
 	 */
 	protected function getWikiTextTemplateName(): string {
-		return 'Panel';
+		return 'LayoutCell';
 	}
 }

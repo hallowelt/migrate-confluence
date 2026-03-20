@@ -43,6 +43,9 @@ use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarker;
 use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\Layout;
+use HalloWelt\MigrateConfluence\Converter\Processor\LayoutCell;
+use HalloWelt\MigrateConfluence\Converter\Processor\LayoutSection;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\MarkdownMacro;
@@ -291,6 +294,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$processors = [
+			new Layout(),
+			new LayoutSection(),
+			new LayoutCell(),
 			new AnchorMacro(),
 			new Placeholder(),
 			new InlineCommentMarker(),
@@ -537,22 +543,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$sContent = str_replace( $sEntity, $replacement, $sContent );
 		}
 
-		// For now we just replace the layout markup of Confluence with simple
-		// HTML div markup
-		$sContent = str_replace( '<ac:layout-section', '{{Layout}}<ac:layout-section', $sContent );
-		// "ac:layout-section" is the only one with a "ac:type" attribute
-		// phpcs:ignore Generic.Files.LineLength.TooLong
-		$sContent = str_replace( '<ac:layout-section ac:type="', '<div class="ac-layout-section ', $sContent );
-		// phpcs:ignore Generic.Files.LineLength.TooLong
-		$sContent = str_replace( '<ac:layout-section', '<div class="ac-layout-section"', $sContent );
-		$sContent = str_replace( '</ac:layout-section', '</div', $sContent );
-
-		$sContent = str_replace( '<ac:layout-cell', '<div class="ac-layout-cell"', $sContent );
-		$sContent = str_replace( '</ac:layout-cell', '</div', $sContent );
-
-		$sContent = str_replace( '<ac:layout', '<div class="ac-layout"', $sContent );
-		$sContent = str_replace( '</ac:layout', '</div', $sContent );
-
 		// Append categories
 		$categorieMap = $this->buckets->getBucketData( 'global-title-metadata' );
 		$blogCategorieMap = $this->buckets->getBucketData( 'global-blog-title-metadata' );
@@ -625,14 +615,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
-				// This is just for "TaskList", as it will add XML as TextNode.
-				// It should be removed as soon as TaskList is properly converted.
-				"#&lt;span.*?&gt;#si",
-				"#&lt;/span&gt;#si",
-				"#&lt;div.*?&gt;#si",
-				"#&lt;/div&gt;#si",
-				// End TaskList specific
-
 				"#&lt;headertabs /&gt;#si",
 				"#&lt;subpages(.*?)/&gt;#si",
 				"#&lt;img(.*?)/&gt;#s"
