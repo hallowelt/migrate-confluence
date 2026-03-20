@@ -618,6 +618,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		// On Windows the CR would be encoded as "&#xD;" in the MediaWiki-XML, which is ulgy and unnecessary
 		$this->wikiText = str_replace( "\r", '', $this->wikiText );
 		$this->wikiText = str_replace( "###BREAK###", "\n", $this->wikiText );
+		$this->wikiText = str_replace( '###HTMLCOMMENTOPEN###', '<!-- ', $this->wikiText );
+		$this->wikiText = str_replace( '###HTMLCOMMENTCLOSE###', ' -->', $this->wikiText );
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
 		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
