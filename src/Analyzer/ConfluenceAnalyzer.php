@@ -1,7 +1,6 @@
 <?php
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
-
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
@@ -22,6 +21,8 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
+use HalloWelt\MigrateConfluence\Database\AnalyzerDB;
+use HalloWelt\MigrateConfluence\Database\GlobalDB;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -82,6 +83,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 	/** @var array */
 	private $data = [];
+
+	/** @var GlobalDB */
+	private $globalDB;
+
+	/** @var AnalyzerDB */
+	private $analyzerDB;
 
 	/**
 	 *
@@ -152,6 +159,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$this->logger = new NullLogger();
 
+		$this->globalDB = new GlobalDB( '/app/data/hallowelt-showcase/workspace/global.sql' );
+		$this->analyzerDB = new AnalyzerDB( '/app/data/hallowelt-showcase/workspace/analyzer.sql' );
+
 		$this->setConfigVars();
 	}
 
@@ -165,6 +175,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		if ( isset( $this->advancedConfig['space-prefix'] ) ) {
 			$this->spacePrefixMap = $this->advancedConfig['space-prefix'];
+
+			foreach ( $this->spacePrefixMap as $spacekey => $prefix ) {
+				$this->globalDB->addToSpaceKeyToPrefixTable( $spacekey, $prefix );
+			}
 		}
 
 		if ( isset( $this->advancedConfig['mainpage'] ) ) {
@@ -247,14 +261,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private function getPreProcessors(): array {
 		return [
-			'Space' => new Spaces( $this->spacePrefixMap ),
-			'SpaceDescription' => new SpaceDescription(),
-			'Page' => new ParentPages(),
-			'BlogPost' => new ParentBlogPosts(),
-			'BodyContent' => new BodyContents(),
-			'Attachment' => new Attachments( $this->file ),
-			'ConfluenceUserImpl' => new Users(),
-			'ContentProperty' => new ContentProperties(),
+			'Space' => new Spaces( $this->globalDB, $this->analyzerDB ),
+			#'SpaceDescription' => new SpaceDescription(),
+			#'Page' => new ParentPages(),
+			#'BlogPost' => new ParentBlogPosts(),
+			#'BodyContent' => new BodyContents(),
+			#'Attachment' => new Attachments( $this->file ),
+			#'ConfluenceUserImpl' => new Users(),
+			#'ContentProperty' => new ContentProperties(),
 		];
 	}
 
@@ -401,6 +415,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->output->writeln( "\nPreprocess data:" );
 		$preprocessors = $this->getPreProcessors();
 		$this->processFile( $preprocessors );
+
+		$spaces = $this->globalDB->getSpacesTable( '*' );
+		var_dump( $spaces );
+		return true;
 
 		// Process Page objects (needed by other objects)
 		$this->output->writeln( "\nProcess data:" );

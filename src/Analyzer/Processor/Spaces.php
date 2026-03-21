@@ -2,34 +2,24 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\AnalyzerDB;
+use HalloWelt\MigrateConfluence\Database\GlobalDB;
 use XMLReader;
 
 class Spaces extends ProcessorBase {
 
-	/** @var XMLHelper */
-	protected $xmlHelper;
-
-	/** @var array */
-	protected $spacePrefixMap = [];
-
 	/**
 	 * @param array $spacePrefixMap
 	 */
-	public function __construct( array $spacePrefixMap ) {
-		$this->spacePrefixMap = $spacePrefixMap;
-	}
+	public function __construct(
+		private GlobalDB $globalDB,
+		private AnalyzerDB $analyzerDB ) {}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function getKeys(): array {
-		return [
-			'global-space-id-to-key-map',
-			'global-space-id-to-prefix-map',
-			'global-space-id-homepages',
-			'global-space-id-to-description-id-map',
-			'global-space-details',
-		];
+		return [];
 	}
 
 	/**
@@ -67,7 +57,7 @@ class Spaces extends ProcessorBase {
 		}
 
 		$spaceKey = isset( $properties['key'] ) ? $properties['key'] : '';
-		$spaceName = isset( $properties['key'] ) ? $properties['name'] : '';
+		$spaceName = isset( $properties['name'] ) ? $properties['name'] : '';
 		if ( substr( $spaceKey, 0, 1 ) === '~' ) {
 			// User namespaces
 			$spaceKey = $this->sanitizeUserSpaceKey( $spaceKey, $spaceName );
@@ -80,36 +70,24 @@ class Spaces extends ProcessorBase {
 		$properties['key'] = $spaceKey;
 
 		// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
-		if ( isset( $this->spacePrefixMap[$spaceKey] ) ) {
-			$customSpacePrefix = $this->spacePrefixMap[$spaceKey];
+		$configSpacePrefix = $this->globalDB->getSpacePrefixFromKey( $spaceKey );
+		if ( $configSpacePrefix !== null ) {
+			$customSpacePrefix = $configSpacePrefix;
 		} elseif ( $spaceKey !== 'GENERAL' ) {
 			$customSpacePrefix = "{$spaceKey}:";
 		} else {
 			$customSpacePrefix = '';
 		}
 
-		$this->data['global-space-id-to-key-map'][$spaceId] = $spaceKey;
-		$this->data['global-space-id-to-prefix-map'][$spaceId] = $customSpacePrefix;
-
-		$homePageId = isset( $properties['homePage'] ) ? (int)$properties['homePage'] : -1;
-		if ( $homePageId > -1 ) {
-			$this->data['global-space-id-homepages'][$spaceId] = $homePageId;
-		}
-
-		// Property id
-		$properties['id'] = $spaceId;
-
-		// ID (int) node propterties
-		if ( isset( $properties['description'] ) ) {
-			$this->data['global-space-id-to-description-id-map'][$spaceId] = (int)$properties['description'];
-
-			$this->output->writeln( "Add space description ($spaceId)" );
-		}
-
-		if ( !empty( $properties ) ) {
-			$this->data['global-space-details'][$spaceId] = $properties;
-			$this->output->writeln( "Add space details ($spaceId)" );
-		}
+		$this->globalDB->addToSpacesTable(
+			$spaceId,
+			$spaceKey,
+			isset( $properties['name'] )? $properties['name']: null,
+			substr( $customSpacePrefix, 0, strpos( $customSpacePrefix, '' ) ),
+			$customSpacePrefix,
+			isset( $properties['homePage'] )? (int)$properties['homePage']: null,
+			isset( $properties['description'] )? (int)$properties['description']: null
+		);
 	}
 
 	/**
