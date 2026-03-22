@@ -13,7 +13,8 @@ class Spaces extends ProcessorBase {
 	 */
 	public function __construct(
 		private GlobalDB $globalDB,
-		private AnalyzerDB $analyzerDB ) {}
+		private AnalyzerDB $analyzerDB
+	) {}
 
 	/**
 	 * @inheritDoc

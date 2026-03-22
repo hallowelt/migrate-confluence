@@ -10,6 +10,8 @@ class GlobalDB extends MigrateConfluenceDB {
 	protected function createTables(): void {
 		$this->createConfigTables();
 		$this->createSpacesTable();
+		$this->createSpaceDescriptionsToBodyContentsTable();
+		$this->createSpaceDescriptionsToLabellingTable();
 	}
 
 	/**
@@ -49,11 +51,35 @@ class GlobalDB extends MigrateConfluenceDB {
 	}
 
 	/**
+	 * @return void
+	 */
+	private function createSpaceDescriptionsToBodyContentsTable(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS space_description_id_to_body_content_id (
+				space_description_id INTEGER PRIMARY KEY,
+				body_content_id INTEGER
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createSpaceDescriptionsToLabellingTable(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS space_description_id_to_labelling_id (
+				space_description_id INTEGER PRIMARY KEY,
+				space_id INTEGER
+			);'
+		);
+	}
+
+	/**
 	 * @param string $spaceKey
 	 * @param string $prefix
 	 * @return void
 	 */
-	public function addToSpaceKeyToPrefixTable( string $spaceKey, string $prefix ) {
+	public function configMapSpaceKeyToPrefix( string $spaceKey, string $prefix ) {
 		$this->db->exec(
 			"INSERT INTO config_spacekey_to_prefix (space_key, prefix) VALUES ('" . $spaceKey ."', '" . $prefix . "')"
 		);
@@ -71,10 +97,42 @@ class GlobalDB extends MigrateConfluenceDB {
 		$this->db->exec(
 			"INSERT INTO spaces
 			(space_id, space_key, space_name, space_prefix, space_full_prefix, 
-			space_homepage_id, space_description_id )
+			space_homepage_id, space_description_id)
 			VALUES
-			('" . $spaceId . "', '" . $spaceKey ."', '" . $name . "', '" . $prefix . "', '" . $fullPrefix . "', '"
-			 . $homepageId . "', '" . $descriptionId . "')"
+			(" . $spaceId . ", '" . $spaceKey ."', '" . $name . "', '" . $prefix . "', '" . $fullPrefix . "', "
+			 . $homepageId . ", " . $descriptionId . ")"
+		);
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @param string $prefix
+	 * @return void
+	 */
+	public function mapSpacedescriptionIdToBodyContentId(
+		int $descriptionId, int $bodyContentId
+	) {
+		$this->db->exec(
+			"INSERT INTO space_description_id_to_body_content_id
+			(space_description_id, space_id)
+			VALUES
+			('" . $descriptionId . "', '" . $bodyContentId . "')"
+		);
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @param string $prefix
+	 * @return void
+	 */
+	public function mapSpacedescriptionIdToLabellingId(
+		int $descriptionId, int $bodyContentId
+	) {
+		$this->db->exec(
+			"INSERT INTO space_description_id_to_labelling_id
+			(space_description_id, labelling_id)
+			VALUES
+			('" . $descriptionId . "', '" . $bodyContentId . "')"
 		);
 	}
 

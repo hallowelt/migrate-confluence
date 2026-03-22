@@ -177,7 +177,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$this->spacePrefixMap = $this->advancedConfig['space-prefix'];
 
 			foreach ( $this->spacePrefixMap as $spacekey => $prefix ) {
-				$this->globalDB->addToSpaceKeyToPrefixTable( $spacekey, $prefix );
+				$this->globalDB->configMapSpaceKeyToPrefix( $spacekey, $prefix );
 			}
 		}
 
@@ -262,8 +262,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private function getPreProcessors(): array {
 		return [
 			'Space' => new Spaces( $this->globalDB, $this->analyzerDB ),
-			#'SpaceDescription' => new SpaceDescription(),
-			#'Page' => new ParentPages(),
+			'SpaceDescription' => new SpaceDescription( $this->globalDB, $this->analyzerDB ),
+			'Page' => new ParentPages( $this->globalDB, $this->analyzerDB ),
 			#'BlogPost' => new ParentBlogPosts(),
 			#'BodyContent' => new BodyContents(),
 			#'Attachment' => new Attachments( $this->file ),
