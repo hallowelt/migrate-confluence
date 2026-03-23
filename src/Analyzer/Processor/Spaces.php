@@ -67,7 +67,7 @@ class Spaces extends ProcessorBase {
 		}
 
 		$spaceKey = isset( $properties['key'] ) ? $properties['key'] : '';
-		$spaceName = isset( $properties['key'] ) ? $properties['name'] : '';
+		$spaceName = isset( $properties['name'] ) ? $properties['name'] : '';
 		if ( substr( $spaceKey, 0, 1 ) === '~' ) {
 			// User namespaces
 			$spaceKey = $this->sanitizeUserSpaceKey( $spaceKey, $spaceName );
