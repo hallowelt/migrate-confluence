@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
-use HalloWelt\MigrateConfluence\Converter\Processor\ViewPdfMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewPptMacro;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;

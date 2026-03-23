@@ -232,10 +232,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		try {
 			$dom = $this->preprocessFile();
-		}
-		catch ( Exception $e ) {
+		} catch ( Exception $e ) {
 			$rawContent = file_get_contents( $this->rawFile->getPathname() );
-			return "<-- Unconvertable RAW start-->\n$rawContent\n<-- Unconvertable RAW start-->\n[[Category:Unconvertable]]";
+			$unconvertedContent = "<-- Unconvertable RAW start-->\n";
+			$unconvertedContent .= $rawContent;
+			$unconvertedContent .= "\n<-- Unconvertable RAW start-->\n[[Category:Unconvertable]]";
+			return $unconvertedContent;
 		}
 
 		$xpath = new DOMXPath( $dom );
@@ -499,7 +501,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$dom->validateOnParse = false;
 		$validXML = $dom->loadXML( $source, LIBXML_PARSEHUGE );
 		if ( $validXML === false ) {
-			throw new Exception( 'Unconvertable');
+			throw new Exception( 'Unconvertable' );
 		}
 
 		$preprocessedPathname = str_replace( '.mraw', '.mprep', $this->rawFile->getPathname() );
