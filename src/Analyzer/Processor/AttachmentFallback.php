@@ -113,12 +113,12 @@ class AttachmentFallback extends ProcessorBase {
 			$containerContentId = $properties['containerContent'];
 		}
 		if ( $containerContentId !== null ) {
-			if ( isset( $data['global-page-id-to-title-map'][$containerContentId] ) ) {
+			if ( isset( $this->data['global-page-id-to-title-map'][$containerContentId] ) ) {
 				$targetTitle = $this->data['global-page-id-to-title-map'][$containerContentId];
 			} elseif ( isset( $this->data['global-blogpost-id-to-title-map'][$containerContentId] ) ) {
 				$targetTitle = $this->data['global-blogpost-id-to-title-map'][$containerContentId];
 			}
-			if ( isset( $data['analyze-page-id-to-confluence-key-map'][$containerContentId] ) ) {
+			if ( isset( $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId] ) ) {
 				$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId];
 			} elseif ( isset( $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId] ) ) {
 				$confluenceKey = $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId];
@@ -129,7 +129,7 @@ class AttachmentFallback extends ProcessorBase {
 
 		// TODO: Is this wise?
 		$attachmentSpaceId = 0;
-		if ( isset( $data['analyze-attachment-id-to-space-id-map'][$this->attachmentId] ) ) {
+		if ( isset( $this->data['analyze-attachment-id-to-space-id-map'][$this->attachmentId] ) ) {
 			$attachmentSpaceId = $this->data['analyze-attachment-id-to-space-id-map'][$this->attachmentId];
 		}
 		$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
