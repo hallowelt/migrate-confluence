@@ -182,7 +182,6 @@ class AttachmentFallback extends ProcessorBase {
 	}
 
 	/**
-	 * @param string $pageConfluenceTitle
 	 * @param int $attachmentId
 	 * @param int $attachmentSpaceId
 	 * @param string $attachmentOrigFilename
