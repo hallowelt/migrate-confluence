@@ -54,8 +54,6 @@ class ConversionDataLookup {
 	private $userMap = [];
 
 	/**
-	 * confluence-file-key → full attachment metadata array
-	 *
 	 * @var array
 	 */
 	private $attachmentMetadataMap = [];
@@ -105,9 +103,7 @@ class ConversionDataLookup {
 			$normalConfluencePageKey = str_replace( ' ', '_', $confluencePageKey );
 			$this->pagesTitlesMap[$normalConfluencePageKey] = $targetTitle;
 		}
-		foreach ( $filenamesToFiletitlesMap as $confluenceFileKey => $targetTitle ) {
-			$this->filenamesToFiletitlesMap = $filenamesToFiletitlesMap;
-		}
+		$this->filenamesToFiletitlesMap = $filenamesToFiletitlesMap;
 		foreach ( $attachmentOrigFilenameToTargetFilenameMap as $origFilename => $filenames ) {
 			$filename = str_replace( ' ', '_', $origFilename );
 			$this->attachmentOrigFilenameToTargetFilenameMap[$filename] = $filenames;
