@@ -336,7 +336,7 @@ class Page extends ProcessorBase {
 			}
 
 			$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
-				$confluenceTitle, $attachmentId, $attachmentSpaceId,
+				$attachmentId, $attachmentSpaceId,
 				$attachmentOrigFilename, $wikiTitle
 			);
 
@@ -378,7 +378,6 @@ class Page extends ProcessorBase {
 	}
 
 	/**
-	 * @param string $pageConfluenceTitle
 	 * @param int $attachmentId
 	 * @param int $attachmentSpaceId
 	 * @param string $attachmentOrigFilename
@@ -386,7 +385,7 @@ class Page extends ProcessorBase {
 	 * @return string
 	 */
 	private function makeAttachmentTargetFilenameFromData(
-		string $pageConfluenceTitle, int $attachmentId, int $attachmentSpaceId,
+		int $attachmentId, int $attachmentSpaceId,
 		string $attachmentOrigFilename, string $containerTitle
 	): string {
 		$filenameBuilder = new FilenameBuilder( $this->data['global-space-id-to-prefix-map'], $this->config );
@@ -420,12 +419,6 @@ class Page extends ProcessorBase {
 			);
 			$targetName .= '.unknown';
 		}
-
-		$fileKey = "{$pageConfluenceTitle}---$attachmentOrigFilename";
-		// Some normalization
-		$fileKey = str_replace( ' ', '_', $fileKey );
-
-		$this->data['global-filenames-to-filetitles-map'][$fileKey] = $targetName;
 
 		return $targetName;
 	}

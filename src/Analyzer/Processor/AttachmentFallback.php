@@ -133,7 +133,7 @@ class AttachmentFallback extends ProcessorBase {
 			$attachmentSpaceId = $this->data['analyze-attachment-id-to-space-id-map'][$this->attachmentId];
 		}
 		$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
-			$confluenceKey, $this->attachmentId, $attachmentSpaceId, $this->attachmentOrigFilename,
+			$this->attachmentId, $attachmentSpaceId, $this->attachmentOrigFilename,
 			$targetTitle, $this->data['global-space-id-to-prefix-map']
 		);
 		if ( $attachmentTargetFilename === '' ) {
@@ -182,7 +182,6 @@ class AttachmentFallback extends ProcessorBase {
 	}
 
 	/**
-	 * @param string $pageConfluenceTitle
 	 * @param int $attachmentId
 	 * @param int $attachmentSpaceId
 	 * @param string $attachmentOrigFilename
@@ -191,7 +190,7 @@ class AttachmentFallback extends ProcessorBase {
 	 * @return string
 	 */
 	private function makeAttachmentTargetFilenameFromData(
-		string $pageConfluenceTitle, int $attachmentId, int $attachmentSpaceId,
+		int $attachmentId, int $attachmentSpaceId,
 		string $attachmentOrigFilename, string $containerTitle, array $spaceIdToPrefixMap
 	): string {
 		$filenameBuilder = new FilenameBuilder( $spaceIdToPrefixMap, $this->config );
@@ -225,11 +224,6 @@ class AttachmentFallback extends ProcessorBase {
 			);
 			$targetName .= '.unknown';
 		}
-
-		$fileKey = "{$pageConfluenceTitle}---$attachmentOrigFilename";
-		// Some normalization
-		$fileKey = str_replace( ' ', '_', $fileKey );
-		$this->data['global-filenames-to-filetitles-map'][$fileKey] = $targetName;
 
 		return $targetName;
 	}
