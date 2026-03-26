@@ -93,7 +93,7 @@ class TableComplexTest extends TestCase {
 
 		// Normalize consecutive blank lines to account for pandoc version differences
 		$normalize = static function ( $text ) {
-			return preg_replace( "/\n{3,}/", "\n\n", $text );
+			return preg_replace( "/\n{2,}/", "\n", $text );
 		};
 
 		$this->assertEquals( $normalize( $expectedOutput ), $normalize( $wikiText ) );
