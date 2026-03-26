@@ -72,6 +72,7 @@ class TableComplexTest extends TestCase {
 		$tmpFile = tempnam( sys_get_temp_dir(), 'table-complex-' ) . '.html';
 		$dom->saveHTMLFile( $tmpFile );
 		$result = [];
+		// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.escapeshellcmd,MediaWiki.Usage.ForbiddenFunctions.exec
 		exec( escapeshellcmd( "pandoc -f html -t mediawiki $tmpFile" ), $result );
 		$wikiText = implode( "\n", $result );
 		unlink( $tmpFile );
