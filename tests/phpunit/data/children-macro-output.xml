@@ -1,12 +1,18 @@
 <?xml version="1.0"?>
 <html xmlns:ac="some" xmlns:ri="thing">
 	<p>
-		{{SubpageList}}
+		{{SubpageList|page=ABC:Some_page}}
 	</p>
 	<p>
-		{{SubpageList|all=true|style=h2|sort=creation|reverse=true}}
+		{{SubpageList|all=true|style=h2|sort=creation|reverse=true|page=ABC:Some_page}}
 	</p>
 	<p>
-		{{SubpageList|all=true|depth=1|style=h2|page=SomePage}}
+		{{SubpageList|all=true|depth=1|style=h2|page=ABC:Some_page}}
+	</p>
+	<p>
+		{{SubpageList|all=true|depth=1|style=h2|page=DEVOPS:Some_other_page}}
+	</p>
+	<p>
+		{{SubpageList|all=true|depth=1|style=h2|page=Confluence---23---Unknown_page}}[[Category:Broken_macro/children]]
 	</p>
 </html>

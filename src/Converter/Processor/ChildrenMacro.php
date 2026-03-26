@@ -2,7 +2,14 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+
 class ChildrenMacro extends StructuredMacroProcessorBase {
+
+	/**
+	 * @var int
+	 */
+	private $spaceId = -1;
 
 	/**
 	 * @var string
@@ -10,10 +17,19 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	private $currentPageTitle = '';
 
 	/**
-	 * @param string $currentPageTitle
+	 * @var ConversionDataLookup
 	 */
-	public function __construct( string $currentPageTitle ) {
+	private $dataLookup;
+
+	/**
+	 * @param int $spaceId
+	 * @param string $currentPageTitle
+	 * @param ConversionDataLookup $dataLookup
+	 */
+	public function __construct( int $spaceId, string $currentPageTitle, ConversionDataLookup $dataLookup ) {
+		$this->spaceId = $spaceId;
 		$this->currentPageTitle = $currentPageTitle;
+		$this->dataLookup = $dataLookup;
 	}
 
 	/**
@@ -29,6 +45,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @return void
 	 */
 	protected function doProcessMacro( $node ): void {
+		$broken = false;
 		$paramNodes = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -43,10 +60,66 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			}
 			$name = $paramNode->getAttribute( 'ac:name' );
 			if ( $name === 'page' ) {
-				$params[$name] = $this->currentPageTitle;
-				continue;
+				if ( $paramNode->hasChildnodes() ) {
+					foreach ( $paramNode->childNodes as $childNode ) {
+						// page param is a a ac:link noode
+						if ( $childNode->nodeName === 'ac:link' ) {
+							$pageLinks = $childNode->getElementsByTagname( 'page' );
+							if ( count( $pageLinks ) > 0 ) {
+								$pageLink = $pageLinks->item( 0 );
+
+								// Get space key if set. Otherwise use curren space key
+								$spaceKey = '';
+								if ( $pageLink->hasAttribute( 'ri:space-key' ) ) {
+									$spaceKey = $pageLink->getAttribute( 'ri:space-key' );
+									$this->spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+								}
+
+								// Get confluence page title if set
+								$pageConfluenceTitle = '';
+								if ( $pageLink->hasAttribute( 'ri:content-title' ) ) {
+									$pageConfluenceTitle = $pageLink->getAttribute( 'ri:content-title' );
+									$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
+									if ( $pageConfluenceTitle === '' ) {
+										// If no page title can be found mark macro as broken
+										$broken = true;
+										$params[$name] = "Confluence---{$this->spaceId}---{$pageConfluenceTitle}";
+										break;
+									}
+
+									$wikiTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey(
+										"{$this->spaceId}---{$pageConfluenceTitle}"
+									);
+
+									$params[$name] = $wikiTitle;
+
+									if ( $wikiTitle === '' ) {
+										// If wiki page title is empty mark macro as broken
+										$params[$name] = "Confluence---{$this->spaceId}---{$pageConfluenceTitle}";
+										$broken = true;
+										break;
+									}
+								} else {
+									// If no page title was found set empty page title and mark macro as broken
+									$broken = true;
+									$params[$name] = '';
+								}
+							}
+						}
+					}
+				} else {
+					// Fallback if param 'page' doesn't have a ac:link child element
+					$params[$name] = $paramNode->nodeValue;
+				}
+			} else {
+				// All other params
+				$params[$name] = $paramNode->nodeValue;
 			}
-			$params[$name] = $paramNode->nodeValue;
+		}
+
+		if ( !isset( $params['page'] ) ) {
+			// if no page param was set pass current page title to subpage template
+			$params['page'] = $this->currentPageTitle;
 		}
 
 		$templateParams = '';
@@ -54,9 +127,14 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			$templateParams .= '|' . $key . '=' . $value;
 		}
 
-		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
-		$text = $node->ownerDocument->createTextNode( '{{SubpageList' . $templateParams . '}}' );
+		$wikiText = '{{SubpageList' . $templateParams . '}}';
+		if ( $broken ) {
+			$wikiText .= $this->getBrokenMacroCategroy();
+		}
 
-		$node->parentNode->replaceChild( $text, $node );
+		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
+		$textNode = $node->ownerDocument->createTextNode( $wikiText );
+
+		$node->parentNode->replaceChild( $textNode, $node );
 	}
 }
