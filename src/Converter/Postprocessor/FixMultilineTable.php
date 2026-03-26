@@ -21,6 +21,13 @@ class FixMultilineTable implements IPostprocessor {
 				for ( $index = 1; $index < count( $lines ); $index++ ) {
 					$line = $lines[$index];
 
+					// Fix cell/header lines where the content starts with a wikitext
+					// block construct (e.g. "| * list item" -> "|\n* list item")
+					if ( preg_match( '/^[|!] [*#:;]/', $line ) ) {
+						$problematicLines[] = $index;
+						continue;
+					}
+
 					// Only fix continuation lines that start with a wikitext
 					// block construct that must be at the start of a line
 					$firstChar = $line[0] ?? '';
@@ -35,8 +42,11 @@ class FixMultilineTable implements IPostprocessor {
 					}
 
 					$cellLine = $lines[$cellLineIndex];
+					if ( strpos( $cellLine, '|-' ) === 0 ) {
+						continue;
+					}
 					if ( strpos( $cellLine, '|' ) !== 0
-						|| strpos( $cellLine, '|-' ) === 0
+						&& strpos( $cellLine, '!' ) !== 0
 					) {
 						continue;
 					}
@@ -44,14 +54,21 @@ class FixMultilineTable implements IPostprocessor {
 					$problematicLines[] = $cellLineIndex;
 				}
 
+				$problematicLines = array_unique( $problematicLines );
+
 				foreach ( $problematicLines as $problematicLine ) {
 					$line = $lines[$problematicLine];
-					$newLine = "|\n";
 
-					if ( strpos( $line, '| ' ) === 0 ) {
-						$newLine .= substr( $line, 2 );
+					if ( strpos( $line, '! ' ) === 0 ) {
+						$newLine = "!\n" . substr( $line, 2 );
+					} elseif ( strpos( $line, '!' ) === 0 ) {
+						$newLine = "!\n" . substr( $line, 1 );
+					} elseif ( strpos( $line, '| ' ) === 0 ) {
+						$newLine = "|\n" . substr( $line, 2 );
 					} elseif ( strpos( $line, '|' ) === 0 ) {
-						$newLine .= substr( $line, 1 );
+						$newLine = "|\n" . substr( $line, 1 );
+					} else {
+						continue;
 					}
 
 					$lines[$problematicLine] = $newLine;

@@ -10,7 +10,8 @@
 <br />
 
 </div>
-| * Dolor sit amet consectetur
+|
+* Dolor sit amet consectetur
 | <div class="content-wrapper">
 <br />
 
@@ -21,7 +22,8 @@
 [[User:UserB|UserB]]
 
 </div>
-| * [[INF:Sed_do_eiusmod_tempor_incididunt|Sed do eiusmod tempor incididunt]]
+|
+* [[INF:Sed_do_eiusmod_tempor_incididunt|Sed do eiusmod tempor incididunt]]
 | <br />
 |-
 | Ut labore et dolore
@@ -59,6 +61,7 @@
 [[User:UserA|UserA]]
 
 </div>
-| * Nemo enim ipsam voluptatem quia voluptas sit
+|
+* Nemo enim ipsam voluptatem quia voluptas sit
 | <br />
 |}
