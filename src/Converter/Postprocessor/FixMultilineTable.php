@@ -28,15 +28,20 @@ class FixMultilineTable implements IPostprocessor {
 						continue;
 					}
 
-					// Only fix if the previous line is a cell start
-					$prevLine = $lines[$index - 1];
-					if ( strpos( $prevLine, '|' ) !== 0
-						|| strpos( $prevLine, '|-' ) === 0
+					// Search backwards past blank lines to find the nearest cell start
+					$cellLineIndex = $index - 1;
+					while ( $cellLineIndex > 0 && trim( $lines[$cellLineIndex] ) === '' ) {
+						$cellLineIndex--;
+					}
+
+					$cellLine = $lines[$cellLineIndex];
+					if ( strpos( $cellLine, '|' ) !== 0
+						|| strpos( $cellLine, '|-' ) === 0
 					) {
 						continue;
 					}
 
-					$problematicLines[] = $index - 1;
+					$problematicLines[] = $cellLineIndex;
 				}
 
 				foreach ( $problematicLines as $problematicLine ) {
