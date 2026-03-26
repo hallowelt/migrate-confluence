@@ -91,6 +91,11 @@ class TableComplexTest extends TestCase {
 
 		$expectedOutput = file_get_contents( "$this->dir/table-complex-output.wikitext" );
 
-		$this->assertEquals( $expectedOutput, $wikiText );
+		// Normalize consecutive blank lines to account for pandoc version differences
+		$normalize = static function ( $text ) {
+			return preg_replace( "/\n{3,}/", "\n\n", $text );
+		};
+
+		$this->assertEquals( $normalize( $expectedOutput ), $normalize( $wikiText ) );
 	}
 }
