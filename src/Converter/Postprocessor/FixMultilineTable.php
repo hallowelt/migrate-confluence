@@ -15,31 +15,30 @@ class FixMultilineTable implements IPostprocessor {
 			static function ( $match ) {
 				$lines = explode( "\n", $match[0] );
 
-				$detectedLines = [];
 				$problematicLines = [];
 				// Starting with index = 1 and ending with index < count()
 				// will cut off table start ({|) and table end (|}).
 				for ( $index = 1; $index < count( $lines ); $index++ ) {
-					if ( in_array( $index - 1, $detectedLines ) ) {
-						// skip multiple lines, Only the first has to be fixed.
-						continue;
-					}
-
 					$line = $lines[$index];
 
-					if ( strpos( $line, '|-' ) === 0 ) {
-						continue;
-					} elseif ( strpos( $line, '|' ) === 0 ) {
-						continue;
-					} elseif ( strpos( $line, '!' ) === 0 ) {
+					// Only fix continuation lines that start with a wikitext
+					// block construct that must be at the start of a line
+					$firstChar = $line[0] ?? '';
+					if ( !in_array( $firstChar, [ '*', '#', ':', ';' ] ) ) {
 						continue;
 					}
 
-					$detectedLines[] = $index;
+					// Only fix if the previous line is a cell start
+					$prevLine = $lines[$index - 1];
+					if ( strpos( $prevLine, '|' ) !== 0
+						|| strpos( $prevLine, '|-' ) === 0
+					) {
+						continue;
+					}
+
 					$problematicLines[] = $index - 1;
 				}
 
-				$fixedLines = [];
 				foreach ( $problematicLines as $problematicLine ) {
 					$line = $lines[$problematicLine];
 					$newLine = "|\n";
