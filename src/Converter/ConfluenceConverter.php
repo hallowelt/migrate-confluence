@@ -49,6 +49,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\LayoutCell;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutSection;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\LoremIpsumMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\MarkdownMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
@@ -392,7 +393,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new PreservePStyleTag(),
 			new TableFilterMacro(),
 			new LocalTabMacro(),
-			new LocalTabGroupMacro()
+			new LocalTabGroupMacro(),
+			new LoremIpsumMacro(),
 		];
 
 		/** @var IProcessor $processor */
