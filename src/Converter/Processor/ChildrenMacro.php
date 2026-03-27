@@ -70,14 +70,12 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 								$spaceId = $this->spaceId;
 
 								// Get space key if set. Otherwise use current space key
-								$spaceKey = '';
 								if ( $pageLink->hasAttribute( 'ri:space-key' ) ) {
 									$spaceKey = $pageLink->getAttribute( 'ri:space-key' );
 									$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 								}
 
 								// Get confluence page title if set
-								$pageConfluenceTitle = '';
 								if ( $pageLink->hasAttribute( 'ri:content-title' ) ) {
 									$pageConfluenceTitle = $pageLink->getAttribute( 'ri:content-title' );
 									$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
