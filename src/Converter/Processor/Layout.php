@@ -17,14 +17,14 @@ class Layout implements IProcessor {
 	/**
 	 * @return string
 	 */
-	protected function getOpeningWikiTextTemplateName(): string {
+	protected function getWikiTextTemplateStartName(): string {
 		return 'LayoutStart';
 	}
 
 	/**
 	 * @return string
 	 */
-	protected function getClosingWikiTextTemplateName(): string {
+	protected function getWikiTextTemplateEndName(): string {
 		return 'LayoutEnd';
 	}
 
@@ -32,8 +32,8 @@ class Layout implements IProcessor {
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
-		$templateStartName = $this->getOpeningWikiTextTemplateName();
-		$templateEndName = $this->getClosingWikiTextTemplateName();
+		$templateStartName = $this->getWikiTextTemplateStartName();
+		$templateEndName = $this->getWikiTextTemplateEndName();
 
 		$layouts = [];
 		$liveLayouts = $dom->getElementsByTagName(
