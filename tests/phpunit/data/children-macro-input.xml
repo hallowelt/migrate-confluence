@@ -43,4 +43,12 @@
 			</ac:link></ac:parameter>
 		</ac:structured-macro>
 	</p>
+	<p>
+		<ac:structured-macro ac:name="children" ac:schema-version="2" ac:macro-id="1234567890">
+			<ac:parameter ac:name="all">true</ac:parameter>
+			<ac:parameter ac:name="depth">1</ac:parameter>
+			<ac:parameter ac:name="style">h2</ac:parameter>
+			<ac:parameter ac:name="page">Some page</ac:parameter>
+		</ac:structured-macro>
+	</p>
 </html>

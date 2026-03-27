@@ -62,17 +62,18 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			if ( $name === 'page' ) {
 				if ( $paramNode->hasChildnodes() ) {
 					foreach ( $paramNode->childNodes as $childNode ) {
-						// page param is a a ac:link noode
+						// page param is a a ac:link node
 						if ( $childNode->nodeName === 'ac:link' ) {
 							$pageLinks = $childNode->getElementsByTagname( 'page' );
 							if ( count( $pageLinks ) > 0 ) {
 								$pageLink = $pageLinks->item( 0 );
+								$spaceId = $this->spaceId;
 
-								// Get space key if set. Otherwise use curren space key
+								// Get space key if set. Otherwise use current space key
 								$spaceKey = '';
 								if ( $pageLink->hasAttribute( 'ri:space-key' ) ) {
 									$spaceKey = $pageLink->getAttribute( 'ri:space-key' );
-									$this->spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+									$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 								}
 
 								// Get confluence page title if set
@@ -83,19 +84,19 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 									if ( $pageConfluenceTitle === '' ) {
 										// If no page title can be found mark macro as broken
 										$broken = true;
-										$params[$name] = "Confluence---{$this->spaceId}---{$pageConfluenceTitle}";
+										$params[$name] = "Confluence---{$spaceId}---{$pageConfluenceTitle}";
 										break;
 									}
 
 									$wikiTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey(
-										"{$this->spaceId}---{$pageConfluenceTitle}"
+										"{$spaceId}---{$pageConfluenceTitle}"
 									);
 
 									$params[$name] = $wikiTitle;
 
 									if ( $wikiTitle === '' ) {
 										// If wiki page title is empty mark macro as broken
-										$params[$name] = "Confluence---{$this->spaceId}---{$pageConfluenceTitle}";
+										$params[$name] = "Confluence---{$spaceId}---{$pageConfluenceTitle}";
 										$broken = true;
 										break;
 									}

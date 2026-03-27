@@ -15,4 +15,7 @@
 	<p>
 		{{SubpageList|all=true|depth=1|style=h2|page=Confluence---23---Unknown_page}}[[Category:Broken_macro/children]]
 	</p>
+	<p>
+		{{SubpageList|all=true|depth=1|style=h2|page=ABC:Some_page}}
+	</p>
 </html>
