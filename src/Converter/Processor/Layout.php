@@ -17,15 +17,23 @@ class Layout implements IProcessor {
 	/**
 	 * @return string
 	 */
-	protected function getWikiTextTemplateName(): string {
-		return 'Layout';
+	protected function getWikiTextTemplateStartName(): string {
+		return 'LayoutStart';
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getWikiTextTemplateEndName(): string {
+		return 'LayoutEnd';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
-		$templateName = $this->getWikiTextTemplateName();
+		$templateStartName = $this->getWikiTextTemplateStartName();
+		$templateEndName = $this->getWikiTextTemplateEndName();
 
 		$layouts = [];
 		$liveLayouts = $dom->getElementsByTagName(
@@ -47,14 +55,17 @@ class Layout implements IProcessor {
 				$params[$paramName] = $layout->getAttribute( $attributeName );
 			}
 
-			$openTemplateText = "{{" . $templateName . "###BREAK###\n";
-			foreach ( $params as $name => $value ) {
-				$openTemplateText .= "| $name = $value###BREAK###\n";
+			$startTemplateText = "{{" . $templateStartName;
+			if ( !empty( $params ) ) {
+				$startTemplateText .= "###BREAK###\n";
 			}
-			$openTemplateText .= "| body = ###BREAK###";
+			foreach ( $params as $name => $value ) {
+				$startTemplateText .= "| $name = $value###BREAK###\n";
+			}
+			$startTemplateText .= "}}";
 
 			$openTemplate = $layout->ownerDocument->createTextNode(
-				$openTemplateText
+				$startTemplateText
 			);
 
 			$layout->parentElement->insertBefore( $openTemplate, $layout );
@@ -69,9 +80,9 @@ class Layout implements IProcessor {
 				$layout->parentElement->insertBefore( $childNode, $layout );
 			}
 
-			$closeTemplateText = "}}";
+			$endTemplateText = "{{" . $templateEndName . "}}";
 			$closeTemplate = $layout->ownerDocument->createTextNode(
-				$closeTemplateText
+				$endTemplateText
 			);
 
 			$layout->parentElement->insertBefore( $closeTemplate, $layout );

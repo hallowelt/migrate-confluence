@@ -10,7 +10,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  *   <ac:parameter ac:name="cql">label = "..." and parent = currentContent ( )</ac:parameter>
  * </ac:structured-macro>
  */
-class DetailsSummaryMacro extends ConvertMacroToTemplateBase {
+class DetailsSummaryMacro extends ConvertMacroToTemplateWithBodyBase {
 
 	/**
 	 * @inheritDoc
@@ -22,7 +22,14 @@ class DetailsSummaryMacro extends ConvertMacroToTemplateBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getWikiTextTemplateName(): string {
-		return 'DetailsSummary';
+	protected function getWikiTextTemplateStartName(): string {
+		return 'DetailsSummaryStart';
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	protected function getWikiTextTemplateEndName(): string {
+		return 'DetailsSummaryEnd';
 	}
 }

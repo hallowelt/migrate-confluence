@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-class PanelMacro extends ConvertMacroToTemplateBase {
+class PanelMacro extends ConvertMacroToTemplateWithBodyBase {
 
 	/**
 	 *
@@ -15,7 +15,14 @@ class PanelMacro extends ConvertMacroToTemplateBase {
 	/**
 	 * @return string
 	 */
-	protected function getWikiTextTemplateName(): string {
-		return 'Panel';
+	protected function getWikiTextTemplateStartName(): string {
+		return 'PanelStart';
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getWikiTextTemplateEndName(): string {
+		return 'PanelEnd';
 	}
 }

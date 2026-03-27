@@ -1,0 +1,4 @@
+<includeonly><div class="panel">{{#if:{{{title|}}}|
+<span class="panel__heading">'''{{{title|}}}'''</span><br />
+|}}<div class="panel__content">
+</includeonly>

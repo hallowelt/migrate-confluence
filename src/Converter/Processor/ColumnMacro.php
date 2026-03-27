@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-class ColumnMacro extends ConvertMacroToTemplateBase {
+class ColumnMacro extends ConvertMacroToTemplateWithBodyBase {
 
 	/**
 	 *
@@ -16,7 +16,15 @@ class ColumnMacro extends ConvertMacroToTemplateBase {
 	 *
 	 * @inheritDoc
 	 */
-	protected function getWikiTextTemplateName(): string {
-		return 'Column';
+	protected function getWikiTextTemplateStartName(): string {
+		return 'ColumnStart';
+	}
+
+	/**
+	 *
+	 * @inheritDoc
+	 */
+	protected function getWikiTextTemplateEndName(): string {
+		return 'ColumnEnd';
 	}
 }

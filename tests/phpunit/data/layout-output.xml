@@ -1,6 +1,5 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-{{Layout###BREAK###
-| body = ###BREAK###
+{{LayoutStart}}
 	<ac:layout-section ac:type="fixed-width" ac:breakout-mode="default">
 		<ac:layout-cell>
 			<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:local-id="dba68efd22c5" ac:macro-id="6c24eab6-a197-46e3-aab4-a4f62f35647f">
@@ -55,5 +54,5 @@
 				</ac:structured-macro>
 			</ac:layout-cell>
 		</ac:layout-section>
-	}}
+	{{LayoutEnd}}
 </xml>

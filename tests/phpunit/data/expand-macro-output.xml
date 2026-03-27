@@ -1,8 +1,7 @@
 <xml xmlns:ac="sample_namespace">
-    {{Expand###BREAK###
+    {{ExpandStart###BREAK###
 |title = click here to expand###BREAK###
-|body = ###BREAK###
-
+}}
             <ul>
                 <li>something
                     <ul>
@@ -10,6 +9,5 @@
                     </ul>
                 </li>
             </ul>
-        }}###BREAK###
-
+        {{ExpandEnd}}
 </xml>
