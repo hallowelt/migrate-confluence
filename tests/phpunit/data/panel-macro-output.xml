@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <html xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">
 	<p><br/></p>
-	{{Panel###BREAK###
+	{{PanelStart###BREAK###
 |width = 33%###BREAK###
 |width = 33%###BREAK###
 |width = 33%###BREAK###
-|body = ###BREAK###
-<p class="auto-cursor-target"><br/></p>
+}}<p class="auto-cursor-target"><br/></p>
 			<ac:structured-macro ac:name="column" ac:schema-version="1" ac:macro-id="someID">
 				<ac:parameter ac:name="width">33%</ac:parameter>
 				<ac:rich-text-body/>
@@ -45,6 +44,5 @@
 					<ac:image ac:align="right" ac:width="450">
 						<ri:attachment ri:filename="someImage.png"><ri:content-entity ri:content-id="someID"/></ri:attachment>
 					</ac:image>
-				}}###BREAK###
-
+				{{PanelEnd}}
 </html>
