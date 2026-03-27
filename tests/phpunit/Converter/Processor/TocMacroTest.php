@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 class TocMacroTest extends TestCase {
 
 		/**
-		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\TocMacro::preprocess
+		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\TocMacro::process
 		 * @return void
 		 */
 	public function testPreprocess() {
