@@ -6,13 +6,17 @@ use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 
 class FixMultilineTable implements IPostprocessor {
 
+	private const BLOCK_CHARS = [ '*', '#', ':', ';' ];
+
 	/**
 	 * @inheritDoc
 	 */
 	public function postprocess( string $wikiText ): string {
+		$blockChars = self::BLOCK_CHARS;
+		$blockCharsRegex = '[' . preg_quote( implode( '', $blockChars ), '/' ) . ']';
 		$wikiText = preg_replace_callback(
 			'/\{\|(.*?)\|\}/s',
-			static function ( $match ) {
+			static function ( $match ) use ( $blockChars, $blockCharsRegex ) {
 				$lines = explode( "\n", $match[0] );
 
 				$problematicLines = [];
@@ -23,7 +27,7 @@ class FixMultilineTable implements IPostprocessor {
 
 					// Fix cell/header lines where the content starts with a wikitext
 					// block construct (e.g. "| * list item" -> "|\n* list item")
-					if ( preg_match( '/^[|!] [*#:;]/', $line ) ) {
+					if ( preg_match( '/^[|!] ' . $blockCharsRegex . '/', $line ) ) {
 						$problematicLines[] = $index;
 						continue;
 					}
@@ -31,7 +35,7 @@ class FixMultilineTable implements IPostprocessor {
 					// Only fix continuation lines that start with a wikitext
 					// block construct that must be at the start of a line
 					$firstChar = $line[0] ?? '';
-					if ( !in_array( $firstChar, [ '*', '#', ':', ';' ] ) ) {
+					if ( !in_array( $firstChar, $blockChars ) ) {
 						continue;
 					}
 
