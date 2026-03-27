@@ -14,7 +14,7 @@ class TocMacroTest extends TestCase {
 		 */
 	public function testPreprocess() {
 		$dir = dirname( dirname( __DIR__ ) ) . '/data';
-		$input = file_get_contents( "$dir/toc-input.xml" );
+		$input = file_get_contents( "$dir/toc-macro-input.xml" );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
@@ -24,7 +24,7 @@ class TocMacroTest extends TestCase {
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
 
-		$input = file_get_contents( "$dir/toc-output.xml" );
+		$input = file_get_contents( "$dir/toc-macro-output.xml" );
 		$expectedDom = new DOMDocument();
 		$expectedDom->loadXML( $input );
 		$expectedOutput = $expectedDom->saveXML( $expectedDom->documentElement );
