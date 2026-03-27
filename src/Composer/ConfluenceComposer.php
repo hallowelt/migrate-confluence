@@ -30,6 +30,16 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/** @var string */
 	private $dest = '';
 
+	/** @var bool */
+	private $multiWikiOutputEnabled = false;
+
+	/**
+	 * Config from `wikis` key: wikiName → [ 'spaces' => [ spaceKey => targetNsPrefix ] ]
+	 *
+	 * @var array
+	 */
+	private $wikisConfig = [];
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -47,6 +57,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 		if ( isset( $config['config'] ) ) {
 			$this->advancedConfig = $config['config'];
+		}
+		if ( isset( $this->advancedConfig['wikis'] ) && is_array( $this->advancedConfig['wikis'] ) ) {
+			$this->wikisConfig = $this->advancedConfig['wikis'];
+			$this->multiWikiOutputEnabled = true;
 		}
 	}
 
@@ -69,6 +83,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @return void
 	 */
 	public function buildXML( Builder $builder ) {
+		if ( $this->multiWikiOutputEnabled ) {
+			$this->buildXMLMultiWiki();
+			return;
+		}
+
 		$processors = [
 			new Files(
 				$builder, $this->buckets, $this->workspace,
@@ -89,5 +108,23 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		}
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
+	}
+
+	/**
+	 * Build the full multi-wiki XML output by delegating to MultiWikiComposer.
+	 *
+	 * @return void
+	 */
+	private function buildXMLMultiWiki(): void {
+		$multiWikiComposer = new MultiWikiComposer(
+			$this->wikisConfig,
+			$this->buckets,
+			$this->workspace,
+			$this->advancedConfig,
+			$this->output,
+			$this->dest,
+			$this->customBuckets
+		);
+		$multiWikiComposer->compose();
 	}
 }
