@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\AnalyzerDB;
+use HalloWelt\MigrateConfluence\Database\GlobalDB;
 use XMLReader;
 
 /**
@@ -30,13 +32,18 @@ use XMLReader;
 class SpaceDescription extends ProcessorBase {
 
 	/**
+	 * @param array $spacePrefixMap
+	 */
+	public function __construct(
+		private GlobalDB $globalDB,
+		private AnalyzerDB $analyzerDB
+	) {}
+
+	/**
 	 * @inheritDoc
 	 */
 	public function getKeys(): array {
-		return [
-			'global-body-content-id-to-space-description-id-map',
-			'global-space-labelling-id-to-body-content-id-map'
-		];
+		return [];
 	}
 
 	/**
@@ -74,18 +81,12 @@ class SpaceDescription extends ProcessorBase {
 		}
 
 		foreach ( $bodyContents as $bodyContent ) {
-			if ( !isset( $this->data['global-body-content-id-to-space-description-id-map'][$bodyContent] ) ) {
-				$this->data['global-body-content-id-to-space-description-id-map'][$bodyContent] = [];
-			}
-			$this->data['global-body-content-id-to-space-description-id-map'][$bodyContent] = (int)$descriptionId;
+			$this->globalDB->mapSpacedescriptionIdToBodyContentId( (int)$descriptionId, (int)$bodyContent );
 			$this->output->writeln( "\nAdd space description ($bodyContent)" );
 		}
 
 		foreach ( $labellings as $labelling ) {
-			if ( !isset( $this->data['global-space-labelling-id-to-body-content-id-map'][$labelling] ) ) {
-				$this->data['global-space-labelling-id-to-body-content-id-map'][$labelling] = [];
-			}
-			$this->data['global-space-labelling-id-to-body-content-id-map'][$labelling] = (int)$descriptionId;
+			$this->globalDB->mapSpacedescriptionIdToLabellingId( (int)$descriptionId, (int)$labelling );
 			$this->output->writeln( "\nAdd space labelling ($labelling)" );
 		}
 	}

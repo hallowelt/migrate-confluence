@@ -2,9 +2,20 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\AnalyzerDB;
+use HalloWelt\MigrateConfluence\Database\GlobalDB;
 use XMLReader;
 
 class ParentPages extends ProcessorBase {
+
+	/**
+	 * @param array $spacePrefixMap
+	 */
+	public function __construct(
+		private GlobalDB $globalDB,
+		private AnalyzerDB $analyzerDB
+	) {}
+
 
 	/**
 	 * @inheritDoc
@@ -80,7 +91,8 @@ class ParentPages extends ProcessorBase {
 			$parentPageId = $properties['parent'];
 		}
 		if ( $parentPageId !== null ) {
-			$this->data[$this->getParentIdMapKey()][$pageId] = (int)trim( $parentPageId );
+			$parentPageId = (int)trim( $parentPageId );
+			$this->analyzerDB->mapPageIdToParentPageId( $pageId, $parentPageId );
 		}
 
 		$confluenceTitle = null;
@@ -88,7 +100,7 @@ class ParentPages extends ProcessorBase {
 			$confluenceTitle = $properties['title'];
 		}
 		if ( $confluenceTitle !== null ) {
-			$this->data[$this->getConfluenceTitleMapKey()][$pageId] = $confluenceTitle;
+			$this->analyzerDB->mapPageIdToConfluenceTitle( $pageId, $confluenceTitle );
 		}
 	}
 
