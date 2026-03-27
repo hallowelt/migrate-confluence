@@ -75,7 +75,7 @@ abstract class ConvertMacroToTemplateWithBodyBase implements IProcessor {
 			$this->extractBodyElements( $actualMacro, $parentNode );
 
 			// add closing template
-			$wikitextTemplateEndTextNode = $dom->createTextNode( "{{" .$templateEndName . "}}" );
+			$wikitextTemplateEndTextNode = $dom->createTextNode( "{{" . $templateEndName . "}}" );
 			$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
 
 			$parentNode->removeChild( $actualMacro );
