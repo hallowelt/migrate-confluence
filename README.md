@@ -51,7 +51,7 @@ If you re-run the scripts you will need to clean up the "workspace" directory!
 You may need to update your MediaWiki search index afterwards.
 
 #### Config file
-It is possible to use a yaml file to configure the commands analyze, extract and convert. As an expample see `/doc/config.sample.yaml`.
+It is possible to use a yaml file to configure the commands analyze, extract and convert. As an example see `/doc/config.sample.yaml`.
 The configuration file can be applied by adding the option `--config /data/config.yaml`.
 
 Not all parameters of `config.sample.yaml` have to be used in the config file. If something is not part of it the default will be used.
