@@ -3,13 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\Toc;
+use HalloWelt\MigrateConfluence\Converter\Processor\TocMacro;
 use PHPUnit\Framework\TestCase;
 
-class TocTest extends TestCase {
+class TocMacroTest extends TestCase {
 
 		/**
-		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\TocTest::preprocess
+		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\TocMacro::preprocess
 		 * @return void
 		 */
 	public function testPreprocess() {
@@ -19,7 +19,7 @@ class TocTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new Toc();
+		$processor = new TocMacro();
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
