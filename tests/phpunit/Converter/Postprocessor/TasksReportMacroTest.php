@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\Converter\Preprocessor;
+namespace HalloWelt\MigrateConfluence\Tests\Converter\Postprocessor;
 
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro;
 use PHPUnit\Framework\TestCase;
@@ -10,14 +10,14 @@ class TasksReportMacroTest extends TestCase {
 	/**
 	 * @var string
 	 */
-	private $dir = '';
+	private string $dir = '';
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro::postprocess
 	 * @return void
 	 */
 	public function testPostprocess() {
-		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$input = $this->getInput();
 
