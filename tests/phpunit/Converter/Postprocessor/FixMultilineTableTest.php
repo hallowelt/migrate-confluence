@@ -89,6 +89,21 @@ class FixMultilineTableTest extends TestCase {
 				"{| class=\"wikitable\"\n|-\n! ; Term A\n; Term B\n|}",
 				"{| class=\"wikitable\"\n|-\n!\n; Term A\n; Term B\n|}",
 			],
+			'headline (=) in cell' => [
+				'=',
+				"{| class=\"wikitable\"\n|-\n| === Headline 3 ===\n|}",
+				"{| class=\"wikitable\"\n|-\n|\n=== Headline 3 ===\n|}",
+			],
+			'headline (=) in header' => [
+				'=',
+				"{| class=\"wikitable\"\n|-\n! === Headline 3 ===\n|}",
+				"{| class=\"wikitable\"\n|-\n!\n=== Headline 3 ===\n|}",
+			],
+			'headline (=) continuation after cell' => [
+				'=',
+				"{| class=\"wikitable\"\n|-\n| Some text\n== Headline 2 ==\n|}",
+				"{| class=\"wikitable\"\n|-\n|\nSome text\n== Headline 2 ==\n|}",
+			],
 		];
 	}
 

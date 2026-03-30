@@ -6,7 +6,8 @@ use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 
 class FixMultilineTable implements IPostprocessor {
 
-	private const BLOCK_CHARS = [ '*', '#', ':', ';' ];
+	/** @var string[] */
+	private const BLOCK_CHARS = [ '*', '#', ':', ';', '=' ];
 
 	/**
 	 * @inheritDoc
