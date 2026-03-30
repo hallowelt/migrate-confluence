@@ -66,7 +66,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro as PreserveTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\Toc;
+use HalloWelt\MigrateConfluence\Converter\Processor\TocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewDocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
@@ -317,7 +317,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new NoteMacro(),
 			new WarningMacro(),
 			new StatusMacro(),
-			new Toc(),
+			new TocMacro(),
 			new PanelMacro(),
 			new ColumnMacro(),
 			new SectionMacro(),
