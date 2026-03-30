@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-class Toc extends StructuredMacroProcessorBase {
+class TocMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 *
