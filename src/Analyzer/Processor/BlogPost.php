@@ -13,10 +13,10 @@ class BlogPost extends ProcessorBase {
 	private const NS_BLOG_NAME = 'Blog';
 
 	/** @var array */
-	private $includeSpaceKey = [];
+	private array $includeSpaceKey;
 
 	/** @var bool */
-	private $includeHistory = false;
+	private bool $includeHistory;
 
 	/** @var mixed */
 	private $spaceId;

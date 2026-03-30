@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMAttr;
+use DOMElement;
 use DOMNode;
 
 /**
@@ -38,7 +39,8 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 	 *
 	 * @param DOMNode $macro
 	 * @param DOMElement $macroReplacement
-	 * @return void
+	 *
+	 * @return array
 	 */
 	private function macroParams( $macro, $macroReplacement ): array {
 		$params = [];

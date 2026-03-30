@@ -68,6 +68,12 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	/**
 	 * @param string $wikiPageName
 	 * @param string $wikiText
+	 * @param string $timestamp
+	 * @param string $username
+	 * @param string $model
+	 * @param string $format
+	 * @param array $slotData
+	 *
 	 * @return void
 	 */
 	protected function addRevision(

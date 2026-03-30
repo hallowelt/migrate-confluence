@@ -9,17 +9,17 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @var int
 	 */
-	private $spaceId = -1;
+	private int $spaceId;
 
 	/**
 	 * @var string
 	 */
-	private $currentPageTitle = '';
+	private string $currentPageTitle;
 
 	/**
 	 * @var ConversionDataLookup
 	 */
-	private $dataLookup;
+	private ConversionDataLookup $dataLookup;
 
 	/**
 	 * @param int $spaceId

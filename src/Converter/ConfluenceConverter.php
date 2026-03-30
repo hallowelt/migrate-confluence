@@ -82,17 +82,14 @@ use Symfony\Component\Console\Output\Output;
 
 class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
-	/** @var bool */
-	protected $bodyContentFile = null;
+	/** @var DataBuckets */
+	private DataBuckets $executionTimeBuckets;
 
 	/** @var DataBuckets */
-	private $executionTimeBuckets = null;
+	private DataBuckets $buckets;
 
 	/** @var DataBuckets */
-	private $buckets = null;
-
-	/** @var DataBuckets */
-	private $customBuckets = null;
+	private DataBuckets $customBuckets;
 
 	/** @var ConversionDataLookup */
 	private $dataLookup = null;
@@ -108,9 +105,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	/** @var string */
 	private $currentPageTitle = '';
-
-	/** @var string */
-	private $currentMainPage = '';
 
 	/** @var int */
 	private $currentSpace = 0;
@@ -297,11 +291,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
 	 * @param DOMDocument $dom
+	 *
 	 * @return void
 	 */
-	private function runProcessors( $dom ) {
+	private function runProcessors( DOMDocument $dom ): void {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$processors = [

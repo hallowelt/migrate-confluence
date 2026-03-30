@@ -16,12 +16,12 @@ class ConfluenceExtractor extends ExtractorBase {
 	/**
 	 * @var DataBuckets
 	 */
-	private $customBuckets = null;
+	private DataBuckets $customBuckets;
 
 	/**
 	 * @var array
 	 */
-	private $categories = [];
+	private array $categories = [];
 
 	/**
 	 * @param array $config
@@ -244,9 +244,10 @@ class ConfluenceExtractor extends ExtractorBase {
 	/**
 	 * @param XMLHelper $xmlHelper
 	 * @param DOMElement $bodyContent
-	 * @return void
+	 *
+	 * @return string
 	 */
-	private function getBodyContentHTML( XMLHelper $xmlHelper, DOMElement $bodyContent ) {
+	private function getBodyContentHTML( XMLHelper $xmlHelper, DOMElement $bodyContent ): string {
 		$rawValue = $xmlHelper->getPropertyValue( 'body', $bodyContent );
 		// For a strange reason the CDATA blocks are not closed properly...
 		$fixedValue = str_replace( ']] >', ']]>', $rawValue );

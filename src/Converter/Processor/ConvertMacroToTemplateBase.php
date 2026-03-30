@@ -86,7 +86,6 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 	 * @return void
 	 */
 	protected function extractBodyElements( DOMElement $actualMacro, DOMElement $parentNode ): void {
-		/** @var DOMNodeList $richTextBodies */
 		$richTextBodies = $actualMacro->getElementsByTagName( 'rich-text-body' );
 		$richTextBodyEls = [];
 		foreach ( $richTextBodies as $richTextBody ) {

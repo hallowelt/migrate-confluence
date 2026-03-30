@@ -22,7 +22,7 @@ class LoremIpsumMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @inheritDoc
+	 * @return string
 	 */
 	protected function getWikiTextTemplateName(): string {
 		return 'LoremIpsum';

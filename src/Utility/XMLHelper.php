@@ -140,6 +140,7 @@ class XMLHelper implements LoggerAwareInterface {
 	 *
 	 * @param string $propName
 	 * @param DOMElement|null $contextElement
+	 * 
 	 * @return DOMElement
 	 */
 	public function getPropertyNode( $propName, $contextElement = null ) {
