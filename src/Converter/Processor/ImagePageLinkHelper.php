@@ -113,9 +113,9 @@ class ImagePageLinkHelper {
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
 		$confluenceKey = "Confluence---{$spaceId}---$rawPageTitle";
-			if ( $this->spaceKey !== '' ) {
-				$confluenceKey = "Confluence---{$this->spaceKey}---$rawPageTitle";
-			}
+		if ( $this->spaceKey !== '' ) {
+			$confluenceKey = "Confluence---{$this->spaceKey}---$rawPageTitle";
+		}
 		return $confluenceKey;
 	}
 }
