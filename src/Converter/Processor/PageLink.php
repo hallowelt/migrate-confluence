@@ -61,8 +61,6 @@ class PageLink extends LinkProcessorBase {
 	 */
 	private function ensureSpaceId( DOMNode $node ): int {
 		$spaceId = $this->currentSpaceId;
-		$this->spaceKey = '';
-
 		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
 
 		if ( !empty( $this->spaceKey ) ) {
