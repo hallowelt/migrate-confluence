@@ -41,14 +41,14 @@ class TableFilterMacro extends ConvertMacroToTemplateWithBodyBase {
 	 * @inheritDoc
 	 */
 	protected function getWikiTextTemplateStartName(): string {
-		return 'TableFilterMacroStart';
+		return 'TableFilterStart';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	protected function getWikiTextTemplateEndName(): string {
-		return 'TableFilterMacroEnd';
+		return 'TableFilterEnd';
 	}
 
 	/**
