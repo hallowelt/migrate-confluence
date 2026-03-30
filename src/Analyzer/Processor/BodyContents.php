@@ -6,9 +6,6 @@ use XMLReader;
 
 class BodyContents extends ProcessorBase {
 
-	/** @var XMLHelper */
-	protected $xmlHelper;
-
 	/**
 	 * @inheritDoc
 	 */

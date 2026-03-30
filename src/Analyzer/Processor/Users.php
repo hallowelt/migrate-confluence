@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use XMLReader;
 
@@ -14,9 +15,6 @@ use XMLReader;
  * </object>
  */
 class Users extends ProcessorBase {
-
-	/** @var XMLHelper */
-	protected $xmlHelper;
 
 	/**
 	 * @inheritDoc
@@ -74,7 +72,9 @@ class Users extends ProcessorBase {
 
 	/**
 	 * @param string $userName
+	 *
 	 * @return string
+	 * @throws InvalidTitleException
 	 */
 	private function makeMWUserName( $userName ) {
 		// Email adresses are no valid MW usernames. We just use the first part

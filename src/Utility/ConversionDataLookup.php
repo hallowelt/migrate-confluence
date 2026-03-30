@@ -7,56 +7,49 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 class ConversionDataLookup {
 
 	/**
-	 *
 	 * @var array
 	 */
-	private $spaceIdPrefixMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $spaceIdToKeyMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $spaceKeyToIdMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $pagesTitlesMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $filenamesToFiletitlesMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $attachmentOrigFilenameToTargetFilenameMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $files = [];
+	private array $spaceIdPrefixMap;
 
 	/**
 	 * @var array
 	 */
-	private $userMap = [];
+	private array $spaceIdToKeyMap;
 
 	/**
 	 * @var array
 	 */
-	private $attachmentMetadataMap = [];
+	private array $spaceKeyToIdMap;
+
+	/**
+	 * @var array
+	 */
+	private array $pagesTitlesMap = [];
+
+	/**
+	 * @var array
+	 */
+	private array $filenamesToFiletitlesMap;
+
+	/**
+	 * @var array
+	 */
+	private array $attachmentOrigFilenameToTargetFilenameMap = [];
+
+	/**
+	 * @var array
+	 */
+	private array $files;
+
+	/**
+	 * @var array
+	 */
+	private array $userMap;
+
+	/**
+	 * @var array
+	 */
+	private array $attachmentMetadataMap;
 
 	/**
 	 * @param DataBuckets $buckets

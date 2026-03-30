@@ -2,12 +2,14 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
+
 class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @var string
 	 */
-	private $currentPageTitle = '';
+	private string $currentPageTitle;
 
 	/**
 	 * @param string $currentPageTitle

@@ -9,7 +9,7 @@ class ContenByLabelMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @var string
 	 */
-	private $currentPageTitle = '';
+	private string $currentPageTitle;
 
 	/**
 	 * @param string $currentPageTitle

@@ -12,22 +12,21 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 class PageTreeMacro extends StructuredMacroProcessorBase {
 
 	/** @var ConversionDataLookup */
-	private $dataLookup;
+	private ConversionDataLookup $dataLookup;
 
 	/** @var int */
-	private $currentSpace = 0;
+	private int $currentSpace;
 
 	/** @var string */
-	private $currentPageTitle = '';
+	private string $currentPageTitle;
 
 	/** @var string */
-	private $mainpage = 'Main Page';
+	private string $mainpage;
 
 	/** @var array */
-	private $params = [];
+	private array $params = [];
 
 	/**
-	 *
 	 * @return string
 	 */
 	protected function getMacroName(): string {

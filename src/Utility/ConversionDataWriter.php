@@ -7,10 +7,9 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 class ConversionDataWriter {
 
 	/**
-	 *
 	 * @var array
 	 */
-	private $confluenceFiles = [];
+	private array $confluenceFiles;
 
 	/**
 	 * @param DataBuckets $buckets

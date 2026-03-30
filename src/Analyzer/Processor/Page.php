@@ -12,22 +12,22 @@ use XMLReader;
 class Page extends ProcessorBase {
 
 	/** @var array */
-	private $includeSpaceKey = [];
+	private array $includeSpaceKey;
 
 	/** @var string */
-	private $mainpage = 'Main Page';
+	private string $mainpage;
 
 	/** @var bool */
-	private $includeHistory = false;
+	private bool $includeHistory;
 
 	/** @var int|null */
-	private $spaceId;
+	private ?int $spaceId;
 
 	/** @var int|null */
-	private $pageId;
+	private ?int $pageId;
 
 	/** @var string */
-	private $targetTitle = '';
+	private string $targetTitle = '';
 
 	/**
 	 * @param array $includeSpaceKey

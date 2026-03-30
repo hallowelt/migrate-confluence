@@ -6,9 +6,6 @@ use XMLReader;
 
 class Spaces extends ProcessorBase {
 
-	/** @var XMLHelper */
-	protected $xmlHelper;
-
 	/** @var array */
 	protected $spacePrefixMap = [];
 
