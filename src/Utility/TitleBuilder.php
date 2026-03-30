@@ -123,8 +123,10 @@ class TitleBuilder {
 		while ( $parentPageId !== null ) {
 			if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
 				break;
-			} else {
+			} elseif ( isset( $this->pageIConfluenceTitledMap[$parentPageId] ) ) {
 				$parentTitle = $this->pageIConfluenceTitledMap[$parentPageId];
+			} else {
+				break;
 			}
 
 			$titles[] = $parentTitle;
