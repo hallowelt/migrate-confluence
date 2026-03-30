@@ -23,3 +23,13 @@ sit Amet
 | Lorem
 |}
 dolor
+
+{| class="wikitable wrapped"
+|-
+! * Header A
+* Header B
+! Ipsum
+|-
+| Lorem
+| Ipsum
+|}
