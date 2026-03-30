@@ -76,7 +76,7 @@ class Image implements IProcessor {
 		$isImageWithPageLink = $this->isImageWithPageLink( $node );
 		$isImageWithExternalLink = $this->isImageWithExternalLink( $node );
 		if ( $isImageWithPageLink ) {
-			$pageLinkReplacementNode = $this->makeImagePageLinkReplacement( $node, $replacementNode );
+			$pageLinkReplacementNode = $this->makeImagePageLinkReplacement( $node );
 
 			$linkBody = $node->parentNode;
 			$linkNode = $linkBody->parentNode;
@@ -85,7 +85,7 @@ class Image implements IProcessor {
 				$linkNode
 			);
 		} elseif ( $isImageWithExternalLink ) {
-			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node, $replacementNode );
+			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node );
 
 			$linkNode = $node->parentNode;
 			$linkNode->parentNode->replaceChild(
@@ -116,13 +116,9 @@ class Image implements IProcessor {
 			$height = $node->getAttribute( 'ac:height' );
 		}
 		if ( $width !== '' || $height !== '' ) {
-			$dimensions = 'px';
 			if ( $height !== '' ) {
-				$dimensions = 'x' . $height . $dimensions;
 				$attributes['height'] = $height;
 			}
-			$dimensions = $width . $dimensions;
-			$params[] = $dimensions;
 			if ( $width !== '' ) {
 				$attributes['width'] = $width;
 			}
@@ -133,7 +129,6 @@ class Image implements IProcessor {
 			$classes[] = $node->getAttribute( 'ac:class' );
 		}
 		if ( $node->getAttribute( 'ac:thumbnail' ) !== '' ) {
-			$params[] = 'thumb';
 			$classes[] = 'thumb';
 		}
 		if ( !empty( $classes ) ) {
@@ -141,7 +136,6 @@ class Image implements IProcessor {
 		}
 
 		if ( $node->getAttribute( 'ac:align' ) !== '' ) {
-			$params[] = $node->getAttribute( 'ac:align' );
 			$attributes['align'] = $node->getAttribute( 'ac:align' );
 		}
 

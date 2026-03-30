@@ -21,7 +21,7 @@ class FixImagesWithExternalUrl implements IPostprocessor {
 
 					// handle attibute for height
 					for ( $index = 1; $index < count( $params ); $index++ ) {
-						if ( strpos( $params[$index], 'x', 0 ) !== false
+						if ( strpos( $params[$index], 'x' ) !== false
 							&& strpos( $params[$index], 'px', strlen( $params[$index] ) - 2 ) !== false ) {
 
 							$height = [];

@@ -8,43 +8,36 @@ use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 class TitleBuilder {
 
 	/**
-	 *
-	 * @var GenericTitleBuilder
+	 * @var array
 	 */
-	private $builder = null;
+	private array $spaceIdPrefixMap;
 
 	/**
 	 *
 	 * @var array
 	 */
-	private $spaceIdPrefixMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $spaceIdHomepages = [];
+	private array $spaceIdHomepages;
 
 	/**
 	 * @var array
 	 */
-	private $pageIdParentPageIdMap = [];
+	private array $pageIdParentPageIdMap;
 
 	/**
 	 * @var array
 	 */
-	private $pageIConfluenceTitledMap = [];
+	private array $pageIConfluenceTitledMap;
 
 	/**
 	 *
 	 * @var int
 	 */
-	private $currentTitlesSpaceHomePageId = -1;
+	private int $currentTitlesSpaceHomePageId = -1;
 
 	/**
 	 * @var string
 	 */
-	private $mainpage = '';
+	private string $mainpage;
 
 	/**
 	 * @param array $spaceIdPrefixMap
@@ -73,8 +66,8 @@ class TitleBuilder {
 	 * @throws InvalidTitleException
 	 */
 	public function buildTitle( int $spaceId, int $pageId, string $title ): string {
-		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
-		$this->builder->setNamespace( $spaceId );
+		$builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
+		$builder->setNamespace( $spaceId );
 
 		$this->currentTitlesSpaceHomePageId = -1;
 		if ( isset( $this->spaceIdHomepages[$spaceId] ) ) {
@@ -82,8 +75,8 @@ class TitleBuilder {
 		}
 
 		if ( $pageId === $this->currentTitlesSpaceHomePageId ) {
-			$this->builder->appendTitleSegment( $this->mainpage );
-			return $this->builder->build();
+			$builder->appendTitleSegment( $this->mainpage );
+			return $builder->build();
 		}
 
 		$titles = $this->addParentTitles( $pageId, $title );
@@ -95,10 +88,10 @@ class TitleBuilder {
 				$title
 			);
 			$title = str_replace( '__', '_', $title );
-			$this->builder->appendTitleSegment( $title );
+			$builder->appendTitleSegment( $title );
 		}
 
-		return $this->builder->invertTitleSegments()->build();
+		return $builder->invertTitleSegments()->build();
 	}
 
 	/**

@@ -53,7 +53,7 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 
 			$name = $attrName->nodeValue;
 
-			$value = $this->getParamValue( $childNode, 'ri:url' );
+			$value = $this->getParamValue( $childNode );
 
 			$params[$name] = $value;
 		}
@@ -90,10 +90,10 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param DOMNode $node
-	 * @param string $name
-	 * @return void
+	 *
+	 * @return string|null
 	 */
-	private function getParamValue( DOMNode $node, string $name ) {
+	private function getParamValue( DOMNode $node ) {
 		$value = '';
 		$childNodes = $node->childNodes;
 

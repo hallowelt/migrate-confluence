@@ -27,7 +27,6 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use SplFileInfo;
-use Symfony\Component\Console\Input\Input;
 use Symfony\Component\Console\Output\Output;
 use XMLReader;
 
@@ -36,52 +35,47 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	/**
 	 * @var DataBuckets
 	 */
-	private $customBuckets = null;
+	private DataBuckets $customBuckets;
 
 	/**
-	 * @var DataBuckets
+	 * @var array|DataBuckets
 	 */
-	private $dataKeys = null;
+	private DataBuckets|array $dataKeys;
 
 	/**
-	 * @var LoggerInterface
+	 * @var LoggerInterface|NullLogger
 	 */
-	private $logger = null;
+	private LoggerInterface|NullLogger $logger;
 
 	/**
-	 * @var Input
+	 * @var Output|null
 	 */
-	private $input = null;
-
-	/**
-	 * @var Output
-	 */
-	private $output = null;
+	private ?Output $output = null;
 
 	/** @var SplFileInfo */
-	private $file;
+	private SplFileInfo $file;
 
 	/**
 	 * @var string
 	 */
-	private $mainpage = 'Main Page';
+	private string $mainpage = 'Main Page';
 
 	/**
 	 * @var array
 	 */
-	private $advancedConfig = [];
+	private array $advancedConfig = [];
 
 	/** @var array */
-	private $includeSpaceKey = [];
+	private array $includeSpaceKey = [];
 
 	/** @var array */
-	private $spacePrefixMap = [];
+	private array $spacePrefixMap = [];
 
 	/** @var bool */
-	private $includeHistory = false;
+	private bool $includeHistory = false;
 
 	/** @var array */
-	private $data = [];
+	private array $data = [];
 
 	/**
 	 *
@@ -193,13 +187,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	public function setLogger( LoggerInterface $logger ) {
 		$this->logger = $logger;
-	}
-
-	/**
-	 * @param Input $input
-	 */
-	public function setInput( Input $input ) {
-		$this->input = $input;
 	}
 
 	/**

@@ -213,7 +213,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->currentSpace = 0;
 			$this->currentPageTitle = '';
 		} else {
-			$this->currentSpace = $this->getSpaceIdFromPageId( (int)$pageId );
+			$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
 			if ( $this->currentSpace === -1 ) {
 				return '<-- No context space id found -->';
 			}
@@ -529,13 +529,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
 	 * @param SplFileInfo $oHTMLSourceFile
 	 * @return string
 	 */
-	protected function preprocessHTMLSource( $oHTMLSourceFile ) {
+	protected function preprocessHTMLSource( SplFileInfo $oHTMLSourceFile ): string {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
-		$bodyContentId = $this->getBodyContentIdFromFilename( $oHTMLSourceFile->getFilename() );
+		$bodyContentId = $this->getBodyContentIdFromFilename();
 		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
 
 		$preprocessors = [

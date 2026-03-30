@@ -12,11 +12,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CheckResult extends Command {
 
 	/**
-	 * @var InputInterface
-	 */
-	private $input = null;
-
-	/**
 	 * @var OutputInterface
 	 */
 	private $output = null;
@@ -53,10 +48,9 @@ class CheckResult extends Command {
 	 * @return int
 	 */
 	protected function execute( InputInterface $input, OutputInterface $output ): int {
-		$this->input = $input;
 		$this->output = $output;
 
-		$this->workspaceDir = realpath( $this->input->getOption( 'src' ) );
+		$this->workspaceDir = realpath( $input->getOption( 'src' ) );
 		$dom = new DOMDocument();
 		$dom->load( "{$this->workspaceDir}/output.xml" );
 

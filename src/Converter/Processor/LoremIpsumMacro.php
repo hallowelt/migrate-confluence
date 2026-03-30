@@ -29,7 +29,7 @@ class LoremIpsumMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param \DOMElement $node
+	 * @param DOMElement $node
 	 * @return void
 	 */
 	protected function doProcessMacro( $node ): void {

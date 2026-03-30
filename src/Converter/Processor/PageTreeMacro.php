@@ -244,6 +244,6 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	 */
 	private function getTitleLookupKey( int $spaceId, string $text ): string {
 		$rawText = basename( $text );
-		return (string)$spaceId . '---' . $rawText;
+		return $spaceId . '---' . $rawText;
 	}
 }
