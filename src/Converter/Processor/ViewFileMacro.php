@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
@@ -10,17 +11,17 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @var ConversionDataLookup
 	 */
-	protected $dataLookup;
+	protected ConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
 	 */
-	protected $currentSpaceId;
+	protected int $currentSpaceId;
 
 	/**
 	 * @var string
 	 */
-	protected $rawPageTitle;
+	protected string $rawPageTitle;
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
@@ -35,7 +36,6 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 *
 	 * @return string
 	 */
 	protected function getMacroName(): string {
@@ -43,7 +43,7 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param \DOMElement $node
+	 * @param DOMElement $node
 	 * @return void
 	 */
 	protected function doProcessMacro( $node ): void {
@@ -66,10 +66,10 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param \DOMElement $node
+	 * @param DOMElement $node
 	 * @return array
 	 */
-	protected function readParams( \DOMElement $node ): array {
+	protected function readParams( DOMElement $node ): array {
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {

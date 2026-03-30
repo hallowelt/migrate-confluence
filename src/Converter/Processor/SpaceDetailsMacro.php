@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 
 class SpaceDetailsMacro extends StructuredMacroProcessorBase {
@@ -15,7 +16,7 @@ class SpaceDetailsMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param \DOMElement $node
+	 * @param DOMElement $node
 	 * @return void
 	 */
 	protected function doProcessMacro( $node ): void {
@@ -35,10 +36,10 @@ class SpaceDetailsMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param \DOMElement $node
+	 * @param DOMElement $node
 	 * @return array
 	 */
-	protected function readParams( \DOMElement $node ): array {
+	protected function readParams( DOMElement $node ): array {
 		$params = [];
 		$params['width'] = '100%';
 
