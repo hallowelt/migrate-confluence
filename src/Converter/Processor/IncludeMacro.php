@@ -29,6 +29,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
+	 * @param int $currentSpaceId
 	 */
 	public function __construct( ConversionDataLookup $dataLookup, int $currentSpaceId ) {
 		$this->dataLookup = $dataLookup;

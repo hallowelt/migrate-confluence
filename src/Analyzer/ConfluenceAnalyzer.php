@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
@@ -546,7 +547,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		try {
 			$filename = $this->getFilename( $rawFilename, $attachmentReference );
 			$filename = ( new WindowsFilename( $filename ) ) . '';
-		} catch ( InvalidTitleException $ex ) {
+		} catch ( Exception $ex ) {
 			$this->logger->error( $ex->getMessage() );
 			return;
 		}

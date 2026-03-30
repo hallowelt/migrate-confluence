@@ -167,10 +167,6 @@ class ConfluenceExtractor extends ExtractorBase {
 
 		$labelProp = $xmlHelper->getPropertyNode( 'label', $labelling );
 		$labelId = $xmlHelper->getIDNodeValue( $labelProp );
-		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
-		if ( isset( $labelMap[$labelId] ) ) {
-			$categories[] = $labelMap[$labelId];
-		}
 
 		$this->customBuckets->addData( 'extract-labelling-id-to-label-id-map', $id, $labelId, false, true );
 	}
