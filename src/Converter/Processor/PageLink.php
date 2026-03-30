@@ -7,6 +7,8 @@ use DOMNode;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 
 class PageLink extends LinkProcessorBase {
+	/** @var string */
+	private $spaceKey = '';
 
 	/**
 	 *
@@ -59,10 +61,12 @@ class PageLink extends LinkProcessorBase {
 	 */
 	private function ensureSpaceId( DOMNode $node ): int {
 		$spaceId = $this->currentSpaceId;
-		$spaceKey = $node->getAttribute( 'ri:space-key' );
+		$this->spaceKey = '';
 
-		if ( !empty( $spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
+
+		if ( !empty( $this->spaceKey ) ) {
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey );
 		}
 
 		return $spaceId;
@@ -91,7 +95,7 @@ class PageLink extends LinkProcessorBase {
 			$rawPageTitle = $genericTitleBuilder
 				->appendTitleSegment( $rawPageTitle )->build();
 			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
-		return "Confluence---$spaceId---$rawPageTitle";
+		return "Confluence---{$this->spaceKey}---$rawPageTitle";
 	}
 
 	/**
