@@ -206,7 +206,7 @@ class Page extends ProcessorBase {
 			->appendTitleSegment( $pageConfluenceTitle )->build();
 		// We need to preserve the spaceID, so we can properly resolve cross-space links
 		// in the `convert` stage
-		$pageConfluenceKey = "{$this->spaceId}---{$pageConfluenceTitle}";
+		$pageConfluenceKey = "$this->spaceId---$pageConfluenceTitle";
 		// Some normalization
 		$pageConfluenceKey = str_replace( ' ', '_', $pageConfluenceKey );
 
@@ -274,7 +274,7 @@ class Page extends ProcessorBase {
 			$version = $properties['version'];
 		}
 
-		$revision = implode( '/', $bodyContentIds ) . "@{$version}-{$revisionTimestamp}";
+		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
 
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
 
@@ -357,7 +357,7 @@ class Page extends ProcessorBase {
 			$this->data['analyze-title-to-attachment-title'][$wikiTitle] = $attachmentTargetFilename;
 			$this->data['analyze-added-attachment-id'][] = $attachmentId;
 
-			$confluenceFileKey = str_replace( ' ', '_', "{$spaceId}---{$confluenceTitle}---{$attachmentOrigFilename}" );
+			$confluenceFileKey = str_replace( ' ', '_', "$spaceId---$confluenceTitle---$attachmentOrigFilename" );
 
 			$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey]
 				= $attachmentTargetFilename;

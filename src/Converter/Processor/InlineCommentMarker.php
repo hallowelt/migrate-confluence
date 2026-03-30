@@ -23,7 +23,7 @@ class InlineCommentMarker implements IProcessor {
 		foreach ( $macroNodes as $macroNode ) {
 			$macroNode->parentNode->replaceChild(
 				$macroNode->ownerDocument->createTextNode(
-					"{{InlineComment|{$macroNode->nodeValue}}}"
+					"{{InlineComment|$macroNode->nodeValue}}"
 				),
 				$macroNode
 			);

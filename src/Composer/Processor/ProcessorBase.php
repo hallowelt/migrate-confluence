@@ -130,7 +130,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 
 		$name .= '.xml';
 
-		$this->builder->buildAndSave( $this->dest . "/result/{$name}" );
+		$this->builder->buildAndSave( $this->dest . "/result/$name" );
 		$this->builder->reset();
 	}
 
@@ -159,7 +159,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 			isset( $this->config['composer-skip-namespace'] )
 			&& in_array( $namespace, $this->config['composer-skip-namespace'] )
 		) {
-			$this->output->writeln( "Namespace {$namespace} skipped by configuration" );
+			$this->output->writeln( "Namespace $namespace skipped by configuration" );
 			return true;
 		}
 
@@ -169,7 +169,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 			isset( $this->advancedConfig['composer-skip-titles'] )
 			&& in_array( $pageTitle, $this->config['composer-skip-titles'] )
 		) {
-			$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
+			$this->output->writeln( "Page $pageTitle skipped by configuration" );
 			return true;
 		}
 		return false;

@@ -83,7 +83,7 @@ class Spaces extends ProcessorBase {
 		if ( isset( $this->spacePrefixMap[$spaceKey] ) ) {
 			$customSpacePrefix = $this->spacePrefixMap[$spaceKey];
 		} elseif ( $spaceKey !== 'GENERAL' ) {
-			$customSpacePrefix = "{$spaceKey}:";
+			$customSpacePrefix = "$spaceKey:";
 		} else {
 			$customSpacePrefix = '';
 		}

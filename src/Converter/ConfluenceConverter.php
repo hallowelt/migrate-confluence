@@ -279,7 +279,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$exceed,
 				$bodyContentId
 			);
-			$this->output->writeln( "bodyContentId {$this->currentSpace} contains large content" );
+			$this->output->writeln( "bodyContentId $this->currentSpace contains large content" );
 		}
 
 		$executionTimeString = $executionTime->getHumanReadableTime();
@@ -721,7 +721,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function getCurrentPageTitle(): string {
 		$spaceIdPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
 		if ( !isset( $spaceIdPrefixMap[$this->currentSpace] ) ) {
-			$this->output->writeln( "SpaceId {$this->currentSpace} not found in spaceIdPrefixMap" );
+			$this->output->writeln( "SpaceId $this->currentSpace not found in spaceIdPrefixMap" );
 		}
 		$prefix = $spaceIdPrefixMap[$this->currentSpace] ?? "";
 		$currentPageTitle = $this->currentPageTitle;

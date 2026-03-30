@@ -43,10 +43,10 @@ class FilenameBuilder {
 			$assocTitle = str_replace( '/', '_', $assocTitle );
 			// Unset potential namespace prefix to avoid duplications
 			$builder->setNamespace( 0 );
-			$builder->appendTitleSegment( "-{$originalFilename}" );
+			$builder->appendTitleSegment( "-$originalFilename" );
 			$builder->appendTitleSegment( $assocTitle );
 		} else {
-			$builder->appendTitleSegment( "{$originalFilename}" );
+			$builder->appendTitleSegment( $originalFilename );
 		}
 		$builtTitle = $builder->invertTitleSegments()->build();
 
@@ -61,7 +61,7 @@ class FilenameBuilder {
 			if ( $filePrefix !== '' ) {
 				$namespacePart = substr( $filePrefix, 0, strpos( $filePrefix, ':' ) );
 				if ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
-					$filename = "{$namespacePart}:" . substr( $filename, strlen( "{$namespacePart}_" ) );
+					$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}_" ) );
 				}
 			}
 		}

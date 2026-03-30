@@ -52,7 +52,7 @@ class CheckResult extends Command {
 
 		$this->workspaceDir = realpath( $input->getOption( 'src' ) );
 		$dom = new DOMDocument();
-		$dom->load( "{$this->workspaceDir}/output.xml" );
+		$dom->load( "$this->workspaceDir/output.xml" );
 
 		$titleEls = $dom->getElementsByTagName( 'title' );
 		foreach ( $titleEls as $titleEl ) {
@@ -78,7 +78,7 @@ class CheckResult extends Command {
 	 * @return bool
 	 */
 	private function fileAvailable( $targetFileName ) {
-		return file_exists( "{$this->workspaceDir}/images/$targetFileName" );
+		return file_exists( "$this->workspaceDir/images/$targetFileName" );
 	}
 
 	/**
@@ -155,9 +155,9 @@ class CheckResult extends Command {
 
 	private function createReport() {
 		$numberOfBrokenPageLinks = count( $this->brokenPageLinks );
-		$this->output->writeln( "Page links (broken/total): {$numberOfBrokenPageLinks}/{$this->numberOfPageLinks}" );
+		$this->output->writeln( "Page links (broken/total): $numberOfBrokenPageLinks/$this->numberOfPageLinks" );
 		$numberOfBrokenFileLinks = count( $this->brokenFileLinks );
-		$this->output->writeln( "File links (broken/total): {$numberOfBrokenFileLinks}/{$this->numberOfFileLinks}" );
+		$this->output->writeln( "File links (broken/total): $numberOfBrokenFileLinks/$this->numberOfFileLinks" );
 
 		if ( !empty( $this->brokenPageLinks ) ) {
 			$this->output->writeln( "\nBroken page links:" );

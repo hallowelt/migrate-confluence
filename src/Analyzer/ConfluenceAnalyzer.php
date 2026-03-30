@@ -222,7 +222,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			if ( empty( $bucketData ) ) {
 				continue;
 			}
-			$this->workspace->saveData( "{$bucket}", $bucketData );
+			$this->workspace->saveData( $bucket, $bucketData );
 		}
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );

@@ -114,7 +114,7 @@ class Compose extends CommandCompose {
 	 * @return void
 	 */
 	private function ensureTargetDirs() {
-		$path = "{$this->dest}/result/images";
+		$path = "$this->dest/result/images";
 		if ( !file_exists( $path ) ) {
 			mkdir( $path, 0755, true );
 		}

@@ -41,7 +41,7 @@ class ExcerptIncludeMacro extends IncludeMacro {
 		}
 		return <<<WIKITEXT
 {{ExcerptInclude###BREAK###
- |target = {$this->mediaWikiPageName}###BREAK###$parameterList
+ |target = $this->mediaWikiPageName###BREAK###$parameterList
 }}###BREAK###
 WIKITEXT;
 	}

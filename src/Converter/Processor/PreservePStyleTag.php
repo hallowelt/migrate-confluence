@@ -30,7 +30,7 @@ class PreservePStyleTag implements IProcessor {
 			for ( $index = 0; $index < count( $attributeMap ); $index++ ) {
 				$name = $attributeMap->item( $index )->nodeName;
 				$value = $attributeMap->item( $index )->nodeValue;
-				$attributes[$name] = "{$name}=\"{$value}\"";
+				$attributes[$name] = "$name=\"$value\"";
 			}
 
 			if ( count( $attributes ) > 1 || !isset( $attributes['style'] ) ) {

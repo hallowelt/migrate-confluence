@@ -199,7 +199,7 @@ class BlogPost extends ProcessorBase {
 			$version = $properties['version'];
 		}
 
-		$revision = implode( '/', $bodyContentIds ) . "@{$version}-{$revisionTimestamp}";
+		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
 	}
 
