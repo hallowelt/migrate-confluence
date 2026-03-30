@@ -15,7 +15,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  *     ...
  * </ac:structured-macro>
  */
-class DetailsMacro extends ConvertMacroToTemplateBase {
+class DetailsMacro extends ConvertMacroToTemplateWithBodyBase {
 
 	/**
 	 * @return string
@@ -27,7 +27,14 @@ class DetailsMacro extends ConvertMacroToTemplateBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getWikiTextTemplateName(): string {
-		return 'Details';
+	protected function getWikiTextTemplateStartName(): string {
+		return 'DetailsStart';
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	protected function getWikiTextTemplateEndName(): string {
+		return 'DetailsEnd';
 	}
 }

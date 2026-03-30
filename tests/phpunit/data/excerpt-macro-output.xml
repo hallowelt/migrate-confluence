@@ -1,11 +1,9 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	{{Excerpt###BREAK###
+	{{ExcerptStart###BREAK###
 |hidden = true###BREAK###
 |atlassian-macro-output-type = BLOCK###BREAK###
-|body = ###BREAK###
-
+}}
 			<p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt macro.</p>
-  		}}###BREAK###
-
+  		{{ExcerptEnd}}
 </xml>

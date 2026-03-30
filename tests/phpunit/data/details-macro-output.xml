@@ -1,12 +1,12 @@
 <xml xmlns:ac="sample_namespace">
-    {{Details###BREAK###
+    {{DetailsStart###BREAK###
 |id = Lorem###BREAK###
 |something = we have never seen before###BREAK###
-|body = ###BREAK###
+}}
 
             <h3>Ipsum dolor</h3>
         
             <h3>There may be multiple rich texts</h3>
-        }}###BREAK###
+        {{DetailsEnd}}
 
 </xml>

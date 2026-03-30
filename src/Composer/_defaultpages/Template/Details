@@ -1,3 +1,0 @@
-<div class="macro-details" {{#if:{{{id|}}}|data-id="{{{id|}}}"}} {{#if:{{{hidden|}}}|style="display:none;"}}>
-	{{{body}}}
-</div>

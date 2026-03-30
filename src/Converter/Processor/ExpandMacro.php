@@ -16,7 +16,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  *      </ac:rich-text-body>
  *  </ac:structured-macro>
  */
-class ExpandMacro extends ConvertMacroToTemplateBase {
+class ExpandMacro extends ConvertMacroToTemplateWithBodyBase {
 
 	/**
 	 * @inheritDoc
@@ -28,7 +28,14 @@ class ExpandMacro extends ConvertMacroToTemplateBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getWikiTextTemplateName(): string {
-		return 'Expand';
+	protected function getWikiTextTemplateStartName(): string {
+		return 'ExpandStart';
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	protected function getWikiTextTemplateEndName(): string {
+		return 'ExpandEnd';
 	}
 }

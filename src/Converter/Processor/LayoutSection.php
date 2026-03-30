@@ -14,7 +14,14 @@ class LayoutSection extends Layout {
 	/**
 	 * @return string
 	 */
-	protected function getWikiTextTemplateName(): string {
-		return 'LayoutSection';
+	protected function getWikiTextTemplateStartName(): string {
+		return 'LayoutSectionStart';
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getWikiTextTemplateEndName(): string {
+		return 'LayoutSectionEnd';
 	}
 }

@@ -28,7 +28,7 @@ use DOMNodeList;
  *   </ac:rich-text-body>
  * </ac:structured-macro>
  */
-class TableFilterMacro extends ConvertMacroToTemplateBase {
+class TableFilterMacro extends ConvertMacroToTemplateWithBodyBase {
 
 	/**
 	 * @return string
@@ -40,8 +40,15 @@ class TableFilterMacro extends ConvertMacroToTemplateBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getWikiTextTemplateName(): string {
-		return 'TableFilterMacro';
+	protected function getWikiTextTemplateStartName(): string {
+		return 'TableFilterStart';
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	protected function getWikiTextTemplateEndName(): string {
+		return 'TableFilterEnd';
 	}
 
 	/**
