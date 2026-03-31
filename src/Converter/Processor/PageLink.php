@@ -7,6 +7,8 @@ use DOMNode;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 
 class PageLink extends LinkProcessorBase {
+	/** @var string */
+	private $spaceKey = '';
 
 	/**
 	 *
@@ -59,10 +61,10 @@ class PageLink extends LinkProcessorBase {
 	 */
 	private function ensureSpaceId( DOMNode $node ): int {
 		$spaceId = $this->currentSpaceId;
-		$spaceKey = $node->getAttribute( 'ri:space-key' );
+		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
 
-		if ( !empty( $spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+		if ( !empty( $this->spaceKey ) ) {
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey );
 		}
 
 		return $spaceId;
@@ -87,11 +89,16 @@ class PageLink extends LinkProcessorBase {
 	 * @return string
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-			$genericTitleBuilder = new GenericTitleBuilder( [] );
-			$rawPageTitle = $genericTitleBuilder
-				->appendTitleSegment( $rawPageTitle )->build();
-			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
-		return "Confluence---$spaceId---$rawPageTitle";
+		$genericTitleBuilder = new GenericTitleBuilder( [] );
+		$rawPageTitle = $genericTitleBuilder
+			->appendTitleSegment( $rawPageTitle )->build();
+		$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
+
+		$confluenceKey = "Confluence---{$spaceId}---$rawPageTitle";
+		if ( $this->spaceKey !== '' ) {
+			$confluenceKey = "Confluence---{$this->spaceKey}---$rawPageTitle";
+		}
+		return $confluenceKey;
 	}
 
 	/**

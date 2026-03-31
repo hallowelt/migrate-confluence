@@ -33,6 +33,9 @@ class ImagePageLinkHelper {
 	 */
 	private $isBrokenLink = false;
 
+	/** @var string */
+	private $spaceKey = '';
+
 	/**
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
@@ -86,9 +89,9 @@ class ImagePageLinkHelper {
 	 */
 	private function ensureSpaceId( DOMNode $node ): int {
 		$spaceId = $this->currentSpaceId;
-		$spaceKey = $node->getAttribute( 'ri:space-key' );
-		if ( !empty( $spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
+		if ( !empty( $this->spaceKey ) ) {
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey );
 		}
 
 		return $spaceId;
@@ -109,6 +112,10 @@ class ImagePageLinkHelper {
 	 * @return string
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		return "Confluence---$spaceId---$rawPageTitle";
+		$confluenceKey = "Confluence---{$spaceId}---$rawPageTitle";
+		if ( $this->spaceKey !== '' ) {
+			$confluenceKey = "Confluence---{$this->spaceKey}---$rawPageTitle";
+		}
+		return $confluenceKey;
 	}
 }
