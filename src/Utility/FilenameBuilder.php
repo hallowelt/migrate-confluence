@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
+use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 
@@ -10,22 +11,14 @@ class FilenameBuilder {
 	/**
 	 * @var array
 	 */
-	private $config = [];
+	private array $config;
 
 	/**
-	 *
-	 * @var GenericTitleBuilder
-	 */
-	private $builder = null;
-
-	/**
-	 *
 	 * @var array
 	 */
-	private $spaceIdPrefixMap = [];
+	private array $spaceIdPrefixMap;
 
 	/**
-	 *
 	 * @param array $spaceIdPrefixMap
 	 * @param array $config
 	 */
@@ -38,22 +31,24 @@ class FilenameBuilder {
 	 * @param int $spaceId
 	 * @param string $originalFilename
 	 * @param string $assocTitle
+	 *
 	 * @return string
+	 * @throws InvalidTitleException
 	 */
 	public function buildFromAttachmentData( int $spaceId, string $originalFilename, string $assocTitle ): string {
-		$this->builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
-		$this->builder->setNamespace( $spaceId );
+		$builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
+		$builder->setNamespace( $spaceId );
 
 		if ( !empty( $assocTitle ) ) {
 			$assocTitle = str_replace( '/', '_', $assocTitle );
 			// Unset potential namespace prefix to avoid duplications
-			$this->builder->setNamespace( 0 );
-			$this->builder->appendTitleSegment( "-{$originalFilename}" );
-			$this->builder->appendTitleSegment( $assocTitle );
+			$builder->setNamespace( 0 );
+			$builder->appendTitleSegment( "-$originalFilename" );
+			$builder->appendTitleSegment( $assocTitle );
 		} else {
-			$this->builder->appendTitleSegment( "{$originalFilename}" );
+			$builder->appendTitleSegment( $originalFilename );
 		}
-		$builtTitle = $this->builder->invertTitleSegments()->build();
+		$builtTitle = $builder->invertTitleSegments()->build();
 
 		$filename = new WindowsFilename( $builtTitle );
 		$filename = (string)$filename;
@@ -66,7 +61,7 @@ class FilenameBuilder {
 			if ( $filePrefix !== '' ) {
 				$namespacePart = substr( $filePrefix, 0, strpos( $filePrefix, ':' ) );
 				if ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
-					$filename = "{$namespacePart}:" . substr( $filename, strlen( "{$namespacePart}_" ) );
+					$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}_" ) );
 				}
 			}
 		}

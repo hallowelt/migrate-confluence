@@ -11,30 +11,25 @@ class ImagePageLinkHelper {
 	/**
 	 * @var ConversionDataLookup
 	 */
-	protected $dataLookup;
+	protected ConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
 	 */
-	protected $currentSpaceId;
+	protected int $currentSpaceId;
 
 	/**
 	 * @var string
 	 */
-	protected $rawPageTitle;
+	protected string $rawPageTitle;
 
 	/**
 	 * @var bool
 	 */
-	protected $nsFileRepoCompat = false;
-
-	/**
-	 * @var bool
-	 */
-	private $isBrokenLink = false;
+	private bool $isBrokenLink = false;
 
 	/** @var string */
-	private $spaceKey = '';
+	private string $spaceKey = '';
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
@@ -112,9 +107,9 @@ class ImagePageLinkHelper {
 	 * @return string
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		$confluenceKey = "Confluence---{$spaceId}---$rawPageTitle";
+		$confluenceKey = "Confluence---$spaceId---$rawPageTitle";
 		if ( $this->spaceKey !== '' ) {
-			$confluenceKey = "Confluence---{$this->spaceKey}---$rawPageTitle";
+			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
 		}
 		return $confluenceKey;
 	}

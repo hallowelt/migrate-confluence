@@ -27,9 +27,10 @@ class Convert extends CommandConvert {
 
 	/**
 	 * @param array $config
+	 *
 	 * @return Convert
 	 */
-	public static function factory( $config ): Convert {
+	public static function factory( array $config ): Convert {
 		return new static( $config );
 	}
 
@@ -40,9 +41,10 @@ class Convert extends CommandConvert {
 
 	/**
 	 * @param array &$config
+	 *
 	 * @return void
 	 */
-	private function readConfigFile( &$config ): void {
+	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
 		if ( is_string( $filename ) && is_file( $filename ) ) {
 			$content = file_get_contents( $filename );

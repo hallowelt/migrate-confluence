@@ -2,12 +2,14 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
+
 class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @var string
 	 */
-	private $currentPageTitle = '';
+	private string $currentPageTitle;
 
 	/**
 	 * @param string $currentPageTitle
@@ -25,10 +27,9 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$namespace = '';
 		$titleParts = explode( ':', $this->currentPageTitle, 2 );
 		if ( count( $titleParts ) === 2 ) {

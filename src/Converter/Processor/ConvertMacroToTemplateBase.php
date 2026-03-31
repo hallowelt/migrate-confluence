@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
-use DOMNodeList;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 /**
@@ -57,11 +56,11 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 				$paramValue = $parameterEl->nodeValue;
 				// We add a "###BREAK###", as `pandoc` will eat up regular line breaks.
 				// They will be restored in a "Postprocessor"
-				$praramString = "|$paramName = $paramValue";
+				$paramString = "|$paramName = $paramValue";
 				if ( $this->addLinebreakInsideTemplate() ) {
-					$praramString .= "###BREAK###\n";
+					$paramString .= "###BREAK###\n";
 				}
-				$paramTextNode = $dom->createTextNode( $praramString );
+				$paramTextNode = $dom->createTextNode( $paramString );
 				$parentNode->insertBefore( $paramTextNode, $actualMacro );
 			}
 
@@ -86,7 +85,6 @@ abstract class ConvertMacroToTemplateBase implements IProcessor {
 	 * @return void
 	 */
 	protected function extractBodyElements( DOMElement $actualMacro, DOMElement $parentNode ): void {
-		/** @var DOMNodeList $richTextBodies */
 		$richTextBodies = $actualMacro->getElementsByTagName( 'rich-text-body' );
 		$richTextBodyEls = [];
 		foreach ( $richTextBodies as $richTextBody ) {

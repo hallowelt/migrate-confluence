@@ -15,7 +15,7 @@ class RestorePStyleTag implements IPostprocessor {
 			static function ( $matches ) {
 				$attributes = str_replace( "&quot;", "\"", $matches[1] );
 				$text = $matches[2];
-				return "<p {$attributes}>{$text}</p>";
+				return "<p $attributes>$text</p>";
 			},
 			$wikiText
 		);

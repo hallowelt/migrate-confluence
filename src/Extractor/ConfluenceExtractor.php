@@ -16,12 +16,12 @@ class ConfluenceExtractor extends ExtractorBase {
 	/**
 	 * @var DataBuckets
 	 */
-	private $customBuckets = null;
+	private DataBuckets $customBuckets;
 
 	/**
 	 * @var array
 	 */
-	private $categories = [];
+	private array $categories = [];
 
 	/**
 	 * @param array $config
@@ -167,10 +167,6 @@ class ConfluenceExtractor extends ExtractorBase {
 
 		$labelProp = $xmlHelper->getPropertyNode( 'label', $labelling );
 		$labelId = $xmlHelper->getIDNodeValue( $labelProp );
-		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
-		if ( isset( $labelMap[$labelId] ) ) {
-			$categories[] = $labelMap[$labelId];
-		}
 
 		$this->customBuckets->addData( 'extract-labelling-id-to-label-id-map', $id, $labelId, false, true );
 	}
@@ -248,9 +244,10 @@ class ConfluenceExtractor extends ExtractorBase {
 	/**
 	 * @param XMLHelper $xmlHelper
 	 * @param DOMElement $bodyContent
-	 * @return void
+	 *
+	 * @return string
 	 */
-	private function getBodyContentHTML( XMLHelper $xmlHelper, DOMElement $bodyContent ) {
+	private function getBodyContentHTML( XMLHelper $xmlHelper, DOMElement $bodyContent ): string {
 		$rawValue = $xmlHelper->getPropertyValue( 'body', $bodyContent );
 		// For a strange reason the CDATA blocks are not closed properly...
 		$fixedValue = str_replace( ']] >', ']]>', $rawValue );
@@ -261,7 +258,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function extractPageMetaData( DOMDocument $dom ) {
+	private function extractPageMetaData( DOMDocument $dom ): void {
 		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
 		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
 
@@ -306,7 +303,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function extractBlogMetaData( DOMDocument $dom ) {
+	private function extractBlogMetaData( DOMDocument $dom ): void {
 		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
 		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
 
@@ -352,34 +349,31 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @param string $revisionReference
 	 * @param string $contentReference
 	 */
-	protected function addRevisionContent( $revisionReference, $contentReference = 'n/a' ) {
+	protected function addRevisionContent( $revisionReference, $contentReference = 'n/a' ): void {
 		$this->buckets->addData( 'global-revision-contents', $revisionReference, $contentReference );
 	}
 
 	/**
-	 *
 	 * @param string $titleText
 	 * @param array $meta
 	 */
-	protected function addTitleMetaData( $titleText, $meta = [] ) {
+	protected function addTitleMetaData( $titleText, $meta = [] ): void {
 		$this->buckets->addData( 'global-title-metadata', $titleText, $meta, false );
 	}
 
 	/**
-	 *
 	 * @param string $titleText
 	 * @param array $meta
 	 */
-	protected function addBlogTitleMetaData( $titleText, $meta = [] ) {
+	protected function addBlogTitleMetaData( string $titleText, array $meta = [] ): void {
 		$this->buckets->addData( 'global-blog-title-metadata', $titleText, $meta, false );
 	}
 
 	/**
-	 *
 	 * @param int $attachmentId
 	 * @param array $meta
 	 */
-	protected function addAttachmentMetaData( $attachmentId, $meta = [] ) {
+	protected function addAttachmentMetaData( int $attachmentId, array $meta = [] ): void {
 		$this->buckets->addData( 'global-attachment-metadata', $attachmentId, $meta, false );
 	}
 }

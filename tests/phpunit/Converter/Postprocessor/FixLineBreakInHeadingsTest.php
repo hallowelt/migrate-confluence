@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\Converter\Preprocessor;
+namespace HalloWelt\MigrateConfluence\Tests\Converter\Postprocessor;
 
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use PHPUnit\Framework\TestCase;

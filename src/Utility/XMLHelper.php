@@ -14,26 +14,24 @@ use UnexpectedValueException;
 class XMLHelper implements LoggerAwareInterface {
 
 	/**
-	 *
-	 * @var DOMDocument
+	 * @var DOMDocument|null
 	 */
-	protected $dom = null;
+	protected ?DOMDocument $dom = null;
 
 	/**
-	 *
-	 * @var DOMXPath
+	 * @var DOMXPath|null
 	 */
-	protected $xpath = null;
+	protected ?DOMXPath $xpath = null;
 
 	/**
-	 * @var LoggerInterface
+	 * @var LoggerInterface|NullLogger|null
 	 */
-	protected $logger = null;
+	protected LoggerInterface|NullLogger|null $logger = null;
 
 	/**
 	 * @param DOMDocument $dom
 	 */
-	public function __construct( $dom ) {
+	public function __construct( DOMDocument $dom ) {
 		$this->dom = $dom;
 		$this->xpath = new DOMXPath( $this->dom );
 		$this->logger = new NullLogger();
@@ -42,25 +40,19 @@ class XMLHelper implements LoggerAwareInterface {
 	/**
 	 * @param LoggerInterface $logger
 	 */
-	public function setLogger( LoggerInterface $logger ) {
+	public function setLogger( LoggerInterface $logger ): void {
 		$this->logger = $logger;
 	}
 
 	/**
-	 *
-	 * @return DOMXPath
-	 */
-	public function getXPath() {
-		return $this->xpath;
-	}
-
-	/**
 	 * Returns the integer ID of an model entity in Confluence export XML
+	 *
 	 * @param DOMElement $domNode
+	 *
 	 * @return int
 	 * @throws UnexpectedValueException
 	 */
-	public function getIDNodeValue( $domNode ) {
+	public function getIDNodeValue( DOMElement $domNode ): int {
 		if ( !$domNode->hasChildNodes() ) {
 			return -1;
 		}
@@ -88,45 +80,13 @@ class XMLHelper implements LoggerAwareInterface {
 	}
 
 	/**
-	 * Returns the value of id node name="key" of an model entity in Confluence export XML
-	 * @param DOMElement $domNode
-	 * @return string
-	 * @throws UnexpectedValueException
-	 */
-	public function getKeyNodeValue( $domNode ) {
-		if ( !$domNode->hasChildNodes() ) {
-			return '';
-		}
-
-		$hasIDNode = false;
-		$value = '';
-		foreach ( $domNode->childNodes as $childNode ) {
-			if ( $childNode instanceof DOMElement === false ) {
-				continue;
-			}
-			if ( $childNode->nodeName !== 'id' ) {
-				continue;
-			}
-
-			$hasIDNode = true;
-			$value = (string)$childNode->nodeValue;
-			break;
-		}
-
-		if ( !$hasIDNode ) {
-			throw new UnexpectedValueException( 'No ID element found!' );
-		}
-
-		return $value;
-	}
-
-	/**
 	 *
 	 * @param string $propName
 	 * @param DOMElement|null $contextElement
+	 *
 	 * @return DOMNodeList
 	 */
-	public function getPropertyNodes( $propName, $contextElement = null ) {
+	public function getPropertyNodes( string $propName, ?DOMElement $contextElement = null ): DOMNodeList {
 		if ( $contextElement === null ) {
 			// Fetch all in whole document
 			return $this->xpath->query( '//property[@name="' . $propName . '"]' );
@@ -140,9 +100,10 @@ class XMLHelper implements LoggerAwareInterface {
 	 *
 	 * @param string $propName
 	 * @param DOMElement|null $contextElement
-	 * @return DOMElement
+	 *
+	 * @return DOMElement|null
 	 */
-	public function getPropertyNode( $propName, $contextElement = null ) {
+	public function getPropertyNode( string $propName, ?DOMElement $contextElement = null ): ?DOMElement {
 		return $this->getPropertyNodes( $propName, $contextElement )->item( 0 );
 	}
 
@@ -153,7 +114,7 @@ class XMLHelper implements LoggerAwareInterface {
 	 *
 	 * @var array
 	 */
-	protected $propertyClassesOfTypeIDRef = [
+	protected array $propertyClassesOfTypeIDRef = [
 		'Space', 'Page', 'ConfluenceUserImpl', 'Attachment'
 	];
 
@@ -161,9 +122,10 @@ class XMLHelper implements LoggerAwareInterface {
 	 *
 	 * @param string $propertyName
 	 * @param DOMElement $contextElement
-	 * @return null|string
+	 *
+	 * @return int|string|null
 	 */
-	public function getPropertyValue( $propertyName, $contextElement ) {
+	public function getPropertyValue( string $propertyName, DOMElement $contextElement ): int|string|null {
 		$propertyNode = $this->getPropertyNode( $propertyName, $contextElement );
 		if ( $propertyNode instanceof DOMElement == false ) {
 			$contextElementId = $this->getIDNodeValue( $contextElement );
@@ -185,30 +147,21 @@ class XMLHelper implements LoggerAwareInterface {
 	 *
 	 * @param string $objectNodeClass e.g. 'Space', 'Page', 'Attachment',
 	 * 'BodyContent', 'ConfluenceUserImpl', ...
+	 *
 	 * @return DOMNodeList
 	 */
-	public function getObjectNodes( $objectNodeClass ) {
+	public function getObjectNodes( string $objectNodeClass ): DOMNodeList {
 		return $this->xpath->query( '//object[@class="' . $objectNodeClass . '"]' );
-	}
-
-	/**
-	 *
-	 * @param int $id
-	 * @param string $objectNodeClass
-	 * @return DOMElement
-	 */
-	public function getObjectNodeById( $id, $objectNodeClass ) {
-		$xpathExpression = "//object[@class='$objectNodeClass' and id='$id']";
-		return $this->xpath->query( $xpathExpression )->item( 0 );
 	}
 
 	/**
 	 *
 	 * @param string $collectionName
 	 * @param DOMElement $contextElement
+	 *
 	 * @return DOMNodeList
 	 */
-	public function getElementsFromCollection( $collectionName, $contextElement ) {
+	public function getElementsFromCollection( string $collectionName, DOMElement $contextElement ): DOMNodeList {
 		return $this->xpath->query( './collection[@name="' . $collectionName . '"]/element', $contextElement );
 	}
 }

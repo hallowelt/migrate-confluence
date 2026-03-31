@@ -9,8 +9,6 @@ class CQLParser {
 	 * @return string
 	 */
 	public function parse( string $cql ): string {
-		$parsedCQL = '';
-
 		$parsedCQL = preg_replace_callback( '#label\s*=\s*\"(.*?)\"\s*#', static function ( $matches ) {
 			$label = $matches[1];
 			$label = ucfirst( $label );

@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
@@ -10,17 +11,17 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @var ConversionDataLookup
 	 */
-	protected $dataLookup;
+	protected ConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
 	 */
-	protected $currentSpaceId;
+	protected int $currentSpaceId;
 
 	/**
 	 * @var string
 	 */
-	protected $rawPageTitle;
+	protected string $rawPageTitle;
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
@@ -35,7 +36,6 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 *
 	 * @return string
 	 */
 	protected function getMacroName(): string {
@@ -43,10 +43,9 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param \DOMElement $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$params = $this->readParams( $node );
 		$wikitextTemplate = new Template( $this->getWikiTextTemplateName(), $params );
 		$wikitextTemplate->setRenderFormatted( false );
@@ -66,10 +65,10 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param \DOMElement $node
+	 * @param DOMNode $node
 	 * @return array
 	 */
-	protected function readParams( \DOMElement $node ): array {
+	protected function readParams( DOMNode $node ): array {
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -101,7 +100,7 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	 * @param string $name
 	 * @return string
 	 */
-	private function makeFilename( string $name ) {
+	private function makeFilename( string $name ): string {
 		$spaceId = $this->currentSpaceId;
 		$rawPageTitle = basename( $this->rawPageTitle );
 

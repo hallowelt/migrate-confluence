@@ -33,9 +33,10 @@ class Compose extends CommandCompose {
 
 	/**
 	 * @param array $config
+	 *
 	 * @return Compose
 	 */
-	public static function factory( $config ): Compose {
+	public static function factory( array $config ): Compose {
 		return new static( $config );
 	}
 
@@ -69,9 +70,10 @@ class Compose extends CommandCompose {
 
 	/**
 	 * @param array &$config
+	 *
 	 * @return void
 	 */
-	private function readConfigFile( &$config ): void {
+	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
 		if ( is_string( $filename ) && is_file( $filename ) ) {
 			$content = file_get_contents( $filename );
@@ -91,7 +93,7 @@ class Compose extends CommandCompose {
 	 *
 	 * @inheritDoc
 	 */
-	protected function getBucketKeys() {
+	protected function getBucketKeys(): array {
 		return [
 			'global-space-id-homepages',
 			'global-space-id-to-description-id-map',
@@ -113,8 +115,8 @@ class Compose extends CommandCompose {
 	 *
 	 * @return void
 	 */
-	private function ensureTargetDirs() {
-		$path = "{$this->dest}/result/images";
+	private function ensureTargetDirs(): void {
+		$path = "$this->dest/result/images";
 		if ( !file_exists( $path ) ) {
 			mkdir( $path, 0755, true );
 		}

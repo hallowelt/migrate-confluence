@@ -5,24 +5,25 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\Output;
+use Symfony\Component\Console\Output\OutputInterface;
 use XMLReader;
 
 abstract class ProcessorBase implements IAnalyzerProcessor {
 
 	/** @var array */
-	protected $config = [];
+	protected array $config = [];
 
 	/** @var OutputInterface */
-	protected $output;
+	protected OutputInterface $output;
 
 	/** @var LoggerInterface */
-	protected $logger;
+	protected LoggerInterface $logger;
 
 	/** @var XMLReader */
-	protected $xmlReader;
+	protected XMLReader $xmlReader;
 
 	/** @var array */
-	protected $data = [];
+	protected array $data = [];
 
 	/**
 	 * @param array $config
@@ -98,7 +99,7 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	/**
 	 * @return string
 	 */
-	protected function processIdNode() {
+	protected function processIdNode(): string {
 		$id = '';
 		if ( strtolower( $this->xmlReader->name ) === 'id' ) {
 			$name = $this->xmlReader->getAttribute( 'name' );
@@ -114,14 +115,14 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	/**
 	 * @return string
 	 */
-	protected function getCDATAValue() {
+	protected function getCDATAValue(): string {
 		return $this->xmlReader->value;
 	}
 
 	/**
 	 * @return string
 	 */
-	protected function getTextValue() {
+	protected function getTextValue(): string {
 		return $this->xmlReader->readString();
 	}
 
@@ -182,9 +183,10 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	/**
 	 * @param array $collection
 	 * @param string $name
+	 *
 	 * @return array
 	 */
-	protected function processCollectionNodes( array $collection = [], $name = '' ): array {
+	protected function processCollectionNodes( array $collection = [], string $name = '' ): array {
 		$elementName = $this->xmlReader->getAttribute( 'name' );
 
 		if ( $name !== '' && $elementName !== $name ) {

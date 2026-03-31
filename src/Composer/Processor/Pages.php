@@ -176,15 +176,16 @@ class Pages extends ProcessorBase {
 	/**
 	 * Add space description to homepage
 	 *
-	 * @param string|int $bodyContentId
+	 * @param int|string $bodyContentId
 	 * @param array $bodyContentIdMainpageId
 	 * @param array $homepagespaceIdMap
 	 * @param array $spaceIdDescriptionIdMap
 	 * @param array $spaceDescriptionIdBodyIdMap
+	 *
 	 * @return string
 	 */
 	private function addSpaceDescriptionToMainPage(
-		$bodyContentId, array $bodyContentIdMainpageId,
+		int|string $bodyContentId, array $bodyContentIdMainpageId,
 		array $homepagespaceIdMap, array $spaceIdDescriptionIdMap,
 		array $spaceDescriptionIdBodyIdMap
 	): string {

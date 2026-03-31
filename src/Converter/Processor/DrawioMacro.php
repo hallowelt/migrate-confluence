@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
@@ -11,22 +12,22 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @var ConversionDataLookup
 	 */
-	protected $dataLookup;
+	protected ConversionDataLookup $dataLookup;
 
 	/**
 	 * @var ConversionDataWriter
 	 */
-	protected $conversionDataWriter;
+	protected ConversionDataWriter $conversionDataWriter;
 
 	/**
 	 * @var int
 	 */
-	protected $currentSpaceId;
+	protected int $currentSpaceId;
 
 	/**
 	 * @var string
 	 */
-	protected $rawPageTitle;
+	protected string $rawPageTitle;
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
@@ -51,10 +52,9 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$params = $this->getMacroParams( $node );
 
 		if ( isset( $params['diagramName'] ) ) {
@@ -89,11 +89,11 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 *
 	 * @param DOMNode $macro
+	 *
 	 * @return array
 	 */
-	private function getMacroParams( $macro ): array {
+	private function getMacroParams( DOMNode $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -133,8 +133,6 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		// It works with any extension, not only ".drawio"
 		// For example, diagram name could be "something.OG" - then diagram image will be "something.OG.png"
 
-		$drawioDataFilename = '';
-		$drawioImageFilename = '';
 		if ( strtolower( $this->getFileExtension( $filename ) ) !== 'png' ) {
 			// find png
 			$drawioDataFilename = $originalFilename;

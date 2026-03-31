@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
@@ -13,13 +12,13 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 class GalleryMacro extends StructuredMacroProcessorBase {
 
 	/** @var ConversionDataLookup */
-	private $dataLookup;
+	private ConversionDataLookup $dataLookup;
 
 	/** @var int */
-	private $currentSpaceId;
+	private int $currentSpaceId;
 
 	/** @var string */
-	private $rawPageTitle;
+	private string $rawPageTitle;
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
@@ -44,12 +43,9 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 *
-	 * @return void
-	 * @throws DOMException
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$macroName = $node->getAttribute( 'ac:name' );
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
@@ -66,7 +62,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 		if ( empty( $files ) ) {
 			$node->parentNode->replaceChild(
-				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategroy() ),
+				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategory() ),
 				$node
 			);
 

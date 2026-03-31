@@ -13,7 +13,7 @@ class AttachmentFallback extends ProcessorBase {
 	private $attachmentId;
 
 	/** @var string */
-	private $attachmentOrigFilename = '';
+	private string $attachmentOrigFilename = '';
 
 	/**
 	 * @inheritDoc
@@ -106,25 +106,21 @@ class AttachmentFallback extends ProcessorBase {
 	private function process( array $properties ): void {
 		// Check to which page attachment belongs
 		$targetTitle = '';
-		$confluenceKey = '';
-
 		$containerContentId = '';
 		if ( isset( $properties['containerContent'] ) ) {
 			$containerContentId = $properties['containerContent'];
 		}
-		if ( $containerContentId !== null ) {
-			if ( isset( $this->data['global-page-id-to-title-map'][$containerContentId] ) ) {
-				$targetTitle = $this->data['global-page-id-to-title-map'][$containerContentId];
-			} elseif ( isset( $this->data['global-blogpost-id-to-title-map'][$containerContentId] ) ) {
-				$targetTitle = $this->data['global-blogpost-id-to-title-map'][$containerContentId];
-			}
-			if ( isset( $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId] ) ) {
-				$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId];
-			} elseif ( isset( $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId] ) ) {
-				$confluenceKey = $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId];
-			} else {
-				return;
-			}
+		if ( isset( $this->data['global-page-id-to-title-map'][$containerContentId] ) ) {
+			$targetTitle = $this->data['global-page-id-to-title-map'][$containerContentId];
+		} elseif ( isset( $this->data['global-blogpost-id-to-title-map'][$containerContentId] ) ) {
+			$targetTitle = $this->data['global-blogpost-id-to-title-map'][$containerContentId];
+		}
+		if ( isset( $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId] ) ) {
+			$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId];
+		} elseif ( isset( $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId] ) ) {
+			$confluenceKey = $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId];
+		} else {
+			return;
 		}
 
 		// TODO: Is this wise?
@@ -153,7 +149,7 @@ class AttachmentFallback extends ProcessorBase {
 
 		if ( $confluenceKey !== '' ) {
 			$this->data['global-title-attachments'][$targetTitle][] = $attachmentTargetFilename;
-			$this->output->writeln( "Add attachment $attachmentTargetFilename (fallback: {$confluenceKey})" );
+			$this->output->writeln( "Add attachment $attachmentTargetFilename (fallback: $confluenceKey)" );
 		} else {
 			$this->data['global-additional-files'][$attachmentTargetFilename] = $attachmentReference;
 			$this->output->writeln( "Add attachment $attachmentTargetFilename (additional)" );
@@ -162,7 +158,7 @@ class AttachmentFallback extends ProcessorBase {
 		$this->data['analyze-add-file'][$attachmentTargetFilename] = $attachmentReference;
 		$this->data['analyze-added-attachment-id'][] = $this->attachmentId;
 
-		$confluenceFileKey = str_replace( ' ', '', "{$confluenceKey}---{$this->attachmentOrigFilename}" );
+		$confluenceFileKey = str_replace( ' ', '', "$confluenceKey---$this->attachmentOrigFilename" );
 
 		$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey]
 			= $attachmentTargetFilename;
@@ -230,9 +226,10 @@ class AttachmentFallback extends ProcessorBase {
 
 	/**
 	 * @param SplFileInfo $file
+	 *
 	 * @return bool
 	 */
-	private function hasNoExplicitFileExtension( $file ) {
+	private function hasNoExplicitFileExtension( SplFileInfo $file ): bool {
 		if ( $file->getExtension() === '' ) {
 			return true;
 		}

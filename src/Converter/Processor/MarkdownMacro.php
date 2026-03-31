@@ -14,10 +14,9 @@ class MarkdownMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$brokenMacro = false;
 
 		$markdownContent = '';
@@ -44,7 +43,7 @@ class MarkdownMacro extends StructuredMacroProcessorBase {
 
 		if ( $brokenMacro ) {
 			$replacement = $node->ownerDocument->createTextNode(
-				$this->getBrokenMacroCategroy()
+				$this->getBrokenMacroCategory()
 			);
 		}
 

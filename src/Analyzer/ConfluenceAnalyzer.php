@@ -2,10 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
-use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
@@ -27,7 +27,6 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use SplFileInfo;
-use Symfony\Component\Console\Input\Input;
 use Symfony\Component\Console\Output\Output;
 use XMLReader;
 
@@ -36,52 +35,47 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	/**
 	 * @var DataBuckets
 	 */
-	private $customBuckets = null;
+	private DataBuckets $customBuckets;
 
 	/**
-	 * @var DataBuckets
+	 * @var array|DataBuckets
 	 */
-	private $dataKeys = null;
+	private DataBuckets|array $dataKeys;
 
 	/**
-	 * @var LoggerInterface
+	 * @var LoggerInterface|NullLogger
 	 */
-	private $logger = null;
+	private LoggerInterface|NullLogger $logger;
 
 	/**
-	 * @var Input
+	 * @var Output|null
 	 */
-	private $input = null;
-
-	/**
-	 * @var Output
-	 */
-	private $output = null;
+	private ?Output $output = null;
 
 	/** @var SplFileInfo */
-	private $file;
+	private SplFileInfo $file;
 
 	/**
 	 * @var string
 	 */
-	private $mainpage = 'Main Page';
+	private string $mainpage = 'Main Page';
 
 	/**
 	 * @var array
 	 */
-	private $advancedConfig = [];
+	private array $advancedConfig = [];
 
 	/** @var array */
-	private $includeSpaceKey = [];
+	private array $includeSpaceKey = [];
 
 	/** @var array */
-	private $spacePrefixMap = [];
+	private array $spacePrefixMap = [];
 
 	/** @var bool */
-	private $includeHistory = false;
+	private bool $includeHistory = false;
 
 	/** @var array */
-	private $data = [];
+	private array $data = [];
 
 	/**
 	 *
@@ -191,21 +185,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	/**
 	 * @param LoggerInterface $logger
 	 */
-	public function setLogger( LoggerInterface $logger ) {
+	public function setLogger( LoggerInterface $logger ): void {
 		$this->logger = $logger;
-	}
-
-	/**
-	 * @param Input $input
-	 */
-	public function setInput( Input $input ) {
-		$this->input = $input;
 	}
 
 	/**
 	 * @param Output $output
 	 */
-	public function setOutput( Output $output ) {
+	public function setOutput( Output $output ): void {
 		$this->output = $output;
 	}
 
@@ -235,7 +222,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			if ( empty( $bucketData ) ) {
 				continue;
 			}
-			$this->workspace->saveData( "{$bucket}", $bucketData );
+			$this->workspace->saveData( $bucket, $bucketData );
 		}
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
@@ -443,7 +430,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$hasInvalidTitles = true;
 			}
 			if ( str_contains( $title, ':' ) ) {
-				if ( $validityChecker->hasDoubleCollon( $title ) ) {
+				if ( $validityChecker->hasDoubleColon( $title ) ) {
 					$this->customBuckets->addData(
 						'warning-analyze-invalid-titles',
 						'multiple_collons', $title,
@@ -535,7 +522,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @param string $contentReference
 	 * @return void
 	 */
-	protected function addTitleRevision( $titleText, $contentReference = 'n/a' ) {
+	protected function addTitleRevision( $titleText, $contentReference = 'n/a' ): void {
 		$this->buckets->addData( 'global-title-revisions', $titleText, $contentReference, true, true );
 	}
 
@@ -545,7 +532,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @param string $attachmentReference
 	 * @return void
 	 */
-	protected function addTitleAttachment( $titleText, $attachmentReference = 'n/a' ) {
+	protected function addTitleAttachment( $titleText, $attachmentReference = 'n/a' ): void {
 		$this->buckets->addData( 'global-title-attachments', $titleText, $attachmentReference );
 	}
 
@@ -555,11 +542,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @param string $attachmentReference
 	 * @return void
 	 */
-	protected function addFile( $rawFilename, $attachmentReference = 'n/a' ) {
+	protected function addFile( $rawFilename, $attachmentReference = 'n/a' ): void {
 		try {
 			$filename = $this->getFilename( $rawFilename, $attachmentReference );
 			$filename = ( new WindowsFilename( $filename ) ) . '';
-		} catch ( InvalidTitleException $ex ) {
+		} catch ( Exception $ex ) {
 			$this->logger->error( $ex->getMessage() );
 			return;
 		}

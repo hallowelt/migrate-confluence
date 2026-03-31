@@ -3,8 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Converter;
 
 use DOMDocument;
-use DOMElement;
-use DOMNode;
 use DOMXPath;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
@@ -29,7 +27,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro as PreserveCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ContenByLabelMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ContentByLabelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
@@ -82,50 +80,44 @@ use Symfony\Component\Console\Output\Output;
 
 class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
-	/** @var bool */
-	protected $bodyContentFile = null;
+	/** @var DataBuckets */
+	private DataBuckets $executionTimeBuckets;
 
 	/** @var DataBuckets */
-	private $executionTimeBuckets = null;
+	private DataBuckets $buckets;
 
 	/** @var DataBuckets */
-	private $buckets = null;
+	private DataBuckets $customBuckets;
 
-	/** @var DataBuckets */
-	private $customBuckets = null;
+	/** @var ConversionDataLookup|null */
+	private ?ConversionDataLookup $dataLookup = null;
 
-	/** @var ConversionDataLookup */
-	private $dataLookup = null;
+	/** @var ConversionDataWriter|null */
+	private ?ConversionDataWriter $conversionDataWriter = null;
 
-	/** @var ConversionDataWriter */
-	private $conversionDataWriter = null;
-
-	/** @var SplFileInfo */
-	private $rawFile = null;
+	/** @var SplFileInfo|null */
+	private ?SplFileInfo $rawFile = null;
 
 	/** @var string */
-	private $wikiText = '';
+	private string $wikiText = '';
 
 	/** @var string */
-	private $currentPageTitle = '';
-
-	/** @var string */
-	private $currentMainPage = '';
+	private string $currentPageTitle = '';
 
 	/** @var int */
-	private $currentSpace = 0;
+	private int $currentSpace = 0;
 
-	/** @var SplFileInfo */
-	private $preprocessedFile = null;
+	/** @var SplFileInfo|null */
+	private ?SplFileInfo $preprocessedFile = null;
 
-	/** @var Output */
-	private $output = null;
+	/** @var Output|null */
+	private ?Output $output = null;
 
 	/** @var string */
-	private $mainpage = 'Main Page';
+	private string $mainpage = 'Main Page';
 
 	/** @var bool */
-	private $isSpaceDescriptionContent = false;
+	private bool $isSpaceDescriptionContent = false;
 
 	/**
 	 * @param array $config
@@ -173,7 +165,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/**
 	 * @param Output $output
 	 */
-	public function setOutput( Output $output ) {
+	public function setOutput( Output $output ): void {
 		$this->output = $output;
 	}
 
@@ -213,7 +205,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->currentSpace = 0;
 			$this->currentPageTitle = '';
 		} else {
-			$this->currentSpace = $this->getSpaceIdFromPageId( (int)$pageId );
+			$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
 			if ( $this->currentSpace === -1 ) {
 				return '<-- No context space id found -->';
 			}
@@ -250,7 +242,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$xpath->registerNamespace( 'ac', 'some' );
 		$xpath->registerNamespace( 'ri', 'thing' );
-		$this->postProcessDOM( $dom, $xpath );
+		$this->postProcessDOM( $xpath );
 
 		$dom->saveHTMLFile(
 			$this->preprocessedFile->getPathname()
@@ -279,7 +271,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$exceed,
 				$bodyContentId
 			);
-			$this->output->writeln( "bodyContentId {$this->currentSpace} contains large content" );
+			$this->output->writeln( "bodyContentId $this->currentSpace contains large content" );
 		}
 
 		$executionTimeString = $executionTime->getHumanReadableTime();
@@ -297,11 +289,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
 	 * @param DOMDocument $dom
+	 *
 	 * @return void
 	 */
-	private function runProcessors( $dom ) {
+	private function runProcessors( DOMDocument $dom ): void {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$processors = [
@@ -354,7 +346,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
 				$currentPageTitle, $this->buckets
 			),
-			new ContenByLabelMacro( $this->currentPageTitle ),
+			new ContentByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
 			new GalleryMacro(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle
@@ -407,7 +399,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 *
 	 * @return void
 	 */
-	private function runPostProcessors() {
+	private function runPostProcessors(): void {
 		$postProcessors = [
 			new RestorePStyleTag(),
 			new RestoreTimeTag(),
@@ -430,7 +422,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 *
 	 * @return int
 	 */
-	private function getBodyContentIdFromFilename() {
+	private function getBodyContentIdFromFilename(): int {
 		// e.g. "67856345.mraw"
 		$filename = $this->rawFile->getFilename();
 		$filenameParts = explode( '.', $filename, 2 );
@@ -440,9 +432,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/**
 	 *
 	 * @param int $bodyContentId
+	 *
 	 * @return int
 	 */
-	private function getPageIdFromBodyContentId( $bodyContentId ) {
+	private function getPageIdFromBodyContentId( int $bodyContentId ): int {
 		$map = $this->buckets->getBucketData( 'global-body-content-id-to-page-id-map' );
 		return $map[$bodyContentId] ?? -1;
 	}
@@ -479,9 +472,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/**
 	 *
 	 * @param int $pageId
+	 *
 	 * @return int
 	 */
-	private function getSpaceIdFromPageId( $pageId ) {
+	private function getSpaceIdFromPageId( int $pageId ): int {
 		$map = $this->buckets->getBucketData( 'global-page-id-to-space-id' );
 		if ( isset( $map[$pageId] ) ) {
 			return $map[$pageId];
@@ -491,10 +485,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
 	 * @return DOMDocument
+	 * @throws Exception
 	 */
-	private function preprocessFile() {
+	private function preprocessFile(): DOMDocument {
 		$source = $this->preprocessHTMLSource( $this->rawFile );
 		$dom = new DOMDocument();
 		$dom->recover = true;
@@ -514,28 +508,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
-	 * @param DOMNode $oNode
-	 */
-	protected function logMarkup( $oNode ) {
-		if ( $oNode instanceof DOMElement === false ) {
-			return;
-		}
-
-		error_log(
-			"NODE: \n" .
-			$oNode->ownerDocument->saveXML( $oNode )
-		);
-	}
-
-	/**
-	 *
 	 * @param SplFileInfo $oHTMLSourceFile
 	 * @return string
 	 */
-	protected function preprocessHTMLSource( $oHTMLSourceFile ) {
+	protected function preprocessHTMLSource( SplFileInfo $oHTMLSourceFile ): string {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
-		$bodyContentId = $this->getBodyContentIdFromFilename( $oHTMLSourceFile->getFilename() );
+		$bodyContentId = $this->getBodyContentIdFromFilename();
 		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
 
 		$preprocessors = [
@@ -582,15 +560,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
+	 * BlueSpice VisualEditor breaks on <div>'s with data attributes
+	 * containing JSON
 	 *
-	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
+	 *
+	 * @return void
 	 */
-	public function postProcessDOM( $dom, $xpath ) {
-		/*
-		 * BlueSpice VisualEditor breaks on <div>'s with data attributes
-		 * containing JSON
-		 */
+	public function postProcessDOM( DOMXPath $xpath ): void {
 		$oElementsWithDataAttr = $xpath->query( '//*[@data-atlassian-layout]' );
 		foreach ( $oElementsWithDataAttr as $oElementWithDataAttr ) {
 			$oElementWithDataAttr->setAttribute( 'data-atlassian-layout', null );
@@ -601,7 +578,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 *
 	 * @return void
 	 */
-	public function postProcessLinks() {
+	public function postProcessLinks(): void {
 		$oldToNewTitlesMap = array_merge(
 			$this->buckets->getBucketData( 'global-pages-titles-map' ),
 			$this->buckets->getBucketData( 'global-blogposts-titles-map' )
@@ -623,7 +600,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 *
 	 * @return void
 	 */
-	private function postprocessWikiText() {
+	private function postprocessWikiText(): void {
 		// On Windows the CR would be encoded as "&#xD;" in the MediaWiki-XML, which is ulgy and unnecessary
 		$this->wikiText = str_replace( "\r", '', $this->wikiText );
 		$this->wikiText = str_replace( "###BREAK###", "\n", $this->wikiText );
@@ -698,11 +675,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 *
 	 * @param string $wikiText
+	 *
 	 * @return array
 	 */
-	private function buildMediaExcludeList( $wikiText ): array {
+	private function buildMediaExcludeList( string $wikiText ): array {
 		$excludes = [ 'File', 'Media' ];
 		$exclude = implode( '|', $excludes );
 
@@ -722,7 +699,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function getCurrentPageTitle(): string {
 		$spaceIdPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
 		if ( !isset( $spaceIdPrefixMap[$this->currentSpace] ) ) {
-			$this->output->writeln( "SpaceId {$this->currentSpace} not found in spaceIdPrefixMap" );
+			$this->output->writeln( "SpaceId $this->currentSpace not found in spaceIdPrefixMap" );
 		}
 		$prefix = $spaceIdPrefixMap[$this->currentSpace] ?? "";
 		$currentPageTitle = $this->currentPageTitle;

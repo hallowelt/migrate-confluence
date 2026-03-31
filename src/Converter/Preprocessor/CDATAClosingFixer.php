@@ -7,10 +7,10 @@ use HalloWelt\MigrateConfluence\Converter\IPreprocessor;
 class CDATAClosingFixer implements IPreprocessor {
 
 	/** @var string */
-	private $pattern = '#(<ac:plain-text-body>)(.*?)(</ac:plain-text-body>)#si';
+	private string $pattern = '#(<ac:plain-text-body>)(.*?)(</ac:plain-text-body>)#si';
 
 	/** @var string */
-	private $cdataCloser = " [[Category:Broken_CDATA]] ]]>";
+	private string $cdataCloser = " [[Category:Broken_CDATA]] ]]>";
 
 	/**
 	 * @inheritDoc
@@ -27,11 +27,11 @@ class CDATAClosingFixer implements IPreprocessor {
 	}
 
 	/**
-	 *
 	 * @param array $matches
+	 *
 	 * @return string
 	 */
-	private function preprocessPlainTextBody( $matches ) {
+	private function preprocessPlainTextBody( array $matches ): string {
 		$startTag = $matches[1];
 		$content = $matches[2];
 		$endTag = $matches[3];
@@ -46,22 +46,22 @@ class CDATAClosingFixer implements IPreprocessor {
 	}
 
 	/**
-	 *
 	 * @param string $text
 	 * @param string $prefix
+	 *
 	 * @return bool
 	 */
-	private function startsWith( $text, $prefix ) {
+	private function startsWith( string $text, string $prefix ): bool {
 		return strpos( $text, $prefix ) === 0;
 	}
 
 	/**
-	 *
 	 * @param string $content
 	 * @param string $suffix
+	 *
 	 * @return bool
 	 */
-	private function endsWith( $content, $suffix ) {
+	private function endsWith( string $content, string $suffix ): bool {
 		$contentLength = mb_strlen( $content );
 		$suffixLength = mb_strlen( $suffix );
 		$startIdx = $contentLength - $suffixLength;

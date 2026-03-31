@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
 class ChildrenMacro extends StructuredMacroProcessorBase {
@@ -9,17 +10,17 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @var int
 	 */
-	private $spaceId = -1;
+	private int $spaceId;
 
 	/**
 	 * @var string
 	 */
-	private $currentPageTitle = '';
+	private string $currentPageTitle;
 
 	/**
 	 * @var ConversionDataLookup
 	 */
-	private $dataLookup;
+	private ConversionDataLookup $dataLookup;
 
 	/**
 	 * @param int $spaceId
@@ -41,10 +42,9 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$broken = false;
 		$paramNodes = [];
 		foreach ( $node->childNodes as $childNode ) {
@@ -83,19 +83,19 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 									if ( $pageConfluenceTitle === '' ) {
 										// If no page title can be found mark macro as broken
 										$broken = true;
-										$params[$name] = "Confluence---{$spaceKey}---{$pageConfluenceTitle}";
+										$params[$name] = "Confluence---$spaceKey---$pageConfluenceTitle";
 										break;
 									}
 
 									$wikiTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey(
-										"{$spaceId}---{$pageConfluenceTitle}"
+										"$spaceId---$pageConfluenceTitle"
 									);
 
 									$params[$name] = $wikiTitle;
 
 									if ( $wikiTitle === '' ) {
 										// If wiki page title is empty mark macro as broken
-										$params[$name] = "Confluence---{$spaceKey}---{$pageConfluenceTitle}";
+										$params[$name] = "Confluence---$spaceKey---$pageConfluenceTitle";
 										$broken = true;
 										break;
 									}
@@ -129,7 +129,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		$wikiText = '{{SubpageList' . $templateParams . '}}';
 		if ( $broken ) {
-			$wikiText .= $this->getBrokenMacroCategroy();
+			$wikiText .= $this->getBrokenMacroCategory();
 		}
 
 		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md

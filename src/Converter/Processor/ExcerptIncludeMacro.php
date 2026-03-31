@@ -2,12 +2,14 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
+
 class ExcerptIncludeMacro extends IncludeMacro {
 
 	/**
 	 * @var array
 	 */
-	private $parameters = [];
+	private array $parameters = [];
 
 	/**
 	 *
@@ -18,10 +20,9 @@ class ExcerptIncludeMacro extends IncludeMacro {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$parameterEls = $node->getElementsByTagName( 'parameter' );
 		foreach ( $parameterEls as $parameterEl ) {
 			$paramName = trim( $parameterEl->getAttribute( 'ac:name' ) ?? '' );
@@ -41,7 +42,7 @@ class ExcerptIncludeMacro extends IncludeMacro {
 		}
 		return <<<WIKITEXT
 {{ExcerptInclude###BREAK###
- |target = {$this->mediaWikiPageName}###BREAK###$parameterList
+ |target = $this->mediaWikiPageName###BREAK###$parameterList
 }}###BREAK###
 WIKITEXT;
 	}

@@ -2,9 +2,12 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
+
 /**
  * Unfortunately `pandoc` eats <syntaxhighlight> tags.
  * Therefore we preserve the information in the DOM and restore it in the post processing.
+ *
  * @see HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreNoFormat
  */
 class NoFormatMacro extends StructuredMacroProcessorBase {
@@ -18,10 +21,9 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'pre' );
 		$macroReplacement->setAttribute( 'class', 'noformat' );
 
@@ -34,9 +36,10 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @param DOMNode $node
 	 * @param DOMNode $replacementNode
+	 *
 	 * @return void
 	 */
-	private function processParamElements( $node, $replacementNode ): void {
+	private function processParamElements( DOMNode $node, DOMNode $replacementNode ): void {
 		$paramEls = $node->getElementsByTagName( 'parameter' );
 		foreach ( $paramEls as $paramEl ) {
 			$paramName = $paramEl->getAttribute( 'ac:name' );
@@ -50,9 +53,10 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @param DOMNode $node
 	 * @param DOMNode $replacementNode
+	 *
 	 * @return void
 	 */
-	private function processPlainTextBody( $node, $replacementNode ): void {
+	private function processPlainTextBody( DOMNode $node, DOMNode $replacementNode ): void {
 		$hasPlaintextEls = false;
 		$plaintextEls = $node->getElementsByTagName( 'plain-text-body' );
 		foreach ( $plaintextEls as $plaintextEl ) {
@@ -64,7 +68,7 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 
 		if ( !$hasPlaintextEls ) {
 			$replacementNode->appendChild(
-				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategroy() )
+				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategory() )
 			);
 		}
 	}

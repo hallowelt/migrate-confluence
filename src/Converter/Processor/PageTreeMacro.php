@@ -12,22 +12,21 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 class PageTreeMacro extends StructuredMacroProcessorBase {
 
 	/** @var ConversionDataLookup */
-	private $dataLookup;
+	private ConversionDataLookup $dataLookup;
 
 	/** @var int */
-	private $currentSpace = 0;
+	private int $currentSpace;
 
 	/** @var string */
-	private $currentPageTitle = '';
+	private string $currentPageTitle;
 
 	/** @var string */
-	private $mainpage = 'Main Page';
+	private string $mainpage;
 
 	/** @var array */
-	private $params = [];
+	private array $params = [];
 
 	/**
-	 *
 	 * @return string
 	 */
 	protected function getMacroName(): string {
@@ -50,10 +49,9 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$this->macroParams( $node );
 		$brokenMacro = false;
 		if ( isset( $this->params['broken-macro'] ) ) {
@@ -70,7 +68,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 		$template .= "}}";
 
 		if ( $brokenMacro ) {
-			$template .= ' ' . $this->getBrokenMacroCategroy();
+			$template .= ' ' . $this->getBrokenMacroCategory();
 		}
 
 		$macroReplacement = $node->ownerDocument->createTextNode( $template );
@@ -80,9 +78,10 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	/**
 	 *
 	 * @param DOMNode $macro
+	 *
 	 * @return void
 	 */
-	private function macroParams( $macro ): void {
+	private function macroParams( DOMNode $macro ): void {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -173,7 +172,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 					}
 					$currentPageParts = explode( '/', $currentPageTitle );
 					if ( count( $currentPageParts ) > 1 ) {
-						$subpageTitle = array_pop( $currentPageParts );
+						array_pop( $currentPageParts );
 						$text = array_pop( $currentPageParts );
 					} else {
 						$text = $this->currentPageTitle;
@@ -223,11 +222,6 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 		} else {
 			// if content-title is not set fallback to {{FULLPAGENAME}}
 			$params['content-title'] = '{{FULLPAGENAME}}';
-			if ( isset( $params['space-key'] ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] );
-			} else {
-				$spaceId = $this->currentSpace;
-			}
 			$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
 			if ( is_string( $namespace ) ) {
 				$params['space-key'] = $namespace;
@@ -244,6 +238,6 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	 */
 	private function getTitleLookupKey( int $spaceId, string $text ): string {
 		$rawText = basename( $text );
-		return (string)$spaceId . '---' . $rawText;
+		return $spaceId . '---' . $rawText;
 	}
 }

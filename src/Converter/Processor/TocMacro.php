@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
+
 class TocMacro extends StructuredMacroProcessorBase {
 
 	/**
@@ -13,10 +15,9 @@ class TocMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$node->parentNode->replaceChild(
 			$node->ownerDocument->createTextNode( "\n__TOC__\n###BREAK###" ),
 			$node

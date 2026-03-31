@@ -13,10 +13,10 @@ class BlogPost extends ProcessorBase {
 	private const NS_BLOG_NAME = 'Blog';
 
 	/** @var array */
-	private $includeSpaceKey = [];
+	private array $includeSpaceKey;
 
 	/** @var bool */
-	private $includeHistory = false;
+	private bool $includeHistory;
 
 	/** @var mixed */
 	private $spaceId;
@@ -25,7 +25,7 @@ class BlogPost extends ProcessorBase {
 	private $pageId;
 
 	/** @var string */
-	private $targetTitle = '';
+	private string $targetTitle = '';
 
 	/**
 	 * @param array $includeSpaceKey
@@ -199,7 +199,7 @@ class BlogPost extends ProcessorBase {
 			$version = $properties['version'];
 		}
 
-		$revision = implode( '/', $bodyContentIds ) . "@{$version}-{$revisionTimestamp}";
+		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
 	}
 

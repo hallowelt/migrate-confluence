@@ -11,34 +11,34 @@ use Symfony\Component\Console\Output\Output;
 abstract class ProcessorBase implements IConfluenceComposerProcessor {
 
 	/** @var Builder */
-	protected $builder;
+	protected Builder $builder;
 
 	/** @var DataBuckets */
-	protected $buckets;
+	protected DataBuckets $buckets;
 
 	/** @var Workspace */
-	protected $workspace;
+	protected Workspace $workspace;
 
 	/** @var Output */
-	protected $output;
+	protected Output $output;
 
 	/** @var string */
-	protected $dest = '';
+	protected string $dest = '';
 
 	/** @var array */
-	protected $config = [];
+	protected array $config = [];
 
 	/** @var bool */
-	protected $mulitXmlOutputEnabled = false;
+	protected bool $multiXmlOutputEnabled = false;
 
 	/** @var int */
-	protected $limit = 0;
+	protected int $limit = 0;
 
 	/** @var int */
-	protected $numOfRevisions = 0;
+	protected int $numOfRevisions = 0;
 
 	/** @var int */
-	protected $outputXmlFile = 0;
+	protected int $outputXmlFile = 0;
 
 	/**
 	 * @param Builder $builder
@@ -61,13 +61,19 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 
 		if ( isset( $this->config['composer-page-per-xml-limit'] ) ) {
 			$this->limit = $this->config['composer-page-per-xml-limit'];
-			$this->mulitXmlOutputEnabled = true;
+			$this->multiXmlOutputEnabled = true;
 		}
 	}
 
 	/**
 	 * @param string $wikiPageName
 	 * @param string $wikiText
+	 * @param string $timestamp
+	 * @param string $username
+	 * @param string $model
+	 * @param string $format
+	 * @param array $slotData
+	 *
 	 * @return void
 	 */
 	protected function addRevision(
@@ -79,7 +85,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		);
 		$this->numOfRevisions++;
 
-		if ( $this->mulitXmlOutputEnabled ) {
+		if ( $this->multiXmlOutputEnabled ) {
 			if ( $this->numOfRevisions >= $this->limit ) {
 				$this->writeOutputFile();
 				$this->numOfRevisions = 0;
@@ -108,7 +114,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		);
 		$this->numOfRevisions++;
 
-		if ( $this->mulitXmlOutputEnabled ) {
+		if ( $this->multiXmlOutputEnabled ) {
 			if ( $this->numOfRevisions >= $this->limit ) {
 				$this->writeOutputFile();
 				$this->numOfRevisions = 0;
@@ -122,7 +128,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	protected function writeOutputFile(): void {
 		$name = $this->getOutputName();
 
-		if ( $this->mulitXmlOutputEnabled ) {
+		if ( $this->multiXmlOutputEnabled ) {
 			$this->outputXmlFile++;
 			$num = (string)$this->outputXmlFile;
 			$name .= '-' . str_pad( $num, 8, '0', STR_PAD_LEFT );
@@ -130,7 +136,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 
 		$name .= '.xml';
 
-		$this->builder->buildAndSave( $this->dest . "/result/{$name}" );
+		$this->builder->buildAndSave( $this->dest . "/result/$name" );
 		$this->builder->reset();
 	}
 
@@ -159,7 +165,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 			isset( $this->config['composer-skip-namespace'] )
 			&& in_array( $namespace, $this->config['composer-skip-namespace'] )
 		) {
-			$this->output->writeln( "Namespace {$namespace} skipped by configuration" );
+			$this->output->writeln( "Namespace $namespace skipped by configuration" );
 			return true;
 		}
 
@@ -169,7 +175,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 			isset( $this->advancedConfig['composer-skip-titles'] )
 			&& in_array( $pageTitle, $this->advancedConfig['composer-skip-titles'] )
 		) {
-			$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
+			$this->output->writeln( "Page $pageTitle skipped by configuration" );
 			return true;
 		}
 		return false;
@@ -180,11 +186,11 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 * @return string
 	 */
 	protected function getNamespace( string $title ): string {
-		$collonPos = strpos( $title, ':' );
-		if ( $collonPos === false ) {
+		$colonPos = strpos( $title, ':' );
+		if ( $colonPos === false ) {
 			return 'NS_MAIN';
 		}
-		return substr( $title, 0, $collonPos );
+		return substr( $title, 0, $colonPos );
 	}
 
 	/**

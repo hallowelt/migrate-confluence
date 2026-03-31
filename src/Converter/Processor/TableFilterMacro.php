@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use DOMNodeList;
 
 /**
  * <ac:structured-macro ac:name="table-filter" ac:schema-version="1" ac:macro-id="...">
@@ -55,7 +54,6 @@ class TableFilterMacro extends ConvertMacroToTemplateWithBodyBase {
 	 * @inheritDoc
 	 */
 	protected function extractBodyElements( DOMElement $actualMacro, DOMElement $parentNode ): void {
-		/** @var DOMNodeList $richTextBodies */
 		$richTextBodies = $actualMacro->getElementsByTagName( 'rich-text-body' );
 		$richTextBodyEls = [];
 		foreach ( $richTextBodies as $richTextBody ) {

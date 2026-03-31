@@ -6,11 +6,8 @@ use XMLReader;
 
 class Spaces extends ProcessorBase {
 
-	/** @var XMLHelper */
-	protected $xmlHelper;
-
 	/** @var array */
-	protected $spacePrefixMap = [];
+	protected array $spacePrefixMap = [];
 
 	/**
 	 * @param array $spacePrefixMap
@@ -83,7 +80,7 @@ class Spaces extends ProcessorBase {
 		if ( isset( $this->spacePrefixMap[$spaceKey] ) ) {
 			$customSpacePrefix = $this->spacePrefixMap[$spaceKey];
 		} elseif ( $spaceKey !== 'GENERAL' ) {
-			$customSpacePrefix = "{$spaceKey}:";
+			$customSpacePrefix = "$spaceKey:";
 		} else {
 			$customSpacePrefix = '';
 		}
@@ -115,9 +112,10 @@ class Spaces extends ProcessorBase {
 	/**
 	 * @param int|string $spaceKey
 	 * @param string $spaceName
+	 *
 	 * @return string
 	 */
-	private function sanitizeUserSpaceKey( $spaceKey, $spaceName ) {
+	private function sanitizeUserSpaceKey( int|string $spaceKey, string $spaceName ): string {
 		$spaceKey = substr( $spaceKey, 1, strlen( $spaceKey ) - 1 );
 		if ( is_numeric( $spaceKey ) ) {
 			$spaceKey = $spaceName;

@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMAttr;
+use DOMElement;
 use DOMNode;
 
 /**
@@ -18,10 +18,9 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 		$macroReplacement->setAttribute( 'class', "ac-widget" );
 
@@ -38,9 +37,10 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 	 *
 	 * @param DOMNode $macro
 	 * @param DOMElement $macroReplacement
-	 * @return void
+	 *
+	 * @return array
 	 */
-	private function macroParams( $macro, $macroReplacement ): array {
+	private function macroParams( DOMNode $macro, DOMElement $macroReplacement ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName !== 'ac:parameter' ) {
@@ -53,7 +53,7 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 
 			$name = $attrName->nodeValue;
 
-			$value = $this->getParamValue( $childNode, 'ri:url' );
+			$value = $this->getParamValue( $childNode );
 
 			$params[$name] = $value;
 		}
@@ -68,9 +68,9 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @param DOMNode $node
 	 * @param string $name
-	 * @return ?DOMAttr
+	 * @return DOMNode|null
 	 */
-	private function getAttribute( DOMNode $node, string $name ): ?DOMAttr {
+	private function getAttribute( DOMNode $node, string $name ): ?DOMNode {
 		$attributes = $node->attributes;
 
 		if ( $attributes && $attributes->count() > 0 ) {
@@ -90,10 +90,10 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param DOMNode $node
-	 * @param string $name
-	 * @return void
+	 *
+	 * @return string|null
 	 */
-	private function getParamValue( DOMNode $node, string $name ) {
+	private function getParamValue( DOMNode $node ): ?string {
 		$value = '';
 		$childNodes = $node->childNodes;
 

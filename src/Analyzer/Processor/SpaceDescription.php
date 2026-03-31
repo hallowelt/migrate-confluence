@@ -74,17 +74,11 @@ class SpaceDescription extends ProcessorBase {
 		}
 
 		foreach ( $bodyContents as $bodyContent ) {
-			if ( !isset( $this->data['global-body-content-id-to-space-description-id-map'][$bodyContent] ) ) {
-				$this->data['global-body-content-id-to-space-description-id-map'][$bodyContent] = [];
-			}
 			$this->data['global-body-content-id-to-space-description-id-map'][$bodyContent] = (int)$descriptionId;
 			$this->output->writeln( "\nAdd space description ($bodyContent)" );
 		}
 
 		foreach ( $labellings as $labelling ) {
-			if ( !isset( $this->data['global-space-labelling-id-to-body-content-id-map'][$labelling] ) ) {
-				$this->data['global-space-labelling-id-to-body-content-id-map'][$labelling] = [];
-			}
 			$this->data['global-space-labelling-id-to-body-content-id-map'][$labelling] = (int)$descriptionId;
 			$this->output->writeln( "\nAdd space labelling ($labelling)" );
 		}

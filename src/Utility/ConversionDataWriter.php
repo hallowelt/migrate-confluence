@@ -7,16 +7,15 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 class ConversionDataWriter {
 
 	/**
-	 *
 	 * @var array
 	 */
-	private $confluenceFiles = [];
+	private array $confluenceFiles;
 
 	/**
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataWriter
 	 */
-	public static function newFromBuckets( DataBuckets $buckets ) {
+	public static function newFromBuckets( DataBuckets $buckets ): ConversionDataWriter {
 		return new static(
 			$buckets->getBucketData( 'global-files' )
 		);

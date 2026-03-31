@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
+use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
@@ -10,25 +12,26 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @var ConversionDataLookup
 	 */
-	protected $dataLookup;
+	protected ConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
 	 */
-	protected $currentSpaceId;
+	protected int $currentSpaceId;
 
 	/**
 	 * @var string
 	 */
-	protected $mediaWikiPageName = '';
+	protected string $mediaWikiPageName = '';
 
 	/**
-	 * @var DOMNode
+	 * @var DOMNode|null
 	 */
-	protected $currentNode = null;
+	protected ?DOMNode $currentNode = null;
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
+	 * @param int $currentSpaceId
 	 */
 	public function __construct( ConversionDataLookup $dataLookup, int $currentSpaceId ) {
 		$this->dataLookup = $dataLookup;
@@ -44,10 +47,9 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$this->currentNode = $node;
 		$this->setMediaWikiPageName();
 		if ( $this->mediaWikiPageName === '' ) {
@@ -67,6 +69,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @return void
+	 * @throws InvalidTitleException
 	 */
 	private function setMediaWikiPageName(): void {
 		$pageEl = $this->currentNode->getElementsByTagName( 'page' )->item( 0 );
@@ -81,7 +84,9 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @param int $spaceId
 	 * @param string $rawPageTitle
+	 *
 	 * @return string
+	 * @throws InvalidTitleException
 	 */
 	private function generatePageConfluenceKey( int $spaceId, string $rawPageTitle ): string {
 		$genericTitleBuilder = new GenericTitleBuilder( [] );

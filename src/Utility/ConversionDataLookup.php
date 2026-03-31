@@ -7,62 +7,55 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 class ConversionDataLookup {
 
 	/**
-	 *
 	 * @var array
 	 */
-	private $spaceIdPrefixMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $spaceIdToKeyMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $spaceKeyToIdMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $pagesTitlesMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $filenamesToFiletitlesMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $attachmentOrigFilenameToTargetFilenameMap = [];
-
-	/**
-	 *
-	 * @var array
-	 */
-	private $files = [];
+	private array $spaceIdPrefixMap;
 
 	/**
 	 * @var array
 	 */
-	private $userMap = [];
+	private array $spaceIdToKeyMap;
 
 	/**
 	 * @var array
 	 */
-	private $attachmentMetadataMap = [];
+	private array $spaceKeyToIdMap;
+
+	/**
+	 * @var array
+	 */
+	private array $pagesTitlesMap = [];
+
+	/**
+	 * @var array
+	 */
+	private array $filenamesToFiletitlesMap;
+
+	/**
+	 * @var array
+	 */
+	private array $attachmentOrigFilenameToTargetFilenameMap = [];
+
+	/**
+	 * @var array
+	 */
+	private array $files;
+
+	/**
+	 * @var array
+	 */
+	private array $userMap;
+
+	/**
+	 * @var array
+	 */
+	private array $attachmentMetadataMap;
 
 	/**
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataLookup
 	 */
-	public static function newFromBuckets( DataBuckets $buckets ) {
+	public static function newFromBuckets( DataBuckets $buckets ): ConversionDataLookup {
 		return new static(
 			$buckets->getBucketData( 'global-space-id-to-prefix-map' ),
 			$buckets->getBucketData( 'global-pages-titles-map' ),
@@ -88,9 +81,11 @@ class ConversionDataLookup {
 	 * @param array $attachmentIdToFileKeyMap
 	 */
 	public function __construct(
-		$spaceIdPrefixMap, $pagesTitlesMap,
-		$filenamesToFiletitlesMap, $attachmentOrigFilenameToTargetFilenameMap,
-		$files, $userMap, $spaceIdToKeyMap, $attachmentMetadata, $attachmentIdToFileKeyMap ) {
+		array $spaceIdPrefixMap, array $pagesTitlesMap,
+		array $filenamesToFiletitlesMap, array $attachmentOrigFilenameToTargetFilenameMap,
+		array $files, array $userMap, array $spaceIdToKeyMap,
+		array $attachmentMetadata, array $attachmentIdToFileKeyMap
+	) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
 		$this->spaceKeyToIdMap = array_flip( $this->spaceIdToKeyMap );
@@ -122,9 +117,10 @@ class ConversionDataLookup {
 
 	/**
 	 * @param string $spaceKey
+	 *
 	 * @return int
 	 */
-	public function getSpaceIdFromSpaceKey( $spaceKey ) {
+	public function getSpaceIdFromSpaceKey( string $spaceKey ): int {
 		// See `ConfluenceAnalyzer::makeSpacesMap`
 		if ( $spaceKey === 'GENERAL' ) {
 			$spaceKey = '';
@@ -143,15 +139,15 @@ class ConversionDataLookup {
 	 * is overwritten by custom config file.
 	 *
 	 * @param string $spaceKey
-	 * @return int
+	 *
+	 * @return int|string
 	 */
-	public function getSpacePrefixFromSpaceKey( $spaceKey ) {
+	public function getSpacePrefixFromSpaceKey( string $spaceKey ): int|string {
 		$id = -1;
 		if ( isset( $this->spaceKeyToIdMap[$spaceKey] ) ) {
 			$id = $this->spaceKeyToIdMap[$spaceKey];
 		}
 
-		$spacePrefix = '';
 		if ( isset( $this->spaceIdPrefixMap[$id] ) ) {
 			$spacePrefix = $this->spaceIdPrefixMap[$id];
 			// See `ConfluenceAnalyzer::makeSpacesMap`
@@ -168,9 +164,10 @@ class ConversionDataLookup {
 	/**
 	 *
 	 * @param string $confluencePageKey
+	 *
 	 * @return string
 	 */
-	public function getTargetTitleFromConfluencePageKey( $confluencePageKey ) {
+	public function getTargetTitleFromConfluencePageKey( string $confluencePageKey ): string {
 		$confluencePageKey = str_replace( ' ', '_', $confluencePageKey );
 		if ( isset( $this->pagesTitlesMap[$confluencePageKey] ) ) {
 			return $this->pagesTitlesMap[$confluencePageKey];
@@ -181,9 +178,10 @@ class ConversionDataLookup {
 	/**
 	 *
 	 * @param string $confluenceFileKey
+	 *
 	 * @return string
 	 */
-	public function getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey ) {
+	public function getTargetFileTitleFromConfluenceFileKey( string $confluenceFileKey ): string {
 		if ( isset( $this->filenamesToFiletitlesMap[$confluenceFileKey] ) ) {
 			return $this->filenamesToFiletitlesMap[$confluenceFileKey];
 		}

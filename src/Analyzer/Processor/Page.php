@@ -12,22 +12,22 @@ use XMLReader;
 class Page extends ProcessorBase {
 
 	/** @var array */
-	private $includeSpaceKey = [];
+	private array $includeSpaceKey;
 
 	/** @var string */
-	private $mainpage = 'Main Page';
+	private string $mainpage;
 
 	/** @var bool */
-	private $includeHistory = false;
+	private bool $includeHistory;
 
 	/** @var int|null */
-	private $spaceId;
+	private ?int $spaceId;
 
 	/** @var int|null */
-	private $pageId;
+	private ?int $pageId;
 
 	/** @var string */
-	private $targetTitle = '';
+	private string $targetTitle = '';
 
 	/**
 	 * @param array $includeSpaceKey
@@ -170,7 +170,7 @@ class Page extends ProcessorBase {
 			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
 				$this->pageId => $ex->getInvalidTitle()
 			];
-			// We don't want to loose this page. Title can be modified after analyze process
+			// We don't want to lose this page. Title can be modified after analyze process
 			$this->targetTitle = $ex->getInvalidTitle();
 		}
 
@@ -188,7 +188,9 @@ class Page extends ProcessorBase {
 	 * @param string $title
 	 * @param array $properties
 	 * @param array $collection
+	 *
 	 * @return void
+	 * @throws InvalidTitleException
 	 */
 	private function process( string $title, array $properties, array $collection ): void {
 		/**
@@ -206,7 +208,7 @@ class Page extends ProcessorBase {
 			->appendTitleSegment( $pageConfluenceTitle )->build();
 		// We need to preserve the spaceID, so we can properly resolve cross-space links
 		// in the `convert` stage
-		$pageConfluenceKey = "{$this->spaceId}---{$pageConfluenceTitle}";
+		$pageConfluenceKey = "$this->spaceId---$pageConfluenceTitle";
 		// Some normalization
 		$pageConfluenceKey = str_replace( ' ', '_', $pageConfluenceKey );
 
@@ -274,12 +276,12 @@ class Page extends ProcessorBase {
 			$version = $properties['version'];
 		}
 
-		$revision = implode( '/', $bodyContentIds ) . "@{$version}-{$revisionTimestamp}";
+		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
 
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
 
 		// Find attachments
-		$this->getAttachmentsFromCollection( $this->spaceId, $properties, $collection );
+		$this->getAttachmentsFromCollection( $this->spaceId, $collection );
 	}
 
 	/**
@@ -294,11 +296,10 @@ class Page extends ProcessorBase {
 
 	/**
 	 * @param int $spaceId
-	 * @param array $properties
 	 * @param array $collection
 	 * @return void
 	 */
-	private function getAttachmentsFromCollection( int $spaceId, array $properties, array $collection ): void {
+	private function getAttachmentsFromCollection( int $spaceId, array $collection ): void {
 		if ( !isset( $this->data['analyze-page-id-to-confluence-title-map'][$this->pageId] ) ) {
 			return;
 		}
@@ -357,7 +358,7 @@ class Page extends ProcessorBase {
 			$this->data['analyze-title-to-attachment-title'][$wikiTitle] = $attachmentTargetFilename;
 			$this->data['analyze-added-attachment-id'][] = $attachmentId;
 
-			$confluenceFileKey = str_replace( ' ', '_', "{$spaceId}---{$confluenceTitle}---{$attachmentOrigFilename}" );
+			$confluenceFileKey = str_replace( ' ', '_', "$spaceId---$confluenceTitle---$attachmentOrigFilename" );
 
 			$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey]
 				= $attachmentTargetFilename;
@@ -409,7 +410,7 @@ class Page extends ProcessorBase {
 
 		/*
 		 * Some attachments do not have a file extension available. We try
-		 * to find an extension by looking a the content type, but
+		 * to find an extension by looking at the content type, but
 		 * sometimes even this won't help... ("octet-stream")
 		 */
 		$file = new SplFileInfo( $targetName );
@@ -425,9 +426,10 @@ class Page extends ProcessorBase {
 
 	/**
 	 * @param SplFileInfo $file
+	 *
 	 * @return bool
 	 */
-	private function hasNoExplicitFileExtension( $file ) {
+	private function hasNoExplicitFileExtension( SplFileInfo $file ): bool {
 		if ( $file->getExtension() === '' ) {
 			return true;
 		}

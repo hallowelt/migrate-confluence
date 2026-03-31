@@ -14,10 +14,9 @@ class AnchorMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$anchorName = '';
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter'
@@ -29,7 +28,7 @@ class AnchorMacro extends StructuredMacroProcessorBase {
 
 		if ( $anchorName === '' ) {
 			$replacement = $node->ownerDocument->createTextNode(
-				$this->getBrokenMacroCategroy()
+				$this->getBrokenMacroCategory()
 			);
 		} else {
 			$replacement = $node->ownerDocument->createElement( 'span' );
