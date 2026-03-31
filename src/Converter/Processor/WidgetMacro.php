@@ -19,10 +19,9 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 		$macroReplacement->setAttribute( 'class', "ac-widget" );
 

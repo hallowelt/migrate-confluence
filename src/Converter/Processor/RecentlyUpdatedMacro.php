@@ -27,10 +27,9 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$namespace = '';
 		$titleParts = explode( ':', $this->currentPageTitle, 2 );
 		if ( count( $titleParts ) === 2 ) {

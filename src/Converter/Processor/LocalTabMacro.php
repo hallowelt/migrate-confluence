@@ -26,10 +26,9 @@ class LocalTabMacro extends MacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$params = $this->getMacroParams( $node );
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );

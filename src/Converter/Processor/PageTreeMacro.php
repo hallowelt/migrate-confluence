@@ -49,10 +49,9 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$this->macroParams( $node );
 		$brokenMacro = false;
 		if ( isset( $this->params['broken-macro'] ) ) {

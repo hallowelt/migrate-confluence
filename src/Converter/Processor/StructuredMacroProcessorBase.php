@@ -42,7 +42,7 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 	 * @return void
 	 * @throws DOMException
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$macroName = $node->getAttribute( 'ac:name' );
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );

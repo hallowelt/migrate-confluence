@@ -44,12 +44,9 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 *
-	 * @return void
-	 * @throws DOMException
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$macroName = $node->getAttribute( 'ac:name' );
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );

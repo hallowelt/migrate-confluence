@@ -46,10 +46,9 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$this->currentNode = $node;
 		$this->setMediaWikiPageName();
 		if ( $this->mediaWikiPageName === '' ) {

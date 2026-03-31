@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMException;
 use DOMNode;
 
 class AnchorMacro extends StructuredMacroProcessorBase {
@@ -14,10 +15,9 @@ class AnchorMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$anchorName = '';
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter'

@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
+use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
@@ -37,9 +38,11 @@ abstract class MacroProcessorBase implements IProcessor {
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return void
+	 * @throws DOMException
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$macroName = $node->getAttribute( 'ac:name' );
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );

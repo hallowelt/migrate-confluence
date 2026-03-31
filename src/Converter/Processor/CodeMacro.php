@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMException;
 use DOMNode;
 
 /**
@@ -21,11 +20,10 @@ class CodeMacro extends StructuredMacroProcessorBase {
 		return 'code';
 	}
 
-
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'pre' );
 		$macroReplacement->setAttribute( 'class', 'PRESERVESYNTAXHIGHLIGHT' );
 

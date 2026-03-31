@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
@@ -43,10 +44,9 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMElement $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$params = $this->readParams( $node );
 		$wikitextTemplate = new Template( $this->getWikiTextTemplateName(), $params );
 		$wikitextTemplate->setRenderFormatted( false );
@@ -66,10 +66,10 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMElement $node
+	 * @param DOMNode $node
 	 * @return array
 	 */
-	protected function readParams( DOMElement $node ): array {
+	protected function readParams( DOMNode $node ): array {
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {

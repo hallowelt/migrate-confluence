@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use DOMNode;
 use DOMText;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
@@ -19,7 +20,6 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 *
 	 * @return string
 	 */
 	protected function getMacroName(): string {
@@ -27,10 +27,9 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$paramNodes = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {

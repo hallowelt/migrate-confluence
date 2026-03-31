@@ -42,10 +42,9 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$broken = false;
 		$paramNodes = [];
 		foreach ( $node->childNodes as $childNode ) {

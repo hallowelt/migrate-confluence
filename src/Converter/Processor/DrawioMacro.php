@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
@@ -51,10 +52,9 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$params = $this->getMacroParams( $node );
 
 		if ( isset( $params['diagramName'] ) ) {
@@ -89,7 +89,6 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 *
 	 * @param DOMNode $macro
 	 * @return array
 	 */

@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 
 class JiraMacro extends StructuredMacroProcessorBase {
@@ -15,10 +16,9 @@ class JiraMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMElement $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DomNode $node ): void {
 		$params = $this->readParams( $node );
 		$wikitextTemplate = new Template( $this->getWikiTextTemplateName(), $params );
 		$wikitextTemplate->setRenderFormatted( false );
@@ -35,10 +35,10 @@ class JiraMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMElement $node
+	 * @param DomNode $node
 	 * @return array
 	 */
-	protected function readParams( DOMElement $node ): array {
+	protected function readParams( DomNode $node ): array {
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {

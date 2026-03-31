@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use DOMNode;
 
 /**
  * <ac:structured-macro ac:name="loremipsum">
@@ -29,10 +30,9 @@ class LoremIpsumMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMElement $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$paragraphs = 0;
 
 		foreach ( $node->childNodes as $childNode ) {

@@ -2,9 +2,12 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
+
 /**
  * Unfortunately `pandoc` eats <syntaxhighlight> tags.
  * Therefore we preserve the information in the DOM and restore it in the post processing.
+ *
  * @see HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreNoFormat
  */
 class NoFormatMacro extends StructuredMacroProcessorBase {
@@ -18,10 +21,9 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'pre' );
 		$macroReplacement->setAttribute( 'class', 'noformat' );
 
