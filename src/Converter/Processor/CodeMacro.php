@@ -2,9 +2,13 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMException;
+use DOMNode;
+
 /**
  * Unfortunately `pandoc` eats <syntaxhighlight> tags.
  * Therefore we preserve the information in the DOM and restore it in the post processing.
+ *
  * @see HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro
  */
 class CodeMacro extends StructuredMacroProcessorBase {
@@ -17,9 +21,9 @@ class CodeMacro extends StructuredMacroProcessorBase {
 		return 'code';
 	}
 
+
 	/**
-	 * @param DOMNode $node
-	 * @return void
+	 * @inheritDoc
 	 */
 	protected function doProcessMacro( $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'pre' );
@@ -64,12 +68,11 @@ class CodeMacro extends StructuredMacroProcessorBase {
 	 * @param DOMNode $replacementNode
 	 * @return void
 	 */
-	private function processPlainTextBody( $node, $replacementNode ): void {
+	private function processPlainTextBody( DOMNode $node, DOMNode $replacementNode ): void {
 		$hasPlaintextEls = false;
 		$plaintextEls = $node->getElementsByTagName( 'plain-text-body' );
 		foreach ( $plaintextEls as $plaintextEl ) {
 
-			$code = $plaintextEl->nodeValue;
 			$code = base64_encode( $plaintextEl->nodeValue );
 
 			$replacementNode->appendChild(

@@ -133,8 +133,6 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		// It works with any extension, not only ".drawio"
 		// For example, diagram name could be "something.OG" - then diagram image will be "something.OG.png"
 
-		$drawioDataFilename = '';
-		$drawioImageFilename = '';
 		if ( strtolower( $this->getFileExtension( $filename ) ) !== 'png' ) {
 			// find png
 			$drawioDataFilename = $originalFilename;

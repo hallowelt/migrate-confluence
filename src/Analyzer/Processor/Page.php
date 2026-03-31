@@ -279,7 +279,7 @@ class Page extends ProcessorBase {
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
 
 		// Find attachments
-		$this->getAttachmentsFromCollection( $this->spaceId, $properties, $collection );
+		$this->getAttachmentsFromCollection( $this->spaceId, $collection );
 	}
 
 	/**
@@ -294,11 +294,10 @@ class Page extends ProcessorBase {
 
 	/**
 	 * @param int $spaceId
-	 * @param array $properties
 	 * @param array $collection
 	 * @return void
 	 */
-	private function getAttachmentsFromCollection( int $spaceId, array $properties, array $collection ): void {
+	private function getAttachmentsFromCollection( int $spaceId, array $collection ): void {
 		if ( !isset( $this->data['analyze-page-id-to-confluence-title-map'][$this->pageId] ) ) {
 			return;
 		}

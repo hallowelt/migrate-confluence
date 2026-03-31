@@ -244,7 +244,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$xpath->registerNamespace( 'ac', 'some' );
 		$xpath->registerNamespace( 'ri', 'thing' );
-		$this->postProcessDOM( $dom, $xpath );
+		$this->postProcessDOM( $xpath );
 
 		$dom->saveHTMLFile(
 			$this->preprocessedFile->getPathname()
@@ -575,15 +575,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
+	 * BlueSpice VisualEditor breaks on <div>'s with data attributes
+	 * containing JSON
 	 *
-	 * @param DOMDocument $dom
 	 * @param DOMXPath $xpath
+	 *
+	 * @return void
 	 */
-	public function postProcessDOM( $dom, $xpath ) {
-		/*
-		 * BlueSpice VisualEditor breaks on <div>'s with data attributes
-		 * containing JSON
-		 */
+	public function postProcessDOM( $xpath ): void {
 		$oElementsWithDataAttr = $xpath->query( '//*[@data-atlassian-layout]' );
 		foreach ( $oElementsWithDataAttr as $oElementWithDataAttr ) {
 			$oElementWithDataAttr->setAttribute( 'data-atlassian-layout', null );

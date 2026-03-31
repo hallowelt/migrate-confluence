@@ -172,7 +172,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 					}
 					$currentPageParts = explode( '/', $currentPageTitle );
 					if ( count( $currentPageParts ) > 1 ) {
-						$subpageTitle = array_pop( $currentPageParts );
+						array_pop( $currentPageParts );
 						$text = array_pop( $currentPageParts );
 					} else {
 						$text = $this->currentPageTitle;
@@ -222,11 +222,6 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 		} else {
 			// if content-title is not set fallback to {{FULLPAGENAME}}
 			$params['content-title'] = '{{FULLPAGENAME}}';
-			if ( isset( $params['space-key'] ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] );
-			} else {
-				$spaceId = $this->currentSpace;
-			}
 			$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
 			if ( is_string( $namespace ) ) {
 				$params['space-key'] = $namespace;

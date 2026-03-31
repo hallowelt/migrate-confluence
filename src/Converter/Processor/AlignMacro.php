@@ -3,13 +3,14 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
+use DOMElement;
+use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 class AlignMacro implements IProcessor {
 
 	/**
-	 *
 	 * @return string
 	 */
 	protected function getMacroName(): string {
@@ -37,16 +38,18 @@ class AlignMacro implements IProcessor {
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return void
+	 * @throws DOMException
 	 */
-	protected function doProcessMacro( $node ): void {
+	protected function doProcessMacro( DOMNode $node ): void {
 		$macroName = $node->getAttribute( 'ac:name' );
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 
 		$macroReplacement->setAttribute( 'class', "ac-macro-$macroName" );
 
-		$macroParams = $this->getMacroParams( $node, $macroReplacement );
+		$macroParams = $this->getMacroParams( $node );
 		if ( !empty( $macroParams ) ) {
 			$macroReplacement->setAttribute( 'data-params', json_encode( $macroParams ) );
 		}
@@ -61,12 +64,10 @@ class AlignMacro implements IProcessor {
 	}
 
 	/**
-	 *
 	 * @param DOMNode $macro
-	 * @param DOMElement $macroReplacement
 	 * @return array
 	 */
-	private function getMacroParams( $macro, $macroReplacement ): array {
+	private function getMacroParams( DOMNode $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -79,12 +80,11 @@ class AlignMacro implements IProcessor {
 	}
 
 	/**
-	 *
 	 * @param DOMNode $macro
 	 * @param DOMElement $macroReplacement
 	 * @return void
 	 */
-	private function macroBody( $macro, $macroReplacement ): void {
+	private function macroBody( DOMNode $macro, DOMElement $macroReplacement ): void {
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:rich-text-body' ) {
 				foreach ( $childNode->childNodes as $node ) {
