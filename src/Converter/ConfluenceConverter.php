@@ -229,7 +229,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$rawContent = file_get_contents( $this->rawFile->getPathname() );
 			$unconvertedContent = "<-- Unconvertable RAW start-->\n";
 			$unconvertedContent .= $rawContent;
-			$unconvertedContent .= "\n<-- Unconvertable RAW start-->\n[[Category:Unconvertable]]";
+			$unconvertedContent .= "\n<-- Unconvertable RAW end-->\n[[Category:Unconvertable]]";
 			return $unconvertedContent;
 		}
 
@@ -266,12 +266,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$exceed = '100';
 		}
 		if ( $exceed !== '' ) {
-			$this->buckets->addData(
+			$this->customBuckets->addData(
 				'warning-convert-body-content-id-content-size',
 				$exceed,
 				$bodyContentId
 			);
-			$this->output->writeln( "bodyContentId $this->currentSpace contains large content" );
+			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 		}
 
 		$executionTimeString = $executionTime->getHumanReadableTime();
@@ -374,10 +374,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$currentPageTitle
 			),
 			new ViewPdfMacro(
-				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle
-			),
-			new ViewFileMacro(
 				$this->dataLookup, $this->currentSpace,
 				$currentPageTitle
 			),
@@ -705,7 +701,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$currentPageTitle = $this->currentPageTitle;
 
 		if ( substr( $currentPageTitle, 0, strlen( $prefix ) ) === $prefix ) {
-			$currentPageTitle = str_replace( $prefix, '', $currentPageTitle );
+			$currentPageTitle = substr( $currentPageTitle, strlen( $prefix ) );
 		}
 
 		return $currentPageTitle;

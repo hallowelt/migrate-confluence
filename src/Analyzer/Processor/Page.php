@@ -251,8 +251,8 @@ class Page extends ProcessorBase {
 		$revisionTimestamp = $this->buildRevisionTimestamp( $lastModificationDate );
 
 		$bodyContentIds = [];
-		if ( isset( $properties['bodyContents'] ) ) {
-			$bodyContentIds = $properties['bodyContents'];
+		if ( isset( $collection['bodyContents'] ) ) {
+			$bodyContentIds = $collection['bodyContents'];
 		}
 
 		if ( !empty( $bodyContentIds ) ) {

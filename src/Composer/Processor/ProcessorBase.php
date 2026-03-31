@@ -172,8 +172,8 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		// Sometimes titles have contents >256kB which might break the import. To skip this titles
 		// use this option
 		if (
-			isset( $this->advancedConfig['composer-skip-titles'] )
-			&& in_array( $pageTitle, $this->advancedConfig['composer-skip-titles'] )
+			isset( $this->config['composer-skip-titles'] )
+			&& in_array( $pageTitle, $this->config['composer-skip-titles'] )
 		) {
 			$this->output->writeln( "Page $pageTitle skipped by configuration" );
 			return true;

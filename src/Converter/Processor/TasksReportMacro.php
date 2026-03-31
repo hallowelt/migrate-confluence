@@ -39,6 +39,7 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 
 		$taskreport = $node->ownerDocument->createElement( 'div' );
 		$taskreport->setAttribute( 'class', 'PRESERVETASKSREPORT' );
+		$taskreport->setAttribute( 'status', 'unchecked' );
 
 		foreach ( $paramNodes as $paramNode ) {
 			if ( !$paramNode->hasAttributes() ) {
@@ -70,7 +71,6 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 				continue;
 			}
 
-			$status = 'unchecked';
 			if ( $name === 'status' ) {
 				$status = [];
 
@@ -82,11 +82,8 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 					}
 					$status[] = $state;
 				}
+				$taskreport->setAttribute( 'status', implode( '|', $status ) );
 			}
-			if ( is_array( $status ) ) {
-				$status = implode( '|', $status );
-			}
-			$taskreport->setAttribute( 'status', $status );
 		}
 
 		$node->parentNode->replaceChild( $taskreport, $node );

@@ -173,7 +173,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 					$currentPageParts = explode( '/', $currentPageTitle );
 					if ( count( $currentPageParts ) > 1 ) {
 						array_pop( $currentPageParts );
-						$text = array_pop( $currentPageParts );
+						$text = implode( '/', $currentPageParts );
 					} else {
 						$text = $this->currentPageTitle;
 						$params['broken-macro'] = true;
