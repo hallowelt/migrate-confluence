@@ -60,11 +60,11 @@ abstract class ConvertMacroToTemplateWithBodyBase implements IProcessor {
 				$paramValue = $parameterEl->nodeValue;
 				// We add a "###BREAK###", as `pandoc` will eat up regular line breaks.
 				// They will be restored in a "PostProcessor"
-				$praramString = "|$paramName = $paramValue";
+				$paramString = "|$paramName = $paramValue";
 				if ( $this->addLinebreakInsideTemplate() ) {
-					$praramString .= "###BREAK###\n";
+					$paramString .= "###BREAK###\n";
 				}
-				$paramTextNode = $dom->createTextNode( $praramString );
+				$paramTextNode = $dom->createTextNode( $paramString );
 				$parentNode->insertBefore( $paramTextNode, $actualMacro );
 			}
 

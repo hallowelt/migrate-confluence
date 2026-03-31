@@ -122,7 +122,7 @@ class TaskListMacro implements IProcessor {
 
 			if ( count( $ol ) > 0 || count( $ul ) > 0 || count( $div ) > 0 ) {
 				$brokenNode = $node->ownerDocument->createTextNode(
-					'[[Categroy:Broken_macro/task]]'
+					'[[Category:Broken_macro/task]]'
 				);
 				$macroReplacement->appendChild( $brokenNode );
 			}
@@ -174,7 +174,7 @@ class TaskListMacro implements IProcessor {
 
 		if ( $broken === true ) {
 			$brokenNode = $node->ownerDocument->createTextNode(
-				'[[Categroy:Broken_macro/task-list]]'
+				'[[Category:Broken_macro/task-list]]'
 			);
 			$macroReplacement->appendChild( $brokenNode );
 		}

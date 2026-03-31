@@ -29,7 +29,7 @@ class AnchorMacro extends StructuredMacroProcessorBase {
 
 		if ( $anchorName === '' ) {
 			$replacement = $node->ownerDocument->createTextNode(
-				$this->getBrokenMacroCategroy()
+				$this->getBrokenMacroCategory()
 			);
 		} else {
 			$replacement = $node->ownerDocument->createElement( 'span' );

@@ -94,7 +94,7 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 	/**
 	 * @return string
 	 */
-	protected function getBrokenMacroCategroy(): string {
+	protected function getBrokenMacroCategory(): string {
 		$sMacroName = $this->getMacroName();
 		return "[[Category:Broken_macro/$sMacroName]]";
 	}

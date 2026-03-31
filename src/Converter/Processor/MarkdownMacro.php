@@ -44,7 +44,7 @@ class MarkdownMacro extends StructuredMacroProcessorBase {
 
 		if ( $brokenMacro ) {
 			$replacement = $node->ownerDocument->createTextNode(
-				$this->getBrokenMacroCategroy()
+				$this->getBrokenMacroCategory()
 			);
 		}
 

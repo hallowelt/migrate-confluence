@@ -170,7 +170,7 @@ class Page extends ProcessorBase {
 			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
 				$this->pageId => $ex->getInvalidTitle()
 			];
-			// We don't want to loose this page. Title can be modified after analyze process
+			// We don't want to lose this page. Title can be modified after analyze process
 			$this->targetTitle = $ex->getInvalidTitle();
 		}
 
@@ -409,7 +409,7 @@ class Page extends ProcessorBase {
 
 		/*
 		 * Some attachments do not have a file extension available. We try
-		 * to find an extension by looking a the content type, but
+		 * to find an extension by looking at the content type, but
 		 * sometimes even this won't help... ("octet-stream")
 		 */
 		$file = new SplFileInfo( $targetName );

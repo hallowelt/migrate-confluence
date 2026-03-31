@@ -64,7 +64,7 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 
 		if ( !$hasPlaintextEls ) {
 			$replacementNode->appendChild(
-				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategroy() )
+				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategory() )
 			);
 		}
 	}

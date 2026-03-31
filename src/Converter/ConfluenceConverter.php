@@ -29,7 +29,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro as PreserveCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ContenByLabelMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ContentByLabelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
@@ -348,7 +348,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
 				$currentPageTitle, $this->buckets
 			),
-			new ContenByLabelMacro( $this->currentPageTitle ),
+			new ContentByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
 			new GalleryMacro(
 				$this->dataLookup, $this->currentSpace, $currentPageTitle

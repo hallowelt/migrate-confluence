@@ -69,7 +69,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 		$template .= "}}";
 
 		if ( $brokenMacro ) {
-			$template .= ' ' . $this->getBrokenMacroCategroy();
+			$template .= ' ' . $this->getBrokenMacroCategory();
 		}
 
 		$macroReplacement = $node->ownerDocument->createTextNode( $template );

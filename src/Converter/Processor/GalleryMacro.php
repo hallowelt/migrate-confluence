@@ -66,7 +66,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 		if ( empty( $files ) ) {
 			$node->parentNode->replaceChild(
-				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategroy() ),
+				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategory() ),
 				$node
 			);
 

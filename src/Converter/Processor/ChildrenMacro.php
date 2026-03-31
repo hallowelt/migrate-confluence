@@ -130,7 +130,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		$wikiText = '{{SubpageList' . $templateParams . '}}';
 		if ( $broken ) {
-			$wikiText .= $this->getBrokenMacroCategroy();
+			$wikiText .= $this->getBrokenMacroCategory();
 		}
 
 		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md

@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 abstract class MacroProcessorBase implements IProcessor {
@@ -99,7 +100,7 @@ abstract class MacroProcessorBase implements IProcessor {
 	/**
 	 * @return string
 	 */
-	protected function getBrokenMacroCategroy(): string {
+	protected function getBrokenMacroCategory(): string {
 		$sMacroName = $this->getMacroName();
 		return "[[Category:Broken_macro/$sMacroName]]";
 	}
