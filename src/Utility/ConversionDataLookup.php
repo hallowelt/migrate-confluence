@@ -194,6 +194,9 @@ class ConversionDataLookup {
 		}
 
 		$confluenceFileKeyParts = explode( '---', $confluenceFileKey );
+		if ( count( $confluenceFileKeyParts ) < 3 ) {
+			return '';
+		}
 		$confluenceFilename = $confluenceFileKeyParts[2];
 
 		$md5File = '';

@@ -62,10 +62,6 @@ class Users extends ProcessorBase {
 			$properties['email'] = '';
 		}
 
-		if ( !isset( $properties['email'] ) ) {
-			$properties['email'] = '';
-		}
-
 		$this->data['global-userkey-to-username-map'][$userKey] = $mediaWikiUsername;
 		$this->data['users'][$mediaWikiUsername] = $properties;
 

@@ -125,7 +125,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		if ( $this->mulitXmlOutputEnabled ) {
 			$this->outputXmlFile++;
 			$num = (string)$this->outputXmlFile;
-			$name .= '-' . str_pad( $num, 8, STR_PAD_LEFT );
+			$name .= '-' . str_pad( $num, 8, '0', STR_PAD_LEFT );
 		}
 
 		$name .= '.xml';
@@ -139,7 +139,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 */
 	protected function includeHistory(): bool {
 		if ( isset( $this->config['include-history'] )
-			&& $this->config['include-history'] !== true
+			&& $this->config['include-history'] === true
 		) {
 			return true;
 		}
@@ -167,7 +167,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		// use this option
 		if (
 			isset( $this->advancedConfig['composer-skip-titles'] )
-			&& in_array( $pageTitle, $this->config['composer-skip-titles'] )
+			&& in_array( $pageTitle, $this->advancedConfig['composer-skip-titles'] )
 		) {
 			$this->output->writeln( "Page {$pageTitle} skipped by configuration" );
 			return true;
@@ -181,7 +181,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 */
 	protected function getNamespace( string $title ): string {
 		$collonPos = strpos( $title, ':' );
-		if ( !$collonPos ) {
+		if ( $collonPos === false ) {
 			return 'NS_MAIN';
 		}
 		return substr( $title, 0, $collonPos );
