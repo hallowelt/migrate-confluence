@@ -83,7 +83,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 									if ( $pageConfluenceTitle === '' ) {
 										// If no page title can be found mark macro as broken
 										$broken = true;
-										$params[$name] = "Confluence---$spaceKey---{$pageConfluenceTitle}";
+										$params[$name] = "Confluence---$spaceKey---$pageConfluenceTitle";
 										break;
 									}
 
@@ -95,7 +95,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 									if ( $wikiTitle === '' ) {
 										// If wiki page title is empty mark macro as broken
-										$params[$name] = "Confluence---$spaceKey---{$pageConfluenceTitle}";
+										$params[$name] = "Confluence---$spaceKey---$pageConfluenceTitle";
 										$broken = true;
 										break;
 									}

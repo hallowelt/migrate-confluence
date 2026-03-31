@@ -7,7 +7,7 @@ use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 class NestedHeadings implements IPostprocessor {
 
 	/** @var string */
-	private $regEx = '#(\*{1,6})\s?([=]{1,6})([^=]*)\s?([=]{1,6})#';
+	private string $regEx = '#(\*{1,6})\s?([=]{1,6})([^=]*)\s?([=]{1,6})#';
 
 	/**
 	 * @inheritDoc
@@ -42,7 +42,7 @@ class NestedHeadings implements IPostprocessor {
 	 * @param array &$lines
 	 * @param int $index
 	 */
-	private function processHeading( &$lines, $index ) {
+	private function processHeading( array &$lines, int $index ): void {
 		$matches = [];
 
 		$line = $lines[$index];
@@ -60,9 +60,10 @@ class NestedHeadings implements IPostprocessor {
 	/**
 	 * @param array &$lines
 	 * @param int $index
+	 *
 	 * @return int
 	 */
-	private function processList( &$lines, $index ): int {
+	private function processList( array &$lines, int $index ): int {
 		$matches = [];
 
 		$line = $lines[$index];
@@ -89,18 +90,20 @@ class NestedHeadings implements IPostprocessor {
 	/**
 	 * @param string $markup
 	 * @param string $text
+	 *
 	 * @return string
 	 */
-	private function getListReplacement( $markup, $text ): string {
+	private function getListReplacement( string $markup, string $text ): string {
 		return $markup . $text;
 	}
 
 	/**
 	 * @param string $markup
 	 * @param string $text
+	 *
 	 * @return string
 	 */
-	private function getHeadingReplacement( $markup, $text ): string {
+	private function getHeadingReplacement( string $markup, string $text ): string {
 		return $markup . $text . $markup;
 	}
 }

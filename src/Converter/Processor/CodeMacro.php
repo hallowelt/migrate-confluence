@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMException;
 use DOMNode;
 
 /**
@@ -36,9 +37,11 @@ class CodeMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @param DOMNode $node
 	 * @param DOMNode $replacementNode
+	 *
 	 * @return void
+	 * @throws DOMException
 	 */
-	private function processParamElements( $node, $replacementNode ): void {
+	private function processParamElements( DOMNode $node, DOMNode $replacementNode ): void {
 		$paramEls = $node->getElementsByTagName( 'parameter' );
 		foreach ( $paramEls as $paramEl ) {
 			$paramName = $paramEl->getAttribute( 'ac:name' );

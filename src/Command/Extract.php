@@ -33,22 +33,24 @@ class Extract extends CommandExtract {
 
 	/**
 	 * @param array $config
+	 *
 	 * @return Extract
 	 */
-	public static function factory( $config ): Extract {
+	public static function factory( array $config ): Extract {
 		return new static( $config );
 	}
 
-	protected function beforeProcessFiles() {
+	protected function beforeProcessFiles(): void {
 		$this->readConfigFile( $this->config );
 		parent::beforeProcessFiles();
 	}
 
 	/**
 	 * @param array &$config
+	 *
 	 * @return void
 	 */
-	private function readConfigFile( &$config ): void {
+	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
 		if ( is_string( $filename ) && is_file( $filename ) ) {
 			$content = file_get_contents( $filename );
@@ -68,7 +70,7 @@ class Extract extends CommandExtract {
 	 *
 	 * @inheritDoc
 	 */
-	protected function getBucketKeys() {
+	protected function getBucketKeys(): array {
 		return [
 			// From this step
 			'global-title-metadata',

@@ -8,7 +8,7 @@ use XMLReader;
 class Attachments extends ProcessorBase {
 
 	/** @var SplFileInfo */
-	private $file;
+	private SplFileInfo $file;
 
 	/**
 	 * @param SplFileInfo $file

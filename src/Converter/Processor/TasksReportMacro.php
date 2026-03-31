@@ -10,7 +10,7 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 class TasksReportMacro extends StructuredMacroProcessorBase {
 
 	/** @var ConversionDataLookup */
-	protected $dataLookup;
+	protected ConversionDataLookup $dataLookup;
 
 	/**
 	 * @param ConversionDataLookup $dataLookup

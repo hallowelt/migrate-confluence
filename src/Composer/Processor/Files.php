@@ -10,7 +10,7 @@ use RecursiveIteratorIterator;
 class Files extends ProcessorBase {
 
 	/** @var DataBuckets */
-	private $customBuckets;
+	private DataBuckets $customBuckets;
 
 	/**
 	 * @return string

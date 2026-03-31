@@ -36,9 +36,10 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @param DOMNode $node
 	 * @param DOMNode $replacementNode
+	 *
 	 * @return void
 	 */
-	private function processParamElements( $node, $replacementNode ): void {
+	private function processParamElements( DOMNode $node, DOMNode $replacementNode ): void {
 		$paramEls = $node->getElementsByTagName( 'parameter' );
 		foreach ( $paramEls as $paramEl ) {
 			$paramName = $paramEl->getAttribute( 'ac:name' );
@@ -52,9 +53,10 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @param DOMNode $node
 	 * @param DOMNode $replacementNode
+	 *
 	 * @return void
 	 */
-	private function processPlainTextBody( $node, $replacementNode ): void {
+	private function processPlainTextBody( DOMNode $node, DOMNode $replacementNode ): void {
 		$hasPlaintextEls = false;
 		$plaintextEls = $node->getElementsByTagName( 'plain-text-body' );
 		foreach ( $plaintextEls as $plaintextEl ) {

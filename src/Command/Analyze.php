@@ -27,14 +27,16 @@ class Analyze extends CommandAnalyze {
 
 	/**
 	 * @param array $config
+	 *
 	 * @return Analyze
 	 */
-	public static function factory( $config ): Analyze {
+	public static function factory( array $config ): Analyze {
 		return new static( $config );
 	}
 
 	/**
 	 * @return bool
+	 * @throws \Exception
 	 */
 	protected function doProcessFile(): bool {
 		$this->readConfigFile( $this->config );
@@ -43,9 +45,10 @@ class Analyze extends CommandAnalyze {
 
 	/**
 	 * @param array &$config
+	 *
 	 * @return void
 	 */
-	private function readConfigFile( &$config ): void {
+	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
 		if ( is_string( $filename ) && is_file( $filename ) ) {
 			$content = file_get_contents( $filename );
@@ -65,7 +68,7 @@ class Analyze extends CommandAnalyze {
 	 *
 	 * @inheritDoc
 	 */
-	protected function getBucketKeys() {
+	protected function getBucketKeys(): array {
 		return [
 			'global-files',
 		];

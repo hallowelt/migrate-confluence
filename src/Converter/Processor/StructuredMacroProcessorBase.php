@@ -56,9 +56,10 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 	 *
 	 * @param DOMNode $macro
 	 * @param DOMElement $macroReplacement
+	 *
 	 * @return void
 	 */
-	private function macroParams( $macro, $macroReplacement ): void {
+	private function macroParams( DOMNode $macro, DOMElement $macroReplacement ): void {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -78,9 +79,10 @@ abstract class StructuredMacroProcessorBase implements IProcessor {
 	/**
 	 * @param DOMNode $macro
 	 * @param DOMElement $macroReplacement
+	 *
 	 * @return void
 	 */
-	private function macroBody( $macro, $macroReplacement ): void {
+	private function macroBody( DOMNode $macro, DOMElement $macroReplacement ): void {
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:rich-text-body' ) {
 				foreach ( $childNode->childNodes as $node ) {

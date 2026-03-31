@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
@@ -13,13 +12,13 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 class GalleryMacro extends StructuredMacroProcessorBase {
 
 	/** @var ConversionDataLookup */
-	private $dataLookup;
+	private ConversionDataLookup $dataLookup;
 
 	/** @var int */
-	private $currentSpaceId;
+	private int $currentSpaceId;
 
 	/** @var string */
-	private $rawPageTitle;
+	private string $rawPageTitle;
 
 	/**
 	 * @param ConversionDataLookup $dataLookup

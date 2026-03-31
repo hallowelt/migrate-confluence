@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMException;
 use DOMNode;
 
 class AnchorMacro extends StructuredMacroProcessorBase {

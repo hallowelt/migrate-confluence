@@ -27,9 +27,10 @@ class FixLineBreakInHeadings implements IPostprocessor {
 
 	/**
 	 * @param int $level
+	 *
 	 * @return string
 	 */
-	private function buildRegExForHeadingLevel( $level ): string {
+	private function buildRegExForHeadingLevel( int $level ): string {
 		$tag = '';
 		for ( $heading = 1; $heading <= $level; $heading++ ) {
 			$tag = '.=';

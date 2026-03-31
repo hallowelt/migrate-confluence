@@ -15,7 +15,7 @@ class ConversionDataWriter {
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataWriter
 	 */
-	public static function newFromBuckets( DataBuckets $buckets ) {
+	public static function newFromBuckets( DataBuckets $buckets ): ConversionDataWriter {
 		return new static(
 			$buckets->getBucketData( 'global-files' )
 		);

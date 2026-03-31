@@ -11,7 +11,7 @@ class Emoticon implements IProcessor {
 	/**
 	 * @var array
 	 */
-	protected $emoticonMapping = [
+	protected array $emoticonMapping = [
 		'smile' => ':)',
 		'sad' => ':( ',
 		'cheeky' => ':P',
@@ -47,9 +47,10 @@ class Emoticon implements IProcessor {
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return string
 	 */
-	private function getReplacement( $node ): string {
+	private function getReplacement( DOMNode $node ): string {
 		$name = $node->getAttribute( 'ac:name' );
 
 		if ( $name === 'blue-star' ) {

@@ -258,7 +258,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function extractPageMetaData( DOMDocument $dom ) {
+	private function extractPageMetaData( DOMDocument $dom ): void {
 		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
 		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
 
@@ -303,7 +303,7 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function extractBlogMetaData( DOMDocument $dom ) {
+	private function extractBlogMetaData( DOMDocument $dom ): void {
 		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
 		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
 
@@ -349,34 +349,31 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @param string $revisionReference
 	 * @param string $contentReference
 	 */
-	protected function addRevisionContent( $revisionReference, $contentReference = 'n/a' ) {
+	protected function addRevisionContent( $revisionReference, $contentReference = 'n/a' ): void {
 		$this->buckets->addData( 'global-revision-contents', $revisionReference, $contentReference );
 	}
 
 	/**
-	 *
 	 * @param string $titleText
 	 * @param array $meta
 	 */
-	protected function addTitleMetaData( $titleText, $meta = [] ) {
+	protected function addTitleMetaData( $titleText, $meta = [] ): void {
 		$this->buckets->addData( 'global-title-metadata', $titleText, $meta, false );
 	}
 
 	/**
-	 *
 	 * @param string $titleText
 	 * @param array $meta
 	 */
-	protected function addBlogTitleMetaData( $titleText, $meta = [] ) {
+	protected function addBlogTitleMetaData( string $titleText, array $meta = [] ): void {
 		$this->buckets->addData( 'global-blog-title-metadata', $titleText, $meta, false );
 	}
 
 	/**
-	 *
 	 * @param int $attachmentId
 	 * @param array $meta
 	 */
-	protected function addAttachmentMetaData( $attachmentId, $meta = [] ) {
+	protected function addAttachmentMetaData( int $attachmentId, array $meta = [] ): void {
 		$this->buckets->addData( 'global-attachment-metadata', $attachmentId, $meta, false );
 	}
 }

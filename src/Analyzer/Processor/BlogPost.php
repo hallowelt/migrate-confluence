@@ -25,7 +25,7 @@ class BlogPost extends ProcessorBase {
 	private $pageId;
 
 	/** @var string */
-	private $targetTitle = '';
+	private string $targetTitle = '';
 
 	/**
 	 * @param array $includeSpaceKey

@@ -12,19 +12,19 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CheckResult extends Command {
 
 	/**
-	 * @var OutputInterface
+	 * @var OutputInterface|null
 	 */
-	private $output = null;
+	private ?OutputInterface $output;
 
 	/**
 	 * @var string
 	 */
-	private $workspaceDir = '';
+	private string $workspaceDir = '';
 
 	/**
 	 * @var array
 	 */
-	private $titles = [];
+	private array $titles = [];
 
 	/**
 	 * @return void
@@ -75,45 +75,48 @@ class CheckResult extends Command {
 
 	/**
 	 * @param string $targetFileName
+	 *
 	 * @return bool
 	 */
-	private function fileAvailable( $targetFileName ) {
+	private function fileAvailable( string $targetFileName ): bool {
 		return file_exists( "$this->workspaceDir/images/$targetFileName" );
 	}
 
 	/**
 	 * @param string $targetPageName
+	 *
 	 * @return bool
 	 */
-	private function pageAvailable( $targetPageName ) {
+	private function pageAvailable( string $targetPageName ): bool {
 		return in_array( $targetPageName, $this->titles );
 	}
 
 	/**
 	 * @var array
 	 */
-	private $brokenPageLinks = [];
+	private array $brokenPageLinks = [];
 
 	/**
 	 * @var array
 	 */
-	private $brokenFileLinks = [];
+	private array $brokenFileLinks = [];
 
 	/**
 	 * @var int
 	 */
-	private $numberOfPageLinks = 0;
+	private int $numberOfPageLinks = 0;
 
 	/**
 	 * @var int
 	 */
-	private $numberOfFileLinks = 0;
+	private int $numberOfFileLinks = 0;
 
 	/**
 	 * @param string $linkDesc
+	 *
 	 * @return void
 	 */
-	private function checkLink( $linkDesc ) {
+	private function checkLink( string $linkDesc ): void {
 		$linkDesc = html_entity_decode( $linkDesc );
 		$linkDescParts = explode( '|', $linkDesc );
 		$linkTarget = $linkDescParts[0];
@@ -153,7 +156,10 @@ class CheckResult extends Command {
 		}
 	}
 
-	private function createReport() {
+	/**
+	 * @return void
+	 */
+	private function createReport(): void {
 		$numberOfBrokenPageLinks = count( $this->brokenPageLinks );
 		$this->output->writeln( "Page links (broken/total): $numberOfBrokenPageLinks/$this->numberOfPageLinks" );
 		$numberOfBrokenFileLinks = count( $this->brokenFileLinks );

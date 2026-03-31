@@ -11,34 +11,34 @@ use Symfony\Component\Console\Output\Output;
 abstract class ProcessorBase implements IConfluenceComposerProcessor {
 
 	/** @var Builder */
-	protected $builder;
+	protected Builder $builder;
 
 	/** @var DataBuckets */
-	protected $buckets;
+	protected DataBuckets $buckets;
 
 	/** @var Workspace */
-	protected $workspace;
+	protected Workspace $workspace;
 
 	/** @var Output */
-	protected $output;
+	protected Output $output;
 
 	/** @var string */
-	protected $dest = '';
+	protected string $dest = '';
 
 	/** @var array */
-	protected $config = [];
+	protected array $config = [];
 
 	/** @var bool */
-	protected $multiXmlOutputEnabled = false;
+	protected bool $multiXmlOutputEnabled = false;
 
 	/** @var int */
-	protected $limit = 0;
+	protected int $limit = 0;
 
 	/** @var int */
-	protected $numOfRevisions = 0;
+	protected int $numOfRevisions = 0;
 
 	/** @var int */
-	protected $outputXmlFile = 0;
+	protected int $outputXmlFile = 0;
 
 	/**
 	 * @param Builder $builder

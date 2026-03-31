@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMElement;
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
@@ -101,7 +100,7 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	 * @param string $name
 	 * @return string
 	 */
-	private function makeFilename( string $name ) {
+	private function makeFilename( string $name ): string {
 		$spaceId = $this->currentSpaceId;
 		$rawPageTitle = basename( $this->rawPageTitle );
 

@@ -6,7 +6,6 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
-use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
@@ -186,14 +185,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	/**
 	 * @param LoggerInterface $logger
 	 */
-	public function setLogger( LoggerInterface $logger ) {
+	public function setLogger( LoggerInterface $logger ): void {
 		$this->logger = $logger;
 	}
 
 	/**
 	 * @param Output $output
 	 */
-	public function setOutput( Output $output ) {
+	public function setOutput( Output $output ): void {
 		$this->output = $output;
 	}
 
@@ -523,7 +522,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @param string $contentReference
 	 * @return void
 	 */
-	protected function addTitleRevision( $titleText, $contentReference = 'n/a' ) {
+	protected function addTitleRevision( $titleText, $contentReference = 'n/a' ): void {
 		$this->buckets->addData( 'global-title-revisions', $titleText, $contentReference, true, true );
 	}
 
@@ -533,7 +532,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @param string $attachmentReference
 	 * @return void
 	 */
-	protected function addTitleAttachment( $titleText, $attachmentReference = 'n/a' ) {
+	protected function addTitleAttachment( $titleText, $attachmentReference = 'n/a' ): void {
 		$this->buckets->addData( 'global-title-attachments', $titleText, $attachmentReference );
 	}
 
@@ -543,7 +542,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @param string $attachmentReference
 	 * @return void
 	 */
-	protected function addFile( $rawFilename, $attachmentReference = 'n/a' ) {
+	protected function addFile( $rawFilename, $attachmentReference = 'n/a' ): void {
 		try {
 			$filename = $this->getFilename( $rawFilename, $attachmentReference );
 			$filename = ( new WindowsFilename( $filename ) ) . '';

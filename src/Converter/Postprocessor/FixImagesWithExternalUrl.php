@@ -35,10 +35,7 @@ class FixImagesWithExternalUrl implements IPostprocessor {
 					$replacement = $matches[1];
 				}
 
-				$attribs = implode( ' ', $attributes );
-				if ( parse_url( $attribs ) ) {
-					$attr = $attribs;
-				}
+				$attr = implode( ' ', $attributes );
 				if ( parse_url( $matches[1] ) ) {
 					return '<img src="' . $replacement . '" ' . $attr . ' />';
 				}

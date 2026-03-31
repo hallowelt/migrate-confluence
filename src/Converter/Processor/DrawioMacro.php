@@ -12,22 +12,22 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @var ConversionDataLookup
 	 */
-	protected $dataLookup;
+	protected ConversionDataLookup $dataLookup;
 
 	/**
 	 * @var ConversionDataWriter
 	 */
-	protected $conversionDataWriter;
+	protected ConversionDataWriter $conversionDataWriter;
 
 	/**
 	 * @var int
 	 */
-	protected $currentSpaceId;
+	protected int $currentSpaceId;
 
 	/**
 	 * @var string
 	 */
-	protected $rawPageTitle;
+	protected string $rawPageTitle;
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
@@ -90,9 +90,10 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param DOMNode $macro
+	 *
 	 * @return array
 	 */
-	private function getMacroParams( $macro ): array {
+	private function getMacroParams( DOMNode $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {

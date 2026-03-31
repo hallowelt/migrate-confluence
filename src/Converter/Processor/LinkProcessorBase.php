@@ -13,22 +13,22 @@ abstract class LinkProcessorBase implements IProcessor {
 	/**
 	 * @var ConversionDataLookup
 	 */
-	protected $dataLookup;
+	protected ConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
 	 */
-	protected $currentSpaceId;
+	protected int $currentSpaceId;
 
 	/**
 	 * @var string
 	 */
-	protected $rawPageTitle;
+	protected string $rawPageTitle;
 
 	/**
 	 * @var DOMNode
 	 */
-	private $linkNode;
+	private DOMNode $linkNode;
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
@@ -88,9 +88,10 @@ abstract class LinkProcessorBase implements IProcessor {
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return void
 	 */
-	private function setLinkNode( $node ): void {
+	private function setLinkNode( DOMNode $node ): void {
 		$this->linkNode = $node->parentNode;
 	}
 
@@ -111,9 +112,10 @@ abstract class LinkProcessorBase implements IProcessor {
 	/**
 	 * @param DOMNode $node
 	 * @param array &$linkParts
+	 *
 	 * @return void
 	 */
-	protected function getLinkBody( $node, &$linkParts ): void {
+	protected function getLinkBody( DOMNode $node, array &$linkParts ): void {
 		// Let's see if there is a description Text
 		// HTML Content
 		$linkBodys = $node->parentNode->getElementsByTagName( 'link-body' );

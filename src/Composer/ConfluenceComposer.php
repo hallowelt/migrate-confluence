@@ -17,18 +17,18 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/**
 	 * @var DataBuckets
 	 */
-	private $customBuckets;
+	private DataBuckets $customBuckets;
 
 	/**
-	 * @var Output
+	 * @var Output|null
 	 */
-	private $output = null;
+	private ?Output $output = null;
 
 	/** @var array */
-	private $advancedConfig = [];
+	private array $advancedConfig = [];
 
 	/** @var string */
-	private $dest = '';
+	private string $dest = '';
 
 	/**
 	 * @param array $config
@@ -53,7 +53,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/**
 	 * @param Output $output
 	 */
-	public function setOutput( Output $output ) {
+	public function setOutput( Output $output ): void {
 		$this->output = $output;
 	}
 
@@ -68,7 +68,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @param Builder $builder
 	 * @return void
 	 */
-	public function buildXML( Builder $builder ) {
+	public function buildXML( Builder $builder ): void {
 		$processors = [
 			new Files(
 				$builder, $this->buckets, $this->workspace,

@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMAttr;
 use DOMElement;
 use DOMNode;
 
@@ -41,7 +40,7 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 	 *
 	 * @return array
 	 */
-	private function macroParams( $macro, $macroReplacement ): array {
+	private function macroParams( DOMNode $macro, DOMElement $macroReplacement ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName !== 'ac:parameter' ) {
@@ -69,9 +68,9 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @param DOMNode $node
 	 * @param string $name
-	 * @return ?DOMAttr
+	 * @return DOMNode|null
 	 */
-	private function getAttribute( DOMNode $node, string $name ): ?DOMAttr {
+	private function getAttribute( DOMNode $node, string $name ): ?DOMNode {
 		$attributes = $node->attributes;
 
 		if ( $attributes && $attributes->count() > 0 ) {
@@ -94,7 +93,7 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 	 *
 	 * @return string|null
 	 */
-	private function getParamValue( DOMNode $node ) {
+	private function getParamValue( DOMNode $node ): ?string {
 		$value = '';
 		$childNodes = $node->childNodes;
 

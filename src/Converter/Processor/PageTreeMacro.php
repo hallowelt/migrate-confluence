@@ -78,9 +78,10 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	/**
 	 *
 	 * @param DOMNode $macro
+	 *
 	 * @return void
 	 */
-	private function macroParams( $macro ): void {
+	private function macroParams( DOMNode $macro ): void {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {

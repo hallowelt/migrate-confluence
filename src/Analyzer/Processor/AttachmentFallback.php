@@ -13,7 +13,7 @@ class AttachmentFallback extends ProcessorBase {
 	private $attachmentId;
 
 	/** @var string */
-	private $attachmentOrigFilename = '';
+	private string $attachmentOrigFilename = '';
 
 	/**
 	 * @inheritDoc
@@ -226,9 +226,10 @@ class AttachmentFallback extends ProcessorBase {
 
 	/**
 	 * @param SplFileInfo $file
+	 *
 	 * @return bool
 	 */
-	private function hasNoExplicitFileExtension( $file ) {
+	private function hasNoExplicitFileExtension( SplFileInfo $file ): bool {
 		if ( $file->getExtension() === '' ) {
 			return true;
 		}

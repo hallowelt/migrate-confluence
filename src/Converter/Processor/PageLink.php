@@ -4,11 +4,13 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
+use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 
 class PageLink extends LinkProcessorBase {
+
 	/** @var string */
-	private $spaceKey = '';
+	private string $spaceKey = '';
 
 	/**
 	 *
@@ -20,7 +22,9 @@ class PageLink extends LinkProcessorBase {
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return void
+	 * @throws InvalidTitleException
 	 */
 	protected function doProcessLink( DOMNode $node ): void {
 		if ( $node instanceof DOMElement ) {
@@ -73,7 +77,9 @@ class PageLink extends LinkProcessorBase {
 	/**
 	 * @param int $spaceId
 	 * @param string $rawPageTitle
+	 *
 	 * @return string
+	 * @throws InvalidTitleException
 	 */
 	private function generatePageConfluenceKey( int $spaceId, string $rawPageTitle ): string {
 		$genericTitleBuilder = new GenericTitleBuilder( [] );
@@ -86,7 +92,9 @@ class PageLink extends LinkProcessorBase {
 	/**
 	 * @param int $spaceId
 	 * @param string $rawPageTitle
+	 *
 	 * @return string
+	 * @throws InvalidTitleException
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
 		$genericTitleBuilder = new GenericTitleBuilder( [] );
@@ -94,9 +102,9 @@ class PageLink extends LinkProcessorBase {
 			->appendTitleSegment( $rawPageTitle )->build();
 		$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
 
-		$confluenceKey = "Confluence---{$spaceId}---$rawPageTitle";
+		$confluenceKey = "Confluence---$spaceId---$rawPageTitle";
 		if ( $this->spaceKey !== '' ) {
-			$confluenceKey = "Confluence---{$this->spaceKey}---$rawPageTitle";
+			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
 		}
 		return $confluenceKey;
 	}

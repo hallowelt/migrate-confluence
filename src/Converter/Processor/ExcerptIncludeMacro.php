@@ -9,7 +9,7 @@ class ExcerptIncludeMacro extends IncludeMacro {
 	/**
 	 * @var array
 	 */
-	private $parameters = [];
+	private array $parameters = [];
 
 	/**
 	 *

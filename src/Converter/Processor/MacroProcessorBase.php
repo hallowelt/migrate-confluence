@@ -54,9 +54,10 @@ abstract class MacroProcessorBase implements IProcessor {
 
 	/**
 	 * @param DOMNode $macro
+	 *
 	 * @return array
 	 */
-	protected function getMacroParams( $macro ): array {
+	protected function getMacroParams( DOMNode $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -74,9 +75,10 @@ abstract class MacroProcessorBase implements IProcessor {
 	 *
 	 * @param DOMNode $macro
 	 * @param DOMElement $macroReplacement
+	 *
 	 * @return void
 	 */
-	protected function macroParams( $macro, $macroReplacement ): void {
+	protected function macroParams( DOMNode $macro, DOMElement $macroReplacement ): void {
 		$params = $this->getMacroParams( $macro );
 
 		if ( !empty( $params ) ) {
@@ -87,9 +89,10 @@ abstract class MacroProcessorBase implements IProcessor {
 	/**
 	 * @param DOMNode $macro
 	 * @param DOMElement $macroReplacement
+	 *
 	 * @return void
 	 */
-	protected function macroBody( $macro, $macroReplacement ): void {
+	protected function macroBody( DOMNode $macro, DOMElement $macroReplacement ): void {
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:rich-text-body' ) {
 				foreach ( $childNode->childNodes as $node ) {

@@ -188,7 +188,9 @@ class Page extends ProcessorBase {
 	 * @param string $title
 	 * @param array $properties
 	 * @param array $collection
+	 *
 	 * @return void
+	 * @throws InvalidTitleException
 	 */
 	private function process( string $title, array $properties, array $collection ): void {
 		/**
@@ -424,9 +426,10 @@ class Page extends ProcessorBase {
 
 	/**
 	 * @param SplFileInfo $file
+	 *
 	 * @return bool
 	 */
-	private function hasNoExplicitFileExtension( $file ) {
+	private function hasNoExplicitFileExtension( SplFileInfo $file ): bool {
 		if ( $file->getExtension() === '' ) {
 			return true;
 		}

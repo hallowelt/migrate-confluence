@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
+use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
@@ -13,17 +14,17 @@ class Image implements IProcessor {
 	/**
 	 * @var ConversionDataLookup
 	 */
-	protected $dataLookup;
+	protected ConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
 	 */
-	protected $currentSpaceId;
+	protected int $currentSpaceId;
 
 	/**
 	 * @var string
 	 */
-	protected $rawPageTitle;
+	protected string $rawPageTitle;
 
 	/**
 	 * @param ConversionDataLookup $dataLookup
@@ -55,9 +56,11 @@ class Image implements IProcessor {
 
 	/**
 	 * @param DOMElement $node
+	 *
 	 * @return void
+	 * @throws DOMException
 	 */
-	private function doProcessImage( $node ): void {
+	private function doProcessImage( DOMElement $node ): void {
 		$replacementNode = $node->ownerDocument->createTextNode( '[[Category:Broken_image]]' );
 
 		if ( $node instanceof DOMElement ) {
@@ -102,9 +105,10 @@ class Image implements IProcessor {
 
 	/**
 	 * @param DOMElement $node
+	 *
 	 * @return array
 	 */
-	private function getImageAttributes( $node ): array {
+	private function getImageAttributes( DOMElement $node ): array {
 		$attributes = [];
 		$width = '';
 		$height = '';
@@ -148,9 +152,10 @@ class Image implements IProcessor {
 
 	/**
 	 * @param DOMElement $node
+	 *
 	 * @return array
 	 */
-	private function getImageParams( $node ): array {
+	private function getImageParams( DOMElement $node ): array {
 		$params = [];
 
 		$width = $node->getAttribute( 'ac:width' );
@@ -181,9 +186,11 @@ class Image implements IProcessor {
 	 * If this varaiable is false we show at least the url as link.
 	 *
 	 * @param DOMElement $node
+	 *
 	 * @return DOMNode
+	 * @throws DOMException
 	 */
-	private function makeImageUrlReplacement( $node ): DOMNode {
+	private function makeImageUrlReplacement( DOMElement $node ): DOMNode {
 		$attributes = $this->getImageAttributes( $node->parentNode );
 		$src = $node->getAttribute( 'ri:value' );
 
@@ -202,9 +209,10 @@ class Image implements IProcessor {
 
 	/**
 	 * @param DOMElement $node
+	 *
 	 * @return DOMNode
 	 */
-	private function makeImageAttachmentReplacement( $node ): DOMNode {
+	private function makeImageAttachmentReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node->parentNode );
 
 		if ( !$node->hasAttribute( 'ri:filename' ) ) {
@@ -377,10 +385,11 @@ class Image implements IProcessor {
 	 * @param array $params
 	 * @param string $confluenceFileKey
 	 * @param string $debug
+	 *
 	 * @return DOMNode
 	 */
 	private function makeImageLinkWithDebugInfo( DOMDocument $dom, array $params,
-		$confluenceFileKey, $debug = '' ): DOMNode {
+		string $confluenceFileKey, string $debug = '' ): DOMNode {
 		$params = array_map( 'trim', $params );
 
 		if ( empty( $params ) || empty( $params[0] ) ) {
@@ -395,17 +404,19 @@ class Image implements IProcessor {
 
 	/**
 	 * @param array $params
+	 *
 	 * @return string
 	 */
-	private function getImageReplacement( $params ): string {
+	private function getImageReplacement( array $params ): string {
 		return '[[File:' . implode( '|', $params ) . ']]';
 	}
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return bool
 	 */
-	private function isImageWithPageLink( $node ): bool {
+	private function isImageWithPageLink( DOMNode $node ): bool {
 		if ( $node->parentNode->nodeName === 'ac:link-body' ) {
 			return true;
 		}
@@ -415,9 +426,10 @@ class Image implements IProcessor {
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return bool
 	 */
-	private function isImageWithExternalLink( $node ): bool {
+	private function isImageWithExternalLink( DOMNode $node ): bool {
 		if ( $node->parentNode->nodeName !== 'a' ) {
 			return false;
 		}
