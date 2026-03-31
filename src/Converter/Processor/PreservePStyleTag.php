@@ -43,12 +43,12 @@ class PreservePStyleTag implements IProcessor {
 				"#####PRESERVEPSTYLEOPEN $attributesString#####"
 			);
 
-			$closeingTagReplacement = $tag->ownerDocument->createTextNode(
+			$closingTagReplacement = $tag->ownerDocument->createTextNode(
 				"#####PRESERVEPSTYLECLOSE#####"
 			);
 
 			$tag->prepend( $openingTagReplacement );
-			$tag->append( $closeingTagReplacement );
+			$tag->append( $closingTagReplacement );
 		}
 	}
 }

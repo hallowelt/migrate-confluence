@@ -29,7 +29,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	protected $config = [];
 
 	/** @var bool */
-	protected $mulitXmlOutputEnabled = false;
+	protected $multiXmlOutputEnabled = false;
 
 	/** @var int */
 	protected $limit = 0;
@@ -61,7 +61,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 
 		if ( isset( $this->config['composer-page-per-xml-limit'] ) ) {
 			$this->limit = $this->config['composer-page-per-xml-limit'];
-			$this->mulitXmlOutputEnabled = true;
+			$this->multiXmlOutputEnabled = true;
 		}
 	}
 
@@ -85,7 +85,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		);
 		$this->numOfRevisions++;
 
-		if ( $this->mulitXmlOutputEnabled ) {
+		if ( $this->multiXmlOutputEnabled ) {
 			if ( $this->numOfRevisions >= $this->limit ) {
 				$this->writeOutputFile();
 				$this->numOfRevisions = 0;
@@ -114,7 +114,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		);
 		$this->numOfRevisions++;
 
-		if ( $this->mulitXmlOutputEnabled ) {
+		if ( $this->multiXmlOutputEnabled ) {
 			if ( $this->numOfRevisions >= $this->limit ) {
 				$this->writeOutputFile();
 				$this->numOfRevisions = 0;
@@ -128,7 +128,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	protected function writeOutputFile(): void {
 		$name = $this->getOutputName();
 
-		if ( $this->mulitXmlOutputEnabled ) {
+		if ( $this->multiXmlOutputEnabled ) {
 			$this->outputXmlFile++;
 			$num = (string)$this->outputXmlFile;
 			$name .= '-' . str_pad( $num, 8, '0', STR_PAD_LEFT );
@@ -186,11 +186,11 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 * @return string
 	 */
 	protected function getNamespace( string $title ): string {
-		$collonPos = strpos( $title, ':' );
-		if ( $collonPos === false ) {
+		$colonPos = strpos( $title, ':' );
+		if ( $colonPos === false ) {
 			return 'NS_MAIN';
 		}
-		return substr( $title, 0, $collonPos );
+		return substr( $title, 0, $colonPos );
 	}
 
 	/**

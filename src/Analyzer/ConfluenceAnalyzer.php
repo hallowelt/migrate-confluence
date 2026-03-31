@@ -431,7 +431,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$hasInvalidTitles = true;
 			}
 			if ( str_contains( $title, ':' ) ) {
-				if ( $validityChecker->hasDoubleCollon( $title ) ) {
+				if ( $validityChecker->hasDoubleColon( $title ) ) {
 					$this->customBuckets->addData(
 						'warning-analyze-invalid-titles',
 						'multiple_collons', $title,

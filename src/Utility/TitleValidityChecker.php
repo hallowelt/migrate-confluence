@@ -14,7 +14,7 @@ class TitleValidityChecker {
 		}
 
 		if ( str_contains( $title, ':' ) ) {
-			if ( $this->hasDoubleCollon( $title ) ) {
+			if ( $this->hasDoubleColon( $title ) ) {
 				return false;
 			}
 
@@ -52,7 +52,7 @@ class TitleValidityChecker {
 	 * @param string $title
 	 * @return bool
 	 */
-	public function hasDoubleCollon( string $title ): bool {
+	public function hasDoubleColon( string $title ): bool {
 		if ( strpos( $title, ':' ) !== strrpos( $title, ':' ) ) {
 			return true;
 		}
