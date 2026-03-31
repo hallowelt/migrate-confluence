@@ -104,7 +104,7 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 	 * @param DOMElement $user
 	 * @return string
 	 */
-	private function findUserName( DOMElement $user ): string {
+	private function findUserName( DOMNode $user ): string {
 		if ( $user->nodeName !== 'ri:user' ) {
 			return '';
 		}

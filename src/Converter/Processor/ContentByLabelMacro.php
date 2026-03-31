@@ -67,15 +67,15 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 			$params['labels'] = implode( ', ', $vals );
 		}
 
+		$cqlError = false;
 		if ( isset( $params['cql'] ) ) {
 			$params['conditions'] = $this->getConditionsForCQL( $params['cql'] );
-		}
 
-		$matches = [];
-		preg_match_all( '#(\snot\s|\sNOT\s|!=)#', $params['cql'], $matches );
-		$cqlError = false;
-		if ( !empty( $matches[0] ) ) {
-			$cqlError = true;
+			$matches = [];
+			preg_match_all( '#(\snot\s|\sNOT\s|!=)#', $params['cql'], $matches );
+			if ( !empty( $matches[0] ) ) {
+				$cqlError = true;
+			}
 		}
 
 		$templateParams = '';
