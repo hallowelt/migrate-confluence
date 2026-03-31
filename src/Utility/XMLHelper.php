@@ -95,7 +95,7 @@ class XMLHelper implements LoggerAwareInterface {
 	 */
 	public function getKeyNodeValue( $domNode ) {
 		if ( !$domNode->hasChildNodes() ) {
-			return -1;
+			return '';
 		}
 
 		$hasIDNode = false;

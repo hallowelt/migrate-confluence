@@ -13,7 +13,7 @@ class DrawIOFileHandler {
 	 */
 	public function isDrawIODataFile( string $fileName ): bool {
 		return (
-			preg_match( '#\.drawio.tmp$#', $fileName ) ||
+			preg_match( '#\.drawio\.tmp$#', $fileName ) ||
 			preg_match( '#\.drawio$#', $fileName )
 		);
 	}
@@ -75,6 +75,9 @@ class DrawIOFileHandler {
 		$tEXtChunk = pack( 'N', strlen( $chunkData ) ) . 'tEXt' . $chunkData . $crc;
 
 		$IDATChunkPos = strpos( $imageContent, 'IDAT', 8 );
+		if ( $IDATChunkPos === false ) {
+			return $imageContent;
+		}
 
 		// Add the tEXt chunk to the image content
 		$imageContent = substr_replace( $imageContent, $tEXtChunk, $IDATChunkPos - 4, 0 );

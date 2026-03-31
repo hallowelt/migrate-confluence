@@ -97,7 +97,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 					$key = $this->getConfluenceKey( $name, $ext );
 					$filename = $this->getFilename( $key );
 
-					if ( $filename === '' ) {
+					if ( $filename !== '' ) {
 						break;
 					}
 				}

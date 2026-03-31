@@ -76,7 +76,7 @@ class NestedHeadings implements IPostprocessor {
 
 			$index++;
 			if ( $index >= count( $lines ) ) {
-				$matches = 0;
+				break;
 			}
 
 			$line = $lines[$index];

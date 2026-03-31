@@ -433,7 +433,7 @@ class Page extends ProcessorBase {
 		}
 		// Evil hack for Names like "02.1 Some-Workflow File"
 		if ( strlen( $file->getExtension() ) > 10 ) {
-			return false;
+			return true;
 		}
 		return false;
 	}

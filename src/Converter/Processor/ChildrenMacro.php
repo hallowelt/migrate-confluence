@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
 class ChildrenMacro extends StructuredMacroProcessorBase {
@@ -70,6 +71,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 								$spaceId = $this->spaceId;
 
 								// Get space key if set. Otherwise use current space key
+								$spaceKey = '';
 								if ( $pageLink->hasAttribute( 'ri:space-key' ) ) {
 									$spaceKey = $pageLink->getAttribute( 'ri:space-key' );
 									$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
@@ -82,7 +84,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 									if ( $pageConfluenceTitle === '' ) {
 										// If no page title can be found mark macro as broken
 										$broken = true;
-										$params[$name] = "Confluence---$spaceId---$pageConfluenceTitle";
+										$params[$name] = "Confluence---$spaceKey---{$pageConfluenceTitle}";
 										break;
 									}
 
@@ -94,7 +96,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 									if ( $wikiTitle === '' ) {
 										// If wiki page title is empty mark macro as broken
-										$params[$name] = "Confluence---$spaceId---$pageConfluenceTitle";
+										$params[$name] = "Confluence---$spaceKey---{$pageConfluenceTitle}";
 										$broken = true;
 										break;
 									}
