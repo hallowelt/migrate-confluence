@@ -14,7 +14,7 @@ class CheckResult extends Command {
 	/**
 	 * @var OutputInterface|null
 	 */
-	private ?OutputInterface $output;
+	private ?OutputInterface $output = null;
 
 	/**
 	 * @var string
