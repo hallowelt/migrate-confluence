@@ -83,7 +83,9 @@ class ConversionDataLookup {
 	public function __construct(
 		array $spaceIdPrefixMap, array $pagesTitlesMap,
 		array $filenamesToFiletitlesMap, array $attachmentOrigFilenameToTargetFilenameMap,
-		array $files, array $userMap, array $spaceIdToKeyMap, array $attachmentMetadata, array $attachmentIdToFileKeyMap ) {
+		array $files, array $userMap, array $spaceIdToKeyMap,
+		array $attachmentMetadata, array $attachmentIdToFileKeyMap
+	) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
 		$this->spaceKeyToIdMap = array_flip( $this->spaceIdToKeyMap );

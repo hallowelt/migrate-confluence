@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use DOMNodeList;
 
 /**
  * <ac:structured-macro ac:name="table-filter" ac:schema-version="1" ac:macro-id="...">

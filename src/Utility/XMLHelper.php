@@ -86,7 +86,7 @@ class XMLHelper implements LoggerAwareInterface {
 	 *
 	 * @return DOMNodeList
 	 */
-	public function getPropertyNodes( string $propName, DOMElement $contextElement = null ): DOMNodeList {
+	public function getPropertyNodes( string $propName, ?DOMElement $contextElement = null ): DOMNodeList {
 		if ( $contextElement === null ) {
 			// Fetch all in whole document
 			return $this->xpath->query( '//property[@name="' . $propName . '"]' );
@@ -100,10 +100,10 @@ class XMLHelper implements LoggerAwareInterface {
 	 *
 	 * @param string $propName
 	 * @param DOMElement|null $contextElement
-	 * 
+	 *
 	 * @return DOMElement|null
 	 */
-	public function getPropertyNode( string $propName, DOMElement $contextElement = null ): ?DOMElement {
+	public function getPropertyNode( string $propName, ?DOMElement $contextElement = null ): ?DOMElement {
 		return $this->getPropertyNodes( $propName, $contextElement )->item( 0 );
 	}
 
