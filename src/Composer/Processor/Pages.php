@@ -43,6 +43,7 @@ class Pages extends ProcessorBase {
 		/** Prepare required maps */
 		$bodyContentIdMainpageId = $this->buildMainpageContentMap( $spaceIdHomepagesMap );
 
+		$this->numOfXmlCountDigits = strlen( (string)count( $titleRevisions ) );
 		/** Add grouped pages */
 		foreach ( $titleRevisions as $pageTitle => $pageRevisions ) {
 			if ( $this->skipTitle( $pageTitle ) ) {

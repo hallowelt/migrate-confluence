@@ -56,6 +56,8 @@ class Files extends ProcessorBase {
 			'global-title-revisions'
 		);
 
+		$this->numOfXmlCountDigits = strlen( (string)count( $titleRevisions ) );
+
 		/** Add grouped pages */
 		foreach ( $titleRevisions as $pageTitle => $pageRevisions ) {
 			if ( $this->skipTitle( $pageTitle ) ) {

@@ -35,6 +35,9 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	protected $limit = 0;
 
 	/** @var int */
+	protected $numOfXmlCountDigits = 3;
+
+	/** @var int */
 	protected $numOfRevisions = 0;
 
 	/** @var int */
@@ -125,7 +128,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		if ( $this->mulitXmlOutputEnabled ) {
 			$this->outputXmlFile++;
 			$num = (string)$this->outputXmlFile;
-			$name .= '-' . str_pad( $num, 8, STR_PAD_LEFT );
+			$name .= '-' . str_pad( $num, $this->numOfXmlCountDigits, 0, STR_PAD_LEFT );
 		}
 
 		$name .= '.xml';
