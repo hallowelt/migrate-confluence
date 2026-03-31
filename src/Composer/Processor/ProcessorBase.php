@@ -125,7 +125,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		if ( $this->mulitXmlOutputEnabled ) {
 			$this->outputXmlFile++;
 			$num = (string)$this->outputXmlFile;
-			$name .= '-' . str_pad( $num, 8, STR_PAD_LEFT );
+			$name .= '-' . str_pad( $num, 8, '0', STR_PAD_LEFT );
 		}
 
 		$name .= '.xml';
