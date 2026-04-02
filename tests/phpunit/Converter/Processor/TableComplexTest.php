@@ -98,4 +98,79 @@ class TableComplexTest extends TestCase {
 
 		$this->assertEquals( $normalize( $expectedOutput ), $normalize( $wikiText ) );
 	}
+
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable::postprocess
+	 * @return void
+	 */
+	public function testProcessWithInclude() {
+		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+
+		$input = file_get_contents( "$this->dir/table-complex-with-include-input.xml" );
+
+		$dom = new DOMDocument();
+		$dom->loadXML( $input );
+
+		$dataLookup = new ConversionDataLookup(
+			[ 42 => 'ABC', 23 => 'INF' ],
+			[
+				'23---Sed_do_eiusmod_tempor_incididunt'
+					=> 'INF:Sed_do_eiusmod_tempor_incididunt',
+			],
+			[],
+			[],
+			[],
+			[
+				'8a24c45f93bbe67901943c7033640000' => 'UserA',
+				'000000005e7f616b01606dc4e2080003' => 'UserB',
+			],
+			[ 42 => 'ABC', 23 => 'INF' ],
+			[],
+			[]
+		);
+
+		$processors = [
+			new PreserveTimeTag(),
+			new UserLink( $dataLookup, 42, 'SomePage' ),
+			new PageLink( $dataLookup, 42, 'SomePage' ),
+			new TaskListMacro(),
+			new PreservePStyleTag(),
+		];
+
+		foreach ( $processors as $processor ) {
+			$processor->process( $dom );
+		}
+
+		$unhandled = new UnhandledMacroConverter();
+		$unhandled->process( $dom );
+
+		$tmpFile = tempnam( sys_get_temp_dir(), 'table-complex-with-include-' ) . '.html';
+		$dom->saveHTMLFile( $tmpFile );
+		$result = [];
+		// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.escapeshellcmd,MediaWiki.Usage.ForbiddenFunctions.exec
+		exec( escapeshellcmd( "pandoc -f html -t mediawiki $tmpFile" ), $result );
+		$wikiText = implode( "\n", $result );
+		unlink( $tmpFile );
+
+		$postProcessors = [
+			new RestorePStyleTag(),
+			new RestoreTimeTag(),
+			new FixLineBreakInHeadings(),
+			new FixMultilineTemplate(),
+			new FixMultilineTable(),
+		];
+
+		foreach ( $postProcessors as $postProcessor ) {
+			$wikiText = $postProcessor->postprocess( $wikiText );
+		}
+
+		$expectedOutput = file_get_contents( "$this->dir/table-complex-with-include-output.wikitext" );
+
+		// Normalize consecutive blank lines to account for pandoc version differences
+		$normalize = static function ( $text ) {
+			return preg_replace( "/\n{2,}/", "\n", $text );
+		};
+
+		$this->assertEquals( $normalize( $expectedOutput ), $normalize( $wikiText ) );
+	}
 }
