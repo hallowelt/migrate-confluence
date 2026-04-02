@@ -87,7 +87,7 @@ class TitleBuilder {
 				'_',
 				$title
 			);
-			$title = str_replace( '__', '_', $title );
+			$title = preg_replace( '/_+/', '_', $title );
 			$builder->appendTitleSegment( $title );
 		}
 

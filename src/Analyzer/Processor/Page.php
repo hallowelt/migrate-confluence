@@ -248,11 +248,11 @@ class Page extends ProcessorBase {
 		if ( isset( $properties['lastModificationDate'] ) ) {
 			$lastModificationDate = $properties['lastModificationDate'];
 		}
-		$revisionTimestamp = $this->buildRevisionTimestamp( $lastModificationDate );
+		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 
 		$bodyContentIds = [];
-		if ( isset( $properties['bodyContents'] ) ) {
-			$bodyContentIds = $properties['bodyContents'];
+		if ( isset( $collection['bodyContents'] ) ) {
+			$bodyContentIds = $collection['bodyContents'];
 		}
 
 		if ( !empty( $bodyContentIds ) ) {
@@ -282,16 +282,6 @@ class Page extends ProcessorBase {
 
 		// Find attachments
 		$this->getAttachmentsFromCollection( $this->spaceId, $collection );
-	}
-
-	/**
-	 * @param string $lastModificationDate
-	 * @return string
-	 */
-	private function buildRevisionTimestamp( string $lastModificationDate ): string {
-		$time = strtotime( $lastModificationDate );
-		$mwTimestamp = date( 'YmdHis', $time );
-		return $mwTimestamp;
 	}
 
 	/**
@@ -355,7 +345,7 @@ class Page extends ProcessorBase {
 			// In case of ERM34465 no files are added to title-attachments
 			$this->data['global-title-attachments'][$wikiTitle][] = $attachmentTargetFilename;
 			$this->data['analyze-add-file'][$attachmentTargetFilename] = $attachmentReference;
-			$this->data['analyze-title-to-attachment-title'][$wikiTitle] = $attachmentTargetFilename;
+			$this->data['analyze-title-to-attachment-title'][$wikiTitle][] = $attachmentTargetFilename;
 			$this->data['analyze-added-attachment-id'][] = $attachmentId;
 
 			$confluenceFileKey = str_replace( ' ', '_', "$spaceId---$confluenceTitle---$attachmentOrigFilename" );

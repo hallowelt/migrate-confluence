@@ -12,7 +12,7 @@ class FixLineBreakInHeadings implements IPostprocessor {
 	public function postprocess( string $wikiText ): string {
 		for ( $heading = 1; $heading <= 6; $heading++ ) {
 			$regex = $this->buildRegExForHeadingLevel( $heading );
-			$newWikiText = preg_replace_callback(
+			$wikiText = preg_replace_callback(
 				$regex,
 				static function ( $matches ) {
 					$wikiTextHeading = $matches[0];
@@ -22,7 +22,7 @@ class FixLineBreakInHeadings implements IPostprocessor {
 				$wikiText
 			);
 		}
-		return $newWikiText;
+		return $wikiText;
 	}
 
 	/**
@@ -31,10 +31,7 @@ class FixLineBreakInHeadings implements IPostprocessor {
 	 * @return string
 	 */
 	private function buildRegExForHeadingLevel( int $level ): string {
-		$tag = '';
-		for ( $heading = 1; $heading <= $level; $heading++ ) {
-			$tag = '.=';
-		}
+		$tag = str_repeat( '=', $level );
 		return "#^$tag.*?(<br \/>\n*?).*?$tag$#im";
 	}
 }

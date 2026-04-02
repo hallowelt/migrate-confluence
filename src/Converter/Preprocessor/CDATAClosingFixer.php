@@ -36,7 +36,7 @@ class CDATAClosingFixer implements IPreprocessor {
 		$content = $matches[2];
 		$endTag = $matches[3];
 
-		if ( $this->startsWith( $content, '<![CDATA[[' ) ) {
+		if ( $this->startsWith( $content, '<![CDATA[' ) ) {
 			if ( !$this->endsWith( $content, ']]>' ) ) {
 				$content .= $this->cdataCloser;
 			}

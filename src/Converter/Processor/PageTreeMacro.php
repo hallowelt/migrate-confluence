@@ -173,7 +173,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 					$currentPageParts = explode( '/', $currentPageTitle );
 					if ( count( $currentPageParts ) > 1 ) {
 						array_pop( $currentPageParts );
-						$text = array_pop( $currentPageParts );
+						$text = implode( '/', $currentPageParts );
 					} else {
 						$text = $this->currentPageTitle;
 						$params['broken-macro'] = true;
@@ -213,18 +213,22 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 					if ( is_string( $text ) ) {
 						$params['content-title'] = $text;
 					}
-					$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
-					if ( is_string( $namespace ) ) {
-						$params['space-key'] = $namespace;
+					if ( isset( $params['space-key'] ) ) {
+						$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
+						if ( is_string( $namespace ) ) {
+							$params['space-key'] = $namespace;
+						}
 					}
 					break;
 			}
 		} else {
 			// if content-title is not set fallback to {{FULLPAGENAME}}
 			$params['content-title'] = '{{FULLPAGENAME}}';
-			$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
-			if ( is_string( $namespace ) ) {
-				$params['space-key'] = $namespace;
+			if ( isset( $params['space-key'] ) ) {
+				$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
+				if ( is_string( $namespace ) ) {
+					$params['space-key'] = $namespace;
+				}
 			}
 			$params['broken-macro'] = true;
 		}

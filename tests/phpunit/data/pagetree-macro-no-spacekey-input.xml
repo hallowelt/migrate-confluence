@@ -1,0 +1,17 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="pagetree" ac:schema-version="1" ac:macro-id="00000000-0000-0000-0000-000000000008">
+		<ac:parameter ac:name="root">
+			<ac:link>
+				<ri:page ri:content-title="Testpage" />
+			</ac:link>
+		</ac:parameter>
+	</ac:structured-macro>
+
+	<ac:structured-macro ac:name="pagetree" ac:schema-version="1" ac:macro-id="00000000-0000-0000-0000-000000000009">
+		<ac:parameter ac:name="root">
+			<ac:link>
+				<ri:page ri:version-at-save="1" />
+			</ac:link>
+		</ac:parameter>
+	</ac:structured-macro>
+</xml>

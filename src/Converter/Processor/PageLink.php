@@ -35,6 +35,7 @@ class PageLink extends LinkProcessorBase {
 			$confluencePageKey = $this->generatePageConfluenceKey( $spaceId, $rawPageTitle );
 
 			$targetTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
+			$linkParts = [];
 			if ( !empty( $targetTitle ) ) {
 				$linkParts[] = $targetTitle;
 			} else {
