@@ -32,34 +32,37 @@ class EscapePipesInTemplateBodyTest extends TestCase {
 	 */
 	public static function provideTestCases(): array {
 		// Note: at postprocessor runtime ###BREAK### markers are still present.
+		$br = "###BREAK###";
+		$tbl = "{| class=\"wikitable\"\n";
 		return [
 			'wikitable in body is escaped' => [
-				"{{Info###BREAK###\n|body = ###BREAK###\n{| class=\"wikitable\"\n|-\n! Head !! Head\n|-\n| Cell || Cell\n|}}}",
-				"{{Info###BREAK###\n|body = ###BREAK###\n{| class=\"wikitable\"\n{{!}}-\n! Head !! Head\n{{!}}-\n{{!}} Cell {{!}}{{!}} Cell\n{{!}}}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tbl}|-\n! Head !! Head\n|-\n| Cell || Cell\n|}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tbl}{{!}}-\n! Head !! Head\n"
+				. "{{!}}-\n{{!}} Cell {{!}}{{!}} Cell\n{{!}}}}}",
 			],
 			'table open {| is not escaped' => [
-				"{{Info###BREAK###\n|body = ###BREAK###\n{| class=\"wikitable\"\n|-\n| A\n|}}}",
-				"{{Info###BREAK###\n|body = ###BREAK###\n{| class=\"wikitable\"\n{{!}}-\n{{!}} A\n{{!}}}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tbl}|-\n| A\n|}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tbl}{{!}}-\n{{!}} A\n{{!}}}}}",
 			],
 			'caption line |+ is escaped' => [
-				"{{Info###BREAK###\n|body = ###BREAK###\n{| class=\"wikitable\"\n|+ Caption\n|-\n| A\n|}}}",
-				"{{Info###BREAK###\n|body = ###BREAK###\n{| class=\"wikitable\"\n{{!}}+ Caption\n{{!}}-\n{{!}} A\n{{!}}}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tbl}|+ Caption\n|-\n| A\n|}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tbl}{{!}}+ Caption\n{{!}}-\n{{!}} A\n{{!}}}}}",
 			],
 			'no wikitable in body — unchanged' => [
-				"{{Info###BREAK###\n|body = ###BREAK###\nJust some text.\n}}",
-				"{{Info###BREAK###\n|body = ###BREAK###\nJust some text.\n}}",
+				"{{Info{$br}\n|body = {$br}\nJust some text.\n}}",
+				"{{Info{$br}\n|body = {$br}\nJust some text.\n}}",
 			],
 			'template without body param — unchanged' => [
-				"{{SomeTemplate###BREAK###\n|param = value###BREAK###\n}}",
-				"{{SomeTemplate###BREAK###\n|param = value###BREAK###\n}}",
+				"{{SomeTemplate{$br}\n|param = value{$br}\n}}",
+				"{{SomeTemplate{$br}\n|param = value{$br}\n}}",
 			],
 			'wikitable outside template — unchanged' => [
 				"{| class=\"wikitable\"\n|-\n| A || B\n|}",
 				"{| class=\"wikitable\"\n|-\n| A || B\n|}",
 			],
 			'nested templates in body are handled' => [
-				"{{Info###BREAK###\n|body = ###BREAK###\n{| class=\"wikitable\"\n|-\n| {{Bold|text}} || B\n|}}}",
-				"{{Info###BREAK###\n|body = ###BREAK###\n{| class=\"wikitable\"\n{{!}}-\n{{!}} {{Bold|text}} {{!}}{{!}} B\n{{!}}}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tbl}|-\n| {{Bold|text}} || B\n|}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tbl}{{!}}-\n{{!}} {{Bold|text}} {{!}}{{!}} B\n{{!}}}}}",
 			],
 		];
 	}
