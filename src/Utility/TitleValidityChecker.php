@@ -69,7 +69,7 @@ class TitleValidityChecker {
 		}
 
 		$matches = [];
-		preg_match( '#(\d*)([a-zA-Z0-9_]*)#', $namespace, $matches );
+		preg_match( '#^(\d*)([a-zA-Z0-9_]*)$#', $namespace, $matches );
 		if ( empty( $matches ) || $matches[1] !== '' ) {
 			return false;
 		}
