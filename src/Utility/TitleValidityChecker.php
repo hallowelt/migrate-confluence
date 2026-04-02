@@ -64,6 +64,10 @@ class TitleValidityChecker {
 	 * @return bool
 	 */
 	public function hasValidNamespace( string $namespace ): bool {
+		if ( empty( $namespace ) ) {
+			return false;
+		}
+
 		$matches = [];
 		preg_match( '#(\d*)([a-zA-Z0-9_]*)#', $namespace, $matches );
 		if ( empty( $matches ) || $matches[1] !== '' ) {

@@ -42,13 +42,19 @@ class BodyContents extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 
+		if ( !isset( $properties['content'] ) ) {
+			return;
+		}
+
 		$contentId = (int)trim( $properties['content'] );
 
 		if ( $contentClass === 'Comment' ) {
 			$this->data['analyze-body-content-id-to-comment-id-map'][$bodyContentId] = $contentId;
-		} else {
-			$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $contentId;
+
+			return;
 		}
+
+		$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $contentId;
 	}
 
 }

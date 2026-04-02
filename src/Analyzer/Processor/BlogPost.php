@@ -174,7 +174,7 @@ class BlogPost extends ProcessorBase {
 		if ( isset( $properties['lastModificationDate'] ) ) {
 			$lastModificationDate = $properties['lastModificationDate'];
 		}
-		$revisionTimestamp = $this->buildRevisionTimestamp( $lastModificationDate );
+		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 
 		$bodyContentIds = [];
 		if ( isset( $collection['bodyContents'] ) ) {
@@ -201,17 +201,5 @@ class BlogPost extends ProcessorBase {
 
 		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
 		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
-	}
-
-	/**
-	 * @param string $lastModificationDate
-	 *
-	 * @return string
-	 */
-	private function buildRevisionTimestamp( string $lastModificationDate ): string {
-		$time = strtotime( $lastModificationDate );
-		$mwTimestamp = date( 'YmdHis', $time );
-
-		return $mwTimestamp;
 	}
 }
