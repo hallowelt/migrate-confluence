@@ -51,7 +51,7 @@ class PageTreeMacroTest extends TestCase {
 	}
 
 	/**
-bu	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
+	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
 	 * @return void
 	 */
 	public function testProcessWithoutSpaceKey() {
@@ -87,7 +87,9 @@ bu	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::pr
 	}
 
 	/**
+	 * @param string $input
 	 * @param string $output
+	 * @return void
 	 */
 	private function doTest( $input, $output ) {
 		$dom = new \DOMDocument();
