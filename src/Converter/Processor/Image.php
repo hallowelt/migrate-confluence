@@ -195,12 +195,12 @@ class Image implements IProcessor {
 
 		$parsedUrl = parse_url( $node->getAttribute( 'ri:value' ) );
 
-		if ( !isset( $parsedUrl['scheme'] ) || !isset( $parsedUrl['host'] ) ) {
+		if ( !isset( $parsedUrl['scheme'] ) || !isset( $parsedUrl['host'] ) || !isset( $parsedUrl['path'] ) ) {
 			return $node;
 		}
 
 		// Remove url params
-		$src = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . ( $parsedUrl['path'] ?? '' );
+		$src = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . $parsedUrl['path'];
 
 		$replacementNode = $node->ownerDocument->createElement( 'span' );
 
