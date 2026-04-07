@@ -35,14 +35,9 @@ class AttachmentLink extends LinkProcessorBase {
 
 			$confluenceFileKey = $this->generateConfluenceKey( $spaceId, $rawPageTitle, $riFilename );
 
-			$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
-			$linkParts = [];
-			if ( !empty( $targetFilename ) ) {
-				$linkParts[] = $targetFilename;
-			} else {
-				$linkParts[] = $riFilename;
-				$isBrokenLink = true;
-			}
+			[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =
+				$this->dataLookup->resolveFileTitle( $confluenceFileKey, $riFilename );
+			$linkParts = [ $targetFilename ];
 
 			$this->getLinkBody( $node, $linkParts );
 

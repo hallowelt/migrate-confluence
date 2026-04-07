@@ -239,9 +239,16 @@ class Image implements IProcessor {
 		$rawPageTitle = basename( $rawPageTitle );
 
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
-		$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
+			$this->dataLookup->resolveFileTitle( $confluenceFileKey, $filename );
 		array_unshift( $params, $targetFilename );
-		$replacementNode = $this->makeImageLinkWithDebugInfo( $node->ownerDocument, $params, $confluenceFileKey );
+		$brokenFileInfo = $isBrokenFile ? '[[Category:Broken_image]]' : '';
+		$replacementNode = $this->makeImageLinkWithDebugInfo(
+			$node->ownerDocument,
+			$params,
+			$confluenceFileKey,
+			$brokenFileInfo
+		);
 
 		return $replacementNode;
 	}
@@ -277,7 +284,8 @@ class Image implements IProcessor {
 
 		$rawPageTitle = basename( $rawPageTitle );
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
-		$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
+			$this->dataLookup->resolveFileTitle( $confluenceFileKey, $filename );
 		array_unshift( $params, $targetFilename );
 
 		$linkBody = $node->parentNode;
@@ -297,6 +305,9 @@ class Image implements IProcessor {
 		$brokenPageLinkInfo = '';
 		if ( $isBrokenPageLink ) {
 			$brokenPageLinkInfo = '[[Category:Broken_image_page_link]]';
+		}
+		if ( $isBrokenFile ) {
+			$brokenPageLinkInfo .= '[[Category:Broken_image]]';
 		}
 
 		$replacementNode = $this->makeImageLinkWithDebugInfo(
@@ -340,7 +351,8 @@ class Image implements IProcessor {
 
 		$rawPageTitle = basename( $rawPageTitle );
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
-		$targetFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
+			$this->dataLookup->resolveFileTitle( $confluenceFileKey, $filename );
 		array_unshift( $params, $targetFilename );
 
 		$brokenLinkInfo = '';
@@ -351,6 +363,10 @@ class Image implements IProcessor {
 			$brokenLinkInfo = '[[Category:Broken_image_external_link]]';
 		} else {
 			$target = $link->getAttribute( 'href' );
+		}
+
+		if ( $isBrokenFile ) {
+			$brokenLinkInfo .= '[[Category:Broken_image]]';
 		}
 
 		if ( !empty( $target ) ) {
