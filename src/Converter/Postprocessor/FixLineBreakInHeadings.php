@@ -15,9 +15,14 @@ class FixLineBreakInHeadings implements IPostprocessor {
 			$wikiText = preg_replace_callback(
 				$regex,
 				static function ( $matches ) {
-					$wikiTextHeading = $matches[0];
-					$newWikiTextHeading = str_replace( [ "<br />", "\n" ], ' ', $wikiTextHeading );
-					return $newWikiTextHeading;
+					$openTag = $matches[1];
+					$content = $matches[2];
+					$closeTag = $matches[3];
+					// Strip <br /> variants and collapse newlines to spaces.
+					$content = str_replace( [ '<br />', '<br/>', "\r\n", "\n", "\r" ], ' ', $content );
+					// Collapse multiple spaces and trim.
+					$content = trim( preg_replace( '/ {2,}/', ' ', $content ) );
+					return "$openTag $content $closeTag";
 				},
 				$wikiText
 			);
@@ -32,6 +37,11 @@ class FixLineBreakInHeadings implements IPostprocessor {
 	 */
 	private function buildRegExForHeadingLevel( int $level ): string {
 		$tag = str_repeat( '=', $level );
-		return "#^$tag.*?(<br \/>\n*?).*?$tag$#im";
+		// Capture (1) opening tag, (2) content containing at least one <br />,
+		// (3) closing tag. The 's' flag lets '.' match newlines so that a <br />
+		// followed by a real newline (multiline heading) is also matched.
+		// The 'm' flag anchors '^' to the start of any line.
+		// '(?!=)' after the opening tag prevents '===' from matching '===='.
+		return "#^($tag(?!=))(.*?<br\s*/?>.*?)($tag)\s*$#ms";
 	}
 }
