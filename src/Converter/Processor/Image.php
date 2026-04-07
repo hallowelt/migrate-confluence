@@ -108,7 +108,7 @@ class Image implements IProcessor {
 	 *
 	 * @return array
 	 */
-	private function getImageAttributes( DOMElement $node ): array {
+	private function getImageAttributes( DOMNode $node ): array {
 		$attributes = [];
 		$width = '';
 		$height = '';
