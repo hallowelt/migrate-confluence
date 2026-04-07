@@ -192,7 +192,15 @@ class Image implements IProcessor {
 	 */
 	private function makeImageUrlReplacement( DOMElement $node ): DOMNode {
 		$attributes = $this->getImageAttributes( $node->parentNode );
-		$src = $node->getAttribute( 'ri:value' );
+
+		$parsedUrl = parse_url( $node->getAttribute( 'ri:value' ) );
+
+		if ( !isset( $parsedUrl['scheme'] ) || !isset( $parsedUrl['host'] ) ) {
+			return $node;
+		}
+
+		// Remove url params
+		$src = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . ( $parsedUrl['path'] ?? '' );
 
 		$replacementNode = $node->ownerDocument->createElement( 'span' );
 
@@ -365,19 +373,6 @@ class Image implements IProcessor {
 		);
 
 		return $replacementNode;
-	}
-
-	/**
-	 * @param DOMDocument $dom
-	 * @param array $params
-	 * @return DOMNode
-	 */
-	public function makeImageLink( DOMDocument $dom, array $params ): DOMNode {
-		$params = array_map( 'trim', $params );
-
-		$replacementText = $this->getImageReplacement( $params );
-
-		return $dom->createTextNode( $replacementText );
 	}
 
 	/**
