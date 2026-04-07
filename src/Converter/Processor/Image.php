@@ -243,7 +243,12 @@ class Image implements IProcessor {
 			$this->dataLookup->resolveFileTitle( $confluenceFileKey, $filename );
 		array_unshift( $params, $targetFilename );
 		$brokenFileInfo = $isBrokenFile ? '[[Category:Broken_image]]' : '';
-		$replacementNode = $this->makeImageLinkWithDebugInfo( $node->ownerDocument, $params, $confluenceFileKey, $brokenFileInfo );
+		$replacementNode = $this->makeImageLinkWithDebugInfo(
+			$node->ownerDocument,
+			$params,
+			$confluenceFileKey,
+			$brokenFileInfo
+		);
 
 		return $replacementNode;
 	}
