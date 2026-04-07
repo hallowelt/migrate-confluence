@@ -57,6 +57,38 @@ class ViewFileMacroTest extends TestCase {
 	}
 
 	/**
+	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro::process
+	 * @return void
+	 */
+	public function testProcessBrokenMacro() {
+		$this->dataLookup = new ConversionDataLookup(
+			[], [], [], [], [], [], [], [], []
+		);
+
+		// Macros with no params at all, or with a name param but no ri:filename attribute,
+		// must be replaced with the broken-macro category marker.
+		$this->doTest(
+			0, "SomePage", 'view-file-macro-broken-input.xml', 'view-file-macro-broken-output.xml'
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro::process
+	 * @return void
+	 */
+	public function testProcessUnmappedFilename() {
+		$this->dataLookup = new ConversionDataLookup(
+			[], [], [], [], [], [], [], [], []
+		);
+
+		// ri:filename is present but not found in the migration map: the macro must still
+		// render using the original filename (red link) and append Broken_attachment_link.
+		$this->doTest(
+			0, "SomePage", 'view-file-macro-unmapped-input.xml', 'view-file-macro-unmapped-output.xml'
+		);
+	}
+
+	/**
 	 * @param int $spaceId
 	 * @param string $pageName
 	 * @param string $input

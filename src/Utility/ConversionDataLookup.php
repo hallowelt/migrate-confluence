@@ -176,6 +176,23 @@ class ConversionDataLookup {
 	}
 
 	/**
+	 * Resolves a Confluence file key to a MediaWiki file title.
+	 * When no mapping is found, falls back to $originalFilename so callers can
+	 * always render a (red) link. Use 'isBroken' to append a maintenance category.
+	 *
+	 * @param string $confluenceFileKey
+	 * @param string $originalFilename Fallback used when no mapping is found
+	 * @return array{title: string, isBroken: bool}
+	 */
+	public function resolveFileTitle( string $confluenceFileKey, string $originalFilename ): array {
+		$title = $this->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		if ( $title !== '' ) {
+			return [ 'title' => $title, 'isBroken' => false ];
+		}
+		return [ 'title' => $originalFilename, 'isBroken' => true ];
+	}
+
+	/**
 	 *
 	 * @param string $confluenceFileKey
 	 *
