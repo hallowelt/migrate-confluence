@@ -207,6 +207,9 @@ class ConversionDataLookup {
 				}
 				$paths = $this->files[$curFilename];
 				$curFile = file_get_contents( $paths[0] );
+				if ( $curFile === false ) {
+					return '';
+				}
 				$curFileMd5 = md5( $curFile );
 				if ( $md5File === '' ) {
 					$md5File = $curFileMd5;

@@ -1,0 +1,15 @@
+<div class="ac-include">
+###HTMLCOMMENTOPEN###&lt;ac:structured-macro ac:name=&quot;include&quot; ac:schema-version=&quot;1&quot; data-layout=&quot;default&quot; ac:local-id=&quot;8878c2fb-b385-438b-b419-3252e525a9eb&quot; ac:macro-id=&quot;d213a17f-39e7-4ea6-8823-3203c3835faf&quot;&gt;&lt;ac:parameter ac:name=&quot;&quot;&gt;[[Confluence---42---Products_nav|Confluence---42---Products nav]][[Category:Broken_page_link]]&lt;/ac:parameter&gt;&lt;/ac:structured-macro&gt;###HTMLCOMMENTCLOSE###[[Category:Broken_macro/include]]
+</div>
+{| class="wikitable" table-width="760" layout="default" ac:local-id="dddab586-e304-4cbd-947b-8b8b88341ad7"
+|- ac:local-id="e8c016fd-a704-4b91-841e-9fe8f5cb4f84"
+! ac:local-id="750972d2-ae87-4bb6-8ac6-94aba8c209bb"| Description
+| ac:local-id="0f13cb64-2c12-42a1-98ec-61b76f017355"| '''InsightHub''' is the central place where organizations store internal documentation, SOPs, decision logs, and team knowledge.
+|- ac:local-id="47031298-b166-437a-b1c7-4965778fb82c"
+! ac:local-id="6f803911-7e78-4709-ae06-27e3bf8c5634"| Key Features
+| ac:local-id="082084f7-aee2-46f1-8266-b84b44b5cfbf"|
+* Rich‑text authoring
+* Content spaces for document types
+* Smart search with tag search
+* Version history + review workflows
+|}

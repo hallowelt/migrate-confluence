@@ -51,8 +51,45 @@ class PageTreeMacroTest extends TestCase {
 	}
 
 	/**
+	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
+	 * @return void
+	 */
+	public function testProcessWithoutSpaceKey() {
+		$this->dataLookup = new ConversionDataLookup(
+			[
+				0 => '',
+				42 => 'ABC:',
+				23 => 'DEVOPS:'
+			],
+			[
+				'23---Main_Page' => 'DEVOPS:Main Page',
+				'23---Testpage' => 'DEVOPS:Testpage',
+				'42---Main_Page' => 'ABC:Main Page',
+				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
+				'42---Testpage' => 'ABC:SomeLinkedPage/Testpage',
+			],
+			[
+				'0---SomePage---Dummy_1.pdf' => 'SomePage_Dummy_1.pdf'
+			],
+			[],
+			[],
+			[],
+			[
+				0 => '',
+				42 => 'ABC',
+				23 => 'DEVOPS'
+			],
+			[],
+			[]
+		);
+
+		$this->doTest( 'pagetree-macro-no-spacekey-input.xml', 'pagetree-macro-no-spacekey-output.xml' );
+	}
+
+	/**
 	 * @param string $input
 	 * @param string $output
+	 * @return void
 	 */
 	private function doTest( $input, $output ) {
 		$dom = new \DOMDocument();

@@ -25,7 +25,7 @@ class DrawIOFileHandler {
 	 * @return bool
 	 */
 	public function isDrawIOImage( string $fileName ): bool {
-		return preg_match( '#\.drawio.png$#', $fileName );
+		return preg_match( '#\.drawio\.png$#', $fileName );
 	}
 
 	/**

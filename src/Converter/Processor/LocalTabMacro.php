@@ -35,9 +35,10 @@ class LocalTabMacro extends MacroProcessorBase {
 		$macroReplacement->setAttribute( 'class', "ac-localtab" );
 
 		if ( isset( $params['title'] ) ) {
-			$macroReplacement->appendChild(
-				$node->ownerDocument->createElement( 'h1', $params['title'] )
-			);
+			$titleText = $node->ownerDocument->createTextNode( $params['title'] );
+			$h1 = $node->ownerDocument->createElement( 'h1' );
+			$h1->appendChild( $titleText );
+			$macroReplacement->appendChild( $h1 );
 		}
 
 		$this->macroParams( $node, $macroReplacement );

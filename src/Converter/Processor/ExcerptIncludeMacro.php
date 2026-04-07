@@ -23,6 +23,7 @@ class ExcerptIncludeMacro extends IncludeMacro {
 	 * @inheritDoc
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
+		$this->parameters = [];
 		$parameterEls = $node->getElementsByTagName( 'parameter' );
 		foreach ( $parameterEls as $parameterEl ) {
 			$paramName = trim( $parameterEl->getAttribute( 'ac:name' ) ?? '' );
