@@ -217,4 +217,18 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 		}
 		return $collection;
 	}
+
+	/**
+	 * @param string $lastModificationDate
+	 * @return string
+	 */
+	protected function buildTimestamp( string $lastModificationDate ): string {
+		$time = strtotime( $lastModificationDate );
+
+		if ( $time === false ) {
+			return '';
+		}
+
+		return date( 'YmdHis', $time );
+	}
 }

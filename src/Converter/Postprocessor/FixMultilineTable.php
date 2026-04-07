@@ -64,12 +64,22 @@ class FixMultilineTable implements IPostprocessor {
 				foreach ( $problematicLines as $problematicLine ) {
 					$line = $lines[$problematicLine];
 
+					// Pattern: "| attr| * content" or "! attr| * content" — split just
+					// before the block content, preserving the attribute separator.
 					if ( strpos( $line, '! ' ) === 0 ) {
-						$newLine = "!\n" . substr( $line, 2 );
+						if ( preg_match( '/^(! .+?\| )(' . $blockCharsRegex . '.*)$/', $line, $m ) ) {
+							$newLine = rtrim( $m[1] ) . "\n" . $m[2];
+						} else {
+							$newLine = "!\n" . substr( $line, 2 );
+						}
 					} elseif ( strpos( $line, '!' ) === 0 ) {
 						$newLine = "!\n" . substr( $line, 1 );
 					} elseif ( strpos( $line, '| ' ) === 0 ) {
-						$newLine = "|\n" . substr( $line, 2 );
+						if ( preg_match( '/^(\| .+?\| )(' . $blockCharsRegex . '.*)$/', $line, $m ) ) {
+							$newLine = rtrim( $m[1] ) . "\n" . $m[2];
+						} else {
+							$newLine = "|\n" . substr( $line, 2 );
+						}
 					} elseif ( strpos( $line, '|' ) === 0 ) {
 						$newLine = "|\n" . substr( $line, 1 );
 					} else {

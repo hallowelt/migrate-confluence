@@ -71,7 +71,12 @@ class TableFilterMacro extends ConvertMacroToTemplateWithBodyBase {
 			for ( $index = 0; $index < $richTextBodies->length; $index++ ) {
 				$bodyEl = $richTextBodies->item( $index );
 
+				$childNodes = [];
 				foreach ( $bodyEl->childNodes as $childNode ) {
+					$childNodes[] = $childNode;
+				}
+
+				foreach ( $childNodes as $childNode ) {
 					if ( $childNode instanceof DOMElement === false ) {
 						continue;
 					}

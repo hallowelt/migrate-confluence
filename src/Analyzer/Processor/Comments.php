@@ -110,16 +110,4 @@ class Comments extends ProcessorBase {
 
 		$this->data['global-body-content-id-to-comment-id-map'][$bodyContentId] = $commentId;
 	}
-
-	/**
-	 * @param string $confluenceDate
-	 * @return string MediaWiki timestamp (YmdHis)
-	 */
-	private function buildTimestamp( string $confluenceDate ): string {
-		$time = strtotime( $confluenceDate );
-		if ( $time === false ) {
-			return '';
-		}
-		return date( 'YmdHis', $time );
-	}
 }

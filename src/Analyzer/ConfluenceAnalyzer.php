@@ -473,7 +473,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$files = $this->buckets->getBucketData( 'global-files' );
 		$hasInvalidFilenames = false;
 		foreach ( $files as $title => $paths ) {
-			if ( $validityChecker->hasValidLength( $title ) ) {
+			if ( !$validityChecker->hasValidLength( $title ) ) {
 				$this->customBuckets->addData(
 					'warning-analyze-invalid-filenames',
 					'length', $title,
@@ -483,7 +483,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			}
 		}
 
-		if ( $hasInvalidNamespaces === true || $hasInvalidTitles === true ) {
+		if ( $hasInvalidNamespaces === true || $hasInvalidTitles === true || $hasInvalidFilenames === true ) {
 			$this->output->writeln( "\n\nWarning:\n" );
 
 			if ( $hasInvalidNamespaces === true ) {
