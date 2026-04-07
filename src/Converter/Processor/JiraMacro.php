@@ -19,6 +19,23 @@ class JiraMacro extends StructuredMacroProcessorBase {
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
 		$params = $this->readParams( $node );
+
+		$hasKey = isset( $params['key'] ) && $params['key'] !== '';
+		$hasJql = isset( $params['jql'] ) && $params['jql'] !== '';
+
+		if ( !$hasKey && !$hasJql ) {
+			$node->parentNode->replaceChild(
+				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategory() ),
+				$node
+			);
+			return;
+		}
+
+		// Prefer key over JQL since we can produce a direct issue link for it.
+		if ( $hasKey ) {
+			unset( $params['jql'] );
+		}
+
 		$wikitextTemplate = new Template( $this->getWikiTextTemplateName(), $params );
 		$wikitextTemplate->setRenderFormatted( false );
 		$node->parentNode->replaceChild(

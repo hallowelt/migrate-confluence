@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	{{Jira|server = My JIRA|jql = project = ABC AND status != Done}}
+</xml>
