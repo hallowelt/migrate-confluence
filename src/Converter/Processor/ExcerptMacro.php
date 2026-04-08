@@ -5,8 +5,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMNode;
 
 /**
- * Converts the Confluence excerpt macro to a BlueSpice <excerpt-block> element.
- * The broken macro category is added because the BlueSpice Excerpt extension is not yet available.
+ * Converts the Confluence excerpt macro to {{ExcerptStart|name=...|hidden=...}}content{{ExcerptEnd}}.
  *
  * @see https://confluence.atlassian.com/doc/excerpt-macro-148062.html
  */
@@ -34,23 +33,25 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 			}
 		}
 
-		$excerptBlock = $node->ownerDocument->createElement( 'excerpt-block' );
-		$excerptBlock->setAttribute( 'name', $macroId );
-		$excerptBlock->setAttribute( 'hidden', $hidden );
+		$parent = $node->parentNode;
+
+		$openTemplate = $node->ownerDocument->createTextNode(
+			"{{ExcerptStart###BREAK###\n|name = $macroId###BREAK###\n|hidden = $hidden###BREAK###\n}}"
+		);
+		$parent->insertBefore( $openTemplate, $node );
 
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:rich-text-body' ) {
 				foreach ( iterator_to_array( $childNode->childNodes ) as $bodyChild ) {
-					$excerptBlock->appendChild( $bodyChild->cloneNode( true ) );
+					$parent->insertBefore( $bodyChild->cloneNode( true ), $node );
 				}
 			}
 		}
 
-		$node->parentNode->replaceChild( $excerptBlock, $node );
+		$closeTemplate = $node->ownerDocument->createTextNode( '{{ExcerptEnd}}' );
+		$parent->insertBefore( $closeTemplate, $node );
 
-		$brokenCategory = $excerptBlock->ownerDocument->createTextNode(
-			$this->getBrokenMacroCategory()
-		);
-		$excerptBlock->parentNode->insertBefore( $brokenCategory, $excerptBlock->nextSibling );
+		$parent->removeChild( $node );
 	}
 }
+
