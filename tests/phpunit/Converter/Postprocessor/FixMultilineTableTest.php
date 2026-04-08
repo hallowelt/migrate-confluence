@@ -104,6 +104,16 @@ class FixMultilineTableTest extends TestCase {
 				"{| class=\"wikitable\"\n|-\n| Some text\n== Headline 2 ==\n|}",
 				"{| class=\"wikitable\"\n|-\n|\nSome text\n== Headline 2 ==\n|}",
 			],
+			'bare pipe followed by style attribute (pandoc block-level cell)' => [
+				'|',
+				"{| class=\"wikitable\"\n|-\n|\nstyle=\"text-align: left;\"| ===== Heading =====\n|}",
+				"{| class=\"wikitable\"\n|-\n| style=\"text-align: left;\"|\n===== Heading =====\n|}",
+			],
+			'bare pipe with style attribute and span before heading' => [
+				'|',
+				"{| class=\"wikitable\"\n|-\n|\nstyle=\"text-align: left;\"| <span id=\"x\"></span>\n===== Heading =====\n|}",
+				"{| class=\"wikitable\"\n|-\n| style=\"text-align: left;\"|\n<span id=\"x\"></span>\n===== Heading =====\n|}",
+			],
 		];
 	}
 

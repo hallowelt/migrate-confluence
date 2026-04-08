@@ -18,7 +18,21 @@ class FixMultilineTable implements IPostprocessor {
 		$wikiText = preg_replace_callback(
 			'/\{\|(.*?)\|\}/s',
 			static function ( $match ) use ( $blockChars, $blockCharsRegex ) {
-				$lines = explode( "\n", $match[0] );
+				$tableText = $match[0];
+
+				// Pandoc splits a styled cell that contains block-level content (e.g. <h5>)
+				// into a bare cell marker on its own line followed by the attributes+content:
+				//   |
+				//   style="text-align: left;"| ===== heading =====
+				// MediaWiki requires both on one line:
+				//   | style="text-align: left;"| ===== heading =====
+				$tableText = preg_replace(
+					'/^([|!])[ \t]*\n([\w][\w-]*[ \t]*=)/m',
+					'$1 $2',
+					$tableText
+				);
+
+				$lines = explode( "\n", $tableText );
 
 				$problematicLines = [];
 				// Starting with index = 1 and ending with index < count()
@@ -29,6 +43,14 @@ class FixMultilineTable implements IPostprocessor {
 					// Fix cell/header lines where the content starts with a wikitext
 					// block construct (e.g. "| * list item" -> "|\n* list item")
 					if ( preg_match( '/^[|!] ' . $blockCharsRegex . '/', $line ) ) {
+						$problematicLines[] = $index;
+						continue;
+					}
+
+					// Fix styled cell/header lines where the content after the attribute
+					// separator starts with a block construct
+					// (e.g. '| style="..."| = Heading' -> '| style="..."|' + "\n= Heading")
+					if ( preg_match( '/^[|!] .+\| ' . $blockCharsRegex . '/', $line ) ) {
 						$problematicLines[] = $index;
 						continue;
 					}
@@ -69,6 +91,10 @@ class FixMultilineTable implements IPostprocessor {
 					if ( strpos( $line, '! ' ) === 0 ) {
 						if ( preg_match( '/^(! .+?\| )(' . $blockCharsRegex . '.*)$/', $line, $m ) ) {
 							$newLine = rtrim( $m[1] ) . "\n" . $m[2];
+						} elseif ( preg_match( '/^(! .+?\| )(.+)$/', $line, $m ) ) {
+							// Cell has attributes but content doesn't start with a block char;
+							// keep the attribute on the cell line, move content to the next line.
+							$newLine = rtrim( $m[1] ) . "\n" . $m[2];
 						} else {
 							$newLine = "!\n" . substr( $line, 2 );
 						}
@@ -76,6 +102,10 @@ class FixMultilineTable implements IPostprocessor {
 						$newLine = "!\n" . substr( $line, 1 );
 					} elseif ( strpos( $line, '| ' ) === 0 ) {
 						if ( preg_match( '/^(\| .+?\| )(' . $blockCharsRegex . '.*)$/', $line, $m ) ) {
+							$newLine = rtrim( $m[1] ) . "\n" . $m[2];
+						} elseif ( preg_match( '/^(\| .+?\| )(.+)$/', $line, $m ) ) {
+							// Cell has attributes but content doesn't start with a block char;
+							// keep the attribute on the cell line, move content to the next line.
 							$newLine = rtrim( $m[1] ) . "\n" . $m[2];
 						} else {
 							$newLine = "|\n" . substr( $line, 2 );
