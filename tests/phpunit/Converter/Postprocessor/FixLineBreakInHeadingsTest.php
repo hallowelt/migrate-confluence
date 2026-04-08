@@ -63,5 +63,10 @@ class FixLineBreakInHeadingsTest extends TestCase {
 			$before . $expected . $after,
 			$preprocessor->postprocess( $before . $input . $after )
 		);
+
+		// Closing tag with leading whitespace (space before ====).
+		$input3 = "==== Es gibt zwei wesentliche '''Bereichs-Arten''':<br />\n<br />\n ====";
+		$expected3 = "==== Es gibt zwei wesentliche '''Bereichs-Arten''': ====";
+		$this->assertEquals( $expected3, $preprocessor->postprocess( $input3 ) );
 	}
 }

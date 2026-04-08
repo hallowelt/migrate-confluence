@@ -67,6 +67,6 @@ class FixLineBreakInHeadings implements IPostprocessor {
 		// Content spans lines, but the closing tag must be alone on its line
 		// (just $tag + optional whitespace), preventing matches across sections.
 		// {0,3} limits span to avoid catastrophic backtracking.
-		return "#^($tag(?!=))([^\n]*<br\s*/?>[^\n]*(?:\n[^\n]+){0,3})\n($tag)\s*$#m";
+		return "#^($tag(?!=))([^\n]*<br\s*/?>[^\n]*(?:\n[^\n]+){0,3})\n[ \t]*($tag)[ \t]*$#m";
 	}
 }
