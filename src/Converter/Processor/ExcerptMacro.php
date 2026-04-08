@@ -54,4 +54,3 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 		$parent->removeChild( $node );
 	}
 }
-
