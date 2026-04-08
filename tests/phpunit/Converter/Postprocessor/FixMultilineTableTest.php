@@ -111,8 +111,10 @@ class FixMultilineTableTest extends TestCase {
 			],
 			'bare pipe with style attribute and span before heading' => [
 				'|',
-				"{| class=\"wikitable\"\n|-\n|\nstyle=\"text-align: left;\"| <span id=\"x\"></span>\n===== Heading =====\n|}",
-				"{| class=\"wikitable\"\n|-\n| style=\"text-align: left;\"|\n<span id=\"x\"></span>\n===== Heading =====\n|}",
+				"{| class=\"wikitable\"\n|-\n|\n" .
+				"style=\"text-align: left;\"| <span id=\"x\"></span>\n===== Heading =====\n|}",
+				"{| class=\"wikitable\"\n|-\n| style=\"text-align: left;\"|\n" .
+				"<span id=\"x\"></span>\n===== Heading =====\n|}",
 			],
 		];
 	}
