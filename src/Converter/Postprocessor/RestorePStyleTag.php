@@ -11,7 +11,7 @@ class RestorePStyleTag implements IPostprocessor {
 	 */
 	public function postprocess( string $wikiText ): string {
 		$newWikiText = preg_replace_callback(
-			'/#####PRESERVEPSTYLEOPEN (.*?)#####(.*?)#####PRESERVEPSTYLECLOSE#####/si',
+			'/\\\\?#####PRESERVEPSTYLEOPEN (.*?)#####(.*?)#####PRESERVEPSTYLECLOSE#####/si',
 			static function ( $matches ) {
 				$attributes = str_replace( "&quot;", "\"", $matches[1] );
 				$text = $matches[2];
