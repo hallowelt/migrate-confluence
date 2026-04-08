@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<ac:structured-macro ac:name="excerpt">
+	<ac:structured-macro ac:name="excerpt" ac:macro-id="b50b3cdb-e32a-447c-8c42-7be043c457ce">
 		<ac:parameter ac:name="hidden">true</ac:parameter>
 		<ac:parameter ac:name="atlassian-macro-output-type">BLOCK</ac:parameter>
 		<ac:rich-text-body>
