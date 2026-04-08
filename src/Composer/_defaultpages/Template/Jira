@@ -1,4 +1,2 @@
-<noinclude>Links to Jira issues and queries.
-* Use <code>{{Jira|key=PROJECT-123}}</code> to link to a specific issue.
-* Use <code>{{Jira|jql=...}}</code> to show an informational note about a Jira query (live data cannot be embedded in MediaWiki).
-</noinclude><includeonly>{{#if:{{{key|}}}|[[jira:{{{key}}}]]|'''''Jira-Filter (JQL):''''' <code>{{{jql|}}}</code>}}</includeonly>
+<noinclude>Links to JIRA can be handled with "Interwiki-Links"
+</noinclude><includeonly>[[jira:{{{keyOrJQL}}}]]</includeonly>
