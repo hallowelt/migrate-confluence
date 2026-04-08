@@ -64,9 +64,14 @@ class FixLineBreakInHeadings implements IPostprocessor {
 	 */
 	private function buildMultiLineRegEx( int $level ): string {
 		$tag = str_repeat( '=', $level );
-		// Content spans lines, but the closing tag must be alone on its line
-		// (just $tag + optional whitespace), preventing matches across sections.
-		// {0,3} limits span to avoid catastrophic backtracking.
-		return "#^($tag(?!=))([^\n]*<br\s*/?>[^\n]*(?:\n[^\n]+){0,3})\n[ \t]*($tag)[ \t]*$#m";
+		// Content spans lines. The closing tag is found via backtracking — the
+		// continuation group `(?:\n[^\n]*){0,3}` consumes up to 3 lines (including
+		// the newline character), allowing arbitrary markup (e.g. `'''`) before the
+		// closing tag on its last line. `(?!=)` on the closing tag prevents a shorter
+		// tag (e.g. `==`) from matching inside a longer one (e.g. `====`).
+		// Using `[^\n]*` (not `[^\n]+`) allows empty continuation lines.
+		// The `\n` forward-progress guarantee in `(?:\n[^\n]*){0,3}` prevents
+		// catastrophic backtracking.
+		return "#^($tag(?!=))([^\n]*<br\s*/?>[^\n]*(?:\n[^\n]*){0,3})($tag)(?!=)[ \t]*$#m";
 	}
 }

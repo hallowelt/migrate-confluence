@@ -68,5 +68,10 @@ class FixLineBreakInHeadingsTest extends TestCase {
 		$input3 = "==== Es gibt zwei wesentliche '''Bereichs-Arten''':<br />\n<br />\n ====";
 		$expected3 = "==== Es gibt zwei wesentliche '''Bereichs-Arten''': ====";
 		$this->assertEquals( $expected3, $preprocessor->postprocess( $input3 ) );
+
+		// Closing tag preceded by bold-close markup (''' ==).
+		$input4 = "== '''Konfiguration Ihrer E-Mail:<br />\n''' ==";
+		$expected4 = "== '''Konfiguration Ihrer E-Mail: ''' ==";
+		$this->assertEquals( $expected4, $preprocessor->postprocess( $input4 ) );
 	}
 }
