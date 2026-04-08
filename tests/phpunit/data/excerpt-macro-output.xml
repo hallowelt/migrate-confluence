@@ -5,5 +5,5 @@
 |hidden = true###BREAK###
 }}
 			<p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt macro.</p>
-  		{{ExcerptEnd}}
+  		{{ExcerptEnd}}[[Category:Broken_macro/excerpt]]
 </xml>

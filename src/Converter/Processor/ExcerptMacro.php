@@ -48,10 +48,11 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 			}
 		}
 
-		$closeTemplate = $node->ownerDocument->createTextNode( '{{ExcerptEnd}}' );
+		$closeTemplate = $node->ownerDocument->createTextNode(
+			'{{ExcerptEnd}}' . $this->getBrokenMacroCategory()
+		);
 		$parent->insertBefore( $closeTemplate, $node );
 
 		$parent->removeChild( $node );
 	}
 }
-
