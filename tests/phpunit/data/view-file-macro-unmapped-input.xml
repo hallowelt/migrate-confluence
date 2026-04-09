@@ -1,0 +1,7 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="view-file" ac:schema-version="1" ac:macro-id="AAAAAAAA-BBBB-CCCC-DDDD-000000000003">
+		<ac:parameter ac:name="name">
+			<ri:attachment ri:filename="NotInMap.pdf" ri:version-at-save="1" />
+		</ac:parameter>
+	</ac:structured-macro>
+</xml>

@@ -47,12 +47,35 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
 		$params = $this->readParams( $node );
+
+		// No ri:filename attribute at all — macro is genuinely broken.
+		if ( !isset( $params['_riFilename'] ) ) {
+			$node->parentNode->replaceChild(
+				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategory() ),
+				$node
+			);
+			return;
+		}
+
+		$riFilename = $params['_riFilename'];
+		unset( $params['_riFilename'] );
+
+		$confluenceFileKey = $this->makeConfluenceFileKey( $riFilename );
+		[ 'title' => $resolvedTitle, 'isBroken' => $isBrokenLink ] =
+			$this->dataLookup->resolveFileTitle( $confluenceFileKey, $riFilename );
+
+		// Insert filename first so the template renders params in the expected order.
+		$params = array_merge( [ 'filename' => $resolvedTitle ], $params );
+
 		$wikitextTemplate = new Template( $this->getWikiTextTemplateName(), $params );
 		$wikitextTemplate->setRenderFormatted( false );
+		$text = $wikitextTemplate->render();
+		if ( $isBrokenLink ) {
+			$text .= '[[Category:Broken_attachment_link]]';
+		}
+
 		$node->parentNode->replaceChild(
-			$node->ownerDocument->createTextNode(
-				$wikitextTemplate->render()
-			),
+			$node->ownerDocument->createTextNode( $text ),
 			$node
 		);
 	}
@@ -77,9 +100,7 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 					foreach ( $childNode->childNodes as $attachmentNode ) {
 						if ( $attachmentNode->nodeName === 'ri:attachment' ) {
 							if ( $attachmentNode->hasAttribute( 'ri:filename' ) ) {
-								$params['filename'] = $this->makeFilename(
-									$attachmentNode->getAttribute( 'ri:filename' )
-								);
+								$params['_riFilename'] = $attachmentNode->getAttribute( 'ri:filename' );
 							}
 							if ( $attachmentNode->hasAttribute( 'ri:version-at-save' ) ) {
 								$params['version-at-save'] = $attachmentNode
@@ -100,14 +121,10 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	 * @param string $name
 	 * @return string
 	 */
-	private function makeFilename( string $name ): string {
+	private function makeConfluenceFileKey( string $name ): string {
 		$spaceId = $this->currentSpaceId;
 		$rawPageTitle = basename( $this->rawPageTitle );
-
-		$confluenceFileKey = str_replace( ' ', '_', "$spaceId---$rawPageTitle---" . $name );
-		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
-
-		return $filename;
+		return str_replace( ' ', '_', "$spaceId---$rawPageTitle---" . $name );
 	}
 
 }

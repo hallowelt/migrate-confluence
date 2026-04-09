@@ -54,10 +54,11 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		$params = $this->getMacroParams( $node );
 		$bodyImages = $this->getBodyImages( $node );
 
+		$hasBroken = false;
 		if ( !empty( $bodyImages ) ) {
-			$files = $this->resolveBodyImages( $bodyImages );
+			$files = $this->resolveBodyImages( $bodyImages, $hasBroken );
 		} else {
-			$files = $this->getImageFiles( $params );
+			$files = $this->getImageFiles( $params, $hasBroken );
 		}
 
 		if ( empty( $files ) ) {
@@ -81,6 +82,9 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			$galleryTag .= $file . "\n";
 		}
 		$galleryTag .= '</gallery>';
+		if ( $hasBroken ) {
+			$galleryTag .= '[[Category:Broken_attachment_link]]';
+		}
 
 		$galleryTagNode = $node->ownerDocument->createTextNode( $galleryTag );
 		$macroReplacement->appendChild( $galleryTagNode );
@@ -97,9 +101,9 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 *
 	 * @return string[]
 	 */
-	private function getImageFiles( array $params ): array {
+	private function getImageFiles( array $params, bool &$hasBroken = false ): array {
 		if ( isset( $params['include'] ) && $params['include'] !== '' ) {
-			return $this->resolveIncludedFiles( $params['include'] );
+			return $this->resolveIncludedFiles( $params['include'], $hasBroken );
 		}
 
 		$includeLabels = [];
@@ -217,7 +221,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @return string[]
 	 */
-	private function resolveIncludedFiles( string $include ): array {
+	private function resolveIncludedFiles( string $include, bool &$hasBroken = false ): array {
 		$filenames = array_map( 'trim', explode( ',', $include ) );
 		$files = [];
 		foreach ( $filenames as $filename ) {
@@ -226,9 +230,11 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 				str_replace( ' ', '_', basename( $this->rawPageTitle ) ) .
 				'---' .
 				str_replace( ' ', '_', $filename );
-			$targetTitle = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $key );
-			if ( $targetTitle !== '' ) {
-				$files[] = $targetTitle;
+			[ 'title' => $targetTitle, 'isBroken' => $isBroken ] =
+				$this->dataLookup->resolveFileTitle( $key, $filename );
+			$files[] = $targetTitle;
+			if ( $isBroken ) {
+				$hasBroken = true;
 			}
 		}
 
@@ -253,7 +259,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 * @param DOMNode[] $imageNodes
 	 * @return string[]
 	 */
-	private function resolveBodyImages( array $imageNodes ): array {
+	private function resolveBodyImages( array $imageNodes, bool &$hasBroken = false ): array {
 		$files = [];
 		foreach ( $imageNodes as $imageNode ) {
 			$attachment = null;
@@ -309,9 +315,11 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 				str_replace( ' ', '_', basename( $pageTitle ) ) .
 				'---' .
 				str_replace( ' ', '_', $filename );
-			$targetTitle = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $key );
-			if ( $targetTitle !== '' ) {
-				$files[] = $targetTitle;
+			[ 'title' => $targetTitle, 'isBroken' => $isBroken ] =
+				$this->dataLookup->resolveFileTitle( $key, $filename );
+			$files[] = $targetTitle;
+			if ( $isBroken ) {
+				$hasBroken = true;
 			}
 		}
 
