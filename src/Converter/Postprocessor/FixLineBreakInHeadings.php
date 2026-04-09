@@ -10,15 +10,28 @@ class FixLineBreakInHeadings implements IPostprocessor {
 	 * @inheritDoc
 	 */
 	public function postprocess( string $wikiText ): string {
+		$callback = static function ( $matches ) {
+			$openTag = $matches[1];
+			$content = $matches[2];
+			$closeTag = $matches[3];
+			// Strip <br /> variants and collapse newlines to spaces.
+			$content = str_replace( [ '<br />', '<br/>', "\r\n", "\n", "\r" ], ' ', $content );
+			// Collapse multiple spaces and trim.
+			$content = trim( preg_replace( '/ {2,}/', ' ', $content ) );
+			return "$openTag $content $closeTag";
+		};
+
 		for ( $heading = 1; $heading <= 6; $heading++ ) {
-			$regex = $this->buildRegExForHeadingLevel( $heading );
+			// Single-line headings: == heading <br /> ==
 			$wikiText = preg_replace_callback(
-				$regex,
-				static function ( $matches ) {
-					$wikiTextHeading = $matches[0];
-					$newWikiTextHeading = str_replace( [ "<br />", "\n" ], ' ', $wikiTextHeading );
-					return $newWikiTextHeading;
-				},
+				$this->buildSingleLineRegEx( $heading ),
+				$callback,
+				$wikiText
+			);
+			// Multi-line headings: == heading <br />\n<br />\n== (closing tag on its own line)
+			$wikiText = preg_replace_callback(
+				$this->buildMultiLineRegEx( $heading ),
+				$callback,
 				$wikiText
 			);
 		}
@@ -26,12 +39,39 @@ class FixLineBreakInHeadings implements IPostprocessor {
 	}
 
 	/**
-	 * @param int $level
+	 * Matches headings where the <br /> and the closing tag are on the same line.
+	 * Example: == heading text <br /> ==
 	 *
+	 * @param int $level
 	 * @return string
 	 */
-	private function buildRegExForHeadingLevel( int $level ): string {
+	private function buildSingleLineRegEx( int $level ): string {
 		$tag = str_repeat( '=', $level );
-		return "#^$tag.*?(<br \/>\n*?).*?$tag$#im";
+		// '(?!=)' prevents '===' from matching '===='.
+		// '[^\n]*' keeps matching within a single line only.
+		return "#^($tag(?!=))([^\n]*<br\s*/?>[^\n]*)($tag)\s*$#m";
+	}
+
+	/**
+	 * Matches headings where <br /> is followed by a real newline and the closing
+	 * tag appears on its own line.
+	 * Example: === heading:<br />\n<br />\n===
+	 *
+	 * Uses {0,3} to bound repetition and prevent catastrophic backtracking.
+	 *
+	 * @param int $level
+	 * @return string
+	 */
+	private function buildMultiLineRegEx( int $level ): string {
+		$tag = str_repeat( '=', $level );
+		// Content spans lines. The closing tag is found via backtracking — the
+		// continuation group `(?:\n[^\n]*){0,3}` consumes up to 3 lines (including
+		// the newline character), allowing arbitrary markup (e.g. `'''`) before the
+		// closing tag on its last line. `(?!=)` on the closing tag prevents a shorter
+		// tag (e.g. `==`) from matching inside a longer one (e.g. `====`).
+		// Using `[^\n]*` (not `[^\n]+`) allows empty continuation lines.
+		// The `\n` forward-progress guarantee in `(?:\n[^\n]*){0,3}` prevents
+		// catastrophic backtracking.
+		return "#^($tag(?!=))([^\n]*<br\s*/?>[^\n]*(?:\n[^\n]*){0,3})($tag)(?!=)[ \t]*$#m";
 	}
 }
