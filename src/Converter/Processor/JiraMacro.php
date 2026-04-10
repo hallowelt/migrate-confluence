@@ -32,13 +32,11 @@ class JiraMacro extends StructuredMacroProcessorBase {
 		}
 
 		// Prefer key over JQL since we can produce a direct issue link for it.
+		// server/serverId are not needed for the interwiki links.
 		if ( $hasKey ) {
-			$params['keyOrJQL'] = $params['key'];
-			unset( $params['key'] );
-			unset( $params['jql'] );
+			$params = [ 'key' => $params['key'] ];
 		} else {
-			$filterParams = array_diff_key( $params, array_flip( [ 'server', 'serverId' ] ) );
-			$params = [ 'keyOrJQL' => http_build_query( $filterParams, '', '&', PHP_QUERY_RFC3986 ) ];
+			$params = [ 'jql' => $params['jql'] ];
 		}
 
 		$wikitextTemplate = new Template( $this->getWikiTextTemplateName(), $params );

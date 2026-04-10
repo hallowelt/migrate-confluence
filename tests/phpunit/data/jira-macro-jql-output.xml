@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	{{Jira|keyOrJQL = jql=project%20%3D%20ABC%20AND%20status%20%21%3D%20Done}}
+	{{Jira|jql = project = ABC AND status != Done}}
 </xml>

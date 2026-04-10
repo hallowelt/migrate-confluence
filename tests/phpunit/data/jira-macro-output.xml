@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	{{Jira|server = My JIRA|serverId = 1a43h4459d325e4b|keyOrJQL = ABC-3423}}
+	{{Jira|key = ABC-3423}}
 </xml>
