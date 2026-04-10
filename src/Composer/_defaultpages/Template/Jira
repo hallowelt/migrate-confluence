@@ -1,2 +1,4 @@
-<noinclude>Links to JIRA can be handled with "Interwiki-Links"
-</noinclude><includeonly>[[jira:{{{keyOrJQL}}}]]</includeonly>
+<noinclude>Links to Jira issues and queries via interwiki links.
+* Use <code>{{Jira|key=PROJECT-123}}</code> to link to a specific issue (uses the <code>jira</code> interwiki prefix).
+* Use <code>{{Jira|jql=...}}</code> to link to a Jira filter by JQL (uses the <code>jira-jql</code> interwiki prefix).
+</noinclude><includeonly>{{#if:{{{key|}}}|[[jira:{{{key}}}]]|[[jira-jql:{{{jql}}}]]}}</includeonly>
