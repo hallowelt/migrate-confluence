@@ -25,6 +25,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 	 * Pandoc strips unknown HTML elements like <excerpt-block> when converting to MediaWiki
 	 * format. To preserve the tag, we insert text placeholders around the content here and
 	 * restore the actual <excerpt-block> tag in the RestoreExcerptBlock postprocessor.
+	 * Placeholders use pipe-separated values to avoid HTML attribute quote encoding issues.
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
 		$macroId = $node->getAttribute( 'ac:macro-id' );
@@ -41,7 +42,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 		$parent = $node->parentNode;
 
 		$openTag = $node->ownerDocument->createTextNode(
-			"#####EXCERPTBLOCKOPEN name=\"$macroId\" hidden=\"$hidden\"#####"
+			"#####EXCERPTBLOCKOPEN|$macroId|$hidden#####"
 		);
 		$parent->insertBefore( $openTag, $node );
 

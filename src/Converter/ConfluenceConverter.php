@@ -16,6 +16,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptBlock;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
@@ -398,6 +399,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function runPostProcessors(): void {
 		$postProcessors = [
 			new RestorePStyleTag(),
+			new RestoreExcerptBlock(),
 			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	#####EXCERPTBLOCKOPEN name="b50b3cdb-e32a-447c-8c42-7be043c457ce" hidden="true"#####
+	#####EXCERPTBLOCKOPEN|b50b3cdb-e32a-447c-8c42-7be043c457ce|true#####
 			<p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt macro.</p>
   		#####EXCERPTBLOCKCLOSE#####[[Category:Broken_macro/excerpt]]
 </xml>
