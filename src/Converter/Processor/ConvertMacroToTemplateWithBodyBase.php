@@ -39,7 +39,13 @@ abstract class ConvertMacroToTemplateWithBodyBase implements IProcessor {
 		foreach ( $actualMacros as $actualMacro ) {
 			$parentNode = $actualMacro->parentNode;
 
-			$parameterEls = $actualMacro->getElementsByTagName( 'parameter' );
+			// Extract scalar parameters — only direct children, not those inside nested macros.
+			$parameterEls = [];
+			foreach ( $actualMacro->childNodes as $child ) {
+				if ( $child instanceof DOMElement && $child->localName === 'parameter' ) {
+					$parameterEls[] = $child;
+				}
+			}
 
 			$openTemplate = "{{" . "$templateStartName";
 			if ( $this->addLinebreakInsideTemplate() && count( $parameterEls ) > 0 ) {
@@ -89,10 +95,12 @@ abstract class ConvertMacroToTemplateWithBodyBase implements IProcessor {
 	 * @return void
 	 */
 	protected function extractBodyElements( DOMElement $actualMacro, DOMElement $parentNode ): void {
-		$richTextBodies = $actualMacro->getElementsByTagName( 'rich-text-body' );
+		// Only collect the direct rich-text-body child, not those from nested macros.
 		$richTextBodyEls = [];
-		foreach ( $richTextBodies as $richTextBody ) {
-			$richTextBodyEls[] = $richTextBody;
+		foreach ( $actualMacro->childNodes as $child ) {
+			if ( $child instanceof DOMElement && $child->localName === 'rich-text-body' ) {
+				$richTextBodyEls[] = $child;
+			}
 		}
 
 		if ( !empty( $richTextBodyEls ) ) {
