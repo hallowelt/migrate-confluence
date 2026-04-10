@@ -1,2 +1,0 @@
-<noinclude>Template for confluence macro "excerpt"
-</noinclude><includeonly><excerpt-block name="{{{name|}}}" hidden="{{{hidden|false}}}"></includeonly>
