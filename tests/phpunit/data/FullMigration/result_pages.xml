@@ -392,7 +392,7 @@
       <text>&lt;span id="image-url"&gt;&lt;/span&gt;
 === Image URL ===
 
-&lt;span class="confluence-embedded-file-wrapper"&gt;&lt;span&gt;https://example.com/download/attachments/12345678/test-image.png?version=1&amp;amp;modificationDate=1000000000000&amp;amp;api=v2&lt;/span&gt;&lt;/span&gt;
+&lt;span class="confluence-embedded-file-wrapper"&gt;&lt;span&gt;https://example.com/download/attachments/12345678/test-image.png&lt;/span&gt;&lt;/span&gt;
  &lt;!-- From bodyContent 20000001.mraw --&gt;
 </text>
     </revision>

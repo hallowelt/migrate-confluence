@@ -6,4 +6,11 @@
 			/>
 		</ac:image>
 	</div>
+    <div>
+        <ac:image ac:height="250">
+            <ri:url
+                    ri:value="https://server/confluence/download/attachments/123456789/image2021-8-17_10-15-14.png?version=1&amp;modificationDate=1571760909000&amp;api=v2"
+            />
+        </ac:image>
+    </div>
 </xml>
