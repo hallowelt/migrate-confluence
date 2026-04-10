@@ -5,7 +5,8 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMNode;
 
 /**
- * Converts the Confluence excerpt macro to {{ExcerptStart|name=...|hidden=...}}content{{ExcerptEnd}}.
+ * Converts the Confluence excerpt macro to a BlueSpice <excerpt-block> element.
+ * The broken macro category is added because the BlueSpice Excerpt extension is not yet available.
  *
  * @see https://confluence.atlassian.com/doc/excerpt-macro-148062.html
  */
@@ -20,6 +21,10 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * Pandoc strips unknown HTML elements like <excerpt-block> when converting to MediaWiki
+	 * format. To preserve the tag, we insert text placeholders around the content here and
+	 * restore the actual <excerpt-block> tag in the RestoreExcerptBlock postprocessor.
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
 		$macroId = $node->getAttribute( 'ac:macro-id' );
@@ -35,10 +40,10 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 
 		$parent = $node->parentNode;
 
-		$openTemplate = $node->ownerDocument->createTextNode(
-			"{{ExcerptStart###BREAK###\n|name = $macroId###BREAK###\n|hidden = $hidden###BREAK###\n}}"
+		$openTag = $node->ownerDocument->createTextNode(
+			"#####EXCERPTBLOCKOPEN name=\"$macroId\" hidden=\"$hidden\"#####"
 		);
-		$parent->insertBefore( $openTemplate, $node );
+		$parent->insertBefore( $openTag, $node );
 
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:rich-text-body' ) {
@@ -48,10 +53,13 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 			}
 		}
 
-		$closeTemplate = $node->ownerDocument->createTextNode(
-			'{{ExcerptEnd}}' . $this->getBrokenMacroCategory()
+		$closeTag = $node->ownerDocument->createTextNode( '#####EXCERPTBLOCKCLOSE#####' );
+		$parent->insertBefore( $closeTag, $node );
+
+		$brokenCategory = $node->ownerDocument->createTextNode(
+			$this->getBrokenMacroCategory()
 		);
-		$parent->insertBefore( $closeTemplate, $node );
+		$parent->insertBefore( $brokenCategory, $node );
 
 		$parent->removeChild( $node );
 	}
