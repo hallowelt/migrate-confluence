@@ -204,7 +204,8 @@ class Pages extends ProcessorBase {
 						// get description id
 						$descBodyId = $spaceDescriptionIdBodyIdMap[$descId];
 						$description = $this->workspace->getConvertedContent( $descBodyId );
-						if ( $description !== '' ) {
+						$strippedDescription = trim( preg_replace( '/<!--.*?-->/s', '', (string)$description ) );
+						if ( $strippedDescription !== '' ) {
 							$pageContent .= "[[Space description::$description]]\n";
 						}
 					}
