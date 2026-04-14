@@ -35,7 +35,7 @@ Step 3:
 2. From the parent directory (e.g. `/tmp/` ), run the migration commands
 	1. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest analyze --src=/data/input --dest=/data/workspace` to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
 	2. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest extract --src=/data/input --dest=/data/workspace` to extract all contents, like wikipage contents, attachments and images into the workspace
-	3. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest convert --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText
+	3. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest convert --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText. For large spaces, see [Parallel convert](#parallel-convert) below.
 	4. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest compose --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to create importable data
 
 If you re-run the scripts you will need to clean up the "workspace" directory!
@@ -55,6 +55,22 @@ It is possible to use a yaml file to configure the commands analyze, extract and
 The configuration file can be applied by adding the option `--config /data/config.yaml`.
 
 Not all parameters of `config.sample.yaml` have to be used in the config file. If something is not part of it the default will be used.
+
+#### Parallel convert
+
+For large Confluence spaces the `convert` step can be slow. You can speed it up by running multiple worker processes in parallel using the `--workers` option.
+
+```bash
+docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest convert \
+  --src=/data/workspace --dest=/data/workspace \
+  --workers=4
+```
+
+The command spawns the requested number of child processes automatically. Each worker handles a disjoint slice of the file list, so every file is converted exactly once. Progress lines are prefixed with `[Worker N]` so you can follow each process individually. If any worker fails the command exits with a non-zero status and reports which workers were affected.
+
+Choose `--workers` based on the number of available CPU cores. A value between 2 and 8 is typical; there is no benefit in exceeding the number of cores on your machine.
+
+> **Note:** `--workers=1` (the default) behaves identically to running without the option — no child processes are spawned.
 
 #### Extension:NSFileRepo compatibility
 There is now a compatibility for the mediawiki extension https://www.mediawiki.org/wiki/Extension:NSFileRepo which restricts access files and images to a given set of user groups associated with protected namespaces.

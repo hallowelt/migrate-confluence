@@ -3,7 +3,10 @@
 namespace HalloWelt\MigrateConfluence\Command;
 
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -23,6 +26,24 @@ class Convert extends CommandConvert {
 				'Specifies the path to the config yaml file'
 			)
 		);
+		$definition->addOption(
+			new InputOption(
+				'workers',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'Number of parallel worker processes to spawn (default: 1, no parallelism)',
+				1
+			)
+		);
+		// Hidden internal option — set automatically by the orchestrator on each child process.
+		$definition->addOption(
+			new InputOption(
+				'worker',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'[Internal] Zero-based index of this worker process'
+			)
+		);
 	}
 
 	/**
@@ -32,6 +53,158 @@ class Convert extends CommandConvert {
 	 */
 	public static function factory( array $config ): Convert {
 		return new static( $config );
+	}
+
+	/**
+	 * Intercept execution: when --workers > 1 and this is not already a spawned worker,
+	 * act as the orchestrator and launch child processes.
+	 *
+	 * @param InputInterface $input
+	 * @param OutputInterface $output
+	 * @return int
+	 */
+	protected function execute( InputInterface $input, OutputInterface $output ): int {
+		$workers = (int)$input->getOption( 'workers' );
+		$isWorker = $input->hasParameterOption( '--worker' );
+
+		if ( $workers > 1 && !$isWorker ) {
+			return $this->spawnWorkers( $input, $output, $workers );
+		}
+
+		return parent::execute( $input, $output );
+	}
+
+	/**
+	 * Spawn $workers child processes, each handling a disjoint slice of the file list,
+	 * and stream their combined output until all are done.
+	 *
+	 * @param InputInterface $input
+	 * @param OutputInterface $output
+	 * @param int $workers
+	 * @return int
+	 */
+	private function spawnWorkers( InputInterface $input, OutputInterface $output, int $workers ): int {
+		$baseCmd = $this->buildBaseCommand();
+		$descriptors = [
+			0 => [ 'pipe', 'r' ],
+			1 => [ 'pipe', 'w' ],
+			2 => [ 'pipe', 'w' ],
+		];
+
+		$processes = [];
+		$pipes = [];
+
+		for ( $i = 0; $i < $workers; $i++ ) {
+			$cmd = array_merge( $baseCmd, [ '--worker=' . $i ] );
+			$cmdString = implode( ' ', array_map( 'escapeshellarg', $cmd ) );
+			$output->writeln( "Starting worker {$i}: <comment>{$cmdString}</comment>" );
+			// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.proc_open
+			$proc = proc_open( $cmdString, $descriptors, $workerPipes );
+			if ( $proc === false ) {
+				$output->writeln( "<error>Failed to start worker {$i}.</error>" );
+				return Command::FAILURE;
+			}
+			stream_set_blocking( $workerPipes[1], false );
+			stream_set_blocking( $workerPipes[2], false );
+			fclose( $workerPipes[0] );
+			$processes[$i] = $proc;
+			$pipes[$i] = [ $workerPipes[1], $workerPipes[2] ];
+		}
+
+		$exitCodes = array_fill( 0, $workers, null );
+		while ( count( array_filter( $processes ) ) > 0 ) {
+			foreach ( $processes as $i => $proc ) {
+				if ( $proc === null ) {
+					continue;
+				}
+				foreach ( $pipes[$i] as $pipe ) {
+					$line = fgets( $pipe );
+					while ( $line !== false ) {
+						$output->write( "[Worker {$i}] " . $line );
+						$line = fgets( $pipe );
+					}
+				}
+				$status = proc_get_status( $proc );
+				if ( !$status['running'] ) {
+					// Drain any remaining output
+					foreach ( $pipes[$i] as $pipe ) {
+						// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition
+						while ( ( $line = fgets( $pipe ) ) !== false ) {
+							$output->write( "[Worker {$i}] " . $line );
+						}
+						fclose( $pipe );
+					}
+					$exitCodes[$i] = proc_close( $proc );
+					$processes[$i] = null;
+					$output->writeln( "Worker {$i} finished with exit code {$exitCodes[$i]}." );
+				}
+			}
+			usleep( 50000 );
+		}
+
+		$failed = array_filter( $exitCodes, static function ( $code ) {
+			return $code !== Command::SUCCESS;
+		} );
+
+		if ( !empty( $failed ) ) {
+			$failedList = implode( ', ', array_keys( $failed ) );
+			$output->writeln( "<error>One or more workers failed: workers {$failedList}</error>" );
+			return Command::FAILURE;
+		}
+
+		$output->writeln( '<info>All workers completed successfully.</info>' );
+		return Command::SUCCESS;
+	}
+
+	/**
+	 * Reconstruct the command array (PHP binary + script + current arguments)
+	 * without the --workers value, so children can receive it unmodified,
+	 * and without any pre-existing --worker flag.
+	 *
+	 * @return string[]
+	 */
+	private function buildBaseCommand(): array {
+		$argv = $_SERVER['argv'];
+		$cmd = [ PHP_BINARY, $argv[0] ];
+
+		for ( $i = 1; $i < count( $argv ); $i++ ) {
+			$arg = $argv[$i];
+			// Strip any --worker option that was somehow passed to the orchestrator
+			if ( preg_match( '#^--worker(=.*)?$#', $arg ) ) {
+				// skip value token too if separate
+				if ( $arg === '--worker' ) {
+					$i++;
+				}
+				continue;
+			}
+			$cmd[] = $arg;
+		}
+
+		return $cmd;
+	}
+
+	/**
+	 * Filter the file list to only the slice belonging to this worker.
+	 */
+	protected function makeFileList() {
+		parent::makeFileList();
+
+		if ( !$this->input->hasParameterOption( '--worker' ) ) {
+			return;
+		}
+
+		$workers = (int)$this->input->getOption( 'workers' );
+		$worker = (int)$this->input->getOption( 'worker' );
+
+		$index = 0;
+		$filtered = [];
+		foreach ( $this->files as $path => $file ) {
+			if ( $index % $workers === $worker ) {
+				$filtered[$path] = $file;
+			}
+			$index++;
+		}
+		$this->files = $filtered;
 	}
 
 	protected function doProcessFile(): bool {
