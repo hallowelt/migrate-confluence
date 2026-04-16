@@ -38,6 +38,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
@@ -301,6 +302,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new Layout(),
 			new LayoutSection(),
 			new LayoutCell(),
+			new HoistMacroFromHeading(),
 			new AnchorMacro(),
 			new Placeholder(),
 			new InlineCommentMarker(),
