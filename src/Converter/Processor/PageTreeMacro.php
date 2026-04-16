@@ -103,6 +103,18 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 			$this->params = array_merge( $params, $this->params );
 			unset( $this->params['root'] );
 		}
+
+		// if content-title is not set fallback to {{FULLPAGENAME}}
+		if ( !isset( $this->params['content-title'] ) ) {
+			$this->params['content-title'] = '{{FULLPAGENAME}}';
+
+			if ( isset( $this->params['space-key'] ) ) {
+				$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $this->params['space-key'] );
+				if ( is_string( $namespace ) ) {
+					$this->params['space-key'] = $namespace;
+				}
+			}
+		}
 	}
 
 	/**
@@ -123,115 +135,108 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
+	 *  Specify the page title or a special value as follows:
+	 *  Your page title — to specify a page name for the parent or root of the tree.
+	 *        The tree will include all children and grand-children of the specified root.
+	 *        The tree will not include the specified root page itself.
+	 *  '@home' — will include all pages under the home page of the space (default).
+	 *  '@self' — will include all pages under the current page.
+	 *  '@parent' — will include all pages under the parent of the current page, including the current page.
+	 *  '@none' — will include all pages in the space, including orphaned pages and the home page.
+	 *
+	 *  See https://confluence.atlassian.com/conf59/page-tree-macro-792499177.html
+	 *  Convert to https://github.com/ProfessionalWiki/SubPageList/blob/master/doc/USAGE.md
+	 *
 	 * @param array $params
+	 *
 	 * @return array
 	 */
 	private function translateRootPageParams( array $params ): array {
-		if ( isset( $params['content-title'] ) ) {
-			/**
-			 * Specify the page title or a special value as follows:
-			 * Your page title — to specify a page name for the parent or root of the tree.
-			 * 		The tree will include all children and grand-children of the specified root.
-			 *		The tree will not include the specified root page itself.
-			 * '@home' — will include all pages under the home page of the space (default).
-			 * '@self' — will include all pages under the current page.
-			 * '@parent' — will include all pages under the parent of the current page, including the current page.
-			 * '@none' — will include all pages in the space, including orphaned pages and the home page.
-			 *
-			 * See https://confluence.atlassian.com/conf59/page-tree-macro-792499177.html
-			 * Convert to https://github.com/ProfessionalWiki/SubPageList/blob/master/doc/USAGE.md
-			 */
-			switch ( $params['content-title'] ) {
-				case '@home':
-					// Main Page
-					$key = $this->getTitleLookupKey( $this->currentSpace, $this->mainpage );
-					$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
-					if ( $text === '' ) {
-						$params['broken-macro'] = true;
-						break;
-					}
-					$params['content-title'] = $text;
-					break;
-				case '@self':
-					// current PageTitle
-					$key = $this->getTitleLookupKey( $this->currentSpace, $this->currentPageTitle );
-					$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
-					if ( $text === '' ) {
-						$params['broken-macro'] = true;
-						break;
-					}
-					$params['content-title'] = $text;
-					break;
-				case '@parent':
-					// parent of current PageTitle
-					$key = $this->getTitleLookupKey( $this->currentSpace, $this->currentPageTitle );
-					$currentPageTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
-					if ( $currentPageTitle === '' ) {
-						$params['broken-macro'] = true;
-						break;
-					}
-					$currentPageParts = explode( '/', $currentPageTitle );
-					if ( count( $currentPageParts ) > 1 ) {
-						array_pop( $currentPageParts );
-						$text = implode( '/', $currentPageParts );
-					} else {
-						$text = $this->currentPageTitle;
-						$params['broken-macro'] = true;
-					}
-					$params['content-title'] = $text;
-					break;
-				case '@none':
-					// all pages in namespace
-					$params['content-title'] = '';
+		if ( !isset( $params['content-title'] ) ) {
+			return $params;
+		}
 
-					if ( isset( $params['space-key'] ) ) {
-						$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
-						if ( is_string( $namespace ) ) {
-							$params['space-key'] = $namespace;
-						} else {
-							$params['space-key'] = '{{NAMESPACE}}';
-						}
+		switch ( $params['content-title'] ) {
+			case '@home':
+				// Main Page
+				$key = $this->getTitleLookupKey( $this->currentSpace, $this->mainpage );
+				$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+				if ( $text === '' ) {
+					$params['broken-macro'] = true;
+					break;
+				}
+				$params['content-title'] = $text;
+				break;
+			case '@self':
+				// current PageTitle
+				$key = $this->getTitleLookupKey( $this->currentSpace, $this->currentPageTitle );
+				$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+				if ( $text === '' ) {
+					$params['broken-macro'] = true;
+					break;
+				}
+				$params['content-title'] = $text;
+				break;
+			case '@parent':
+				// parent of current PageTitle
+				$key = $this->getTitleLookupKey( $this->currentSpace, $this->currentPageTitle );
+				$currentPageTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+				if ( $currentPageTitle === '' ) {
+					$params['broken-macro'] = true;
+					break;
+				}
+				$currentPageParts = explode( '/', $currentPageTitle );
+				if ( count( $currentPageParts ) > 1 ) {
+					array_pop( $currentPageParts );
+					$text = implode( '/', $currentPageParts );
+				} else {
+					$text = $this->currentPageTitle;
+					$params['broken-macro'] = true;
+				}
+				$params['content-title'] = $text;
+				break;
+			case '@none':
+				// all pages in namespace
+				$params['content-title'] = '';
+
+				if ( isset( $params['space-key'] ) ) {
+					$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
+					if ( is_string( $namespace ) ) {
+						$params['space-key'] = $namespace;
 					} else {
 						$params['space-key'] = '{{NAMESPACE}}';
 					}
-					// always broken. Subpage tree based on namespace is not supported until now.
+				} else {
+					$params['space-key'] = '{{NAMESPACE}}';
+				}
+				// always broken. Subpage tree based on namespace is not supported until now.
+				$params['broken-macro'] = true;
+				break;
+			default:
+				// create new content-title from space key and content title
+				if ( isset( $params['space-key'] ) ) {
+					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] );
+				} else {
+					$spaceId = $this->currentSpace;
+				}
+				$key = $this->getTitleLookupKey( $spaceId, $params['content-title'] );
+				$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+				if ( $text === '' ) {
 					$params['broken-macro'] = true;
 					break;
-				default:
-					// create new content-title from space key and content title
-					if ( isset( $params['space-key'] ) ) {
-						$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] );
-					} else {
-						$spaceId = $this->currentSpace;
-					}
-					$key = $this->getTitleLookupKey( $spaceId, $params['content-title'] );
-					$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
-					if ( $text === '' ) {
-						$params['broken-macro'] = true;
-						break;
-					}
-					if ( is_string( $text ) ) {
-						$params['content-title'] = $text;
-					}
-					if ( isset( $params['space-key'] ) ) {
-						$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
-						if ( is_string( $namespace ) ) {
-							$params['space-key'] = $namespace;
-						}
-					}
-					break;
-			}
-		} else {
-			// if content-title is not set fallback to {{FULLPAGENAME}}
-			$params['content-title'] = '{{FULLPAGENAME}}';
-			if ( isset( $params['space-key'] ) ) {
-				$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
-				if ( is_string( $namespace ) ) {
-					$params['space-key'] = $namespace;
 				}
-			}
-			$params['broken-macro'] = true;
+				if ( is_string( $text ) ) {
+					$params['content-title'] = $text;
+				}
+				if ( isset( $params['space-key'] ) ) {
+					$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
+					if ( is_string( $namespace ) ) {
+						$params['space-key'] = $namespace;
+					}
+				}
+				break;
 		}
+
 		return $params;
 	}
 
