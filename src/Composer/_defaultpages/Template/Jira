@@ -1,4 +1,9 @@
 <noinclude>Links to Jira issues and queries via interwiki links.
-* Use <code>{{Jira|key=PROJECT-123}}</code> to link to a specific issue (uses the <code>jira</code> interwiki prefix).
-* Use <code>{{Jira|jql=...}}</code> to link to a Jira filter by JQL (uses the <code>jira-jql</code> interwiki prefix).
-</noinclude><includeonly>{{#if:{{{key|}}}|[[jira:{{{key}}}]]|[[jira-jql:{{{jql}}}]]}}</includeonly>
+* Use <code>{{Jira|key=PROJECT-123}}</code> to link to a specific issue (uses the <code>jira-task</code> interwiki prefix).
+* Use <code>{{Jira|jql=...}}</code> to link to a Jira filter. When the value is a Jira URL, the view type is detected from the path:
+** <code>/timeline</code> → <code>jira-timeline</code>
+** <code>/calendar</code> → <code>jira-calendar</code>
+** <code>/summary</code> → <code>jira-summary</code>
+** <code>/boards</code> → <code>jira-board</code>
+** otherwise → <code>jira-jql</code> (plain JQL query)
+</noinclude><includeonly>{{#if:{{{key|}}}|[[jira-task:{{{key}}}]]|{{#if:{{#pos:{{{jql|}}}|/timeline}}|[[jira-timeline:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/calendar}}|[[jira-calendar:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/summary}}|[[jira-summary:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/boards}}|[[jira-board:{{{jql}}}]]|[[jira-jql:{{{jql}}}]]}}}}}}}}}}</includeonly>

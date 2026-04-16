@@ -55,6 +55,38 @@ class JiraMacroTest extends TestCase {
 	}
 
 	/**
+	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro::process
+	 * @return void
+	 */
+	public function testProcessJqlBoard() {
+		$this->doTest( 'jira-macro-jql-board-input.xml', 'jira-macro-jql-board-output.xml' );
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro::process
+	 * @return void
+	 */
+	public function testProcessJqlTimeline() {
+		$this->doTest( 'jira-macro-jql-timeline-input.xml', 'jira-macro-jql-timeline-output.xml' );
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro::process
+	 * @return void
+	 */
+	public function testProcessJqlCalendar() {
+		$this->doTest( 'jira-macro-jql-calendar-input.xml', 'jira-macro-jql-calendar-output.xml' );
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro::process
+	 * @return void
+	 */
+	public function testProcessJqlSummary() {
+		$this->doTest( 'jira-macro-jql-summary-input.xml', 'jira-macro-jql-summary-output.xml' );
+	}
+
+	/**
 	 * @param string $inputFile
 	 * @param string $outputFile
 	 */
