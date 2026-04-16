@@ -32,6 +32,20 @@ class FixMultilineTable implements IPostprocessor {
 					$tableText
 				);
 
+				// Ensure nested tables ({|) always start on their own line.
+				// Case 1: styled cell "| attr| {| ..." → "| attr|\n{| ..."
+				$tableText = preg_replace(
+					'/^([|!][^\n]*)\| (\{\|)/m',
+					"$1|\n$2",
+					$tableText
+				);
+				// Case 2: bare cell "| {| ..." → "|\n{| ..."
+				$tableText = preg_replace(
+					'/^([|!]) (\{\|)/m',
+					"$1\n$2",
+					$tableText
+				);
+
 				$lines = explode( "\n", $tableText );
 
 				$problematicLines = [];
