@@ -124,9 +124,9 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		$templateParams = '';
 		foreach ( $params as $key => $value ) {
-			// page param must not contain space replacing underscores
+			// page param must not contain underscores
 			if ( $key === 'page' ) {
-				$value = str_replace( ' ', '_', $value );
+				$value = str_replace( '_', ' ', $value );
 			}
 
 			$templateParams .= '|' . $key . '=' . $value;
