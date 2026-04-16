@@ -91,10 +91,17 @@ class Image implements IProcessor {
 			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node );
 
 			$linkNode = $node->parentNode;
-			$linkNode->parentNode->replaceChild(
-				$externalLinkReplacementNode,
-				$linkNode
-			);
+			if ( $externalLinkReplacementNode === $node ) {
+				// makeImageExternalLinkReplacement could not handle this image type
+				// (e.g. ri:url instead of ri:attachment); use the URL-based replacement
+				// and drop the external link wrapper.
+				$linkNode->parentNode->replaceChild( $replacementNode, $linkNode );
+			} else {
+				$linkNode->parentNode->replaceChild(
+					$externalLinkReplacementNode,
+					$linkNode
+				);
+			}
 		} else {
 			$node->parentNode->replaceChild(
 				$replacementNode,

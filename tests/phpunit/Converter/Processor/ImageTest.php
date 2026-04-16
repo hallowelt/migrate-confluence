@@ -59,6 +59,23 @@ class ImageTest extends TestCase {
 	}
 
 	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::preprocess
+	 * @return void
+	 */
+	public function testUrlImageInExternalLink() {
+		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+
+		$dataLookup = new ConversionDataLookup( [], [], [], [], [], [], [], [], [] );
+		$this->doTestWith(
+			$dataLookup,
+			'image-url-external-link-input.xml',
+			'image-url-external-link-output.xml',
+			42,
+			'SomePage'
+		);
+	}
+
+	/**
 	 * @param string $input
 	 * @param string $output
 	 * @param string $spaceId
@@ -66,12 +83,24 @@ class ImageTest extends TestCase {
 	 * @return void
 	 */
 	private function doTest( $input, $output, $spaceId, $rawPageTitle ): void {
+		$this->doTestWith( $this->dataLookup, $input, $output, $spaceId, $rawPageTitle );
+	}
+
+	/**
+	 * @param ConversionDataLookup $dataLookup
+	 * @param string $input
+	 * @param string $output
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return void
+	 */
+	private function doTestWith( ConversionDataLookup $dataLookup, $input, $output, $spaceId, $rawPageTitle ): void {
 		$input = file_get_contents( "$this->dir/$input" );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new Image( $this->dataLookup, $spaceId, $rawPageTitle );
+		$processor = new Image( $dataLookup, $spaceId, $rawPageTitle );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
