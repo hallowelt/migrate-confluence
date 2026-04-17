@@ -71,7 +71,6 @@ class ExtractComplexLinkContent implements IProcessor {
 		foreach ( $brNodes as $br ) {
 			$br->parentNode->removeChild( $br );
 		}
-
 	}
 
 	/**
