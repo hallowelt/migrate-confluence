@@ -64,6 +64,28 @@
         <property name="content" class="BlogPost" package="com.atlassian.confluence.pages"><id name="id">10000002</id></property>
     </object>
 
+    <object class="Page" package="com.atlassian.confluence.pages">
+        <id name="id">10000003</id>
+        <property name="hibernateVersion">1</property>
+        <property name="title">Links Test Page</property>
+        <property name="lowerTitle">links test page</property>
+        <property name="version">1</property>
+        <property name="creationDate">2020-01-01 00:00:00.000</property>
+        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
+        <property name="versionComment"></property>
+        <property name="contentStatus">current</property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000005</id>
+        <property name="body"><![CDATA[<p>Simple text link: <a href="https://example.com">Click here</a></p><p>Link with only ac:image: <a href="https://example.com"><ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image></a></p><p>Internal link: <a href="/wiki/SomePage"><span>text</span></a></p><p>Link with span child: <a href="https://example.com"><span>content</span></a></p><p>Link with br child: <a href="https://example.com"><br/></a></p><p>Complex link with span+br+span: <a href="https://example.com"><span>A</span><br/><span>B</span></a></p><p>Extracted children placed before existing next sibling: <a href="https://example.com"><span>child</span></a><em>next</em></p><p>Link with nested ac:image inside span: <a href="https://example.com"><span><ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image></span></a></p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000003</id></property>
+    </object>
+
     <object class="Comment" package="com.atlassian.confluence.pages">
         <id name="id">30000001</id>
         <property name="contentStatus">current</property>

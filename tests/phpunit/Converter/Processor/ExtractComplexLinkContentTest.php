@@ -44,25 +44,29 @@ class ExtractComplexLinkContentTest extends TestCase {
 				"<root $ns><p><a href=\"/wiki/SomePage\"><span>text</span></a></p></root>",
 				"<root $ns><p><a href=\"/wiki/SomePage\"><span>text</span></a></p></root>",
 			],
-			'link with span child extracted' => [
+			'link with span child unchanged' => [
 				"<root $ns><p><a href=\"https://example.com\"><span>content</span></a></p></root>",
-				"<root $ns><p>https://example.com<span>content</span></p></root>",
+				"<root $ns><p><a href=\"https://example.com\"><span>content</span></a></p></root>",
 			],
-			'link with br child extracted' => [
+			'link with br child unchanged' => [
 				"<root $ns><p><a href=\"https://example.com\"><br/></a></p></root>",
-				"<root $ns><p>https://example.com<br/></p></root>",
+				"<root $ns><p><a href=\"https://example.com\"><br/></a></p></root>",
 			],
-			'complex link with span+br+span extracted' => [
+			'complex link with span+br+span unchanged' => [
 				"<root $ns><p><a href=\"https://example.com\"><span>A</span><br/><span>B</span></a></p></root>",
-				"<root $ns><p>https://example.com<span>A</span><br/><span>B</span></p></root>",
+				"<root $ns><p><a href=\"https://example.com\"><span>A</span><br/><span>B</span></a></p></root>",
 			],
-			'extracted children placed before existing next sibling' => [
+			'children placed before existing next sibling unchanged' => [
 				"<root $ns><p><a href=\"https://example.com\"><span>child</span></a><em>next</em></p></root>",
-				"<root $ns><p>https://example.com<span>child</span><em>next</em></p></root>",
+				"<root $ns><p><a href=\"https://example.com\"><span>child</span></a><em>next</em></p></root>",
 			],
 			'link with nested ac:image inside span extracted' => [
 				"<root $ns><p><a href=\"https://example.com\"><span><ac:image><ri:url ri:value=\"https://img.example.com/img.png\"/></ac:image></span></a></p></root>",
-				"<root $ns><p>https://example.com<span><ac:image><ri:url ri:value=\"https://img.example.com/img.png\"/></ac:image></span></p></root>",
+				"<root $ns><p><a href=\"https://example.com\"><ac:image><ri:url ri:value=\"https://img.example.com/img.png\"/></ac:image></a><span></span></p></root>",
+			],
+			'link with nested ac:image inside span along content' => [
+				"<root $ns><p><a href=\"https://example.com\"><span><ac:image><ri:url ri:value=\"https://img.example.com/img.png\"/></ac:image></span><span>content</span></a></p></root>",
+				"<root $ns><p><a href=\"https://example.com\"><ac:image><ri:url ri:value=\"https://img.example.com/img.png\"/></ac:image></a><span></span><span>content</span></p></root>",
 			],
 		];
 	}
