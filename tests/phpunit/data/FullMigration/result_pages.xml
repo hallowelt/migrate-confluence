@@ -389,7 +389,7 @@
       <timestamp>20200101000000</timestamp>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>Simple text link2: [https://example.com Click here]
+      <text>Simple text link: [https://example.com Click here]
 
 Link with only ac:image: [https://example.com https://img.example.com/img.png]
 
@@ -397,14 +397,19 @@ Internal link: [[wiki/SomePage|&lt;span&gt;text&lt;/span&gt;]]
 
 Link with span child: [https://example.com &lt;span&gt;content&lt;/span&gt;]
 
-Link with br child: [https://example.com &lt;br /&gt;]
+Link with br child: [https://example.com ]
 
-Complex link with span+br+span: [https://example.com &lt;span&gt;A&lt;/span&gt;&lt;br /&gt;&lt;span&gt;B&lt;/span&gt;]
+Complex link with span+br+span: [https://example.com &lt;span&gt;A&lt;/span&gt;&lt;span&gt;B&lt;/span&gt;]
 
-Extracted children placed before existing next sibling: [https://example.com &lt;span&gt;child&lt;/span&gt;''next'']
+Extracted children placed before existing next sibling: [https://example.com &lt;span&gt;child&lt;/span&gt;]''next''
 
-Link with nested ac:image inside span: [https://example.com https://img.example.com/img.png]&lt;span&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;
+Link with nested ac:image inside span: [https://example.com https://img.example.com/img.png]&lt;span&gt;&lt;/span&gt;
 
+Link with nested ac:image along content: [https://example.com https://img.example.com/img.png]&lt;span&gt;content&lt;/span&gt;
+
+Link with nested ac:image inside span along content: [https://example.com https://img.example.com/img.png]&lt;span&gt;&lt;/span&gt;&lt;span&gt;content&lt;/span&gt;
+
+Link with content with nested ac:image inside span along content: [https://example.com https://img.example.com/img.png]&lt;span&gt;content&lt;/span&gt;&lt;span&gt;content&lt;/span&gt;
  &lt;!-- From bodyContent 20000005.mraw --&gt;
 </text>
     </revision>

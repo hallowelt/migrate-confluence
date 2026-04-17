@@ -92,10 +92,14 @@ class Image implements IProcessor {
 
 			$linkNode = $node->parentNode;
 			if ( $externalLinkReplacementNode === $node ) {
-				// makeImageExternalLinkReplacement could not handle this image type
-				// (e.g. ri:url instead of ri:attachment); use the URL-based replacement
-				// and drop the external link wrapper.
-				$linkNode->parentNode->replaceChild( $replacementNode, $linkNode );
+				// ri:url image inside external link: replace just the <ac:image>
+				// with a plain text URL so the <a> survives and pandoc renders
+				// [href imageUrl] instead of dropping the link entirely.
+				$urlText = $this->getImageUrlText( $node );
+				$node->parentNode->replaceChild(
+					$node->ownerDocument->createTextNode( $urlText ),
+					$node
+				);
 			} else {
 				$linkNode->parentNode->replaceChild(
 					$externalLinkReplacementNode,
@@ -440,6 +444,25 @@ class Image implements IProcessor {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Extracts the plain URL string from an <ac:image> node's <ri:url> child,
+	 * stripping query parameters. Returns an empty string if not applicable.
+	 *
+	 * @param DOMElement $imageNode
+	 * @return string
+	 */
+	private function getImageUrlText( DOMElement $imageNode ): string {
+		foreach ( $imageNode->childNodes as $child ) {
+			if ( $child instanceof DOMElement && $child->nodeName === 'ri:url' ) {
+				$parsedUrl = parse_url( $child->getAttribute( 'ri:value' ) );
+				if ( isset( $parsedUrl['scheme'] ) && isset( $parsedUrl['host'] ) && isset( $parsedUrl['path'] ) ) {
+					return $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . $parsedUrl['path'];
+				}
+			}
+		}
+		return '';
 	}
 
 	/**

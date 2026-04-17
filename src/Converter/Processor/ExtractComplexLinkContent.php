@@ -7,29 +7,26 @@ use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 /**
- * Handles <a href="external"> elements whose children cannot be expressed as
- * a MediaWiki external link because they contain block-level or otherwise
- * non-translatable elements (e.g. <span>, <br>, nested <ac:image>).
+ * Cleans up <a> elements that contain <br/> or <ac:image> anywhere in their
+ * subtree, which pandoc cannot reliably convert to valid wikitext links.
  *
- * MediaWiki external links only support plain inline text as the link body
- * ([url text]). When an <a> element contains any direct-child DOMElement
- * that is NOT an <ac:image>, pandoc cannot produce valid wikitext for it.
+ * Two transformations are applied (independently):
  *
- * This processor runs before the Image processor and transforms:
+ * 1. <br/> removal: any <br/> found anywhere inside an <a> is simply removed,
+ *    because pandoc turns <br/> inside a link into a newline, which breaks the
+ *    MediaWiki link syntax.
  *
- *   <a href="url"><span>...<ac:image/>...</span><br/><span>text</span></a>
+ * 2. Image promotion: when an <a> contains an <ac:image> anywhere in its
+ *    subtree, the result is normalised to:
  *
- * into:
+ *      <a href="url"><ac:image/></a><other content>
  *
- *   url<span>...<ac:image/>...</span><br/><span>text</span>
+ *    so the Image processor can reliably handle the image-in-link case
+ *    (it requires <ac:image> to be a direct and sole child of <a>).
+ *    All collected <ac:image> elements are promoted to direct children of <a>;
+ *    everything else is moved to immediately after <a>.
  *
- * The bare URL is emitted as a text node so that pandoc passes it through
- * unchanged; MediaWiki then renders it as a numbered auto-link.
- * All former children are placed immediately after the URL text node so they
- * continue to be processed by subsequent processors (Image, etc.) and pandoc.
- *
- * Links whose only element child is <ac:image> are left untouched so the
- * Image processor can handle the image-in-external-link case itself.
+ * Links that contain neither <br/> nor <ac:image> are left completely untouched.
  */
 class ExtractComplexLinkContent implements IProcessor {
 
@@ -49,64 +46,69 @@ class ExtractComplexLinkContent implements IProcessor {
 				continue;
 			}
 
-			$href = $anchor->getAttribute( 'href' );
-			if ( $href === '' ) {
+			$this->removeBrElements( $anchor );
+
+			$images = $this->collectImages( $anchor );
+			if ( empty( $images ) ) {
 				continue;
 			}
 
-			$parsedUrl = parse_url( $href );
-			if ( !isset( $parsedUrl['scheme'] ) ) {
-				// Internal / relative link — leave for pandoc
-				continue;
-			}
-
-			if ( !$this->isComplexLink( $anchor ) ) {
-				continue;
-			}
-
-			$this->extractChildren( $anchor, $href, $dom );
+			$this->restructure( $anchor, $images );
 		}
 	}
 
 	/**
-	 * A link is "complex" when it has at least one direct DOMElement child
-	 * that is not an <ac:image>. Plain-text children and links whose sole
-	 * element child is <ac:image> are left for the Image processor.
+	 * Removes all <br/> elements found anywhere inside $anchor.
 	 *
 	 * @param DOMElement $anchor
-	 * @return bool
-	 */
-	private function isComplexLink( DOMElement $anchor ): bool {
-		foreach ( $anchor->childNodes as $child ) {
-			if ( !$child instanceof DOMElement ) {
-				continue;
-			}
-			if ( $child->localName !== 'image' ) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Move all children of $anchor to immediately after it, then replace
-	 * the anchor with a plain text node containing the href URL.
-	 *
-	 * @param DOMElement $anchor
-	 * @param string $href
-	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function extractChildren( DOMElement $anchor, string $href, DOMDocument $dom ): void {
+	private function removeBrElements( DOMElement $anchor ): void {
+		$brNodes = [];
+		foreach ( $anchor->getElementsByTagName( 'br' ) as $br ) {
+			$brNodes[] = $br;
+		}
+		foreach ( $brNodes as $br ) {
+			$br->parentNode->removeChild( $br );
+		}
+
+	}
+
+	/**
+	 * Collects all <ac:image> elements anywhere inside $anchor.
+	 *
+	 * @param DOMElement $anchor
+	 * @return DOMElement[]
+	 */
+	private function collectImages( DOMElement $anchor ): array {
+		$images = [];
+		foreach ( $anchor->getElementsByTagName( 'image' ) as $image ) {
+			$images[] = $image;
+		}
+		return $images;
+	}
+
+	/**
+	 * Promotes $images to direct children of $anchor and moves everything
+	 * else in $anchor to immediately after it.
+	 *
+	 * @param DOMElement $anchor
+	 * @param DOMElement[] $images
+	 * @return void
+	 */
+	private function restructure( DOMElement $anchor, array $images ): void {
 		$parent = $anchor->parentNode;
 		$insertBefore = $anchor->nextSibling;
 
-		$children = [];
-		foreach ( $anchor->childNodes as $child ) {
-			$children[] = $child;
+		foreach ( $images as $image ) {
+			$image->parentNode->removeChild( $image );
 		}
 
-		foreach ( $children as $child ) {
+		$directChildren = [];
+		foreach ( $anchor->childNodes as $child ) {
+			$directChildren[] = $child;
+		}
+		foreach ( $directChildren as $child ) {
 			$anchor->removeChild( $child );
 			if ( $insertBefore !== null ) {
 				$parent->insertBefore( $child, $insertBefore );
@@ -115,6 +117,8 @@ class ExtractComplexLinkContent implements IProcessor {
 			}
 		}
 
-		$parent->replaceChild( $dom->createTextNode( $href ), $anchor );
+		foreach ( $images as $image ) {
+			$anchor->appendChild( $image );
+		}
 	}
 }
