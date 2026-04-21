@@ -38,9 +38,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private DataBuckets $customBuckets;
 
 	/**
-	 * @var array|DataBuckets
+	 * @var array
 	 */
-	private DataBuckets|array $dataKeys;
+	private array $dataKeys;
 
 	/**
 	 * @var LoggerInterface|NullLogger
@@ -112,6 +112,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-blogpost-id-to-parent-page-id-map',
 			'analyze-page-id-to-title-map',
 			'analyze-pages-titles-map',
+			'analyze-pages-titles-duplicates-map',
 			'analyze-blogpost-id-to-confluence-key-map',
 			'analyze-blogpost-id-to-title-map',
 			'analyze-blogposts-titles-map',
@@ -197,7 +198,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	}
 
 	/**
-	 *
 	 * @param SplFileInfo $file
 	 * @return bool
 	 */

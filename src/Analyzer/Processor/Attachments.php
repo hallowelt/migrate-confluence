@@ -74,6 +74,12 @@ class Attachments extends ProcessorBase {
 		if ( $attachmentFilename === '' && isset( $properties['title'] ) ) {
 			$attachmentFilename = $properties['title'];
 		}
+
+		// Bail out if attachment object was already handled
+		if ( isset( $this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId] ) ) {
+			return;
+		}
+
 		if ( $attachmentFilename !== '' ) {
 			$this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId] = $attachmentFilename;
 		}
