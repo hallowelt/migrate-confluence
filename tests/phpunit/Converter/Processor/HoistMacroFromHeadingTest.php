@@ -38,7 +38,11 @@ class HoistMacroFromHeadingTest extends TestCase {
 			],
 			'macro hoisted, heading with text kept' => [
 				"<root $ns><h2>Title <ac:structured-macro ac:name=\"panel\"/></h2></root>",
-				"<root $ns><h2>Title </h2><ac:structured-macro ac:name=\"panel\"/></root>",
+				"<root $ns><h2>Title</h2><ac:structured-macro ac:name=\"panel\"/></root>",
+			],
+			'macro hoisted, heading with text kept with plain text at the end' => [
+				"<root $ns><h2><ac:structured-macro ac:name=\"panel\"/> Title</h2></root>",
+				"<root $ns><h2>Title</h2><ac:structured-macro ac:name=\"panel\"/></root>",
 			],
 			'multiple macros in heading hoisted in order' => [
 				"<root $ns><h3><ac:structured-macro ac:name=\"a\"/><ac:structured-macro ac:name=\"b\"/>" .
@@ -56,6 +60,23 @@ class HoistMacroFromHeadingTest extends TestCase {
 			'macro placed before following sibling' => [
 				"<root $ns><h1><ac:structured-macro ac:name=\"x\"/></h1><p>next</p></root>",
 				"<root $ns><ac:structured-macro ac:name=\"x\"/><p>next</p></root>",
+			],
+			'ac:macro-only heading is removed' => [
+				"<root $ns><h1><ac:macro ac:name=\"detailssummary\"/></h1></root>",
+				"<root $ns><ac:macro ac:name=\"detailssummary\"/></root>",
+			],
+			'ac:macro hoisted, heading with text kept' => [
+				"<root $ns><h2>Title <ac:macro ac:name=\"panel\"/></h2></root>",
+				"<root $ns><h2>Title</h2><ac:macro ac:name=\"panel\"/></root>",
+			],
+			'ac:macro hoisted before following sibling' => [
+				"<root $ns><h1><ac:macro ac:name=\"x\"/></h1><p>next</p></root>",
+				"<root $ns><ac:macro ac:name=\"x\"/><p>next</p></root>",
+			],
+			'mixed ac:structured-macro and ac:macro both hoisted' => [
+				"<root $ns><h2><ac:structured-macro ac:name=\"a\"/><ac:macro ac:name=\"b\"/>" .
+				"</h2><p>after</p></root>",
+				"<root $ns><ac:structured-macro ac:name=\"a\"/><ac:macro ac:name=\"b\"/><p>after</p></root>",
 			],
 		];
 	}

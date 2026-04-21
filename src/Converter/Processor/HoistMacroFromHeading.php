@@ -7,7 +7,7 @@ use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 /**
- * Moves any <ac:structured-macro> that is a direct child of a heading element
+ * Moves any <ac:structured-macro> or <ac:macro> that is a direct child of a heading element
  * (<h1>–<h6>) to immediately after that heading.
  *
  * Block-level macros inside headings cause pandoc to emit things like
@@ -21,6 +21,9 @@ class HoistMacroFromHeading implements IProcessor {
 
 	/** @var string[] */
 	private const HEADING_TAGS = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ];
+
+	/** @var string[] */
+	private const MACRO_TAGS = [ 'structured-macro', 'macro' ];
 
 	/**
 	 * @inheritDoc
@@ -46,10 +49,10 @@ class HoistMacroFromHeading implements IProcessor {
 	 * @return void
 	 */
 	private function hoistFromHeading( DOMElement $heading ): void {
-		// Collect only direct-child structured-macro elements
+		// Collect only direct-child structured-macro and macro elements
 		$macros = [];
 		foreach ( $heading->childNodes as $child ) {
-			if ( $child instanceof DOMElement && $child->localName === 'structured-macro' ) {
+			if ( $child instanceof DOMElement && in_array( $child->localName, self::MACRO_TAGS ) ) {
 				$macros[] = $child;
 			}
 		}
@@ -72,6 +75,13 @@ class HoistMacroFromHeading implements IProcessor {
 
 			// Keep subsequent macros ordered: next one goes after the one just inserted
 			$insertBefore = $macro->nextSibling;
+		}
+
+		// Trim whitespace from remaining text nodes
+		foreach ( $heading->childNodes as $child ) {
+			if ( $child->nodeType === XML_TEXT_NODE ) {
+				$child->nodeValue = trim( $child->nodeValue );
+			}
 		}
 
 		// Remove the heading if nothing meaningful remains
