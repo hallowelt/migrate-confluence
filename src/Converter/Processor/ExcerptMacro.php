@@ -31,6 +31,13 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 		$macroId = $node->getAttribute( 'ac:macro-id' );
 		$hidden = 'false';
 
+		// TODO: Set to false as soon as the excerpt extension is available
+		$isBroken = true;
+
+		if ( empty( $macroId ) ) {
+			$isBroken = true;
+		}
+
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter'
 				&& $childNode->getAttribute( 'ac:name' ) === 'hidden' ) {
@@ -57,10 +64,12 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 		$closeTag = $node->ownerDocument->createTextNode( '#####EXCERPTBLOCKCLOSE#####' );
 		$parent->insertBefore( $closeTag, $node );
 
-		$brokenCategory = $node->ownerDocument->createTextNode(
-			$this->getBrokenMacroCategory()
-		);
-		$parent->insertBefore( $brokenCategory, $node );
+		if ( $isBroken ) {
+			$brokenCategory = $node->ownerDocument->createTextNode(
+				$this->getBrokenMacroCategory()
+			);
+			$parent->insertBefore( $brokenCategory, $node );
+		}
 
 		$parent->removeChild( $node );
 	}

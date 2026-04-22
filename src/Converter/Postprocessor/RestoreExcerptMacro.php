@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Postprocessor;
 
 use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 
-class RestoreExcerptBlock implements IPostprocessor {
+class RestoreExcerptMacro implements IPostprocessor {
 
 	/**
 	 * @inheritDoc
