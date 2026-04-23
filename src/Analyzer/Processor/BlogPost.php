@@ -165,6 +165,11 @@ class BlogPost extends ProcessorBase {
 		$pageConfluenceTitle = "$this->spaceId---$pageConfluenceTitle";
 		$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
 
+		// Bail out if blog object was already handled
+		if ( isset( $this->data['analyze-blogpost-id-to-confluence-key-map'][$this->pageId] ) ) {
+			return;
+		}
+
 		$this->data['analyze-blogpost-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceTitle;
 		$this->data['analyze-blogposts-titles-map'][$pageConfluenceTitle] = $this->targetTitle;
 		$this->data['analyze-blogpost-id-to-title-map'][$this->pageId] = $this->targetTitle;

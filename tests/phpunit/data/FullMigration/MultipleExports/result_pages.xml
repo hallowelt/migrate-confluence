@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<mediawiki>
+  <page>
+    <title>ALPHA:Alpha_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Hello from alpha.
+ &lt;!-- From bodyContent 80000001.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>ALPHA:Beta_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Hello from beta.
+ &lt;!-- From bodyContent 80000011.mraw --&gt;
+</text>
+    </revision>
+  </page>
+</mediawiki>
