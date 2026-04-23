@@ -22,7 +22,7 @@ class FilenameResolver {
 	private array $config;
 
 	/**
-	 * @param array $spaceIdPrefixMap
+	 * @param ConversionDataLookup $dataLookup
 	 * @param array $config
 	 */
 	public function __construct( ConversionDataLookup $dataLookup, array $config = [] ) {
@@ -31,7 +31,7 @@ class FilenameResolver {
 	}
 
 	/**
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @param string $rawPageTitle
 	 * @param string $filename
 	 * @return array
@@ -48,7 +48,7 @@ class FilenameResolver {
 	}
 
 	/**
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @param string $filename
 	 * @param string $rawPageTitle
 	 * @return string
@@ -86,7 +86,7 @@ class FilenameResolver {
 
 	/**
 	 * @param string $title
-	 * @param boolean $broken
+	 * @param bool $broken
 	 * @return array
 	 */
 	private function getResult( string $title, bool $broken ): array {

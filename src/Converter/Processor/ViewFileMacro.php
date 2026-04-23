@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 
 class ViewFileMacro extends StructuredMacroProcessorBase {
 
@@ -24,15 +25,23 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	protected string $rawPageTitle;
 
 	/**
+	 * @var array
+	 */
+	protected array $config;
+
+
+	/**
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
+	 * @param array $config
 	 */
 	public function __construct( ConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle ) {
+		int $currentSpaceId, string $rawPageTitle, array $config ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
+		$this->config = $config;
 	}
 
 	/**
@@ -60,12 +69,13 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		$riFilename = $params['_riFilename'];
 		unset( $params['_riFilename'] );
 
-		$confluenceFileKey = $this->makeConfluenceFileKey( $riFilename );
-		[ 'title' => $resolvedTitle, 'isBroken' => $isBrokenLink ] =
-			$this->dataLookup->resolveFileTitle( $confluenceFileKey, $riFilename );
+		$filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
+		[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =
+			$filenameResolver->resolve( $this->currentSpaceId, $this->rawPageTitle, $riFilename );
+
 
 		// Insert filename first so the template renders params in the expected order.
-		$params = array_merge( [ 'filename' => $resolvedTitle ], $params );
+		$params = array_merge( [ 'filename' => $targetFilename ], $params );
 
 		$wikitextTemplate = new Template( $this->getWikiTextTemplateName(), $params );
 		$wikitextTemplate->setRenderFormatted( false );
@@ -116,15 +126,4 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		}
 		return $params;
 	}
-
-	/**
-	 * @param string $name
-	 * @return string
-	 */
-	private function makeConfluenceFileKey( string $name ): string {
-		$spaceId = $this->currentSpaceId;
-		$rawPageTitle = basename( $this->rawPageTitle );
-		return str_replace( ' ', '_', "$spaceId---$rawPageTitle---" . $name );
-	}
-
 }

@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
+use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 
 class AttachmentLink extends LinkProcessorBase {
 
@@ -33,12 +34,11 @@ class AttachmentLink extends LinkProcessorBase {
 			}
 			$rawPageTitle = basename( $rawPageTitle );
 
-			$confluenceFileKey = $this->generateConfluenceKey( $spaceId, $rawPageTitle, $riFilename );
-
+			$filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
 			[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =
-				$this->dataLookup->resolveFileTitle( $confluenceFileKey, $riFilename );
-			$linkParts = [ $targetFilename ];
+				$filenameResolver->resolve( $spaceId, $rawPageTitle, $riFilename );
 
+			$linkParts = [ $targetFilename ];
 			$this->getLinkBody( $node, $linkParts );
 
 			$replacement = $this->getBrokenLinkReplacement();
@@ -73,16 +73,6 @@ class AttachmentLink extends LinkProcessorBase {
 		}
 
 		return $spaceId;
-	}
-
-	/**
-	 * @param int $spaceId
-	 * @param string $rawPageTitle
-	 * @param string $filename
-	 * @return string
-	 */
-	private function generateConfluenceKey( int $spaceId, string $rawPageTitle, string $filename ): string {
-		return "$spaceId---$rawPageTitle---$filename";
 	}
 
 	/**
