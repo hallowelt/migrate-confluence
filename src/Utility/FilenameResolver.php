@@ -43,29 +43,31 @@ class FilenameResolver {
 			return $this->getResult( $fileTitle, false );
 		}
 
-		$fileTitle = $this->buildFileTitle( $spaceId, $filename, $rawPageTitle );
+		$fileTitle = $this->buildFileTitle( $spaceId, $rawPageTitle, $filename );
 		return $this->getResult( $fileTitle, true );
 	}
 
 	/**
 	 * @param int $spaceId
-	 * @param string $filename
 	 * @param string $rawPageTitle
+	 * @param string $filename
 	 * @return string
 	 */
-	private function buildFileTitle( int $spaceId, string $filename, string $rawPageTitle ): string {
+	private function buildFileTitle( int $spaceId, string $rawPageTitle, string $filename ): string {
+		$assocTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( "$spaceId---$rawPageTitle" );
+
 		$filenameBuilder = new FilenameBuilder(
 			$this->dataLookup->getSpaceIdToPrefixMap(),
 			$this->config
 		);
 
 		try {
-			$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $rawPageTitle );
+			$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $assocTitle );
 		} catch ( InvalidTitleException $ex ) {
 			try {
 				// Probably it is just too long. Let's try to use a shortened variant
 				// This is not ideal, but should be okay as a fallback in most cases.
-				$shortTargetTitle = basename( $rawPageTitle );
+				$shortTargetTitle = basename( $assocTitle );
 				$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortTargetTitle );
 			} catch ( InvalidTitleException $ex ) {
 				$fileTitle = $ex->getInvalidTitle();

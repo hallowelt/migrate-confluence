@@ -648,7 +648,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$linkProcessor = new AttachmentLink(
-			$this->dataLookup, $this->currentSpace, $currentPageTitle
+			$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
 		);
 
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {

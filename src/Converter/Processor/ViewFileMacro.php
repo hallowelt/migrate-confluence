@@ -29,7 +29,6 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	 */
 	protected array $config;
 
-
 	/**
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
@@ -72,7 +71,6 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		$filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =
 			$filenameResolver->resolve( $this->currentSpaceId, $this->rawPageTitle, $riFilename );
-
 
 		// Insert filename first so the template renders params in the expected order.
 		$params = array_merge( [ 'filename' => $targetFilename ], $params );

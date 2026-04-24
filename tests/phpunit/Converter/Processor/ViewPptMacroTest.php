@@ -74,7 +74,7 @@ class ViewPptMacroTest extends TestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new ViewPptMacro( $this->dataLookup, $spaceId, $pageName );
+		$processor = new ViewPptMacro( $this->dataLookup, $spaceId, $pageName, [] );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );

@@ -37,7 +37,6 @@ class Image implements IProcessor {
 	 */
 	protected FilenameResolver $filenameResolver;
 
-
 	/**
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
@@ -263,7 +262,7 @@ class Image implements IProcessor {
 		$rawPageTitle = basename( $rawPageTitle );
 
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
-				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
+			$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 
 		array_unshift( $params, $targetFilename );
 		$brokenFileInfo = $isBrokenFile ? '[[Category:Broken_image]]' : '';

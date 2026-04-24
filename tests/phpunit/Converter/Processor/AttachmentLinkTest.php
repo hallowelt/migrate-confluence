@@ -58,7 +58,7 @@ class AttachmentLinkTest extends TestCase {
 			[]
 		);
 
-		$processor = new AttachmentLink( $dataLookup, $currentSpaceId, $currentRawPagename, $extNSFileRepo );
+		$processor = new AttachmentLink( $dataLookup, $currentSpaceId, $currentRawPagename, [] );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

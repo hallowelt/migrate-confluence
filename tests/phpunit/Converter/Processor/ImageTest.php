@@ -71,7 +71,7 @@ class ImageTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new Image( $this->dataLookup, $spaceId, $rawPageTitle );
+		$processor = new Image( $this->dataLookup, $spaceId, $rawPageTitle, [] );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
