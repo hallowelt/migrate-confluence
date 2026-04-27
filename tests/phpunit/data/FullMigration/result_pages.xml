@@ -428,4 +428,37 @@ Link with content with nested ac:image inside span along content: [https://examp
 </text>
     </revision>
   </page>
+  <page>
+    <title>CON:Cross_Space_Links_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Link to second space: [[SECOND:Second_Space_Page|Second Space Page]]
+ &lt;!-- From bodyContent 20000012.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>SECOND:Second_Space_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Hello from the second space.
+ &lt;!-- From bodyContent 20000011.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Third_Space_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Link to second space: [[SECOND:Second_Space_Page|Second Space Page]]
+ &lt;!-- From bodyContent 20000021.mraw --&gt;
+</text>
+    </revision>
+  </page>
 </mediawiki>

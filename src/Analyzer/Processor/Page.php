@@ -71,6 +71,7 @@ class Page extends ProcessorBase {
 			'debug-analyze-invalid-titles-attachment-id-to-title',
 			'analyze-page-id-to-confluence-key-map',
 			'analyze-pages-titles-map',
+			'analyze-pages-titles-duplicates-map',
 			'analyze-page-id-to-title-map',
 			'analyze-title-revisions',
 			'analyze-title-to-attachment-title',
@@ -95,7 +96,7 @@ class Page extends ProcessorBase {
 		$properties = [];
 		$collection = [];
 
-			$this->xmlReader->read();
+		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
 			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
 				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
@@ -123,6 +124,7 @@ class Page extends ProcessorBase {
 		if ( isset( $properties['space'] ) ) {
 			$this->spaceId = (int)$properties['space'];
 		}
+
 		if ( $this->spaceId === null ) {
 			return;
 		}
@@ -212,31 +214,24 @@ class Page extends ProcessorBase {
 		// Some normalization
 		$pageConfluenceKey = str_replace( ' ', '_', $pageConfluenceKey );
 
+		// Bail out if page object was already handled
+		if ( isset( $this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] ) ) {
+			return;
+		}
+
 		$this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceKey;
 
 		/**
-		 * pages-titles-map is used to resolve link targets. It can be that the pageConfluenceKey
-		 * has duplicates. This can be if a leaf page title is used more then one time in the same
-		 * space. We don't want this duplicates in the pages-titles-map.
+		 * pages-titles-map is used to resolve link targets.
+		 * It can be that the pageConfluenceKey is the same between a parent and a child, but pageId is different.
+		 * We don't want this duplicates in the pages-titles-map.
 		 */
-		if (
-			!isset( $this->data['analyze-pages-titles-map'][$pageConfluenceKey] )
-			&& !isset( $this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey] )
-		) {
-			$this->data['analyze-pages-titles-map'][$pageConfluenceKey] = $this->targetTitle;
-		} elseif (
-			isset( $this->data['analyze-pages-titles-map'][$pageConfluenceKey] )
-			&& !isset( $this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey] )
-		) {
-			$doubleKeyTitle = $this->data['analyze-pages-titles-map'][$pageConfluenceKey];
-			unset( $this->data['analyze-pages-titles-map'][$pageConfluenceKey] );
-			$this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey] = [
-				$doubleKeyTitle,
-				$this->targetTitle
-			];
-		} else {
-			$this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey][] = $this->targetTitle;
+		if ( isset( $this->data['analyze-pages-titles-map'][$pageConfluenceKey] ) ) {
+			$this->handleDuplicateConfluenceKeys( $pageConfluenceKey );
+			return;
 		}
+
+		$this->data['analyze-pages-titles-map'][$pageConfluenceKey] = $this->targetTitle;
 
 		// Also add pages IDs in Confluence to full page title mapping.
 		// It is needed to have enough context on converting stage,
@@ -428,5 +423,27 @@ class Page extends ProcessorBase {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * @param string $pageConfluenceKey
+	 *
+	 * @return void
+	 */
+	private function handleDuplicateConfluenceKeys( string $pageConfluenceKey ): void {
+		if ( !isset( $this->data['analyze-pages-titles-map'][$pageConfluenceKey] ) ) {
+			return;
+		}
+
+		if ( !isset( $this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey] ) ) {
+			$this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey] = [
+				$this->data['analyze-pages-titles-map'][$pageConfluenceKey],
+				$this->targetTitle
+			];
+
+			return;
+		}
+
+		$this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey][] = $this->targetTitle;
 	}
 }

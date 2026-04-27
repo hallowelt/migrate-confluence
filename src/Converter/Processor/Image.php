@@ -8,6 +8,7 @@ use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 
 class Image implements IProcessor {
 
@@ -27,21 +28,35 @@ class Image implements IProcessor {
 	protected string $rawPageTitle;
 
 	/**
+	 * @var array
+	 */
+	protected array $config;
+
+	/**
+	 * @var FilenameResolver
+	 */
+	protected FilenameResolver $filenameResolver;
+
+	/**
 	 * @param ConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
+	 * @param array $config
 	 */
 	public function __construct( ConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle ) {
+		int $currentSpaceId, string $rawPageTitle, array $config ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
+		$this->config = $config;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
+		$this->filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
+
 		$imageNodes = $dom->getElementsByTagName( 'image' );
 
 		$nonLiveList = [];
@@ -257,11 +272,14 @@ class Image implements IProcessor {
 
 		$rawPageTitle = basename( $rawPageTitle );
 
-		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
-			$this->dataLookup->resolveFileTitle( $confluenceFileKey, $filename );
+			$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
+
 		array_unshift( $params, $targetFilename );
 		$brokenFileInfo = $isBrokenFile ? '[[Category:Broken_image]]' : '';
+
+		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
+
 		$replacementNode = $this->makeImageLinkWithDebugInfo(
 			$node->ownerDocument,
 			$params,
@@ -302,9 +320,9 @@ class Image implements IProcessor {
 		}
 
 		$rawPageTitle = basename( $rawPageTitle );
-		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
+
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
-			$this->dataLookup->resolveFileTitle( $confluenceFileKey, $filename );
+				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 		array_unshift( $params, $targetFilename );
 
 		$linkBody = $node->parentNode;
@@ -328,6 +346,8 @@ class Image implements IProcessor {
 		if ( $isBrokenFile ) {
 			$brokenPageLinkInfo .= '[[Category:Broken_image]]';
 		}
+
+		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 
 		$replacementNode = $this->makeImageLinkWithDebugInfo(
 			$node->ownerDocument,
@@ -369,9 +389,9 @@ class Image implements IProcessor {
 		}
 
 		$rawPageTitle = basename( $rawPageTitle );
-		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
+
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
-			$this->dataLookup->resolveFileTitle( $confluenceFileKey, $filename );
+				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 		array_unshift( $params, $targetFilename );
 
 		$brokenLinkInfo = '';
@@ -391,6 +411,8 @@ class Image implements IProcessor {
 		if ( !empty( $target ) ) {
 			$params[] = "link=$target";
 		}
+
+		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 
 		$replacementNode = $this->makeImageLinkWithDebugInfo(
 			$node->ownerDocument,

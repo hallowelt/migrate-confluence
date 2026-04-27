@@ -50,7 +50,7 @@ class GalleryMacroTest extends TestCase {
 		];
 		$spaceIdToKeyMap = [ 2 => 'MKT' ];
 		$dataLookup = $this->makeDataLookup( $fileMap, $spaceIdToKeyMap );
-		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage' );
+		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', [] );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( file_get_contents( "$dir/gallery-macro-input.xml" ) );
@@ -100,7 +100,7 @@ class GalleryMacroTest extends TestCase {
 			'att5' => '1---MyPage---rejected.png',
 		];
 		$dataLookup = $this->makeDataLookup( $fileMap, [], $attachmentMetadata, $attachmentIdToFileKeyMap );
-		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage' );
+		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', [] );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( file_get_contents( "$dir/gallery-macro-label-input.xml" ) );
@@ -128,7 +128,7 @@ class GalleryMacroTest extends TestCase {
 		];
 		$spaceIdToKeyMap = [ 2 => 'MKT' ];
 		$dataLookup = $this->makeDataLookup( $fileMap, $spaceIdToKeyMap );
-		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage' );
+		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', [] );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( file_get_contents( "$dir/gallery-macro-page-input.xml" ) );
@@ -150,7 +150,7 @@ class GalleryMacroTest extends TestCase {
 		$dir = dirname( dirname( __DIR__ ) ) . '/data';
 
 		$dataLookup = $this->makeDataLookup();
-		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage' );
+		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', [] );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( file_get_contents( "$dir/gallery-macro-broken-input.xml" ) );

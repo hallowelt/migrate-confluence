@@ -110,17 +110,20 @@ class AttachmentFallback extends ProcessorBase {
 		if ( isset( $properties['containerContent'] ) ) {
 			$containerContentId = $properties['containerContent'];
 		}
-		if ( isset( $this->data['global-page-id-to-title-map'][$containerContentId] ) ) {
-			$targetTitle = $this->data['global-page-id-to-title-map'][$containerContentId];
-		} elseif ( isset( $this->data['global-blogpost-id-to-title-map'][$containerContentId] ) ) {
-			$targetTitle = $this->data['global-blogpost-id-to-title-map'][$containerContentId];
-		}
-		if ( isset( $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId] ) ) {
-			$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId];
-		} elseif ( isset( $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId] ) ) {
-			$confluenceKey = $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId];
-		} else {
-			return;
+
+		if ( $containerContentId !== '' ) {
+			if ( isset( $this->data['global-page-id-to-title-map'][$containerContentId] ) ) {
+				$targetTitle = $this->data['global-page-id-to-title-map'][$containerContentId];
+			} elseif ( isset( $this->data['global-blogpost-id-to-title-map'][$containerContentId] ) ) {
+				$targetTitle = $this->data['global-blogpost-id-to-title-map'][$containerContentId];
+			}
+			if ( isset( $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId] ) ) {
+				$confluenceKey = $this->data['analyze-page-id-to-confluence-key-map'][$containerContentId];
+			} elseif ( isset( $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId] ) ) {
+				$confluenceKey = $this->data['analyze-blogpost-id-to-confluence-key-map'][$containerContentId];
+			} else {
+				return;
+			}
 		}
 
 		// TODO: Is this wise?
