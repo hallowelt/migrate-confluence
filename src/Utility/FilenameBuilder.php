@@ -42,6 +42,7 @@ class FilenameBuilder {
 		if ( !empty( $assocTitle ) ) {
 			$assocTitle = str_replace( '/', '_', $assocTitle );
 			// Unset potential namespace prefix to avoid duplications
+			// $assocTitle already contains namespace
 			$builder->setNamespace( 0 );
 			$builder->appendTitleSegment( "-$originalFilename" );
 			$builder->appendTitleSegment( $assocTitle );

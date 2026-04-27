@@ -48,7 +48,7 @@ class UserLinkTest extends TestCase {
 				[]
 			);
 
-		$processor = new UserLink( $dataLookup, $currentSpaceId, $currentRawPagename, false );
+		$processor = new UserLink( $dataLookup, $currentSpaceId, $currentRawPagename, [] );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
