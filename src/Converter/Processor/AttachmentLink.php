@@ -22,7 +22,6 @@ class AttachmentLink extends LinkProcessorBase {
 	 */
 	protected function doProcessLink( DOMNode $node ): void {
 		if ( $node instanceof DOMElement ) {
-			$isBrokenLink = false;
 			$riFilename = $node->getAttribute( 'ri:filename' );
 			$spaceId = $this->ensureSpaceId( $node );
 
