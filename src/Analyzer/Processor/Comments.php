@@ -18,6 +18,7 @@ class Comments extends ProcessorBase {
 		return [
 			'analyze-inline-comment-ids',
 			'analyze-body-content-id-to-comment-id-map',
+			'global-page-id-to-comment-ids-map'
 		];
 	}
 
@@ -82,6 +83,13 @@ class Comments extends ProcessorBase {
 		$pageId = isset( $properties['containerContent'] ) ? (int)$properties['containerContent'] : null;
 		if ( $pageId === null ) {
 			return;
+		}
+
+		// Bail out if comment was already handled
+		if ( isset( $this->data['global-page-id-to-comment-ids-map'][$pageId] ) ) {
+			if ( in_array( $commentId, $this->data['global-page-id-to-comment-ids-map'][$pageId] ) ) {
+				return;
+			}
 		}
 
 		// Find the body content ID for this comment
