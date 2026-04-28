@@ -1,10 +1,10 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Converter\Processor;
+namespace HalloWelt\MigrateConfluence\Converter\Preprocessor\dom;
 
 use DOMDocument;
 use DOMElement;
-use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Converter\IDomPreprocessor;
 
 /**
  * Cleans up <a> elements that contain <br/> or <ac:image> anywhere in their
@@ -28,12 +28,12 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
  *
  * Links that contain neither <br/> nor <ac:image> are left completely untouched.
  */
-class ExtractComplexLinkContent implements IProcessor {
+class SanitizeLinkContent implements IDomPreprocessor {
 
 	/**
 	 * @inheritDoc
 	 */
-	public function process( DOMDocument $dom ): void {
+	public function preprocess( DOMDocument $dom ): void {
 		$anchors = $dom->getElementsByTagName( 'a' );
 
 		$anchorList = [];

@@ -1,26 +1,26 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
+namespace HalloWelt\MigrateConfluence\Tests\Converter\Preprocessor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\ExtractComplexLinkContent;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
 use PHPUnit\Framework\TestCase;
 
-class ExtractComplexLinkContentTest extends TestCase {
+class SanitizeLinkContentTest extends TestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ExtractComplexLinkContent::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\SanitizeLinkContent::preprocess
 	 * @dataProvider provideExtractCases
 	 * @param string $input
 	 * @param string $expected
 	 * @return void
 	 */
-	public function testProcess( string $input, string $expected ): void {
+	public function testPreprocess( string $input, string $expected ): void {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ExtractComplexLinkContent();
-		$processor->process( $dom );
+		$preprocessor = new SanitizeLinkContent();
+		$preprocessor->preprocess( $dom );
 
 		$this->assertEquals( $expected, $dom->saveXML( $dom->documentElement ) );
 	}
