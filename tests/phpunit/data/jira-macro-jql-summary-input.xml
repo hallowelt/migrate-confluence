@@ -1,0 +1,6 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="jira" ac:schema-version="1" ac:macro-id="...">
+		<ac:parameter ac:name="server">My JIRA</ac:parameter>
+		<ac:parameter ac:name="jql">https://jira.example.com/jira/software/projects/DMP/summary?filter=assignee%20%3D%20currentUser()</ac:parameter>
+	</ac:structured-macro>
+</xml>

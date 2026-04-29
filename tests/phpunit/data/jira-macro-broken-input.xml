@@ -1,0 +1,5 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="jira" ac:schema-version="1" ac:macro-id="...">
+		<ac:parameter ac:name="server">My JIRA</ac:parameter>
+	</ac:structured-macro>
+</xml>
