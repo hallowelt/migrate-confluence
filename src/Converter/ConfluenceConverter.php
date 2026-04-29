@@ -20,8 +20,10 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\html\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
@@ -121,6 +123,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/** @var bool */
 	private bool $isSpaceDescriptionContent = false;
 
+	/** @var array */
+	private array $advancedConfig = [];
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -185,8 +190,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
 		$this->rawFile = $file;
 
-		if ( isset( $this->config['config']['mainpage'] ) ) {
-			$this->mainpage = $this->config['config']['mainpage'];
+		if ( isset( $this->config['config'] ) ) {
+			$this->advancedConfig = $this->config['config'];
+		}
+
+		if ( isset( $this->advancedConfig['mainpage'] ) ) {
+			$this->mainpage = $this->advancedConfig['mainpage'];
 		}
 
 		$this->isSpaceDescriptionContent = false;
@@ -327,16 +336,19 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new Emoticon(),
 			new PreserveTasksReportMacro( $this->dataLookup ),
 			new Image(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
 			),
 			new AttachmentLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
+			),
+			new AnchorLink(
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
 			),
 			new PageLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
 			),
 			new UserLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
 			),
 			new PreserveCodeMacro(),
 			new NoFormatMacro(),
@@ -352,7 +364,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new ContentByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
 			new GalleryMacro(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle
+				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
 			),
 			new ExpandMacro(),
 			new DetailsMacro(),
@@ -362,23 +374,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new MarkdownMacro(),
 			new ViewFileMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle
+				$currentPageTitle, $this->advancedConfig
 			),
 			new ViewDocMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle
+				$currentPageTitle, $this->advancedConfig
 			),
 			new ViewXlsMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle
+				$currentPageTitle, $this->advancedConfig
 			),
 			new ViewPptMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle
+				$currentPageTitle, $this->advancedConfig
 			),
 			new ViewPdfMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle
+				$currentPageTitle, $this->advancedConfig
 			),
 			new WidgetMacro(),
 			new PreservePStyleTag(),
@@ -500,6 +512,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			throw new Exception( 'Unconvertable' );
 		}
 
+		$this->preprocessDomSource( $dom );
+
 		$preprocessedPathname = str_replace( '.mraw', '.mprep', $this->rawFile->getPathname() );
 		$dom->saveHTMLFile( $preprocessedPathname );
 		$this->preprocessedFile = new SplFileInfo( $preprocessedPathname );
@@ -519,7 +533,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$preprocessors = [
 			new CDATAClosingFixer()
 		];
-		/** @var IPreprocessor $preprocessor */
+		/** @var IHtmlPreprocessor $preprocessor */
 		foreach ( $preprocessors as $preprocessor ) {
 			$sContent = $preprocessor->preprocess( $sContent );
 		}
@@ -557,6 +571,21 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">' . $sContent . '</xml>';
 
 		return $sContent;
+	}
+
+	/**
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	protected function preprocessDomSource( DOMDocument $dom ): void {
+		$preprocessors = [
+			new SanitizeLinkContent()
+		];
+
+		/** @var IHtmlPreprocessor $preprocessor */
+		foreach ( $preprocessors as $preprocessor ) {
+			$preprocessor->preprocess( $dom );
+		}
 	}
 
 	/**
@@ -639,7 +668,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$currentPageTitle = $this->getCurrentPageTitle();
 
 		$linkProcessor = new AttachmentLink(
-			$this->dataLookup, $this->currentSpace, $currentPageTitle
+			$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
 		);
 
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {

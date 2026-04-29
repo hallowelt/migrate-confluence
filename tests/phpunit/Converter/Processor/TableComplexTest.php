@@ -56,8 +56,8 @@ class TableComplexTest extends TestCase {
 
 		$processors = [
 			new PreserveTimeTag(),
-			new UserLink( $dataLookup, 42, 'SomePage' ),
-			new PageLink( $dataLookup, 42, 'SomePage' ),
+			new UserLink( $dataLookup, 42, 'SomePage', [] ),
+			new PageLink( $dataLookup, 42, 'SomePage', [] ),
 			new TaskListMacro(),
 			new PreservePStyleTag(),
 		];
@@ -131,8 +131,8 @@ class TableComplexTest extends TestCase {
 
 		$processors = [
 			new PreserveTimeTag(),
-			new UserLink( $dataLookup, 42, 'SomePage' ),
-			new PageLink( $dataLookup, 42, 'SomePage' ),
+			new UserLink( $dataLookup, 42, 'SomePage', [] ),
+			new PageLink( $dataLookup, 42, 'SomePage', [] ),
 			new TaskListMacro(),
 			new PreservePStyleTag(),
 		];

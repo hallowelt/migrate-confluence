@@ -1,0 +1,23 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<div>
+		<ac:link ac:anchor="LoremIpsumAnker"/>
+	</div>
+
+	<div>
+		<ac:link ac:anchor="Section Heading">
+			<ac:plain-text-link-body><![CDATA[Click here]]></ac:plain-text-link-body>
+		</ac:link>
+	</div>
+
+	<div>
+		<ac:link ac:anchor="AnotherAnchor">
+			<ac:link-body>Jump to section</ac:link-body>
+		</ac:link>
+	</div>
+
+	<div>
+		<ac:link>
+			<ri:page ri:content-title="Page Title" />
+		</ac:link>
+	</div>
+</xml>

@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter;
 
-interface IPreprocessor {
+interface IHtmlPreprocessor {
 
 	/**
 	 *

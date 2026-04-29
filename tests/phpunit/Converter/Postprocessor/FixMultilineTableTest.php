@@ -109,6 +109,23 @@ class FixMultilineTableTest extends TestCase {
 				"{| class=\"wikitable\"\n|-\n|\nstyle=\"text-align: left;\"| ===== Heading =====\n|}",
 				"{| class=\"wikitable\"\n|-\n| style=\"text-align: left;\"|\n===== Heading =====\n|}",
 			],
+			'nested table in bare cell' => [
+				'{|',
+				"{| class=\"wikitable\"\n|-\n| {| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
+				"{| class=\"wikitable\"\n|-\n|\n{| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
+			],
+			'nested table in styled cell' => [
+				'{|',
+				"{| class=\"wikitable\"\n|-\n| style=\"text-align: center;\"| "
+				. "{| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
+				"{| class=\"wikitable\"\n|-\n| style=\"text-align: center;\"|\n"
+				. "{| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
+			],
+			'nested table in header cell' => [
+				'{|',
+				"{| class=\"wikitable\"\n|-\n! {| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
+				"{| class=\"wikitable\"\n|-\n!\n{| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
+			],
 			'bare pipe with style attribute and span before heading' => [
 				'|',
 				"{| class=\"wikitable\"\n|-\n|\n" .

@@ -53,7 +53,7 @@ class PageLinkTest extends TestCase {
 				[]
 			);
 
-		$processor = new PageLink( $dataLookup, $currentSpaceId, $currentRawPagename, false );
+		$processor = new PageLink( $dataLookup, $currentSpaceId, $currentRawPagename, [] );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
