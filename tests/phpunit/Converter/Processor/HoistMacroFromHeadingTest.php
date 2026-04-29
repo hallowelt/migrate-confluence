@@ -3,13 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\HoistMacroFromHeading;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
 use PHPUnit\Framework\TestCase;
 
 class HoistMacroFromHeadingTest extends TestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\HoistMacroFromHeading::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading::preprocess
 	 * @dataProvider provideHoistCases
 	 * @param string $input
 	 * @param string $expected
@@ -20,7 +20,7 @@ class HoistMacroFromHeadingTest extends TestCase {
 		$dom->loadXML( $input );
 
 		$processor = new HoistMacroFromHeading();
-		$processor->process( $dom );
+		$processor->preprocess( $dom );
 
 		$this->assertEquals( $expected, $dom->saveXML( $dom->documentElement ) );
 	}

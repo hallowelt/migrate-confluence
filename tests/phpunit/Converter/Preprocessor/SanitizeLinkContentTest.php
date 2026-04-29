@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 class SanitizeLinkContentTest extends TestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\SanitizeLinkContent::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent::preprocess
 	 * @dataProvider provideExtractCases
 	 * @param string $input
 	 * @param string $expected

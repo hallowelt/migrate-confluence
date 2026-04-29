@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Converter;
 interface IHtmlPreprocessor {
 
 	/**
-	 *
 	 * @param string $confluenceHTML
 	 * @return string
 	 */

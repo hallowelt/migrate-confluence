@@ -1,10 +1,10 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Converter\Processor;
+namespace HalloWelt\MigrateConfluence\Converter\Preprocessor\dom;
 
 use DOMDocument;
 use DOMElement;
-use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Converter\IDomPreprocessor;
 
 /**
  * Moves any <ac:structured-macro> or <ac:macro> that is a direct child of a heading element
@@ -17,7 +17,7 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
  * If the heading contains only whitespace after the macro is removed, the
  * heading itself is also removed to avoid generating an empty heading.
  */
-class HoistMacroFromHeading implements IProcessor {
+class HoistMacroFromHeading implements IDomPreprocessor {
 
 	/** @var string[] */
 	private const HEADING_TAGS = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ];
@@ -28,7 +28,7 @@ class HoistMacroFromHeading implements IProcessor {
 	/**
 	 * @inheritDoc
 	 */
-	public function process( DOMDocument $dom ): void {
+	public function preprocess( DOMDocument $dom ): void {
 		foreach ( self::HEADING_TAGS as $tag ) {
 			$headings = $dom->getElementsByTagName( $tag );
 
