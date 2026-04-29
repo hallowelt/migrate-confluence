@@ -205,7 +205,7 @@ class Pages extends ProcessorBase {
 						$descBodyId = $spaceDescriptionIdBodyIdMap[$descId];
 						$description = $this->workspace->getConvertedContent( $descBodyId );
 						if ( $description !== '' ) {
-							$pageContent .= "[[Space description::$description]]\n";
+							$pageContent .= $this->wrapSpaceDescription( $description );
 						}
 					}
 				}
@@ -213,5 +213,17 @@ class Pages extends ProcessorBase {
 		}
 
 		return $pageContent;
+	}
+
+	/**
+	 * @param string $description
+	 * @return string
+	 */
+	private function wrapSpaceDescription( string $description ): string {
+		$strippedDescription = trim( preg_replace( '/<!-- From bodyContent .*?-->/s', '', (string)$description ) );
+		if ( $strippedDescription === '' ) {
+			return '';
+		}
+		return '<div class="space-description">' . $description . '</div>';
 	}
 }
