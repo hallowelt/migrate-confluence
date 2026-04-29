@@ -4,8 +4,6 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 /**
@@ -19,13 +17,14 @@ use XMLReader;
 class Users extends ProcessorBase {
 
 	/**
-	 * @param ConfigDB $configDB
-	 * @param WorkspaceDB $workspaceDB
+	 * @inheritDoc
 	 */
-	public function __construct(
-		private ConfigDB $configDB,
-		private WorkspaceDB $workspaceDB
-	) {}
+	public function getKeys(): array {
+		return [
+			'global-userkey-to-username-map',
+			'users'
+		];
+	}
 
 	/**
 	 * @inheritDoc
@@ -61,12 +60,8 @@ class Users extends ProcessorBase {
 			$properties['email'] = '';
 		}
 
-		$this->workspaceDB->addUser(
-			$userKey,
-			$mediaWikiUsername,
-			$properties['email'],
-			$properties
-		);
+		$this->data['global-userkey-to-username-map'][$userKey] = $mediaWikiUsername;
+		$this->data['users'][$mediaWikiUsername] = $properties;
 
 		$this->output->writeln( "Add user '$mediaWikiUsername' (ID:$userKey)" );
 	}

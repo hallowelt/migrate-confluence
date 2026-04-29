@@ -2,8 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 /**
@@ -14,13 +12,13 @@ use XMLReader;
 class ContentProperties extends ProcessorBase {
 
 	/**
-	 * @param ConfigDB $configDB
-	 * @param WorkspaceDB $workspaceDB
+	 * @inheritDoc
 	 */
-	public function __construct(
-		private ConfigDB $configDB,
-		private WorkspaceDB $workspaceDB
-	) {}
+	public function getKeys(): array {
+		return [
+			'analyze-inline-comment-ids',
+		];
+	}
 
 	/**
 	 * @inheritDoc
@@ -40,7 +38,7 @@ class ContentProperties extends ProcessorBase {
 			}
 			$this->xmlReader->next();
 		}
-/*
+
 		if ( $contentClass !== 'Comment' ) {
 			return;
 		}
@@ -58,13 +56,5 @@ class ContentProperties extends ProcessorBase {
 		if ( !in_array( $commentId, $this->data['analyze-inline-comment-ids'] ) ) {
 			$this->data['analyze-inline-comment-ids'][] = $commentId;
 		}
-
-		TODO: Maybe add a mapping for the $commentId
-*/
-		$this->workspaceDB->addContentProperty(
-			$propName,
-			$contentClass,
-			$properties
-		);
 	}
 }

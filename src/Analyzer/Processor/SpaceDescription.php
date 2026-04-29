@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\ConfigDB;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 /**
@@ -30,14 +32,13 @@ use XMLReader;
 class SpaceDescription extends ProcessorBase {
 
 	/**
-	 * @inheritDoc
+	 * @param ConfigDB $configDB
+	 * @param WorkspaceDB $workspaceDB
 	 */
-	public function getKeys(): array {
-		return [
-			'global-body-content-id-to-space-description-id-map',
-			'global-space-labelling-id-to-body-content-id-map'
-		];
-	}
+	public function __construct(
+		private ConfigDB $configDB,
+		private WorkspaceDB $workspaceDB
+	) {}
 
 	/**
 	 * @inheritDoc
@@ -73,15 +74,12 @@ class SpaceDescription extends ProcessorBase {
 			$labellings = $collection['labellings'];
 		}
 
-		foreach ( $bodyContents as $bodyContent ) {
-			$this->data['global-body-content-id-to-space-description-id-map'][$bodyContent] = (int)$descriptionId;
-			$this->output->writeln( "\nAdd space description ($bodyContent)" );
-		}
+		$this->workspaceDB->addSpaceDescription(
+			(int)$descriptionId,
+			$bodyContents,
+			$labellings
+		);
 
-		foreach ( $labellings as $labelling ) {
-			$this->data['global-space-labelling-id-to-body-content-id-map'][$labelling] = (int)$descriptionId;
-			$this->output->writeln( "\nAdd space labelling ($labelling)" );
-		}
+		$this->output->writeln( "\nAdd space description ($descriptionId)" );
 	}
-
 }

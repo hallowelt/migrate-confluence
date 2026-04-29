@@ -2,26 +2,25 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 class BodyContents extends ProcessorBase {
 
 	/**
-	 * @param ConfigDB $configDB
-	 * @param WorkspaceDB $workspaceDB
+	 * @inheritDoc
 	 */
-	public function __construct(
-		private ConfigDB $configDB,
-		private WorkspaceDB $workspaceDB
-	) {}
+	public function getKeys(): array {
+		return [
+			'analyze-body-content-id-to-page-id-map',
+			'analyze-body-content-id-to-comment-id-map',
+		];
+	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function doExecute(): void {
-		$bodyContentId = -1;
+		$bodyContentId = '';
 		$properties = [];
 		$contentClass = '';
 
@@ -47,17 +46,15 @@ class BodyContents extends ProcessorBase {
 			return;
 		}
 
-		// The body will be extracted later as file for pandoc and does not need to be in database
-		unset( $properties['body'] );
-
 		$contentId = (int)trim( $properties['content'] );
 
-		$this->workspaceDB->addBodyContent(
-			$bodyContentId,
-			$contentId,
-			$contentClass,
-			$properties
-		);
+		if ( $contentClass === 'Comment' ) {
+			$this->data['analyze-body-content-id-to-comment-id-map'][$bodyContentId] = $contentId;
+
+			return;
+		}
+
+		$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $contentId;
 	}
 
 }

@@ -22,6 +22,8 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
+use HalloWelt\MigrateConfluence\Database\ConfigDB;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -76,6 +78,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 	/** @var array */
 	private array $data = [];
+
+	/** @var ConfigDB */
+	private ConfigDB $configDB;
+
+	/** @var WorkspaceDB */
+	private $workspaceDB;
 
 	/**
 	 *
@@ -147,40 +155,20 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$this->logger = new NullLogger();
 
-		$this->setConfigVars();
+		$this->initConfigDB();
+		$this->workspaceDB = new WorkspaceDB( '/app/data/development/workspace/workspace.sql' );
 	}
 
 	/**
 	 * @return void
 	 */
-	private function setConfigVars(): void {
+	private function initConfigDB(): void {
+		$advancedConfig = [];
 		if ( isset( $this->config['config'] ) ) {
-			$this->advancedConfig = $this->config['config'];
+			$advancedConfig = $this->config['config'];
 		}
-
-		if ( isset( $this->advancedConfig['space-prefix'] ) ) {
-			$this->spacePrefixMap = $this->advancedConfig['space-prefix'];
-		}
-
-		if ( isset( $this->advancedConfig['mainpage'] ) ) {
-			$this->mainpage = $this->advancedConfig['mainpage'];
-		}
-
-		if ( isset( $this->advancedConfig['analyzer-include-spacekey'] ) ) {
-			$analyzerIncludeSpacekey = $this->advancedConfig['analyzer-include-spacekey'];
-			$normalizedAnalyzerIncludeSpacekey = [];
-			foreach ( $analyzerIncludeSpacekey as $key ) {
-				$normalizedAnalyzerIncludeSpacekey[] = strtolower( $key );
-			}
-			$this->advancedConfig['analyzer-include-spacekey'] = $normalizedAnalyzerIncludeSpacekey;
-			$this->includeSpaceKey = $normalizedAnalyzerIncludeSpacekey;
-		}
-
-		if ( isset( $this->advancedConfig['include-history'] ) ) {
-			if ( $this->advancedConfig['include-history'] === true ) {
-				$this->includeHistory = $this->advancedConfig['include-history'];
-			}
-		}
+		$this->configDB = new ConfigDB( '/app/data/development/workspace/config.sql' );
+		$this->configDB->populateConfigTables( $advancedConfig );
 	}
 
 	/**
@@ -234,14 +222,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private function getPreProcessors(): array {
 		return [
-			'Space' => new Spaces( $this->spacePrefixMap ),
-			'SpaceDescription' => new SpaceDescription(),
-			'Page' => new ParentPages(),
-			'BlogPost' => new ParentBlogPosts(),
-			'BodyContent' => new BodyContents(),
-			'Attachment' => new Attachments( $this->file ),
-			'ConfluenceUserImpl' => new Users(),
-			'ContentProperty' => new ContentProperties(),
+			'Space' => new Spaces( $this->configDB, $this->workspaceDB ),
+			'SpaceDescription' => new SpaceDescription( $this->configDB, $this->workspaceDB ),
+			'BodyContent' => new BodyContents( $this->configDB, $this->workspaceDB ),
+			'Page' => new Page( $this->configDB, $this->workspaceDB ),
+			'BlogPost' => new BlogPost( $this->configDB, $this->workspaceDB ),
+			'Attachment' => new Attachments( $this->file, $this->configDB, $this->workspaceDB  ),
+			'ConfluenceUserImpl' => new Users( $this->configDB, $this->workspaceDB ),
+			'ContentProperty' => new ContentProperties( $this->configDB, $this->workspaceDB ),
 		];
 	}
 
@@ -279,7 +267,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private function initProcessors( array $processors ): void {
 		foreach ( $processors as $processor ) {
 			if ( $processor instanceof IAnalyzerProcessor ) {
-				$processor->setConfig( $this->advancedConfig );
 				$processor->setOutput( $this->output );
 				$processor->setLogger( $this->logger );
 			}
@@ -311,12 +298,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			}
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
-				$processor->setData( $this->data );
 				$processor->execute( $xmlReader );
-				$keys = $processor->getKeys();
-				foreach ( $keys as $key ) {
-					$this->data[$key] = $processor->getData( $key );
-				}
 			}
 
 			$read = $xmlReader->next();
@@ -388,6 +370,24 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->output->writeln( "\nPreprocess data:" );
 		$preprocessors = $this->getPreProcessors();
 		$this->processFile( $preprocessors );
+
+		#$test = $this->workspaceDB->getSpaces();
+		#var_dump( $test );
+		#$test = $this->workspaceDB->getSpaceDescriptions();
+		#var_dump( $test );
+		#$test = $this->workspaceDB->getPages();
+		#var_dump( $test );
+		#$test = $this->workspaceDB->getBlogPosts();
+		#var_dump( $test );
+		$test = $this->workspaceDB->getBodyContents();
+		#var_dump( $test );
+		#$test = $this->workspaceDB->getBodyContentIdsForPageId( 83020084 );
+		#var_dump( $test );
+		#$test = $this->workspaceDB->getAttachments();
+		#var_dump( $test );
+		$test = $this->workspaceDB->getUsers();
+		var_dump( $test );
+		return true;
 
 		// Process Page objects (needed by other objects)
 		$this->output->writeln( "\nProcess data:" );

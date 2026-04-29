@@ -2,34 +2,23 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\ConfigDB;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use SplFileInfo;
 use XMLReader;
 
 class Attachments extends ProcessorBase {
-
-	/** @var SplFileInfo */
-	private SplFileInfo $file;
-
+	
 	/**
 	 * @param SplFileInfo $file
+	 * @param ConfigDB $configDB
+	 * @param WorkspaceDB $workspaceDB
 	 */
-	public function __construct( SplFileInfo $file ) {
-		$this->file = $file;
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function getKeys(): array {
-		return [
-			'analyze-attachment-available-ids',
-			'analyze-attachment-id-to-orig-filename-map',
-			'analyze-attachment-id-to-space-id-map',
-			'analyze-attachment-id-to-reference-map',
-			'analyze-attachment-id-to-container-content-id-map',
-			'analyze-attachment-id-to-content-status-map'
-		];
-	}
+	public function __construct(
+		private SplFileInfo $file,
+		private ConfigDB $configDB,
+		private WorkspaceDB $workspaceDB
+	) {}
 
 	/**
 	 * @inheritDoc
@@ -56,60 +45,45 @@ class Attachments extends ProcessorBase {
 			return;
 		}
 
-		$this->process( (int)$attachmentId, $properties );
-	}
-
-	/**
-	 * @param int $attachmentId
-	 * @param array $properties
-	 * @return void
-	 */
-	private function process( int $attachmentId, array $properties ): void {
-		$this->data['analyze-attachment-available-ids'][] = $attachmentId;
-
-		$attachmentFilename = '';
+		$filename = '';
 		if ( isset( $properties['fileName'] ) ) {
-			$attachmentFilename = $properties['fileName'];
+			$filename = $properties['fileName'];
 		}
-		if ( $attachmentFilename === '' && isset( $properties['title'] ) ) {
-			$attachmentFilename = $properties['title'];
-		}
-
-		// Bail out if attachment object was already handled
-		if ( isset( $this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId] ) ) {
-			return;
+		if ( $filename === '' && isset( $properties['title'] ) ) {
+			$filename = $properties['title'];
 		}
 
-		if ( $attachmentFilename !== '' ) {
-			$this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId] = $attachmentFilename;
-		}
-
-		$attachmentSpaceId = null;
+		$spaceId = -1;
 		if ( isset( $properties['space'] ) ) {
-			$attachmentSpaceId = $properties['space'];
-		}
-		if ( is_int( $attachmentSpaceId ) ) {
-			$this->data['analyze-attachment-id-to-space-id-map'][$attachmentId] = $attachmentSpaceId;
-		}
-
-		$attachmentReference = $this->makeAttachmentReference( $attachmentId, $properties );
-		if ( $attachmentReference !== '' ) {
-			$this->data['analyze-attachment-id-to-reference-map'][$attachmentId] = $attachmentReference;
+			$spaceId = $properties['space'];
 		}
 
 		$containerContentId = -1;
 		if ( isset( $properties['containerContent'] ) ) {
 			$containerContentId = (int)$properties['containerContent'];
 		}
-		if ( $containerContentId >= 0 ) {
-			$this->data['analyze-attachment-id-to-container-content-id-map'][$attachmentId] = $containerContentId;
+
+		$contentStatus = '';
+		if ( isset( $properties['contentStatus'] ) ) {
+			$contentStatus = $properties['contentStatus'];
 		}
 
-		$attachmentNodeContentStatus = '';
-		if ( isset( $properties['contentStatus'] ) ) {
-			$attachmentNodeContentStatus = $properties['contentStatus'];
-		}
-		$this->data['analyze-attachment-id-to-content-status-map'][$attachmentId] = $attachmentNodeContentStatus;
+		$attachmentReference = $this->makeAttachmentReference(
+			$attachmentId,
+			$containerContentId,
+			$properties
+		);
+
+		$this->workspaceDB->addAttachment(
+			$attachmentId,
+			$spaceId,
+			$filename,
+			$containerContentId,
+			$contentStatus,
+			$attachmentReference,
+			$properties
+		);
+
 	}
 
 	/**
@@ -117,16 +91,8 @@ class Attachments extends ProcessorBase {
 	 * @param array $properties
 	 * @return string
 	 */
-	private function makeAttachmentReference( int $attachmentId, array $properties ): string {
+	private function makeAttachmentReference( int $attachmentId, int $containerContentId, array $properties ): string {
 		$basePath = $this->file->getPath() . '/attachments';
-
-		$containerId = '';
-		if ( isset( $properties['content'] ) ) {
-			$containerId = $properties['content'];
-		}
-		if ( $containerId === '' && isset( $properties['containerContent'] ) ) {
-			$containerId = $properties['containerContent'];
-		}
 
 		$attachmentVersion = '';
 		if ( isset( $properties['attachmentVersion'] ) ) {
@@ -143,11 +109,6 @@ class Attachments extends ProcessorBase {
 			$attachmentVersion = '__LATEST__';
 		}
 
-		$path = $basePath . "/" . $containerId . '/' . $attachmentId . '/' . $attachmentVersion;
-		if ( !file_exists( $path ) ) {
-			return '';
-		}
-
-		return $path;
+		return $basePath . "/" . $containerContentId . '/' . $attachmentId . '/' . $attachmentVersion;
 	}
 }
