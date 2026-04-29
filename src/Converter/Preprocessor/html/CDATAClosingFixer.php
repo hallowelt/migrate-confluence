@@ -1,10 +1,10 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Converter\Preprocessor;
+namespace HalloWelt\MigrateConfluence\Converter\Preprocessor\html;
 
-use HalloWelt\MigrateConfluence\Converter\IPreprocessor;
+use HalloWelt\MigrateConfluence\Converter\IHtmlPreprocessor;
 
-class CDATAClosingFixer implements IPreprocessor {
+class CDATAClosingFixer implements IHtmlPreprocessor {
 
 	/** @var string */
 	private string $pattern = '#(<ac:plain-text-body>)(.*?)(</ac:plain-text-body>)#si';

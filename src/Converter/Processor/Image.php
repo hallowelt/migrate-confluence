@@ -106,10 +106,21 @@ class Image implements IProcessor {
 			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node );
 
 			$linkNode = $node->parentNode;
-			$linkNode->parentNode->replaceChild(
-				$externalLinkReplacementNode,
-				$linkNode
-			);
+			if ( $externalLinkReplacementNode === $node ) {
+				// ri:url image inside external link: replace just the <ac:image>
+				// with a plain text URL so the <a> survives and pandoc renders
+				// [href imageUrl] instead of dropping the link entirely.
+				$urlText = $this->getImageUrlText( $node );
+				$node->parentNode->replaceChild(
+					$node->ownerDocument->createTextNode( $urlText ),
+					$node
+				);
+			} else {
+				$linkNode->parentNode->replaceChild(
+					$externalLinkReplacementNode,
+					$linkNode
+				);
+			}
 		} else {
 			$node->parentNode->replaceChild(
 				$replacementNode,
@@ -455,6 +466,25 @@ class Image implements IProcessor {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Extracts the plain URL string from an <ac:image> node's <ri:url> child,
+	 * stripping query parameters. Returns an empty string if not applicable.
+	 *
+	 * @param DOMElement $imageNode
+	 * @return string
+	 */
+	private function getImageUrlText( DOMElement $imageNode ): string {
+		foreach ( $imageNode->childNodes as $child ) {
+			if ( $child instanceof DOMElement && $child->nodeName === 'ri:url' ) {
+				$parsedUrl = parse_url( $child->getAttribute( 'ri:value' ) );
+				if ( isset( $parsedUrl['scheme'] ) && isset( $parsedUrl['host'] ) && isset( $parsedUrl['path'] ) ) {
+					return $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . $parsedUrl['path'];
+				}
+			}
+		}
+		return '';
 	}
 
 	/**

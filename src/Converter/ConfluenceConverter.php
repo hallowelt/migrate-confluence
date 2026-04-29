@@ -20,7 +20,8 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\html\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
@@ -509,6 +510,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			throw new Exception( 'Unconvertable' );
 		}
 
+		$this->preprocessDomSource( $dom );
+
 		$preprocessedPathname = str_replace( '.mraw', '.mprep', $this->rawFile->getPathname() );
 		$dom->saveHTMLFile( $preprocessedPathname );
 		$this->preprocessedFile = new SplFileInfo( $preprocessedPathname );
@@ -528,7 +531,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$preprocessors = [
 			new CDATAClosingFixer()
 		];
-		/** @var IPreprocessor $preprocessor */
+		/** @var IHtmlPreprocessor $preprocessor */
 		foreach ( $preprocessors as $preprocessor ) {
 			$sContent = $preprocessor->preprocess( $sContent );
 		}
@@ -566,6 +569,21 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">' . $sContent . '</xml>';
 
 		return $sContent;
+	}
+
+	/**
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	protected function preprocessDomSource( DOMDocument $dom ): void {
+		$preprocessors = [
+			new SanitizeLinkContent()
+		];
+
+		/** @var IHtmlPreprocessor $preprocessor */
+		foreach ( $preprocessors as $preprocessor ) {
+			$preprocessor->preprocess( $dom );
+		}
 	}
 
 	/**
