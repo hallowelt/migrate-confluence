@@ -211,6 +211,7 @@ class Pages extends ProcessorBase {
 				}
 			}
 		}
+
 		return $pageContent;
 	}
 
@@ -219,6 +220,10 @@ class Pages extends ProcessorBase {
 	 * @return string
 	 */
 	private function wrapSpaceDescription( string $description ): string {
+		$strippedDescription = trim( preg_replace( '/<!-- From bodyContent .*?-->/s', '', (string)$description ) );
+		if ( $strippedDescription === '' ) {
+			return '';
+		}
 		return '<div class="space-description">' . $description . '</div>';
 	}
 }
