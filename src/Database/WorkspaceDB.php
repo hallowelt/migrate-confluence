@@ -19,6 +19,10 @@ class WorkspaceDB {
 		$this->createTables();
 	}
 
+	/**
+	 * @param string $table
+	 * @return array
+	 */
 	private function getArray( string $table ): array {
 		$transaction = $this->db->prepare(
 			'SELECT * FROM ' . $table
@@ -227,12 +231,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getSpaces(): array {
-		$transaction = $this->db->prepare(
-			'SELECT * FROM spaces'
-		);
-
-		$result = $transaction->execute();
-		return $this->fetchDbArray( $result );
+		return $this->getArray( 'spaces' );
 	}
 
 	/**
@@ -259,12 +258,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getSpaceDescriptions(): array {
-		$transaction = $this->db->prepare(
-			'SELECT * FROM spaces_descriptions'
-		);
-
-		$result = $transaction->execute();
-		return $this->fetchDbArray( $result );
+		return $this->getArray( 'spaces_descriptions' );
 	}
 
 	/**
@@ -310,12 +304,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getPages(): array {
-		$transaction = $this->db->prepare(
-			'SELECT * FROM pages'
-		);
-
-		$result = $transaction->execute();
-		return $this->fetchDbArray( $result );
+		return $this->getArray( 'pages' );
 	}
 
 	/**
@@ -359,12 +348,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getBlogPosts(): array {
-		$transaction = $this->db->prepare(
-			'SELECT * FROM blog_posts'
-		);
-
-		$result = $transaction->execute();
-		return $this->fetchDbArray( $result );
+		return $this->getArray( 'blog_posts' );
 	}
 
 	/**
@@ -394,12 +378,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getBodyContents(): array {
-		$transaction = $this->db->prepare(
-			'SELECT * FROM body_contents'
-		);
-
-		$result = $transaction->execute();
-		return $this->fetchDbArray( $result );
+		return $this->getArray( 'body_contents' );
 	}
 
 	/**
@@ -458,12 +437,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getAttachments(): array {
-		$transaction = $this->db->prepare(
-			'SELECT * FROM attachments'
-		);
-
-		$result = $transaction->execute();
-		return $this->fetchDbArray( $result );
+		return $this->getArray( 'attachments' );
 	}
 
 	public function addUser(
@@ -514,12 +488,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getContentProperties(): array {
-		$transaction = $this->db->prepare(
-			'SELECT * FROM content_properties'
-		);
-
-		$result = $transaction->execute();
-		return $this->fetchDbArray( $result );
+		return $this->getArray( 'content_properties' );
 	}
 
 	/**
@@ -550,11 +519,6 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getComments(): array {
-		$transaction = $this->db->prepare(
-			'SELECT * FROM comments'
-		);
-
-		$result = $transaction->execute();
-		return $this->fetchDbArray( $result );
+		return $this->getArray( 'comments' );
 	}
 }

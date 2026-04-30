@@ -36,50 +36,17 @@ use XMLReader;
 
 class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface {
 
-	/**
-	 * @var DataBuckets
-	 */
+	/** @var DataBuckets */
 	private DataBuckets $customBuckets;
 
-	/**
-	 * @var array
-	 */
-	private array $dataKeys;
-
-	/**
-	 * @var LoggerInterface|NullLogger
-	 */
+	/** @var LoggerInterface|NullLogger */
 	private LoggerInterface|NullLogger $logger;
 
-	/**
-	 * @var Output|null
-	 */
+	/** @var Output|null */
 	private ?Output $output = null;
 
 	/** @var SplFileInfo */
 	private SplFileInfo $file;
-
-	/**
-	 * @var string
-	 */
-	private string $mainpage = 'Main Page';
-
-	/**
-	 * @var array
-	 */
-	private array $advancedConfig = [];
-
-	/** @var array */
-	private array $includeSpaceKey = [];
-
-	/** @var array */
-	private array $spacePrefixMap = [];
-
-	/** @var bool */
-	private bool $includeHistory = false;
-
-	/** @var array */
-	private array $data = [];
 
 	/** @var ConfigDB */
 	private ConfigDB $configDB;
@@ -100,60 +67,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'warning-analyze-invalid-titles',
 			'warning-analyze-invalid-filenames',
 		] );
-
-		$this->dataKeys = [
-			'analyze-added-attachment-id',
-			'analyze-add-file',
-			'analyze-attachment-available-ids',
-			'analyze-attachment-id-to-container-content-id-map',
-			'analyze-attachment-id-to-content-status-map',
-			'analyze-attachment-id-to-orig-filename-map',
-			'analyze-attachment-id-to-reference-map',
-			'analyze-attachment-id-to-space-id-map',
-			'analyze-attachment-id-to-target-filename-map',
-			'analyze-orig-title-compressed-title-map',
-			'analyze-body-content-id-to-page-id-map',
-			'analyze-body-content-id-to-comment-id-map',
-			'analyze-inline-comment-ids',
-			'analyze-page-id-to-confluence-key-map',
-			'analyze-page-id-to-confluence-title-map',
-			'analyze-page-id-to-parent-page-id-map',
-			'analyze-blogpost-id-to-confluence-title-map',
-			'analyze-blogpost-id-to-parent-page-id-map',
-			'analyze-page-id-to-title-map',
-			'analyze-pages-titles-map',
-			'analyze-pages-titles-duplicates-map',
-			'analyze-blogpost-id-to-confluence-key-map',
-			'analyze-blogpost-id-to-title-map',
-			'analyze-blogposts-titles-map',
-			'analyze-title-revisions',
-			'analyze-title-to-attachment-title',
-			'debug-analyze-invalid-titles-attachment-id-to-title',
-			'debug-analyze-invalid-titles-page-id-to-title',
-			'global-attachment-orig-filename-target-filename-map',
-			'global-body-content-id-to-page-id-map',
-			'global-body-content-id-to-comment-id-map',
-			'global-comment-id-to-metadata-map',
-			'global-filenames-to-filetitles-map',
-			'global-page-id-to-comment-ids-map',
-			'global-page-id-to-space-id',
-			'global-page-id-to-title-map',
-			'global-pages-titles-map',
-			'global-blogpost-id-to-space-id',
-			'global-blogpost-id-to-title-map',
-			'global-blogposts-titles-map',
-			'global-space-details',
-			'global-space-id-homepages',
-			'global-space-id-to-description-id-map',
-			'global-space-id-to-prefix-map',
-			'global-space-id-to-key-map',
-			'global-body-content-id-to-space-description-id-map',
-			'global-space-labelling-id-to-body-content-id-map',
-			'global-title-attachments',
-			'global-title-revisions',
-			'global-userkey-to-username-map',
-			'users',
-		];
 
 		$this->logger = new NullLogger();
 
@@ -197,10 +110,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return true;
 		}
 
-		foreach ( $this->dataKeys as $key ) {
-			$this->data[$key] = $this->workspace->loadData( $key );
-		}
-
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
 
@@ -208,13 +117,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->checkTitles();
 
 		// Save buckets
-		foreach ( $this->data as $bucket => $bucketData ) {
-			if ( empty( $bucketData ) ) {
-				continue;
-			}
-			$this->workspace->saveData( $bucket, $bucketData );
-		}
-
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 		return $result;
 	}
@@ -240,18 +142,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return array
 	 */
 	private function getProcessors(): array {
-		return [
-			'Page' => new Page(
-				$this->includeSpaceKey,
-				$this->mainpage,
-				$this->includeHistory
-			),
-			'BlogPost' => new BlogPost(
-				$this->includeSpaceKey,
-				$this->includeHistory
-			),
-			'Comment' => new Comments(),
-		];
+		return [];
 	}
 
 	/**
@@ -373,44 +264,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->output->writeln( "\nPreprocess data:" );
 		$preprocessors = $this->getPreProcessors();
 		$this->processFile( $preprocessors );
-
-		#$test = $this->workspaceDB->getSpaces();
-		#var_dump( $test );
-		#$test = $this->workspaceDB->getSpaceDescriptions();
-		#var_dump( $test );
-		#$test = $this->workspaceDB->getPages();
-		#var_dump( $test );
-		#$test = $this->workspaceDB->getBlogPosts();
-		#var_dump( $test );
-		$test = $this->workspaceDB->getBodyContents();
-		#var_dump( $test );
-		#$test = $this->workspaceDB->getBodyContentIdsForPageId( 83020084 );
-		#var_dump( $test );
-		#$test = $this->workspaceDB->getAttachments();
-		#var_dump( $test );
-		#$test = $this->workspaceDB->getUsers();
-		#var_dump( $test );
-		$test = $this->workspaceDB->getContentProperties();
-		var_dump( $test );
-		return true;
-
-		// Process Page objects (needed by other objects)
-		$this->output->writeln( "\nProcess data:" );
-		$processors = $this->getProcessors();
-		$this->processFile( $processors );
-
-		// Reduce title length if lenght exceeds 255 characters
-		$this->compressLongTitles();
-
-		// Process title attachments fallback
-		$this->output->writeln( "\nPostprocess data:" );
-		$postprocessors = $this->getPostProcessors();
-		$this->processFile( $postprocessors );
-
-		// Add files
-		foreach ( $this->data['analyze-add-file'] as $filename => $reference ) {
-			$this->addFile( $filename, $reference );
-		}
 
 		return true;
 	}
