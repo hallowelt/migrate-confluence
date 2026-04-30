@@ -37,6 +37,8 @@ use XMLReader;
 
 class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface {
 
+	private const NS_BLOG_NAME = 'Blog';
+
 	/** @var DataBuckets */
 	private DataBuckets $customBuckets;
 
@@ -202,60 +204,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	}
 
 	/**
-	 * @return void
-	 */
-	private function compressLongTitles(): void {
-		// compress title lenght
-		$titleCompressor = new TitleCompressor();
-
-		// Merge page and blog post titles so long blog post titles are also compressed
-		$pageIdToTitlesMap = $this->data['analyze-page-id-to-title-map'];
-		$blogPostIdToTitlesMap = $this->data['analyze-blogpost-id-to-title-map'];
-		$compressedTitlesMap = $titleCompressor->execute(
-			array_merge( $pageIdToTitlesMap, $blogPostIdToTitlesMap )
-		);
-
-		$this->data['analyze-orig-title-compressed-title-map'] = $compressedTitlesMap;
-
-		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
-
-		// pages-titles-map
-		$analyzePagesTitlesMap = $this->data['analyze-pages-titles-map'];
-		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $analyzePagesTitlesMap );
-		ksort( $compressedPagesTitlesMap );
-
-		$this->data['global-pages-titles-map'] = $compressedPagesTitlesMap;
-
-		// blogposts-titles-map
-		$analyzeBlogPostsTitlesMap = $this->data['analyze-blogposts-titles-map'];
-		$compressedBlogPostsTitlesMap = $applyCompressedTitles->toMapValues( $analyzeBlogPostsTitlesMap );
-		ksort( $compressedBlogPostsTitlesMap );
-
-		$this->data['global-blogposts-titles-map'] = $compressedBlogPostsTitlesMap;
-
-		// page-id-to-titles
-		$analyzePageIdToTitleMap = $this->data['analyze-page-id-to-title-map'];
-		$compressedPageIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzePageIdToTitleMap );
-		ksort( $compressedPageIdToTitleMap );
-
-		$this->data['global-page-id-to-title-map'] = $compressedPageIdToTitleMap;
-
-		// blogpost-id-to-titles
-		$analyzeBlogPostIdToTitleMap = $this->data['analyze-blogpost-id-to-title-map'];
-		$compressedBlogPostIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzeBlogPostIdToTitleMap );
-		ksort( $compressedBlogPostIdToTitleMap );
-
-		$this->data['global-blogpost-id-to-title-map'] = $compressedBlogPostIdToTitleMap;
-
-		// title-revisions
-		$analyzeTitleRevisionsMap = $this->data['analyze-title-revisions'];
-		$compressedTitleRevison = $applyCompressedTitles->toMapKeys( $analyzeTitleRevisionsMap );
-		ksort( $compressedTitleRevison );
-
-		$this->data['global-title-revisions'] = $compressedTitleRevison;
-	}
-
-	/**
 	 *
 	 * @param SplFileInfo $file
 	 * @return bool
@@ -274,11 +222,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		var_dump( $test );
 
 		$this->updatePageTableWithWikiTitle();
+		$this->updateBlogPostTableWithWikiTitle();
 
 		return true;
 		
 	}
 
+	/**
+	 * @return void
+	 */
 	private function updatePageTableWithWikiTitle(): void {
 		$titleBuilder = new TitleBuilder(
 			$this->workspaceDB->getMapSpaceIdToPrefix(),
@@ -289,8 +241,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		);
 
 		$pages = $this->workspaceDB->getPages();
+		$pageIdToWikiTitleMap = [];
 		foreach ( $pages as $page ) {
-			if ( !isset( $page['page_id'], $page['space_id'], $page['confluence_title'] ) ) {
+			if ( !isset( $page['page_id'], $page['space_id'], $page['confluence_title'], $page['content_status'] ) ) {
+				continue;
+			}
+
+			// Create a wiki page title only for current page versions.
+			// This is needed to avoid creating wiki titles for deleted pages or old page versions.
+			if ( $page['content_status'] !== 'current' ) {
 				continue;
 			}
 
@@ -300,12 +259,78 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 			try {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
-				$this->workspaceDB->updatePageWikiTitle( $pageId, $wikiTitle );
+				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 			} catch ( Exception $ex ) {
 				$this->logger->warning(
 					'Could not build wiki title for page ' . $pageId . ': ' . $ex->getMessage()
 				);
 			}
+		}
+
+		if ( $pageIdToWikiTitleMap === [] ) {
+			return;
+		}
+
+		$titleCompressor = new TitleCompressor();
+		$compressedTitlesMap = $titleCompressor->execute( $pageIdToWikiTitleMap );
+		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
+		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
+
+		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
+			$this->workspaceDB->updatePageWikiTitle( (int)$pageId, $wikiTitle );
+		}
+	}
+
+	/**
+	 * @return void
+	 */
+	private function updateBlogPostTableWithWikiTitle(): void {
+		$spaceIdToSpaceKeyMap = $this->workspaceDB->getMapSpaceIdToKey();
+		$blogPosts = $this->workspaceDB->getBlogPosts();
+		$pageIdToWikiTitleMap = [];
+
+		foreach ( $blogPosts as $blogPost ) {
+			if ( !isset( $blogPost['page_id'], $blogPost['space_id'], $blogPost['confluence_title'], $blogPost['content_status'] ) ) {
+				continue;
+			}
+
+			if ( $blogPost['content_status'] !== 'current' ) {
+				continue;
+			}
+
+			$pageId = (int)$blogPost['page_id'];
+			$spaceId = (int)$blogPost['space_id'];
+			$confluenceTitle = (string)$blogPost['confluence_title'];
+
+			if ( !isset( $spaceIdToSpaceKeyMap[$spaceId] ) ) {
+				continue;
+			}
+
+			$spaceKey = $spaceIdToSpaceKeyMap[$spaceId];
+			$blogName = self::NS_BLOG_NAME;
+			$titleBuilder = new TitleBuilder( [ $spaceId => "$blogName:$spaceKey/" ], [], [], [] );
+
+			try {
+				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
+				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
+			} catch ( Exception $ex ) {
+				$this->logger->warning(
+					'Could not build wiki title for blog post ' . $pageId . ': ' . $ex->getMessage()
+				);
+			}
+		}
+
+		if ( $pageIdToWikiTitleMap === [] ) {
+			return;
+		}
+
+		$titleCompressor = new TitleCompressor();
+		$compressedTitlesMap = $titleCompressor->execute( $pageIdToWikiTitleMap );
+		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
+		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
+
+		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
+			$this->workspaceDB->updateBlogPostWikiTitle( (int)$pageId, $wikiTitle );
 		}
 	}
 
@@ -313,13 +338,38 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return void
 	 */
 	private function checkTitles(): void {
-		$titlesMap = $this->data['global-title-revisions'];
+		$titles = [];
+		foreach ( $this->workspaceDB->getPages() as $page ) {
+			$title = '';
+			if ( isset( $page['wiki_title'] ) && $page['wiki_title'] !== '' ) {
+				$title = (string)$page['wiki_title'];
+			} elseif ( isset( $page['confluence_title'] ) ) {
+				$title = (string)$page['confluence_title'];
+			}
+
+			if ( $title !== '' ) {
+				$titles[$title] = true;
+			}
+		}
+
+		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
+			$title = '';
+			if ( isset( $blogPost['wiki_title'] ) && $blogPost['wiki_title'] !== '' ) {
+				$title = (string)$blogPost['wiki_title'];
+			} elseif ( isset( $blogPost['confluence_title'] ) ) {
+				$title = (string)$blogPost['confluence_title'];
+			}
+
+			if ( $title !== '' ) {
+				$titles[$title] = true;
+			}
+		}
 
 		$validityChecker = new TitleValidityChecker();
 
 		$hasInvalidTitles = false;
 		$hasInvalidNamespaces = false;
-		foreach ( $titlesMap as $title => $revisons ) {
+		foreach ( array_keys( $titles ) as $title ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
 				$this->customBuckets->addData(
 					'warning-analyze-invalid-titles',

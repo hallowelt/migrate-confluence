@@ -24,6 +24,22 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	private function getAllData( string $table ): array {
+		$allowedTables = [
+			'spaces',
+			'spaces_descriptions',
+			'pages',
+			'blog_posts',
+			'body_contents',
+			'attachments',
+			'users',
+			'content_properties',
+			'comments',
+		];
+
+		if ( !in_array( $table, $allowedTables, true ) ) {
+			throw new \InvalidArgumentException( 'Table not allowed: ' . $table );
+		}
+
 		$transaction = $this->db->prepare(
 			'SELECT * FROM ' . $table
 		);
@@ -217,14 +233,31 @@ class WorkspaceDB {
 		int $spaceId, string $spaceKey, string $spaceName,
 		string $prefix, int $homepageId, int $descriptionId
 	): void {
-		$this->db->exec(
-			"INSERT INTO spaces
-			(space_id, space_key, space_name, space_prefix,
-			homepage_id, description_id)
-			VALUES
-			(" . $spaceId . ", '" . $spaceKey ."', '" . $spaceName . "', '" . $prefix . "', "
-			 . $homepageId . ", " . $descriptionId . ")"
+		$transaction = $this->db->prepare(
+			'INSERT INTO spaces (
+				space_id,
+				space_key,
+				space_name,
+				space_prefix,
+				homepage_id,
+				description_id
+			) VALUES (
+				:space_id,
+				:space_key,
+				:space_name,
+				:space_prefix,
+				:homepage_id,
+				:description_id
+			)'
 		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':space_name', $spaceName, SQLITE3_TEXT );
+		$transaction->bindValue( ':space_prefix', $prefix, SQLITE3_TEXT );
+		$transaction->bindValue( ':homepage_id', $homepageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':description_id', $descriptionId, SQLITE3_INTEGER );
+		$transaction->execute();
 	}
 
 	/**
@@ -249,6 +282,27 @@ class WorkspaceDB {
 		foreach ( $data as $item ) {
 			$key = $item['space_id'];
 			$value = $item['space_prefix'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapSpaceIdToKey(): array {
+		$transaction = $this->db->prepare(
+			'SELECT space_id,space_key FROM spaces'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['space_id'];
+			$value = $item['space_key'];
 			$map[$key] = $value;
 		}
 
@@ -287,13 +341,22 @@ class WorkspaceDB {
 	): void {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$labellingIdsJson = json_encode( $lagellingIds );
-
-		$this->db->exec(
-			"INSERT INTO spaces_descriptions
-			(space_description_id, body_content_ids, labelling_ids)
-			VALUES
-			(" . $spaceDescriptionId . ", '" . $bodyContentIdsJson ."', '" . $labellingIdsJson . "')"
+		$transaction = $this->db->prepare(
+			'INSERT INTO spaces_descriptions (
+				space_description_id,
+				body_content_ids,
+				labelling_ids
+			) VALUES (
+				:space_description_id,
+				:body_content_ids,
+				:labelling_ids
+			)'
 		);
+
+		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':labelling_ids', $labellingIdsJson, SQLITE3_TEXT );
+		$transaction->execute();
 	}
 
 	/**
@@ -333,13 +396,46 @@ class WorkspaceDB {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$propertiesJson = json_encode( $properties );
 		$collectionJson = json_encode( $collection );
-
-		$this->db->exec(
-			"INSERT INTO pages
-			(page_id,space_id,confluence_title,wiki_title,revision_timestamp,content_status,original_version_id,parent_page_id,body_content_ids,properties,collection)
-			VALUES
-			($pageId,$spaceId,'$confluenceTitle','$wikiTitle','$revisionTimestamp','$contentStatus',$originalVersionId,$parentPageId,'$bodyContentIdsJson','$propertiesJson','$collectionJson')"
+		$transaction = $this->db->prepare(
+			'INSERT INTO pages (
+				page_id,
+				space_id,
+				confluence_title,
+				wiki_title,
+				revision_timestamp,
+				content_status,
+				original_version_id,
+				parent_page_id,
+				body_content_ids,
+				properties,
+				collection
+			) VALUES (
+				:page_id,
+				:space_id,
+				:confluence_title,
+				:wiki_title,
+				:revision_timestamp,
+				:content_status,
+				:original_version_id,
+				:parent_page_id,
+				:body_content_ids,
+				:properties,
+				:collection
+			)'
 		);
+
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':parent_page_id', $parentPageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
+		$transaction->execute();
 	}
 
 	/**
@@ -376,11 +472,13 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function updatePageWikiTitle( int $pageId, string $wikiTitle ): void {
-		$wikiTitle = SQLite3::escapeString( $wikiTitle );
-
-		$this->db->exec(
-			"UPDATE pages SET wiki_title='$wikiTitle' WHERE page_id=$pageId"
+		$transaction = $this->db->prepare(
+			'UPDATE pages SET wiki_title = :wiki_title WHERE page_id = :page_id'
 		);
+
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->execute();
 	}
 
 	/**
@@ -432,13 +530,43 @@ class WorkspaceDB {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$propertiesJson = json_encode( $properties );
 		$collectionJson = json_encode( $collection );
-
-		$this->db->exec(
-			"INSERT INTO blog_posts
-			(page_id,space_id,confluence_title,wiki_title,revision_timestamp,content_status,original_version_id,body_content_ids,properties,collection)
-			VALUES
-			($pageId,$spaceId,'$confluenceTitle','$wikiTitle','$revisionTimestamp','$contentStatus',$originalVersionId,'$bodyContentIdsJson','$propertiesJson','$collectionJson')"
+		$transaction = $this->db->prepare(
+			'INSERT INTO blog_posts (
+				page_id,
+				space_id,
+				confluence_title,
+				wiki_title,
+				revision_timestamp,
+				content_status,
+				original_version_id,
+				body_content_ids,
+				properties,
+				collection
+			) VALUES (
+				:page_id,
+				:space_id,
+				:confluence_title,
+				:wiki_title,
+				:revision_timestamp,
+				:content_status,
+				:original_version_id,
+				:body_content_ids,
+				:properties,
+				:collection
+			)'
 		);
+
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
+		$transaction->execute();
 	}
 
 	/**
@@ -446,6 +574,21 @@ class WorkspaceDB {
 	 */
 	public function getBlogPosts(): array {
 		return $this->getAllData( 'blog_posts' );
+	}
+
+	/**
+	 * @param integer $pageId
+	 * @param string $wikiTitle
+	 * @return void
+	 */
+	public function updateBlogPostWikiTitle( int $pageId, string $wikiTitle ): void {
+		$transaction = $this->db->prepare(
+			'UPDATE blog_posts SET wiki_title = :wiki_title WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->execute();
 	}
 
 	/**
@@ -462,13 +605,25 @@ class WorkspaceDB {
 		array $properties
 	): void {
 		$propertiesJson = json_encode( $properties );
-
-		$this->db->exec(
-			"INSERT INTO body_contents
-			(body_content_id,page_id,class,properties)
-			VALUES
-			($bodyContentId,$pageId,'$class','$propertiesJson')"
+		$transaction = $this->db->prepare(
+			'INSERT INTO body_contents (
+				body_content_id,
+				page_id,
+				class,
+				properties
+			) VALUES (
+				:body_content_id,
+				:page_id,
+				:class,
+				:properties
+			)'
 		);
+
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':class', $class, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->execute();
 	}
 
 	/**
@@ -484,8 +639,9 @@ class WorkspaceDB {
 	 */
 	public function getBodyContentIdsForPageId( int $pageId ): array {
 		$transaction = $this->db->prepare(
-			"SELECT body_content_id FROM body_contents WHERE page_id=$pageId"
+			'SELECT body_content_id FROM body_contents WHERE page_id = :page_id'
 		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
 
 		$result = $transaction->execute();
 		$data = $this->fetchDbArray( $result );
@@ -521,13 +677,34 @@ class WorkspaceDB {
 		array $properties
 	): void {
 		$propertiesJson = json_encode( $properties );
-
-		$this->db->exec(
-			"INSERT INTO attachments
-			(attachment_id,space_id,filename,container_id,content_status,attachment_reference,properties)
-			VALUES
-			($attachmentId,$spaceId,'$filename',$containerContentId,'$contentStatus','$attachmentReference','$propertiesJson')"
+		$transaction = $this->db->prepare(
+			'INSERT INTO attachments (
+				attachment_id,
+				space_id,
+				filename,
+				container_id,
+				content_status,
+				attachment_reference,
+				properties
+			) VALUES (
+				:attachment_id,
+				:space_id,
+				:filename,
+				:container_id,
+				:content_status,
+				:attachment_reference,
+				:properties
+			)'
 		);
+
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':filename', $filename, SQLITE3_TEXT );
+		$transaction->bindValue( ':container_id', $containerContentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
+		$transaction->bindValue( ':attachment_reference', $attachmentReference, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->execute();
 	}
 
 	/**
@@ -544,13 +721,25 @@ class WorkspaceDB {
 		array $properties
 	): void {
 		$propertiesJson = json_encode( $properties );
-
-		$this->db->exec(
-			"INSERT INTO users
-			(user_key,wiki_user_name,email,properties)
-			VALUES
-			('$userKey','$wikiUsername','$email','$propertiesJson')"
+		$transaction = $this->db->prepare(
+			'INSERT INTO users (
+				user_key,
+				wiki_user_name,
+				email,
+				properties
+			) VALUES (
+				:user_key,
+				:wiki_user_name,
+				:email,
+				:properties
+			)'
 		);
+
+		$transaction->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_user_name', $wikiUsername, SQLITE3_TEXT );
+		$transaction->bindValue( ':email', $email, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->execute();
 	}
 
 	/**
@@ -572,13 +761,22 @@ class WorkspaceDB {
 		array $properties
 	): void {
 		$propertiesJson = json_encode( $properties );
-
-		$this->db->exec(
-			"INSERT INTO content_properties
-			(property_name,content_class,properties)
-			VALUES
-			('$propertyName','$class','$propertiesJson')"
+		$transaction = $this->db->prepare(
+			'INSERT INTO content_properties (
+				property_name,
+				content_class,
+				properties
+			) VALUES (
+				:property_name,
+				:content_class,
+				:properties
+			)'
 		);
+
+		$transaction->bindValue( ':property_name', $propertyName, SQLITE3_TEXT );
+		$transaction->bindValue( ':content_class', $class, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->execute();
 	}
 
 	/**
@@ -603,13 +801,34 @@ class WorkspaceDB {
 		string $userKey, string $created, string $modiefied, array $properties
 	): void {
 		$propertiesJson = json_encode( $properties );
-
-		$this->db->exec(
-			"INSERT INTO comments
-			(comment_id,content_id,content_class,user_key,created,modified,properties)
-			VALUES
-			('$commentId','$containerContentId','$class'','$userKey'','$created'','$propertiesJson')"
+		$transaction = $this->db->prepare(
+			'INSERT INTO comments (
+				comment_id,
+				container_id,
+				content_class,
+				user_key,
+				created,
+				modified,
+				properties
+			) VALUES (
+				:comment_id,
+				:container_id,
+				:content_class,
+				:user_key,
+				:created,
+				:modified,
+				:properties
+			)'
 		);
+
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':container_id', $containerContentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':content_class', $class, SQLITE3_TEXT );
+		$transaction->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':created', $created, SQLITE3_TEXT );
+		$transaction->bindValue( ':modified', $modiefied, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->execute();
 	}
 
 	/**

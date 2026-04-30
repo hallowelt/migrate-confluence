@@ -40,50 +40,77 @@ class ConfigDB {
 	 * @return void
 	 */
 	public function populateConfigTables( array $config ): void {
-		$fields = [];
-		$values = [];
+		$mainpage = isset( $config['mainpage'] ) ? $config['mainpage'] : 'Main page';
+		$spacePrefix = isset( $config['space-prefix'] ) ? $config['space-prefix'] : [];
 
-		$fields[] = 'mainpage';
-		$value = isset( $config['mainpage'] )? $config['mainpage']:'Main page';
-		$values[] = "'$value'";
-
-		$fields[] = 'space_prefix';
-		$value = isset( $config['space-prefix'] )? $config['space-prefix']:[];
-		$values[] = "'" . json_encode( $value ) . "'";
-
-		$fields[] = 'analyzer_include_space_key';
-		$value = isset( $config['analyzer-include-spacekey'] )? $config['analyzer-include-spacekey']:[];
+		$analyzerIncludeSpacekey = isset( $config['analyzer-include-spacekey'] )
+			? $config['analyzer-include-spacekey']
+			: [];
 		$normalizedAnalyzerIncludeSpacekey = [];
-		if ( !empty( $value ) ) {
-			foreach ( $value as $key ) {
+		if ( !empty( $analyzerIncludeSpacekey ) ) {
+			foreach ( $analyzerIncludeSpacekey as $key ) {
 				$normalizedAnalyzerIncludeSpacekey[] = strtolower( $key );
 			}
 		}
-		$values[] = "'" . json_encode( $normalizedAnalyzerIncludeSpacekey ) . "'";
 
-		$fields[] = 'composer_include_namespace';
-		$value = isset( $config['composer-include-namespace'] )? $config['composer-include-namespace']:[];
-		$values[] = "'" . json_encode( $value ) . "'";
+		$composerIncludeNamespace = isset( $config['composer-include-namespace'] )
+			? $config['composer-include-namespace']
+			: [];
+		$composerSkipTitles = isset( $config['composer-skip-titles'] )
+			? $config['composer-skip-titles']
+			: [];
+		$categories = isset( $config['categories'] ) ? $config['categories'] : [];
+		$extNsFileRepoCompat = isset( $config['ext-ns-file-repo-compat'] )
+			? ( $config['ext-ns-file-repo-compat'] ? 1 : 0 )
+			: 0;
+		$includeHistory = isset( $config['include-history'] )
+			? ( $config['include-history'] ? 1 : 0 )
+			: 0;
 
-		$fields[] = 'composer_skip_titles';
-		$value = isset( $config['composer-skip-titles'] )? $config['composer-skip-titles']:[];
-		$values[] = "'" . json_encode( $value ) . "'";
+		$transaction = $this->db->prepare(
+			'INSERT INTO config (
+				mainpage,
+				space_prefix,
+				analyzer_include_space_key,
+				composer_include_namespace,
+				composer_skip_titles,
+				categories,
+				ext_ns_file_repo_compat,
+				include_history
+			) VALUES (
+				:mainpage,
+				:space_prefix,
+				:analyzer_include_space_key,
+				:composer_include_namespace,
+				:composer_skip_titles,
+				:categories,
+				:ext_ns_file_repo_compat,
+				:include_history
+			)'
+		);
 
-		$fields[] = 'categories';
-		$value = isset( $config['categories'] )? $config['categories']:[];
-		$values[] = "'" . json_encode( $value ) . "'";
+		$transaction->bindValue( ':mainpage', $mainpage, SQLITE3_TEXT );
+		$transaction->bindValue( ':space_prefix', json_encode( $spacePrefix ), SQLITE3_TEXT );
+		$transaction->bindValue(
+			':analyzer_include_space_key',
+			json_encode( $normalizedAnalyzerIncludeSpacekey ),
+			SQLITE3_TEXT
+		);
+		$transaction->bindValue(
+			':composer_include_namespace',
+			json_encode( $composerIncludeNamespace ),
+			SQLITE3_TEXT
+		);
+		$transaction->bindValue(
+			':composer_skip_titles',
+			json_encode( $composerSkipTitles ),
+			SQLITE3_TEXT
+		);
+		$transaction->bindValue( ':categories', json_encode( $categories ), SQLITE3_TEXT );
+		$transaction->bindValue( ':ext_ns_file_repo_compat', $extNsFileRepoCompat, SQLITE3_INTEGER );
+		$transaction->bindValue( ':include_history', $includeHistory, SQLITE3_INTEGER );
 
-		$fields[] = 'ext_ns_file_repo_compat';
-		$value = isset( $config['ext-ns-file-repo-compat'] )? $config['ext-ns-file-repo-compat']:false;
-		$values[] = ( $value )? 1:0;
-
-		$fields[] = 'include_history';
-		$value = isset( $config['include-history'] )? $config['include-history']:false;
-		$values[] = ( $value )? 1:0;
-
-		$sql = "INSERT INTO config (" . implode( ',', $fields ). ") VALUES (" . implode( ',', $values ). ")";
-
-		$this->db->exec( $sql );
+		$transaction->execute();
 	}
 
 	/**
