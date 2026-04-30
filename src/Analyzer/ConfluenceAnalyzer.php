@@ -26,6 +26,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
 use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -265,7 +266,47 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$preprocessors = $this->getPreProcessors();
 		$this->processFile( $preprocessors );
 
+		#$test= $this->workspaceDB->getMapPageIdToConfluenceTitle();
+		#var_dump( $test );
+		#$test= $this->workspaceDB->getMapSpaceIdToPrefix();
+		#var_dump( $test );
+		$test= $this->workspaceDB->getMapSpaceIdToHomepageId();
+		var_dump( $test );
+
+		$this->updatePageTableWithWikiTitle();
+
 		return true;
+		
+	}
+
+	private function updatePageTableWithWikiTitle(): void {
+		$titleBuilder = new TitleBuilder(
+			$this->workspaceDB->getMapSpaceIdToPrefix(),
+			$this->workspaceDB->getMapSpaceIdToHomepageId(),
+			$this->workspaceDB->getMapPageIdtoParentPageId(),
+			$this->workspaceDB->getMapPageIdToConfluenceTitle(),
+			$this->configDB->getMainPageName()
+		);
+
+		$pages = $this->workspaceDB->getPages();
+		foreach ( $pages as $page ) {
+			if ( !isset( $page['page_id'], $page['space_id'], $page['confluence_title'] ) ) {
+				continue;
+			}
+
+			$pageId = (int)$page['page_id'];
+			$spaceId = (int)$page['space_id'];
+			$confluenceTitle = (string)$page['confluence_title'];
+
+			try {
+				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
+				$this->workspaceDB->updatePageWikiTitle( $pageId, $wikiTitle );
+			} catch ( Exception $ex ) {
+				$this->logger->warning(
+					'Could not build wiki title for page ' . $pageId . ': ' . $ex->getMessage()
+				);
+			}
+		}
 	}
 
 	/**

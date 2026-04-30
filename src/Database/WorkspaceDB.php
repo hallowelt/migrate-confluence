@@ -23,7 +23,7 @@ class WorkspaceDB {
 	 * @param string $table
 	 * @return array
 	 */
-	private function getArray( string $table ): array {
+	private function getAllData( string $table ): array {
 		$transaction = $this->db->prepare(
 			'SELECT * FROM ' . $table
 		);
@@ -231,7 +231,49 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getSpaces(): array {
-		return $this->getArray( 'spaces' );
+		return $this->getAllData( 'spaces' );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapSpaceIdToPrefix(): array {
+		$transaction = $this->db->prepare(
+			'SELECT space_id,space_prefix FROM spaces'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['space_id'];
+			$value = $item['space_prefix'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapSpaceIdToHomepageId(): array {
+		$transaction = $this->db->prepare(
+			'SELECT space_id,homepage_id FROM spaces'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['space_id'];
+			$value = $item['homepage_id'];
+			$map[$key] = $value;
+		}
+
+		return $map;
 	}
 
 	/**
@@ -258,7 +300,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getSpaceDescriptions(): array {
-		return $this->getArray( 'spaces_descriptions' );
+		return $this->getAllData( 'spaces_descriptions' );
 	}
 
 	/**
@@ -304,7 +346,62 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getPages(): array {
-		return $this->getArray( 'pages' );
+		return $this->getAllData( 'pages' );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapPageIdtoParentPageId(): array {
+		$transaction = $this->db->prepare(
+			'SELECT page_id,parent_page_id FROM pages'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['page_id'];
+			$value = $item['parent_page_id'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @param integer $pageId
+	 * @param string $wikiTitle
+	 * @return void
+	 */
+	public function updatePageWikiTitle( int $pageId, string $wikiTitle ): void {
+		$wikiTitle = SQLite3::escapeString( $wikiTitle );
+
+		$this->db->exec(
+			"UPDATE pages SET wiki_title='$wikiTitle' WHERE page_id=$pageId"
+		);
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapPageIdToConfluenceTitle(): array {
+		$transaction = $this->db->prepare(
+			'SELECT page_id,confluence_title FROM pages'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['page_id'];
+			$value = $item['confluence_title'];
+			$map[$key] = $value;
+		}
+
+		return $map;
 	}
 
 	/**
@@ -348,7 +445,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getBlogPosts(): array {
-		return $this->getArray( 'blog_posts' );
+		return $this->getAllData( 'blog_posts' );
 	}
 
 	/**
@@ -378,7 +475,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getBodyContents(): array {
-		return $this->getArray( 'body_contents' );
+		return $this->getAllData( 'body_contents' );
 	}
 
 	/**
@@ -437,7 +534,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getAttachments(): array {
-		return $this->getArray( 'attachments' );
+		return $this->getAllData( 'attachments' );
 	}
 
 	public function addUser(
@@ -460,7 +557,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getUsers(): array {
-		return $this->getArray( 'users' );
+		return $this->getAllData( 'users' );
 	}
 
 	/**
@@ -488,7 +585,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getContentProperties(): array {
-		return $this->getArray( 'content_properties' );
+		return $this->getAllData( 'content_properties' );
 	}
 
 	/**
@@ -519,6 +616,6 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getComments(): array {
-		return $this->getArray( 'comments' );
+		return $this->getAllData( 'comments' );
 	}
 }
