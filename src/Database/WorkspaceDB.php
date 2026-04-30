@@ -19,11 +19,20 @@ class WorkspaceDB {
 		$this->createTables();
 	}
 
+	private function getArray( string $table ): array {
+		$transaction = $this->db->prepare(
+			'SELECT * FROM ' . $table
+		);
+
+		$result = $transaction->execute();
+		return $this->fetchDbArray( $result );
+	}
+
 	/**
 	 * @param SQLite3Result $result
 	 * @return array
 	 */
-	private function getData( SQLite3Result $result ): array {
+	private function fetchDbArray( SQLite3Result $result ): array {
 		$data = [];
 		while($res = $result->fetchArray( SQLITE3_ASSOC ) ) {
 			$data[] = $res;
@@ -42,6 +51,8 @@ class WorkspaceDB {
 		$this->createBodyContentTable();
 		$this->createAtachementTable();
 		$this->createUserTable();
+		$this->createContentPropertyTable();
+		$this->createCommentTable();
 	}
 
 	/**
@@ -160,6 +171,36 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return void
+	 */
+	private function createContentPropertyTable(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS content_properties (
+				property_name CHAR,
+				content_class CHAR,
+				properties BLOB
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createCommentTable(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS comments (
+				comment_id INT PRIMARY KEY,
+				container_id INT,
+				content_class CHAR,
+				user_key CHAR,
+				created CHAR,
+				modified CHAR,
+				properties BLOB
+			);'
+		);
+	}
+
+	/**
 	 * @param integer $spaceId
 	 * @param string $spaceKey
 	 * @param string $spaceName
@@ -191,7 +232,7 @@ class WorkspaceDB {
 		);
 
 		$result = $transaction->execute();
-		return $this->getData( $result );
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -223,7 +264,7 @@ class WorkspaceDB {
 		);
 
 		$result = $transaction->execute();
-		return $this->getData( $result );
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -274,7 +315,7 @@ class WorkspaceDB {
 		);
 
 		$result = $transaction->execute();
-		return $this->getData( $result );
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -323,7 +364,7 @@ class WorkspaceDB {
 		);
 
 		$result = $transaction->execute();
-		return $this->getData( $result );
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -358,7 +399,7 @@ class WorkspaceDB {
 		);
 
 		$result = $transaction->execute();
-		return $this->getData( $result );
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -371,7 +412,7 @@ class WorkspaceDB {
 		);
 
 		$result = $transaction->execute();
-		$data = $this->getData( $result );
+		$data = $this->fetchDbArray( $result );
 
 		$bodyContentIds = [];
 		foreach ( $data as $item ) {
@@ -422,7 +463,7 @@ class WorkspaceDB {
 		);
 
 		$result = $transaction->execute();
-		return $this->getData( $result );
+		return $this->fetchDbArray( $result );
 	}
 
 	public function addUser(
@@ -445,11 +486,75 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getUsers(): array {
+		return $this->getArray( 'users' );
+	}
+
+	/**
+	 * @param string $propertyName
+	 * @param string $class
+	 * @param array $properties
+	 * @return void
+	 */
+	public function addContentProperty(
+		string $propertyName,
+		string $class,
+		array $properties
+	): void {
+		$propertiesJson = json_encode( $properties );
+
+		$this->db->exec(
+			"INSERT INTO content_properties
+			(property_name,content_class,properties)
+			VALUES
+			('$propertyName','$class','$propertiesJson')"
+		);
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getContentProperties(): array {
 		$transaction = $this->db->prepare(
-			'SELECT * FROM users'
+			'SELECT * FROM content_properties'
 		);
 
 		$result = $transaction->execute();
-		return $this->getData( $result );
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * @param integer $commentId
+	 * @param integer $containerContentId
+	 * @param string $class
+	 * @param string $userKey
+	 * @param string $created
+	 * @param string $modiefied
+	 * @param array $properties
+	 * @return void
+	 */
+	public function addComment(
+		int $commentId, int $containerContentId, string $class,
+		string $userKey, string $created, string $modiefied, array $properties
+	): void {
+		$propertiesJson = json_encode( $properties );
+
+		$this->db->exec(
+			"INSERT INTO comments
+			(comment_id,content_id,content_class,user_key,created,modified,properties)
+			VALUES
+			('$commentId','$containerContentId','$class'','$userKey'','$created'','$propertiesJson')"
+		);
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getComments(): array {
+		$transaction = $this->db->prepare(
+			'SELECT * FROM comments'
+		);
+
+		$result = $transaction->execute();
+		return $this->fetchDbArray( $result );
 	}
 }

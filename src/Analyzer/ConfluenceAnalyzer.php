@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
+use Dom\Comment;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
@@ -16,6 +17,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Comments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperty;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentBlogPosts;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
@@ -229,7 +231,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'BlogPost' => new BlogPost( $this->configDB, $this->workspaceDB ),
 			'Attachment' => new Attachments( $this->file, $this->configDB, $this->workspaceDB  ),
 			'ConfluenceUserImpl' => new Users( $this->configDB, $this->workspaceDB ),
-			'ContentProperty' => new ContentProperties( $this->configDB, $this->workspaceDB ),
+			'ContentProperty' => new ContentProperty( $this->configDB, $this->workspaceDB ),
+			'Comment' => new Comments( $this->configDB, $this->workspaceDB ),
 		];
 	}
 
@@ -385,7 +388,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		#var_dump( $test );
 		#$test = $this->workspaceDB->getAttachments();
 		#var_dump( $test );
-		$test = $this->workspaceDB->getUsers();
+		#$test = $this->workspaceDB->getUsers();
+		#var_dump( $test );
+		$test = $this->workspaceDB->getContentProperties();
 		var_dump( $test );
 		return true;
 

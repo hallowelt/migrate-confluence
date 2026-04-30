@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\ConfigDB;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 /**
@@ -12,32 +14,20 @@ use XMLReader;
 class Comments extends ProcessorBase {
 
 	/**
-	 * @inheritDoc
+	 * @param ConfigDB $configDB
+	 * @param WorkspaceDB $workspaceDB
 	 */
-	public function getRequiredKeys(): array {
-		return [
-			'analyze-inline-comment-ids',
-			'analyze-body-content-id-to-comment-id-map',
-		];
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function getKeys(): array {
-		return [
-			'global-page-id-to-comment-ids-map',
-			'global-comment-id-to-metadata-map',
-			'global-body-content-id-to-comment-id-map',
-		];
-	}
+	public function __construct(
+		private ConfigDB $configDB,
+		private WorkspaceDB $workspaceDB
+	) {}
 
 	/**
 	 * @inheritDoc
 	 */
 	protected function doExecute(): void {
 		$commentId = -1;
-		$containerContentClass = null;
+		$containerContentClass = '';
 		$properties = [];
 
 		$this->xmlReader->read();
@@ -60,54 +50,33 @@ class Comments extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 
-		$status = $properties['contentStatus'] ?? null;
-		if ( $status !== 'current' ) {
-			return;
-		}
+		$contentStatus = $properties['contentStatus'] ?? null;
 
 		if ( $commentId === -1 ) {
 			return;
 		}
 
-		// Skip inline comments
-		if ( in_array( $commentId, $this->data['analyze-inline-comment-ids'] ) ) {
-			return;
-		}
-
 		// Only handle page-level comments (containerContent must be a Page)
-		if ( $containerContentClass !== 'Page' ) {
+		$containerContentId = isset( $properties['containerContent'] ) ? (int)$properties['containerContent'] : null;
+		if ( $containerContentId === null ) {
 			return;
 		}
-
-		$pageId = isset( $properties['containerContent'] ) ? (int)$properties['containerContent'] : null;
-		if ( $pageId === null ) {
-			return;
-		}
-
-		// Find the body content ID for this comment
-		$commentToBodyContentMap = array_flip( $this->data['analyze-body-content-id-to-comment-id-map'] );
-		if ( !isset( $commentToBodyContentMap[$commentId] ) ) {
-			return;
-		}
-		$bodyContentId = $commentToBodyContentMap[$commentId];
 
 		$creatorKey = $properties['creator'] ?? null;
 		$created = $properties['creationDate'] ?? '';
 		$modified = $properties['lastModificationDate'] ?? '';
 
-		$this->data['global-comment-id-to-metadata-map'][$commentId] = [
-			'page_id' => $pageId,
-			'body_content_id' => $bodyContentId,
-			'creator_key' => $creatorKey,
-			'created' => $this->buildTimestamp( $created ),
-			'modified' => $this->buildTimestamp( $modified ),
-		];
+		$this->workspaceDB->addComment(
+			$commentId,
+			$containerContentId,
+			$containerContentClass,
+			$contentStatus,
+			$creatorKey,
+			$this->buildTimestamp( $created ),
+			$this->buildTimestamp( $modified ),
+			$properties
+		);
 
-		if ( !isset( $this->data['global-page-id-to-comment-ids-map'][$pageId] ) ) {
-			$this->data['global-page-id-to-comment-ids-map'][$pageId] = [];
-		}
-		$this->data['global-page-id-to-comment-ids-map'][$pageId][] = $commentId;
-
-		$this->data['global-body-content-id-to-comment-id-map'][$bodyContentId] = $commentId;
+		$this->output->writeln( "Add comment (ID:$commentId)" );
 	}
 }

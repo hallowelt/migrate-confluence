@@ -11,7 +11,7 @@ use XMLReader;
  * and collects the IDs of inline comments (identified by having an
  * "inline-comment" or "inline-marker-ref" property).
  */
-class ContentProperties extends ProcessorBase {
+class ContentProperty extends ProcessorBase {
 
 	/**
 	 * @param ConfigDB $configDB
@@ -40,23 +40,19 @@ class ContentProperties extends ProcessorBase {
 			}
 			$this->xmlReader->next();
 		}
-/*
-		if ( $contentClass !== 'Comment' ) {
+		$propName = $properties['name'] ?? null;
+		if ( $propName !== 'inline-comment' && $propName !== 'inline-marker-ref' ) {
 			return;
 		}
 
-		$propName = $properties['name'] ?? null;
-		if ( $propName !== 'inline-comment' && $propName !== 'inline-marker-ref' ) {
+/*
+		if ( $contentClass !== 'Comment' ) {
 			return;
 		}
 
 		$commentId = isset( $properties['content'] ) ? (int)$properties['content'] : -1;
 		if ( $commentId === -1 ) {
 			return;
-		}
-
-		if ( !in_array( $commentId, $this->data['analyze-inline-comment-ids'] ) ) {
-			$this->data['analyze-inline-comment-ids'][] = $commentId;
 		}
 
 		TODO: Maybe add a mapping for the $commentId
@@ -66,5 +62,7 @@ class ContentProperties extends ProcessorBase {
 			$contentClass,
 			$properties
 		);
+
+		$this->output->writeln( "Add content property '$propName'" );
 	}
 }
