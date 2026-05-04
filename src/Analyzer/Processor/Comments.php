@@ -59,7 +59,7 @@ class Comments extends ProcessorBase {
 		// Only handle page-level comments (containerContent must be a Page)
 		$containerContentId = isset( $properties['containerContent'] ) ? (int)$properties['containerContent'] : null;
 		if ( $containerContentId === null ) {
-			#return;
+			return;
 		}
 
 		$bodyContentIds = [];
