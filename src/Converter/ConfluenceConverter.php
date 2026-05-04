@@ -86,9 +86,6 @@ use Symfony\Component\Console\Output\Output;
 class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	/** @var DataBuckets */
-	private DataBuckets $executionTimeBuckets;
-
-	/** @var DataBuckets */
 	private DataBuckets $buckets;
 
 	/** @var DataBuckets */
@@ -165,9 +162,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$this->customBuckets = new DataBuckets( [
 			'warning-convert-body-content-id-content-size',
 		] );
-		$this->executionTimeBuckets = new DataBuckets( [
-			'convert-body-content-id-execution-time',
-		] );
 	}
 
 	/**
@@ -181,9 +175,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @inheritDoc
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
-		// Suppress deprecation warning from vendor ExecutionTime class in PHP 8.1+
-		$executionTime = @new ExecutionTime();
-
 		$this->output->writeln( $file->getPathname() );
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->buckets );
 		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
@@ -279,11 +270,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 		}
 
-		$executionTimeString = $executionTime->getHumanReadableTime();
-
 		// Use an exclusive lock so parallel workers don't corrupt shared bucket files.
 		// The slow conversion work above runs entirely outside the lock.
-		$this->saveDiagnosticsUnderLock( $bodyContentId, $executionTimeString, $exceed );
+		$this->saveDiagnosticsUnderLock( $bodyContentId, $exceed );
 
 		return $this->wikiText;
 	}
@@ -293,29 +282,24 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * Uses an exclusive flock so parallel workers serialize only on this brief I/O section.
 	 *
 	 * @param int|string $bodyContentId
-	 * @param string $executionTimeString
 	 * @param string $exceed '512', '256', '100', or '' (no warning)
 	 * @return void
 	 */
-	private function saveDiagnosticsUnderLock( $bodyContentId, string $executionTimeString, string $exceed ): void {
+	private function saveDiagnosticsUnderLock( $bodyContentId, string $exceed ): void {
 		$lockPath = $this->getDiagnosticsLockFilePath();
 		$lockHandle = fopen( $lockPath, 'c' );
 		if ( $lockHandle === false ) {
 			// Fall back to unlocked save if lock file cannot be created
-			$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
 			$this->customBuckets->loadFromWorkspace( $this->workspace );
-			$this->addDiagnosticEntries( $bodyContentId, $executionTimeString, $exceed );
-			$this->executionTimeBuckets->saveToWorkspace( $this->workspace );
+			$this->addDiagnosticEntries( $bodyContentId, $exceed );
 			$this->customBuckets->saveToWorkspace( $this->workspace );
 			return;
 		}
 
 		flock( $lockHandle, LOCK_EX );
 
-		$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
-		$this->addDiagnosticEntries( $bodyContentId, $executionTimeString, $exceed );
-		$this->executionTimeBuckets->saveToWorkspace( $this->workspace );
+		$this->addDiagnosticEntries( $bodyContentId, $exceed );
 		$this->customBuckets->saveToWorkspace( $this->workspace );
 
 		flock( $lockHandle, LOCK_UN );
@@ -324,18 +308,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 	/**
 	 * @param int|string $bodyContentId
-	 * @param string $executionTimeString
 	 * @param string $exceed
 	 * @return void
 	 */
-	private function addDiagnosticEntries( $bodyContentId, string $executionTimeString, string $exceed ): void {
-		$this->executionTimeBuckets->addData(
-			'convert-body-content-id-execution-time',
-			$bodyContentId,
-			$executionTimeString,
-			false,
-			true
-		);
+	private function addDiagnosticEntries( $bodyContentId, string $exceed ): void {
 		if ( $exceed !== '' ) {
 			$this->customBuckets->addData(
 				'warning-convert-body-content-id-content-size',
