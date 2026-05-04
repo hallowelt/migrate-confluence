@@ -41,14 +41,17 @@ class FilenameBuilder {
 
 		if ( !empty( $assocTitle ) ) {
 			$assocTitle = str_replace( '/', '_', $assocTitle );
-			// Unset potential namespace prefix to avoid duplications
-			// $assocTitle already contains namespace
-			$builder->setNamespace( 0 );
-			$builder->appendTitleSegment( "-$originalFilename" );
-			$builder->appendTitleSegment( $assocTitle );
-		} else {
-			$builder->appendTitleSegment( $originalFilename );
+			$filenameParts = explode( '.', $originalFilename );
+			if ( count( $filenameParts ) > 1 ) {
+				$extension = array_pop( $filenameParts );
+				$originalFilename = implode( '.', $filenameParts )
+					. "$assocTitle.$extension";
+			} else {
+				$originalFilename = implode( '.', $filenameParts ) . $assocTitle;
+			}
 		}
+		$builder->appendTitleSegment( "$originalFilename" );
+
 		$builtTitle = $builder->invertTitleSegments()->build();
 
 		$filename = new WindowsFilename( $builtTitle );

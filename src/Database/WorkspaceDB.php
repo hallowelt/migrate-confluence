@@ -995,6 +995,23 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param string $wikiTitle
+	 * @return boolean
+	 */
+	public function checkPageAttachmentWikiTitleExists( string $wikiTitle ): bool {	
+		$transaction = $this->db->prepare(
+			'SELECT 1 FROM page_attachments WHERE target_attachment_filename = :wiki_title LIMIT 1'
+		);
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result->fetchArray() !== false ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getPageAttachments(): array {

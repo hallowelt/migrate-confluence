@@ -223,8 +223,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->processFile( $processors );
 
 		$this->updatePageTableWithWikiTitle();
-		$this->updatePageAttachmentTable();
 		$this->updateBlogPostTableWithWikiTitle();
+		$this->updatePageAttachmentTable();
 
 		return true;
 		
@@ -277,8 +277,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$attachmentId = (int)$attachment['attachment_id'];
 			$attachmentSpaceId = (int)$attachment['space_id'];
 			$attachmentOrigFilename = (string)$attachment['filename'];
-			$pageWikiTitle = $pageIdToWikiTitleMap[$pageId];
+			$pageWikiTitle = '';
 
+			$short = false;
 			try {
 				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId,
@@ -293,13 +294,44 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 						$attachmentOrigFilename,
 						$shortPageWikiTitle
 					);
+					$short = true;
 				} catch ( Exception $fallbackEx ) {
 					$this->logger->warning(
 						'Could not build target filename for attachment ' . $attachmentId . ': '
 						. $fallbackEx->getMessage()
 					);
+					$this->workspaceDB->addLogEntry(
+						'warning',
+						'analyze',
+						__CLASS__,
+						"Could not build target filename for attachment $attachmentId: "
+						. $fallbackEx->getMessage()
+					);
 					continue;
 				}
+			}
+
+			// Uncollide file title
+			$exists = $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle );
+			$counter = 1;
+			while ( $exists ) {
+				if ( !$short )  {
+					$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+						$attachmentSpaceId,
+						$attachmentOrigFilename,
+						"-(" . (string)$counter . ")"
+					);
+				} else {
+					$shortPageWikiTitle = basename( $pageWikiTitle );
+					$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+						$attachmentSpaceId,
+						$attachmentOrigFilename,
+						"-(" . (string)$counter . ")"
+					);
+				}
+
+				$exists = $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle );
+				$counter++;
 			}
 
 			$file = new SplFileInfo( $attatchmentWikiTitle );
@@ -351,6 +383,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			} catch ( Exception $ex ) {
 				$this->logger->warning(
 					'Could not build wiki title for page ' . $pageId . ': ' . $ex->getMessage()
+				);
+				$this->workspaceDB->addLogEntry(
+					'warning',
+					'analyze',
+					__CLASS__,
+					"Could not build wiki title for page $pageId: " . $ex->getMessage()
 				);
 			}
 		}
@@ -455,8 +493,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$validityChecker = new TitleValidityChecker();
 
-		$hasInvalidTitles = false;
-		$hasInvalidNamespaces = false;
 		foreach ( array_keys( $titles ) as $title ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
 				$this->buckets->addData(
@@ -464,7 +500,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 					'invalid_ending', $title,
 					true, true
 				);
-				$hasInvalidTitles = true;
 			}
 			if ( str_contains( $title, ':' ) ) {
 				if ( $validityChecker->hasDoubleColon( $title ) ) {
@@ -473,7 +508,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 						'multiple_collons', $title,
 						true, true
 					);
-					$hasInvalidTitles = true;
 				}
 				$namespace = substr( $title, 0, strpos( $title, ':' ) );
 				$text = substr( $title, strpos( $title, ':' ) + 1 );
@@ -484,7 +518,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 						'invalid_char', $namespace,
 						true, true
 					);
-					$hasInvalidNamespaces = true;
 				}
 
 				if ( !$validityChecker->hasValidLength( $text ) ) {
@@ -493,7 +526,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 						'length', $title,
 						true, true
 					);
-					$hasInvalidTitles = true;
 				}
 			} else {
 				if ( !$validityChecker->hasValidLength( $title ) ) {
@@ -502,13 +534,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 						'length', $title,
 						true, true
 					);
-					$hasInvalidTitles = true;
 				}
 			}
 		}
 
 		$files = $this->workspaceDB->getPageAttachments();
-		$hasInvalidFilenames = false;
 		foreach ( $files as $file ) {
 			if ( !$validityChecker->hasValidLength( $file['target_attachment_filename'] ) ) {
 				$this->workspaceDB->addLogEntry(
