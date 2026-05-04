@@ -92,7 +92,7 @@ class BlogPost extends ProcessorBase {
 			$this->workspaceDB->addLogEntry(
 				'warning',
 				'analyze',
-				__METHOD__,
+				__CLASS__,
 				"Blog post with ID $pageId has empty title. Skipping."
 			);
 			return;
@@ -126,7 +126,7 @@ class BlogPost extends ProcessorBase {
 			$this->workspaceDB->addLogEntry(
 				'warning',
 				'analyze',
-				__METHOD__,
+				__CLASS__,
 				$warning
 			);
 		}

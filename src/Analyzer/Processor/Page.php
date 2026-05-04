@@ -68,7 +68,7 @@ class Page extends ProcessorBase {
 			$this->workspaceDB->addLogEntry(
 				'warning',
 				'analyze',
-				__METHOD__,
+				__CLASS__,
 				"Page with ID $pageId has no title"
 			);
 			return;
@@ -107,7 +107,7 @@ class Page extends ProcessorBase {
 			$this->workspaceDB->addLogEntry(
 				'warning',
 				'analyze',
-				__METHOD__,
+				__CLASS__,
 				$warning
 			);
 		}

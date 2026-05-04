@@ -284,7 +284,9 @@ class WorkspaceDB {
 				comment_id INT PRIMARY KEY,
 				container_id INT,
 				content_class CHAR,
+				content_status CHAR,
 				user_key CHAR,
+				body_content_ids BLOB,
 				created CHAR,
 				modified CHAR,
 				properties BLOB
@@ -1075,23 +1077,28 @@ class WorkspaceDB {
 	 * @param integer $commentId
 	 * @param integer $containerContentId
 	 * @param string $class
+	 * @param string $contentStatus
 	 * @param string $userKey
+	 * @param string $bodyContentIds
 	 * @param string $created
 	 * @param string $modiefied
 	 * @param array $properties
-	 * @return bool True on success, false on error.
+	 * @return boolean
 	 */
 	public function addComment(
-		int $commentId, int $containerContentId, string $class,
-		string $userKey, string $created, string $modiefied, array $properties
+		int $commentId, int $containerContentId, string $class, string $contentStatus,
+		string $userKey, string $bodyContentIds, string $created, string $modiefied, array $properties
 	): bool {
 		$propertiesJson = json_encode( $properties );
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$transaction = $this->db->prepare(
 			'INSERT INTO comments (
 				comment_id,
 				container_id,
 				content_class,
 				user_key,
+				body_content_ids,
+				content_status,
 				created,
 				modified,
 				properties
@@ -1100,6 +1107,8 @@ class WorkspaceDB {
 				:container_id,
 				:content_class,
 				:user_key,
+				:body_content_ids,
+				:content_status,
 				:created,
 				:modified,
 				:properties
@@ -1110,6 +1119,8 @@ class WorkspaceDB {
 		$transaction->bindValue( ':container_id', $containerContentId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':content_class', $class, SQLITE3_TEXT );
 		$transaction->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':created', $created, SQLITE3_TEXT );
 		$transaction->bindValue( ':modified', $modiefied, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );

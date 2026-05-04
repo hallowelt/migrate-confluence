@@ -59,7 +59,28 @@ class Comments extends ProcessorBase {
 		// Only handle page-level comments (containerContent must be a Page)
 		$containerContentId = isset( $properties['containerContent'] ) ? (int)$properties['containerContent'] : null;
 		if ( $containerContentId === null ) {
-			return;
+			#return;
+		}
+
+		$bodyContentIds = [];
+		if ( isset( $collection['bodyContents'] ) ) {
+			$bodyContentIds = $collection['bodyContents'];
+		} else {
+			$this->output->writeln( "Use fallback to fetch body content IDs (ID:$commentId)" );
+			$bodyContentIds = $this->workspaceDB->getBodyContentIdsForPageId( $commentId );
+		}
+
+		$this->output->writeln( "Add comment (ID:$commentId)" );
+
+		if ( empty( $bodyContentIds ) ) {
+			$warning = "Warning: No body content IDs found for comment (ID:$commentId)";
+			$this->output->writeln( $warning );
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__CLASS__,
+				$warning
+			);
 		}
 
 		$creatorKey = $properties['creator'] ?? null;
@@ -72,11 +93,10 @@ class Comments extends ProcessorBase {
 			$containerContentClass,
 			$contentStatus,
 			$creatorKey,
+			$bodyContentIds,
 			$this->buildTimestamp( $created ),
 			$this->buildTimestamp( $modified ),
 			$properties
 		);
-
-		$this->output->writeln( "Add comment (ID:$commentId)" );
 	}
 }

@@ -17,10 +17,13 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\html\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
@@ -181,9 +184,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		// Suppress deprecation warning from vendor ExecutionTime class in PHP 8.1+
 		$executionTime = @new ExecutionTime();
 
-		$this->customBuckets->loadFromWorkspace( $this->workspace );
-		$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
-
 		$this->output->writeln( $file->getPathname() );
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->buckets );
 		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
@@ -276,15 +276,59 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$exceed = '100';
 		}
 		if ( $exceed !== '' ) {
-			$this->customBuckets->addData(
-				'warning-convert-body-content-id-content-size',
-				$exceed,
-				$bodyContentId
-			);
 			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 		}
 
 		$executionTimeString = $executionTime->getHumanReadableTime();
+
+		// Use an exclusive lock so parallel workers don't corrupt shared bucket files.
+		// The slow conversion work above runs entirely outside the lock.
+		$this->saveDiagnosticsUnderLock( $bodyContentId, $executionTimeString, $exceed );
+
+		return $this->wikiText;
+	}
+
+	/**
+	 * Atomically merges this file's diagnostic entries into the shared workspace bucket files.
+	 * Uses an exclusive flock so parallel workers serialize only on this brief I/O section.
+	 *
+	 * @param int|string $bodyContentId
+	 * @param string $executionTimeString
+	 * @param string $exceed '512', '256', '100', or '' (no warning)
+	 * @return void
+	 */
+	private function saveDiagnosticsUnderLock( $bodyContentId, string $executionTimeString, string $exceed ): void {
+		$lockPath = $this->getDiagnosticsLockFilePath();
+		$lockHandle = fopen( $lockPath, 'c' );
+		if ( $lockHandle === false ) {
+			// Fall back to unlocked save if lock file cannot be created
+			$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
+			$this->customBuckets->loadFromWorkspace( $this->workspace );
+			$this->addDiagnosticEntries( $bodyContentId, $executionTimeString, $exceed );
+			$this->executionTimeBuckets->saveToWorkspace( $this->workspace );
+			$this->customBuckets->saveToWorkspace( $this->workspace );
+			return;
+		}
+
+		flock( $lockHandle, LOCK_EX );
+
+		$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
+		$this->customBuckets->loadFromWorkspace( $this->workspace );
+		$this->addDiagnosticEntries( $bodyContentId, $executionTimeString, $exceed );
+		$this->executionTimeBuckets->saveToWorkspace( $this->workspace );
+		$this->customBuckets->saveToWorkspace( $this->workspace );
+
+		flock( $lockHandle, LOCK_UN );
+		fclose( $lockHandle );
+	}
+
+	/**
+	 * @param int|string $bodyContentId
+	 * @param string $executionTimeString
+	 * @param string $exceed
+	 * @return void
+	 */
+	private function addDiagnosticEntries( $bodyContentId, string $executionTimeString, string $exceed ): void {
 		$this->executionTimeBuckets->addData(
 			'convert-body-content-id-execution-time',
 			$bodyContentId,
@@ -292,10 +336,27 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			false,
 			true
 		);
-		$this->executionTimeBuckets->saveToWorkspace( $this->workspace );
-		$this->customBuckets->saveToWorkspace( $this->workspace );
+		if ( $exceed !== '' ) {
+			$this->customBuckets->addData(
+				'warning-convert-body-content-id-content-size',
+				$exceed,
+				$bodyContentId
+			);
+		}
+	}
 
-		return $this->wikiText;
+	/**
+	 * Returns a lock file path in the same directory as the workspace bucket files.
+	 * Uses reflection to access the workspace directory since Workspace has no public path getter.
+	 *
+	 * @return string
+	 */
+	private function getDiagnosticsLockFilePath(): string {
+		$ref = new \ReflectionProperty( Workspace::class, 'workspaceDir' );
+		$ref->setAccessible( true );
+		/** @var \SplFileInfo $workspaceDir */
+		$workspaceDir = $ref->getValue( $this->workspace );
+		return $workspaceDir->getPathname() . '/convert-diagnostics.lock';
 	}
 
 	/**
@@ -411,6 +472,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function runPostProcessors(): void {
 		$postProcessors = [
 			new RestorePStyleTag(),
+			new RestoreExcerptMacro(),
 			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
@@ -510,6 +572,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			throw new Exception( 'Unconvertable' );
 		}
 
+		$this->preprocessDomSource( $dom );
+
 		$preprocessedPathname = str_replace( '.mraw', '.mprep', $this->rawFile->getPathname() );
 		$dom->saveHTMLFile( $preprocessedPathname );
 		$this->preprocessedFile = new SplFileInfo( $preprocessedPathname );
@@ -529,7 +593,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$preprocessors = [
 			new CDATAClosingFixer()
 		];
-		/** @var IPreprocessor $preprocessor */
+		/** @var IHtmlPreprocessor $preprocessor */
 		foreach ( $preprocessors as $preprocessor ) {
 			$sContent = $preprocessor->preprocess( $sContent );
 		}
@@ -567,6 +631,22 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">' . $sContent . '</xml>';
 
 		return $sContent;
+	}
+
+	/**
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	protected function preprocessDomSource( DOMDocument $dom ): void {
+		$preprocessors = [
+			new SanitizeLinkContent(),
+			new HoistMacroFromHeading()
+		];
+
+		/** @var IDomPreprocessor $preprocessor */
+		foreach ( $preprocessors as $preprocessor ) {
+			$preprocessor->preprocess( $dom );
+		}
 	}
 
 	/**

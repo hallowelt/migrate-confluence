@@ -2,10 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Converter;
 
-interface IPreprocessor {
+interface IHtmlPreprocessor {
 
 	/**
-	 *
 	 * @param string $confluenceHTML
 	 * @return string
 	 */
