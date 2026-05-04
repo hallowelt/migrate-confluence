@@ -3,13 +3,15 @@
 namespace HalloWelt\MigrateConfluence\Converter;
 
 use DOMDocument;
+use DOMElement;
+use DOMNodeList;
 use DOMXPath;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
-use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
@@ -80,16 +82,24 @@ use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
+use HalloWelt\MigrateConfluence\Database\ConfigDB;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
-class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
+class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware {
+
+	/** @var ConfigDB */
+	private ConfigDB $configDB;
+
+	/** @var WorkspaceDB */
+	private WorkspaceDB $workspaceDB;
+
+	/** @var string */
+	private string $dest;
 
 	/** @var DataBuckets */
 	private DataBuckets $buckets;
-
-	/** @var DataBuckets */
-	private DataBuckets $customBuckets;
 
 	/** @var ConversionDataLookup|null */
 	private ?ConversionDataLookup $dataLookup = null;
@@ -159,9 +169,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
 
-		$this->customBuckets = new DataBuckets( [
-			'warning-convert-body-content-id-content-size',
-		] );
+	}
+
+	/**
+	 * @param string $dest
+	 * @return void
+	 */
+	public function setDestinationPath( string $dest ): void {
+		$this->dest = $dest;
 	}
 
 	/**
@@ -175,6 +190,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @inheritDoc
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
+		$this->configDB = new ConfigDB( $this->dest . '/config.sqlite' );
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+
 		$this->output->writeln( $file->getPathname() );
 		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->buckets );
 		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
@@ -267,72 +285,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$exceed = '100';
 		}
 		if ( $exceed !== '' ) {
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'convert',
+				__CLASS__,
+				"bodyContentId $bodyContentId contains large content (>$exceed KB)"
+			);
 			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 		}
 
-		// Use an exclusive lock so parallel workers don't corrupt shared bucket files.
-		// The slow conversion work above runs entirely outside the lock.
-		$this->saveDiagnosticsUnderLock( $bodyContentId, $exceed );
-
 		return $this->wikiText;
-	}
-
-	/**
-	 * Atomically merges this file's diagnostic entries into the shared workspace bucket files.
-	 * Uses an exclusive flock so parallel workers serialize only on this brief I/O section.
-	 *
-	 * @param int|string $bodyContentId
-	 * @param string $exceed '512', '256', '100', or '' (no warning)
-	 * @return void
-	 */
-	private function saveDiagnosticsUnderLock( $bodyContentId, string $exceed ): void {
-		$lockPath = $this->getDiagnosticsLockFilePath();
-		$lockHandle = fopen( $lockPath, 'c' );
-		if ( $lockHandle === false ) {
-			// Fall back to unlocked save if lock file cannot be created
-			$this->customBuckets->loadFromWorkspace( $this->workspace );
-			$this->addDiagnosticEntries( $bodyContentId, $exceed );
-			$this->customBuckets->saveToWorkspace( $this->workspace );
-			return;
-		}
-
-		flock( $lockHandle, LOCK_EX );
-
-		$this->customBuckets->loadFromWorkspace( $this->workspace );
-		$this->addDiagnosticEntries( $bodyContentId, $exceed );
-		$this->customBuckets->saveToWorkspace( $this->workspace );
-
-		flock( $lockHandle, LOCK_UN );
-		fclose( $lockHandle );
-	}
-
-	/**
-	 * @param int|string $bodyContentId
-	 * @param string $exceed
-	 * @return void
-	 */
-	private function addDiagnosticEntries( $bodyContentId, string $exceed ): void {
-		if ( $exceed !== '' ) {
-			$this->customBuckets->addData(
-				'warning-convert-body-content-id-content-size',
-				$exceed,
-				$bodyContentId
-			);
-		}
-	}
-
-	/**
-	 * Returns a lock file path in the same directory as the workspace bucket files.
-	 * Uses reflection to access the workspace directory since Workspace has no public path getter.
-	 *
-	 * @return string
-	 */
-	private function getDiagnosticsLockFilePath(): string {
-		$ref = new \ReflectionProperty( Workspace::class, 'workspaceDir' );
-		$ref->setAccessible( true );
-		/** @var \SplFileInfo $workspaceDir */
-		$workspaceDir = $ref->getValue( $this->workspace );
-		return $workspaceDir->getPathname() . '/convert-diagnostics.lock';
 	}
 
 	/**
@@ -635,8 +597,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	public function postProcessDOM( DOMXPath $xpath ): void {
 		$oElementsWithDataAttr = $xpath->query( '//*[@data-atlassian-layout]' );
+		if ( !( $oElementsWithDataAttr instanceof DOMNodeList ) ) {
+			return;
+		}
+
 		foreach ( $oElementsWithDataAttr as $oElementWithDataAttr ) {
-			$oElementWithDataAttr->setAttribute( 'data-atlassian-layout', null );
+			if ( $oElementWithDataAttr instanceof DOMElement ) {
+				$oElementWithDataAttr->setAttribute( 'data-atlassian-layout', '' );
+			}
 		}
 	}
 
@@ -765,6 +733,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function getCurrentPageTitle(): string {
 		$spaceIdPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
 		if ( !isset( $spaceIdPrefixMap[$this->currentSpace] ) ) {
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'convert',
+				__CLASS__,
+				"SpaceId $this->currentSpace not found in spaceIdPrefixMap"
+			);
 			$this->output->writeln( "SpaceId $this->currentSpace not found in spaceIdPrefixMap" );
 		}
 		$prefix = $spaceIdPrefixMap[$this->currentSpace] ?? "";
