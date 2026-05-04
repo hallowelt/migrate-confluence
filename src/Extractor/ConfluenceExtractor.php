@@ -7,21 +7,27 @@ use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExtractorBase;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Database\ConfigDB;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use SplFileInfo;
-use XMLReader;
 
-class ConfluenceExtractor extends ExtractorBase {
+class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware {
 
-	/**
-	 * @var DataBuckets
-	 */
-	private DataBuckets $customBuckets;
+	/** @var string */
+	private string $dest = '';
 
 	/**
 	 * @var array
 	 */
 	private array $categories = [];
+
+	/** @var ConfigDB */
+	private ConfigDB $configDB;
+
+	/** @var WorkspaceDB */
+	private WorkspaceDB $workspaceDB;
 
 	/**
 	 * @param array $config
@@ -30,11 +36,13 @@ class ConfluenceExtractor extends ExtractorBase {
 	 */
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
+	}
 
-		$this->customBuckets = new DataBuckets( [
-			'extract-labelling-id-to-label-id-map',
-			'extract-label-id-to-name-map',
-		] );
+	/**
+	 * @inheritDoc
+	 */
+	public function setDestinationPath( string $dest ): void {
+		$this->dest = $dest;
 	}
 
 	/**
@@ -42,203 +50,93 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @return bool
 	 */
 	protected function doExtract( SplFileInfo $file ): bool {
+		$this->configDB = new ConfigDB( $this->dest . '/config.sqlite' );
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+
 		$this->buckets->loadFromWorkspace( $this->workspace );
-		$this->customBuckets->loadFromWorkspace( $this->workspace );
 
 		if ( isset( $this->config['config']['categories'] ) ) {
 			$this->categories = $this->config['config']['categories'];
 		}
 
-		$xmlReader = new XMLReader();
-
-		$xmlReader->open( $file->getPathname() );
-		$read = $xmlReader->read();
-		while ( $read ) {
-			if ( $xmlReader->name !== 'object' ) {
-				// Usually all root nodes should be objects.
-				$read = $xmlReader->read();
-				continue;
-			}
-
-			$objectXML = $xmlReader->readOuterXml();
-
-			$objectDom = new DOMDocument();
-			$objectDom->loadXML( $objectXML );
-
-			$class = $xmlReader->getAttribute( 'class' );
-			if ( $class === 'BodyContent' ) {
-				$this->extractBodyContents( $objectDom );
-			} elseif ( $class === "Labelling" ) {
-				$this->buildLabellingMap( $objectDom );
-			} elseif ( $class === "Label" ) {
-				$this->buildLabelMap( $objectDom );
-			}
-
-			$read = $xmlReader->next();
-		}
-		$xmlReader->close();
-
-		$xmlReader->open( $file->getPathname() );
-		$read = $xmlReader->read();
-		while ( $read ) {
-			if ( $xmlReader->name !== 'object' ) {
-				// Usually all root nodes should be objects.
-				$read = $xmlReader->read();
-				continue;
-			}
-
-			$objectXML = $xmlReader->readOuterXml();
-
-			$objectDom = new DOMDocument();
-			$objectDom->loadXML( $objectXML );
-
-			$class = $xmlReader->getAttribute( 'class' );
-			if ( $class === 'Page' ) {
-				$this->extractPageMetaData( $objectDom );
-			} elseif ( $class === 'BlogPost' ) {
-				$this->extractBlogMetaData( $objectDom );
-			} elseif ( $class === 'Attachment' ) {
-				$this->extractAttachmentMetaData( $objectDom );
-			}
-
-			$read = $xmlReader->next();
-		}
-		$xmlReader->close();
-
-		$this->customBuckets->saveToWorkspace( $this->workspace );
-
+		$this->extractBodyContents();
+		$this->extractPagesMetaData();
+		$this->extractBlogPostsMetaData();
+		$this->extractAttachmentsMetaData();
+	
 		return true;
 	}
 
 	/**
-	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function extractBodyContents( DOMDocument $dom ): void {
-		$bodyContentsToPagesMap = $this->buckets->getBucketData(
-			'global-body-content-id-to-page-id-map'
-		);
-		$bodyContentsToSpaceDescriptionMap = $this->buckets->getBucketData(
-			'global-body-content-id-to-space-description-id-map'
-		);
-		$bodyContentsToCommentsMap = $this->buckets->getBucketData(
-			'global-body-content-id-to-comment-id-map'
-		);
-		$xmlHelper = new XMLHelper( $dom );
+	private function extractBodyContents(): void {
+		// Access ConfigDB intentionally here to ensure extractor reads from DB-based runtime config.
+		$this->configDB->getIncludeHistory();
 
-		$bodyContents = $xmlHelper->getObjectNodes( 'BodyContent' );
-		foreach ( $bodyContents as $bodyContent ) {
-			$id = $xmlHelper->getIDNodeValue( $bodyContent );
-			if (
-				!isset( $bodyContentsToPagesMap[ $id ] )
-				&& !isset( $bodyContentsToSpaceDescriptionMap[ $id ] )
-				&& !isset( $bodyContentsToCommentsMap[ $id ] )
+		$currentContentIds = [];
+		foreach ( $this->workspaceDB->getPages() as $page ) {
+			if ( isset( $page['page_id'], $page['content_status'] )
+				&& strtolower( (string)$page['content_status'] ) === 'current'
 			) {
+				$currentContentIds[(int)$page['page_id']] = true;
+			}
+		}
+
+		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
+			if ( isset( $blogPost['page_id'], $blogPost['content_status'] )
+				&& strtolower( (string)$blogPost['content_status'] ) === 'current'
+			) {
+				$currentContentIds[(int)$blogPost['page_id']] = true;
+			}
+		}
+
+		if ( $currentContentIds === [] ) {
+			return;
+		}
+
+		$bodyContents = $this->workspaceDB->getBodyContents();
+		$this->doExtractBodyContent( $bodyContents );
+		
+	}
+
+	/**
+	 * @param array $bodyContents
+	 * @return void
+	 */
+	public function doExtractBodyContent( array $bodyContents ): void {
+		$addedTotal = 0;
+
+		foreach ( $bodyContents as $bodyContent ) {
+			if ( !isset( $bodyContent['body_content_id'], $bodyContent['page_id'] ) ) {
 				continue;
 			}
-			$bodyContentHTML = $this->getBodyContentHTML( $xmlHelper, $bodyContent );
-			$targetFileName = $this->workspace->saveRawContent( $id, $bodyContentHTML );
-			if ( isset( $bodyContentsToCommentsMap[ $id ] ) ) {
-				// Comment body contents are only saved to workspace for conversion;
-				// they do not become page revisions themselves.
+
+			$id = (int)$bodyContent['body_content_id'];
+			$pageId = (int)$bodyContent['page_id'];
+			if ( !isset( $currentContentIds[$pageId] ) ) {
 				continue;
 			}
-			$this->addRevisionContent( $id, $targetFileName );
+
+			$bodies = $this->workspaceDB->getBodyForBodyContentId( $id );
+			if ( empty( $bodies ) || !isset( $bodies[0] ) ) {
+				continue;
+			}
+
+			$bodyContentHTML = $this->normalizeBodyContentHTML( (string)$bodies[0] );
+			$targetFileName = $this->workspace->saveRawContent( (string)$id, $bodyContentHTML );
+			$this->addRevisionContent( (string)$id, $targetFileName );
 		}
 	}
 
 	/**
-	 * @param DOMDocument $dom
-	 * @return void
+	 * @param string $rawValue
+	 * @return string
 	 */
-	private function buildLabellingMap( DOMDocument $dom ): void {
-		$xmlHelper = new XMLHelper( $dom );
-
-		$labellingObjs = $xmlHelper->getObjectNodes( 'Labelling' );
-		if ( count( $labellingObjs ) < 1 ) {
-			return;
-		}
-		$labelling = $labellingObjs->item( 0 );
-		if ( $labelling instanceof DOMElement === false ) {
-			return;
-		}
-
-		$id = $xmlHelper->getIDNodeValue( $labelling );
-
-		$labelProp = $xmlHelper->getPropertyNode( 'label', $labelling );
-		$labelId = $xmlHelper->getIDNodeValue( $labelProp );
-
-		$this->customBuckets->addData( 'extract-labelling-id-to-label-id-map', $id, $labelId, false, true );
-	}
-
-	/**
-	 * @param DOMDocument $dom
-	 * @return void
-	 */
-	private function buildLabelMap( DOMDocument $dom ): void {
-		$xmlHelper = new XMLHelper( $dom );
-
-		$labelObjs = $xmlHelper->getObjectNodes( 'Label' );
-		if ( count( $labelObjs ) < 1 ) {
-			return;
-		}
-		$label = $labelObjs->item( 0 );
-		if ( $label instanceof DOMElement === false ) {
-			return;
-		}
-
-		$labelNamespace = $xmlHelper->getPropertyValue( 'namespace', $label );
-		// There may be `my` or `team` also
-		if ( $labelNamespace !== 'global' ) {
-			return;
-		}
-
-		$id = $xmlHelper->getIDNodeValue( $label );
-		$name = $xmlHelper->getPropertyValue( 'name', $label );
-
-		$this->customBuckets->addData( 'extract-label-id-to-name-map', $id, $name, false, true );
-	}
-
-	/**
-	 * @param DOMDocument $dom
-	 * @return void
-	 */
-	private function extractAttachmentMetaData( DOMDocument $dom ): void {
-		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
-		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
-
-		$xmlHelper = new XMLHelper( $dom );
-
-		$attachmentObjs = $xmlHelper->getObjectNodes( 'Attachment' );
-		if ( count( $attachmentObjs ) < 1 ) {
-			return;
-		}
-		$attachment = $attachmentObjs->item( 0 );
-		if ( $attachment instanceof DOMElement === false ) {
-			return;
-		}
-
-		$attachmentId = $xmlHelper->getIDNodeValue( $attachment );
-		if ( $attachmentId < 0 ) {
-			return;
-		}
-
-		$labelNames = [];
-		$labellingEls = $xmlHelper->getElementsFromCollection( 'labellings', $attachment );
-		foreach ( $labellingEls as $labellingEl ) {
-			$labellingId = $xmlHelper->getIDNodeValue( $labellingEl );
-			if ( !isset( $labellingMap[$labellingId] ) ) {
-				continue;
-			}
-			$labelId = $labellingMap[$labellingId];
-			if ( isset( $labelMap[$labelId] ) ) {
-				$labelNames[] = $labelMap[$labelId];
-			}
-		}
-
-		if ( !empty( $labelNames ) ) {
-			$this->addAttachmentMetaData( $attachmentId, [ 'labels' => $labelNames ] );
-		}
+	private function normalizeBodyContentHTML( string $rawValue ): string {
+		// For a strange reason the CDATA blocks are not closed properly...
+		$fixedValue = str_replace( ']] >', ']]>', $rawValue );
+		return '<html><body>' . $fixedValue . '</body></html>';
 	}
 
 	/**
@@ -258,122 +156,128 @@ class ConfluenceExtractor extends ExtractorBase {
 	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function extractPageMetaData( DOMDocument $dom ): void {
-		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
-		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
+	private function extractPagesMetaData(): void {
+		foreach ( $this->workspaceDB->getPages() as $page ) {
+			$categories = $this->categories;
 
-		$xmlHelper = new XMLHelper( $dom );
-
-		$pageObjs = $xmlHelper->getObjectNodes( 'Page' );
-		if ( count( $pageObjs ) < 1 ) {
-			return;
-		}
-
-		foreach ( $pageObjs as $page ) {
-			if ( $page instanceof DOMElement === false ) {
-				continue;
-			}
-			$id = $xmlHelper->getIDNodeValue( $page );
-
-			// Currently we only extract "Categories"
-			$categories = [];
-			$labellingEls = $xmlHelper->getElementsFromCollection( 'labellings', $page );
-			foreach ( $labellingEls as $labellingEl ) {
-				$labellingId = $xmlHelper->getIDNodeValue( $labellingEl );
-				if ( !isset( $labellingMap[$labellingId] ) ) {
+			if ( isset( $page['page_id'], $page['content_status'] )
+				&& strtolower( (string)$page['content_status'] ) === 'current'
+			) {
+				if ( !isset( $page['collection']['labellings'] ) ) {
 					continue;
 				}
-				$labelId = $labellingMap[$labellingId];
-				if ( isset( $labelMap[$labelId] ) ) {
-					$categories[] = $labelMap[$labelId];
+
+				$labellings = $page['collection']['labellings'];
+				foreach ( $labellings as $labellingId ) {
+					$labelling = $this->workspaceDB->getLabellingById( (int)$labellingId );
+					if ( $labelling === null || !isset( $labelling['label_id'] ) ) {
+						continue;
+					}
+					$labelId = (int)$labelling['label_id'];
+					$label = $this->workspaceDB->getLabelById( $labelId );
+					if ( $label === null || !isset( $label['name'] ) ) {
+						continue;
+					}
+
+					$categories[] = $label['name'];
 				}
+
+				$categories = array_unique( $categories );
+
+				$this->workspaceDB->addPageMeta(
+					(int)$page['page_id'],
+					[
+						'categories' => $categories
+					]
+				);
+
+				// $this->output->writeln( "Add page meta for page {$page['wiki_title']}" );
+				// TODO: Add output
 			}
-
-			$categories = array_merge( $categories, $this->categories );
-
-			$meta = [
-				'categories' => $categories
-			];
-
-			$this->addTitleMetaData( $id, $meta );
 		}
 	}
 
 	/**
-	 * @param DOMDocument $dom
 	 * @return void
 	 */
-	private function extractBlogMetaData( DOMDocument $dom ): void {
-		$labellingMap = $this->customBuckets->getBucketData( 'extract-labelling-id-to-label-id-map' );
-		$labelMap = $this->customBuckets->getBucketData( 'extract-label-id-to-name-map' );
-
-		$xmlHelper = new XMLHelper( $dom );
-
-		$blogObjs = $xmlHelper->getObjectNodes( 'BlogPost' );
-		if ( count( $blogObjs ) < 1 ) {
-			return;
-		}
-
-		foreach ( $blogObjs as $blog ) {
-			if ( $blog instanceof DOMElement === false ) {
-				continue;
-			}
-			$id = $xmlHelper->getIDNodeValue( $blog );
-
-			// Currently we only extract "Categories"
+	private function extractBlogPostsMetaData(): void {
+		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
 			$categories = [];
-			$labellingEls = $xmlHelper->getElementsFromCollection( 'labellings', $blog );
-			foreach ( $labellingEls as $labellingEl ) {
-				$labellingId = $xmlHelper->getIDNodeValue( $labellingEl );
-				if ( !isset( $labellingMap[$labellingId] ) ) {
+
+			if ( isset( $blogPost['page_id'], $blogPost['content_status'] )
+				&& strtolower( (string)$blogPost['content_status'] ) === 'current'
+			) {
+				if ( !isset( $blogPost['collection']['labellings'] ) ) {
 					continue;
 				}
-				$labelId = $labellingMap[$labellingId];
-				if ( isset( $labelMap[$labelId] ) ) {
-					$categories[] = $labelMap[$labelId];
+
+				$labellings = $blogPost['collection']['labellings'];
+				foreach ( $labellings as $labellingId ) {
+					$labelling = $this->workspaceDB->getLabellingById( (int)$labellingId );
+					if ( $labelling === null || !isset( $labelling['label_id'] ) ) {
+						continue;
+					}
+					$labelId = (int)$labelling['label_id'];
+					$label = $this->workspaceDB->getLabelById( $labelId );
+					if ( $label === null || !isset( $label['name'] ) ) {
+						continue;
+					}
+
+					$categories[] = $label['name'];
 				}
+
+				$this->workspaceDB->addBlogPostMeta(
+					(int)$blogPost['page_id'],
+					[
+						'categories' => $categories
+					]
+				);
+
+				// $this->output->writeln( "Add blog post meta for blog post {$blogPost['wiki_title']}" );
+				// TODO: Add output
 			}
-
-			$categories = array_merge( $categories, $this->categories );
-
-			$meta = [
-				'categories' => $categories
-			];
-
-			$this->addBlogTitleMetaData( $id, $meta );
 		}
 	}
 
 	/**
-	 *
-	 * @param string $revisionReference
-	 * @param string $contentReference
+	 * @return void
 	 */
-	protected function addRevisionContent( $revisionReference, $contentReference = 'n/a' ): void {
-		$this->buckets->addData( 'global-revision-contents', $revisionReference, $contentReference );
-	}
+	private function extractAttachmentsMetaData(): void {
+		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
+			$categories = [];
 
-	/**
-	 * @param string $titleText
-	 * @param array $meta
-	 */
-	protected function addTitleMetaData( $titleText, $meta = [] ): void {
-		$this->buckets->addData( 'global-title-metadata', $titleText, $meta, false );
-	}
+			if ( isset( $attachment['page_id'], $attachment['content_status'] )
+				&& strtolower( (string)$attachment['content_status'] ) === 'current'
+			) {
+				if ( !isset( $attachment['collection']['labellings'] ) ) {
+					continue;
+				}
 
-	/**
-	 * @param string $titleText
-	 * @param array $meta
-	 */
-	protected function addBlogTitleMetaData( string $titleText, array $meta = [] ): void {
-		$this->buckets->addData( 'global-blog-title-metadata', $titleText, $meta, false );
-	}
+				$labellings = $attachment['collection']['labellings'];
+				foreach ( $labellings as $labellingId ) {
+					$labelling = $this->workspaceDB->getLabellingById( (int)$labellingId );
+					if ( $labelling === null || !isset( $labelling['label_id'] ) ) {
+						continue;
+					}
+					$labelId = (int)$labelling['label_id'];
+					$label = $this->workspaceDB->getLabelById( $labelId );
+					if ( $label === null || !isset( $label['name'] ) ) {
+						continue;
+					}
 
-	/**
-	 * @param int $attachmentId
-	 * @param array $meta
-	 */
-	protected function addAttachmentMetaData( int $attachmentId, array $meta = [] ): void {
-		$this->buckets->addData( 'global-attachment-metadata', $attachmentId, $meta, false );
+					$categories[] = $label['name'];
+				}
+
+				$this->workspaceDB->addAttachmentMeta(
+					(int)$attachment['page_id'],
+					[
+						'categories' => $categories
+					]
+				);
+
+				// $this->output->writeln( "Add attachment meta for attachment {$attachment['wiki_title']}" );
+				// TODO: Add output
+			}
+		}
 	}
 }

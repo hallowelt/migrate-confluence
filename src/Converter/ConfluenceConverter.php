@@ -178,7 +178,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @inheritDoc
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
-		$executionTime = new ExecutionTime();
+		// Suppress deprecation warning from vendor ExecutionTime class in PHP 8.1+
+		$executionTime = @new ExecutionTime();
 
 		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );

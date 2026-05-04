@@ -47,12 +47,20 @@ class BodyContents extends ProcessorBase {
 			return;
 		}
 
-		// The body will be extracted later as file for pandoc and does not need to be in database
-		unset( $properties['body'] );
+		// The body will be extracted later as file for pandoc and does not need to be in database.
+		// We store it in a separate table to be able to easily retrieve it for the content transformation and
+		// to keep the main table smaller.
+		if ( isset( $properties['body'] ) ) {
+			$this->workspaceDB->addBodyContentBody(
+				$bodyContentId,
+				$properties['body']
+			);
+			unset( $properties['body'] );
+		}
 
 		$contentId = (int)trim( $properties['content'] );
 
-		$this->workspaceDB->addBodyContent(
+		$status = $this->workspaceDB->addBodyContent(
 			$bodyContentId,
 			$contentId,
 			$contentClass,

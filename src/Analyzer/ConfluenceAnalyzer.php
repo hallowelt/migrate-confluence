@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
-use Dom\Comment;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
@@ -11,23 +10,23 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\AttachmentFallback;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Comments;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperty;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\Label;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\Labelling;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentBlogPosts;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
 use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
+use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -35,12 +34,12 @@ use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 use XMLReader;
 
-class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface {
+class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface, IDestinationPathAware {
 
 	private const NS_BLOG_NAME = 'Blog';
 
-	/** @var DataBuckets */
-	private DataBuckets $customBuckets;
+	/** @var string */
+	private string $dest = '';
 
 	/** @var LoggerInterface|NullLogger */
 	private LoggerInterface|NullLogger $logger;
@@ -55,7 +54,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private ConfigDB $configDB;
 
 	/** @var WorkspaceDB */
-	private $workspaceDB;
+	private WorkspaceDB $workspaceDB;
 
 	/**
 	 *
@@ -65,16 +64,16 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
-		$this->customBuckets = new DataBuckets( [
-			'warning-analyze-invalid-namespaces',
-			'warning-analyze-invalid-titles',
-			'warning-analyze-invalid-filenames',
-		] );
 
 		$this->logger = new NullLogger();
+	}
 
-		$this->initConfigDB();
-		$this->workspaceDB = new WorkspaceDB( '/app/data/development/workspace/workspace.sql' );
+	/**
+	 * @param string $dest
+	 * @return void
+	 */
+	public function setDestinationPath( string $dest ): void {
+		$this->dest = $dest;
 	}
 
 	/**
@@ -85,7 +84,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		if ( isset( $this->config['config'] ) ) {
 			$advancedConfig = $this->config['config'];
 		}
-		$this->configDB = new ConfigDB( '/app/data/development/workspace/config.sql' );
+		$this->configDB = new ConfigDB( $this->dest . '/config.sqlite' );
 		$this->configDB->populateConfigTables( $advancedConfig );
 	}
 
@@ -113,14 +112,17 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return true;
 		}
 
-		$this->customBuckets->loadFromWorkspace( $this->workspace );
+		$this->initConfigDB();
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+
+		$this->buckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
 
 		// Perform validity checks
 		$this->checkTitles();
 
 		// Save buckets
-		$this->customBuckets->saveToWorkspace( $this->workspace );
+		$this->buckets->saveToWorkspace( $this->workspace );
 		return $result;
 	}
 
@@ -132,12 +134,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'Space' => new Spaces( $this->configDB, $this->workspaceDB ),
 			'SpaceDescription' => new SpaceDescription( $this->configDB, $this->workspaceDB ),
 			'BodyContent' => new BodyContents( $this->configDB, $this->workspaceDB ),
-			'Page' => new Page( $this->configDB, $this->workspaceDB ),
-			'BlogPost' => new BlogPost( $this->configDB, $this->workspaceDB ),
-			'Attachment' => new Attachments( $this->file, $this->configDB, $this->workspaceDB  ),
 			'ConfluenceUserImpl' => new Users( $this->configDB, $this->workspaceDB ),
 			'ContentProperty' => new ContentProperty( $this->configDB, $this->workspaceDB ),
 			'Comment' => new Comments( $this->configDB, $this->workspaceDB ),
+			'Labelling' => new Labelling( $this->configDB, $this->workspaceDB ),
+			'Label' => new Label( $this->configDB, $this->workspaceDB ),
 		];
 	}
 
@@ -145,7 +146,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 * @return array
 	 */
 	private function getProcessors(): array {
-		return [];
+		return [
+			'Page' => new Page( $this->configDB, $this->workspaceDB ),
+			'BlogPost' => new BlogPost( $this->configDB, $this->workspaceDB ),
+			'Attachment' => new Attachments( $this->file, $this->configDB, $this->workspaceDB  ),
+		];
 	}
 
 	/**
@@ -153,7 +158,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private function getPostProcessors(): array {
 		return [
-			'Attachment' => new AttachmentFallback()
 		];
 	}
 
@@ -214,18 +218,102 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$preprocessors = $this->getPreProcessors();
 		$this->processFile( $preprocessors );
 
-		#$test= $this->workspaceDB->getMapPageIdToConfluenceTitle();
-		#var_dump( $test );
-		#$test= $this->workspaceDB->getMapSpaceIdToPrefix();
-		#var_dump( $test );
-		$test= $this->workspaceDB->getMapSpaceIdToHomepageId();
-		var_dump( $test );
+		$this->output->writeln( "\nProcess data:" );
+		$processors = $this->getProcessors();
+		$this->processFile( $processors );
 
 		$this->updatePageTableWithWikiTitle();
+		$this->updatePageAttachmentTable();
 		$this->updateBlogPostTableWithWikiTitle();
 
 		return true;
 		
+	}
+
+	/**
+	 * @return void
+	 */
+	private function updatePageAttachmentTable(): void {
+		$pageIdToWikiTitleMap = [];
+		foreach ( $this->workspaceDB->getPages() as $page ) {
+			if ( !isset( $page['page_id'], $page['wiki_title'], $page['content_status'] ) ) {
+				continue;
+			}
+			if ( $page['content_status'] !== 'current' || $page['wiki_title'] === '' ) {
+				continue;
+			}
+			$pageIdToWikiTitleMap[(int)$page['page_id']] = (string)$page['wiki_title'];
+		}
+
+		if ( $pageIdToWikiTitleMap === [] ) {
+			return;
+		}
+
+		$filenameBuilder = new FilenameBuilder(
+			$this->workspaceDB->getMapSpaceIdToPrefix(),
+			$this->config
+		);
+
+		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
+			if ( !isset(
+				$attachment['attachment_id'],
+				$attachment['space_id'],
+				$attachment['filename'],
+				$attachment['container_id'],
+				$attachment['content_status']
+			) ) {
+				continue;
+			}
+
+			if ( $attachment['content_status'] !== 'current' ) {
+				continue;
+			}
+
+			$pageId = (int)$attachment['container_id'];
+			if ( !isset( $pageIdToWikiTitleMap[$pageId] ) ) {
+				continue;
+			}
+
+			$attachmentId = (int)$attachment['attachment_id'];
+			$attachmentSpaceId = (int)$attachment['space_id'];
+			$attachmentOrigFilename = (string)$attachment['filename'];
+			$pageWikiTitle = $pageIdToWikiTitleMap[$pageId];
+
+			try {
+				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+					$attachmentSpaceId,
+					$attachmentOrigFilename,
+					$pageWikiTitle
+				);
+			} catch ( Exception $ex ) {
+				try {
+					$shortPageWikiTitle = basename( $pageWikiTitle );
+					$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+						$attachmentSpaceId,
+						$attachmentOrigFilename,
+						$shortPageWikiTitle
+					);
+				} catch ( Exception $fallbackEx ) {
+					$this->logger->warning(
+						'Could not build target filename for attachment ' . $attachmentId . ': '
+						. $fallbackEx->getMessage()
+					);
+					continue;
+				}
+			}
+
+			$file = new SplFileInfo( $attatchmentWikiTitle );
+			if ( $file->getExtension() === '' || strlen( $file->getExtension() ) > 10 ) {
+				$attatchmentWikiTitle .= '.unknown';
+			}
+
+			$this->workspaceDB->addPageAttachment(
+				$attachmentId,
+				$pageId,
+				$attachment['filename'],
+				$attatchmentWikiTitle
+			);
+		}
 	}
 
 	/**
@@ -371,7 +459,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$hasInvalidNamespaces = false;
 		foreach ( array_keys( $titles ) as $title ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
-				$this->customBuckets->addData(
+				$this->buckets->addData(
 					'warning-analyze-invalid-titles',
 					'invalid_ending', $title,
 					true, true
@@ -380,7 +468,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			}
 			if ( str_contains( $title, ':' ) ) {
 				if ( $validityChecker->hasDoubleColon( $title ) ) {
-					$this->customBuckets->addData(
+					$this->buckets->addData(
 						'warning-analyze-invalid-titles',
 						'multiple_collons', $title,
 						true, true
@@ -391,7 +479,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				$text = substr( $title, strpos( $title, ':' ) + 1 );
 
 				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
-					$this->customBuckets->addData(
+					$this->buckets->addData(
 						'warning-analyze-invalid-namespaces',
 						'invalid_char', $namespace,
 						true, true
@@ -400,7 +488,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				}
 
 				if ( !$validityChecker->hasValidLength( $text ) ) {
-					$this->customBuckets->addData(
+					$this->buckets->addData(
 						'warning-analyze-invalid-titles',
 						'length', $title,
 						true, true
@@ -409,7 +497,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				}
 			} else {
 				if ( !$validityChecker->hasValidLength( $title ) ) {
-					$this->customBuckets->addData(
+					$this->buckets->addData(
 						'warning-analyze-invalid-titles',
 						'length', $title,
 						true, true
@@ -419,48 +507,23 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			}
 		}
 
-		$files = $this->buckets->getBucketData( 'global-files' );
+		$files = $this->workspaceDB->getPageAttachments();
 		$hasInvalidFilenames = false;
-		foreach ( $files as $title => $paths ) {
-			if ( !$validityChecker->hasValidLength( $title ) ) {
-				$this->customBuckets->addData(
-					'warning-analyze-invalid-filenames',
-					'length', $title,
-					true, true
+		foreach ( $files as $file ) {
+			if ( !$validityChecker->hasValidLength( $file['target_attachment_filename'] ) ) {
+				$this->workspaceDB->addLogEntry(
+					'warning',
+					'analyze',
+					__METHOD__,
+					'Attachment with invalid filename: ' . $file['target_attachment_filename']
 				);
-				$hasInvalidFilenames = true;
 			}
 		}
 
-		if ( $hasInvalidNamespaces === true || $hasInvalidTitles === true || $hasInvalidFilenames === true ) {
-			$this->output->writeln( "\n\nWarning:\n" );
-
-			if ( $hasInvalidNamespaces === true ) {
-				$this->output->writeln( ' - Analyze process found invalid namespaces' );
-			}
-
-			if ( $hasInvalidTitles === true ) {
-				$this->output->writeln( ' - Analyze process found invalid titles' );
-			}
-
-			if ( $hasInvalidFilenames === true ) {
-				$this->output->writeln( ' - Analyze process found invalid filenames' );
-			}
-
+		if ( !empty( $this->workspaceDB->getLogEntriesForStep( 'analyze' ) ) ) {
+			$this->output->writeln( "\n\nWARNING:\n" );
 			$this->output->writeln(
-				"\nPlease check"
-			);
-			$this->output->writeln(
-				"\n - \"warning-analyze-invalid-namespaces.php\""
-			);
-			$this->output->writeln(
-				"\n - \"warning-analyze-invalid-titles.php\""
-			);
-			$this->output->writeln(
-				"\n - \"warning-analyze-invalid-filenames.php\""
-			);
-			$this->output->writeln(
-				"\nbefore continuing with extract step"
+				"\nPlease check logging table in workspaceDB for details about invalid titles and filenames\n\n"
 			);
 		}
 	}

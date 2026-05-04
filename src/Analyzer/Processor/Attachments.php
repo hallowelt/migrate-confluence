@@ -45,12 +45,12 @@ class Attachments extends ProcessorBase {
 			return;
 		}
 
-		$filename = '';
+		$confluenceFilename = '';
 		if ( isset( $properties['fileName'] ) ) {
-			$filename = $properties['fileName'];
+			$confluenceFilename = $properties['fileName'];
 		}
-		if ( $filename === '' && isset( $properties['title'] ) ) {
-			$filename = $properties['title'];
+		if ( $confluenceFilename === '' && isset( $properties['title'] ) ) {
+			$confluenceFilename = $properties['title'];
 		}
 
 		$spaceId = -1;
@@ -77,7 +77,7 @@ class Attachments extends ProcessorBase {
 		$this->workspaceDB->addAttachment(
 			$attachmentId,
 			$spaceId,
-			$filename,
+			$confluenceFilename,
 			$containerContentId,
 			$contentStatus,
 			$attachmentReference,

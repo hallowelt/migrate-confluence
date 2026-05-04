@@ -89,15 +89,22 @@ class BlogPost extends ProcessorBase {
 
 		$confluenceTitle = $properties['title'] ?? "";
 		if ( empty( $confluenceTitle ) ) {
-			// TODO: log page id with empty title
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__METHOD__,
+				"Blog post with ID $pageId has empty title. Skipping."
+			);
 			return;
 		}
 
 		$bodyContentIds = [];
 		if ( isset( $collection['bodyContents'] ) ) {
 			$bodyContentIds = $collection['bodyContents'];
+		} else {
+			$this->output->writeln( "Use fallback to fetch body content IDs (ID:$pageId)" );
+			$bodyContentIds = $this->workspaceDB->getBodyContentIdsForPageId( $pageId );
 		}
-		// TODO: Add fallback if bodyContentIds is empty
 
 		$lastModificationDate = '';
 		if ( isset( $properties['lastModificationDate'] ) ) {
@@ -106,17 +113,23 @@ class BlogPost extends ProcessorBase {
 
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 
-
-		/*
 		$version = '';
 		if ( isset( $properties['version'] ) ) {
 			$version = $properties['version'];
 		}
 
-		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
-		*/
-
 		$this->output->writeln( "Add blog post '$confluenceTitle' (ID:$pageId)" );
+
+		if ( empty( $bodyContentIds ) ) {
+			$warning = "Warning: No body content IDs found for page '$confluenceTitle' (ID:$pageId)";
+			$this->output->writeln( $warning );
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__METHOD__,
+				$warning
+			);
+		}
 
 		$this->workspaceDB->addBlogPost(
 			$pageId,
@@ -125,6 +138,7 @@ class BlogPost extends ProcessorBase {
 			'',
 			$revisionTimestamp,
 			$contentStatus,
+			$version,
 			$originalVersionId,
 			$bodyContentIds,
 			$properties,

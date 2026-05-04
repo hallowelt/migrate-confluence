@@ -29,9 +29,9 @@ class Page extends ProcessorBase {
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
 			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
 				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
-					$pageId = $this->getCDATAValue();
+					$pageId = (int)$this->getCDATAValue();
 				} else {
-					$pageId = $this->getTextValue();
+					$pageId = (int)$this->getTextValue();
 				}
 			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
 				$properties = $this->processPropertyNodes( $properties );
@@ -65,7 +65,12 @@ class Page extends ProcessorBase {
 
 		$confluenceTitle = $properties['title'] ?? "";
 		if ( empty( $confluenceTitle ) ) {
-			// TODO: log page id with empty title
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__METHOD__,
+				"Page with ID $pageId has no title"
+			);
 			return;
 		}
 
@@ -73,9 +78,9 @@ class Page extends ProcessorBase {
 		if ( isset( $collection['bodyContents'] ) ) {
 			$bodyContentIds = $collection['bodyContents'];
 		} else {
-			$bodyContentIds[] = $this->workspaceDB->getBodyContentIdsForPageId( $pageId );
+			$this->output->writeln( "Use fallback to fetch body content IDs (ID:$pageId)" );
+			$bodyContentIds = $this->workspaceDB->getBodyContentIdsForPageId( $pageId );
 		}
-		// TODO: What if there are no body content id's?
 
 		$lastModificationDate = '';
 		if ( isset( $properties['lastModificationDate'] ) ) {
@@ -89,16 +94,23 @@ class Page extends ProcessorBase {
 			$parentPageId = $properties['parent'];
 		}
 		
-		/*
 		$version = '';
 		if ( isset( $properties['version'] ) ) {
 			$version = $properties['version'];
 		}
 
-		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
-		*/
-
 		$this->output->writeln( "Add page '$confluenceTitle' (ID:$pageId)" );
+
+		if ( empty( $bodyContentIds ) ) {
+			$warning = "Warning: No body content IDs found for page '$confluenceTitle' (ID:$pageId)";
+			$this->output->writeln( $warning );
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__METHOD__,
+				$warning
+			);
+		}
 
 		$this->workspaceDB->addPage(
 			$pageId,
@@ -107,6 +119,7 @@ class Page extends ProcessorBase {
 			'',
 			$revisionTimestamp,
 			$contentStatus,
+			$version,
 			$originalVersionId,
 			$parentPageId,
 			$bodyContentIds,
