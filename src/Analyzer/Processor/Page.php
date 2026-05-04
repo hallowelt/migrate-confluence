@@ -112,7 +112,7 @@ class Page extends ProcessorBase {
 			);
 		}
 
-		$this->workspaceDB->addPage(
+		$status = $this->workspaceDB->addPage(
 			$pageId,
 			$spaceId,
 			$confluenceTitle,
@@ -127,6 +127,15 @@ class Page extends ProcessorBase {
 			$collection
 		);
 
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add page '$confluenceTitle' (ID:$pageId) to the database."
+				. " This may indicate a problem with the page id. Maybe it does exist twice."
+			);
+		}
 	}
 
 }

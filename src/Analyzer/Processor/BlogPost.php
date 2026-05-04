@@ -131,7 +131,7 @@ class BlogPost extends ProcessorBase {
 			);
 		}
 
-		$this->workspaceDB->addBlogPost(
+		$status = $this->workspaceDB->addBlogPost(
 			$pageId,
 			$spaceId,
 			$confluenceTitle,
@@ -144,5 +144,15 @@ class BlogPost extends ProcessorBase {
 			$properties,
 			$collection
 		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add blog post '$confluenceTitle' (ID:$pageId) to the database."
+				. " This may indicate a problem with the page id. Maybe it does exist twice."
+			);
+		}
 	}
 }
