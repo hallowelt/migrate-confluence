@@ -13,10 +13,10 @@ class RestoreExcerptMacro implements IPostprocessor {
 		return preg_replace_callback(
 			'/#####EXCERPTBLOCKOPEN\|(.*?)\|(.*?)#####(.*?)#####EXCERPTBLOCKCLOSE#####/si',
 			static function ( $matches ) {
-				$name = $matches[1];
+				$macroId = $matches[1];
 				$hidden = $matches[2];
 				$content = $matches[3];
-				return "<div class=\"excerpt-block\" name=\"$name\" hidden=\"$hidden\">$content</excerpt-block>";
+				return "<div class=\"excerpt-block\" name=\"$macroId\" hidden=\"$hidden\">$content</div>";
 			},
 			$wikiText
 		);
