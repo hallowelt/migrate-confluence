@@ -86,29 +86,29 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	private function createTables(): void {
-		$this->createLoggingTable();
-		$this->createSpaceTable();
-		$this->createSpaceDescriptionTable();
-		$this->createPageTable();
-		$this->createBlogPostTable();
-		$this->createBodyContentTable();
-		$this->createBodyContentBodyTable();
-		$this->createAtachementTable();
-		$this->createPageAttachmentTable();
-		$this->createUserTable();
-		$this->createContentPropertyTable();
-		$this->createCommentTable();
-		$this->createLabellingTable();
-		$this->createLabelTable();
-		$this->createPagesMetaTable();
-		$this->createBlogPostsMetaTable();
-		$this->createAttachmentsMetaTable();
+		$this->createTableLogging();
+		$this->createTableSpaces();
+		$this->createTableSpaceDescriptions();
+		$this->createTablePages();
+		$this->createTableBlogPosts();
+		$this->createTableBodyContents();
+		$this->createTableBodyContentBodies();
+		$this->createTableAttachments();
+		$this->createTablePageAttachments();
+		$this->createTableUsers();
+		$this->createTableContentProperties();
+		$this->createTableComments();
+		$this->createTableLabellings();
+		$this->createTableLabels();
+		$this->createTablePagesMeta();
+		$this->createTableBlogPostsMeta();
+		$this->createTableAttachmentsMeta();
 	}
 
-		/**
+	/**
 	 * @return void
 	 */
-	private function createLoggingTable(): void {
+	private function createTableLogging(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS logging (
 				type CHAR,
@@ -122,7 +122,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createSpaceTable(): void {
+	private function createTableSpaces(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS spaces (
 				space_id INT PRIMARY KEY,
@@ -138,7 +138,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createSpaceDescriptionTable(): void {
+	private function createTableSpaceDescriptions(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS spaces_descriptions (
 				space_description_id INT PRIMARY KEY,
@@ -151,7 +151,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createPageTable(): void {
+	private function createTablePages(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS pages (
 				page_id INT PRIMARY KEY,
@@ -173,7 +173,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createBlogPostTable(): void {
+	private function createTableBlogPosts(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS blog_posts (
 				page_id INT PRIMARY KEY,
@@ -194,7 +194,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createBodyContentTable(): void {
+	private function createTableBodyContents(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS body_contents (
 				body_content_id INT PRIMARY KEY,
@@ -208,7 +208,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createBodyContentBodyTable(): void {
+	private function createTableBodyContentBodies(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS body_content_bodies (
 				body_content_id INT PRIMARY KEY,
@@ -220,7 +220,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createAtachementTable(): void {
+	private function createTableAttachments(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS attachments (
 				attachment_id INT PRIMARY KEY,
@@ -235,12 +235,14 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * $attachment id is not set as primary key because there can be multiple entries for the same attachment id
+	 * if the attachment is attached to multiple pages with different names.
 	 * @return void
 	 */
-	private function createPageAttachmentTable(): void {
+	private function createTablePageAttachments(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS page_attachments (
-				attachment_id INT PRIMARY KEY,
+				attachment_id INT,
 				page_id INT,
 				original_attachment_filename CHAR,
 				target_attachment_filename CHAR
@@ -251,7 +253,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createUserTable(): void {
+	private function createTableUsers(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS users (
 				user_key CHAR PRIMARY KEY,
@@ -265,7 +267,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createContentPropertyTable(): void {
+	private function createTableContentProperties(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS content_properties (
 				property_name CHAR,
@@ -278,7 +280,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createCommentTable(): void {
+	private function createTableComments(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS comments (
 				comment_id INT PRIMARY KEY,
@@ -297,7 +299,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createLabellingTable(): void {
+	private function createTableLabellings(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS labellings (
 				labelling_id INT PRIMARY KEY,
@@ -310,7 +312,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createLabelTable(): void {
+	private function createTableLabels(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS labels (
 				label_id INT PRIMARY KEY,
@@ -324,7 +326,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createPagesMetaTable(): void {
+	private function createTablePagesMeta(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS pages_meta (
 				page_id INT PRIMARY KEY,
@@ -336,7 +338,7 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createBlogPostsMetaTable(): void {
+	private function createTableBlogPostsMeta(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS blog_posts_meta (
 				page_id INT PRIMARY KEY,
@@ -345,14 +347,38 @@ class WorkspaceDB {
 		);
 	}
 
-		/**
+	/**
 	 * @return void
 	 */
-	private function createAttachmentsMetaTable(): void {
+	private function createTableAttachmentsMeta(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS attachments_meta (
 				attachment_id INT PRIMARY KEY,
 				meta BLOB
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableInvalidTitles(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS invalid_titles (
+				confluence_title CHAR,
+				text CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableInvalidBodyContents(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS invalid_body_contents (
+				body_content_id CHAR,
+				text CHAR
 			);'
 		);
 	}
@@ -450,69 +476,6 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
-	 */
-	public function getMapSpaceIdToPrefix(): array {
-		$transaction = $this->db->prepare(
-			'SELECT space_id,space_prefix FROM spaces'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['space_id'];
-			$value = $item['space_prefix'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMapSpaceIdToKey(): array {
-		$transaction = $this->db->prepare(
-			'SELECT space_id,space_key FROM spaces'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['space_id'];
-			$value = $item['space_key'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMapSpaceIdToHomepageId(): array {
-		$transaction = $this->db->prepare(
-			'SELECT space_id,homepage_id FROM spaces'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['space_id'];
-			$value = $item['homepage_id'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
 	 * @param integer $spaceDescriptionId
 	 * @param array $bodyContentIds
 	 * @param array $lagellingIds
@@ -539,6 +502,59 @@ class WorkspaceDB {
 		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':labelling_ids', $labellingIdsJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @return int
+	 */
+	public function getSpaceIdFromSpaceKey( string $spaceKey ): int {
+		$transaction = $this->db->prepare(
+			'SELECT space_id FROM spaces WHERE space_key = :space_key LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return -1;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['space_id'] ) ) {
+			return -1;
+		}
+
+		return (int)$data['space_id'];
+	}
+
+	/**
+	 * Get the mediawiki namespace for a given space key.
+	 * If space key is not found, return the space key as namespace as default.
+	 *
+	 * @param string $spaceKey
+	 * @return string
+	 */
+	public function getSpacePrefixFromSpaceKey( string $spaceKey ): string {
+		$transaction = $this->db->prepare(
+			'SELECT space_prefix FROM spaces WHERE space_key = :space_key LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return "$spaceKey:";
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['space_prefix'] ) ) {
+			return "$spaceKey:";
+		}
+
+		return $data['space_prefix'];
 	}
 
 	/**
@@ -626,34 +642,6 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
-	 */
-	public function getPages(): array {
-		return $this->getAllData( 'pages' );
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMapPageIdtoParentPageId(): array {
-		$transaction = $this->db->prepare(
-			'SELECT page_id,parent_page_id FROM pages'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['page_id'];
-			$value = $item['parent_page_id'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
 	 * @param integer $pageId
 	 * @param string $wikiTitle
 	 * @return bool True on success, false on error.
@@ -671,23 +659,46 @@ class WorkspaceDB {
 	/**
 	 * @return array
 	 */
-	public function getMapPageIdToConfluenceTitle(): array {
+	public function getPages(): array {
+		return $this->getAllData( 'pages' );
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @param string $confluenceTitle
+	 * @return array
+	 */
+	public function getTargetPageTitleFromSpaceKey( string $spaceKey, string $confluenceTitle ): array {
 		$transaction = $this->db->prepare(
-			'SELECT page_id,confluence_title FROM pages'
+			'SELECT wiki_title FROM pages WHERE space_key = :space_key AND confluence_title = :confluence_title LIMIT 1'
 		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['page_id'];
-			$value = $item['confluence_title'];
-			$map[$key] = $value;
+		if ( $result === false ) {
+			return [
+				'title' => $confluenceTitle,
+				'isBroken' => true
+			];
 		}
 
-		return $map;
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['wiki_title'] ) ) {
+			return [
+				'title' => $confluenceTitle,
+				'isBroken' => true
+			];
+		}
+
+		return [
+			'title' => $data['wiki_title'],
+			'isBroken' => false
+		];
 	}
+
 
 	/**
 	 * @param integer $pageId
@@ -995,6 +1006,86 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Get the wikit file title for a given space key, confluence title and original attachment filename.
+	 * If no entry is found, return the original attachment filename as title
+	 * and mark it as broken link (isBroken = true) in the returned array.
+	 *
+	 * @param string $spaceKey
+	 * @param string $confluenceTitle
+	 * @param string $originalAttachmentFilename
+	 * @return array
+	 */
+	public function getTargetFileTitleBySpaceKey( string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename ): array {
+		$transaction = $this->db->prepare(
+			'SELECT pa.target_attachment_filename FROM page_attachments pa
+			JOIN pages p ON pa.page_id = p.page_id
+			WHERE p.space_key = :space_key AND p.confluence_title = :confluence_title AND pa.original_attachment_filename = :original_attachment_filename
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [
+				'title' => $originalAttachmentFilename,
+				'isBroken' => true
+			];
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['target_attachment_filename'] ) ) {
+			return [
+				'title' => $originalAttachmentFilename,
+				'isBroken' => true
+			];
+		}
+
+		return [
+			'title' => $data['target_attachment_filename'],
+			'isBroken' => false
+		];
+	}
+
+	/**
+	 * Get all target file titles for a given space key and confluence title.
+	 *
+	 * @param string $spaceKey
+	 * @param string $confluenceTitle
+	 * @return array
+	 */
+	public function getAllTargetFileTitlesBySpaceKey( string $spaceKey, string $confluenceTitle ): array {
+		$transaction = $this->db->prepare(
+			'SELECT pa.original_attachment_filename, pa.target_attachment_filename FROM page_attachments pa
+			JOIN pages p ON pa.page_id = p.page_id
+			WHERE p.space_key = :space_key AND p.confluence_title = :confluence_title'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		$fileTitles = [];
+		while ( $row = $result->fetchArray( SQLITE3_ASSOC ) ) {
+			if ( isset( $row['original_attachment_filename'] ) && isset( $row['target_attachment_filename'] ) ) {
+				$fileTitles[] = [
+					'original' => $row['original_attachment_filename'],
+					'target' => $row['target_attachment_filename']
+				];
+			}
+		}
+		$result->finalize();
+
+		return $fileTitles;
+	}
+
+	/**
 	 * @param string $wikiTitle
 	 * @return boolean
 	 */
@@ -1018,6 +1109,13 @@ class WorkspaceDB {
 		return $this->getAllData( 'page_attachments' );
 	}
 
+	/**
+	 * @param string $userKey
+	 * @param string $wikiUsername
+	 * @param string $email
+	 * @param array $properties
+	 * @return boolean
+	 */
 	public function addUser(
 		string $userKey,
 		string $wikiUsername,
@@ -1051,6 +1149,34 @@ class WorkspaceDB {
 	 */
 	public function getUsers(): array {
 		return $this->getAllData( 'users' );
+	}
+
+	/**
+	 * Get the mediawiki username for a given user key.
+	 * If user key is not found, return the user key as username as default.
+	 *
+	 * @param string $userKey
+	 * @return string
+	 */
+	public function getUsernameFromUserKey( string $userKey ): string {
+		$transaction = $this->db->prepare(
+			'SELECT wiki_user_name FROM users WHERE user_key = :user_key LIMIT 1'
+		);
+		$transaction->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return $userKey;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['wiki_user_name'] ) ) {
+			return $userKey;
+		}
+
+		return $data['wiki_user_name'];
 	}
 
 	/**
@@ -1207,27 +1333,6 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
-	 */
-	public function getMapLabellingIdToLabelId(): array {
-		$transaction = $this->db->prepare(
-			'SELECT labelling_id,label_id FROM labellings'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['labelling_id'];
-			$value = $item['label_id'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
 	 * @param integer $labelId
 	 * @param string $name
 	 * @param string $namespace
@@ -1377,5 +1482,200 @@ class WorkspaceDB {
 	 */
 	public function getAttachmentMeta(): array {
 		return $this->getAllData( 'attachments_meta' );
+	}
+
+	/**
+	 * Returns target file titles with their full metadata for all attachments on a page.
+	 * The returned array is keyed by confluence file key. Each value contains 'targetTitle'
+	 * plus any additional metadata fields (e.g. 'labels', 'mediaType', etc.).
+	 *
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return string[] Map of confluenceFileKey => metadata (including 'targetTitle')
+	 */
+	public function getAttachmentMetadataForPage( int $spaceId, string $rawPageTitle ): array {
+		$transaction = $this->db->prepare(
+			'SELECT pa.original_attachment_filename, pa.target_attachment_filename, am.meta FROM page_attachments pa
+			JOIN pages p ON pa.page_id = p.page_id
+			LEFT JOIN attachments_meta am ON pa.attachment_id = am.attachment_id
+			WHERE p.space_id = :space_id AND p.confluence_title = :confluence_title'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $rawPageTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		$metadataMap = [];
+		while ( $row = $result->fetchArray( SQLITE3_ASSOC ) ) {
+			if ( isset( $row['original_attachment_filename'] ) && isset( $row['target_attachment_filename'] ) ) {
+				$confluenceFileKey = $row['original_attachment_filename'];
+				$meta = json_decode( $row['meta'] ?? '[]', true );
+				if ( !is_array( $meta ) ) {
+					$meta = [];
+				}
+
+				$metadataMap[$confluenceFileKey] = array_merge(
+					$meta,
+					[ 'targetTitle' => $row['target_attachment_filename'] ]
+				);
+			}
+		}
+		$result->finalize();
+
+		return $metadataMap;
+	}
+
+	// Mapping functions
+
+	/**
+	 * @return array
+	 */
+	public function getMapSpaceIdToPrefix(): array {
+		$transaction = $this->db->prepare(
+			'SELECT space_id,space_prefix FROM spaces'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['space_id'];
+			$value = $item['space_prefix'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapSpaceIdToKey(): array {
+		$transaction = $this->db->prepare(
+			'SELECT space_id,space_key FROM spaces'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['space_id'];
+			$value = $item['space_key'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapSpaceIdToHomepageId(): array {
+		$transaction = $this->db->prepare(
+			'SELECT space_id,homepage_id FROM spaces'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['space_id'];
+			$value = $item['homepage_id'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapPageIdtoParentPageId(): array {
+		$transaction = $this->db->prepare(
+			'SELECT page_id,parent_page_id FROM pages'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['page_id'];
+			$value = $item['parent_page_id'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapPagesTitles(): array {
+		$transaction = $this->db->prepare(
+			'SELECT space_id,confluence_title,wiki_title FROM pages'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$spaceId = $item['space_id'];
+			$confluenceTitle = $item['confluence_title'];
+			$key = "$spaceId---$confluenceTitle";
+			$value = $item['wiki_title'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapPageIdToConfluenceTitle(): array {
+		$transaction = $this->db->prepare(
+			'SELECT page_id,confluence_title FROM pages'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['page_id'];
+			$value = $item['confluence_title'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapLabellingIdToLabelId(): array {
+		$transaction = $this->db->prepare(
+			'SELECT labelling_id,label_id FROM labellings'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['labelling_id'];
+			$value = $item['label_id'];
+			$map[$key] = $value;
+		}
+
+		return $map;
 	}
 }

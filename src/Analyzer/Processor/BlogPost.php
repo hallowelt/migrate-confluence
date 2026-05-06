@@ -2,37 +2,19 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 class BlogPost extends ProcessorBase {
 
-	/** @var string */
-	private const NS_BLOG_NAME = 'Blog';
-
-	/** @var array */
-	private array $includeSpaceKey;
-
-	/** @var bool */
-	private bool $includeHistory;
-
-	/** @var mixed */
-	private $spaceId;
-
-	/** @var mixed */
-	private $pageId;
-
-	/** @var string */
-	private string $targetTitle = '';
-
 	/**
-	 * @param ConfigDB $configDB
 	 * @param WorkspaceDB $workspaceDB
+	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private ConfigDB $configDB,
-		private WorkspaceDB $workspaceDB
+		private WorkspaceDB $workspaceDB,
+		private MigrationConfig $migrationConfig
 	) {}
 
 	/**
@@ -64,7 +46,7 @@ class BlogPost extends ProcessorBase {
 			$contentStatus = $properties['contentStatus'];
 		}
 
-		if ( !$this->configDB->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
+		if ( !$this->migrationConfig->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
 			return;
 		}
 

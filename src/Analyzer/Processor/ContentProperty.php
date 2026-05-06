@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
@@ -14,11 +13,9 @@ use XMLReader;
 class ContentProperty extends ProcessorBase {
 
 	/**
-	 * @param ConfigDB $configDB
 	 * @param WorkspaceDB $workspaceDB
 	 */
 	public function __construct(
-		private ConfigDB $configDB,
 		private WorkspaceDB $workspaceDB
 	) {}
 
@@ -45,23 +42,20 @@ class ContentProperty extends ProcessorBase {
 			return;
 		}
 
-/*
-		if ( $contentClass !== 'Comment' ) {
-			return;
-		}
-
-		$commentId = isset( $properties['content'] ) ? (int)$properties['content'] : -1;
-		if ( $commentId === -1 ) {
-			return;
-		}
-
-		TODO: Maybe add a mapping for the $commentId
-*/
-		$this->workspaceDB->addContentProperty(
+		$status = $this->workspaceDB->addContentProperty(
 			$propName,
 			$contentClass,
 			$properties
 		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add content property '$propName' to the database."
+			);
+		}
 
 		$this->output->writeln( "Add content property '$propName'" );
 	}

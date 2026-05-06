@@ -2,19 +2,19 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 class Spaces extends ProcessorBase {
 
 	/**
-	 * @param ConfigDB $configDB
 	 * @param WorkspaceDB $workspaceDB
+	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private ConfigDB $configDB,
-		private WorkspaceDB $workspaceDB
+		private WorkspaceDB $workspaceDB,
+		private MigrationConfig $migrationConfig
 	) {}
 
 	/**
@@ -65,7 +65,7 @@ class Spaces extends ProcessorBase {
 		$properties['key'] = $spaceKey;
 
 		// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
-		$configSpacePrefix = $this->configDB->getPrefixFromSpaceKeyToPrefixMap( $spaceKey );
+		$configSpacePrefix = $this->migrationConfig->getPrefixFromSpaceKeyToPrefixMap( $spaceKey );
 		if ( $configSpacePrefix !== null ) {
 			$customSpacePrefix = $configSpacePrefix;
 		} elseif ( $spaceKey !== 'GENERAL' ) {
@@ -74,7 +74,7 @@ class Spaces extends ProcessorBase {
 			$customSpacePrefix = '';
 		}
 
-		$this->workspaceDB->addSpace(
+		$status = $this->workspaceDB->addSpace(
 			$spaceId,
 			$spaceKey,
 			isset( $properties['name'] )? $properties['name']: null,
@@ -82,6 +82,15 @@ class Spaces extends ProcessorBase {
 			isset( $properties['homePage'] )? (int)$properties['homePage']: null,
 			isset( $properties['description'] )? (int)$properties['description']: null
 		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add space (ID:$spaceId) to the database."
+			);
+		}
 	}
 
 	/**

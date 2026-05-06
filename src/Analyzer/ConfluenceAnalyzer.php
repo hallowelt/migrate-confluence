@@ -21,12 +21,12 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -50,8 +50,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	/** @var SplFileInfo */
 	private SplFileInfo $file;
 
-	/** @var ConfigDB */
-	private ConfigDB $configDB;
+	/** @var MigrationConfig */
+	private MigrationConfig $migrationConfig;
 
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
@@ -79,13 +79,19 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	/**
 	 * @return void
 	 */
-	private function initConfigDB(): void {
+	private function initWorkspaceDB(): void {
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function initMigrationConfig(): void {
 		$advancedConfig = [];
 		if ( isset( $this->config['config'] ) ) {
 			$advancedConfig = $this->config['config'];
 		}
-		$this->configDB = new ConfigDB( $this->dest . '/config.sqlite' );
-		$this->configDB->populateConfigTables( $advancedConfig );
+		$this->migrationConfig = new MigrationConfig( $advancedConfig );
 	}
 
 	/**
@@ -112,8 +118,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return true;
 		}
 
-		$this->initConfigDB();
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$this->initMigrationConfig();
+		$this->initWorkspaceDB();
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
@@ -131,14 +137,14 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private function getPreProcessors(): array {
 		return [
-			'Space' => new Spaces( $this->configDB, $this->workspaceDB ),
-			'SpaceDescription' => new SpaceDescription( $this->configDB, $this->workspaceDB ),
-			'BodyContent' => new BodyContents( $this->configDB, $this->workspaceDB ),
-			'ConfluenceUserImpl' => new Users( $this->configDB, $this->workspaceDB ),
-			'ContentProperty' => new ContentProperty( $this->configDB, $this->workspaceDB ),
-			'Comment' => new Comments( $this->configDB, $this->workspaceDB ),
-			'Labelling' => new Labelling( $this->configDB, $this->workspaceDB ),
-			'Label' => new Label( $this->configDB, $this->workspaceDB ),
+			'Space' => new Spaces( $this->workspaceDB, $this->migrationConfig ),
+			'SpaceDescription' => new SpaceDescription( $this->workspaceDB ),
+			'BodyContent' => new BodyContents( $this->workspaceDB ),
+			'ConfluenceUserImpl' => new Users( $this->workspaceDB ),
+			'ContentProperty' => new ContentProperty( $this->workspaceDB ),
+			'Comment' => new Comments( $this->workspaceDB ),
+			'Labelling' => new Labelling( $this->workspaceDB ),
+			'Label' => new Label( $this->workspaceDB ),
 		];
 	}
 
@@ -147,9 +153,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private function getProcessors(): array {
 		return [
-			'Page' => new Page( $this->configDB, $this->workspaceDB ),
-			'BlogPost' => new BlogPost( $this->configDB, $this->workspaceDB ),
-			'Attachment' => new Attachments( $this->file, $this->configDB, $this->workspaceDB  ),
+			'Page' => new Page( $this->workspaceDB, $this->migrationConfig ),
+			'BlogPost' => new BlogPost( $this->workspaceDB, $this->migrationConfig ),
+			'Attachment' => new Attachments( $this->workspaceDB, $this->file->getPath() ),
 		];
 	}
 
@@ -357,7 +363,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$this->workspaceDB->getMapSpaceIdToHomepageId(),
 			$this->workspaceDB->getMapPageIdtoParentPageId(),
 			$this->workspaceDB->getMapPageIdToConfluenceTitle(),
-			$this->configDB->getMainPageName()
+			$this->migrationConfig->getMainPageName()
 		);
 
 		$pages = $this->workspaceDB->getPages();

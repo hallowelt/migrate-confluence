@@ -2,18 +2,15 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 class Labelling extends ProcessorBase {
 
 	/**
-	 * @param ConfigDB $configDB
 	 * @param WorkspaceDB $workspaceDB
 	 */
 	public function __construct(
-		private ConfigDB $configDB,
 		private WorkspaceDB $workspaceDB
 	) {}
 
@@ -42,11 +39,20 @@ class Labelling extends ProcessorBase {
 			return;
 		}
 
-		$this->workspaceDB->addLabelling(
+		$status = $this->workspaceDB->addLabelling(
 			$labellingId,
 			(int)$properties['label'],
 			$properties
 		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add labelling (ID:$labellingId) to the database."
+			);
+		}
 
 		$this->output->writeln( "Add labelling (ID:$labellingId)" );
 	}

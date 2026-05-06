@@ -3,14 +3,12 @@
 namespace HalloWelt\MigrateConfluence\Extractor;
 
 use DOMDocument;
-use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExtractorBase;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
-use HalloWelt\MigrateConfluence\Utility\XMLHelper;
 use SplFileInfo;
 
 class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware {
@@ -105,8 +103,6 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return void
 	 */
 	public function doExtractBodyContent( array $bodyContents ): void {
-		$addedTotal = 0;
-
 		foreach ( $bodyContents as $bodyContent ) {
 			if ( !isset( $bodyContent['body_content_id'], $bodyContent['page_id'] ) ) {
 				continue;
@@ -134,19 +130,6 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return string
 	 */
 	private function normalizeBodyContentHTML( string $rawValue ): string {
-		// For a strange reason the CDATA blocks are not closed properly...
-		$fixedValue = str_replace( ']] >', ']]>', $rawValue );
-		return '<html><body>' . $fixedValue . '</body></html>';
-	}
-
-	/**
-	 * @param XMLHelper $xmlHelper
-	 * @param DOMElement $bodyContent
-	 *
-	 * @return string
-	 */
-	private function getBodyContentHTML( XMLHelper $xmlHelper, DOMElement $bodyContent ): string {
-		$rawValue = $xmlHelper->getPropertyValue( 'body', $bodyContent );
 		// For a strange reason the CDATA blocks are not closed properly...
 		$fixedValue = str_replace( ']] >', ']]>', $rawValue );
 		return '<html><body>' . $fixedValue . '</body></html>';

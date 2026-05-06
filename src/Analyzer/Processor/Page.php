@@ -2,19 +2,19 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 class Page extends ProcessorBase {
 
 	/**
-	 * @param ConfigDB $configDB
 	 * @param WorkspaceDB $workspaceDB
+	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private ConfigDB $configDB,
-		private WorkspaceDB $workspaceDB
+		private WorkspaceDB $workspaceDB,
+		private MigrationConfig $migrationConfig
 	) {}
 
 	/**
@@ -46,7 +46,7 @@ class Page extends ProcessorBase {
 			$contentStatus = $properties['contentStatus'];
 		}
 
-		if ( !$this->configDB->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
+		if ( !$this->migrationConfig->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
 			return;
 		}
 

@@ -2,22 +2,18 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
-use SplFileInfo;
 use XMLReader;
 
 class Attachments extends ProcessorBase {
 	
 	/**
-	 * @param SplFileInfo $file
-	 * @param ConfigDB $configDB
 	 * @param WorkspaceDB $workspaceDB
+	 * @param string $xmlPath
 	 */
 	public function __construct(
-		private SplFileInfo $file,
-		private ConfigDB $configDB,
-		private WorkspaceDB $workspaceDB
+		private WorkspaceDB $workspaceDB,
+		private string $xmlPath
 	) {}
 
 	/**
@@ -92,7 +88,7 @@ class Attachments extends ProcessorBase {
 	 * @return string
 	 */
 	private function makeAttachmentReference( int $attachmentId, int $containerContentId, array $properties ): string {
-		$basePath = $this->file->getPath() . '/attachments';
+		$basePath = $this->xmlPath . '/attachments';
 
 		$attachmentVersion = '';
 		if ( isset( $properties['attachmentVersion'] ) ) {

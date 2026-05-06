@@ -2,18 +2,15 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 class BodyContents extends ProcessorBase {
 
 	/**
-	 * @param ConfigDB $configDB
 	 * @param WorkspaceDB $workspaceDB
 	 */
 	public function __construct(
-		private ConfigDB $configDB,
 		private WorkspaceDB $workspaceDB
 	) {}
 
@@ -66,6 +63,15 @@ class BodyContents extends ProcessorBase {
 			$contentClass,
 			$properties
 		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add body content (ID:$bodyContentId) to the database."
+			);
+		}
 	}
 
 }

@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Utility;
 
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
 class ConversionDataLookup {
 

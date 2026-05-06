@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
@@ -14,11 +13,9 @@ use XMLReader;
 class Comments extends ProcessorBase {
 
 	/**
-	 * @param ConfigDB $configDB
 	 * @param WorkspaceDB $workspaceDB
 	 */
 	public function __construct(
-		private ConfigDB $configDB,
 		private WorkspaceDB $workspaceDB
 	) {}
 
@@ -87,7 +84,7 @@ class Comments extends ProcessorBase {
 		$created = $properties['creationDate'] ?? '';
 		$modified = $properties['lastModificationDate'] ?? '';
 
-		$this->workspaceDB->addComment(
+		$status = $this->workspaceDB->addComment(
 			$commentId,
 			$containerContentId,
 			$containerContentClass,
@@ -98,5 +95,14 @@ class Comments extends ProcessorBase {
 			$this->buildTimestamp( $modified ),
 			$properties
 		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add comment (ID:$commentId) to the database."
+			);
+		}
 	}
 }

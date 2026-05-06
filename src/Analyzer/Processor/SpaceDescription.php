@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
@@ -32,11 +31,9 @@ use XMLReader;
 class SpaceDescription extends ProcessorBase {
 
 	/**
-	 * @param ConfigDB $configDB
 	 * @param WorkspaceDB $workspaceDB
 	 */
 	public function __construct(
-		private ConfigDB $configDB,
 		private WorkspaceDB $workspaceDB
 	) {}
 
@@ -74,11 +71,20 @@ class SpaceDescription extends ProcessorBase {
 			$labellings = $collection['labellings'];
 		}
 
-		$this->workspaceDB->addSpaceDescription(
+		$status = $this->workspaceDB->addSpaceDescription(
 			(int)$descriptionId,
 			$bodyContents,
 			$labellings
 		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add space description (ID:$descriptionId) to the database."
+			);
+		}
 
 		$this->output->writeln( "\nAdd space description ($descriptionId)" );
 	}
