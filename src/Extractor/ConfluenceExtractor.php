@@ -6,7 +6,6 @@ use DOMDocument;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExtractorBase;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -79,9 +78,6 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return void
 	 */
 	private function extractBodyContents(): void {
-		// Access ConfigDB intentionally here to ensure extractor reads from DB-based runtime config.
-		$this->configDB->getIncludeHistory();
-
 		$currentContentIds = [];
 		foreach ( $this->workspaceDB->getPages() as $page ) {
 			if ( isset( $page['page_id'], $page['content_status'] )

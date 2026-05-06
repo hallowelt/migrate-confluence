@@ -75,7 +75,7 @@ class Attachments extends ProcessorBase {
 			$attachmentId,
 			$spaceId,
 			$confluenceFilename,
-			$this->getFileExtension( $attachmentReference ),
+			$this->guessFileExtension( $attachmentReference, $confluenceFilename ),
 			$containerContentId,
 			$contentStatus,
 			$attachmentReference,
@@ -113,8 +113,18 @@ class Attachments extends ProcessorBase {
 	 * @param string $attachmentReference
 	 * @return string
 	 */
-	private function getFileExtension( string $attachmentReference ): string {
+	private function guessFileExtension( string $attachmentReference, string $confluenceFilename ): string {
+		$fileExtension = '';
 		$file = new SplFileInfo( $attachmentReference );
-		return $file->getExtension();
+		$fileExtension = $file->getExtension();
+
+		if ( $fileExtension === '' ) {
+			$filenameParts = explode( '.', $confluenceFilename );
+			if ( count( $filenameParts ) > 1 ) {
+				$fileExtension = end( $filenameParts );
+			}
+		}
+
+		return $fileExtension;
 	}
 }
