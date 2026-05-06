@@ -9,6 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 
 class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware {
@@ -16,13 +17,8 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/** @var string */
 	private string $dest = '';
 
-	/**
-	 * @var array
-	 */
-	private array $categories = [];
-
-	/** @var ConfigDB */
-	private ConfigDB $configDB;
+	/** @var MigrationConfig */
+	private MigrationConfig $migrationConfig;
 
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
@@ -44,18 +40,32 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	}
 
 	/**
+	 * @return void
+	 */
+	private function initWorkspaceDB(): void {
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function initMigrationConfig(): void {
+		$advancedConfig = [];
+		if ( isset( $this->config['config'] ) ) {
+			$advancedConfig = $this->config['config'];
+		}
+		$this->migrationConfig = new MigrationConfig( $advancedConfig );
+	}
+
+	/**
 	 * @param SplFileInfo $file
 	 * @return bool
 	 */
 	protected function doExtract( SplFileInfo $file ): bool {
-		$this->configDB = new ConfigDB( $this->dest . '/config.sqlite' );
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$this->initMigrationConfig();
+		$this->initWorkspaceDB();
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
-
-		if ( isset( $this->config['config']['categories'] ) ) {
-			$this->categories = $this->config['config']['categories'];
-		}
 
 		$this->extractBodyContents();
 		$this->extractPagesMetaData();
@@ -141,7 +151,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	private function extractPagesMetaData(): void {
 		foreach ( $this->workspaceDB->getPages() as $page ) {
-			$categories = $this->categories;
+			$categories = $this->migrationConfig->getCategories();
 
 			if ( isset( $page['page_id'], $page['content_status'] )
 				&& strtolower( (string)$page['content_status'] ) === 'current'

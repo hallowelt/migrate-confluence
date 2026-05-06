@@ -226,6 +226,7 @@ class WorkspaceDB {
 				attachment_id INT PRIMARY KEY,
 				space_id INT,
 				filename CHAR,
+				file_extension CHAR,
 				container_id INT,
 				content_status CHAR,
 				attachment_reference CHAR,
@@ -929,6 +930,7 @@ class WorkspaceDB {
 		int $attachmentId,
 		int $spaceId,
 		string $filename,
+		string $fileExtension,
 		int $containerContentId,
 		string $contentStatus,
 		string $attachmentReference,
@@ -940,6 +942,7 @@ class WorkspaceDB {
 				attachment_id,
 				space_id,
 				filename,
+				file_extension,
 				container_id,
 				content_status,
 				attachment_reference,
@@ -948,6 +951,7 @@ class WorkspaceDB {
 				:attachment_id,
 				:space_id,
 				:filename,
+				:file_extension,
 				:container_id,
 				:content_status,
 				:attachment_reference,
@@ -960,6 +964,7 @@ class WorkspaceDB {
 		$transaction->bindValue( ':filename', $filename, SQLITE3_TEXT );
 		$transaction->bindValue( ':container_id', $containerContentId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
+		$transaction->bindValue( ':file_extension', $fileExtension, SQLITE3_TEXT );
 		$transaction->bindValue( ':attachment_reference', $attachmentReference, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );

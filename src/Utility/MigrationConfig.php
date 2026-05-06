@@ -75,7 +75,7 @@ class MigrationConfig {
 	/**
 	 * @return array
 	 */
-	public function getConfigCategories(): array {
+	public function getCategories(): array {
 		return $this->get( 'categories', [] );
 	}
 

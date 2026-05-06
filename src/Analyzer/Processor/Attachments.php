@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use SplFileInfo;
 use XMLReader;
 
 class Attachments extends ProcessorBase {
@@ -74,12 +75,12 @@ class Attachments extends ProcessorBase {
 			$attachmentId,
 			$spaceId,
 			$confluenceFilename,
+			$this->getFileExtension( $attachmentReference ),
 			$containerContentId,
 			$contentStatus,
 			$attachmentReference,
 			$properties
 		);
-
 	}
 
 	/**
@@ -106,5 +107,14 @@ class Attachments extends ProcessorBase {
 		}
 
 		return $basePath . "/" . $containerContentId . '/' . $attachmentId . '/' . $attachmentVersion;
+	}
+
+	/**
+	 * @param string $attachmentReference
+	 * @return string
+	 */
+	private function getFileExtension( string $attachmentReference ): string {
+		$file = new SplFileInfo( $attachmentReference );
+		return $file->getExtension();
 	}
 }
