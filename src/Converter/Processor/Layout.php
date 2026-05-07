@@ -17,23 +17,16 @@ class Layout implements IProcessor {
 	/**
 	 * @return string
 	 */
-	protected function getWikiTextTemplateStartName(): string {
-		return 'LayoutStart';
-	}
-
-	/**
-	 * @return string
-	 */
-	protected function getWikiTextTemplateEndName(): string {
-		return 'LayoutEnd';
+	protected function getWikiTextTemplateStylesName(): string {
+		return 'Layout';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
-		$templateStartName = $this->getWikiTextTemplateStartName();
-		$templateEndName = $this->getWikiTextTemplateEndName();
+		$templateStylesName = $this->getWikiTextTemplateStylesName();
+		$templateStyles = '{{' . $templateStylesName . '}}';
 
 		$layouts = [];
 		$liveLayouts = $dom->getElementsByTagName(
@@ -44,48 +37,39 @@ class Layout implements IProcessor {
 		}
 
 		foreach ( $layouts as $layout ) {
+			if ( $templateStylesName !== '' ) {
+				$templateStylesEl = $layout->ownerDocument->createTextNode(
+					$templateStyles
+				);
+				$layout->parentElement->insertBefore( $templateStylesEl, $layout );
+			}
+
+			$wikiLayoutEl = $dom->createElement( 'div' );
+			$wikiLayoutEl->setAttribute( 'class', $this->getTagName() );
+
 			$attributeNames = $layout->getAttributeNames();
-
-			$params = [];
 			foreach ( $attributeNames as $attributeName ) {
-				$paramName = $attributeName;
-				if ( str_starts_with( $paramName, 'ac:' ) ) {
-					$paramName = substr( $paramName, 3 );
+				$value = $layout->getAttribute( $attributeName );
+				if ( str_starts_with( $attributeName, 'ac:' ) ) {
+					$attributeName = 'data-' . substr( $attributeName, 3 );
 				}
-				$params[$paramName] = $layout->getAttribute( $attributeName );
+				$wikiLayoutEl->setAttribute(
+					$attributeName,
+					$value
+				);
 			}
 
-			$startTemplateText = "{{" . $templateStartName;
-			if ( !empty( $params ) ) {
-				$startTemplateText .= "###BREAK###\n";
-			}
-			foreach ( $params as $name => $value ) {
-				$startTemplateText .= "| $name = $value###BREAK###\n";
-			}
-			$startTemplateText .= "}}";
-
-			$openTemplate = $layout->ownerDocument->createTextNode(
-				$startTemplateText
-			);
-
-			$layout->parentElement->insertBefore( $openTemplate, $layout );
-
-			$childNodes = [];
 			// Create non live list
+			$childNodes = [];
 			foreach ( $layout->childNodes as $childNode ) {
 				$childNodes[] = $childNode;
 			}
 
 			foreach ( $childNodes as $childNode ) {
-				$layout->parentElement->insertBefore( $childNode, $layout );
+				$wikiLayoutEl->append( $childNode );
 			}
 
-			$endTemplateText = "{{" . $templateEndName . "}}";
-			$closeTemplate = $layout->ownerDocument->createTextNode(
-				$endTemplateText
-			);
-
-			$layout->parentElement->insertBefore( $closeTemplate, $layout );
+			$layout->parentElement->insertBefore( $wikiLayoutEl, $layout );
 
 			$layout->remove();
 		}
