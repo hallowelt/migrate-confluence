@@ -11,7 +11,7 @@ class CodeMacro implements IPostprocessor {
 	 */
 	public function postprocess( string $wikiText ): string {
 		$wikiText = preg_replace_callback(
-			'#<pre class="PRESERVESYNTAXHIGHLIGHT"(.*?)>(.*?)</pre>#si', function ( $matches ) {
+			'#<div class="PRESERVESYNTAXHIGHLIGHT"(.*?)>(.*?)</div>#si', function ( $matches ) {
 				$attribs = $this->getAttributes( $matches[1] );
 
 				if ( isset( $attribs['data-broken-macro'] ) ) {
