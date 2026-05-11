@@ -14,14 +14,7 @@ class LayoutCell extends Layout {
 	/**
 	 * @return string
 	 */
-	protected function getWikiTextTemplateStartName(): string {
-		return 'LayoutCellStart';
-	}
-
-	/**
-	 * @return string
-	 */
-	protected function getWikiTextTemplateEndName(): string {
-		return 'LayoutCellEnd';
+	protected function getWikiTextTemplateStylesName(): string {
+		return '';
 	}
 }
