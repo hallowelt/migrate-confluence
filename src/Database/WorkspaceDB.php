@@ -86,7 +86,15 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	private function createTables(): void {
+		// General logging
 		$this->createTableLogging();
+
+		// Tables to collect invalid titles or BodyContents ( e. g. content length)
+		$this->createTableInvalidTitles();
+		$this->createTableInvalidBodyContents();
+		$this->createTableInvalidAttachmentTitles();
+
+		// Object tables
 		$this->createTableSpaces();
 		$this->createTableSpaceDescriptions();
 		$this->createTablePages();
@@ -142,8 +150,14 @@ class WorkspaceDB {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS spaces_descriptions (
 				space_description_id INT PRIMARY KEY,
+				revision_timestamp CHAR,
+				content_status CHAR,
+				version CHAR,
+				original_version_id INT,
 				body_content_ids BLOB,
-				labelling_ids BLOB
+				labelling_ids BLOB,
+				properties BLOB,
+				collection BLOB
 			);'
 		);
 	}
@@ -198,7 +212,7 @@ class WorkspaceDB {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS body_contents (
 				body_content_id INT PRIMARY KEY,
-				page_id INT,
+				content_id INT,
 				class CHAR,
 				properties BLOB
 			);'
@@ -366,7 +380,8 @@ class WorkspaceDB {
 	private function createTableInvalidTitles(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS invalid_titles (
-				confluence_title CHAR,
+				page_id INT PRIMARY KEY,
+				wiki_title CHAR,
 				text CHAR
 			);'
 		);
@@ -378,7 +393,20 @@ class WorkspaceDB {
 	private function createTableInvalidBodyContents(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS invalid_body_contents (
-				body_content_id CHAR,
+				body_content_id INT PRIMARY KEY,
+				text CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableInvalidAttachmentTitles(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS invalid_attachment_titles (
+				attachment_id INT PRIMARY KEY,
+				wiki_title CHAR,
 				text CHAR
 			);'
 		);
@@ -416,17 +444,118 @@ class WorkspaceDB {
 
 	/**
 	 * @param string $step
+	 * @param string $type
 	 * @return array
 	 */
-	public function getLogEntriesForStep( string $step ): array {
-		$transaction = $this->db->prepare(
-			'SELECT type,caller,text FROM logging WHERE step = :step'
-		);
-		$transaction->bindValue( ':step', $step, SQLITE3_TEXT );
-
+	public function getLogEntriesForStep( string $step, string $type = '' ): array {
+		if ( $type !== '' ) {
+			$transaction = $this->db->prepare(
+				'SELECT caller,text FROM logging WHERE step = :step AND type = :type'
+			);
+			$transaction->bindValue( ':step', $step, SQLITE3_TEXT );
+			$transaction->bindValue( ':type', $type, SQLITE3_TEXT );
+		} else {
+			$transaction = $this->db->prepare(
+				'SELECT type,caller,text FROM logging WHERE step = :step'
+			);
+			$transaction->bindValue( ':step', $step, SQLITE3_TEXT );	
+		}
+		
 		$result = $transaction->execute();
 		return $this->fetchDbArray( $result );
 		
+	}
+
+	/**
+	 * @param integer $pageId
+	 * @param string $wikiTitle
+	 * @param string $text
+	 * @return void
+	 */
+	public function addInvalidTitle( int $pageId, string $wikiTitle, string $text ): void {
+		$transaction = $this->db->prepare(
+			'INSERT INTO invalid_titles (
+				page_id,
+				wiki_title,
+				text
+			) VALUES (
+				:page_id,
+				:wiki_title
+				:text
+			)'
+		);
+
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':text', $text, SQLITE3_TEXT );
+		$transaction->execute();
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getInvalidTitles(): array {
+		return $this->getAllData( 'invalid_titles' );
+	}
+	
+	/**
+	 * @param integer $bodyContentId
+	 * @param string $text
+	 * @return void
+	 */
+	public function addInvalidBodyContent( int $bodyContentId, string $text ): void {
+		$transaction = $this->db->prepare(
+			'INSERT INTO invalid_body_contents (
+				body_content_id,
+				text
+			) VALUES (
+				:body_content_id,
+				:text
+			)'
+		);
+
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':text', $text, SQLITE3_TEXT );
+		$transaction->execute();
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getInvalidBodyContents(): array {
+		return $this->getAllData( 'invalid_body_contents' );
+	}
+
+	/**
+	 * @param integer $attachmentId
+	 * @param string $wikiTitle
+	 * @param string $text
+	 * @return void
+	 */
+	public function addInvalidAttachmentTitle( int $attachmentId, string $wikiTitle, string $text ): void {
+		$transaction = $this->db->prepare(
+			'INSERT INTO invalid_attachment_titles (
+				attachment_id,
+				wiki_title,
+				text
+			) VALUES (
+				:attachment_id,
+				:wiki_title,
+				:text
+			)'
+		);
+
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':text', $text, SQLITE3_TEXT );
+		$transaction->execute();
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getInvalidAttachmentTitles(): array {
+		return $this->getAllData( 'invalid_attachment_titles' );
 	}
 
 	/**
@@ -477,35 +606,86 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param integer $descriptionId
+	 * @return integer
+	 */
+	public function getSpaceIdForDescriptionId( int $descriptionId ): int {
+		$transaction = $this->db->prepare(
+			'SELECT space_id FROM spaces WHERE description_id = :description_id LIMIT 1'
+		);
+		$transaction->bindValue( ':description_id', $descriptionId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return -1;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['space_id'] ) ) {
+			return -1;
+		}
+
+		return (int)$data['space_id'];
+	}
+
+	/**
 	 * @param integer $spaceDescriptionId
 	 * @param array $bodyContentIds
 	 * @param array $lagellingIds
 	 * @return bool True on success, false on error.
 	 */
 	public function addSpaceDescription(
-		int $spaceDescriptionId, array $bodyContentIds, array $lagellingIds
+		int $spaceDescriptionId, string $revisionTimestamp, string $contentStatus, string $version,
+		int $originalVersionId, array $bodyContentIds, array $lagellingIds, array $properties, array $collection	
 	): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$labellingIdsJson = json_encode( $lagellingIds );
+		$propertiesJson = json_encode( $properties );
+		$collectionJson = json_encode( $collection );
 		$transaction = $this->db->prepare(
 			'INSERT INTO spaces_descriptions (
 				space_description_id,
+				revision_timestamp,
+				content_status,
+				version,
+				original_version_id,
 				body_content_ids,
-				labelling_ids
+				labelling_ids,
+				properties,
+				collection
 			) VALUES (
 				:space_description_id,
+				:revision_timestamp,
+				:content_status,
+				:version,
+				:original_version_id,
 				:body_content_ids,
-				:labelling_ids
+				:labelling_ids,
+				:properties,
+				:collection
 			)'
 		);
 
 		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
+		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':labelling_ids', $labellingIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
 
 	/**
+	 * @param integer $attachmentId
+	 * @param string $confluenceFilename
+	 * @param array $properties
+	 * @return void
+	 */	/**
 	 * @param string $spaceKey
 	 * @return int
 	 */
@@ -563,6 +743,29 @@ class WorkspaceDB {
 	 */
 	public function getSpaceDescriptions(): array {
 		return $this->getAllData( 'spaces_descriptions' );
+	}
+
+	/**
+	 * Check if a space description with the given space description ID already exists in the database.
+	 *
+	 * @param integer $spaceDescriptionId
+	 * @return boolean
+	 */
+	public function spaceDescriptionIdExists( int $spaceDescriptionId ): bool {
+		$transaction = $this->db->prepare(
+			'SELECT space_description_id FROM spaces_descriptions WHERE space_description_id = :space_description_id LIMIT 1'
+		);
+		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return false;
+		}
+
+		$exists = $result->fetchArray( SQLITE3_ASSOC ) !== false;
+		$result->finalize();
+
+		return $exists;
 	}
 
 	/**
@@ -700,6 +903,53 @@ class WorkspaceDB {
 		];
 	}
 
+	/**
+	 * Check if a page with the given page ID already exists in the database.
+	 *
+	 * @param integer $pageId
+	 * @return boolean
+	 */
+	public function pageIdExists( int $pageId ): bool {
+		$transaction = $this->db->prepare(
+			'SELECT page_id FROM pages WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return false;
+		}
+
+		$exists = $result->fetchArray( SQLITE3_ASSOC ) !== false;
+		$result->finalize();
+
+		return $exists;
+	}
+
+	/**
+	 * @param integer $pageId
+	 * @return int The space_id for the given page_id, or -1 if not found.
+	 */
+	public function getSpaceIdForPageId( int $pageId ): int {
+		$transaction = $this->db->prepare(
+			'SELECT space_id FROM pages WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return -1;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['space_id'] ) ) {
+			return -1;
+		}
+
+		return (int)$data['space_id'];
+	}
 
 	/**
 	 * @param integer $pageId
@@ -795,15 +1045,61 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param integer $blogPostId
+	 * @return boolean
+	 */
+	public function blogPostIdExists( int $blogPostId ): bool {
+		$transaction = $this->db->prepare(
+			'SELECT page_id FROM blog_posts WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return false;
+		}
+
+		$exists = $result->fetchArray( SQLITE3_ASSOC ) !== false;
+		$result->finalize();
+
+		return $exists;
+	}
+
+	/**
+	 * @param integer $blogPostId
+	 * @return int The space_id for the given blog post page_id, or -1 if not found.
+	 */
+	public function getSpaceIdForBlogPostId( int $blogPostId ): int {
+		$transaction = $this->db->prepare(
+			'SELECT space_id FROM blog_posts WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return -1;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['space_id'] ) ) {
+			return -1;
+		}
+
+		return (int)$data['space_id'];
+	}
+
+	/**
 	 * @param integer $bodyContentId
-	 * @param integer $pageId
+	 * @param integer $contentId
 	 * @param string $class
 	 * @param array $properties
 	 * @return bool True on success, false on error.
 	 */
 	public function addBodyContent(
 		int $bodyContentId,
-		int $pageId,
+		int $contentId,
 		string $class,
 		array $properties
 	): bool {
@@ -816,14 +1112,14 @@ class WorkspaceDB {
 				properties
 			) VALUES (
 				:body_content_id,
-				:page_id,
+				:content_id,
 				:class,
 				:properties
 			)'
 		);
 
 		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':content_id', $contentId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':class', $class, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
@@ -837,14 +1133,14 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param integer $contentId
 	 * @return array
 	 */
-	public function getBodyContentIdsForPageId( int $pageId ): array {
+	public function getBodyContentIdsForContentId( int $contentId ): array {
 		$transaction = $this->db->prepare(
-			'SELECT body_content_id FROM body_contents WHERE page_id = :page_id'
+			'SELECT body_content_id FROM body_contents WHERE content_id = :content_id'
 		);
-		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':content_id', $contentId, SQLITE3_INTEGER );
 
 		$result = $transaction->execute();
 		$data = $this->fetchDbArray( $result );
@@ -858,6 +1154,31 @@ class WorkspaceDB {
 		}
 		
 		return $bodyContentIds;
+	}
+
+	/**
+	 * @param integer $bodyContentId
+	 * @return integer
+	 */
+	public function getContentIdForBodyContentId( int $bodyContentId ): int {
+		$transaction = $this->db->prepare(
+			'SELECT content_id FROM body_contents WHERE body_content_id = :body_content_id'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$bodyContentId = -1;
+		foreach ( $data as $item ) {
+			if ( isset( $item['body_content_id'] ) ) {
+				$bodyContentId = $item['body_content_id'];
+			}
+		}
+
+		// TODO: Add a error if there are more then one page_id's for this body_content_id
+		
+		return $bodyContentId;
 	}
 
 	/**
@@ -1283,6 +1604,27 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param integer $commentId
+	 * @return boolean
+	 */
+	public function commentIdExists( int $commentId ): bool {
+		$transaction = $this->db->prepare(
+			'SELECT comment_id FROM comments WHERE comment_id = :comment_id LIMIT 1'
+		);
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return false;
+		}
+
+		$exists = $result->fetchArray( SQLITE3_ASSOC ) !== false;
+		$result->finalize();
+
+		return $exists;
+	}
+
+	/**
 	 * @param integer $labellingId
 	 * @param integer $labelId
 	 * @param array $properties
@@ -1682,5 +2024,77 @@ class WorkspaceDB {
 		}
 
 		return $map;
+	}
+
+	/**
+	 * Update body_content_ids for a page.
+	 *
+	 * @param integer $pageId
+	 * @param array $bodyContentIds
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageBodyContentIds( int $pageId, array $bodyContentIds ): bool {
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$transaction = $this->db->prepare(
+			'UPDATE pages SET body_content_ids = :body_content_ids WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Update body_content_ids for a blog post.
+	 *
+	 * @param integer $pageId
+	 * @param array $bodyContentIds
+	 * @return bool True on success, false on error.
+	 */
+	public function updateBlogPostBodyContentIds( int $pageId, array $bodyContentIds ): bool {
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$transaction = $this->db->prepare(
+			'UPDATE blog_posts SET body_content_ids = :body_content_ids WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Update body_content_ids for a comment.
+	 *
+	 * @param integer $commentId
+	 * @param array $bodyContentIds
+	 * @return bool True on success, false on error.
+	 */
+	public function updateCommentBodyContentIds( int $commentId, array $bodyContentIds ): bool {
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$transaction = $this->db->prepare(
+			'UPDATE comments SET body_content_ids = :body_content_ids WHERE comment_id = :comment_id'
+		);
+
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Update body_content_ids for a space description.
+	 *
+	 * @param integer $spaceDescriptionId
+	 * @param array $bodyContentIds
+	 * @return bool True on success, false on error.
+	 */
+	public function updateSpaceDescriptionBodyContentIds( int $spaceDescriptionId, array $bodyContentIds ): bool {
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$transaction = $this->db->prepare(
+			'UPDATE spaces_descriptions SET body_content_ids = :body_content_ids WHERE space_description_id = :space_description_id'
+		);
+
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
 	}
 }

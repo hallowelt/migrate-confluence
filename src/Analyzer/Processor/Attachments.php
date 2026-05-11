@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 use XMLReader;
 
@@ -10,10 +11,12 @@ class Attachments extends ProcessorBase {
 	
 	/**
 	 * @param WorkspaceDB $workspaceDB
+	 * @param MigrationConfig $migrationConfig
 	 * @param string $xmlPath
 	 */
 	public function __construct(
 		private WorkspaceDB $workspaceDB,
+		private MigrationConfig $migrationConfig,
 		private string $xmlPath
 	) {}
 
@@ -65,6 +68,15 @@ class Attachments extends ProcessorBase {
 			$contentStatus = $properties['contentStatus'];
 		}
 
+		$contentStatus = null;
+		if ( isset( $properties['contentStatus'] ) ) {
+			$contentStatus = $properties['contentStatus'];
+		}
+
+		if ( !$this->migrationConfig->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
+			return;
+		}
+
 		$attachmentReference = $this->makeAttachmentReference(
 			$attachmentId,
 			$containerContentId,
@@ -77,7 +89,7 @@ class Attachments extends ProcessorBase {
 			$confluenceFilename,
 			$this->guessFileExtension( $attachmentReference, $confluenceFilename ),
 			$containerContentId,
-			$contentStatus,
+			strtolower( $contentStatus ),
 			$attachmentReference,
 			$properties
 		);

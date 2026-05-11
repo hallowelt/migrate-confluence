@@ -82,15 +82,16 @@ use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
-use HalloWelt\MigrateConfluence\Database\ConfigDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
 class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware {
 
-	/** @var ConfigDB */
-	private ConfigDB $configDB;
+	/** @var MigrationConfig */
+	private MigrationConfig $migrationConfig;
 
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
@@ -101,8 +102,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var DataBuckets */
 	private DataBuckets $buckets;
 
-	/** @var ConversionDataLookup|null */
-	private ?ConversionDataLookup $dataLookup = null;
+	/** @var DBConversionDataLookup */
+	private DBConversionDataLookup $dataLookup;
 
 	/** @var ConversionDataWriter|null */
 	private ?ConversionDataWriter $conversionDataWriter = null;
@@ -126,13 +127,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	private ?Output $output = null;
 
 	/** @var string */
-	private string $mainpage = 'Main Page';
-
-	/** @var bool */
-	private bool $isSpaceDescriptionContent = false;
-
-	/** @var array */
-	private array $advancedConfig = [];
+	private string $contentType = '';
 
 	/**
 	 * @param array $config
@@ -187,58 +182,97 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	}
 
 	/**
+	 *
+	 * @param SplFileInfo $file
+	 * @return string
+	 */
+	public function convert( SplFileInfo $file ): string {
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+
+		if ( isset( $this->config['config'] ) ) {
+			$this->migrationConfig = new MigrationConfig( $this->config['config'] );
+		} else {
+			$this->migrationConfig = new MigrationConfig( [] );
+		}
+
+		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
+		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
+
+		$result = parent::convert( $file );
+		return $result;
+	}
+
+	/**
 	 * @inheritDoc
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
-		$this->configDB = new ConfigDB( $this->dest . '/config.sqlite' );
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$this->output->writeln( "Converting file " . $file->getPathname() );
 
-		$this->output->writeln( $file->getPathname() );
-		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->buckets );
-		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
 		$this->rawFile = $file;
 
-		if ( isset( $this->config['config'] ) ) {
-			$this->advancedConfig = $this->config['config'];
-		}
-
-		if ( isset( $this->advancedConfig['mainpage'] ) ) {
-			$this->mainpage = $this->advancedConfig['mainpage'];
-		}
-
-		$this->isSpaceDescriptionContent = false;
 		$bodyContentId = $this->getBodyContentIdFromFilename();
-		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
-		if ( $pageId === -1 ) {
-			$spaceDescId = $this->getSpaceDescriptionIdFromBodyContentId( $bodyContentId );
-			$spaceId = $this->getSpaceIdFromSpaceDescriptionId( $spaceDescId );
-			$pageId = $this->getSpaceHomepageId( $spaceId );
-			$this->isSpaceDescriptionContent = true;
-		}
-		if ( $pageId === -1 ) {
-			$commentBodyMap = $this->buckets->getBucketData( 'global-body-content-id-to-comment-id-map' );
-			if ( !isset( $commentBodyMap[$bodyContentId] ) ) {
-				return '<-- No context page id found -->';
-			}
+		$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
+
+		// Test to which type of content the contentId belongs
+		if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
+			$this->contentType = 'spaceDescription';
+
+			$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
+			$pageId = $this->getSpaceHomepageId( $this->currentSpace );
+		} else if ( $this->workspaceDB->pageIdExists( $contentId ) ) {
+			$this->contentType = 'page';
+
+			$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
+			$pageId = $contentId;
+		} else if ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
+			$this->contentType = 'blogPost';
+
+			$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId );
+			$pageId = $contentId;
+		} else if ( $this->workspaceDB->commentIdExists( $contentId ) ) {
+			$this->contentType = 'comment';
+
+			$pageId = $contentId;
+
 			// Comment body content: convert with minimal context (no page-specific macros expected)
 			$this->currentSpace = 0;
 			$this->currentPageTitle = '';
 		} else {
-			$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
-			if ( $this->currentSpace === -1 ) {
-				return '<-- No context space id found -->';
-			}
+			$pageId = -1;
+		}
 
-			$pagesIdsToTitlesMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
-			if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
-				$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
+		if ( $pageId === -1 ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'convert',
+				__CLASS__,
+				"No context page id found for bodyContentId $bodyContentId"
+			);
+			return '<-- No context page id found -->';
+		}
+
+		if ( $this->currentSpace === -1 ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'convert',
+				__CLASS__,
+				"No context space id found for bodyContentId $bodyContentId"
+			);
+
+			return '<-- No context space id found -->';
+		}
+
+		// TODO: Go on here!
+
+		$pagesIdsToTitlesMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
+		if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
+			$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
+		} else {
+			$blogPostIdsToTitlesMap = $this->buckets->getBucketData( 'global-blogpost-id-to-title-map' );
+			if ( isset( $blogPostIdsToTitlesMap[$pageId] ) ) {
+				$this->currentPageTitle = $blogPostIdsToTitlesMap[$pageId];
 			} else {
-				$blogPostIdsToTitlesMap = $this->buckets->getBucketData( 'global-blogpost-id-to-title-map' );
-				if ( isset( $blogPostIdsToTitlesMap[$pageId] ) ) {
-					$this->currentPageTitle = $blogPostIdsToTitlesMap[$pageId];
-				} else {
-					$this->currentPageTitle = 'not_current_revision_' . $pageId;
-				}
+				$this->currentPageTitle = 'not_current_revision_' . $pageId;
 			}
 		}
 
@@ -445,19 +479,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 *
 	 * @return int
 	 */
-	private function getPageIdFromBodyContentId( int $bodyContentId ): int {
-		$map = $this->buckets->getBucketData( 'global-body-content-id-to-page-id-map' );
-		return $map[$bodyContentId] ?? -1;
-	}
-
-	/**
-	 *
-	 * @param int $bodyContentId
-	 * @return int
-	 */
-	private function getSpaceDescriptionIdFromBodyContentId( int $bodyContentId ): int {
-		$map = $this->buckets->getBucketData( 'global-body-content-id-to-space-description-id-map' );
-		return $map[$bodyContentId] ?? -1;
+	private function getContentIdFromBodyContentId( int $bodyContentId ): int {
+		$map = $this->workspaceDB->getContentIdForBodyContentId( $bodyContentId );
+		return $map;
 	}
 
 	/**
@@ -465,9 +489,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return int
 	 */
 	private function getSpaceIdFromSpaceDescriptionId( int $spaceDescId ): int {
-		$map = $this->buckets->getBucketData( 'global-space-id-to-description-id-map' );
-		$mapFlipped = array_flip( $map );
-		return $mapFlipped[$spaceDescId] ?? -1;
+		return $this->workspaceDB->getSpaceIdForDescriptionId( $spaceDescId );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @return int
+	 */
+	private function getSpaceIdFromPageId( int $pageId ): int {
+		return $this->workspaceDB->getSpaceIdForPageId( $pageId );
+	}
+
+	/**
+	 * @param int $blogPostId
+	 * @return int
+	 */
+	private function getSpaceIdFromBlogPostId( int $blogPostId ): int {
+		return $this->workspaceDB->getSpaceIdForBlogPostId( $blogPostId );
 	}
 
 	/**
@@ -477,21 +515,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	private function getSpaceHomepageId( int $spaceId ): int {
 		$map = $this->buckets->getBucketData( 'global-space-id-homepages' );
 		return $map[$spaceId] ?? -1;
-	}
-
-	/**
-	 *
-	 * @param int $pageId
-	 *
-	 * @return int
-	 */
-	private function getSpaceIdFromPageId( int $pageId ): int {
-		$map = $this->buckets->getBucketData( 'global-page-id-to-space-id' );
-		if ( isset( $map[$pageId] ) ) {
-			return $map[$pageId];
-		}
-		$blogPostMap = $this->buckets->getBucketData( 'global-blogpost-id-to-space-id' );
-		return $blogPostMap[$pageId] ?? -1;
 	}
 
 	/**
@@ -531,6 +554,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$preprocessors = [
 			new CDATAClosingFixer()
 		];
+
 		/** @var IHtmlPreprocessor $preprocessor */
 		foreach ( $preprocessors as $preprocessor ) {
 			$sContent = $preprocessor->preprocess( $sContent );

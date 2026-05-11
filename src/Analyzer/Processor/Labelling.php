@@ -39,9 +39,11 @@ class Labelling extends ProcessorBase {
 			return;
 		}
 
+		$labelId = (int)$properties['label'];
+
 		$status = $this->workspaceDB->addLabelling(
 			$labellingId,
-			(int)$properties['label'],
+			$labelId,
 			$properties
 		);
 

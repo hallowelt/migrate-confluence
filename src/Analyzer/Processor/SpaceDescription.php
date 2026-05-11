@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 /**
@@ -34,7 +35,8 @@ class SpaceDescription extends ProcessorBase {
 	 * @param WorkspaceDB $workspaceDB
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB
+		private WorkspaceDB $workspaceDB,
+		private MigrationConfig $migrationConfig
 	) {}
 
 	/**
@@ -64,17 +66,55 @@ class SpaceDescription extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 
+		$bodyContentIds = [];
 		if ( isset( $collection['bodyContents'] ) ) {
-			$bodyContents = $collection['bodyContents'];
+			$bodyContentIds = $collection['bodyContents'];
 		}
+		// A fallback mechanism for body content IDs in case they are not found in the collection
+		// is placed in the ConfluenceAnalyzer, which will attempt to retrieve them from the
+		// body_contents table based on the space description ID.
+
+		$labellingsIds = [];
 		if ( isset( $collection['labellings'] ) ) {
-			$labellings = $collection['labellings'];
+			$labellingsIds = $collection['labellings'];
+		}
+
+		$version = '';
+		if ( isset( $properties['version'] ) ) {
+			$version = $properties['version'];
+		}
+
+		$lastModificationDate = '';
+		if ( isset( $properties['lastModificationDate'] ) ) {
+			$lastModificationDate = $properties['lastModificationDate'];
+		}
+
+		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
+
+		$originalVersionId = -1;
+		if ( isset( $properties['originalVersion'] ) ) {
+			$originalVersionId = (int)$properties['originalVersion'];
+		}
+
+		$contentStatus = null;
+		if ( isset( $properties['contentStatus'] ) ) {
+			$contentStatus = $properties['contentStatus'];
+		}
+
+		if ( !$this->migrationConfig->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
+			return;
 		}
 
 		$status = $this->workspaceDB->addSpaceDescription(
 			(int)$descriptionId,
-			$bodyContents,
-			$labellings
+			$revisionTimestamp,
+			strtolower( $contentStatus ),
+			$version,
+			$originalVersionId,
+			$bodyContentIds,
+			$labellingsIds,
+			$properties,
+			$collection
 		);
 
 		if ( !$status ) {

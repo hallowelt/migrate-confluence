@@ -80,10 +80,10 @@ class BlogPost extends ProcessorBase {
 		$bodyContentIds = [];
 		if ( isset( $collection['bodyContents'] ) ) {
 			$bodyContentIds = $collection['bodyContents'];
-		} else {
-			$this->output->writeln( "Use fallback to fetch body content IDs (ID:$pageId)" );
-			$bodyContentIds = $this->workspaceDB->getBodyContentIdsForPageId( $pageId );
 		}
+		// A fallback mechanism for body content IDs in case they are not found in the collection
+		// is placed in the ConfluenceAnalyzer, which will attempt to retrieve them from
+		// the body_contents table based on the blog post ID.
 
 		$lastModificationDate = '';
 		if ( isset( $properties['lastModificationDate'] ) ) {
@@ -116,7 +116,7 @@ class BlogPost extends ProcessorBase {
 			$confluenceTitle,
 			'',
 			$revisionTimestamp,
-			$contentStatus,
+			strtolower( $contentStatus ),
 			$version,
 			$originalVersionId,
 			$bodyContentIds,
