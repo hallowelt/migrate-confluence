@@ -14,7 +14,7 @@ class LayoutSection extends Layout {
 	/**
 	 * @return string
 	 */
-	protected function getWikiTextTemplateStylesName(): string {
-		return '';
+	protected function getClassName(): string {
+		return 'pl-col';
 	}
 }
