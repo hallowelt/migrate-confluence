@@ -16,7 +16,12 @@ class RestoreExcerptMacro implements IPostprocessor {
 				$name = $matches[1];
 				$hidden = $matches[2];
 				$content = $matches[3];
-				return "<div name=\"$name\" hidden=\"$hidden\">$content</div>";
+
+				$wikiText = "<!-- start excerpt macro -->";
+				$wikiText .= "<div data-macro=\"excerpt\" name=\"$name\" hidden=\"$hidden\">$content</div>";
+				$wikiText .= "<!-- end excerpt macro -->";
+
+				return $wikiText;
 			},
 			$wikiText
 		);
