@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Some text before</p>
+	{{CreateFromTemplate|orig-templateName = 123456|orig-templateId = 123456|buttonLabel = Create|preload = SomePage}}
+	{{CreateFromTemplate|orig-templateName = 7890|orig-templateId = 7890|buttonLabel = New|preload = SomeOtherPage}}
+	{{CreateFromTemplate|blueprintModuleCompleteKey = com.atlassian.confluence.plugins.confluence-business-blueprints:file-list-blueprint|contentBlueprintId = 12345678-abcd-123a-123b-1234567890ab|orig-templateName = 123456|createResult = view|buttonLabel = Create|preload = SomePage}}
+	<p>Some text after</p>
+	{{CreateFromTemplate|orig-templateName = 345|orig-templateId = 345|buttonLabel = New|preload = }}[[Category:Broken_macro/create-from-template]]
+	{{CreateFromTemplate|blueprintModuleCompleteKey = com.atlassian.confluence.plugins.confluence-business-blueprints:file-list-blueprint|contentBlueprintId = 12345678-abcd-123a-123b-1234567890ab|orig-templateName = 12345678-abcd-123a-123b-1234567890ab|createResult = view|buttonLabel = Create|preload = }}[[Category:Broken_macro/create-from-template]]
+</xml>

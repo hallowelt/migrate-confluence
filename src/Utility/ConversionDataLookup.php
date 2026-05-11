@@ -52,6 +52,11 @@ class ConversionDataLookup {
 	private array $attachmentMetadataMap;
 
 	/**
+	 * @var array
+	 */
+	private array $pageIdToTitleMap;
+
+	/**
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataLookup
 	 */
@@ -65,7 +70,8 @@ class ConversionDataLookup {
 			$buckets->getBucketData( 'global-userkey-to-username-map' ),
 			$buckets->getBucketData( 'global-space-id-to-key-map' ),
 			$buckets->getBucketData( 'global-attachment-metadata' ),
-			$buckets->getBucketData( 'global-attachment-id-to-confluence-file-key-map' )
+			$buckets->getBucketData( 'global-attachment-id-to-confluence-file-key-map' ),
+			$buckets->getBucketData( 'global-page-id-to-title-map' )
 		);
 	}
 
@@ -84,7 +90,7 @@ class ConversionDataLookup {
 		array $spaceIdPrefixMap, array $pagesTitlesMap,
 		array $filenamesToFiletitlesMap, array $attachmentOrigFilenameToTargetFilenameMap,
 		array $files, array $userMap, array $spaceIdToKeyMap,
-		array $attachmentMetadata, array $attachmentIdToFileKeyMap
+		array $attachmentMetadata, array $attachmentIdToFileKeyMap, array $pageIdToTitleMap
 	) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
@@ -113,6 +119,8 @@ class ConversionDataLookup {
 			}
 		}
 		$this->attachmentMetadataMap = $attachmentMetadataMap;
+
+		$this->pageIdToTitleMap = $pageIdToTitleMap;
 	}
 
 	/**
@@ -295,5 +303,17 @@ class ConversionDataLookup {
 		}
 
 		return null;
+	}
+
+	/**
+	 * @param int $pageId
+	 * @return string|null
+	 */
+	public function getWikiTitleFromPageId( int $pageId ): ?string {
+		$wikiTitle = null;
+		if ( isset( $this->pageIdToTitleMap[$pageId] ) ) {
+			return $this->pageIdToTitleMap[$pageId];
+		}
+		return $wikiTitle;
 	}
 }

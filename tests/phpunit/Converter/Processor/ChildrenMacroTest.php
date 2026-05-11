@@ -35,6 +35,7 @@ class ChildrenMacroTest extends StructuredMacroProcessorTestBase {
 				23 => 'DEVOPS'
 			],
 			[],
+			[],
 			[]
 		);
 		return new ChildrenMacro( 42, 'ABC:Some_page', $dataLookup );

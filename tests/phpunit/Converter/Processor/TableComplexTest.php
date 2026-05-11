@@ -51,6 +51,7 @@ class TableComplexTest extends TestCase {
 			],
 			[ 42 => 'ABC', 23 => 'INF' ],
 			[],
+			[],
 			[]
 		);
 
@@ -125,6 +126,7 @@ class TableComplexTest extends TestCase {
 				'000000005e7f616b01606dc4e2080003' => 'UserB',
 			],
 			[ 42 => 'ABC', 23 => 'INF' ],
+			[],
 			[],
 			[]
 		);

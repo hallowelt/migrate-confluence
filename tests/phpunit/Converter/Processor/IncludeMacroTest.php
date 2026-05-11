@@ -37,6 +37,7 @@ class IncludeMacroTest extends TestCase {
 				42 => 'ABC'
 			],
 			[],
+			[],
 			[]
 		);
 		$currentSpaceId = 42;

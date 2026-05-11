@@ -3,39 +3,35 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
+use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
-class AttachmentLinkTest extends TestCase {
+class CreateFromTemplateMacroTest extends TestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\AttatchmentsLinkProcessor::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro::preprocess
 	 * @return void
 	 */
 	public function testPreprocess() {
 		$this->doTestAttachments(
-			'attachmentlinktest-input.xml',
-			'attachmentlinktest-output.xml',
-			false
+			'create-from-template-macro-input.xml',
+			'create-from-template-macro-output.xml'
 		);
 	}
 
 	/**
 	 * @param string $input
 	 * @param string $output
-	 * @param bool $extNSFileRepo
 	 * @return void
 	 */
-	private function doTestAttachments( $input, $output, $extNSFileRepo = false ): void {
-		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+	private function doTestAttachments( $input, $output ): void {
+		$dir = dirname( __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/$input" );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$currentSpaceId = 42;
-		$currentRawPagename = 'SomePage';
 		$dataLookup = new ConversionDataLookup(
 			[
 				42 => 'ABC:',
@@ -56,10 +52,13 @@ class AttachmentLinkTest extends TestCase {
 			],
 			[],
 			[],
-			[]
+			[
+				123456 => 'SomePage',
+				7890 => 'SomeOtherPage'
+			]
 		);
 
-		$processor = new AttachmentLink( $dataLookup, $currentSpaceId, $currentRawPagename, [] );
+		$processor = new CreateFromTemplateMacro( $dataLookup );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

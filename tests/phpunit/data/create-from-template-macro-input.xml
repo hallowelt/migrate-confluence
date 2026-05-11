@@ -1,0 +1,33 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Some text before</p>
+	<ac:structured-macro ac:name="create-from-template" ac:schema-version="1" ac:macro-id="9c4e10cc-3728-409e-b178-16a9e2751ae8">
+		<ac:parameter ac:name="templateName">123456</ac:parameter>
+		<ac:parameter ac:name="templateId">123456</ac:parameter>
+		<ac:parameter ac:name="buttonLabel">Create</ac:parameter>
+	</ac:structured-macro>
+	<ac:structured-macro ac:name="create-from-template" ac:schema-version="1" ac:macro-id="68860c88-2cb6-47fa-bb6c-afd9d0fdbdef">
+		<ac:parameter ac:name="templateName">7890</ac:parameter>
+		<ac:parameter ac:name="templateId">7890</ac:parameter>
+		<ac:parameter ac:name="buttonLabel">New</ac:parameter>
+	</ac:structured-macro>
+	<ac:structured-macro ac:name="create-from-template" ac:schema-version="1" ac:macro-id="f1bcfd9e-b015-4b0e-9237-35e1737343c1">
+		<ac:parameter ac:name="blueprintModuleCompleteKey">com.atlassian.confluence.plugins.confluence-business-blueprints:file-list-blueprint</ac:parameter>
+		<ac:parameter ac:name="contentBlueprintId">12345678-abcd-123a-123b-1234567890ab</ac:parameter>
+		<ac:parameter ac:name="templateName">123456</ac:parameter>
+		<ac:parameter ac:name="createResult">view</ac:parameter>
+		<ac:parameter ac:name="buttonLabel">Create</ac:parameter>
+	</ac:structured-macro>
+	<p>Some text after</p>
+	<ac:structured-macro ac:name="create-from-template" ac:schema-version="1" ac:macro-id="68860c88-2cb6-47fa-bb6c-afd9d0fdbdef">
+		<ac:parameter ac:name="templateName">345</ac:parameter>
+		<ac:parameter ac:name="templateId">345</ac:parameter>
+		<ac:parameter ac:name="buttonLabel">New</ac:parameter>
+	</ac:structured-macro>
+	<ac:structured-macro ac:name="create-from-template" ac:schema-version="1" ac:macro-id="f1bcfd9e-b015-4b0e-9237-35e1737343c1">
+		<ac:parameter ac:name="blueprintModuleCompleteKey">com.atlassian.confluence.plugins.confluence-business-blueprints:file-list-blueprint</ac:parameter>
+		<ac:parameter ac:name="contentBlueprintId">12345678-abcd-123a-123b-1234567890ab</ac:parameter>
+		<ac:parameter ac:name="templateName">12345678-abcd-123a-123b-1234567890ab</ac:parameter>
+		<ac:parameter ac:name="createResult">view</ac:parameter>
+		<ac:parameter ac:name="buttonLabel">Create</ac:parameter>
+	</ac:structured-macro>
+</xml>
