@@ -28,6 +28,10 @@ class FilenameResolverTest extends TestCase {
 		$actual = $filenameResolver->resolve( 42, 'SomePage', 'SomeImage2.png' );
 		$this->assertEquals( $expected, $actual );
 
+		$expected = $this->getExpectedResult( 'ABC_SomeImage2.png', true );
+		$actual = $filenameResolver->resolve( 42, '', 'SomeImage2.png' );
+		$this->assertEquals( $expected, $actual );
+
 		// Test with ext-ns-file-repo-compat
 		$filenameResolver = new FilenameResolver(
 			$this->getConversionDataLookupExtNsFileRepoCompat(),
@@ -35,6 +39,10 @@ class FilenameResolverTest extends TestCase {
 				'ext-ns-file-repo-compat' => true
 			]
 		);
+
+		$expected = $this->getExpectedResult( 'ABC:SomeImage2.png', true );
+		$actual = $filenameResolver->resolve( 42, '', 'SomeImage2.png' );
+		$this->assertEquals( $expected, $actual );
 
 		// Image exists in the conversion data lookup
 		$expected = $this->getExpectedResult( 'DEVOPS:SomePage-SomeImage2.png', false );
