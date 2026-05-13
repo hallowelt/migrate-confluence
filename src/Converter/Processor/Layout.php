@@ -17,17 +17,14 @@ class Layout implements IProcessor {
 	/**
 	 * @return string
 	 */
-	protected function getWikiTextTemplateStylesName(): string {
-		return 'Layout';
+	protected function getClassName(): string {
+		return 'pl-container';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
-		$templateStylesName = $this->getWikiTextTemplateStylesName();
-		$templateStyles = '{{' . $templateStylesName . '}}';
-
 		$layouts = [];
 		$liveLayouts = $dom->getElementsByTagName(
 			$this->getTagName()
@@ -37,15 +34,9 @@ class Layout implements IProcessor {
 		}
 
 		foreach ( $layouts as $layout ) {
-			if ( $templateStylesName !== '' ) {
-				$templateStylesEl = $layout->ownerDocument->createTextNode(
-					$templateStyles
-				);
-				$layout->parentElement->insertBefore( $templateStylesEl, $layout );
-			}
-
 			$wikiLayoutEl = $dom->createElement( 'div' );
-			$wikiLayoutEl->setAttribute( 'class', $this->getTagName() );
+			$wikiLayoutEl->setAttribute( 'class', $this->getClassName() );
+			$wikiLayoutEl->setAttribute( 'data-ac-layout', $this->getTagName() );
 
 			$attributeNames = $layout->getAttributeNames();
 			foreach ( $attributeNames as $attributeName ) {
