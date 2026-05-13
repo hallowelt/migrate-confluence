@@ -80,6 +80,7 @@ class FilenameResolverTest extends TestCase {
 				23 => 'DEVOPS'
 			],
 			[],
+			[],
 			[]
 		);
 	}
@@ -108,6 +109,7 @@ class FilenameResolverTest extends TestCase {
 				42 => 'ABC',
 				23 => 'DEVOPS'
 			],
+			[],
 			[],
 			[]
 		);

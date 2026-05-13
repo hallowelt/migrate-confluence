@@ -38,6 +38,7 @@ class UnhandledMacroConverterTest extends TestCase {
 				23 => 'DEVOPS'
 			],
 			[],
+			[],
 			[]
 		);
 

@@ -50,6 +50,7 @@ class ViewPptMacroTest extends TestCase {
 				23 => 'DEVOPS'
 			],
 			[],
+			[],
 			[]
 		);
 
