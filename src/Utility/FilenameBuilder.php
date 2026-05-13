@@ -66,14 +66,6 @@ class FilenameBuilder {
 						$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}_" ) );
 					}
 				}
-			} else {
-				// No prefix for the space, but ext-ns-file-repo-compat is enabled.
-				// Let's try to detect a potential namespace prefix in the filename and replace it with a namespace.
-				$filenameParts = explode( '_', $filename );
-				if ( count( $filenameParts ) > 1 ) {
-					$potentialNamespace = $filenameParts[0];
-					$filename = "$potentialNamespace:" . substr( $filename, strlen( "{$potentialNamespace}_" ) );
-				}
 			}
 		}
 

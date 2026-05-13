@@ -52,6 +52,11 @@ class ConversionDataLookup {
 	private array $attachmentMetadataMap;
 
 	/**
+	 * @var array
+	 */
+	private array $compressedTitlesMap;
+
+	/**
 	 * @param DataBuckets $buckets
 	 * @return ConversionDataLookup
 	 */
@@ -65,7 +70,8 @@ class ConversionDataLookup {
 			$buckets->getBucketData( 'global-userkey-to-username-map' ),
 			$buckets->getBucketData( 'global-space-id-to-key-map' ),
 			$buckets->getBucketData( 'global-attachment-metadata' ),
-			$buckets->getBucketData( 'global-attachment-id-to-confluence-file-key-map' )
+			$buckets->getBucketData( 'global-attachment-id-to-confluence-file-key-map' ),
+			$buckets->getBucketData( 'global-orig-title-compressed-title-map' )
 		);
 	}
 
@@ -84,7 +90,7 @@ class ConversionDataLookup {
 		array $spaceIdPrefixMap, array $pagesTitlesMap,
 		array $filenamesToFiletitlesMap, array $attachmentOrigFilenameToTargetFilenameMap,
 		array $files, array $userMap, array $spaceIdToKeyMap,
-		array $attachmentMetadata, array $attachmentIdToFileKeyMap
+		array $attachmentMetadata, array $attachmentIdToFileKeyMap, array $compressedTitlesMap
 	) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
@@ -113,6 +119,8 @@ class ConversionDataLookup {
 			}
 		}
 		$this->attachmentMetadataMap = $attachmentMetadataMap;
+
+		$this->compressedTitlesMap = $compressedTitlesMap;
 	}
 
 	/**
@@ -180,6 +188,18 @@ class ConversionDataLookup {
 			return $this->pagesTitlesMap[$confluencePageKey];
 		}
 		return '';
+	}
+
+	/**
+	 * @param string $compressedTitle
+	 * @return string
+	 */
+	public function getOrigTitleFromCompressedTitle( string $compressedTitle ): string {
+		$pageTitle = $compressedTitle;
+		if ( in_array( $compressedTitle, $this->compressedTitlesMap, true ) ) {
+			$pageTitle = array_search( $compressedTitle, $this->compressedTitlesMap, true );
+		}
+		return $pageTitle;
 	}
 
 	/**

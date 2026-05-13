@@ -270,8 +270,6 @@ class Image implements IProcessor {
 			}
 		}
 
-		$rawPageTitle = basename( $rawPageTitle );
-
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
 			$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 
@@ -318,8 +316,6 @@ class Image implements IProcessor {
 				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 			}
 		}
-
-		$rawPageTitle = basename( $rawPageTitle );
 
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
 				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
@@ -387,8 +383,6 @@ class Image implements IProcessor {
 				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 			}
 		}
-
-		$rawPageTitle = basename( $rawPageTitle );
 
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
 				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );

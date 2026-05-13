@@ -133,12 +133,6 @@ class AttachmentFallback extends ProcessorBase {
 		$attachmentSpaceId = 0;
 		if ( isset( $this->data['analyze-attachment-id-to-space-id-map'][$this->attachmentId] ) ) {
 			$attachmentSpaceId = $this->data['analyze-attachment-id-to-space-id-map'][$this->attachmentId];
-		} elseif ( $containerContentId !== '' ) {
-			if ( isset( $this->data['global-page-id-to-space-id'][$containerContentId] ) ) {
-				$attachmentSpaceId = $this->data['global-page-id-to-space-id'][$containerContentId];
-			} elseif ( isset( $this->data['global-blogpost-id-to-space-id'][$containerContentId] ) ) {
-				$attachmentSpaceId = $this->data['global-blogpost-id-to-space-id'][$containerContentId];
-			}
 		}
 		$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
 			$this->attachmentId, $attachmentSpaceId, $this->attachmentOrigFilename,

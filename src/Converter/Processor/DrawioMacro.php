@@ -116,9 +116,8 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 */
 	private function getFilename( string $diagramName ): string {
 		$spaceId = $this->currentSpaceId;
-		$rawPageTitle = basename( $this->rawPageTitle );
 
-		$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $diagramName );
+		$confluenceFileKey = "$spaceId---{$this->rawPageTitle}---" . str_replace( ' ', '_', $diagramName );
 		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 		$originalFilename = $filename;
 
@@ -136,18 +135,18 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		if ( strtolower( $this->getFileExtension( $filename ) ) !== 'png' ) {
 			// find png
 			$drawioDataFilename = $originalFilename;
-			$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $diagramName ) . ".png";
+			$confluenceFileKey = "$spaceId---{$this->rawPageTitle}---" . str_replace( ' ', '_', $diagramName ) . ".png";
 			$drawioImageFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 		} else {
 			// find data
 			$drawioImageFilename = $filename;
 			$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.png' ) );
-			$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $diagramName );
+			$confluenceFileKey = "$spaceId---{$this->rawPageTitle}---" . str_replace( ' ', '_', $diagramName );
 			$drawioDataFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 			// Maybe png = PNG
 			if ( $drawioDataFilename === '' ) {
 				$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.PNG' ) );
-				$confluenceFileKey = "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $diagramName );
+				$confluenceFileKey = "$spaceId---{$this->rawPageTitle}---" . str_replace( ' ', '_', $diagramName );
 				$drawioDataFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
 			}
 		}
