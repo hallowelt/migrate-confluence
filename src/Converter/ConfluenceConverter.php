@@ -238,7 +238,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 					$this->currentPageTitle = $blogPostIdsToTitlesMap[$pageId];
 					$this->confluencePageTitle = str_replace( ' ', '_', basename( $this->currentPageTitle ) );
 					if ( $this->dataLookup->getOrigTitleFromCompressedTitle( $this->currentPageTitle ) !== '' ) {
-						$confluenceTitle = $this->dataLookup->getOrigTitleFromCompressedTitle( $this->currentPageTitle );
+						$confluenceTitle = $this->dataLookup->getOrigTitleFromCompressedTitle(
+							$this->currentPageTitle
+						);
 						$this->confluencePageTitle = str_replace( ' ', '_', basename( $confluenceTitle ) );
 					}
 				} else {
