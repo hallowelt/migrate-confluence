@@ -904,6 +904,40 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param integer $pageId
+	 * @return array
+	 */
+	public function getTargetPageTitleFromPageId( int $pageId ): array {
+		$transaction = $this->db->prepare(
+			'SELECT wiki_title FROM pages WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [
+				'title' => '',
+				'isBroken' => true
+			];
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['wiki_title'] ) ) {
+			return [
+				'title' => '',
+				'isBroken' => true
+			];
+		}
+
+		return [
+			'title' => $data['wiki_title'],
+			'isBroken' => false
+		];
+	}
+
+	/**
 	 * Check if a page with the given page ID already exists in the database.
 	 *
 	 * @param integer $pageId
@@ -1088,6 +1122,42 @@ class WorkspaceDB {
 		}
 
 		return (int)$data['space_id'];
+	}
+
+	/**
+	 * Get the target wiki title for a given blog post ID.
+	 *
+	 * @param integer $blogPostId
+	 * @return array Array with 'title' and 'isBroken' keys.
+	 */
+	public function getTargetBlogPostTitleFromBlogPostId( int $blogPostId ): array {
+		$transaction = $this->db->prepare(
+			'SELECT wiki_title FROM blog_posts WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [
+				'title' => '',
+				'isBroken' => true
+			];
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['wiki_title'] ) ) {
+			return [
+				'title' => '',
+				'isBroken' => true
+			];
+		}
+
+		return [
+			'title' => $data['wiki_title'],
+			'isBroken' => false
+		];
 	}
 
 	/**
