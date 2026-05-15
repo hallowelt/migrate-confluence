@@ -51,7 +51,7 @@ class PageLinkTest extends TestCase {
 				],
 				[],
 				[],
-			[]
+				[]
 			);
 
 		$processor = new PageLink( $dataLookup, $currentSpaceId, $currentRawPagename, [] );
