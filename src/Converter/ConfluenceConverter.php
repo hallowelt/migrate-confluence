@@ -109,6 +109,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/** @var string */
 	private string $currentPageTitle = '';
 
+	/** @var string */
+	private string $confluencePageTitle = '';
+
 	/** @var int */
 	private int $currentSpace = 0;
 
@@ -158,6 +161,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			'global-blogpost-id-to-space-id',
 			'global-blogpost-id-to-title-map',
 			'global-blogposts-titles-map',
+			'global-orig-title-compressed-title-map',
 		] );
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
@@ -213,6 +217,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			// Comment body content: convert with minimal context (no page-specific macros expected)
 			$this->currentSpace = 0;
 			$this->currentPageTitle = '';
+			$this->confluencePageTitle = '';
 		} else {
 			$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
 			if ( $this->currentSpace === -1 ) {
@@ -222,12 +227,25 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$pagesIdsToTitlesMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
 			if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
 				$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
+				$this->confluencePageTitle = str_replace( ' ', '_', basename( $this->currentPageTitle ) );
+				if ( $this->dataLookup->getOrigTitleFromCompressedTitle( $this->currentPageTitle ) !== '' ) {
+					$confluenceTitle = $this->dataLookup->getOrigTitleFromCompressedTitle( $this->currentPageTitle );
+					$this->confluencePageTitle = str_replace( ' ', '_', basename( $confluenceTitle ) );
+				}
 			} else {
 				$blogPostIdsToTitlesMap = $this->buckets->getBucketData( 'global-blogpost-id-to-title-map' );
 				if ( isset( $blogPostIdsToTitlesMap[$pageId] ) ) {
 					$this->currentPageTitle = $blogPostIdsToTitlesMap[$pageId];
+					$this->confluencePageTitle = str_replace( ' ', '_', basename( $this->currentPageTitle ) );
+					if ( $this->dataLookup->getOrigTitleFromCompressedTitle( $this->currentPageTitle ) !== '' ) {
+						$confluenceTitle = $this->dataLookup->getOrigTitleFromCompressedTitle(
+							$this->currentPageTitle
+						);
+						$this->confluencePageTitle = str_replace( ' ', '_', basename( $confluenceTitle ) );
+					}
 				} else {
 					$this->currentPageTitle = 'not_current_revision_' . $pageId;
+					$this->confluencePageTitle = str_replace( ' ', '_', basename( $this->currentPageTitle ) );
 				}
 			}
 		}
@@ -364,8 +382,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return void
 	 */
 	private function runProcessors( DOMDocument $dom ): void {
-		$currentPageTitle = $this->getCurrentPageTitle();
-
 		$processors = [
 			new Layout(),
 			new LayoutSection(),
@@ -394,35 +410,35 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new Emoticon(),
 			new PreserveTasksReportMacro( $this->dataLookup ),
 			new Image(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
+				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
 			),
 			new AttachmentLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
+				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
 			),
 			new AnchorLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
+				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
 			),
 			new PageLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
+				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
 			),
 			new UserLink(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
+				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
 			),
 			new PreserveCodeMacro(),
 			new NoFormatMacro(),
 			new TaskListMacro(),
 			new DrawioMacro(
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
-				$currentPageTitle
+				$this->confluencePageTitle
 			),
 			new GliffyMacro(
 				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
-				$currentPageTitle, $this->buckets
+				$this->confluencePageTitle, $this->buckets
 			),
 			new ContentByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
 			new GalleryMacro(
-				$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
+				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
 			),
 			new ExpandMacro(),
 			new DetailsMacro(),
@@ -432,23 +448,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new MarkdownMacro(),
 			new ViewFileMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle, $this->advancedConfig
+				$this->confluencePageTitle, $this->advancedConfig
 			),
 			new ViewDocMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle, $this->advancedConfig
+				$this->confluencePageTitle, $this->advancedConfig
 			),
 			new ViewXlsMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle, $this->advancedConfig
+				$this->confluencePageTitle, $this->advancedConfig
 			),
 			new ViewPptMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle, $this->advancedConfig
+				$this->confluencePageTitle, $this->advancedConfig
 			),
 			new ViewPdfMacro(
 				$this->dataLookup, $this->currentSpace,
-				$currentPageTitle, $this->advancedConfig
+				$this->confluencePageTitle, $this->advancedConfig
 			),
 			new WidgetMacro(),
 			new PreservePStyleTag(),
@@ -725,10 +741,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 
 		$attachmentsMap = $this->buckets->getBucketData( 'global-title-attachments' );
 
-		$currentPageTitle = $this->getCurrentPageTitle();
-
 		$linkProcessor = new AttachmentLink(
-			$this->dataLookup, $this->currentSpace, $currentPageTitle, $this->advancedConfig
+			$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
 		);
 
 		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {

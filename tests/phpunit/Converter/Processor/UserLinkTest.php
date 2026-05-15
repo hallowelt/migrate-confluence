@@ -45,6 +45,7 @@ class UserLinkTest extends TestCase {
 					23 => 'DEVOPS'
 				],
 				[],
+				[],
 				[]
 			);
 

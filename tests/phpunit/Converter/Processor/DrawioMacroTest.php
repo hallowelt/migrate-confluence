@@ -55,6 +55,7 @@ class DrawioMacroTest extends TestCase {
 				23 => 'DEVOPS:'
 			],
 			[],
+			[],
 			[]
 		);
 		$this->conversionDataWriter = new ConversionDataWriter( [] );

@@ -31,7 +31,6 @@ class AttachmentLink extends LinkProcessorBase {
 			if ( $nestedPageEl instanceof DOMElement ) {
 				$rawPageTitle = $nestedPageEl->getAttribute( 'ri:content-title' );
 			}
-			$rawPageTitle = basename( $rawPageTitle );
 
 			$filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
 			[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =

@@ -50,6 +50,7 @@ class PageLinkTest extends TestCase {
 					23 => 'DEVOPS'
 				],
 				[],
+				[],
 				[]
 			);
 

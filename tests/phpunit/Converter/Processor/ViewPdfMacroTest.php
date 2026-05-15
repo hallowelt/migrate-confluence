@@ -50,6 +50,7 @@ class ViewPdfMacroTest extends TestCase {
 				23 => 'DEVOPS'
 			],
 			[],
+			[],
 			[]
 		);
 

@@ -49,6 +49,7 @@ class TasksReportMacroTest extends TestCase {
 				23 => 'AB'
 			],
 			[],
+			[],
 			[]
 		);
 

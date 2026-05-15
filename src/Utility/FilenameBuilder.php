@@ -58,11 +58,13 @@ class FilenameBuilder {
 			isset( $this->config['ext-ns-file-repo-compat'] )
 			&& $this->config['ext-ns-file-repo-compat'] === true
 		) {
-			$filePrefix = $this->spaceIdPrefixMap[$spaceId];
-			if ( $filePrefix !== '' ) {
-				$namespacePart = substr( $filePrefix, 0, strpos( $filePrefix, ':' ) );
-				if ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
-					$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}_" ) );
+			if ( isset( $this->spaceIdPrefixMap[$spaceId] ) ) {
+				$filePrefix = $this->spaceIdPrefixMap[$spaceId];
+				if ( $filePrefix !== '' ) {
+					$namespacePart = substr( $filePrefix, 0, strpos( $filePrefix, ':' ) );
+					if ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
+						$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}_" ) );
+					}
 				}
 			}
 		}

@@ -42,6 +42,7 @@ class ViewFileMacroTest extends TestCase {
 				23 => 'DEVOPS'
 			],
 			[],
+			[],
 			[]
 		);
 
@@ -62,7 +63,7 @@ class ViewFileMacroTest extends TestCase {
 	 */
 	public function testProcessBrokenMacro() {
 		$this->dataLookup = new ConversionDataLookup(
-			[], [], [], [], [], [], [], [], []
+			[], [], [], [], [], [], [], [], [], []
 		);
 
 		// Macros with no params at all, or with a name param but no ri:filename attribute,
@@ -78,7 +79,7 @@ class ViewFileMacroTest extends TestCase {
 	 */
 	public function testProcessUnmappedFilename() {
 		$this->dataLookup = new ConversionDataLookup(
-			[], [], [], [], [], [], [], [], []
+			[], [], [], [], [], [], [], [], [], []
 		);
 
 		// ri:filename is present but not found in the migration map: the macro must still
