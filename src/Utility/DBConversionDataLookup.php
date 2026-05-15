@@ -62,7 +62,9 @@ class DBConversionDataLookup {
 	 * @param string $confluenceTitle
 	 * @return string
 	 */
-	public function getTargetPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): string {
+	public function getTargetPageTitleFromSpaceId(
+		int $spaceId, string $confluenceTitle
+	): string {
 		return $this->workspaceDB->getTargetPageTitleFromSpaceId( $spaceId, $confluenceTitle );
 	}
 
@@ -76,8 +78,12 @@ class DBConversionDataLookup {
 	 * @param string $originalAttachmentFilename
 	 * @return array
 	 */
-	public function getTargetFileTitleFromSpaceKey( string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename ): array {
-		return $this->workspaceDB->getTargetFileTitleFromSpaceKey( $spaceKey, $confluenceTitle, $originalAttachmentFilename );
+	public function getTargetFileTitleFromSpaceKey(
+		string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename
+	): array {
+		return $this->workspaceDB->getTargetFileTitleFromSpaceKey(
+			$spaceKey, $confluenceTitle, $originalAttachmentFilename
+		);
 	}
 
 	/**
@@ -90,8 +96,12 @@ class DBConversionDataLookup {
 	 * @param string $originalAttachmentFilename
 	 * @return string
 	 */
-	public function getTargetFileTitleFromSpaceId( int $spaceId, string $confluenceTitle, string $originalAttachmentFilename ): string {
-		return $this->workspaceDB->getTargetFileTitleFromSpaceId( $spaceId, $confluenceTitle, $originalAttachmentFilename );
+	public function getTargetFileTitleFromSpaceId(
+		int $spaceId, string $confluenceTitle, string $originalAttachmentFilename
+	): string {
+		return $this->workspaceDB->getTargetFileTitleFromSpaceId(
+			$spaceId, $confluenceTitle, $originalAttachmentFilename
+		);
 	}
 
 	/**
@@ -103,7 +113,9 @@ class DBConversionDataLookup {
 	 * @param string $rawPageTitle
 	 * @return array
 	 */
-	public function getAttachmentMetadataForPage( int $spaceId, string $rawPageTitle ): array {
+	public function getAttachmentMetadataForPage(
+		int $spaceId, string $rawPageTitle
+	): array {
 		return $this->workspaceDB->getAttachmentMetadataForPage( $spaceId, $rawPageTitle );
 	}
 
@@ -124,7 +136,7 @@ class DBConversionDataLookup {
 	}
 
 	/**
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @param string $rawPageTitle
 	 * @return array
 	 */

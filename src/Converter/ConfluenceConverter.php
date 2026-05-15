@@ -11,7 +11,6 @@ use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
@@ -80,8 +79,9 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ViewPptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
@@ -140,7 +140,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 */
 	public function __construct( $config, Workspace $workspace ) {
 		parent::__construct( $config, $workspace );
-
 	}
 
 	/**
@@ -204,7 +203,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			if ( $this->currentPageTitle === '' ) {
 				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 			}
-		} else if ( $this->workspaceDB->pageIdExists( $contentId ) ) {
+		} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
 			$this->contentType = 'page';
 
 			$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
@@ -215,7 +214,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			if ( $this->currentPageTitle === '' ) {
 				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 			}
-		} else if ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
+		} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
 			$this->contentType = 'blogPost';
 
 			$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId );
@@ -226,7 +225,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			if ( $this->currentPageTitle === '' ) {
 				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 			}
-		} else if ( $this->workspaceDB->commentIdExists( $contentId ) ) {
+		} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
 			$this->contentType = 'comment';
 
 			$this->pageId = $contentId;
@@ -406,31 +405,31 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->advancedConfig
+				$this->migrationConfig
 			),
 			new ViewDocMacro(
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->advancedConfig
+				$this->migrationConfig
 			),
 			new ViewXlsMacro(
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->advancedConfig
+				$this->migrationConfig
 			),
 			new ViewPptMacro(
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->advancedConfig
+				$this->migrationConfig
 			),
 			new ViewPdfMacro(
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->advancedConfig
+				$this->migrationConfig
 			),
 			new WidgetMacro(),
 			new PreservePStyleTag(),
@@ -586,7 +585,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		// Append categories
 		if ( $this->contentType === 'page' ) {
 			$metaData = $this->workspaceDB->getPageMeta();
-		} else if ( $this->contentType === 'blogPost' ) {
+		} elseif ( $this->contentType === 'blogPost' ) {
 			$metaData = $this->workspaceDB->getPageMeta();
 		} else {
 			$metaData = [];

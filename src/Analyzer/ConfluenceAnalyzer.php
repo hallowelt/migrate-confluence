@@ -22,10 +22,10 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
-use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
-use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
+use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -33,7 +33,9 @@ use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 use XMLReader;
 
-class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface, IDestinationPathAware {
+class ConfluenceAnalyzer extends AnalyzerBase
+	implements LoggerAwareInterface, IOutputAwareInterface, IDestinationPathAware
+{
 
 	private const NS_BLOG_NAME = 'Blog';
 
@@ -209,95 +211,105 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$this->updatePageAttachmentTable();
 
 		return true;
-		
 	}
 
 	/**
 	 * @return void
 	 */
-	private function updateBodyContentIdsFallback(): void {	
+	private function updateBodyContentIdsFallback(): void {
 		// Update pages table
 		$pages = $this->workspaceDB->getPages();
 		foreach ( $pages as $page ) {
-			if ( !isset( $page['page_id'], $page['body_content_ids'] ) ) {
+			if ( !isset( $page['page_id'] ) || !isset( $page['body_content_ids'] ) ) {
 				continue;
 			}
-			
+
 			$pageId = (int)$page['page_id'];
 			$bodyContentIds = json_decode( $page['body_content_ids'], true );
-			
+
 			// Check if body_content_ids is empty
 			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
 				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
 				if ( !empty( $foundIds ) ) {
-					$this->output->writeln( "Updated body_content_ids for page ID $pageId with IDs: " . implode( ', ', $foundIds ) );
+					$this->output->writeln(
+						"Updated body_content_ids for page ID $pageId with IDs: "
+						. implode( ', ', $foundIds )
+					);
 					$this->workspaceDB->updatePageBodyContentIds( $pageId, $foundIds );
 				}
-				
+
 			}
 		}
-		
+
 		// Update blog_posts table
 		$blogPosts = $this->workspaceDB->getBlogPosts();
 		foreach ( $blogPosts as $blogPost ) {
-			if ( !isset( $blogPost['page_id'], $blogPost['body_content_ids'] ) ) {
+			if ( !isset( $blogPost['page_id'] ) || !isset( $blogPost['body_content_ids'] ) ) {
 				continue;
 			}
-			
+
 			$pageId = (int)$blogPost['page_id'];
 			$bodyContentIds = json_decode( $blogPost['body_content_ids'], true );
-			
+
 			// Check if body_content_ids is empty
 			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
 				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
 				if ( !empty( $foundIds ) ) {
-					$this->output->writeln( "Updated body_content_ids for blog post ID $pageId with IDs: " . implode( ', ', $foundIds ) );
+					$this->output->writeln(
+						"Updated body_content_ids for blog post ID $pageId with IDs: "
+						. implode( ', ', $foundIds )
+					);
 					$this->workspaceDB->updateBlogPostBodyContentIds( $pageId, $foundIds );
 				}
 			}
 		}
-		
+
 		// Update comments table
 		$comments = $this->workspaceDB->getComments();
 		foreach ( $comments as $comment ) {
-			if ( !isset( $comment['comment_id'], $comment['body_content_ids'] ) ) {
+			if ( !isset( $comment['comment_id'] ) || !isset( $comment['body_content_ids'] ) ) {
 				continue;
 			}
-			
+
 			$commentId = (int)$comment['comment_id'];
 			$bodyContentIds = json_decode( $comment['body_content_ids'], true );
-			
+
 			// Check if body_content_ids is empty
 			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
 				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $commentId );
 				if ( !empty( $foundIds ) ) {
-					$this->output->writeln( "Updated body_content_ids for comment ID $commentId with IDs: " . implode( ', ', $foundIds ) );
+					$this->output->writeln(
+						"Updated body_content_ids for comment ID $commentId with IDs: "
+						. implode( ', ', $foundIds )
+					);
 					$this->workspaceDB->updateCommentBodyContentIds( $commentId, $foundIds );
 				}
 			}
 		}
-		
+
 		// Update spaces_descriptions table
 		$spaceDescriptions = $this->workspaceDB->getSpaceDescriptions();
 		foreach ( $spaceDescriptions as $spaceDesc ) {
-			if ( !isset( $spaceDesc['space_description_id'], $spaceDesc['body_content_ids'] ) ) {
+			if ( !isset( $spaceDesc['space_description_id'] ) || !isset( $spaceDesc['body_content_ids'] ) ) {
 				continue;
 			}
-			
+
 			$spaceDescriptionId = (int)$spaceDesc['space_description_id'];
 			$bodyContentIds = json_decode( $spaceDesc['body_content_ids'], true );
-			
+
 			// Check if body_content_ids is empty
 			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
 				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $spaceDescriptionId );
 				if ( !empty( $foundIds ) ) {
-					$this->output->writeln( "Updated body_content_ids for space description ID $spaceDescriptionId with IDs: " . implode( ', ', $foundIds ) );
+					$this->output->writeln(
+						"Updated body_content_ids for space description ID $spaceDescriptionId with IDs: "
+						. implode( ', ', $foundIds )
+					);
 					$this->workspaceDB->updateSpaceDescriptionBodyContentIds( $spaceDescriptionId, $foundIds );
 				}
 			}
 		}
 	}
-
 
 	/**
 	 * @return void
@@ -314,7 +326,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$pages = $this->workspaceDB->getPages();
 		$pageIdToWikiTitleMap = [];
 		foreach ( $pages as $page ) {
-			if ( !isset( $page['page_id'], $page['space_id'], $page['confluence_title'], $page['content_status'] ) ) {
+			if (
+				!isset( $page['page_id'] )
+				|| !isset( $page['space_id'] )
+				|| !isset( $page['confluence_title'] )
+				|| !isset( $page['content_status'] )
+			) {
 				continue;
 			}
 
@@ -367,7 +384,12 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		$pageIdToWikiTitleMap = [];
 
 		foreach ( $blogPosts as $blogPost ) {
-			if ( !isset( $blogPost['page_id'], $blogPost['space_id'], $blogPost['confluence_title'], $blogPost['content_status'] ) ) {
+			if (
+				!isset( $blogPost['page_id'] )
+				|| !isset( $blogPost['space_id'] )
+				|| !isset( $blogPost['confluence_title'] )
+				|| !isset( $blogPost['content_status'] )
+			) {
 				continue;
 			}
 
@@ -417,7 +439,10 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private function updatePageAttachmentTable(): void {
 		$pageIdToWikiTitleMap = [];
 		foreach ( $this->workspaceDB->getPages() as $page ) {
-			if ( !isset( $page['page_id'], $page['wiki_title'], $page['content_status'] ) ) {
+			if ( !isset( $page['page_id'] )
+				|| !isset( $page['wiki_title'] )
+				|| !isset( $page['content_status'] )
+			) {
 				continue;
 			}
 			if ( $page['content_status'] !== 'current' || $page['wiki_title'] === '' ) {
@@ -432,17 +457,17 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 		$filenameBuilder = new FilenameBuilder(
 			$this->workspaceDB->getMapSpaceIdToPrefix(),
-			$this->config
+			$this->migrationConfig
 		);
 
 		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
-			if ( !isset(
-				$attachment['attachment_id'],
-				$attachment['space_id'],
-				$attachment['filename'],
-				$attachment['container_id'],
-				$attachment['content_status']
-			) ) {
+			if (
+				!isset( $attachment['attachment_id'] )
+				|| !isset( $attachment['space_id'] )
+				|| !isset( $attachment['filename'] )
+				|| !isset( $attachment['container_id'] )
+				|| !isset( $attachment['content_status'] )
+			) {
 				continue;
 			}
 
@@ -496,7 +521,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$exists = $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle );
 			$counter = 1;
 			while ( $exists ) {
-				if ( !$short )  {
+				if ( !$short ) {
 					$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 						$attachmentSpaceId,
 						$attachmentOrigFilename,
@@ -601,7 +626,11 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$attachmentId = $attachment['attachment_id'];
 			$wikiTitle = $attachment['target_attachment_filename'];
 			if ( !$validityChecker->hasValidLength( $wikiTitle ) ) {
-				$this->workspaceDB->addInvalidTitle( $attachmentId, $wikiTitle, 'Attachment title contains to many characters (>256)' );
+				$this->workspaceDB->addInvalidTitle(
+					$attachmentId,
+					$wikiTitle,
+					'Attachment title contains to many characters (>256)'
+				);
 				$invalidAttachments = true;
 			}
 		}

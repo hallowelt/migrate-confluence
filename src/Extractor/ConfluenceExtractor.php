@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor;
 
-use DOMDocument;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExtractorBase;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
@@ -70,7 +69,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		$this->extractPagesMetaData();
 		$this->extractBlogPostsMetaData();
 		$this->extractAttachmentsMetaData();
-	
+
 		return true;
 	}
 
@@ -80,7 +79,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	private function extractBodyContents(): void {
 		$currentContentIds = [];
 		foreach ( $this->workspaceDB->getPages() as $page ) {
-			if ( isset( $page['page_id'], $page['content_status'] )
+			if ( isset( $page['page_id'] ) && isset( $page['content_status'] )
 				&& strtolower( (string)$page['content_status'] ) === 'current'
 			) {
 				$currentContentIds[(int)$page['page_id']] = true;
@@ -88,7 +87,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		}
 
 		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
-			if ( isset( $blogPost['page_id'], $blogPost['content_status'] )
+			if ( isset( $blogPost['page_id'] ) && isset( $blogPost['content_status'] )
 				&& strtolower( (string)$blogPost['content_status'] ) === 'current'
 			) {
 				$currentContentIds[(int)$blogPost['page_id']] = true;
@@ -101,7 +100,6 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 
 		$bodyContents = $this->workspaceDB->getBodyContents();
 		$this->doExtractBodyContent( $bodyContents );
-		
 	}
 
 	/**
@@ -110,7 +108,10 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	public function doExtractBodyContent( array $bodyContents ): void {
 		foreach ( $bodyContents as $bodyContent ) {
-			if ( !isset( $bodyContent['body_content_id'], $bodyContent['page_id'] ) ) {
+			if (
+				!isset( $bodyContent['body_content_id'] )
+				|| !isset( $bodyContent['page_id'] )
+			) {
 				continue;
 			}
 
@@ -142,14 +143,13 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	}
 
 	/**
-	 * @param DOMDocument $dom
 	 * @return void
 	 */
 	private function extractPagesMetaData(): void {
 		foreach ( $this->workspaceDB->getPages() as $page ) {
 			$categories = $this->migrationConfig->getCategories();
 
-			if ( isset( $page['page_id'], $page['content_status'] )
+			if ( isset( $page['page_id'] ) && isset( $page['content_status'] )
 				&& strtolower( (string)$page['content_status'] ) === 'current'
 			) {
 				if ( !isset( $page['collection']['labellings'] ) ) {
@@ -193,7 +193,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
 			$categories = [];
 
-			if ( isset( $blogPost['page_id'], $blogPost['content_status'] )
+			if ( isset( $blogPost['page_id'] ) && isset( $blogPost['content_status'] )
 				&& strtolower( (string)$blogPost['content_status'] ) === 'current'
 			) {
 				if ( !isset( $blogPost['collection']['labellings'] ) ) {
@@ -235,7 +235,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
 			$categories = [];
 
-			if ( isset( $attachment['page_id'], $attachment['content_status'] )
+			if ( isset( $attachment['page_id'] ) && isset( $attachment['content_status'] )
 				&& strtolower( (string)$attachment['content_status'] ) === 'current'
 			) {
 				if ( !isset( $attachment['collection']['labellings'] ) ) {

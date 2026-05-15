@@ -37,7 +37,8 @@ class SpaceDescription extends ProcessorBase {
 	public function __construct(
 		private WorkspaceDB $workspaceDB,
 		private MigrationConfig $migrationConfig
-	) {}
+	) {
+	}
 
 	/**
 	 * @inheritDoc

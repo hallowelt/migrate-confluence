@@ -15,7 +15,8 @@ class BlogPost extends ProcessorBase {
 	public function __construct(
 		private WorkspaceDB $workspaceDB,
 		private MigrationConfig $migrationConfig
-	) {}
+	) {
+	}
 
 	/**
 	 * @inheritDoc
@@ -57,7 +58,7 @@ class BlogPost extends ProcessorBase {
 		if ( $spaceId === null ) {
 			return;
 		}
-		
+
 		$originalVersionId = -1;
 		if ( isset( $properties['originalVersion'] ) ) {
 			$originalVersionId = (int)$properties['originalVersion'];

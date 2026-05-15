@@ -15,7 +15,8 @@ class Spaces extends ProcessorBase {
 	public function __construct(
 		private WorkspaceDB $workspaceDB,
 		private MigrationConfig $migrationConfig
-	) {}
+	) {
+	}
 
 	/**
 	 * @inheritDoc
@@ -77,10 +78,10 @@ class Spaces extends ProcessorBase {
 		$status = $this->workspaceDB->addSpace(
 			$spaceId,
 			$spaceKey,
-			isset( $properties['name'] )? $properties['name']: null,
+			isset( $properties['name'] ) ? $properties['name'] : null,
 			$customSpacePrefix,
-			isset( $properties['homePage'] )? (int)$properties['homePage']: null,
-			isset( $properties['description'] )? (int)$properties['description']: null
+			isset( $properties['homePage'] ) ? (int)$properties['homePage'] : null,
+			isset( $properties['description'] ) ? (int)$properties['description'] : null
 		);
 
 		if ( !$status ) {

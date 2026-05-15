@@ -31,11 +31,26 @@ class WorkspaceDbMock {
 		$workspaceDB->addSpace( 42, 'ABC', 'Some space', 'ABC:', -1, -1 );
 
 		// Common pages used by link and macro tests.
-		$workspaceDB->addPage( 1001, 42, 'SomePage', 'ABC:SomePage', '2024-01-01T00:00:00.000Z', 'current', '1', -1, -1, [], [], [] );
-		$workspaceDB->addPage( 1002, 42, 'SomeLinkedPage', 'ABC:SomeLinkedPage', '2024-01-01T00:00:00.000Z', 'current', '1', -1, -1, [], [], [] );
-		$workspaceDB->addPage( 1003, 23, 'SomePage', 'DEVOPS:SomePage', '2024-01-01T00:00:00.000Z', 'current', '1', -1, -1, [], [], [] );
-		$workspaceDB->addPage( 1004, 23, 'Some other page', 'DEVOPS:Some_other_page', '2024-01-01T00:00:00.000Z', 'current', '1', -1, -1, [], [], [] );
-		$workspaceDB->addPage( 1005, 1, 'Brand Assets', 'MKT:Brand_Assets', '2024-01-01T00:00:00.000Z', 'current', '1', -1, -1, [], [], [] );
+		$workspaceDB->addPage(
+			1001, 42, 'SomePage', 'ABC:SomePage', '2024-01-01T00:00:00.000Z', 'current',
+			'1', -1, -1, [], [], []
+		);
+		$workspaceDB->addPage(
+			1002, 42, 'SomeLinkedPage', 'ABC:SomeLinkedPage', '2024-01-01T00:00:00.000Z', 'current',
+			'1', -1, -1, [], [], []
+		);
+		$workspaceDB->addPage(
+			1003, 23, 'SomePage', 'DEVOPS:SomePage', '2024-01-01T00:00:00.000Z', 'current',
+			'1', -1, -1, [], [], []
+		);
+		$workspaceDB->addPage(
+			1004, 23, 'Some other page', 'DEVOPS:Some_other_page', '2024-01-01T00:00:00.000Z', 'current',
+			'1', -1, -1, [], [], []
+		);
+		$workspaceDB->addPage(
+			1005, 1, 'Brand Assets', 'MKT:Brand_Assets', '2024-01-01T00:00:00.000Z', 'current',
+			'1', -1, -1, [], [], []
+		);
 
 		// Users for user-link related tests.
 		$workspaceDB->addUser( 'abc123', 'Alice', 'alice@example.org', [] );

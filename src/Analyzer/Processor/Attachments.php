@@ -8,7 +8,7 @@ use SplFileInfo;
 use XMLReader;
 
 class Attachments extends ProcessorBase {
-	
+
 	/**
 	 * @param WorkspaceDB $workspaceDB
 	 * @param MigrationConfig $migrationConfig
@@ -18,7 +18,8 @@ class Attachments extends ProcessorBase {
 		private WorkspaceDB $workspaceDB,
 		private MigrationConfig $migrationConfig,
 		private string $xmlPath
-	) {}
+	) {
+	}
 
 	/**
 	 * @inheritDoc
@@ -97,6 +98,7 @@ class Attachments extends ProcessorBase {
 
 	/**
 	 * @param int $attachmentId
+	 * @param int $containerContentId
 	 * @param array $properties
 	 * @return string
 	 */

@@ -5,8 +5,8 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class GliffyMacro extends StructuredMacroProcessorBase {
 

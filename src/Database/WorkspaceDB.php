@@ -60,8 +60,10 @@ class WorkspaceDB {
 	 */
 	private function fetchDbArray( SQLite3Result $result ): array {
 		$data = [];
-		while ( $res = $result->fetchArray( SQLITE3_ASSOC ) ) {
+		$res = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $res ) {
 			$data[] = $res;
+			$res = $result->fetchArray( SQLITE3_ASSOC );
 		}
 		return $data;
 	}
@@ -339,7 +341,7 @@ class WorkspaceDB {
 			);'
 		);
 	}
-	
+
 	/**
 	 * @return void
 	 */
@@ -430,6 +432,7 @@ class WorkspaceDB {
 
 	/**
 	 * @param string $type
+	 * @param string $step
 	 * @param string $caller
 	 * @param string $text
 	 * @return void
@@ -474,16 +477,15 @@ class WorkspaceDB {
 			$transaction = $this->db->prepare(
 				'SELECT type,caller,text FROM logging WHERE step = :step'
 			);
-			$transaction->bindValue( ':step', $step, SQLITE3_TEXT );	
+			$transaction->bindValue( ':step', $step, SQLITE3_TEXT );
 		}
-		
+
 		$result = $transaction->execute();
 		return $this->fetchDbArray( $result );
-		
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @param string $wikiTitle
 	 * @param string $text
 	 * @return void
@@ -513,9 +515,9 @@ class WorkspaceDB {
 	public function getInvalidTitles(): array {
 		return $this->getAllData( 'invalid_titles' );
 	}
-	
+
 	/**
-	 * @param integer $bodyContentId
+	 * @param int $bodyContentId
 	 * @param string $text
 	 * @return void
 	 */
@@ -543,7 +545,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $attachmentId
+	 * @param int $attachmentId
 	 * @param string $wikiTitle
 	 * @param string $text
 	 * @return void
@@ -575,12 +577,12 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @param string $spaceKey
 	 * @param string $spaceName
 	 * @param string $prefix
-	 * @param integer $homepageId
-	 * @param integer $descriptionId
+	 * @param int $homepageId
+	 * @param int $descriptionId
 	 * @return bool True on success, false on error.
 	 */
 	public function addSpace(
@@ -622,8 +624,8 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $descriptionId
-	 * @return integer
+	 * @param int $descriptionId
+	 * @return int
 	 */
 	public function getSpaceIdForDescriptionId( int $descriptionId ): int {
 		$transaction = $this->db->prepare(
@@ -647,14 +649,20 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $spaceDescriptionId
+	 * @param int $spaceDescriptionId
+	 * @param string $revisionTimestamp
+	 * @param string $contentStatus
+	 * @param string $version
+	 * @param int $originalVersionId
 	 * @param array $bodyContentIds
 	 * @param array $lagellingIds
-	 * @return bool True on success, false on error.
+	 * @param array $properties
+	 * @param array $collection
+	 * @return bool
 	 */
 	public function addSpaceDescription(
 		int $spaceDescriptionId, string $revisionTimestamp, string $contentStatus, string $version,
-		int $originalVersionId, array $bodyContentIds, array $lagellingIds, array $properties, array $collection	
+		int $originalVersionId, array $bodyContentIds, array $lagellingIds, array $properties, array $collection
 	): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$labellingIdsJson = json_encode( $lagellingIds );
@@ -701,7 +709,9 @@ class WorkspaceDB {
 	 * @param string $confluenceFilename
 	 * @param array $properties
 	 * @return void
-	 */	/**
+	 */
+
+	/**
 	 * @param string $spaceKey
 	 * @return int
 	 */
@@ -764,12 +774,13 @@ class WorkspaceDB {
 	/**
 	 * Check if a space description with the given space description ID already exists in the database.
 	 *
-	 * @param integer $spaceDescriptionId
-	 * @return boolean
+	 * @param int $spaceDescriptionId
+	 * @return bool
 	 */
 	public function spaceDescriptionIdExists( int $spaceDescriptionId ): bool {
 		$transaction = $this->db->prepare(
-			'SELECT space_description_id FROM spaces_descriptions WHERE space_description_id = :space_description_id LIMIT 1'
+			'SELECT space_description_id FROM spaces_descriptions
+			WHERE space_description_id = :space_description_id LIMIT 1'
 		);
 		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
 
@@ -785,19 +796,21 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
-	 * @param integer $spaceId
+	 * Undocumented function
+	 *
+	 * @param int $pageId
+	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
 	 * @param string $revisionTimestamp
 	 * @param string $contentStatus
 	 * @param string $version
-	 * @param integer $originalVersionId
-	 * @param integer $parentPageId
+	 * @param int $originalVersionId
+	 * @param int $parentPageId
 	 * @param array $bodyContentIds
 	 * @param array $properties
 	 * @param array $collection
-	 * @return bool True on success, false on error.
+	 * @return bool
 	 */
 	public function addPage(
 		int $pageId,
@@ -807,8 +820,8 @@ class WorkspaceDB {
 		string $revisionTimestamp,
 		string $contentStatus,
 		string $version,
-		int $originalVersionId,	
-		int $parentPageId,		
+		int $originalVersionId,
+		int $parentPageId,
 		array $bodyContentIds,
 		array $properties,
 		array $collection
@@ -862,7 +875,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @param string $wikiTitle
 	 * @return bool True on success, false on error.
 	 */
@@ -884,7 +897,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param string $spaceKey
+	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 * @return string
 	 */
@@ -911,7 +924,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @return string
 	 */
 	public function getTargetPageTitleFromPageId( int $pageId ): string {
@@ -936,7 +949,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @return string
 	 */
 	public function getConfluencePageTitleFromPageId( int $pageId ): string {
@@ -963,8 +976,8 @@ class WorkspaceDB {
 	/**
 	 * Check if a page with the given page ID already exists in the database.
 	 *
-	 * @param integer $pageId
-	 * @return boolean
+	 * @param int $pageId
+	 * @return bool
 	 */
 	public function pageIdExists( int $pageId ): bool {
 		$transaction = $this->db->prepare(
@@ -984,7 +997,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @return int The space_id for the given page_id, or -1 if not found.
 	 */
 	public function getSpaceIdForPageId( int $pageId ): int {
@@ -1009,17 +1022,18 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
-	 * @param integer $spaceId
+	 * @param int $pageId
+	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
 	 * @param string $revisionTimestamp
 	 * @param string $contentStatus
-	 * @param integer $originalVersionId
+	 * @param string $version
+	 * @param int $originalVersionId
 	 * @param array $bodyContentIds
 	 * @param array $properties
 	 * @param array $collection
-	 * @return bool True on success, false on error.
+	 * @return bool
 	 */
 	public function addBlogPost(
 		int $pageId,
@@ -1029,7 +1043,7 @@ class WorkspaceDB {
 		string $revisionTimestamp,
 		string $contentStatus,
 		string $version,
-		int $originalVersionId,	
+		int $originalVersionId,
 		array $bodyContentIds,
 		array $properties,
 		array $collection
@@ -1087,7 +1101,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @param string $wikiTitle
 	 * @return bool True on success, false on error.
 	 */
@@ -1102,8 +1116,8 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $blogPostId
-	 * @return boolean
+	 * @param int $blogPostId
+	 * @return bool
 	 */
 	public function blogPostIdExists( int $blogPostId ): bool {
 		$transaction = $this->db->prepare(
@@ -1123,7 +1137,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $blogPostId
+	 * @param int $blogPostId
 	 * @return int The space_id for the given blog post page_id, or -1 if not found.
 	 */
 	public function getSpaceIdForBlogPostId( int $blogPostId ): int {
@@ -1150,7 +1164,7 @@ class WorkspaceDB {
 	/**
 	 * Get the target wiki title for a given blog post ID.
 	 *
-	 * @param integer $blogPostId
+	 * @param int $blogPostId
 	 * @return string
 	 */
 	public function getTargetBlogPostTitleFromBlogPostId( int $blogPostId ): string {
@@ -1177,7 +1191,7 @@ class WorkspaceDB {
 	/**
 	 * Get the target wiki title for a given blog post ID.
 	 *
-	 * @param integer $blogPostId
+	 * @param int $blogPostId
 	 * @return string
 	 */
 	public function getConfluenceBlogPostTitleFromBlogPostId( int $blogPostId ): string {
@@ -1202,8 +1216,8 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $bodyContentId
-	 * @param integer $contentId
+	 * @param int $bodyContentId
+	 * @param int $contentId
 	 * @param string $class
 	 * @param array $properties
 	 * @return bool True on success, false on error.
@@ -1244,7 +1258,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $contentId
+	 * @param int $contentId
 	 * @return array
 	 */
 	public function getBodyContentIdsForContentId( int $contentId ): array {
@@ -1263,13 +1277,13 @@ class WorkspaceDB {
 			}
 
 		}
-		
+
 		return $bodyContentIds;
 	}
 
 	/**
-	 * @param integer $bodyContentId
-	 * @return integer
+	 * @param int $bodyContentId
+	 * @return int
 	 */
 	public function getContentIdForBodyContentId( int $bodyContentId ): int {
 		$transaction = $this->db->prepare(
@@ -1288,12 +1302,12 @@ class WorkspaceDB {
 		}
 
 		// TODO: Add a error if there are more then one page_id's for this body_content_id
-		
+
 		return $bodyContentId;
 	}
 
 	/**
-	 * @param integer $bodyContentId
+	 * @param int $bodyContentId
 	 * @param string $body
 	 * @return bool True on success, false on error.
 	 */
@@ -1324,7 +1338,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $bodyContentId
+	 * @param int $bodyContentId
 	 * @return array
 	 */
 	public function getBodyForBodyContentId( int $bodyContentId ): array {
@@ -1343,20 +1357,20 @@ class WorkspaceDB {
 			}
 
 		}
-		
+
 		return $bodies;
 	}
 
-
 	/**
-	 * @param integer $attachmentId
-	 * @param integer $spaceId
+	 * @param int $attachmentId
+	 * @param int $spaceId
 	 * @param string $filename
-	 * @param integer $containerContentId
+	 * @param string $fileExtension
+	 * @param int $containerContentId
 	 * @param string $contentStatus
 	 * @param string $attachmentReference
 	 * @param array $properties
-	 * @return bool True on success, false on error.
+	 * @return bool
 	 */
 	public function addAttachment(
 		int $attachmentId,
@@ -1410,10 +1424,11 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $attachmentId
-	 * @param integer $pageId
+	 * @param int $attachmentId
+	 * @param int $pageId
+	 * @param string $originalAttachmentFilename
 	 * @param string $targetAttachmentFilename
-	 * @return bool True on success, false on error.
+	 * @return bool
 	 */
 	public function addPageAttachment(
 		int $attachmentId,
@@ -1452,11 +1467,14 @@ class WorkspaceDB {
 	 * @param string $originalAttachmentFilename
 	 * @return array
 	 */
-	public function getTargetFileTitleFromSpaceKey( string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename ): array {
+	public function getTargetFileTitleFromSpaceKey(
+		string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename
+	): array {
 		$transaction = $this->db->prepare(
 			'SELECT pa.target_attachment_filename FROM page_attachments pa
 			JOIN pages p ON pa.page_id = p.page_id
-			WHERE p.space_key = :space_key AND p.confluence_title = :confluence_title AND pa.original_attachment_filename = :original_attachment_filename
+			WHERE p.space_key = :space_key AND p.confluence_title = :confluence_title
+			AND pa.original_attachment_filename = :original_attachment_filename
 			LIMIT 1'
 		);
 		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
@@ -1495,11 +1513,14 @@ class WorkspaceDB {
 	 * @param string $originalAttachmentFilename
 	 * @return string
 	 */
-	public function getTargetFileTitleFromSpaceId( int $spaceId, string $confluenceTitle, string $originalAttachmentFilename ): string {
+	public function getTargetFileTitleFromSpaceId(
+		int $spaceId, string $confluenceTitle, string $originalAttachmentFilename
+	): string {
 		$transaction = $this->db->prepare(
 			'SELECT pa.target_attachment_filename FROM page_attachments pa
 			JOIN pages p ON pa.page_id = p.page_id
-			WHERE p.space_id = :space_id AND p.confluence_title = :confluence_title AND pa.original_attachment_filename = :original_attachment_filename
+			WHERE p.space_id = :space_id AND p.confluence_title = :confluence_title
+			AND pa.original_attachment_filename = :original_attachment_filename
 			LIMIT 1'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
@@ -1575,10 +1596,12 @@ class WorkspaceDB {
 		}
 
 		$fileTitles = [];
-		while ( $row = $result->fetchArray( SQLITE3_ASSOC ) ) {
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
 			if ( isset( $row['target_attachment_filename'] ) && $row['target_attachment_filename'] !== '' ) {
 				$fileTitles[] = $row['target_attachment_filename'];
 			}
+			$row = $result->fetchArray( SQLITE3_ASSOC );
 		}
 		$result->finalize();
 
@@ -1607,13 +1630,15 @@ class WorkspaceDB {
 		}
 
 		$fileTitles = [];
-		while ( $row = $result->fetchArray( SQLITE3_ASSOC ) ) {
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
 			if ( isset( $row['original_attachment_filename'] ) && isset( $row['target_attachment_filename'] ) ) {
 				$fileTitles[] = [
 					'original' => $row['original_attachment_filename'],
 					'target' => $row['target_attachment_filename']
 				];
 			}
+			$row = $result->fetchArray( SQLITE3_ASSOC );
 		}
 		$result->finalize();
 
@@ -1622,9 +1647,9 @@ class WorkspaceDB {
 
 	/**
 	 * @param string $wikiTitle
-	 * @return boolean
+	 * @return bool
 	 */
-	public function checkPageAttachmentWikiTitleExists( string $wikiTitle ): bool {	
+	public function checkPageAttachmentWikiTitleExists( string $wikiTitle ): bool {
 		$transaction = $this->db->prepare(
 			'SELECT 1 FROM page_attachments WHERE target_attachment_filename = :wiki_title LIMIT 1'
 		);
@@ -1649,7 +1674,7 @@ class WorkspaceDB {
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
-	 * @return boolean
+	 * @return bool
 	 */
 	public function addUser(
 		string $userKey,
@@ -1752,8 +1777,8 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $commentId
-	 * @param integer $containerContentId
+	 * @param int $commentId
+	 * @param int $containerContentId
 	 * @param string $class
 	 * @param string $contentStatus
 	 * @param string $userKey
@@ -1761,7 +1786,7 @@ class WorkspaceDB {
 	 * @param string $created
 	 * @param string $modiefied
 	 * @param array $properties
-	 * @return boolean
+	 * @return bool
 	 */
 	public function addComment(
 		int $commentId, int $containerContentId, string $class, string $contentStatus,
@@ -1813,8 +1838,8 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $commentId
-	 * @return boolean
+	 * @param int $commentId
+	 * @return bool
 	 */
 	public function commentIdExists( int $commentId ): bool {
 		$transaction = $this->db->prepare(
@@ -1834,8 +1859,8 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $labellingId
-	 * @param integer $labelId
+	 * @param int $labellingId
+	 * @param int $labelId
 	 * @param array $properties
 	 * @return bool True on success, false on error.
 	 */
@@ -1889,7 +1914,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $labelId
+	 * @param int $labelId
 	 * @param string $name
 	 * @param string $namespace
 	 * @param array $properties
@@ -1948,7 +1973,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @param array $meta
 	 * @return bool True on success, false on error.
 	 */
@@ -1979,7 +2004,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @param array $meta
 	 * @return bool True on success, false on error.
 	 */
@@ -2107,7 +2132,8 @@ class WorkspaceDB {
 		}
 
 		$metadataMap = [];
-		while ( $row = $result->fetchArray( SQLITE3_ASSOC ) ) {
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
 			if ( isset( $row['original_attachment_filename'] ) && isset( $row['target_attachment_filename'] ) ) {
 				$confluenceFileKey = $row['original_attachment_filename'];
 				$meta = json_decode( $row['meta'] ?? '[]', true );
@@ -2120,6 +2146,7 @@ class WorkspaceDB {
 					[ 'targetTitle' => $row['target_attachment_filename'] ]
 				);
 			}
+			$row = $result->fetchArray( SQLITE3_ASSOC );
 		}
 		$result->finalize();
 
@@ -2280,7 +2307,7 @@ class WorkspaceDB {
 	/**
 	 * Update body_content_ids for a page.
 	 *
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @param array $bodyContentIds
 	 * @return bool True on success, false on error.
 	 */
@@ -2298,7 +2325,7 @@ class WorkspaceDB {
 	/**
 	 * Update body_content_ids for a blog post.
 	 *
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @param array $bodyContentIds
 	 * @return bool True on success, false on error.
 	 */
@@ -2316,7 +2343,7 @@ class WorkspaceDB {
 	/**
 	 * Update body_content_ids for a comment.
 	 *
-	 * @param integer $commentId
+	 * @param int $commentId
 	 * @param array $bodyContentIds
 	 * @return bool True on success, false on error.
 	 */
@@ -2334,14 +2361,15 @@ class WorkspaceDB {
 	/**
 	 * Update body_content_ids for a space description.
 	 *
-	 * @param integer $spaceDescriptionId
+	 * @param int $spaceDescriptionId
 	 * @param array $bodyContentIds
 	 * @return bool True on success, false on error.
 	 */
 	public function updateSpaceDescriptionBodyContentIds( int $spaceDescriptionId, array $bodyContentIds ): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$transaction = $this->db->prepare(
-			'UPDATE spaces_descriptions SET body_content_ids = :body_content_ids WHERE space_description_id = :space_description_id'
+			'UPDATE spaces_descriptions SET body_content_ids = :body_content_ids 
+			WHERE space_description_id = :space_description_id'
 		);
 
 		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );

@@ -40,7 +40,7 @@ abstract class LinkProcessorBase implements IProcessor {
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param MigrationConfig $config
+	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct( DBConversionDataLookup $dataLookup,
 		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {

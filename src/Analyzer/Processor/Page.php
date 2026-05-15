@@ -15,7 +15,8 @@ class Page extends ProcessorBase {
 	public function __construct(
 		private WorkspaceDB $workspaceDB,
 		private MigrationConfig $migrationConfig
-	) {}
+	) {
+	}
 
 	/**
 	 * @inheritDoc
@@ -93,7 +94,7 @@ class Page extends ProcessorBase {
 		if ( isset( $properties['parent'] ) ) {
 			$parentPageId = $properties['parent'];
 		}
-		
+
 		$version = '';
 		if ( isset( $properties['version'] ) ) {
 			$version = $properties['version'];

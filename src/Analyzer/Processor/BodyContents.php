@@ -12,7 +12,8 @@ class BodyContents extends ProcessorBase {
 	 */
 	public function __construct(
 		private WorkspaceDB $workspaceDB
-	) {}
+	) {
+	}
 
 	/**
 	 * @inheritDoc

@@ -3,8 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 
 class DrawioMacro extends StructuredMacroProcessorBase {

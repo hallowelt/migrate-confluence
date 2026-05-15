@@ -16,7 +16,7 @@ class MigrationConfig {
 	 * @param mixed $default
 	 * @return mixed
 	 */
-	private function get( string $key, mixed $default = null ): mixed {
+	private function get( string $key, mixed $default ): mixed {
 		if ( !isset( $this->config[$key] ) ) {
 			return $default;
 		}
@@ -80,14 +80,14 @@ class MigrationConfig {
 	}
 
 	/**
-	 * @return boolean
+	 * @return bool
 	 */
 	public function getExtNsFileRepoCompat(): bool {
 		return $this->get( 'ext-ns-file-repo-compat', false );
 	}
 
 	/**
-	 * @return boolean
+	 * @return bool
 	 */
 	public function getIncludeHistory(): bool {
 		return $this->get( 'include-history', false );
