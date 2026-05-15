@@ -39,6 +39,7 @@ class WorkspaceDB {
 			'comments',
 			'labellings',
 			'labels',
+			'gliffy',
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -108,6 +109,7 @@ class WorkspaceDB {
 		$this->createTableComments();
 		$this->createTableLabellings();
 		$this->createTableLabels();
+		$this->createTableGliffy();
 		$this->createTablePagesMeta();
 		$this->createTableBlogPostsMeta();
 		$this->createTableAttachmentsMeta();
@@ -334,6 +336,20 @@ class WorkspaceDB {
 				name CHAR,
 				namespace CHAR,
 				properties BLOB
+			);'
+		);
+	}
+	
+	/**
+	 * @return void
+	 */
+	private function createTableGliffy(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS gliffy (
+				space_id INT,
+				confluence_title CHAR,
+				original_attachment_filename CHAR,
+				target_attachment_filename CHAR
 			);'
 		);
 	}
@@ -870,44 +886,35 @@ class WorkspaceDB {
 	/**
 	 * @param string $spaceKey
 	 * @param string $confluenceTitle
-	 * @return array
+	 * @return string
 	 */
-	public function getTargetPageTitleFromSpaceKey( string $spaceKey, string $confluenceTitle ): array {
+	public function getTargetPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): string {
 		$transaction = $this->db->prepare(
-			'SELECT wiki_title FROM pages WHERE space_key = :space_key AND confluence_title = :confluence_title LIMIT 1'
+			'SELECT wiki_title FROM pages WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
 		);
-		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
-			return [
-				'title' => $confluenceTitle,
-				'isBroken' => true
-			];
+			return '';
 		}
 
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
 		if ( $data === false || !isset( $data['wiki_title'] ) ) {
-			return [
-				'title' => $confluenceTitle,
-				'isBroken' => true
-			];
+			return '';
 		}
 
-		return [
-			'title' => $data['wiki_title'],
-			'isBroken' => false
-		];
+		return $data['wiki_title'];
 	}
 
 	/**
 	 * @param integer $pageId
-	 * @return array
+	 * @return string
 	 */
-	public function getTargetPageTitleFromPageId( int $pageId ): array {
+	public function getTargetPageTitleFromPageId( int $pageId ): string {
 		$transaction = $this->db->prepare(
 			'SELECT wiki_title FROM pages WHERE page_id = :page_id LIMIT 1'
 		);
@@ -915,26 +922,42 @@ class WorkspaceDB {
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
-			return [
-				'title' => '',
-				'isBroken' => true
-			];
+			return '';
 		}
 
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
 		if ( $data === false || !isset( $data['wiki_title'] ) ) {
-			return [
-				'title' => '',
-				'isBroken' => true
-			];
+			return '';
 		}
 
-		return [
-			'title' => $data['wiki_title'],
-			'isBroken' => false
-		];
+		return $data['wiki_title'];
+	}
+
+	/**
+	 * @param integer $pageId
+	 * @return string
+	 */
+	public function getConfluencePageTitleFromPageId( int $pageId ): string {
+		$transaction = $this->db->prepare(
+			'SELECT confluence_title FROM pages WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return '';
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['confluence_title'] ) ) {
+			return '';
+		}
+
+		return $data['confluence_title'];
 	}
 
 	/**
@@ -1128,9 +1151,9 @@ class WorkspaceDB {
 	 * Get the target wiki title for a given blog post ID.
 	 *
 	 * @param integer $blogPostId
-	 * @return array Array with 'title' and 'isBroken' keys.
+	 * @return string
 	 */
-	public function getTargetBlogPostTitleFromBlogPostId( int $blogPostId ): array {
+	public function getTargetBlogPostTitleFromBlogPostId( int $blogPostId ): string {
 		$transaction = $this->db->prepare(
 			'SELECT wiki_title FROM blog_posts WHERE page_id = :page_id LIMIT 1'
 		);
@@ -1138,26 +1161,44 @@ class WorkspaceDB {
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
-			return [
-				'title' => '',
-				'isBroken' => true
-			];
+			return '';
 		}
 
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
 		if ( $data === false || !isset( $data['wiki_title'] ) ) {
-			return [
-				'title' => '',
-				'isBroken' => true
-			];
+			return '';
 		}
 
-		return [
-			'title' => $data['wiki_title'],
-			'isBroken' => false
-		];
+		return $data['wiki_title'];
+	}
+
+	/**
+	 * Get the target wiki title for a given blog post ID.
+	 *
+	 * @param integer $blogPostId
+	 * @return string
+	 */
+	public function getConfluenceBlogPostTitleFromBlogPostId( int $blogPostId ): string {
+		$transaction = $this->db->prepare(
+			'SELECT confluence_title FROM blog_posts WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return '';
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['confluence_title'] ) ) {
+			return '';
+		}
+
+		return $data['wiki_title'];
 	}
 
 	/**
@@ -1411,7 +1452,7 @@ class WorkspaceDB {
 	 * @param string $originalAttachmentFilename
 	 * @return array
 	 */
-	public function getTargetFileTitleBySpaceKey( string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename ): array {
+	public function getTargetFileTitleFromSpaceKey( string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename ): array {
 		$transaction = $this->db->prepare(
 			'SELECT pa.target_attachment_filename FROM page_attachments pa
 			JOIN pages p ON pa.page_id = p.page_id
@@ -1444,6 +1485,104 @@ class WorkspaceDB {
 			'title' => $data['target_attachment_filename'],
 			'isBroken' => false
 		];
+	}
+
+	/**
+	 * Get the wikit file title for a given space id, confluence title and original attachment filename.
+	 *
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $originalAttachmentFilename
+	 * @return string
+	 */
+	public function getTargetFileTitleFromSpaceId( int $spaceId, string $confluenceTitle, string $originalAttachmentFilename ): string {
+		$transaction = $this->db->prepare(
+			'SELECT pa.target_attachment_filename FROM page_attachments pa
+			JOIN pages p ON pa.page_id = p.page_id
+			WHERE p.space_id = :space_id AND p.confluence_title = :confluence_title AND pa.original_attachment_filename = :original_attachment_filename
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return '';
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['target_attachment_filename'] ) ) {
+			return '';
+		}
+
+		return $data['target_attachment_filename'];
+	}
+
+	/**
+	 * @param string $attachmentTargetFileTitle
+	 * @return string
+	 */
+	public function getAttachmentReference( string $attachmentTargetFileTitle ): string {
+		$transaction = $this->db->prepare(
+			'SELECT a.attachment_reference FROM attachments a
+			JOIN page_attachments pa ON pa.attachment_id = a.attachment_id
+			WHERE pa.target_attachment_filename = :target_attachment_filename
+			ORDER BY CASE WHEN lower( a.content_status ) = "current" THEN 0 ELSE 1 END, a.attachment_id DESC
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':target_attachment_filename', $attachmentTargetFileTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return '';
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['attachment_reference'] ) ) {
+			return '';
+		}
+
+		return (string)$data['attachment_reference'];
+	}
+
+	/**
+	 * Returns all target file titles attached to a given page.
+	 *
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return string[]
+	 */
+	public function getTargetFileTitlesForPage( int $spaceId, string $rawPageTitle ): array {
+		$transaction = $this->db->prepare(
+			'SELECT pa.target_attachment_filename FROM attachments a
+			JOIN pages p ON a.container_id = p.page_id
+			JOIN page_attachments pa ON pa.attachment_id = a.attachment_id AND pa.page_id = p.page_id
+			WHERE p.space_id = :space_id
+				AND p.confluence_title = :confluence_title
+				AND lower( a.content_status ) = "current"'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $rawPageTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		$fileTitles = [];
+		while ( $row = $result->fetchArray( SQLITE3_ASSOC ) ) {
+			if ( isset( $row['target_attachment_filename'] ) && $row['target_attachment_filename'] !== '' ) {
+				$fileTitles[] = $row['target_attachment_filename'];
+			}
+		}
+		$result->finalize();
+
+		return array_values( array_unique( $fileTitles ) );
 	}
 
 	/**
@@ -1899,6 +2038,48 @@ class WorkspaceDB {
 	 */
 	public function getAttachmentMeta(): array {
 		return $this->getAllData( 'attachments_meta' );
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $originalAttachmentFilename
+	 * @param string $targetAttachmentFilename
+	 * @return bool
+	 */
+	public function addGliffy(
+		int $spaceId,
+		string $confluenceTitle,
+		string $originalAttachmentFilename,
+		string $targetAttachmentFilename
+	): bool {
+		$transaction = $this->db->prepare(
+			'INSERT INTO gliffy (
+				space_id,
+				confluence_title,
+				original_attachment_filename,
+				target_attachment_filename
+			) VALUES (
+				:space_id,
+				:confluence_title,
+				:original_attachment_filename,
+				:target_attachment_filename
+			)'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
+		$transaction->bindValue( ':target_attachment_filename', $targetAttachmentFilename, SQLITE3_TEXT );
+
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getGliffy(): array {
+		return $this->getAllData( 'gliffy' );
 	}
 
 	/**

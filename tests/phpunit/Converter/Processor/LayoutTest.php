@@ -23,11 +23,13 @@ class LayoutTest extends TestCase {
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
+		# $actualOutput = preg_replace( '/\s+xmlns(?::[A-Za-z_][A-Za-z0-9_.-]*)?="[^"]*"/', '', $actualOutput );
 
 		$input = file_get_contents( "$dir/layout-output.xml" );
 		$expectedDom = new DOMDocument();
 		$expectedDom->loadXML( $input );
 		$expectedOutput = $expectedDom->saveXML( $expectedDom->documentElement );
+		# $expectedOutput = preg_replace( '/\s+xmlns(?::[A-Za-z_][A-Za-z0-9_.-]*)?="[^"]*"/', '', $expectedOutput );
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
 	}

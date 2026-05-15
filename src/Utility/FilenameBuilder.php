@@ -9,9 +9,9 @@ use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 class FilenameBuilder {
 
 	/**
-	 * @var array
+	 * @var MigrationConfig
 	 */
-	private array $config;
+	private MigrationConfig $migrationConfig;
 
 	/**
 	 * @var array
@@ -20,11 +20,11 @@ class FilenameBuilder {
 
 	/**
 	 * @param array $spaceIdPrefixMap
-	 * @param array $config
+	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( array $spaceIdPrefixMap, array $config = [] ) {
+	public function __construct( array $spaceIdPrefixMap, MigrationConfig $migrationConfig ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
-		$this->config = $config;
+		$this->migrationConfig = $migrationConfig;
 	}
 
 	/**
@@ -57,15 +57,14 @@ class FilenameBuilder {
 		$filename = new WindowsFilename( $builtTitle );
 		$filename = (string)$filename;
 
-		if (
-			isset( $this->config['ext-ns-file-repo-compat'] )
-			&& $this->config['ext-ns-file-repo-compat'] === true
-		) {
-			$filePrefix = $this->spaceIdPrefixMap[$spaceId];
-			if ( $filePrefix !== '' ) {
-				$namespacePart = substr( $filePrefix, 0, strpos( $filePrefix, ':' ) );
-				if ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
-					$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}_" ) );
+		if ( $this->migrationConfig->getExtNsFileRepoCompat() === true ) {
+			if ( isset( $this->spaceIdPrefixMap[$spaceId] ) ) {
+				$filePrefix = $this->spaceIdPrefixMap[$spaceId];
+				if ( $filePrefix !== '' ) {
+					$namespacePart = substr( $filePrefix, 0, strpos( $filePrefix, ':' ) );
+					if ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
+						$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}_" ) );
+					}
 				}
 			}
 		}

@@ -58,12 +58,12 @@ class DBConversionDataLookup {
 	 * If no mapping is found return the confluence title itself as page title
 	 * and a flag indicating that the title is not mapped.
 	 *
-	 * @param string $spaceKey
+	 * @param int $spaceId
 	 * @param string $confluenceTitle
-	 * @return array
+	 * @return string
 	 */
-	public function getTargetPageTitleFromSpaceKey( string $spaceKey, string $confluenceTitle ): array {
-		return $this->workspaceDB->getTargetPageTitleFromSpaceKey( $spaceKey, $confluenceTitle );
+	public function getTargetPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): string {
+		return $this->workspaceDB->getTargetPageTitleFromSpaceId( $spaceId, $confluenceTitle );
 	}
 
 	/**
@@ -81,6 +81,20 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * Get the wikit file title for a given space key, confluence title and original attachment filename.
+	 * If no entry is found, return the original attachment filename as title
+	 * and mark it as broken link (isBroken = true) in the returned array.
+	 *
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $originalAttachmentFilename
+	 * @return string
+	 */
+	public function getTargetFileTitleFromSpaceId( int $spaceId, string $confluenceTitle, string $originalAttachmentFilename ): string {
+		return $this->workspaceDB->getTargetFileTitleFromSpaceId( $spaceId, $confluenceTitle, $originalAttachmentFilename );
+	}
+
+	/**
 	 * Returns target file titles with their full metadata for all attachments on a page.
 	 * The returned array is keyed by confluence file key. Each value contains 'targetTitle'
 	 * plus any additional metadata fields (e.g. 'labels', 'mediaType', etc.).
@@ -91,5 +105,30 @@ class DBConversionDataLookup {
 	 */
 	public function getAttachmentMetadataForPage( int $spaceId, string $rawPageTitle ): array {
 		return $this->workspaceDB->getAttachmentMetadataForPage( $spaceId, $rawPageTitle );
+	}
+
+	/**
+	 * @param string $attachmentTargetFileTitle
+	 * @return string|null
+	 */
+	public function getAttachmentContent( string $attachmentTargetFileTitle ): ?string {
+		$reference = $this->workspaceDB->getAttachmentReference( $attachmentTargetFileTitle );
+		if ( $reference === null || !file_exists( $reference ) ) {
+			return null;
+		}
+		$content = file_get_contents( $reference );
+		if ( !$content ) {
+			return null;
+		}
+		return $content;
+	}
+
+	/**
+	 * @param integer $spaceId
+	 * @param string $rawPageTitle
+	 * @return array
+	 */
+	public function getTargetFileTitlesForPage( int $spaceId, string $rawPageTitle ): array {
+		return $this->workspaceDB->getTargetFileTitlesForPage( $spaceId, $rawPageTitle );
 	}
 }

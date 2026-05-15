@@ -32,9 +32,10 @@ class PageLink extends LinkProcessorBase {
 			$rawPageTitle = $node->getAttribute( 'ri:content-title' );
 			$spaceId = $this->ensureSpaceId( $node );
 
-			$confluencePageKey = $this->generatePageConfluenceKey( $spaceId, $rawPageTitle );
-
-			$targetTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
+			$targetTitle = $this->dataLookup->getTargetPageTitleFromSpaceId(
+				$spaceId,
+				$rawPageTitle
+			);
 			$linkParts = [];
 			if ( !empty( $targetTitle ) ) {
 				$linkParts[] = $targetTitle;

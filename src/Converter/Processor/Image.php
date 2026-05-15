@@ -7,15 +7,16 @@ use DOMElement;
 use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class Image implements IProcessor {
 
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	protected ConversionDataLookup $dataLookup;
+	protected DBConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
@@ -28,9 +29,9 @@ class Image implements IProcessor {
 	protected string $rawPageTitle;
 
 	/**
-	 * @var array
+	 * @var MigrationConfig
 	 */
-	protected array $config;
+	protected array $migrationConfig;
 
 	/**
 	 * @var FilenameResolver
@@ -38,24 +39,24 @@ class Image implements IProcessor {
 	protected FilenameResolver $filenameResolver;
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param array $config
+	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( ConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, array $config ) {
+	public function __construct( DBConversionDataLookup $dataLookup,
+		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
-		$this->config = $config;
+		$this->migrationConfig = $migrationConfig;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
-		$this->filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
+		$this->filenameResolver = new FilenameResolver( $this->dataLookup, $this->migrationConfig );
 
 		$imageNodes = $dom->getElementsByTagName( 'image' );
 
@@ -270,8 +271,6 @@ class Image implements IProcessor {
 			}
 		}
 
-		$rawPageTitle = basename( $rawPageTitle );
-
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
 			$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 
@@ -318,8 +317,6 @@ class Image implements IProcessor {
 				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 			}
 		}
-
-		$rawPageTitle = basename( $rawPageTitle );
 
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
 				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
@@ -387,8 +384,6 @@ class Image implements IProcessor {
 				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 			}
 		}
-
-		$rawPageTitle = basename( $rawPageTitle );
 
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
 				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );

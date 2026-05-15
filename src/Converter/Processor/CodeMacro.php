@@ -25,7 +25,7 @@ class CodeMacro extends StructuredMacroProcessorBase {
 	 * @inheritDoc
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
-		$macroReplacement = $node->ownerDocument->createElement( 'pre' );
+		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 		$macroReplacement->setAttribute( 'class', 'PRESERVESYNTAXHIGHLIGHT' );
 
 		$this->processParamElements( $node, $macroReplacement );

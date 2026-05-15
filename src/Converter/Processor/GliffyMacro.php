@@ -4,15 +4,16 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 
 class GliffyMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	protected ConversionDataLookup $dataLookup;
+	protected DBConversionDataLookup $dataLookup;
 
 	/**
 	 * @var ConversionDataWriter
@@ -35,19 +36,24 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	private DataBuckets $dataBuckets;
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @var WorkspaceDB
+	 */
+	private WorkspaceDB $workspaceDB;
+
+	/**
+	 * @param DBConversionDataLookup $dataLookup
 	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param DataBuckets &$dataBuckets
+	 * @param WorkspaceDB $workspaceDB
 	 */
-	public function __construct( ConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
-		int $currentSpaceId, string $rawPageTitle, DataBuckets &$dataBuckets ) {
+	public function __construct( DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
+		int $currentSpaceId, string $rawPageTitle, WorkspaceDB $workspaceDB ) {
 		$this->dataLookup = $dataLookup;
 		$this->conversionDataWriter = $conversionDataWriter;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
-		$this->dataBuckets = $dataBuckets;
+		$this->workspaceDB = $workspaceDB;
 	}
 
 	/**
@@ -67,9 +73,14 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 		if ( isset( $params['name'] ) ) {
 			$paramsString = $this->makeParamsString( $params );
 
+			$brokenMacro = '';
+			if ( $paramsString === '' ) {
+				$brokenMacro = "[[Category:Broken_macro/gliffy]]";
+			}
+
 			// Gliffy will be used as Drawio image
 			$node->parentNode->replaceChild(
-				$node->ownerDocument->createTextNode( "{{Gliffy$paramsString}}" ),
+				$node->ownerDocument->createTextNode( "{{Gliffy$paramsString}}$brokenMacro" ),
 				$node
 			);
 		}
@@ -84,18 +95,28 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 			$name = $params['name'];
 
 			$extension = substr( $name, strlen( $name ) - 4 );
-			if ( strtolower( $extension ) !== '.png' && strtolower( $extension ) !== '.svg' ) {
-				$key = $this->getConfluenceKey( $name, '.png' );
-			} else {
-				$key = $this->getConfluenceKey( $name );
+
+			$validExtensions = [ '.SVG', '.PNG', '.svg', '.png' ];
+			if ( !in_array( $extension, $validExtensions, true ) ) {
+				$name .= '.png';
 			}
-			$filename = $this->getFilename( $key );
+
+			$filename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+				$this->currentSpaceId,
+				$this->rawPageTitle,
+				$name
+			);
 
 			if ( $filename === '' ) {
-				$fallbackExtensions = [ '.PNG', '.svg', '.png' ];
+				$fallbackExtensions = [ '.SVG', '.PNG', '.svg', '.png' ];
 				foreach ( $fallbackExtensions as $ext ) {
-					$key = $this->getConfluenceKey( $name, $ext );
-					$filename = $this->getFilename( $key );
+					$name = $params['name'] . $ext;
+
+					$filename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+						$this->currentSpaceId,
+						$this->rawPageTitle,
+						$name
+					);
 
 					if ( $filename !== '' ) {
 						break;
@@ -106,11 +127,16 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 			if ( $filename !== '' ) {
 				$params['name'] = $filename;
 			}
-
-			$this->dataBuckets->addData( 'global-gliffy-map', $key, $filename, true, true );
 		} else {
 			return '';
 		}
+
+		$this->workspaceDB->addGliffy(
+			$this->currentSpaceId,
+			$this->rawPageTitle,
+			$name,
+			$filename
+		);
 
 		if ( isset( $params['macroId'] ) ) {
 			unset( $params['macroId'] );
@@ -143,27 +169,5 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 		}
 
 		return $params;
-	}
-
-	/**
-	 * @param string $name
-	 * @param string $extension
-	 * @return string
-	 */
-	private function getConfluenceKey( string $name, string $extension = '' ): string {
-		$spaceId = $this->currentSpaceId;
-		$rawPageTitle = basename( $this->rawPageTitle );
-		$name .= $extension;
-		return "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $name );
-	}
-
-	/**
-	 * @param string $confluenceFileKey
-	 * @return string
-	 */
-	private function getFilename( string $confluenceFileKey ): string {
-		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
-
-		return $filename;
 	}
 }
