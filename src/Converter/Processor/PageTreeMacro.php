@@ -206,7 +206,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				$params['content-title'] = '';
 
 				if ( isset( $params['space-key'] ) ) {
-					$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
+					$namespace = $this->dataLookup->getNamepspaceFromSpaceKey( $params['space-key'] );
 					if ( is_string( $namespace ) ) {
 						$params['space-key'] = $namespace;
 					} else {
@@ -234,7 +234,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 					$params['content-title'] = $text;
 				}
 				if ( isset( $params['space-key'] ) ) {
-					$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
+					$namespace = $this->dataLookup->getNamepspaceFromSpaceKey( $params['space-key'] );
 					if ( is_string( $namespace ) ) {
 						$params['space-key'] = $namespace;
 					}

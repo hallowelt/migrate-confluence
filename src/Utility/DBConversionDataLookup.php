@@ -54,6 +54,26 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * Get the mediawiki namespace for a given space key.
+	 * If key is not found return the space key itself as namespace prefix.
+	 *
+	 * @param string $spaceKey
+	 *
+	 * @return string
+	 */
+	public function getNamepspaceFromSpaceKey( string $spaceKey ): string {
+		$spacePrefix = $this->workspaceDB->getSpacePrefixFromSpaceKey( $spaceKey );
+		if ( $spacePrefix === '' ) {
+			return '';
+		}
+		$namespace = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) );
+		if ( $namespace === false ) {
+			return $spacePrefix;
+		}
+		return $namespace;
+	}
+
+	/**
 	 * Get the mediawiki page title for a given space key and confluence page title.
 	 * If no mapping is found return the confluence title itself as page title
 	 * and a flag indicating that the title is not mapped.

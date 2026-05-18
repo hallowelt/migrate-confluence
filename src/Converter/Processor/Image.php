@@ -31,7 +31,7 @@ class Image implements IProcessor {
 	/**
 	 * @var MigrationConfig
 	 */
-	protected array $migrationConfig;
+	protected MigrationConfig $migrationConfig;
 
 	/**
 	 * @var FilenameResolver

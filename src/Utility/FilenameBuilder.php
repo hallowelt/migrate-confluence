@@ -40,12 +40,13 @@ class FilenameBuilder {
 		$builder->setNamespace( $spaceId );
 
 		if ( !empty( $assocTitle ) ) {
+			// Namespace is already set with assocTitle
+			$builder->setNamespace( 0 );
+
 			$assocTitle = str_replace( '/', '_', $assocTitle );
 			$filenameParts = explode( '.', $originalFilename );
 			if ( count( $filenameParts ) > 1 ) {
-				$extension = array_pop( $filenameParts );
-				$originalFilename = implode( '.', $filenameParts )
-					. "$assocTitle.$extension";
+				$originalFilename = $assocTitle . '_' . implode( '.', $filenameParts );
 			} else {
 				$originalFilename = implode( '.', $filenameParts ) . $assocTitle;
 			}

@@ -119,7 +119,10 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		if ( !isset( $params['page'] ) ) {
 			// if no page param was set pass current page title to subpage template
-			$params['page'] = $this->currentPageTitle;
+			$params['page'] = $this->dataLookup->getTargetPageTitleFromSpaceId(
+				$this->spaceId,
+				$this->currentPageTitle
+			);
 		}
 
 		$templateParams = '';

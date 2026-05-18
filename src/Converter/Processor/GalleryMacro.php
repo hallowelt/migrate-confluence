@@ -238,8 +238,6 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		$filenames = array_map( 'trim', explode( ',', $include ) );
 		$files = [];
 		foreach ( $filenames as $filename ) {
-			$rawPageTitle = str_replace( ' ', '_', basename( $this->rawPageTitle ) );
-
 			[ 'title' => $targetTitle, 'isBroken' => $isBroken ] =
 				$this->filenameResolver->resolve( $this->currentSpaceId, $rawPageTitle, $filename );
 
@@ -321,9 +319,8 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 				}
 			}
 
-			$rawPageTitle = str_replace( ' ', '_', basename( $pageTitle ) );
 			[ 'title' => $targetTitle, 'isBroken' => $isBroken ] =
-				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
+				$this->filenameResolver->resolve( $spaceId, $pageTitle, $filename );
 
 			$files[] = $targetTitle;
 			if ( $isBroken ) {
