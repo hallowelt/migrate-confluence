@@ -4,15 +4,23 @@ namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\BodyContents;
 
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use PHPUnit\Framework\TestCase;
 use XMLReader;
 
 class BodyContentsTest extends TestCase {
 
+	/** @var WorkspaceDB */
+	private WorkspaceDB $workspaceDB;
+
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents::execute
 	 */
 	public function testPageIdIsStoredAsInt() {
+		$workspaceDBMock = new WorkspaceDbMock();
+		$this->workspaceDB = $workspaceDBMock->createEmpty();
+
 		$xmlReader = new XMLReader();
 		$xmlReader->open( __DIR__ . '/body_content_page.xml' );
 
@@ -29,7 +37,7 @@ class BodyContentsTest extends TestCase {
 			if ( $class !== 'BodyContent' ) {
 				continue;
 			}
-			$processor = new BodyContents();
+			$processor = new BodyContents( $this->workspaceDB );
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
 				$processor->execute( $xmlReader );
@@ -39,16 +47,21 @@ class BodyContentsTest extends TestCase {
 		}
 		$xmlReader->close();
 
-		$map = $processor->getData( 'analyze-body-content-id-to-page-id-map' );
-		$this->assertArrayHasKey( 100, $map );
-		$this->assertIsInt( $map[100], 'Page ID in body-content-id-to-page-id-map must be int' );
-		$this->assertSame( 200, $map[100] );
+		$bodyContents = $this->workspaceDB->getBodyContents();
+		$bodyContent = $bodyContents[0];
+
+		$this->assertSame( 100, $bodyContent['body_content_id'] );
+		$this->assertIsInt( $bodyContent['content_id'], 'Page ID in body-content-id-to-page-id-map must be int' );
+		$this->assertSame( 200, $bodyContent['content_id'] );
 	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents::execute
 	 */
 	public function testCommentIdIsStoredAsInt() {
+		$workspaceDBMock = new WorkspaceDbMock();
+		$this->workspaceDB = $workspaceDBMock->createEmpty();
+
 		$xmlReader = new XMLReader();
 		$xmlReader->open( __DIR__ . '/body_content_comment.xml' );
 
@@ -64,7 +77,7 @@ class BodyContentsTest extends TestCase {
 			if ( $class !== 'BodyContent' ) {
 				continue;
 			}
-			$processor = new BodyContents();
+			$processor = new BodyContents( $this->workspaceDB );
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
 				$processor->execute( $xmlReader );
@@ -74,20 +87,20 @@ class BodyContentsTest extends TestCase {
 		}
 		$xmlReader->close();
 
-		$map = $processor->getData( 'analyze-body-content-id-to-comment-id-map' );
-		$this->assertArrayHasKey( 800, $map );
-		$this->assertIsInt( $map[800], 'Comment ID in body-content-id-to-comment-id-map must be int' );
-		$this->assertSame( 600, $map[800] );
+		$bodyContents = $this->workspaceDB->getBodyContents();
+		$bodyContent = $bodyContents[0];
 
-		// Comment entries must NOT appear in the page map
-		$pageMap = $processor->getData( 'analyze-body-content-id-to-page-id-map' );
-		$this->assertArrayNotHasKey( 800, $pageMap );
+		$this->assertEquals( 'Comment', $bodyContent['class'] );
+		$this->assertEquals( '{"content":"600"}', $bodyContent['properties'] );
 	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents::execute
 	 */
 	public function testBlogPostIdIsStoredAsInt() {
+		$workspaceDBMock = new WorkspaceDbMock();
+		$this->workspaceDB = $workspaceDBMock->createEmpty();
+
 		$xmlReader = new XMLReader();
 		$xmlReader->open( __DIR__ . '/body_content_blog_post.xml' );
 
@@ -103,7 +116,7 @@ class BodyContentsTest extends TestCase {
 			if ( $class !== 'BodyContent' ) {
 				continue;
 			}
-			$processor = new BodyContents();
+			$processor = new BodyContents( $this->workspaceDB );
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
 				$processor->execute( $xmlReader );
@@ -113,9 +126,10 @@ class BodyContentsTest extends TestCase {
 		}
 		$xmlReader->close();
 
-		$map = $processor->getData( 'analyze-body-content-id-to-page-id-map' );
-		$this->assertArrayHasKey( 100, $map );
-		$this->assertIsInt( $map[100], 'BlogPost ID in body-content-id-to-page-id-map must be int' );
-		$this->assertSame( 200, $map[100] );
+		$bodyContents = $this->workspaceDB->getBodyContents();
+		$bodyContent = $bodyContents[0];
+
+		$this->assertEquals( 'BlogPost', $bodyContent['class'] );
+		$this->assertEquals( '{"content":"200"}', $bodyContent['properties'] );
 	}
 }

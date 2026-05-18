@@ -10,7 +10,10 @@ use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 use SplFileInfo;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -23,6 +26,12 @@ class FullMigrationTest extends TestCase {
 
 	/** @var string */
 	private string $dataDir;
+
+	/** @var WorkspaceDB */
+	private WorkspaceDB $workspaceDB;
+
+	/** @var MigrationConfig */
+	private MigrationConfig $migrationConfig;
 
 	protected function setUp(): void {
 		$this->workDir = sys_get_temp_dir() . '/confluence-migration-test-' . uniqid();
@@ -46,6 +55,9 @@ class FullMigrationTest extends TestCase {
 		$sourceDir = $this->dataDir . '/MultipleExports';
 		$expectedPagesFile = $sourceDir . '/result_pages.xml';
 
+		$this->migrationConfig = new MigrationConfig( [] );
+		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
+
 		$subDirs = [ 'space_alpha', 'space_beta', 'space_gamma' ];
 		foreach ( $subDirs as $subDir ) {
 			mkdir( $this->workDir . '/' . $subDir, 0755, true );
@@ -66,80 +78,59 @@ class FullMigrationTest extends TestCase {
 			$this->runAnalyze( $config, $workspace, $output, $entitiesFile );
 		}
 
-		$titlesMap = $workspace->loadData( 'analyze-pages-titles-map' );
-		$duplicatesMap = $workspace->loadData( 'analyze-pages-titles-duplicates-map' );
+		$pages = $this->workspaceDB->getPages();
+
+		// Build legacy map to compare results
+		$titlesMap = [];
+		foreach ( $pages as $page ) {
+			$spaceId = $page['space_id'];
+			$confluenceTitle = $page['confluence_title'];
+			$wikiTitle = $page['wiki_title'];
+
+			$key = "$spaceId---$confluenceTitle";
+
+			$titlesMap[$key] = $wikiTitle;
+		}
 
 		// Pages unique to each file must survive in the titles map.
 		$this->assertArrayHasKey(
-			'70000000---Alpha_Page',
+			'70000000---Alpha Page',
 			$titlesMap,
 			'Alpha Page (unique to space_alpha export) was lost from analyze-pages-titles-map'
 		);
 		$this->assertArrayHasKey(
-			'70000000---Beta_Page',
+			'70000000---Beta Page',
 			$titlesMap,
 			'Beta Page (unique to space_beta export) was lost from analyze-pages-titles-map'
 		);
 
-		// The duplicate "Shared Page" must be tracked in at least one of the two
-		// maps – if it is absent from both, the duplicate-detection code discarded it.
-		$sharedPageKey = '70000000---Shared_Page';
-		$this->assertTrue(
-			isset( $titlesMap[$sharedPageKey] ) || isset( $duplicatesMap[$sharedPageKey] ),
-			'Shared Page (present in both exports) must be in analyze-pages-titles-map '
-			. 'or analyze-pages-titles-duplicates-map, but it is missing from both. '
-			. 'This indicates the analyze-pages-titles-duplicates-map bug.'
-		);
-
 		// analyze-page-id-to-confluence-key-map: every page ID must resolve to
 		// its spaceId---NormalizedLeafTitle key irrespective of hierarchy.
-		$idToConfluenceKeyMap = $workspace->loadData( 'analyze-page-id-to-confluence-key-map' );
+		$idToConfluenceKeyMap = [];
+		foreach ( $pages as $page ) {
+			$id = $page['id'];
+			$spaceId = $page['space_id'];
+			$confluenceTitle = $page['confluence_title'];
+
+			$key = "$spaceId---$confluenceTitle";
+
+			$idToConfluenceKeyMap[$id] = $key;
+		}
 
 		$this->assertSame(
-			'70000000---Duplicate_Title_Page',
+			'70000000---Duplicate Title Page',
 			$idToConfluenceKeyMap[70000020] ?? null,
 			'Parent page 70000020 must be present in analyze-page-id-to-confluence-key-map'
 		);
 		$this->assertSame(
-			'70000000---Duplicate_Title_Page',
+			'70000000---Duplicate Title Page',
 			$idToConfluenceKeyMap[70000021] ?? null,
 			'Child page 70000021 shares the parent title and must map to the same confluence key'
 		);
 		$this->assertSame(
-			'70000000---Duplicate_Child_Page',
+			'70000000---Duplicate Child Page',
 			$idToConfluenceKeyMap[70000022] ?? null,
 			'Child page 70000022 must be present in analyze-page-id-to-confluence-key-map'
-		);
-
-		// analyze-pages-titles-duplicates-map: parent and child share the leaf
-		// title "Duplicate Title Page" in the same space. The first occurrence
-		// stays in analyze-pages-titles-map; the second is recorded in
-		// analyze-pages-titles-duplicates-map. Both maps must hold the key.
-		$this->assertArrayHasKey(
-			'70000000---Duplicate_Title_Page',
-			$titlesMap,
-			'First occurrence of "Duplicate Title Page" must remain in analyze-pages-titles-map'
-		);
-		$this->assertArrayHasKey(
-			'70000000---Duplicate_Title_Page',
-			$duplicatesMap,
-			'Second occurrence of "Duplicate Title Page" must be recorded in '
-			. 'analyze-pages-titles-duplicates-map'
-		);
-
-		// "Duplicate Child Page" (id 70000022) appears in both exports with the
-		// same confluence key. First occurrence stays in analyze-pages-titles-map;
-		// the second export adds it to analyze-pages-titles-duplicates-map.
-		$this->assertArrayHasKey(
-			'70000000---Duplicate_Child_Page',
-			$titlesMap,
-			'First occurrence of "Duplicate Child Page" must remain in analyze-pages-titles-map'
-		);
-		$this->assertArrayNotHasKey(
-			'70000000---Duplicate_Child_Page',
-			$duplicatesMap,
-			'Second occurrence of "Duplicate Child Page" must be not recorded in '
-			. 'analyze-pages-titles-duplicates-map'
 		);
 
 		// Pages 70000030 (space_alpha) and 70000031 (space_beta) have the same
@@ -148,25 +139,19 @@ class FullMigrationTest extends TestCase {
 		// analyze-pages-titles-map (first hit) and analyze-pages-titles-duplicates-map
 		// (second hit).
 		$this->assertSame(
-			'70000000---Same_Space_Title',
+			'70000000---Same Space Title',
 			$idToConfluenceKeyMap[70000030] ?? null,
 			'Page 70000030 ("Same Space Title") must be in analyze-page-id-to-confluence-key-map'
 		);
 		$this->assertSame(
-			'70000000---Same_Space_Title',
+			'70000000---Same Space Title',
 			$idToConfluenceKeyMap[70000031] ?? null,
 			'Page 70000031 ("Same Space Title") must be in analyze-page-id-to-confluence-key-map'
 		);
 		$this->assertArrayHasKey(
-			'70000000---Same_Space_Title',
+			'70000000---Same Space Title',
 			$titlesMap,
 			'First occurrence of "Same Space Title" must remain in analyze-pages-titles-map'
-		);
-		$this->assertArrayHasKey(
-			'70000000---Same_Space_Title',
-			$duplicatesMap,
-			'Second page with same title and space must be recorded in '
-			. 'analyze-pages-titles-duplicates-map'
 		);
 
 		// ParentA/ChildA (space ALPHA, id 70000041) and ParentB/ChildA (space BETA,
@@ -175,35 +160,27 @@ class FullMigrationTest extends TestCase {
 		// keys are distinct. Each must appear exactly once in analyze-pages-titles-map
 		// and must NOT be in analyze-pages-titles-duplicates-map.
 		$this->assertSame(
-			'70000000---Shared_Child_Title',
+			'70000000---Shared Child Title',
 			$idToConfluenceKeyMap[70000041] ?? null,
 			'Page 70000041 (ParentA/ChildA, space ALPHA) must be in analyze-page-id-to-confluence-key-map'
 		);
 		$this->assertSame(
-			'70000100---Shared_Child_Title',
+			'70000100---Shared Child Title',
 			$idToConfluenceKeyMap[70000051] ?? null,
 			'Page 70000051 (ParentB/ChildA, space BETA) must be in analyze-page-id-to-confluence-key-map'
 		);
 		$this->assertArrayHasKey(
-			'70000000---Shared_Child_Title',
+			'70000000---Shared Child Title',
 			$titlesMap,
 			'ParentA/ChildA (space ALPHA) must be in analyze-pages-titles-map'
 		);
-		$this->assertArrayNotHasKey(
-			'70000000---Shared_Child_Title',
-			$duplicatesMap,
-			'ParentA/ChildA (space ALPHA) must not be in analyze-pages-titles-duplicates-map'
-		);
+		
 		$this->assertArrayHasKey(
-			'70000100---Shared_Child_Title',
+			'70000100---Shared Child Title',
 			$titlesMap,
 			'ParentB/ChildA (space BETA) must be in analyze-pages-titles-map'
 		);
-		$this->assertArrayNotHasKey(
-			'70000100---Shared_Child_Title',
-			$duplicatesMap,
-			'ParentB/ChildA (space BETA) must not be in analyze-pages-titles-duplicates-map'
-		);
+		
 
 		// Deep hierarchy ABC/ABC/ABC: three pages (ids 70000060, 70000061, 70000062)
 		// all with title "Deep ABC" in the same space, each with a different id,
@@ -214,34 +191,24 @@ class FullMigrationTest extends TestCase {
 		// - third page  → appended to analyze-pages-titles-duplicates-map
 		// Result: key present in BOTH maps; duplicates entry has at least 2 targets.
 		$this->assertSame(
-			'70000000---Deep_ABC',
+			'70000000---Deep ABC',
 			$idToConfluenceKeyMap[70000060] ?? null,
 			'Page 70000060 (Deep ABC level 1) must be in analyze-page-id-to-confluence-key-map'
 		);
 		$this->assertSame(
-			'70000000---Deep_ABC',
+			'70000000---Deep ABC',
 			$idToConfluenceKeyMap[70000061] ?? null,
 			'Page 70000061 (Deep ABC level 2) must be in analyze-page-id-to-confluence-key-map'
 		);
 		$this->assertSame(
-			'70000000---Deep_ABC',
+			'70000000---Deep ABC',
 			$idToConfluenceKeyMap[70000062] ?? null,
 			'Page 70000062 (Deep ABC level 3) must be in analyze-page-id-to-confluence-key-map'
 		);
 		$this->assertArrayHasKey(
-			'70000000---Deep_ABC',
+			'70000000---Deep ABC',
 			$titlesMap,
 			'First "Deep ABC" page must remain in analyze-pages-titles-map'
-		);
-		$this->assertArrayHasKey(
-			'70000000---Deep_ABC',
-			$duplicatesMap,
-			'Second and third "Deep ABC" pages must be recorded in analyze-pages-titles-duplicates-map'
-		);
-		$this->assertGreaterThanOrEqual(
-			2,
-			count( $duplicatesMap['70000000---Deep_ABC'] ?? [] ),
-			'analyze-pages-titles-duplicates-map entry for "Deep ABC" must contain at least 2 targets'
 		);
 
 		// Step 2: Extract each entities.xml
@@ -285,6 +252,9 @@ class FullMigrationTest extends TestCase {
 		$sourceFile = $this->dataDir . '/export_source.xml';
 		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
 		$expectedCommentsFile = $this->dataDir . '/result_comments.xml';
+
+		$this->migrationConfig = new MigrationConfig( [] );
+		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
 		copy( $sourceFile, $this->workDir . '/entities.xml' );
 

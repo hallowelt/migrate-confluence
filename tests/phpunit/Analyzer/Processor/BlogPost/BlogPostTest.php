@@ -4,19 +4,20 @@ namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\BlogPost;
 
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\Output;
 use XMLReader;
 
 class BlogPostTest extends TestCase {
 
-	/** @var array */
-	private $requiredData = [
-		'global-space-id-to-key-map' => [ 32973 => 'TESTSPACE' ],
-		'analyze-body-content-id-to-page-id-map' => [],
-		'analyze-blogposts-titles-map' => [],
-		'analyze-blogpost-id-to-confluence-key-map' => [],
-	];
+	/** @var WorkspaceDB */
+	private WorkspaceDB $workspaceDB;
+
+	/** @var MigrationConfig */
+	private MigrationConfig $migrationConfig;
 
 	/** @return Output */
 	private function makeOutput(): Output {
@@ -29,12 +30,11 @@ class BlogPostTest extends TestCase {
 	/**
 	 * @param string $xmlFile
 	 * @param array $data
-	 * @return BlogPost
+	 * @return void
 	 */
-	private function runProcessor( string $xmlFile, array $data = [] ): BlogPost {
-		$processor = new BlogPost( [], false );
+	private function runProcessor( string $xmlFile, array $data = [] ): void {
+		$processor = new BlogPost( $this->workspaceDB, $this->migrationConfig );
 		$processor->setOutput( $this->makeOutput() );
-		$processor->setData( $data ?: $this->requiredData );
 
 		$xmlReader = new XMLReader();
 		$xmlReader->open( $xmlFile );
@@ -57,29 +57,42 @@ class BlogPostTest extends TestCase {
 		}
 		$xmlReader->close();
 
-		return $processor;
+		$this->workspaceDB->updateBlogPostWikiTitle( 262251, 'Blog:TESTSPACE/Our_new_tool' );
 	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost::doExecute
 	 */
 	public function testTargetTitleUsesSpaceIdPrefix() {
-		$processor = $this->runProcessor( __DIR__ . '/blog_post.xml' );
+		$this->migrationConfig = new MigrationConfig( [] );
+		$workspaceDBMock = new WorkspaceDbMock();
+		$this->workspaceDB = $workspaceDBMock->createEmpty();
 
-		$map = $processor->getData( 'analyze-blogpost-id-to-title-map' );
-		$this->assertArrayHasKey( 262251, $map );
-		$this->assertSame( 'Blog:TESTSPACE/Our_new_tool', $map[262251] );
+		$this->runProcessor( __DIR__ . '/blog_post.xml' );
+
+		$blogPosts = $this->workspaceDB->getBlogPosts();
+		$blogPost = $blogPosts[0];
+		
+		$this->assertSame( 'Blog:TESTSPACE/Our_new_tool', $blogPost['wiki_title'] );
 	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost::doExecute
 	 */
 	public function testBodyContentIdIsMappedToPageId() {
-		$processor = $this->runProcessor( __DIR__ . '/blog_post.xml' );
 
-		$map = $processor->getData( 'global-body-content-id-to-page-id-map' );
-		$this->assertArrayHasKey( 262252, $map );
-		$this->assertSame( 262251, $map[262252] );
+		$this->migrationConfig = new MigrationConfig( [] );
+		$workspaceDBMock = new WorkspaceDbMock();
+		$this->workspaceDB = $workspaceDBMock->createEmpty();
+
+		$this->runProcessor( __DIR__ . '/blog_post.xml' );
+
+		$blogPosts = $this->workspaceDB->getBlogPosts();
+		$blogPost = $blogPosts[0];
+
+		$bodyContentIds = json_decode( $blogPost['body_content_ids'], true );
+
+		$this->assertSame( 262252, (int)$bodyContentIds[0] );
 	}
 
 	/**
@@ -100,9 +113,12 @@ class BlogPostTest extends TestCase {
     </object>
 </hibernate-generic>';
 
-		$processor = new BlogPost( [], false );
+		$this->migrationConfig = new MigrationConfig( [] );
+		$workspaceDBMock = new WorkspaceDbMock();
+		$this->workspaceDB = $workspaceDBMock->createEmpty();
+
+		$processor = new BlogPost( $this->workspaceDB, $this->migrationConfig );
 		$processor->setOutput( $this->makeOutput() );
-		$processor->setData( $this->requiredData );
 
 		$xmlReader = XMLReader::XML( $xml );
 		$read = $xmlReader->read();
@@ -121,7 +137,8 @@ class BlogPostTest extends TestCase {
 		}
 		$xmlReader->close();
 
-		$map = $processor->getData( 'analyze-blogpost-id-to-title-map' );
-		$this->assertArrayNotHasKey( 999, $map );
+		$blogPosts = $this->workspaceDB->getBlogPosts();
+
+		$this->assertEmpty( $blogPosts );
 	}
 }

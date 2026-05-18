@@ -13,6 +13,16 @@ class WorkspaceDbMock {
 	private array $pageIds = [];
 
 	/**
+	 * @return WorkspaceDB
+	 */
+	public function createEmpty(): WorkspaceDB {
+		$workspaceDB = $this->createWorkspaceDB(
+			'confluence-migration-test-' . uniqid( '', true ) . '/workspace.sqlite'
+		);
+		return $workspaceDB;
+	}
+
+	/**
 	 * Create a fixture database without ext-ns-file-repo-compat behavior.
 	 * Attachment wiki titles replace namespace colons with underscores.
 	 */

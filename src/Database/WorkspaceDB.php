@@ -1232,7 +1232,7 @@ class WorkspaceDB {
 		$transaction = $this->db->prepare(
 			'INSERT INTO body_contents (
 				body_content_id,
-				page_id,
+				content_id,
 				class,
 				properties
 			) VALUES (
@@ -1782,7 +1782,7 @@ class WorkspaceDB {
 	 * @param string $class
 	 * @param string $contentStatus
 	 * @param string $userKey
-	 * @param string $bodyContentIds
+	 * @param array $bodyContentIds
 	 * @param string $created
 	 * @param string $modiefied
 	 * @param array $properties
@@ -1790,7 +1790,7 @@ class WorkspaceDB {
 	 */
 	public function addComment(
 		int $commentId, int $containerContentId, string $class, string $contentStatus,
-		string $userKey, string $bodyContentIds, string $created, string $modiefied, array $properties
+		string $userKey, array $bodyContentIds, string $created, string $modiefied, array $properties
 	): bool {
 		$propertiesJson = json_encode( $properties );
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
