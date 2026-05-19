@@ -71,7 +71,7 @@ class Pages extends ProcessorBase {
 
 				$this->addRevision(
 					$pageTitle,
-					$pageContent,
+					$this->postProcessContent( $pageTitle, $pageContent ),
 					$timestamp,
 					'',
 					$this->getContentModel( $pageTitle )
@@ -90,6 +90,17 @@ class Pages extends ProcessorBase {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Hook for subclasses to post-process page content before adding it as a revision.
+	 *
+	 * @param string $pageTitle
+	 * @param string $pageContent
+	 * @return string
+	 */
+	protected function postProcessContent( string $pageTitle, string $pageContent ): string {
+		return $pageContent;
 	}
 
 	/**

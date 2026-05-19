@@ -1,1 +1,18 @@
-<!-- Nothing to do here -->
+<includeonly>
+{{#tag:inputbox|
+type=create
+preload={{{preload|preload}}}
+preloadparams[]={{FULLPAGENAME}}
+buttonlabel={{{buttonlabel|Create from template}}}
+width=28
+break=no
+useve=true
+}}
+{{#ask: [[Created on page::{{FULLPAGENAME}}]]
+| format=embedded
+| sort=Creation date
+| order=desc
+| limit=5
+| searchlabel=More
+}}
+</includeonly>

@@ -19,6 +19,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentBlogPosts;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\PageTemplates;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
@@ -142,6 +143,9 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'global-title-attachments',
 			'global-title-revisions',
 			'global-userkey-to-username-map',
+			'global-page-template-id-to-name-map',
+			'global-page-template-id-to-space-id-map',
+			'global-page-template-id-to-content-map',
 			'users',
 		];
 
@@ -242,6 +246,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'Attachment' => new Attachments( $this->file ),
 			'ConfluenceUserImpl' => new Users(),
 			'ContentProperty' => new ContentProperties(),
+			'PageTemplate' => new PageTemplates(),
 		];
 	}
 

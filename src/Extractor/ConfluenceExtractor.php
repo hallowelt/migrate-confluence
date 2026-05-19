@@ -68,6 +68,8 @@ class ConfluenceExtractor extends ExtractorBase {
 			$class = $xmlReader->getAttribute( 'class' );
 			if ( $class === 'BodyContent' ) {
 				$this->extractBodyContents( $objectDom );
+			} elseif ( $class === 'PageTemplate' ) {
+				$this->extractPageTemplateContent( $objectDom );
 			} elseif ( $class === "Labelling" ) {
 				$this->buildLabellingMap( $objectDom );
 			} elseif ( $class === "Label" ) {
@@ -143,6 +145,43 @@ class ConfluenceExtractor extends ExtractorBase {
 				// they do not become page revisions themselves.
 				continue;
 			}
+			$this->addRevisionContent( $id, $targetFileName );
+		}
+	}
+
+	/**
+	 * Extract PageTemplate content and save as raw content for conversion.
+	 * The template ID is used as body content ID (registered in analyzer).
+	 *
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	private function extractPageTemplateContent( DOMDocument $dom ): void {
+		$bodyContentsToPagesMap = $this->buckets->getBucketData(
+			'global-body-content-id-to-page-id-map'
+		);
+		$xmlHelper = new XMLHelper( $dom );
+
+		$templateObjs = $xmlHelper->getObjectNodes( 'PageTemplate' );
+		foreach ( $templateObjs as $template ) {
+			if ( !$template instanceof DOMElement ) {
+				continue;
+			}
+			$id = $xmlHelper->getIDNodeValue( $template );
+			if ( !isset( $bodyContentsToPagesMap[$id] ) ) {
+				continue;
+			}
+
+			$content = $xmlHelper->getPropertyValue( 'content', $template );
+			if ( $content === '' ) {
+				continue;
+			}
+
+			// Fix CDATA closing issue (same as BodyContent)
+			$fixedContent = str_replace( ']] >', ']]>', $content );
+			$html = '<html><body>' . $fixedContent . '</body></html>';
+
+			$targetFileName = $this->workspace->saveRawContent( $id, $html );
 			$this->addRevisionContent( $id, $targetFileName );
 		}
 	}

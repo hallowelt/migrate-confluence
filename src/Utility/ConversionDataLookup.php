@@ -59,6 +59,16 @@ class ConversionDataLookup {
 	/**
 	 * @var array
 	 */
+	private array $pageTemplateIdToNameMap;
+
+	/**
+	 * @var array
+	 */
+	private array $pageTemplateIdToSpaceIdMap;
+
+	/**
+	 * @var array
+	 */
 	private array $compressedTitlesMap;
 
 	/**
@@ -77,7 +87,9 @@ class ConversionDataLookup {
 			$buckets->getBucketData( 'global-attachment-metadata' ),
 			$buckets->getBucketData( 'global-attachment-id-to-confluence-file-key-map' ),
 			$buckets->getBucketData( 'global-orig-title-compressed-title-map' ),
-			$buckets->getBucketData( 'global-page-id-to-title-map' )
+			$buckets->getBucketData( 'global-page-id-to-title-map' ),
+			$buckets->getBucketData( 'global-page-template-id-to-name-map' ),
+			$buckets->getBucketData( 'global-page-template-id-to-space-id-map' )
 		);
 	}
 
@@ -93,13 +105,15 @@ class ConversionDataLookup {
 	 * @param array $attachmentIdToFileKeyMap
 	 * @param array $compressedTitlesMap
 	 * @param array $pageIdToTitleMap
+	 * @param array $pageTemplateIdToNameMap
+	 * @param array $pageTemplateIdToSpaceIdMap
 	 */
 	public function __construct(
 		array $spaceIdPrefixMap, array $pagesTitlesMap,
 		array $filenamesToFiletitlesMap, array $attachmentOrigFilenameToTargetFilenameMap,
 		array $files, array $userMap, array $spaceIdToKeyMap,
 		array $attachmentMetadata, array $attachmentIdToFileKeyMap, array $compressedTitlesMap,
-		array $pageIdToTitleMap
+		array $pageIdToTitleMap, array $pageTemplateIdToNameMap = [], array $pageTemplateIdToSpaceIdMap = []
 	) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdToKeyMap = $spaceIdToKeyMap;
@@ -132,6 +146,8 @@ class ConversionDataLookup {
 		$this->compressedTitlesMap = $compressedTitlesMap;
 
 		$this->pageIdToTitleMap = $pageIdToTitleMap;
+		$this->pageTemplateIdToNameMap = $pageTemplateIdToNameMap;
+		$this->pageTemplateIdToSpaceIdMap = $pageTemplateIdToSpaceIdMap;
 	}
 
 	/**
@@ -338,5 +354,27 @@ class ConversionDataLookup {
 			return $this->pageIdToTitleMap[$pageId];
 		}
 		return $wikiTitle;
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return string|null
+	 */
+	public function getTemplateNameFromTemplateId( int $templateId ): ?string {
+		if ( isset( $this->pageTemplateIdToNameMap[$templateId] ) ) {
+			return $this->pageTemplateIdToNameMap[$templateId];
+		}
+		return null;
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return int|null
+	 */
+	public function getSpaceIdFromTemplateId( int $templateId ): ?int {
+		if ( isset( $this->pageTemplateIdToSpaceIdMap[$templateId] ) ) {
+			return (int)$this->pageTemplateIdToSpaceIdMap[$templateId];
+		}
+		return null;
 	}
 }

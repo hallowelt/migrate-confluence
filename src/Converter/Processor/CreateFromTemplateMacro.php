@@ -10,25 +10,30 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 
 // phpcs:disable Generic.Files.LineLength.TooLong
+
 /**
- * <ac:structured-macro ac:name="create-from-template" ac:schema-version="1" ac:macro-id="9c4e10cc-3728-409e-b178-16a9e2751ae8">
- * 	<ac:parameter ac:name="templateName">12189714</ac:parameter>
- * 	<ac:parameter ac:name="templateId">12189714</ac:parameter>
- * 	<ac:parameter ac:name="buttonLabel">Create new Idea</ac:parameter>
+ * <ac:structured-macro ac:name="create-from-template" ac:schema-version="1"
+ * ac:macro-id="9c4e10cc-3728-409e-b178-16a9e2751ae8">
+ *    <ac:parameter ac:name="templateName">12189714</ac:parameter>
+ *    <ac:parameter ac:name="templateId">12189714</ac:parameter>
+ *    <ac:parameter ac:name="buttonLabel">Create new Idea</ac:parameter>
  * </ac:structured-macro>
  *
- * <ac:structured-macro ac:name="create-from-template" ac:schema-version="1" ac:macro-id="68860c88-2cb6-47fa-bb6c-afd9d0fdbdef">
- * 	<ac:parameter ac:name="templateName">14516247</ac:parameter>
- * 	<ac:parameter ac:name="templateId">14516247</ac:parameter>
- * 	<ac:parameter ac:name="buttonLabel">New Glossary Entry</ac:parameter>
+ * <ac:structured-macro ac:name="create-from-template" ac:schema-version="1"
+ * ac:macro-id="68860c88-2cb6-47fa-bb6c-afd9d0fdbdef">
+ *    <ac:parameter ac:name="templateName">14516247</ac:parameter>
+ *    <ac:parameter ac:name="templateId">14516247</ac:parameter>
+ *    <ac:parameter ac:name="buttonLabel">New Glossary Entry</ac:parameter>
  * </ac:structured-macro>
  *
- * <ac:structured-macro ac:name="create-from-template" ac:schema-version="1" ac:macro-id="f1bcfd9e-b015-4b0e-9237-35e1737343c1">
- * 	<ac:parameter ac:name="blueprintModuleCompleteKey">com.atlassian.confluence.plugins.confluence-business-blueprints:file-list-blueprint</ac:parameter>
- * 	<ac:parameter ac:name="contentBlueprintId">f575164b-3d51-488f-ac65-586969e5a116</ac:parameter>
- * 	<ac:parameter ac:name="templateName">f575164b-3d51-488f-ac65-586969e5a116</ac:parameter>
- * 	<ac:parameter ac:name="createResult">view</ac:parameter>
- * 	<ac:parameter ac:name="buttonLabel">Create File List</ac:parameter>
+ * <ac:structured-macro ac:name="create-from-template" ac:schema-version="1"
+ * ac:macro-id="f1bcfd9e-b015-4b0e-9237-35e1737343c1">
+ *    <ac:parameter
+ * ac:name="blueprintModuleCompleteKey">com.atlassian.confluence.plugins.confluence-business-blueprints:file-list-blueprint</ac:parameter>
+ *    <ac:parameter ac:name="contentBlueprintId">f575164b-3d51-488f-ac65-586969e5a116</ac:parameter>
+ *    <ac:parameter ac:name="templateName">f575164b-3d51-488f-ac65-586969e5a116</ac:parameter>
+ *    <ac:parameter ac:name="createResult">view</ac:parameter>
+ *    <ac:parameter ac:name="buttonLabel">Create File List</ac:parameter>
  * </ac:structured-macro>
  */
 class CreateFromTemplateMacro implements IProcessor {
@@ -81,28 +86,29 @@ class CreateFromTemplateMacro implements IProcessor {
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return void
 	 */
 	private function doProcessMacro( DOMNode $node ): void {
 		$params = $this->getParams( $node );
+		$templateTitle = $this->findTemplateTitle( $params );
 
-		$wikiTitle = null;
-		if ( isset( $params['orig-templateName'] ) ) {
-			$wikiTitle = $this->dataLookup->getWikiTitleFromPageId( (int)$params['orig-templateName'] );
-		} elseif ( isset( $params['orig-templateId'] ) ) {
-			$wikiTitle = $this->dataLookup->getWikiTitleFromPageId( (int)$params['orig-templateName'] );
-		}
+		$templateParams = [
+			'preload' => $templateTitle ?? '',
+			'buttonlabel' => $params['buttonLabel'] ?? '',
+		];
 
-		$params['preload'] = '';
-		if ( is_string( $wikiTitle ) ) {
-			$params['preload'] = $wikiTitle;
-		}
-
-		$wikiTemplate = new Template( $this->getWikiTextTemplateName(), $params );
+		$wikiTemplate = new Template( $this->getWikiTextTemplateName(), $templateParams );
 		$wikiTemplate->setRenderFormatted( false );
 		$wikiText = $wikiTemplate->render();
-		if ( !is_string( $wikiTitle ) ) {
-			$wikiText .= $this->getBrokenMacroCategory();
+
+		if ( !$templateTitle ) {
+			$missingTemplateMsg = "Template could not be found";
+			$wikiText .= sprintf(
+				"%s\n%s",
+				$missingTemplateMsg,
+				$this->getBrokenMacroCategory()
+			);
 		}
 
 		$node->parentNode->replaceChild(
@@ -112,15 +118,43 @@ class CreateFromTemplateMacro implements IProcessor {
 	}
 
 	/**
+	 * @param array $params
+	 *
+	 * @return string|null
+	 */
+	private function findTemplateTitle( array $params ): ?string {
+		$templateId = null;
+
+		if ( isset( $params['orig-templateName'] ) ) {
+			$templateId = (int)$params['orig-templateName'];
+		} elseif ( isset( $params['orig-templateId'] ) ) {
+			$templateId = (int)$params['orig-templateId'];
+		}
+
+		if ( !$templateId ) {
+			return null;
+		}
+
+		$name = $this->dataLookup->getTemplateNameFromTemplateId( $templateId );
+		if ( !$name ) {
+			return null;
+		}
+
+		return 'Template:' . $name;
+	}
+
+	/**
 	 * @return string
 	 */
 	private function getBrokenMacroCategory(): string {
 		$macroName = $this->getMacroName();
+
 		return "[[Category:Broken_macro/$macroName]]";
 	}
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return array
 	 */
 	private function getParams( DOMNode $node ): array {
@@ -145,6 +179,7 @@ class CreateFromTemplateMacro implements IProcessor {
 
 			$params[$paramName] = $parameterEl->nodeValue;
 		}
+
 		return $params;
 	}
 }

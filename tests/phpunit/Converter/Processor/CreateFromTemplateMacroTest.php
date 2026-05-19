@@ -53,6 +53,7 @@ class CreateFromTemplateMacroTest extends TestCase {
 			[],
 			[],
 			[],
+			[],
 			[
 				123456 => 'SomePage',
 				7890 => 'SomeOtherPage'

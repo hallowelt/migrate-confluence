@@ -1,73 +1,21 @@
 <?xml version="1.0"?>
 <mediawiki>
   <page>
-    <title>Template:SimplePanel.css</title>
-    <revision>
-      <model>sanitized-css</model>
-      <format>text/css</format>
-      <text>.simplepanel {
-	border: 2px solid;
-	border-radius: 3px;
-	padding: 0.5em;
-}
-
-.simplepanel.info {
-	border-color: #1c75ff;
-	background-color: #bdd7ff;
-}
-
-.simplepanel.note {
-	border-color: #ffb01c;
-	background-color: #ffe5b5;
-}
-
-.simplepanel.tip {
-	border-color: #53ac00;
-	background-color: #deffbf;
-}
-
-.simplepanel.warning {
-	border-color: #ff4e14;
-	background-color: #ffcab8;
-}</text>
-    </revision>
-  </page>
-  <page>
-    <title>Template:Excerpt</title>
+    <title>Template:ViewPpt</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>{| class="mw-collapsible mw-collapsed wikitable"
-! {{{title|}}}
-|-
-|
-{{{body|}}}
-|}</text>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewppt"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
-    <title>Template:TableFilter</title>
+    <title>Template:LayoutStart</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;div class="macro-table-filter"&gt;
-	{{body|}}
-&lt;/div&gt;</text>
-    </revision>
-  </page>
-  <page>
-    <title>Template:Panel</title>
-    <revision>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;
-&lt;div class="panel"&gt;{{#if:{{{title|}}}|
-&lt;span class="panel__heading"&gt;'''{{{title|}}}'''&lt;/span&gt;&lt;br /&gt;
-|}}&lt;div class="panel__content"&gt;
-{{{body|Add a &lt;code&gt;body&lt;/code&gt; parameter}}}
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/includeonly&gt;</text>
+      <text>&lt;includeonly&gt;&lt;templatestyles src="Template:Layout.css" /&gt;&lt;div class="ac-layout"&gt;&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -121,24 +69,21 @@
     </revision>
   </page>
   <page>
-    <title>Template:DetailsSummary</title>
-    <revision>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>{| class="mw-collapsible mw-collapsed wikitable"
-! {{{title|}}}
-|-
-|
-{{{body|}}}
-|}</text>
-    </revision>
-  </page>
-  <page>
     <title>Template:Tip</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
       <text>{{Textbox|boxtype=tip|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:DetailsSummaryEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+|}
+&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -157,8 +102,15 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;noinclude&gt;Links to JIRA can be handled with "Interwiki-Links"
-&lt;/noinclude&gt;&lt;includeonly&gt;[[jira:{{{key}}}]]&lt;/includeonly&gt;
+      <text>&lt;noinclude&gt;Links to Jira issues and queries via interwiki links.
+* Use &lt;code&gt;{{Jira|key=PROJECT-123}}&lt;/code&gt; to link to a specific issue (uses the &lt;code&gt;jira-task&lt;/code&gt; interwiki prefix).
+* Use &lt;code&gt;{{Jira|jql=...}}&lt;/code&gt; to link to a Jira filter. When the value is a Jira URL, the view type is detected from the path:
+** &lt;code&gt;/timeline&lt;/code&gt; &#x2192; &lt;code&gt;jira-timeline&lt;/code&gt;
+** &lt;code&gt;/calendar&lt;/code&gt; &#x2192; &lt;code&gt;jira-calendar&lt;/code&gt;
+** &lt;code&gt;/summary&lt;/code&gt; &#x2192; &lt;code&gt;jira-summary&lt;/code&gt;
+** &lt;code&gt;/boards&lt;/code&gt; &#x2192; &lt;code&gt;jira-board&lt;/code&gt;
+** otherwise &#x2192; &lt;code&gt;jira-jql&lt;/code&gt; (plain JQL query)
+&lt;/noinclude&gt;&lt;includeonly&gt;{{#if:{{{key|}}}|[[jira-task:{{{key}}}]]|{{#if:{{#pos:{{{jql|}}}|/timeline}}|[[jira-timeline:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/calendar}}|[[jira-calendar:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/summary}}|[[jira-summary:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/boards}}|[[jira-board:{{{jql}}}]]|[[jira-jql:{{{jql}}}]]}}}}}}}}}}&lt;/includeonly&gt;
 </text>
     </revision>
   </page>
@@ -190,6 +142,35 @@
     </revision>
   </page>
   <page>
+    <title>Template:ColumnStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="ac-column"&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:DetailsSummaryStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{| class="mw-collapsible mw-collapsed wikitable"
+! {{{title|}}}
+|-
+|
+&lt;includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:TableFilterEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+&lt;/div&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:SubpageList</title>
     <revision>
       <model>wikitext</model>
@@ -204,11 +185,52 @@
     </revision>
   </page>
   <page>
+    <title>Template:DetailsStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="macro-details" {{#if:{{{id|}}}|data-id="{{{id|}}}"}} {{#if:{{{hidden|}}}|style="display:none;"}}&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:Note</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
       <text>{{Textbox|boxtype=note|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ExpandStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{| class="mw-collapsible mw-collapsed wikitable"
+! {{{title|}}}
+|-
+|
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:PanelStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="panel"&gt;{{#if:{{{title|}}}|
+&lt;span class="panel__heading"&gt;'''{{{title|}}}'''&lt;/span&gt;&lt;br /&gt;
+|}}&lt;div class="panel__content"&gt;
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ViewDoc</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewdoc"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[Media:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -228,21 +250,11 @@
     </revision>
   </page>
   <page>
-    <title>Template:Details</title>
+    <title>Template:DetailsEnd</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;div class="macro-details" {{#if:{{{id|}}}|data-id="{{{id|}}}"}} {{#if:{{{hidden|}}}|style="display:none;"}}&gt;
-	{{{body}}}
-&lt;/div&gt;</text>
-    </revision>
-  </page>
-  <page>
-    <title>Template:Layout</title>
-    <revision>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;&lt;templatestyles src="Template:Layout.css" /&gt;&lt;/includeonly&gt;</text>
+      <text>&lt;includeonly&gt;&lt;/div&gt;&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -272,6 +284,24 @@
     </revision>
   </page>
   <page>
+    <title>Template:ColumnEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;/div&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:PanelEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:Warning</title>
     <revision>
       <model>wikitext</model>
@@ -290,6 +320,23 @@
     </revision>
   </page>
   <page>
+    <title>Template:LoremIpsum</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{{{body|}}}&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:TableFilterStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="macro-table-filter"&gt;
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:PageTree</title>
     <revision>
       <model>wikitext</model>
@@ -298,36 +345,23 @@
     </revision>
   </page>
   <page>
-    <title>Template:SimplePanel</title>
+    <title>Template:ViewXls</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;&lt;templatestyles src="Template:SimplePanel.css" /&gt;
-&lt;div class="simplepanel {{{type|}}}" data-panel-type="{{{type|}}}"&gt;
-&lt;div class="simplepanel__icon"&gt;
-&lt;span role="img" aria-label="Panel {{{type|}}}"&gt;
-[[File:Icon-{{{type|info}}}.svg|link=]]
-&lt;/span&gt;
-&lt;/div&gt;{{#if:{{{title|}}}|
-&lt;span class="simplepanel__heading"&gt;'''{{{title|}}}'''&lt;/span&gt;&lt;br /&gt;
-|}}&lt;div class="simplepanel__content"&gt;
-{{{body|Add a &lt;code&gt;body&lt;/code&gt; parameter}}}
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/includeonly&gt;</text>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewxls"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[Media:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
-    <title>Template:Expand</title>
+    <title>Template:ExpandEnd</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>{| class="mw-collapsible mw-collapsed wikitable"
-! {{{title|}}}
-|-
-|
-{{{body|}}}
-|}</text>
+      <text>&lt;includeonly&gt;
+|}
+&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -365,11 +399,47 @@
     </revision>
   </page>
   <page>
+    <title>Template:ViewPdf</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewpdf"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:AttachmentsSectionEnd</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
       <text>&lt;!-- Nothing to do here --&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:CreateFromTemplate</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+{{#tag:inputbox|
+type=create
+preload={{{preload|preload}}}
+preloadparams[]={{FULLPAGENAME}}
+buttonlabel={{{buttonlabel|Create from template}}}
+width=28
+break=no
+useve=true
+}}
+{{#ask: [[Created on page::{{FULLPAGENAME}}]]
+| format=embedded
+| sort=Creation date
+| order=desc
+| limit=5
+| searchlabel=More
+}}
+&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -380,6 +450,30 @@
       <format>text/x-wiki</format>
       <text>Hello blog world.
  &lt;!-- From bodyContent 20000003.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>CON:Create_Project_Page</title>
+    <revision>
+      <timestamp>20200302100000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Click the button below to create a new project:
+
+{{CreateFromTemplate|preload = Template:Projektvorlage|buttonlabel = Neues Projekt erstellen}}
+ &lt;!-- From bodyContent 20000030.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>CON:Cross_Space_Links_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Link to second space: [[SECOND:Second_Space_Page|Second Space Page]]
+ &lt;!-- From bodyContent 20000012.mraw --&gt;
 </text>
     </revision>
   </page>
@@ -429,17 +523,6 @@ Link with content with nested ac:image inside span along content: [https://examp
     </revision>
   </page>
   <page>
-    <title>CON:Cross_Space_Links_Page</title>
-    <revision>
-      <timestamp>20200101000000</timestamp>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>Link to second space: [[SECOND:Second_Space_Page|Second Space Page]]
- &lt;!-- From bodyContent 20000012.mraw --&gt;
-</text>
-    </revision>
-  </page>
-  <page>
     <title>SECOND:Second_Space_Page</title>
     <revision>
       <timestamp>20200101000000</timestamp>
@@ -447,6 +530,34 @@ Link with content with nested ac:image inside span along content: [https://examp
       <format>text/x-wiki</format>
       <text>Hello from the second space.
  &lt;!-- From bodyContent 20000011.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Projektvorlage</title>
+    <revision>
+      <timestamp>20200301100000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;span id="projektbeschreibung"&gt;&lt;/span&gt;
+== Projektbeschreibung ==
+
+Bitte hier die Beschreibung einfuegen.
+
+{| class="wikitable"
+|-
+! Feld
+! Wert
+|-
+| '''Projektleiter'''
+|
+|-
+| '''Startdatum'''
+|
+|}
+ &lt;!-- From bodyContent 50000001.mraw --&gt;
+
+&lt;includeonly&gt;{{#set: Created on page=$1 }}&lt;/includeonly&gt;
 </text>
     </revision>
   </page>

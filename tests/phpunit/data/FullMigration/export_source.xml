@@ -192,5 +192,42 @@
         <property name="content" class="Comment" package="com.atlassian.confluence.pages"><id name="id">30000001</id></property>
     </object>
 
+    <object class="PageTemplate" package="com.atlassian.confluence.pages.templates">
+        <id name="id">50000001</id>
+        <property name="hibernateVersion">1</property>
+        <property name="name">Projektvorlage</property>
+        <property name="description"><![CDATA[Eine Projektvorlage fuer neue Projekte]]></property>
+        <property name="content"><![CDATA[<h2>Projektbeschreibung</h2><p>Bitte hier die Beschreibung einfuegen.</p><table><tbody><tr><th>Feld</th><th>Wert</th></tr><tr><td><strong>Projektleiter</strong></td><td></td></tr><tr><td><strong>Startdatum</strong></td><td></td></tr></tbody></table>]]></property>
+        <property name="version">1</property>
+        <property name="creationDate">2020-03-01 10:00:00.000</property>
+        <property name="lastModificationDate">2020-03-01 10:00:00.000</property>
+        <property name="bodyType">2</property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+    </object>
+
+    <object class="Page" package="com.atlassian.confluence.pages">
+        <id name="id">10000030</id>
+        <property name="hibernateVersion">1</property>
+        <property name="title">Create Project Page</property>
+        <property name="lowerTitle">create project page</property>
+        <property name="version">1</property>
+        <property name="creationDate">2020-03-02 10:00:00.000</property>
+        <property name="lastModificationDate">2020-03-02 10:00:00.000</property>
+        <property name="versionComment"></property>
+        <property name="contentStatus">current</property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000030</id>
+        <property name="body"><![CDATA[<p>Click the button below to create a new project:</p><ac:structured-macro ac:name="create-from-template" ac:schema-version="1" ac:macro-id="abc12345-def6-7890-abcd-ef1234567890"><ac:parameter ac:name="templateName">50000001</ac:parameter><ac:parameter ac:name="templateId">50000001</ac:parameter><ac:parameter ac:name="buttonLabel">Neues Projekt erstellen</ac:parameter></ac:structured-macro>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000030</id></property>
+    </object>
+
 </hibernate-generic>
 
