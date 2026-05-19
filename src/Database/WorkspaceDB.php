@@ -109,6 +109,7 @@ class WorkspaceDB {
 		$this->createTableBodyContentBodies();
 		$this->createTableAttachments();
 		$this->createTablePageAttachments();
+		$this->createTableAdditionalAttachments();
 		$this->createTableUsers();
 		$this->createTableContentProperties();
 		$this->createTableComments();
@@ -252,8 +253,25 @@ class WorkspaceDB {
 				file_extension CHAR,
 				container_id INT,
 				content_status CHAR,
+				version CHAR,
+				original_version_id INT,
 				attachment_reference CHAR,
-				properties BLOB
+				historical_ids BLOB,
+				properties BLOB,
+				collection BLOB
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableAdditionalAttachments(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS additional_attachments (
+				attachment_id INT,
+				original_attachment_filename CHAR,
+				target_attachment_filename CHAR
 			);'
 		);
 	}
@@ -1524,10 +1542,17 @@ class WorkspaceDB {
 		string $fileExtension,
 		int $containerContentId,
 		string $contentStatus,
+		string $version,
+		int $originalVersionId,
 		string $attachmentReference,
-		array $properties
+		array $historicalIds,
+		array $properties,
+		array $collection
 	): bool {
 		$propertiesJson = json_encode( $properties );
+		$collectionJson = json_encode( $collection );
+		$historicalIdsJson = json_encode( $historicalIds );
+
 		$transaction = $this->db->prepare(
 			'INSERT INTO attachments (
 				attachment_id,
@@ -1536,8 +1561,12 @@ class WorkspaceDB {
 				file_extension,
 				container_id,
 				content_status,
+				version,
+				original_version_id,
 				attachment_reference,
-				properties
+				historical_ids,
+				properties,
+				collection
 			) VALUES (
 				:attachment_id,
 				:space_id,
@@ -1545,8 +1574,12 @@ class WorkspaceDB {
 				:file_extension,
 				:container_id,
 				:content_status,
+				:version,
+				:original_version_id,
 				:attachment_reference,
-				:properties
+				:historical_ids,
+				:properties,
+				:collection
 			)'
 		);
 
@@ -1556,8 +1589,12 @@ class WorkspaceDB {
 		$transaction->bindValue( ':container_id', $containerContentId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':file_extension', $fileExtension, SQLITE3_TEXT );
+		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':attachment_reference', $attachmentReference, SQLITE3_TEXT );
+		$transaction->bindValue( ':historical_ids', $historicalIdsJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
 
@@ -1597,6 +1634,35 @@ class WorkspaceDB {
 
 		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
+		$transaction->bindValue( ':target_attachment_filename', $targetAttachmentFilename, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $attachmentId
+	 * @param string $originalAttachmentFilename
+	 * @param string $targetAttachmentFilename
+	 * @return bool
+	 */
+	public function addAdditionalAttachment(
+		int $attachmentId,
+		string $originalAttachmentFilename,
+		string $targetAttachmentFilename
+	): bool {
+		$transaction = $this->db->prepare(
+			'INSERT INTO additional_attachments (
+				attachment_id,
+				original_attachment_filename,
+				target_attachment_filename
+			) VALUES (
+				:attachment_id,
+				:original_attachment_filename,
+				:target_attachment_filename
+			)'
+		);
+
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
 		$transaction->bindValue( ':target_attachment_filename', $targetAttachmentFilename, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
@@ -1808,6 +1874,23 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param string $wikiTitle
+	 * @return bool
+	 */
+	public function checkAdditionalAttachmentWikiTitleExists( string $wikiTitle ): bool {
+		$transaction = $this->db->prepare(
+			'SELECT 1 FROM additional_attachments WHERE target_attachment_filename = :wiki_title LIMIT 1'
+		);
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result->fetchArray() !== false ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getPageAttachments(): array {
@@ -1830,6 +1913,37 @@ class WorkspaceDB {
 		}
 
 		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * Return the wiki title of the first page linked to this attachment via attachments.container_id.
+	 *
+	 * @param int $attachmentId
+	 * @return string
+	 */
+	public function getWikiTitleForAttachmentId( int $attachmentId ): string {
+		$transaction = $this->db->prepare(
+			'SELECT p.wiki_title FROM attachments a
+			JOIN pages p ON p.page_id = a.container_id
+			WHERE a.attachment_id = :attachment_id
+			ORDER BY p.page_id ASC
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return '';
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['wiki_title'] ) ) {
+			return '';
+		}
+
+		return (string)$data['wiki_title'];
 	}
 
 	/**

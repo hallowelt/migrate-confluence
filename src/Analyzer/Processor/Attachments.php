@@ -27,6 +27,7 @@ class Attachments extends ProcessorBase {
 	public function doExecute(): void {
 		$attachmentId = null;
 		$properties = [];
+		$collection = [];
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
@@ -38,6 +39,8 @@ class Attachments extends ProcessorBase {
 				}
 			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
 				$properties = $this->processPropertyNodes( $properties );
+			} elseif ( strtolower( $this->xmlReader->name ) === 'collection' ) {
+				$collection = $this->processCollectionNodes( $collection );
 			}
 			$this->xmlReader->next();
 		}
@@ -59,6 +62,10 @@ class Attachments extends ProcessorBase {
 			$spaceId = $properties['space'];
 		}
 
+		if ( !$this->migrationConfig->getIncludeHistory() && $spaceId === -1 ) {
+			return;
+		}
+
 		$containerContentId = -1;
 		if ( isset( $properties['containerContent'] ) ) {
 			$containerContentId = (int)$properties['containerContent'];
@@ -69,13 +76,29 @@ class Attachments extends ProcessorBase {
 			$contentStatus = $properties['contentStatus'];
 		}
 
-		$contentStatus = null;
+		$contentStatus = '';
 		if ( isset( $properties['contentStatus'] ) ) {
 			$contentStatus = $properties['contentStatus'];
 		}
 
-		if ( !$this->migrationConfig->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
+		if ( strtolower( $contentStatus ) !== 'current' ) {
+			// Ignore draft and deleted versions of pages, as they are not relevant for the migration.
 			return;
+		}
+
+		$version = '';
+		if ( isset( $properties['version'] ) ) {
+			$version = $properties['version'];
+		}
+
+		$originalVersionId = -1;
+		if ( isset( $properties['originalVersion'] ) ) {
+			$originalVersionId = (int)$properties['originalVersion'];
+		}
+
+		$historicalIds = [];
+		if ( isset( $collection['historicalVersions'] ) ) {
+			$historicalIds = $collection['historicalVersions'];
 		}
 
 		$attachmentReference = $this->makeAttachmentReference(
@@ -91,8 +114,12 @@ class Attachments extends ProcessorBase {
 			$this->guessFileExtension( $attachmentReference, $confluenceFilename ),
 			$containerContentId,
 			strtolower( $contentStatus ),
+			$version,
+			$originalVersionId,
 			$attachmentReference,
-			$properties
+			$historicalIds,
+			$properties,
+			$collection
 		);
 	}
 

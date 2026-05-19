@@ -42,7 +42,7 @@ class BlogPost extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 
-		$contentStatus = null;
+		$contentStatus = '';
 		if ( isset( $properties['contentStatus'] ) ) {
 			$contentStatus = $properties['contentStatus'];
 		}

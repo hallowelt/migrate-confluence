@@ -209,6 +209,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		$this->updatePageTableWithWikiTitle();
 		$this->updateBlogPostTableWithWikiTitle();
 		$this->updatePageAttachmentTable();
+		$this->populateAdditionalAttachmentsTable();
 
 		return true;
 	}
@@ -387,6 +388,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		foreach ( $blogPosts as $blogPost ) {
 			if (
 				!isset( $blogPost['page_id'] )
+				|| $blogPost['original_version_id'] !== -1 // historical versions
 				|| !isset( $blogPost['space_id'] )
 				|| !isset( $blogPost['confluence_title'] )
 				|| !isset( $blogPost['content_status'] )
@@ -468,6 +470,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 				|| !isset( $attachment['filename'] )
 				|| !isset( $attachment['container_id'] )
 				|| !isset( $attachment['content_status'] )
+				|| $attachment['original_version_id'] !== -1 // historical versions
 			) {
 				continue;
 			}
@@ -484,58 +487,41 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			$attachmentId = (int)$attachment['attachment_id'];
 			$attachmentSpaceId = (int)$attachment['space_id'];
 			$attachmentOrigFilename = (string)$attachment['filename'];
-			$pageWikiTitle = '';
 
-			$short = false;
+			$pageWikiTitle = $this->workspaceDB->getWikiTitleForAttachmentId( $attachmentId );
+			$pageWikiTitleParts = explode( '/', $pageWikiTitle );
+			$shortPageWikiTitle = end( $pageWikiTitleParts );
 			try {
 				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId,
 					$attachmentOrigFilename,
-					$pageWikiTitle
+					$shortPageWikiTitle,
 				);
-			} catch ( Exception $ex ) {
-				try {
-					$shortPageWikiTitle = basename( $pageWikiTitle );
-					$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
-						$attachmentSpaceId,
-						$attachmentOrigFilename,
-						$shortPageWikiTitle
-					);
-					$short = true;
-				} catch ( Exception $fallbackEx ) {
-					$this->logger->warning(
-						'Could not build target filename for attachment ' . $attachmentId . ': '
-						. $fallbackEx->getMessage()
-					);
-					$this->workspaceDB->addLogEntry(
-						'warning',
-						'analyze',
-						__CLASS__,
-						"Could not build target filename for attachment $attachmentId: "
-						. $fallbackEx->getMessage()
-					);
-					continue;
-				}
+			} catch ( Exception $fallbackEx ) {
+				$this->logger->warning(
+					'Could not build target filename for attachment ' . $attachmentId . ': '
+					. $fallbackEx->getMessage()
+				);
+				$this->workspaceDB->addLogEntry(
+					'warning',
+					'analyze',
+					__CLASS__,
+					"Could not build target filename for attachment $attachmentId: "
+					. $fallbackEx->getMessage()
+				);
+				continue;
 			}
 
 			// Uncollide file title
 			$exists = $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle );
 			$counter = 1;
 			while ( $exists ) {
-				if ( !$short ) {
-					$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
-						$attachmentSpaceId,
-						$attachmentOrigFilename,
-						"-(" . (string)$counter . ")"
-					);
-				} else {
-					$shortPageWikiTitle = basename( $pageWikiTitle );
-					$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
-						$attachmentSpaceId,
-						$attachmentOrigFilename,
-						"-(" . (string)$counter . ")"
-					);
-				}
+				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+					$attachmentSpaceId,
+					$attachmentOrigFilename,
+					$shortPageWikiTitle,
+					"-(" . (string)$counter . ")"
+				);
 
 				$exists = $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle );
 				$counter++;
@@ -550,6 +536,101 @@ class ConfluenceAnalyzer extends AnalyzerBase
 				$attachmentId,
 				$pageId,
 				$attachment['filename'],
+				$attatchmentWikiTitle
+			);
+		}
+	}
+
+	/**
+	 * Populate additional_attachments with attachments that are not part of page_attachments.
+	 *
+	 * The target filename is built from space prefix and original filename only.
+	 *
+	 * @return void
+	 */
+	private function populateAdditionalAttachmentsTable(): void {
+		$attachmentIdsInPageAttachments = [];
+		foreach ( $this->workspaceDB->getPageAttachments() as $pageAttachment ) {
+			if ( !isset( $pageAttachment['attachment_id'] ) ) {
+				continue;
+			}
+
+			$attachmentIdsInPageAttachments[(int)$pageAttachment['attachment_id']] = true;
+		}
+
+		$filenameBuilder = new FilenameBuilder(
+			$this->workspaceDB->getMapSpaceIdToPrefix(),
+			$this->migrationConfig
+		);
+
+		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
+			if (
+				!isset( $attachment['attachment_id'] )
+				|| !isset( $attachment['container_id'] )
+				|| !isset( $attachment['space_id'] )
+				|| !isset( $attachment['filename'] )
+				|| !isset( $attachment['content_status'] )
+				|| !isset( $attachment['original_version_id'] )
+			) {
+				continue;
+			}
+
+			if ( $attachment['original_version_id'] !== -1 ) {
+				continue;
+			}
+
+			$attachmentId = (int)$attachment['attachment_id'];
+			if ( isset( $attachmentIdsInPageAttachments[$attachmentId] ) ) {
+				continue;
+			}
+
+			$attachmentSpaceId = (int)$attachment['space_id'];
+			$attachmentOrigFilename = (string)$attachment['filename'];
+
+			try {
+				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+					$attachmentSpaceId,
+					$attachmentOrigFilename,
+					''
+				);
+			} catch ( Exception $ex ) {
+				$this->logger->warning(
+					'Could not build target filename for attachment ' . $attachmentId . ': '
+					. $ex->getMessage()
+				);
+				$this->workspaceDB->addLogEntry(
+					'warning',
+					'analyze',
+					__CLASS__,
+					"Could not build target filename for attachment $attachmentId: "
+					. $ex->getMessage()
+				);
+				continue;
+			}
+
+			// Uncollide file title
+			$exists = ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle )
+				|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $attatchmentWikiTitle )
+			);
+
+			$counter = 1;
+			while ( $exists ) {
+				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+					$attachmentSpaceId,
+					$attachmentOrigFilename,
+					'',
+					"-(" . (string)$counter . ")"
+				);
+
+				$exists = ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle )
+					|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $attatchmentWikiTitle )
+				);
+				$counter++;
+			}
+
+			$this->workspaceDB->addAdditionalAttachment(
+				$attachmentId,
+				(string)$attachment['filename'],
 				$attatchmentWikiTitle
 			);
 		}

@@ -35,23 +35,29 @@ class FilenameBuilder {
 	 * @return string
 	 * @throws InvalidTitleException
 	 */
-	public function buildFromAttachmentData( int $spaceId, string $originalFilename, string $assocTitle ): string {
+	public function buildFromAttachmentData( int $spaceId, string $originalFilename, string $assocTitle, string $suffix = '' ): string {
 		$builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$builder->setNamespace( $spaceId );
 
-		if ( !empty( $assocTitle ) ) {
-			// Namespace is already set with assocTitle
-			$builder->setNamespace( 0 );
+		$originalFilename = str_replace( [ ' ', '/' ], '_', $originalFilename );
 
-			$assocTitle = str_replace( '/', '_', $assocTitle );
-			$filenameParts = explode( '.', $originalFilename );
-			if ( count( $filenameParts ) > 1 ) {
-				$originalFilename = $assocTitle . '_' . implode( '.', $filenameParts );
-			} else {
-				$originalFilename = implode( '.', $filenameParts ) . $assocTitle;
+		if ( !empty( $suffix ) ) {
+			$suffix = str_replace( [ ' ', '/' ], '_', $suffix );
+			$originalFilenameParts = explode( '.', $originalFilename );
+			if ( count( $originalFilenameParts ) > 1 ) {
+				$extension = array_pop( $originalFilenameParts );
+				$filenameWithoutExtension = implode( '.', $originalFilenameParts );
+				$filenameWithoutExtension .= $suffix;
+				$originalFilename = $filenameWithoutExtension . '.' . $extension;
 			}
 		}
-		$builder->appendTitleSegment( "$originalFilename" );
+
+		$builder->appendTitleSegment( $originalFilename );
+
+		if ( !empty( $assocTitle ) ) {
+			$assocTitle = str_replace( [ ' ', '/' ], '_', $assocTitle );
+			$builder->appendTitleSegment( "$assocTitle-" );
+		}
 
 		$builtTitle = $builder->invertTitleSegments()->build();
 
