@@ -45,6 +45,8 @@ class FullMigrationTest extends TestCase {
 		mkdir( $this->tempDir . '/single-source/workspace/content', 0755, true );
 		mkdir( $this->tempDir . '/single-source/workspace/content/raw', 0755, true );
 		mkdir( $this->tempDir . '/single-source/workspace/content/wikitext', 0755, true );
+		mkdir( $this->tempDir . '/single-source/workspace/content/result', 0755, true );
+		mkdir( $this->tempDir . '/single-source/workspace/content/result/images', 0755, true );
 
 		$sourceFile = $this->dataDir . '/SingleSource/input/entities.xml';
 		copy( $sourceFile, $this->tempDir . '/single-source/input/entities.xml' );
@@ -56,6 +58,8 @@ class FullMigrationTest extends TestCase {
 		mkdir( $this->tempDir . '/multi-source/workspace/content', 0755, true );
 		mkdir( $this->tempDir . '/multi-source/workspace/content/raw', 0755, true );
 		mkdir( $this->tempDir . '/multi-source/workspace/content/wikitext', 0755, true );
+		mkdir( $this->tempDir . '/multi-source/workspace/content/result', 0755, true );
+		mkdir( $this->tempDir . '/multi-source/workspace/content/result/images', 0755, true );
 
 		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];
 		foreach ( $spaces as $space ) {

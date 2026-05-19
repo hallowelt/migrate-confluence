@@ -285,7 +285,7 @@ class WorkspaceDbMock {
 			$pageWikiTitle = str_replace( ':', '_', $pageWikiTitle );
 		}
 
-		return $pageWikiTitle . '_' . $attachmentTitle;
+		return $pageWikiTitle . '-' . $attachmentTitle;
 	}
 
 	private function findPageId(
@@ -325,6 +325,7 @@ class WorkspaceDbMock {
 			-1,
 			[],
 			[],
+			[],
 			[]
 		);
 
@@ -351,7 +352,11 @@ class WorkspaceDbMock {
 			$fileExtension,
 			$pageId,
 			$contentStatus,
+			1,
+			-1,
 			$attachmentReference,
+			[],
+			[],
 			[]
 		);
 		$workspaceDB->addPageAttachment(

@@ -64,14 +64,19 @@ class FilenameResolver {
 			$this->migrationConfig
 		);
 
+		$pageWikiTitleParts = substr( $assocTitle, strrpos( $assocTitle, ':' ) );
+		$pageWikiTitleParts = explode( '/', $pageWikiTitleParts );
+		$shortPageWikiTitle = end( $pageWikiTitleParts );
+		
+
 		try {
-			$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $assocTitle );
+			$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortPageWikiTitle );
 		} catch ( InvalidTitleException $ex ) {
 			try {
 				// Probably it is just too long. Let's try to use a shortened variant
 				// This is not ideal, but should be okay as a fallback in most cases.
-				$shortTargetTitle = basename( $assocTitle );
-				$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortTargetTitle );
+				
+				$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortPageWikiTitle );
 			} catch ( InvalidTitleException $ex ) {
 				$fileTitle = $ex->getInvalidTitle();
 			}

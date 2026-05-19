@@ -492,6 +492,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
 			$pageWikiTitle = $this->workspaceDB->getWikiTitleForAttachmentId( $attachmentId );
+			$pageWikiTitle = substr( $pageWikiTitle, strrpos( $pageWikiTitle, ':' ) );
 			$pageWikiTitleParts = explode( '/', $pageWikiTitle );
 			$shortPageWikiTitle = end( $pageWikiTitleParts );
 			try {

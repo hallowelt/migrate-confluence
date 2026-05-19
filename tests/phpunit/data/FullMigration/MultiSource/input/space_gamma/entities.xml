@@ -1,7 +1,7 @@
 <hibernate-generic datetime="2020-01-01 00:00:00">
 
     <object class="Space" package="com.atlassian.confluence.spaces">
-        <id name="id">70000200</id>
+        <id name="id">40000200</id>
         <property name="name">Alpha Space</property>
         <property name="key">GAMMA</property>
         <property name="lowerKey">gamma</property>
@@ -13,7 +13,7 @@
     </object>
 
     <object class="Page" package="com.atlassian.confluence.pages">
-        <id name="id">70000062</id>
+        <id name="id">40000062</id>
         <property name="hibernateVersion">1</property>
         <property name="title">Deep ABC</property>
         <property name="lowerTitle">deep abc</property>
@@ -24,20 +24,20 @@
         <property name="contentStatus">current</property>
         <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
         <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
-        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">70000000</id></property>
-        <property name="parent" class="Page" package="com.atlassian.confluence.pages"><id name="id">70000061</id></property>
-        <collection name="ancestors" class="java.util.List"><element class="Page" package="com.atlassian.confluence.pages"><id name="id">70000060</id>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">40000000</id></property>
+        <property name="parent" class="Page" package="com.atlassian.confluence.pages"><id name="id">40000061</id></property>
+        <collection name="ancestors" class="java.util.List"><element class="Page" package="com.atlassian.confluence.pages"><id name="id">40000060</id>
 </element>
-<element class="Page" package="com.atlassian.confluence.pages"><id name="id">70000061</id>
+<element class="Page" package="com.atlassian.confluence.pages"><id name="id">40000061</id>
 </element>
 </collection>
     </object>
 
     <object class="BodyContent" package="com.atlassian.confluence.core">
-        <id name="id">80000062</id>
+        <id name="id">30000062</id>
         <property name="body"><![CDATA[<p>Deep ABC level 3.</p>]]></property>
         <property name="bodyType">2</property>
-        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">70000062</id></property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">40000062</id></property>
     </object>
 
 </hibernate-generic>
