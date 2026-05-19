@@ -82,7 +82,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			if ( isset( $page['page_id'] ) && isset( $page['content_status'] )
 				&& strtolower( (string)$page['content_status'] ) === 'current'
 			) {
-				$currentContentIds[(int)$page['page_id']] = true;
+				$currentContentIds[] = (int)$page['page_id'];
 			}
 		}
 
@@ -90,7 +90,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			if ( isset( $blogPost['page_id'] ) && isset( $blogPost['content_status'] )
 				&& strtolower( (string)$blogPost['content_status'] ) === 'current'
 			) {
-				$currentContentIds[(int)$blogPost['page_id']] = true;
+				$currentContentIds[] = (int)$blogPost['page_id'];
 			}
 		}
 
@@ -98,37 +98,25 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			return;
 		}
 
-		$bodyContents = $this->workspaceDB->getBodyContents();
-		$this->doExtractBodyContent( $bodyContents );
+		$this->doExtractBodyContent( $currentContentIds );
 	}
 
 	/**
-	 * @param array $bodyContents
+	 * @param array $currentContentIds
 	 * @return void
 	 */
-	public function doExtractBodyContent( array $bodyContents ): void {
-		foreach ( $bodyContents as $bodyContent ) {
-			if (
-				!isset( $bodyContent['body_content_id'] )
-				|| !isset( $bodyContent['page_id'] )
-			) {
-				continue;
-			}
+	public function doExtractBodyContent( array $currentContentIds ): void {
+		foreach ( $currentContentIds as $currentContentId ) {
+			$bodyContentIds = $this->workspaceDB->getBodyContentIdsForContentId( $currentContentId );
+			foreach ( $bodyContentIds as $bodyContentId ) {
+				$body = $this->workspaceDB->getBodyContentBodyByBodyContentId( $bodyContentId );
+				if ( $body === null ) {
+					continue;
+				}
 
-			$id = (int)$bodyContent['body_content_id'];
-			$pageId = (int)$bodyContent['page_id'];
-			if ( !isset( $currentContentIds[$pageId] ) ) {
-				continue;
+				$bodyContentHTML = $this->normalizeBodyContentHTML( $body );
+				$targetFileName = $this->workspace->saveRawContent( (string)$bodyContentId, $bodyContentHTML );
 			}
-
-			$bodies = $this->workspaceDB->getBodyForBodyContentId( $id );
-			if ( empty( $bodies ) || !isset( $bodies[0] ) ) {
-				continue;
-			}
-
-			$bodyContentHTML = $this->normalizeBodyContentHTML( (string)$bodies[0] );
-			$targetFileName = $this->workspace->saveRawContent( (string)$id, $bodyContentHTML );
-			$this->addRevisionContent( (string)$id, $targetFileName );
 		}
 	}
 

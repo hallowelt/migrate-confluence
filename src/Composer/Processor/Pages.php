@@ -26,48 +26,48 @@ class Pages extends ProcessorBase {
 
 	private function addContentPages(): void {
 		/** Add content pages */
-		$spaceIdHomepagesMap = $this->buckets->getBucketData(
-			'global-space-id-homepages'
-		);
-		$homepagespaceIdMap = array_flip( $spaceIdHomepagesMap );
-		$spaceIdDescriptionIdMap = $this->buckets->getBucketData(
-			'global-space-id-to-description-id-map'
-		);
-		$spaceBodyIdDescriptionIdBodyIDMap = $this->buckets->getBucketData(
-			'global-body-content-id-to-space-description-id-map'
-		);
-		$titleRevisions = $this->buckets->getBucketData(
-			'global-title-revisions'
-		);
 
-		/** Prepare required maps */
-		$bodyContentIdMainpageId = $this->buildMainpageContentMap( $spaceIdHomepagesMap );
+		$wikiTitles = $this->dataLookup->getPageIdTargetPageTitleMap();
 
-		/** Add grouped pages */
-		foreach ( $titleRevisions as $pageTitle => $pageRevisions ) {
+		foreach ( $wikiTitles as $pageId => $pageTitle ) {
+			$this->output->writeln( "Processing page '$pageTitle'..." );
+
 			if ( $this->skipTitle( $pageTitle ) ) {
 				continue;
 			}
 
-			$sortedRevisions = $this->sortRevisions( $pageRevisions );
-			foreach ( $sortedRevisions as $timestamp => $bodyContentIds ) {
-				$bodyContentIdsArr = explode( '/', $bodyContentIds );
-				$pageContent = "";
-				foreach ( $bodyContentIdsArr as $bodyContentId ) {
+			$spaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
+			$spaceDescriptions = $this->dataLookup->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
+			$homepageId = $this->dataLookup->getSpaceHomepageIdForSpaceId( $spaceId );
+
+			if ( $pageId === $homepageId ) {
+				$this->output->writeln( "Page '$pageTitle' is a homepage, adding space description to page content if applicable..." );
+				$revisions = $this->dataLookup->getPageRevisionsForPageId( $homepageId );
+			} else {
+				$revisions = $this->dataLookup->getPageRevisionsForPageId( $pageId );
+			}
+
+			foreach ( $revisions as $revision ) {
+				$timestamp = $revision['revision_timestamp'];
+				$bodyContentIds = json_decode( $revision['body_content_ids'], true );
+
+				$pageContent = '';
+				foreach ( $bodyContentIds as $bodyContentId ) {
 					if ( $bodyContentId === '' ) {
 						// Skip if no reference to a body content is not set
 						continue;
 					}
+
 					$this->output->writeln( "Getting '$bodyContentId' body content..." );
 					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
-					$pageContent .= $this->addSpaceDescriptionToMainPage(
-						$bodyContentId,
-						$bodyContentIdMainpageId,
-						$homepagespaceIdMap,
-						$spaceIdDescriptionIdMap,
-						array_flip( $spaceBodyIdDescriptionIdBodyIDMap )
-					);
 				}
+
+				$pageContent .= $this->addSpaceDescriptionToMainPage(
+					$pageId,
+					$homepageId,
+					$timestamp,
+					$spaceDescriptions
+				);
 
 				$this->addRevision(
 					$pageTitle,
@@ -76,6 +76,7 @@ class Pages extends ProcessorBase {
 					'',
 					$this->getContentModel( $pageTitle )
 				);
+
 			}
 		}
 	}
@@ -119,100 +120,55 @@ class Pages extends ProcessorBase {
 	}
 
 	/**
-	 * @param array $spaceIdHomepagesMap
-	 * @return array
-	 */
-	private function buildMainpageContentMap( array $spaceIdHomepagesMap ): array {
-		$bodyContentsToPagesMap = $this->buckets->getBucketData(
-			'global-body-content-id-to-page-id-map'
-		);
-
-		$bodyContentIdMainpageId = [];
-		$pagesToBodyContents = array_flip( $bodyContentsToPagesMap );
-		foreach ( $spaceIdHomepagesMap as $homepageId ) {
-			if ( !isset( $pagesToBodyContents[$homepageId] ) ) {
-				continue;
-			}
-			$bodyContentsID = $pagesToBodyContents[$homepageId];
-			$bodyContentIdMainpageId[$bodyContentsID] = $homepageId;
-		}
-
-		return $bodyContentIdMainpageId;
-	}
-
-	/**
-	 * @param array $pageRevisions
-	 * @return array
-	 */
-	private function sortRevisions( array $pageRevisions ): array {
-		$sortedRevisions = [];
-		foreach ( $pageRevisions as $pageRevision ) {
-			$pageRevisionData = explode( '@', $pageRevision );
-			$bodyContentIds = $pageRevisionData[0];
-
-			$versionTimestamp = explode( '-', $pageRevisionData[1] );
-			// $version = $versionTimestamp[0];
-			$timestamp = $versionTimestamp[1];
-
-			$sortedRevisions[$bodyContentIds] = $timestamp;
-		}
-
-		// Sorting revisions with timestamps
-		natsort( $sortedRevisions );
-		$sortedRevisions = array_flip( $sortedRevisions );
-
-		// Using history revisions?
-		if ( !$this->includeHistory() ) {
-			$bodyContentIds = end( $sortedRevisions );
-			$timestamp = array_search( $bodyContentIds, $sortedRevisions );
-			// Reset sortedRevisions
-			$sortedRevisions = [];
-			$sortedRevisions[$timestamp] = $bodyContentIds;
-		}
-
-		return $sortedRevisions;
-	}
-
-	/**
 	 * Add space description to homepage
 	 *
-	 * @param int|string $bodyContentId
-	 * @param array $bodyContentIdMainpageId
-	 * @param array $homepagespaceIdMap
-	 * @param array $spaceIdDescriptionIdMap
-	 * @param array $spaceDescriptionIdBodyIdMap
+	 * @param int $pageId
+	 * @param int $homepageId
+	 * @param string $pageRevisionTimestamp
+	 * @param array $spaceDescriptionRevisions
 	 *
 	 * @return string
 	 */
 	private function addSpaceDescriptionToMainPage(
-		int|string $bodyContentId, array $bodyContentIdMainpageId,
-		array $homepagespaceIdMap, array $spaceIdDescriptionIdMap,
-		array $spaceDescriptionIdBodyIdMap
+		int $pageId,
+		int $homepageId,
+		string $pageRevisionTimestamp,
+		array $spaceDescriptionRevisions
 	): string {
-		$pageContent = '';
+		if ( $pageId !== $homepageId ) {
+			return '';
+		}
 
-		if ( isset( $bodyContentIdMainpageId[$bodyContentId] ) ) {
-			// get homepage id if it is a homepage
-			$mainpageID = $bodyContentIdMainpageId[$bodyContentId];
-			if ( isset( $homepagespaceIdMap[$mainpageID] ) ) {
-				// get space id
-				$spaceId = $homepagespaceIdMap[$mainpageID];
-				if ( isset( $spaceIdDescriptionIdMap[$spaceId] ) ) {
-					// get description id
-					$descId = $spaceIdDescriptionIdMap[$spaceId];
-					if ( isset( $spaceDescriptionIdBodyIdMap[$descId] ) ) {
-						// get description id
-						$descBodyId = $spaceDescriptionIdBodyIdMap[$descId];
-						$description = $this->workspace->getConvertedContent( $descBodyId );
-						if ( $description !== '' ) {
-							$pageContent .= $this->wrapSpaceDescription( $description );
-						}
-					}
+		foreach ( $spaceDescriptionRevisions as $spaceDescriptionRevision ) {
+			if ( !isset( $spaceDescriptionRevision['revision_timestamp'] ) ) {
+				continue;
+			}
+
+			$spaceDescriptionTimestamp = (string)$spaceDescriptionRevision['revision_timestamp'];
+			if ( $spaceDescriptionTimestamp > $pageRevisionTimestamp ) {
+				continue;
+			}
+
+			$bodyContentIds = json_decode( $spaceDescriptionRevision['body_content_ids'], true );
+			if ( !is_array( $bodyContentIds ) ) {
+				continue;
+			}
+
+			$description = '';
+			foreach ( $bodyContentIds as $bodyContentId ) {
+				if ( $bodyContentId === '' ) {
+					continue;
 				}
+
+				$description .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
+			}
+
+			if ( $description !== '' ) {
+				return $this->wrapSpaceDescription( $description );
 			}
 		}
 
-		return $pageContent;
+		return '';
 	}
 
 	/**

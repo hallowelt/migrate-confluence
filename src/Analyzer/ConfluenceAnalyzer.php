@@ -328,6 +328,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		foreach ( $pages as $page ) {
 			if (
 				!isset( $page['page_id'] )
+				|| $page['original_version_id'] !== -1 // historical versions
 				|| !isset( $page['space_id'] )
 				|| !isset( $page['confluence_title'] )
 				|| !isset( $page['content_status'] )

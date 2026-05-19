@@ -30,9 +30,12 @@ class WorkspaceDB {
 			'spaces',
 			'spaces_descriptions',
 			'pages',
+			'pages_meta',
 			'blog_posts',
+			'blog_posts_meta',
 			'body_contents',
 			'attachments',
+			'attachments_meta',
 			'page_attachments',
 			'users',
 			'content_properties',
@@ -182,6 +185,7 @@ class WorkspaceDB {
 				version CHAR,
 				parent_page_id INT,		
 				body_content_ids BLOB,
+				historical_ids BLOB,
 				properties BLOB,
 				collection BLOB
 			);'
@@ -203,6 +207,7 @@ class WorkspaceDB {
 				version CHAR,
 				original_version_id INT,
 				body_content_ids BLOB,
+				historical_ids BLOB,
 				properties BLOB,
 				collection BLOB
 			);'
@@ -289,6 +294,7 @@ class WorkspaceDB {
 	private function createTableContentProperties(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS content_properties (
+				property_id INT PRIMARY KEY,
 				property_name CHAR,
 				content_class CHAR,
 				properties BLOB
@@ -498,7 +504,7 @@ class WorkspaceDB {
 				text
 			) VALUES (
 				:page_id,
-				:wiki_title
+				:wiki_title,
 				:text
 			)'
 		);
@@ -621,6 +627,27 @@ class WorkspaceDB {
 	 */
 	public function getSpaces(): array {
 		return $this->getAllData( 'spaces' );
+	}
+
+	public function getSpaceHomepageIdForSpaceId( int $spaceId ): int {
+		$transaction = $this->db->prepare(
+			'SELECT homepage_id FROM spaces WHERE space_id = :space_id LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return -1;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['homepage_id'] ) ) {
+			return -1;
+		}
+
+		return (int)$data['homepage_id'];
 	}
 
 	/**
@@ -823,10 +850,12 @@ class WorkspaceDB {
 		int $originalVersionId,
 		int $parentPageId,
 		array $bodyContentIds,
+		array $historicalIds,
 		array $properties,
 		array $collection
 	): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$historicalIdsJson = json_encode( $historicalIds );
 		$propertiesJson = json_encode( $properties );
 		$collectionJson = json_encode( $collection );
 		$transaction = $this->db->prepare(
@@ -841,6 +870,7 @@ class WorkspaceDB {
 				version,
 				parent_page_id,
 				body_content_ids,
+				historical_ids,
 				properties,
 				collection
 			) VALUES (
@@ -854,6 +884,7 @@ class WorkspaceDB {
 				:version,
 				:parent_page_id,
 				:body_content_ids,
+				:historical_ids,
 				:properties,
 				:collection
 			)'
@@ -869,6 +900,7 @@ class WorkspaceDB {
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':parent_page_id', $parentPageId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':historical_ids', $historicalIdsJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
@@ -946,6 +978,87 @@ class WorkspaceDB {
 		}
 
 		return $data['wiki_title'];
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPageIdTargetPageTitleMap(): array {
+		$transaction = $this->db->prepare(
+			'SELECT page_id, wiki_title FROM pages WHERE content_status = "current"'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['page_id'];
+			$value = $item['wiki_title'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @param integer $pageId
+	 * @return array
+	 */
+	public function getPageRevisionsForPageId( int $pageId ): array {
+		$transaction = $this->db->prepare(
+			'SELECT revision_timestamp, version, content_status, body_content_ids FROM pages
+			WHERE page_id = :page_id AND lower( content_status ) != "deleted"
+			ORDER BY revision_timestamp DESC'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * Get all revisions of the space description for a given space.
+	 *
+	 * Revisions are linked through `original_version_id` and sorted newest first.
+	 *
+	 * @param int $spaceId
+	 * @return array
+	 */
+	public function getSpaceDescriptionRevisionsForSpaceId( int $spaceId ): array {
+		$anchorTransaction = $this->db->prepare(
+			'SELECT description_id FROM spaces WHERE space_id = :space_id LIMIT 1'
+		);
+		$anchorTransaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$anchorResult = $anchorTransaction->execute();
+		if ( $anchorResult === false ) {
+			return [];
+		}
+
+		$anchorData = $anchorResult->fetchArray( SQLITE3_ASSOC );
+		$anchorResult->finalize();
+
+		if ( $anchorData === false || !isset( $anchorData['description_id'] ) ) {
+			return [];
+		}
+
+		$descriptionId = (int)$anchorData['description_id'];
+
+		$transaction = $this->db->prepare(
+			'SELECT * FROM spaces_descriptions
+			WHERE space_description_id = :description_id
+				OR original_version_id = :description_id
+			ORDER BY revision_timestamp DESC'
+		);
+		$transaction->bindValue( ':description_id', $descriptionId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -1045,10 +1158,12 @@ class WorkspaceDB {
 		string $version,
 		int $originalVersionId,
 		array $bodyContentIds,
+		array $historicalIds,
 		array $properties,
 		array $collection
 	): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$historicalIdsJson = json_encode( $historicalIds );
 		$propertiesJson = json_encode( $properties );
 		$collectionJson = json_encode( $collection );
 		$transaction = $this->db->prepare(
@@ -1062,6 +1177,7 @@ class WorkspaceDB {
 				version,
 				original_version_id,
 				body_content_ids,
+				historical_ids,
 				properties,
 				collection
 			) VALUES (
@@ -1074,6 +1190,7 @@ class WorkspaceDB {
 				:version,
 				:original_version_id,
 				:body_content_ids,
+				:historical_ids,
 				:properties,
 				:collection
 			)'
@@ -1088,6 +1205,7 @@ class WorkspaceDB {
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':historical_ids', $historicalIdsJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
@@ -1196,7 +1314,7 @@ class WorkspaceDB {
 	 */
 	public function getConfluenceBlogPostTitleFromBlogPostId( int $blogPostId ): string {
 		$transaction = $this->db->prepare(
-			'SELECT confluence_title FROM blog_posts WHERE page_id = :page_id LIMIT 1'
+			'SELECT wiki_title FROM blog_posts WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
 
@@ -1208,7 +1326,7 @@ class WorkspaceDB {
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		if ( $data === false || !isset( $data['confluence_title'] ) ) {
+		if ( $data === false || !isset( $data['wiki_title'] ) ) {
 			return '';
 		}
 
@@ -1294,17 +1412,19 @@ class WorkspaceDB {
 		$result = $transaction->execute();
 		$data = $this->fetchDbArray( $result );
 
-		$bodyContentId = -1;
+		$contentId = -1;
 		foreach ( $data as $item ) {
-			if ( isset( $item['body_content_id'] ) ) {
-				$bodyContentId = $item['body_content_id'];
+			if ( isset( $item['content_id'] ) ) {
+				$contentId = $item['content_id'];
 			}
 		}
 
 		// TODO: Add a error if there are more then one page_id's for this body_content_id
 
-		return $bodyContentId;
+		return $contentId;
 	}
+
+
 
 	/**
 	 * @param int $bodyContentId
@@ -1359,6 +1479,31 @@ class WorkspaceDB {
 		}
 
 		return $bodies;
+	}
+
+	/**
+	 * @param integer $bodyContentId
+	 * @return string|null
+	 */
+	public function getBodyContentBodyByBodyContentId( int $bodyContentId ): ?string {
+		$transaction = $this->db->prepare(
+			'SELECT body FROM body_content_bodies WHERE body_content_id = :body_content_id LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['body'] ) ) {
+			return null;
+		}
+
+		return $data['body'];
 	}
 
 	/**
@@ -1670,6 +1815,24 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param integer $pageId
+	 * @return array
+	 */
+	public function getPageAttachmentsForPageId( int $pageId ): array {
+		$transaction = $this->db->prepare(
+			'SELECT * FROM page_attachments WHERE page_id = :page_id'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
 	 * @param string $userKey
 	 * @param string $wikiUsername
 	 * @param string $email
@@ -1684,7 +1847,7 @@ class WorkspaceDB {
 	): bool {
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->db->prepare(
-			'INSERT INTO users (
+			'INSERT OR IGNORE INTO users (
 				user_key,
 				wiki_user_name,
 				email,
@@ -1746,6 +1909,7 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function addContentProperty(
+		int $propertyId,
 		string $propertyName,
 		string $class,
 		array $properties
@@ -1753,16 +1917,19 @@ class WorkspaceDB {
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->db->prepare(
 			'INSERT INTO content_properties (
+				property_id,
 				property_name,
 				content_class,
 				properties
 			) VALUES (
+				:property_id,
 				:property_name,
 				:content_class,
 				:properties
 			)'
 		);
 
+		$transaction->bindValue( ':property_id', $propertyId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':property_name', $propertyName, SQLITE3_TEXT );
 		$transaction->bindValue( ':content_class', $class, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
@@ -2376,4 +2543,6 @@ class WorkspaceDB {
 		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
+
+	
 }

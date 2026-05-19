@@ -24,12 +24,19 @@ class ContentProperty extends ProcessorBase {
 	 * @inheritDoc
 	 */
 	protected function doExecute(): void {
+		$propertyId = [];
 		$properties = [];
-		$contentClass = null;
+		$contentClass = '';
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( $this->xmlReader->name === 'property' ) {
+			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
+					$propertyId = (int)$this->getCDATAValue();
+				} else {
+					$propertyId = (int)$this->getTextValue();
+				}
+			} elseif ( $this->xmlReader->name === 'property' ) {
 				// Capture the class attribute before processPropertyNodes consumes the element
 				if ( $this->xmlReader->getAttribute( 'name' ) === 'content' ) {
 					$contentClass = $this->xmlReader->getAttribute( 'class' );
@@ -44,6 +51,7 @@ class ContentProperty extends ProcessorBase {
 		}
 
 		$status = $this->workspaceDB->addContentProperty(
+			$propertyId,
 			$propName,
 			$contentClass,
 			$properties

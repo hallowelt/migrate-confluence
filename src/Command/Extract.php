@@ -21,6 +21,11 @@ class Extract extends CommandExtract {
 	protected $extractors = [];
 
 	/**
+	 * @var array
+	 */
+	protected $eventhandlers = [];
+
+	/**
 	 * @inheritDoc
 	 */
 	protected function configure(): void {

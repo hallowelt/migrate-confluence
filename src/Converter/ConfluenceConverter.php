@@ -125,6 +125,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var int */
 	private int $currentSpace = 0;
 
+	/** @var bool */
+	private bool $isSpaceDescriptionContent = false;
+
 	/** @var SplFileInfo|null */
 	private ?SplFileInfo $preprocessedFile = null;
 
@@ -171,8 +174,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$this->migrationConfig = new MigrationConfig( [] );
 		}
 
+		$this->buckets = new DataBuckets( [] );
+
 		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
-		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
+		$this->conversionDataWriter = ConversionDataWriter::newFromDatabase( $this->workspaceDB );
 
 		$result = parent::convert( $file );
 		return $result;
@@ -190,6 +195,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
 
 		$this->pageId = -1;
+		$this->isSpaceDescriptionContent = false;
 
 		// Test to which type of content the contentId belongs
 		if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
@@ -203,6 +209,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			if ( $this->currentPageTitle === '' ) {
 				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 			}
+
+			$this->isSpaceDescriptionContent = true;
+
 		} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
 			$this->contentType = 'page';
 
@@ -266,6 +275,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$unconvertedContent = "<-- Unconvertable RAW start-->\n";
 			$unconvertedContent .= $rawContent;
 			$unconvertedContent .= "\n<-- Unconvertable RAW end-->\n[[Category:Unconvertable]]";
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'convert',
+				__CLASS__,
+				"Unconvertable RAW content for bodyContentId $bodyContentId"
+			);
 			return $unconvertedContent;
 		}
 
@@ -285,9 +300,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		);
 
 		$this->wikiText = parent::doConvert( $this->preprocessedFile );
+
 		$this->runPostProcessors();
 
-		$this->postProcessLinks();
 		$this->postprocessWikiText();
 
 		$this->checkContentLength( $bodyContentId );
@@ -501,6 +516,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	}
 
 	/**
+	 * @param int $spaceId
+	 * @return int
+	 */
+	private function getSpaceHomepageId( int $spaceId ): int {
+		return $this->workspaceDB->getSpaceHomepageIdForSpaceId( $spaceId );
+	}
+
+	/**
 	 * @param int $pageId
 	 * @return int
 	 */
@@ -514,15 +537,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 */
 	private function getSpaceIdFromBlogPostId( int $blogPostId ): int {
 		return $this->workspaceDB->getSpaceIdForBlogPostId( $blogPostId );
-	}
-
-	/**
-	 * @param int $spaceId
-	 * @return int
-	 */
-	private function getSpaceHomepageId( int $spaceId ): int {
-		$map = $this->buckets->getBucketData( 'global-space-id-homepages' );
-		return $map[$spaceId] ?? -1;
 	}
 
 	/**
@@ -583,14 +597,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		// Append categories
+		$metaData = [];
 		if ( $this->contentType === 'page' ) {
 			$metaData = $this->workspaceDB->getPageMeta();
 		} elseif ( $this->contentType === 'blogPost' ) {
-			$metaData = $this->workspaceDB->getPageMeta();
-		} else {
-			$metaData = [];
+			$metaData = $this->workspaceDB->getBlogPostMeta();
 		}
-
 		$categories = '';
 		if ( isset( $metaData['categories'] ) ) {
 			foreach ( $metaData['categories'] as $category ) {
@@ -647,28 +659,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 *
 	 * @return void
 	 */
-	public function postProcessLinks(): void {
-		$oldToNewTitlesMap = array_merge(
-			$this->buckets->getBucketData( 'global-pages-titles-map' ),
-			$this->buckets->getBucketData( 'global-blogposts-titles-map' )
-		);
-
-		$this->wikiText = preg_replace_callback(
-			"/\[\[Media:(.*)]]/",
-			static function ( $matches ) use( $oldToNewTitlesMap ) {
-				if ( isset( $oldToNewTitlesMap[$matches[1]] ) ) {
-					return $oldToNewTitlesMap[$matches[1]];
-				}
-				return $matches[0];
-			},
-			$this->wikiText
-		);
-	}
-
-	/**
-	 *
-	 * @return void
-	 */
 	private function postprocessWikiText(): void {
 		// On Windows the CR would be encoded as "&#xD;" in the MediaWiki-XML, which is ulgy and unnecessary
 		$this->wikiText = str_replace( "\r", '', $this->wikiText );
@@ -703,18 +693,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	private function addAdditionalAttachments(): string {
 		$wikiText = '';
 
-		$attachmentsMap = $this->buckets->getBucketData( 'global-title-attachments' );
-
 		$linkProcessor = new AttachmentLink(
-			$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
+			$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->migrationConfig
 		);
 
-		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
+		$pageAttachments = $this->dataLookup->getPageAttachmentsForPageId( $this->pageId );
+		if ( !empty( $pageAttachments ) ) {
 			$mediaExludeList = $this->buildMediaExcludeList( $this->wikiText );
 
 			$attachmentList = [];
-			foreach ( $attachmentsMap[$this->currentPageTitle] as $attachmentFileName ) {
-				$mediaLink = $linkProcessor->makeLink( [ $attachmentFileName ] );
+			foreach ( $pageAttachments as $attachment ) {
+				$mediaLink = $linkProcessor->makeLink( [ $attachment['target_attachment_filename'] ] );
 				$matches = [];
 				preg_match( "#\[\[\s*(Media):(.*?)\s*[\|*|\]\]]#im", $mediaLink, $matches );
 

@@ -78,10 +78,10 @@ class Spaces extends ProcessorBase {
 		$status = $this->workspaceDB->addSpace(
 			$spaceId,
 			$spaceKey,
-			isset( $properties['name'] ) ? $properties['name'] : null,
+			isset( $properties['name'] ) ? $properties['name'] : '',
 			$customSpacePrefix,
-			isset( $properties['homePage'] ) ? (int)$properties['homePage'] : null,
-			isset( $properties['description'] ) ? (int)$properties['description'] : null
+			isset( $properties['homePage'] ) ? (int)$properties['homePage'] : -1,
+			isset( $properties['description'] ) ? (int)$properties['description'] : -1
 		);
 
 		if ( !$status ) {

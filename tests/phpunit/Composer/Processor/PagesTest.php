@@ -5,11 +5,12 @@ namespace HalloWelt\MigrateConfluence\Tests\Composer\Processor;
 use DOMDocument;
 use DOMXPath;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
-use SplFileInfo;
+use ReflectionMethod;
 use Symfony\Component\Console\Output\Output;
 
 class PagesTest extends TestCase {
@@ -36,29 +37,59 @@ class PagesTest extends TestCase {
 		file_put_contents( $this->tmpDir . '/workspace/content/wikitext/10.wiki', 'Blog body' );
 		file_put_contents( $this->tmpDir . '/workspace/content/wikitext/20.wiki', 'Page body' );
 
-		$buckets = new DataBuckets( [
-			'global-space-id-homepages',
-			'global-space-id-to-description-id-map',
-			'global-body-content-id-to-space-description-id-map',
-			'global-body-content-id-to-page-id-map',
-			'global-title-revisions',
+		$dataLookup = $this->createMock( DBComposerDataLookup::class );
+		$dataLookup->method( 'getPageIdTargetPageTitleMap' )->willReturn( [
+			1 => 'Blog:32973/Our new tool',
+			2 => 'Regular:Page',
 		] );
-		$buckets->setBucketData( 'global-space-id-homepages', [] );
-		$buckets->setBucketData( 'global-space-id-to-description-id-map', [] );
-		$buckets->setBucketData( 'global-body-content-id-to-space-description-id-map', [] );
-		$buckets->setBucketData( 'global-body-content-id-to-page-id-map', [] );
-		$buckets->setBucketData( 'global-title-revisions', [
-			'Blog:32973/Our new tool' => [ '10@1-20201109160742' ],
-			'Regular:Page' => [ '20@1-20201109160743' ],
-		] );
+		$dataLookup->method( 'getSpaceIdForPageId' )->willReturn( 100 );
+		$dataLookup->method( 'getSpaceDescriptionRevisionsForSpaceId' )->willReturn( [] );
+		$dataLookup->method( 'getSpaceHomepageIdForSpaceId' )->willReturn( -1 );
+		$dataLookup->method( 'getPageRevisionsForPageId' )
+			->willReturnCallback( static function ( int $pageId ): array {
+				if ( $pageId === 1 ) {
+					return [ [
+						'revision_timestamp' => '20201109160742',
+						'body_content_ids' => '[10]',
+					] ];
+				}
+
+				if ( $pageId === 2 ) {
+					return [ [
+						'revision_timestamp' => '20201109160743',
+						'body_content_ids' => '[20]',
+					] ];
+				}
+
+				return [];
+			} );
+
+		$workspace = $this->createMock( Workspace::class );
+		$workspace->method( 'getConvertedContent' )
+			->willReturnCallback( static function ( int|string $bodyContentId ): string {
+				if ( (string)$bodyContentId === '10' ) {
+					return 'Blog body';
+				}
+
+				if ( (string)$bodyContentId === '20' ) {
+					return 'Page body';
+				}
+
+				return '';
+			} );
+
+		$migrationConfig = $this->createMock( MigrationConfig::class );
+		$migrationConfig->method( 'getComposerPagePerXmlLimit' )->willReturn( 0 );
+		$migrationConfig->method( 'getComposerSkipNamespaces' )->willReturn( [] );
+		$migrationConfig->method( 'getComposerSkipTitles' )->willReturn( [] );
 
 		$processor = new Pages(
 			new Builder(),
-			$buckets,
-			new Workspace( new SplFileInfo( $this->tmpDir . '/workspace' ) ),
+			$dataLookup,
+			$workspace,
 			$this->makeOutput(),
 			$this->tmpDir,
-			[]
+			$migrationConfig
 		);
 
 		$processor->execute();
@@ -72,6 +103,58 @@ class PagesTest extends TestCase {
 
 		$this->assertSame( 'blog_post', $blogModel );
 		$this->assertSame( 'wikitext', $pageModel );
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Composer\Processor\Pages::addSpaceDescriptionToMainPage
+	 */
+	public function testAddSpaceDescriptionUsesNewestRevisionNotNewerThanPageRevision() {
+		$builder = $this->createMock( Builder::class );
+		$dataLookup = $this->createMock( DBComposerDataLookup::class );
+		$workspace = $this->createMock( Workspace::class );
+		$migrationConfig = $this->createMock( MigrationConfig::class );
+
+		$migrationConfig->method( 'getComposerPagePerXmlLimit' )
+			->willReturn( 0 );
+
+		$workspace->expects( $this->once() )
+			->method( 'getConvertedContent' )
+			->with( 200 )
+			->willReturn( 'Valid description revision' );
+
+		$processor = new Pages(
+			$builder,
+			$dataLookup,
+			$workspace,
+			$this->makeOutput(),
+			$this->tmpDir,
+			$migrationConfig
+		);
+
+		$spaceDescriptionRevisions = [
+			[
+				'revision_timestamp' => '20240101000000',
+				'body_content_ids' => json_encode( [ 100 ] ),
+			],
+			[
+				'revision_timestamp' => '20230101000000',
+				'body_content_ids' => json_encode( [ 200 ] ),
+			],
+		];
+
+		$method = new ReflectionMethod( Pages::class, 'addSpaceDescriptionToMainPage' );
+		$method->setAccessible( true );
+
+		$result = $method->invoke(
+			$processor,
+			42,
+			42,
+			'20231201000000',
+			$spaceDescriptionRevisions
+		);
+
+		$this->assertStringContainsString( 'Valid description revision', $result );
+		$this->assertStringContainsString( 'space-description', $result );
 	}
 
 	/** @return Output */

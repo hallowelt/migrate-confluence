@@ -1,10 +1,10 @@
 <hibernate-generic datetime="2020-01-01 00:00:00">
 
     <object class="Space" package="com.atlassian.confluence.spaces">
-        <id name="id">70000000</id>
+        <id name="id">70000200</id>
         <property name="name">Alpha Space</property>
-        <property name="key">ALPHA</property>
-        <property name="lowerKey">alpha</property>
+        <property name="key">GAMMA</property>
+        <property name="lowerKey">gamma</property>
         <property name="creationDate">2020-01-01 00:00:00.000</property>
         <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
         <property name="spaceType">global</property>

@@ -70,6 +70,10 @@ class WorkspaceDbMock {
 			);
 		}
 
+		if ( file_exists( $databasePath ) ) {
+			unlink( $databasePath );
+		}
+
 		return new WorkspaceDB( $databasePath );
 	}
 

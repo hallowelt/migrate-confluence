@@ -12,7 +12,6 @@ use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor;
-use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 use SplFileInfo;
@@ -22,7 +21,7 @@ use Symfony\Component\Yaml\Yaml;
 class FullMigrationTest extends TestCase {
 
 	/** @var string */
-	private string $workDir;
+	private string $tempDir;
 
 	/** @var string */
 	private string $dataDir;
@@ -34,15 +33,125 @@ class FullMigrationTest extends TestCase {
 	private MigrationConfig $migrationConfig;
 
 	protected function setUp(): void {
-		$this->workDir = sys_get_temp_dir() . '/confluence-migration-test-' . uniqid();
-		mkdir( $this->workDir, 0755, true );
-		mkdir( $this->workDir . '/result/images', 0755, true );
-
 		$this->dataDir = __DIR__ . '/data/FullMigration';
+
+		$this->tempDir = sys_get_temp_dir() . '/confluence-migration-test-' . uniqid();
+
+		// Single source migration test
+		mkdir( $this->tempDir, 0755, true );
+		mkdir( $this->tempDir . '/single-source', 0755, true );
+		mkdir( $this->tempDir . '/single-source/input', 0755, true );
+		mkdir( $this->tempDir . '/single-source/workspace', 0755, true );
+		mkdir( $this->tempDir . '/single-source/workspace/content', 0755, true );
+		mkdir( $this->tempDir . '/single-source/workspace/content/raw', 0755, true );
+		mkdir( $this->tempDir . '/single-source/workspace/content/wikitext', 0755, true );
+
+		$sourceFile = $this->dataDir . '/SingleSource/input/entities.xml';
+		copy( $sourceFile,  $this->tempDir . '/single-source/input/entities.xml' );
+
+		// Multi source migration test
+		mkdir( $this->tempDir . '/multi-source', 0755, true );
+		mkdir( $this->tempDir . '/multi-source/input', 0755, true );
+		mkdir( $this->tempDir . '/multi-source/workspace', 0755, true );
+		mkdir( $this->tempDir . '/multi-source/workspace/content', 0755, true );
+		mkdir( $this->tempDir . '/multi-source/workspace/content/raw', 0755, true );
+		mkdir( $this->tempDir . '/multi-source/workspace/content/wikitext', 0755, true );
+
+		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];
+		foreach ( $spaces as $space	 ) {
+			$sourceFile = $this->dataDir . '/MultiSource/input/' . $space . '/entities.xml';
+			mkdir( $this->tempDir . '/multi-source/input/' . $space, 0755, true );
+			copy( $sourceFile,  $this->tempDir . '/multi-source/input/' . $space . '/entities.xml' );
+		}
 	}
 
 	protected function tearDown(): void {
-		$this->removeDirectory( $this->workDir );
+		$this->removeDirectory( $this->tempDir );
+	}
+
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor
+	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverter
+	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
+	 */
+	public function testMigration(): void {
+		$src = $this->tempDir . '/single-source/input';
+		$dest = $this->tempDir . '/single-source/workspace';
+
+		$workspace = new Workspace(
+			new SplFileInfo( $this->tempDir . '/single-source/workspace' )
+		);
+
+		$output = new BufferedOutput();
+
+		$configFile = $this->dataDir . '/config.yaml';
+		$config = file_exists( $configFile )
+			? Yaml::parseFile( $configFile )
+			: [];
+
+		// Step 1: Analyze
+		$this->runAnalyze(
+			$src,
+			$dest,
+			$workspace,
+			$config,
+			$output
+		);
+
+		// Step 2: Extract
+		$this->runExtract(
+			$src,
+			$dest,
+			$workspace,
+			$config,
+		);
+
+		// Step 3: Convert
+		$this->runConvert(
+			$dest,
+			$workspace,
+			$config,
+			$output
+		);
+
+		// Step 4: Compose
+		$this->runCompose(
+			$dest,
+			$workspace,
+			$config,
+			$output
+		);
+
+		// Step 5: Verify
+		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
+		$expectedPages = $this->extractPages( $expectedPagesFile );
+
+		$actualFile = $this->tempDir . '/single-source/workspace/result/pages.xml';
+		$this->assertFileExists( $actualFile );
+		$actualPages = $this->extractPages( $actualFile );
+
+		$this->assertSame(
+			array_keys( $expectedPages ),
+			array_keys( $actualPages ),
+			'Page titles do not match'
+		);
+
+		foreach ( $expectedPages as $title => $expectedPageXml ) {
+			$this->assertArrayHasKey( $title, $actualPages, "Missing page: $title" );
+			$this->assertXmlStringEqualsXmlString(
+				$expectedPageXml,
+				$actualPages[$title],
+				"Page content mismatch for: $title"
+			);
+		}
+
+		// Verify comments.xml
+		$expectedCommentsFile = $this->dataDir . '/result_comments.xml';
+		$actualCommentsFile = $this->tempDir . '/single-source/workspace/result/comments.xml';
+		$this->assertFileExists( $actualCommentsFile );
+		$this->assertXmlFileEqualsXmlFile( $expectedCommentsFile, $actualCommentsFile );
 	}
 
 	/**
@@ -52,33 +161,35 @@ class FullMigrationTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
 	 */
 	public function testMigrationWithMultipleExportDirectories(): void {
-		$sourceDir = $this->dataDir . '/MultipleExports';
-		$expectedPagesFile = $sourceDir . '/result_pages.xml';
+		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
 
-		$this->migrationConfig = new MigrationConfig( [] );
-		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
+		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];
 
-		$subDirs = [ 'space_alpha', 'space_beta', 'space_gamma' ];
-		foreach ( $subDirs as $subDir ) {
-			mkdir( $this->workDir . '/' . $subDir, 0755, true );
-			copy(
-				$sourceDir . '/' . $subDir . '/entities.xml',
-				$this->workDir . '/' . $subDir . '/entities.xml'
-			);
-		}
-
-		$workspace = new Workspace( new SplFileInfo( $this->workDir ) );
 		$output = new BufferedOutput();
 		$config = [];
 
+		$workspace = new Workspace(
+			new SplFileInfo( $this->tempDir . '/multi-source/workspace' )
+		);
+		$dest = $this->tempDir . '/multi-source/workspace';
+
 		// Step 1: Analyze all export directories first so we can assert the
 		// accumulated workspace state before extraction begins.
-		foreach ( $subDirs as $subDir ) {
-			$entitiesFile = $this->workDir . '/' . $subDir . '/entities.xml';
-			$this->runAnalyze( $config, $workspace, $output, $entitiesFile );
+		foreach ( $spaces as $space ) {
+			$src = $this->tempDir . '/multi-source/input/' . $space;
+			
+
+			$this->runAnalyze(
+				$src,
+				$dest,
+				$workspace,
+				$config,
+				$output
+			);
 		}
 
-		$pages = $this->workspaceDB->getPages();
+		$resultWorkspaceDB = new WorkspaceDB( $this->tempDir . '/multi-source/workspace/workspace.db' );
+		$pages = $resultWorkspaceDB->getPages();
 
 		// Build legacy map to compare results
 		$titlesMap = [];
@@ -212,83 +323,41 @@ class FullMigrationTest extends TestCase {
 		);
 
 		// Step 2: Extract each entities.xml
-		foreach ( $subDirs as $subDir ) {
-			$entitiesFile = $this->workDir . '/' . $subDir . '/entities.xml';
-			$this->runExtract( $config, $workspace, $entitiesFile );
+		foreach ( $spaces as $space ) {
+			$src = $this->tempDir . '/input/' . $space;
+			$this->runExtract(
+				$src,
+				$dest,
+				$workspace,
+				$config
+			);
 		}
 
 		// Step 3: Convert
-		$this->runConvert( $config, $workspace, $output );
+		$this->runConvert(
+			$dest,
+			$workspace,
+			$config,
+			$output
+		);
 
 		// Step 4: Compose
-		$this->runCompose( $config, $workspace, $output );
+		$this->runCompose(
+			$dest,
+			$workspace,
+			$config,
+			$output
+		);
 
 		// Step 5: Verify that the unique pages from each export appear in the output.
 		// "Shared Page" intentionally excluded: it has two body-content revisions
 		// and its exact output format is verified separately.
-		$actualFile = $this->workDir . '/result/pages.xml';
+		$actualFile = $dest . '/result/pages.xml';
 		$this->assertFileExists( $actualFile );
 
-		$expectedPages = $this->extractPages( $expectedPagesFile );
-		$actualPages = $this->extractPages( $actualFile );
-
-		foreach ( $expectedPages as $title => $expectedPageXml ) {
-			$this->assertArrayHasKey( $title, $actualPages, "Missing page: $title" );
-			$this->assertXmlStringEqualsXmlString(
-				$expectedPageXml,
-				$actualPages[$title],
-				"Page content mismatch for: $title"
-			);
-		}
-	}
-
-	/**
-	 * @covers \HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer
-	 * @covers \HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor
-	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverter
-	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
-	 */
-	public function testMigration(): void {
-		$sourceFile = $this->dataDir . '/export_source.xml';
 		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
-		$expectedCommentsFile = $this->dataDir . '/result_comments.xml';
-
-		$this->migrationConfig = new MigrationConfig( [] );
-		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
-
-		copy( $sourceFile, $this->workDir . '/entities.xml' );
-
-		$workspace = new Workspace( new SplFileInfo( $this->workDir ) );
-		$output = new BufferedOutput();
-		$configFile = $this->dataDir . '/config.yaml';
-		$config = file_exists( $configFile )
-			? Yaml::parseFile( $configFile )
-			: [];
-
-		// Step 1: Analyze
-		$this->runAnalyze( $config, $workspace, $output );
-
-		// Step 2: Extract
-		$this->runExtract( $config, $workspace );
-
-		// Step 3: Convert
-		$this->runConvert( $config, $workspace, $output );
-
-		// Step 4: Compose
-		$this->runCompose( $config, $workspace, $output );
-
-		// Step 5: Verify
-		$actualFile = $this->workDir . '/result/pages.xml';
-		$this->assertFileExists( $actualFile );
-
 		$expectedPages = $this->extractPages( $expectedPagesFile );
 		$actualPages = $this->extractPages( $actualFile );
-
-		$this->assertSame(
-			array_keys( $expectedPages ),
-			array_keys( $actualPages ),
-			'Page titles do not match'
-		);
 
 		foreach ( $expectedPages as $title => $expectedPageXml ) {
 			$this->assertArrayHasKey( $title, $actualPages, "Missing page: $title" );
@@ -298,36 +367,30 @@ class FullMigrationTest extends TestCase {
 				"Page content mismatch for: $title"
 			);
 		}
-
-		// Verify comments.xml
-		$actualCommentsFile = $this->workDir . '/result/comments.xml';
-		$this->assertFileExists( $actualCommentsFile );
-		$this->assertXmlFileEqualsXmlFile( $expectedCommentsFile, $actualCommentsFile );
 	}
 
 	/**
-	 * @param array $config
+	 * @param string $src
 	 * @param Workspace $workspace
+	 * @param array $config
 	 * @param BufferedOutput $output
-	 * @param string|null $entitiesFilePath defaults to <workDir>/entities.xml
+	 * @param string $dest
+	 * @return void
 	 */
 	private function runAnalyze(
-		array $config,
+		string $src,
+		string $dest,
 		Workspace $workspace,
+		array $config,
 		BufferedOutput $output,
-		?string $entitiesFilePath = null
 	): void {
-		$entitiesFilePath ??= $this->workDir . '/entities.xml';
-
-		$buckets = new DataBuckets( [
-			'global-files',
-		] );
+		$buckets = new DataBuckets( [] );
+		$output = new BufferedOutput();
 
 		$analyzer = new ConfluenceAnalyzer( $config, $workspace, $buckets );
 		$analyzer->setOutput( $output );
-		$analyzer->analyze( new SplFileInfo( $entitiesFilePath ) );
-
-		$buckets->saveToWorkspace( $workspace );
+		$analyzer->setDestinationPath( $dest );
+		$analyzer->analyze( new SplFileInfo( $src . '/entities.xml' ) );
 	}
 
 	/**
@@ -336,80 +399,62 @@ class FullMigrationTest extends TestCase {
 	 * @param string|null $entitiesFilePath defaults to <workDir>/entities.xml
 	 */
 	private function runExtract(
-		array $config,
+		string $src,
+		string $dest,
 		Workspace $workspace,
-		?string $entitiesFilePath = null
+		array $config
 	): void {
-		$entitiesFilePath ??= $this->workDir . '/entities.xml';
-
-		$buckets = new DataBuckets( [
-			'global-title-metadata',
-			'global-attachment-metadata',
-			'global-revision-contents',
-			'global-body-content-id-to-page-id-map',
-			'global-body-content-id-to-space-description-id-map',
-			'global-body-content-id-to-comment-id-map',
-		] );
+		$buckets = new DataBuckets( [] );
 
 		$extractor = new ConfluenceExtractor( $config, $workspace, $buckets );
-		$extractor->extract( new SplFileInfo( $entitiesFilePath ) );
-
-		$buckets->saveToWorkspace( $workspace );
+		$extractor->setDestinationPath( $dest );
+		$extractor->extract( new SplFileInfo( $src . '/entities.xml' ) );
 	}
 
 	/**
-	 * @param array $config
+	 * @param string $dest
 	 * @param Workspace $workspace
+	 * @param array $config
 	 * @param BufferedOutput $output
+	 * @return void
 	 */
-	private function runConvert( array $config, Workspace $workspace, BufferedOutput $output ): void {
-		$rawDir = $this->workDir . '/content/raw';
-		if ( !is_dir( $rawDir ) ) {
-			return;
-		}
-
-		$wikiDir = $this->workDir . '/content/wikitext';
-		if ( !is_dir( $wikiDir ) ) {
-			mkdir( $wikiDir, 0755, true );
-		}
-
-		$rawFiles = glob( $rawDir . '/*.mraw' );
+	private function runConvert(
+		string $dest,
+		Workspace $workspace,
+		array $config,
+		BufferedOutput $output,
+	): void {
+		$rawFiles = glob( $dest . '/content/raw/*.mraw' );
 		foreach ( $rawFiles as $rawFilePath ) {
 			$converter = new ConfluenceConverter( $config, $workspace );
+			$converter->setDestinationPath( $dest );
 			$converter->setOutput( $output );
 
 			$wikiText = $converter->convert( new SplFileInfo( $rawFilePath ) );
 
 			$id = basename( $rawFilePath, '.mraw' );
-			file_put_contents( $wikiDir . '/' . $id . '.wiki', $wikiText );
+			file_put_contents( $dest . '/content/wikitext/' . $id . '.wiki', $wikiText );
 		}
 	}
 
 	/**
-	 * @param array $config
+	 * @param string $dest
 	 * @param Workspace $workspace
+	 * @param array $config
 	 * @param BufferedOutput $output
+	 * @return void
 	 */
-	private function runCompose( array $config, Workspace $workspace, BufferedOutput $output ): void {
-		$buckets = new DataBuckets( [
-			'global-space-id-homepages',
-			'global-space-id-to-description-id-map',
-			'global-body-content-id-to-space-description-id-map',
-			'global-body-content-id-to-page-id-map',
-			'global-title-attachments',
-			'global-title-revisions',
-			'global-files',
-			'global-additional-files',
-			'global-page-id-to-comment-ids-map',
-			'global-comment-id-to-metadata-map',
-			'global-page-id-to-title-map',
-			'global-userkey-to-username-map',
-		] );
-		$buckets->loadFromWorkspace( $workspace );
+	private function runCompose(
+		string $dest,
+		Workspace $workspace,
+		array $config,
+		BufferedOutput $output,
+	): void {
+		$buckets = new DataBuckets( [] );
 
 		$composer = new ConfluenceComposer( $config, $workspace, $buckets );
 		$composer->setOutput( $output );
-		$composer->setDestinationPath( $this->workDir );
+		$composer->setDestinationPath( $dest );
 
 		$builder = new Builder();
 		$composer->buildXML( $builder );

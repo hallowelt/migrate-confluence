@@ -47,7 +47,8 @@ class Page extends ProcessorBase {
 			$contentStatus = $properties['contentStatus'];
 		}
 
-		if ( !$this->migrationConfig->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
+		if ( strtolower( $contentStatus ) !== 'current' ) {
+			// Ignore draft and deleted versions of pages, as they are not relevant for the migration.
 			return;
 		}
 
@@ -56,12 +57,13 @@ class Page extends ProcessorBase {
 			$spaceId = (int)$properties['space'];
 		}
 
+		if ( !$this->migrationConfig->getIncludeHistory() && $spaceId === -1 ) {
+			return;
+		}
+
 		$originalVersionId = -1;
 		if ( isset( $properties['originalVersion'] ) ) {
 			$originalVersionId = (int)$properties['originalVersion'];
-		}
-		if ( $originalVersionId !== -1 ) {
-			return;
 		}
 
 		$confluenceTitle = $properties['title'] ?? "";
@@ -89,6 +91,11 @@ class Page extends ProcessorBase {
 		}
 
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
+
+		$historicalIds = [];
+		if ( isset( $collection['historicalVersions'] ) ) {
+			$historicalIds = $collection['historicalVersions'];
+		}
 
 		$parentPageId = -1;
 		if ( isset( $properties['parent'] ) ) {
@@ -124,6 +131,7 @@ class Page extends ProcessorBase {
 			$originalVersionId,
 			$parentPageId,
 			$bodyContentIds,
+			$historicalIds,
 			$properties,
 			$collection
 		);

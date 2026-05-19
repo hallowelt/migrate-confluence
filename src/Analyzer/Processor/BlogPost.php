@@ -47,7 +47,8 @@ class BlogPost extends ProcessorBase {
 			$contentStatus = $properties['contentStatus'];
 		}
 
-		if ( !$this->migrationConfig->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
+		if ( strtolower( $contentStatus ) !== 'current' ) {
+			// Ignore draft and deleted versions of pages, as they are not relevant for the migration.
 			return;
 		}
 
@@ -55,16 +56,14 @@ class BlogPost extends ProcessorBase {
 		if ( isset( $properties['space'] ) ) {
 			$spaceId = (int)$properties['space'];
 		}
-		if ( $spaceId === null ) {
+
+		if ( !$this->migrationConfig->getIncludeHistory() && $spaceId === -1 ) {
 			return;
 		}
 
 		$originalVersionId = -1;
 		if ( isset( $properties['originalVersion'] ) ) {
 			$originalVersionId = (int)$properties['originalVersion'];
-		}
-		if ( $originalVersionId !== -1 ) {
-			return;
 		}
 
 		$confluenceTitle = $properties['title'] ?? "";
@@ -111,6 +110,11 @@ class BlogPost extends ProcessorBase {
 			);
 		}
 
+		$historicalIds = [];
+		if ( isset( $collection['historicalVersions'] ) ) {
+			$historicalIds = $collection['historicalVersions'];
+		}
+
 		$status = $this->workspaceDB->addBlogPost(
 			$pageId,
 			$spaceId,
@@ -121,6 +125,7 @@ class BlogPost extends ProcessorBase {
 			$version,
 			$originalVersionId,
 			$bodyContentIds,
+			$historicalIds,
 			$properties,
 			$collection
 		);

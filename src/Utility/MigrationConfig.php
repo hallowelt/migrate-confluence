@@ -68,13 +68,6 @@ class MigrationConfig {
 	/**
 	 * @return array
 	 */
-	public function getComposerSkipTitles(): array {
-		return $this->get( 'composer-skip-titles', [] );
-	}
-
-	/**
-	 * @return array
-	 */
 	public function getCategories(): array {
 		return $this->get( 'categories', [] );
 	}
@@ -93,4 +86,24 @@ class MigrationConfig {
 		return $this->get( 'include-history', false );
 	}
 
+	/**
+	 * @return int
+	 */
+	public function getComposerPagePerXmlLimit(): int {
+		return $this->get( 'composer-page-per-xml-limit', 0 );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getComposerSkipNamespaces(): array {
+		return $this->get( 'composer-skip-namespace', [] );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getComposerSkipTitles(): array {
+		return $this->get( 'composer-skip-titles', [] );
+	}
 }

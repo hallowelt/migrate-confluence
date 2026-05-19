@@ -3,29 +3,30 @@
 namespace HalloWelt\MigrateConfluence\Utility;
 
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
 class ConversionDataWriter {
 
 	/**
-	 * @var array
+	 * @var WorkspaceDB
 	 */
-	private array $confluenceFiles;
+	private WorkspaceDB $workspaceDB;
 
 	/**
-	 * @param DataBuckets $buckets
+	 * @param WorkspaceDB $workspaceDB
 	 * @return ConversionDataWriter
 	 */
-	public static function newFromBuckets( DataBuckets $buckets ): ConversionDataWriter {
+	public static function newFromDatabase( WorkspaceDB $workspaceDB ): ConversionDataWriter {
 		return new static(
-			$buckets->getBucketData( 'global-files' )
+			$workspaceDB
 		);
 	}
 
 	/**
-	 * @param array $confluenceFiles
+	 * @param WorkspaceDB $workspaceDB
 	 */
-	public function __construct( array $confluenceFiles ) {
-		$this->confluenceFiles = $confluenceFiles;
+	public function __construct( WorkspaceDB $workspaceDB ) {
+		$this->workspaceDB = $workspaceDB;
 	}
 
 	/**
@@ -35,7 +36,7 @@ class ConversionDataWriter {
 	 */
 	public function replaceConfluenceFileContent( string $targetFileName, string $newFileContent ): void {
 		if ( isset( $this->confluenceFiles[$targetFileName] ) ) {
-			file_put_contents( $this->confluenceFiles[$targetFileName][0], $newFileContent );
+			#file_put_contents( $this->confluenceFiles[$targetFileName][0], $newFileContent );
 		}
 	}
 }

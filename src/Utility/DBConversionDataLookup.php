@@ -163,4 +163,11 @@ class DBConversionDataLookup {
 	public function getTargetFileTitlesForPage( int $spaceId, string $rawPageTitle ): array {
 		return $this->workspaceDB->getTargetFileTitlesForPage( $spaceId, $rawPageTitle );
 	}
+
+	/**
+	 * @return array
+	 */
+	public function getPageAttachmentsForPageId( int $pageId ): array {
+		return $this->workspaceDB->getPageAttachmentsForPageId( $pageId 	);
+	}
 }
