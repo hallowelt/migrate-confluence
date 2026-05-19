@@ -750,13 +750,6 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $attachmentId
-	 * @param string $confluenceFilename
-	 * @param array $properties
-	 * @return void
-	 */
-
-	/**
 	 * @param string $spaceKey
 	 * @return int
 	 */
@@ -841,8 +834,6 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * Undocumented function
-	 *
 	 * @param int $pageId
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
@@ -853,6 +844,7 @@ class WorkspaceDB {
 	 * @param int $originalVersionId
 	 * @param int $parentPageId
 	 * @param array $bodyContentIds
+	 * @param array $historicalIds
 	 * @param array $properties
 	 * @param array $collection
 	 * @return bool
@@ -1020,7 +1012,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @return array
 	 */
 	public function getPageRevisionsForPageId( int $pageId ): array {
@@ -1162,6 +1154,7 @@ class WorkspaceDB {
 	 * @param string $version
 	 * @param int $originalVersionId
 	 * @param array $bodyContentIds
+	 * @param array $historicalIds
 	 * @param array $properties
 	 * @param array $collection
 	 * @return bool
@@ -1442,8 +1435,6 @@ class WorkspaceDB {
 		return $contentId;
 	}
 
-
-
 	/**
 	 * @param int $bodyContentId
 	 * @param string $body
@@ -1500,7 +1491,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $bodyContentId
+	 * @param int $bodyContentId
 	 * @return string|null
 	 */
 	public function getBodyContentBodyByBodyContentId( int $bodyContentId ): ?string {
@@ -1531,8 +1522,12 @@ class WorkspaceDB {
 	 * @param string $fileExtension
 	 * @param int $containerContentId
 	 * @param string $contentStatus
+	 * @param string $version
+	 * @param int $originalVersionId
 	 * @param string $attachmentReference
+	 * @param array $historicalIds
 	 * @param array $properties
+	 * @param array $collection
 	 * @return bool
 	 */
 	public function addAttachment(
@@ -1898,7 +1893,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @return array
 	 */
 	public function getPageAttachmentsForPageId( int $pageId ): array {
@@ -2017,10 +2012,11 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int $propertyId
 	 * @param string $propertyName
 	 * @param string $class
 	 * @param array $properties
-	 * @return bool True on success, false on error.
+	 * @return bool
 	 */
 	public function addContentProperty(
 		int $propertyId,
@@ -2658,5 +2654,4 @@ class WorkspaceDB {
 		return $this->executeTransactionWithStatus( $transaction );
 	}
 
-	
 }

@@ -41,7 +41,9 @@ class Pages extends ProcessorBase {
 			$homepageId = $this->dataLookup->getSpaceHomepageIdForSpaceId( $spaceId );
 
 			if ( $pageId === $homepageId ) {
-				$this->output->writeln( "Page '$pageTitle' is a homepage, adding space description to page content if applicable..." );
+				$this->output->writeln(
+					"Page '$pageTitle' is a homepage, adding space description to page content if applicable..."
+				);
 				$revisions = $this->dataLookup->getPageRevisionsForPageId( $homepageId );
 			} else {
 				$revisions = $this->dataLookup->getPageRevisionsForPageId( $pageId );

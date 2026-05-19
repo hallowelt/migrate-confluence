@@ -47,7 +47,7 @@ class FullMigrationTest extends TestCase {
 		mkdir( $this->tempDir . '/single-source/workspace/content/wikitext', 0755, true );
 
 		$sourceFile = $this->dataDir . '/SingleSource/input/entities.xml';
-		copy( $sourceFile,  $this->tempDir . '/single-source/input/entities.xml' );
+		copy( $sourceFile, $this->tempDir . '/single-source/input/entities.xml' );
 
 		// Multi source migration test
 		mkdir( $this->tempDir . '/multi-source', 0755, true );
@@ -58,17 +58,16 @@ class FullMigrationTest extends TestCase {
 		mkdir( $this->tempDir . '/multi-source/workspace/content/wikitext', 0755, true );
 
 		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];
-		foreach ( $spaces as $space	 ) {
+		foreach ( $spaces as $space ) {
 			$sourceFile = $this->dataDir . '/MultiSource/input/' . $space . '/entities.xml';
 			mkdir( $this->tempDir . '/multi-source/input/' . $space, 0755, true );
-			copy( $sourceFile,  $this->tempDir . '/multi-source/input/' . $space . '/entities.xml' );
+			copy( $sourceFile, $this->tempDir . '/multi-source/input/' . $space . '/entities.xml' );
 		}
 	}
 
 	protected function tearDown(): void {
 		$this->removeDirectory( $this->tempDir );
 	}
-
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer
@@ -177,7 +176,6 @@ class FullMigrationTest extends TestCase {
 		// accumulated workspace state before extraction begins.
 		foreach ( $spaces as $space ) {
 			$src = $this->tempDir . '/multi-source/input/' . $space;
-			
 
 			$this->runAnalyze(
 				$src,
@@ -285,13 +283,12 @@ class FullMigrationTest extends TestCase {
 			$titlesMap,
 			'ParentA/ChildA (space ALPHA) must be in analyze-pages-titles-map'
 		);
-		
+
 		$this->assertArrayHasKey(
 			'70000100---Shared Child Title',
 			$titlesMap,
 			'ParentB/ChildA (space BETA) must be in analyze-pages-titles-map'
 		);
-		
 
 		// Deep hierarchy ABC/ABC/ABC: three pages (ids 70000060, 70000061, 70000062)
 		// all with title "Deep ABC" in the same space, each with a different id,
@@ -371,10 +368,10 @@ class FullMigrationTest extends TestCase {
 
 	/**
 	 * @param string $src
+	 * @param string $dest
 	 * @param Workspace $workspace
 	 * @param array $config
 	 * @param BufferedOutput $output
-	 * @param string $dest
 	 * @return void
 	 */
 	private function runAnalyze(
@@ -394,9 +391,11 @@ class FullMigrationTest extends TestCase {
 	}
 
 	/**
-	 * @param array $config
+	 * @param string $src
+	 * @param string $dest
 	 * @param Workspace $workspace
-	 * @param string|null $entitiesFilePath defaults to <workDir>/entities.xml
+	 * @param array $config
+	 * @return void
 	 */
 	private function runExtract(
 		string $src,

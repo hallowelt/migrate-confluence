@@ -168,6 +168,6 @@ class DBConversionDataLookup {
 	 * @return array
 	 */
 	public function getPageAttachmentsForPageId( int $pageId ): array {
-		return $this->workspaceDB->getPageAttachmentsForPageId( $pageId 	);
+		return $this->workspaceDB->getPageAttachmentsForPageId( $pageId );
 	}
 }

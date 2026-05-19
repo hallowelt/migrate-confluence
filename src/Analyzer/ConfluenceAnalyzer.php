@@ -329,10 +329,11 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		foreach ( $pages as $page ) {
 			if (
 				!isset( $page['page_id'] )
-				|| $page['original_version_id'] !== -1 // historical versions
 				|| !isset( $page['space_id'] )
 				|| !isset( $page['confluence_title'] )
 				|| !isset( $page['content_status'] )
+				// historical versions
+				|| $page['original_version_id'] !== -1
 			) {
 				continue;
 			}
@@ -388,10 +389,11 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		foreach ( $blogPosts as $blogPost ) {
 			if (
 				!isset( $blogPost['page_id'] )
-				|| $blogPost['original_version_id'] !== -1 // historical versions
 				|| !isset( $blogPost['space_id'] )
 				|| !isset( $blogPost['confluence_title'] )
 				|| !isset( $blogPost['content_status'] )
+				// historical versions
+				|| $blogPost['original_version_id'] !== -1
 			) {
 				continue;
 			}
@@ -470,7 +472,8 @@ class ConfluenceAnalyzer extends AnalyzerBase
 				|| !isset( $attachment['filename'] )
 				|| !isset( $attachment['container_id'] )
 				|| !isset( $attachment['content_status'] )
-				|| $attachment['original_version_id'] !== -1 // historical versions
+				// historical versions
+				|| $attachment['original_version_id'] !== -1
 			) {
 				continue;
 			}

@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
 class ConversionDataWriter {
@@ -36,7 +35,7 @@ class ConversionDataWriter {
 	 */
 	public function replaceConfluenceFileContent( string $targetFileName, string $newFileContent ): void {
 		if ( isset( $this->confluenceFiles[$targetFileName] ) ) {
-			#file_put_contents( $this->confluenceFiles[$targetFileName][0], $newFileContent );
+			# file_put_contents( $this->confluenceFiles[$targetFileName][0], $newFileContent );
 		}
 	}
 }

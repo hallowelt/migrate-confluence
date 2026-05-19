@@ -37,8 +37,6 @@ class CommentsTest extends TestCase {
 		$xmlReader = new XMLReader();
 		$xmlReader->open( $xmlFile );
 
-		
-
 		$read = $xmlReader->read();
 		while ( $read ) {
 			if ( strtolower( $xmlReader->name ) !== 'object' ) {

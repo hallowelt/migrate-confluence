@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
@@ -169,7 +168,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		// Sometimes titles have contents >256kB which might break the import. To skip this titles
 		// use this option
 		$skipTitles = $this->migrationConfig->getComposerSkipTitles();
-		if ( in_array( $pageTitle, $skipTitles )) {
+		if ( in_array( $pageTitle, $skipTitles ) ) {
 			$this->output->writeln( "Page $pageTitle skipped by configuration" );
 			return true;
 		}

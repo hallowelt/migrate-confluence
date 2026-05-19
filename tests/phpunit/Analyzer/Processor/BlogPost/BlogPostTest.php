@@ -72,7 +72,7 @@ class BlogPostTest extends TestCase {
 
 		$blogPosts = $this->workspaceDB->getBlogPosts();
 		$blogPost = $blogPosts[0];
-		
+
 		$this->assertSame( 'Blog:TESTSPACE/Our_new_tool', $blogPost['wiki_title'] );
 	}
 
@@ -80,7 +80,6 @@ class BlogPostTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost::doExecute
 	 */
 	public function testBodyContentIdIsMappedToPageId() {
-
 		$this->migrationConfig = new MigrationConfig( [] );
 		$workspaceDBMock = new WorkspaceDbMock();
 		$this->workspaceDB = $workspaceDBMock->createEmpty();
@@ -139,6 +138,6 @@ class BlogPostTest extends TestCase {
 
 		$blogPosts = $this->workspaceDB->getBlogPosts();
 
-		$this->assertEmpty( $blogPosts );
+		$this->assertEmpty( $blogPosts, 'Draft blog post should be skipped and not stored in the database.' );
 	}
 }

@@ -35,7 +35,9 @@ class FilenameBuilder {
 	 * @return string
 	 * @throws InvalidTitleException
 	 */
-	public function buildFromAttachmentData( int $spaceId, string $originalFilename, string $assocTitle, string $suffix = '' ): string {
+	public function buildFromAttachmentData(
+		int $spaceId, string $originalFilename, string $assocTitle, string $suffix = ''
+	): string {
 		$builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$builder->setNamespace( $spaceId );
 
