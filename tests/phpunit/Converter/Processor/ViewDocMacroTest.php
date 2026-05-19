@@ -51,6 +51,7 @@ class ViewDocMacroTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 

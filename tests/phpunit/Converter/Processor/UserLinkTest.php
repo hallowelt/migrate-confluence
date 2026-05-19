@@ -46,6 +46,7 @@ class UserLinkTest extends TestCase {
 				],
 				[],
 				[],
+				[],
 				[]
 			);
 

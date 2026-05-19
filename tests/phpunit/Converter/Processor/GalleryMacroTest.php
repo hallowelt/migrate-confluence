@@ -26,7 +26,8 @@ class GalleryMacroTest extends TestCase {
 			$spaceIdToKeyMap,
 			$attachmentMetadata,
 			$attachmentIdToFileKeyMap,
-			[]
+			[],
+		[]
 		);
 	}
 

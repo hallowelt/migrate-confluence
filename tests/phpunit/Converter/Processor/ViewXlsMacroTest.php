@@ -51,6 +51,7 @@ class ViewXlsMacroTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 

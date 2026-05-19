@@ -47,6 +47,7 @@ class ImageTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 
@@ -66,7 +67,7 @@ class ImageTest extends TestCase {
 	public function testUrlImageInExternalLink() {
 		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
 
-		$dataLookup = new ConversionDataLookup( [], [], [], [], [], [], [], [], [], [] );
+		$dataLookup = new ConversionDataLookup( [], [], [], [], [], [], [], [], [], [], [] );
 		$this->doTestWith(
 			$dataLookup,
 			'image-url-external-link-input.xml',

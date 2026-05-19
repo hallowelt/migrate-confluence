@@ -30,7 +30,8 @@ class AnchorLinkTest extends TestCase {
 			[ 42 => 'ABC' ],
 			[],
 			[],
-			[]
+			[],
+		[]
 		);
 
 		$processor = new AnchorLink( $dataLookup, 42, 'SomePage', [] );
@@ -48,7 +49,7 @@ class AnchorLinkTest extends TestCase {
 	 * @return void
 	 */
 	public function testMakeLink( array $linkParts, string $expected ) {
-		$dataLookup = new ConversionDataLookup( [], [], [], [], [], [], [], [], [], [] );
+		$dataLookup = new ConversionDataLookup( [], [], [], [], [], [], [], [], [], [], [] );
 		$processor = new AnchorLink( $dataLookup, 42, 'SomePage', [] );
 		$this->assertSame( $expected, $processor->makeLink( $linkParts ) );
 	}

@@ -38,6 +38,7 @@ class IncludeMacroTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 		$currentSpaceId = 42;

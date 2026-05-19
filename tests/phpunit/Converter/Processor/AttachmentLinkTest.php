@@ -56,6 +56,7 @@ class AttachmentLinkTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 

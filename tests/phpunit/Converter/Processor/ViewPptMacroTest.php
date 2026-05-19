@@ -51,6 +51,7 @@ class ViewPptMacroTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 

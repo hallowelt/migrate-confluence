@@ -44,6 +44,7 @@ class PageTreeMacroTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 
@@ -80,6 +81,7 @@ class PageTreeMacroTest extends TestCase {
 				42 => 'ABC',
 				23 => 'DEVOPS'
 			],
+			[],
 			[],
 			[],
 			[]

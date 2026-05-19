@@ -50,6 +50,7 @@ class TasksReportMacroTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 

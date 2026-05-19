@@ -51,6 +51,7 @@ class ViewPdfMacroTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 

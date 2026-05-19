@@ -55,6 +55,7 @@ class GliffyMacroTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 		$this->conversionDataWriter = new ConversionDataWriter( [] );

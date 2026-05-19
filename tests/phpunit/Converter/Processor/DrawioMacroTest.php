@@ -56,6 +56,7 @@ class DrawioMacroTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 		$this->conversionDataWriter = new ConversionDataWriter( [] );

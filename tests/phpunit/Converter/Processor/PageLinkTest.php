@@ -51,6 +51,7 @@ class PageLinkTest extends TestCase {
 				],
 				[],
 				[],
+				[],
 				[]
 			);
 

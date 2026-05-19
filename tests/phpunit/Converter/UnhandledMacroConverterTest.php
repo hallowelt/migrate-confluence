@@ -39,6 +39,7 @@ class UnhandledMacroConverterTest extends TestCase {
 			],
 			[],
 			[],
+			[],
 			[]
 		);
 
