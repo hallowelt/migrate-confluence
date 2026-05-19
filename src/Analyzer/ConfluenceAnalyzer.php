@@ -101,7 +101,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			'analyze-attachment-id-to-reference-map',
 			'analyze-attachment-id-to-space-id-map',
 			'analyze-attachment-id-to-target-filename-map',
-			'analyze-orig-title-compressed-title-map',
+			'global-orig-title-compressed-title-map',
 			'analyze-body-content-id-to-page-id-map',
 			'analyze-body-content-id-to-comment-id-map',
 			'analyze-inline-comment-ids',
@@ -338,7 +338,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			array_merge( $pageIdToTitlesMap, $blogPostIdToTitlesMap )
 		);
 
-		$this->data['analyze-orig-title-compressed-title-map'] = $compressedTitlesMap;
+		$this->data['global-orig-title-compressed-title-map'] = $compressedTitlesMap;
 
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
 

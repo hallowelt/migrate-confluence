@@ -152,9 +152,8 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	 */
 	private function getConfluenceKey( string $name, string $extension = '' ): string {
 		$spaceId = $this->currentSpaceId;
-		$rawPageTitle = basename( $this->rawPageTitle );
 		$name .= $extension;
-		return "$spaceId---$rawPageTitle---" . str_replace( ' ', '_', $name );
+		return "$spaceId---{$this->rawPageTitle}---" . str_replace( ' ', '_', $name );
 	}
 
 	/**
