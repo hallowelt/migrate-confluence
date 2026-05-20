@@ -177,7 +177,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->buckets = new DataBuckets( [] );
 
 		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
-		$this->conversionDataWriter = ConversionDataWriter::newFromDatabase( $this->workspaceDB );
+		$this->conversionDataWriter = new ConversionDataWriter( $this->dest );
 
 		$result = parent::convert( $file );
 		return $result;

@@ -25,9 +25,10 @@ class GliffyMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcess() {
+		$tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-test-' . uniqid();
+		$this->conversionDataWriter = new ConversionDataWriter( $tempDir );
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat();
 		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
-		$this->conversionDataWriter = new ConversionDataWriter( [] );
 
 		$this->doTest( 0, 'gliffy-macro-input.xml', 'gliffy-macro-output-1.xml' );
 		$this->doTest( 23, 'gliffy-macro-input.xml', 'gliffy-macro-output-2.xml' );

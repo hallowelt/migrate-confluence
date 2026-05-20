@@ -2,30 +2,16 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
-
 class ConversionDataWriter {
 
-	/**
-	 * @var WorkspaceDB
-	 */
-	private WorkspaceDB $workspaceDB;
+	/** @var string */
+	private string $dest;
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
-	 * @return ConversionDataWriter
+	 * @param string $dest
 	 */
-	public static function newFromDatabase( WorkspaceDB $workspaceDB ): ConversionDataWriter {
-		return new static(
-			$workspaceDB
-		);
-	}
-
-	/**
-	 * @param WorkspaceDB $workspaceDB
-	 */
-	public function __construct( WorkspaceDB $workspaceDB ) {
-		$this->workspaceDB = $workspaceDB;
+	public function __construct( string $dest ) {
+		$this->dest = $dest;
 	}
 
 	/**
@@ -34,8 +20,9 @@ class ConversionDataWriter {
 	 * @return void
 	 */
 	public function replaceConfluenceFileContent( string $targetFileName, string $newFileContent ): void {
-		if ( isset( $this->confluenceFiles[$targetFileName] ) ) {
-			# file_put_contents( $this->confluenceFiles[$targetFileName][0], $newFileContent );
+		if ( !is_dir( $this->dest . '/images' ) ) {
+			mkdir( $this->dest . '/images', 0755, true );
 		}
+		file_put_contents( $this->dest . "/images/$targetFileName", $newFileContent );
 	}
 }
