@@ -92,6 +92,7 @@ class CreateFromTemplateMacro implements IProcessor {
 	private function doProcessMacro( DOMNode $node ): void {
 		$params = $this->getParams( $node );
 		$templateTitle = $this->findTemplateTitle( $params );
+		$errorMessage = $this->getResolutionError( $params, $templateTitle );
 
 		$templateParams = [
 			'preload' => $templateTitle ?? '',
@@ -102,11 +103,10 @@ class CreateFromTemplateMacro implements IProcessor {
 		$wikiTemplate->setRenderFormatted( false );
 		$wikiText = $wikiTemplate->render();
 
-		if ( !$templateTitle ) {
-			$missingTemplateMsg = "Template could not be found";
+		if ( $errorMessage !== null ) {
 			$wikiText .= sprintf(
 				"%s\n%s",
-				$missingTemplateMsg,
+				$errorMessage,
 				$this->getBrokenMacroCategory()
 			);
 		}
@@ -125,17 +125,42 @@ class CreateFromTemplateMacro implements IProcessor {
 	private function findTemplateTitle( array $params ): ?string {
 		$templateId = null;
 
-		if ( isset( $params['orig-templateName'] ) ) {
-			$templateId = (int)$params['orig-templateName'];
-		} elseif ( isset( $params['orig-templateId'] ) ) {
-			$templateId = (int)$params['orig-templateId'];
+		if ( isset( $params['templateId'] ) ) {
+			$templateId = (int)$params['templateId'];
+		} elseif ( isset( $params['templateName'] ) ) {
+			$templateId = (int)$params['templateName'];
 		}
 
-		if ( !$templateId ) {
+		if ( $templateId === null ) {
 			return null;
 		}
 
 		return $this->dataLookup->getTemplateTitleFromTemplateId( $templateId );
+	}
+
+	/**
+	 * @param array $params
+	 * @param string|null $templateTitle
+	 *
+	 * @return string|null
+	 */
+	private function getResolutionError( array $params, ?string $templateTitle ): ?string {
+		if ( $templateTitle !== null ) {
+			return null;
+		}
+
+		if ( isset( $params['blueprintModuleCompleteKey'] )
+			&& !isset( $params['templateId'] )
+			&& !isset( $params['templateName'] )
+		) {
+			return 'Template is a confluence blueprint or plugin and is not available';
+		}
+
+		if ( !isset( $params['templateId'] ) && !isset( $params['templateName'] ) ) {
+			return 'Template Id is missing';
+		}
+
+		return 'Template could not be found';
 	}
 
 	/**
@@ -166,10 +191,6 @@ class CreateFromTemplateMacro implements IProcessor {
 			$paramName = $parameterEl->getAttribute( 'ac:name' );
 			if ( trim( $paramName ) === '' ) {
 				continue;
-			}
-
-			if ( $paramName === "templateName" || $paramName === "templateId" ) {
-				$paramName = "orig-" . $paramName;
 			}
 
 			$params[$paramName] = $parameterEl->nodeValue;
