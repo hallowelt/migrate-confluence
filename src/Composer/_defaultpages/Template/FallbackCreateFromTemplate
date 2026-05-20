@@ -1,1 +1,1 @@
-<includeonly>{{#set: Created on page=$1 }}</includeonly>
+<includeonly>{{#set: Created by macro=$1 }}</includeonly>

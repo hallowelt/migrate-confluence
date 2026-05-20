@@ -392,7 +392,7 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;{{#set: Created on page=$1 }}&lt;/includeonly&gt;
+      <text>&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
 </text>
     </revision>
   </page>
@@ -434,14 +434,14 @@
 {{#tag:inputbox|
 type=create
 preload={{{preload|preload}}}
-preloadparams[]={{FULLPAGENAME}}
+preloadparams[]={{{macroid|}}}
 buttonlabel={{{buttonlabel|Create from template}}}
 width=28
 break=no
 useve=true
 inline=true
 }}
-{{#ask: [[Created on page::{{FULLPAGENAME}}]]
+{{#ask: [[Created by macro::{{{macroid|}}}]]
 | format=embedded
 | sort=Creation date
 | order=desc
@@ -471,7 +471,7 @@ inline=true
       <format>text/x-wiki</format>
       <text>Click the button below to create a new project:
 
-{{CreateFromTemplate|preload = Template:CON:Projektvorlage|buttonlabel = Neues Projekt erstellen}}
+{{CreateFromTemplate|preload = Template:CON:Projektvorlage|buttonlabel = Neues Projekt erstellen|macroid = abc12345-def6-7890-abcd-ef1234567890}}
  &lt;!-- From bodyContent 20000030.mraw --&gt;
 </text>
     </revision>
@@ -567,7 +567,7 @@ Bitte hier die Beschreibung einfuegen.
 |}
  &lt;!-- From bodyContent 50000001.mraw --&gt;
 
-&lt;includeonly&gt;{{#set: Created on page=$1 }}&lt;/includeonly&gt;
+&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
 </text>
     </revision>
   </page>

@@ -17,7 +17,7 @@ class TemplatePages extends Pages {
 			return $pageContent;
 		}
 
-		return $pageContent . "\n<includeonly>{{#set: Created on page=$1 }}</includeonly>\n";
+		return $pageContent . "\n<includeonly>{{#set: Created by macro=$1 }}</includeonly>\n";
 	}
 
 	/**

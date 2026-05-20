@@ -93,12 +93,17 @@ class CreateFromTemplateMacro implements IProcessor {
 	 */
 	private function doProcessMacro( DOMNode $node ): void {
 		$params = $this->getParams( $node );
+		$macroId = '';
+		if ( $node instanceof DOMElement ) {
+			$macroId = $node->getAttribute( 'ac:macro-id' );
+		}
 		$templateTitle = $this->findTemplateTitle( $params );
 		$errorMessage = $this->getResolutionError( $params, $templateTitle );
 
 		$templateParams = [
 			'preload' => $templateTitle ?? self::$FALLBACK_TEMPLATE,
 			'buttonlabel' => $params['buttonLabel'] ?? '',
+			'macroid' => $macroId,
 		];
 
 		$wikiTemplate = new Template( $this->getWikiTextTemplateName(), $templateParams );
@@ -107,7 +112,7 @@ class CreateFromTemplateMacro implements IProcessor {
 
 		if ( $errorMessage !== null ) {
 			$wikiText .= sprintf(
-				"<!-- %s -->\n%s",
+				"###HTMLCOMMENTOPEN### %s ###HTMLCOMMENTCLOSE###\n%s",
 				$errorMessage,
 				$this->getBrokenMacroCategory()
 			);

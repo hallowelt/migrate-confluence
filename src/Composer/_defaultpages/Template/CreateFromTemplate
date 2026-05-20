@@ -2,14 +2,14 @@
 {{#tag:inputbox|
 type=create
 preload={{{preload|preload}}}
-preloadparams[]={{FULLPAGENAME}}
+preloadparams[]={{{macroid|}}}
 buttonlabel={{{buttonlabel|Create from template}}}
 width=28
 break=no
 useve=true
 inline=true
 }}
-{{#ask: [[Created on page::{{FULLPAGENAME}}]]
+{{#ask: [[Created by macro::{{{macroid|}}}]]
 | format=embedded
 | sort=Creation date
 | order=desc
