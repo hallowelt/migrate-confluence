@@ -14,7 +14,6 @@ buttonlabel={{{buttonlabel|Create from template}}}
 width=28
 break=no
 useve=true
-inline=true
 }}
 {{#ask: [[Created by macro::{{{macroid|}}}]]
 | format=embedded
