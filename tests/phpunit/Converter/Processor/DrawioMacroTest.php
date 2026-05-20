@@ -24,7 +24,6 @@ class DrawioMacroTest extends TestCase {
 		$tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-test-' . uniqid();
 		$this->conversionDataWriter = new ConversionDataWriter( $tempDir );
 		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
-		
 
 		$this->doTest( 0, 'drawio-macro-input.xml', 'drawio-macro-output-1.xml' );
 		$this->doTest( 23, 'drawio-macro-input.xml', 'drawio-macro-output-2.xml' );
