@@ -2,10 +2,38 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\IPageContentPostProcessor;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Symfony\Component\Console\Output\Output;
 
 class Pages extends ProcessorBase {
+
+	/**
+	 * @var IPageContentPostProcessor|null
+	 */
+	private ?IPageContentPostProcessor $contentPostProcessor;
+
+	/**
+	 * @param Builder $builder
+	 * @param DataBuckets $buckets
+	 * @param Workspace $workspace
+	 * @param Output $output
+	 * @param string $dest
+	 * @param array $config
+	 * @param IPageContentPostProcessor|null $contentPostProcessor
+	 */
+	public function __construct(
+		Builder $builder, DataBuckets $buckets, Workspace $workspace,
+		Output $output, string $dest, array $config,
+		?IPageContentPostProcessor $contentPostProcessor = null
+	) {
+		parent::__construct( $builder, $buckets, $workspace, $output, $dest, $config );
+		$this->contentPostProcessor = $contentPostProcessor;
+	}
 
 	/**
 	 * @return string
@@ -93,14 +121,15 @@ class Pages extends ProcessorBase {
 	}
 
 	/**
-	 * Hook for subclasses to post-process page content before adding it as a revision.
-	 *
 	 * @param string $pageTitle
 	 * @param string $pageContent
 	 * @return string
 	 */
-	protected function postProcessContent( string $pageTitle, string $pageContent ): string {
-		return $pageContent;
+	private function postProcessContent( string $pageTitle, string $pageContent ): string {
+		if ( $this->contentPostProcessor === null ) {
+			return $pageContent;
+		}
+		return $this->contentPostProcessor->postProcess( $pageTitle, $pageContent );
 	}
 
 	/**

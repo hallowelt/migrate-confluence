@@ -9,7 +9,8 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\Processor\Comments;
 use HalloWelt\MigrateConfluence\Composer\Processor\Files;
-use HalloWelt\MigrateConfluence\Composer\Processor\TemplatePages;
+use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
+use HalloWelt\MigrateConfluence\Composer\Processor\TemplateContentPostProcessor;
 use Symfony\Component\Console\Output\Output;
 
 class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
@@ -74,9 +75,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 				$builder, $this->buckets, $this->workspace,
 				$this->output, $this->dest, $this->advancedConfig
 			),
-			new TemplatePages(
+			new Pages(
 				$builder, $this->buckets, $this->workspace,
-				$this->output, $this->dest, $this->advancedConfig
+				$this->output, $this->dest, $this->advancedConfig,
+				new TemplateContentPostProcessor()
 			),
 			new Comments(
 				$builder, $this->buckets, $this->workspace,
