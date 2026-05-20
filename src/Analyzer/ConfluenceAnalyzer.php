@@ -203,7 +203,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 	/**
 	 * @param SplFileInfo $file
-	 *
 	 * @return bool
 	 */
 	public function analyze( SplFileInfo $file ): bool {
@@ -231,7 +230,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 		}
 
 		$this->customBuckets->saveToWorkspace( $this->workspace );
-
 		return $result;
 	}
 
@@ -258,10 +256,13 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private function getProcessors(): array {
 		return [
 			'Page' => new Page(
-				$this->includeSpaceKey, $this->mainpage, $this->includeHistory
+				$this->includeSpaceKey,
+				$this->mainpage,
+				$this->includeHistory
 			),
 			'BlogPost' => new BlogPost(
-				$this->includeSpaceKey, $this->includeHistory
+				$this->includeSpaceKey,
+				$this->includeHistory
 			),
 			'Comment' => new Comments(),
 		];
@@ -278,7 +279,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 	/**
 	 * @param array $processors
-	 *
 	 * @return void
 	 */
 	private function initProcessors( array $processors ): void {
@@ -293,7 +293,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 
 	/**
 	 * @param array $processors
-	 *
 	 * @return void
 	 */
 	private function processFile( array $processors ): void {
@@ -387,7 +386,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	/**
 	 *
 	 * @param SplFileInfo $file
-	 *
 	 * @return bool
 	 */
 	protected function doAnalyze( SplFileInfo $file ): bool {
@@ -431,10 +429,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
 				$this->customBuckets->addData(
 					'warning-analyze-invalid-titles',
-					'invalid_ending',
-					$title,
-					true,
-					true
+					'invalid_ending', $title,
+					true, true
 				);
 				$hasInvalidTitles = true;
 			}
@@ -442,10 +438,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				if ( $validityChecker->hasDoubleColon( $title ) ) {
 					$this->customBuckets->addData(
 						'warning-analyze-invalid-titles',
-						'multiple_collons',
-						$title,
-						true,
-						true
+						'multiple_collons', $title,
+						true, true
 					);
 					$hasInvalidTitles = true;
 				}
@@ -455,10 +449,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
 					$this->customBuckets->addData(
 						'warning-analyze-invalid-namespaces',
-						'invalid_char',
-						$namespace,
-						true,
-						true
+						'invalid_char', $namespace,
+						true, true
 					);
 					$hasInvalidNamespaces = true;
 				}
@@ -466,10 +458,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				if ( !$validityChecker->hasValidLength( $text ) ) {
 					$this->customBuckets->addData(
 						'warning-analyze-invalid-titles',
-						'length',
-						$title,
-						true,
-						true
+						'length', $title,
+						true, true
 					);
 					$hasInvalidTitles = true;
 				}
@@ -477,10 +467,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 				if ( !$validityChecker->hasValidLength( $title ) ) {
 					$this->customBuckets->addData(
 						'warning-analyze-invalid-titles',
-						'length',
-						$title,
-						true,
-						true
+						'length', $title,
+						true, true
 					);
 					$hasInvalidTitles = true;
 				}
@@ -493,10 +481,8 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			if ( !$validityChecker->hasValidLength( $title ) ) {
 				$this->customBuckets->addData(
 					'warning-analyze-invalid-filenames',
-					'length',
-					$title,
-					true,
-					true
+					'length', $title,
+					true, true
 				);
 				$hasInvalidFilenames = true;
 			}
@@ -539,7 +525,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 *
 	 * @param string $titleText
 	 * @param string $contentReference
-	 *
 	 * @return void
 	 */
 	protected function addTitleRevision( $titleText, $contentReference = 'n/a' ): void {
@@ -550,7 +535,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 *
 	 * @param string $titleText
 	 * @param string $attachmentReference
-	 *
 	 * @return void
 	 */
 	protected function addTitleAttachment( $titleText, $attachmentReference = 'n/a' ): void {
@@ -561,7 +545,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 *
 	 * @param string $rawFilename
 	 * @param string $attachmentReference
-	 *
 	 * @return void
 	 */
 	protected function addFile( $rawFilename, $attachmentReference = 'n/a' ): void {
@@ -570,7 +553,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			$filename = ( new WindowsFilename( $filename ) ) . '';
 		} catch ( Exception $ex ) {
 			$this->logger->error( $ex->getMessage() );
-
 			return;
 		}
 

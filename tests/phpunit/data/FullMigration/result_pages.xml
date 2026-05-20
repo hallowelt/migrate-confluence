@@ -392,7 +392,12 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
+      <text>&lt;noinclude&gt;
+Fallback template preloaded into pages created via CreateFromTemplate when the original Confluence template could not be resolved. Sets the "Created by macro" property so the page appears in the correct macro instance's listing.
+
+Parameters:
+* $1 - The macro-id of the CreateFromTemplate instance that created this page
+&lt;/noinclude&gt;&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
 </text>
     </revision>
   </page>
@@ -430,7 +435,14 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;
+      <text>&lt;noinclude&gt;
+Renders an inputbox for creating new pages from a template and lists pages previously created by this macro instance.
+
+Parameters:
+* preload - The template page to preload when creating a new page
+* buttonlabel - Label for the create button
+* macroid - Unique identifier for this macro instance (used to scope created pages)
+&lt;/noinclude&gt;&lt;includeonly&gt;
 {{#tag:inputbox|
 type=create
 preload={{{preload|preload}}}

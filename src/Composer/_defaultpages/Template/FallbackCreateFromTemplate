@@ -1,1 +1,6 @@
-<includeonly>{{#set: Created by macro=$1 }}</includeonly>
+<noinclude>
+Fallback template preloaded into pages created via CreateFromTemplate when the original Confluence template could not be resolved. Sets the "Created by macro" property so the page appears in the correct macro instance's listing.
+
+Parameters:
+* $1 - The macro-id of the CreateFromTemplate instance that created this page
+</noinclude><includeonly>{{#set: Created by macro=$1 }}</includeonly>

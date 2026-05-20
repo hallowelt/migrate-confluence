@@ -1,4 +1,11 @@
-<includeonly>
+<noinclude>
+Renders an inputbox for creating new pages from a template and lists pages previously created by this macro instance.
+
+Parameters:
+* preload - The template page to preload when creating a new page
+* buttonlabel - Label for the create button
+* macroid - Unique identifier for this macro instance (used to scope created pages)
+</noinclude><includeonly>
 {{#tag:inputbox|
 type=create
 preload={{{preload|preload}}}
