@@ -111,8 +111,17 @@ class Files extends ProcessorBase {
 					$this->output->writeln( "Attachment file was not found!" );
 					continue;
 				}
-				$attachmentContent = file_get_contents( $filePath );
 
+				$testFilePath = $this->dest . '/images/' . $filename;
+
+				if ( file_exists( $testFilePath ) ) {
+					$this->output->writeln( "Attachment file override detected. Using override!" );
+					$attachmentContent = file_get_contents( $testFilePath );
+					continue;
+				} else {
+					$attachmentContent = file_get_contents( $filePath );
+				}
+				
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 				#$this->builder->addFileRevision( $attachment, '', $attachmentContent );
 				$this->workspace->saveUploadFile( $filename, $attachmentContent );
