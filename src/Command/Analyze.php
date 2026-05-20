@@ -95,10 +95,6 @@ class Analyze extends CommandAnalyze {
 	 * @inheritDoc
 	 */
 	protected function getBucketKeys(): array {
-		return [
-			'warning-analyze-invalid-namespaces',
-			'warning-analyze-invalid-titles',
-			'warning-analyze-invalid-filenames',
-		];
+		return [];
 	}
 }
