@@ -123,19 +123,11 @@ class CreateFromTemplateMacro implements IProcessor {
 	 * @return string|null
 	 */
 	private function findTemplateTitle( array $params ): ?string {
-		$templateId = null;
-
-		if ( isset( $params['templateId'] ) ) {
-			$templateId = (int)$params['templateId'];
-		} elseif ( isset( $params['templateName'] ) ) {
-			$templateId = (int)$params['templateName'];
-		}
-
-		if ( $templateId === null ) {
+		if ( !isset( $params['templateId'] ) ) {
 			return null;
 		}
 
-		return $this->dataLookup->getTemplateTitleFromTemplateId( $templateId );
+		return $this->dataLookup->getTemplateTitleFromTemplateId( (int)$params['templateId'] );
 	}
 
 	/**
@@ -149,18 +141,18 @@ class CreateFromTemplateMacro implements IProcessor {
 			return null;
 		}
 
-		if ( isset( $params['blueprintModuleCompleteKey'] )
-			&& !isset( $params['templateId'] )
-			&& !isset( $params['templateName'] )
+		if ( isset( $params['blueprintModuleCompleteKey'] ) && !isset( $params['templateId'] )
 		) {
-			return 'Template is a confluence blueprint or plugin and is not available';
+			$key = $params['blueprintModuleCompleteKey'];
+			return "Template is a confluence blueprint or plugin and is not available (blueprintModuleCompleteKey: $key)";
 		}
 
-		if ( !isset( $params['templateId'] ) && !isset( $params['templateName'] ) ) {
+		if ( !isset( $params['templateId'] ) ) {
 			return 'Template Id is missing';
 		}
 
-		return 'Template could not be found';
+		$templateId = $params['templateId'];
+		return "Template could not be found (templateId: $templateId)";
 	}
 
 	/**

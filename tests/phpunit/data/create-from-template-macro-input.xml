@@ -13,7 +13,7 @@
 	<ac:structured-macro ac:name="create-from-template" ac:schema-version="1" ac:macro-id="f1bcfd9e-b015-4b0e-9237-35e1737343c1">
 		<ac:parameter ac:name="blueprintModuleCompleteKey">com.atlassian.confluence.plugins.confluence-business-blueprints:file-list-blueprint</ac:parameter>
 		<ac:parameter ac:name="contentBlueprintId">12345678-abcd-123a-123b-1234567890ab</ac:parameter>
-		<ac:parameter ac:name="templateName">123456</ac:parameter>
+		<ac:parameter ac:name="templateId">123456</ac:parameter>
 		<ac:parameter ac:name="createResult">view</ac:parameter>
 		<ac:parameter ac:name="buttonLabel">Create</ac:parameter>
 	</ac:structured-macro>
