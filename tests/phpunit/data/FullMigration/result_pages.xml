@@ -388,6 +388,15 @@
     </revision>
   </page>
   <page>
+    <title>Template:FallbackCreateFromTemplate</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{{#set: Created on page=$1 }}&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:Gliffy</title>
     <revision>
       <model>wikitext</model>
@@ -430,6 +439,7 @@ buttonlabel={{{buttonlabel|Create from template}}}
 width=28
 break=no
 useve=true
+inline=true
 }}
 {{#ask: [[Created on page::{{FULLPAGENAME}}]]
 | format=embedded

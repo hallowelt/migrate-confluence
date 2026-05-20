@@ -84,6 +84,8 @@ class CreateFromTemplateMacro implements IProcessor {
 		}
 	}
 
+	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
+
 	/**
 	 * @param DOMNode $node
 	 *
@@ -95,7 +97,7 @@ class CreateFromTemplateMacro implements IProcessor {
 		$errorMessage = $this->getResolutionError( $params, $templateTitle );
 
 		$templateParams = [
-			'preload' => $templateTitle ?? '',
+			'preload' => $templateTitle ?? self::$FALLBACK_TEMPLATE,
 			'buttonlabel' => $params['buttonLabel'] ?? '',
 		];
 

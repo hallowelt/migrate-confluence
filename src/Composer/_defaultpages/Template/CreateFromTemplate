@@ -7,6 +7,7 @@ buttonlabel={{{buttonlabel|Create from template}}}
 width=28
 break=no
 useve=true
+inline=true
 }}
 {{#ask: [[Created on page::{{FULLPAGENAME}}]]
 | format=embedded
