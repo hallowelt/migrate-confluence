@@ -19,8 +19,19 @@ class DBComposerDataLookup {
 		return $this->workspaceDB->getPageIdTargetPageTitleMap();
 	}
 
+	/**
+	 * @return array
+	 */
+	public function getBlogPostIdTargetBlogPostTitleMap(): array {
+		return $this->workspaceDB->getBlogPostIdTargetBlogPostTitleMap();
+	}
+
 	public function getPageRevisionsForPageId( int $pageId ): array {
 		return $this->workspaceDB->getPageRevisionsForPageId( $pageId );
+	}
+
+	public function getBlogPostRevisionsForPageId( int $pageId ): array {
+		return $this->workspaceDB->getBlogPostRevisionsForPageId( $pageId );
 	}
 
 	public function getSpaceIdForPageId( int $pageId ): int {

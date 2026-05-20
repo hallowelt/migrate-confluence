@@ -27,7 +27,10 @@ class Pages extends ProcessorBase {
 	private function addContentPages(): void {
 		/** Add content pages */
 
-		$wikiTitles = $this->dataLookup->getPageIdTargetPageTitleMap();
+		// Get all page titles from DB and add them as pages to the workspace
+		// Key is pageId, value is pageTitle - do not use array_merge at this point to avoid renumbering of keys
+		$wikiTitles = $this->dataLookup->getPageIdTargetPageTitleMap()
+			+ $this->dataLookup->getBlogPostIdTargetBlogPostTitleMap();
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
 			$this->output->writeln( "Processing page '$pageTitle'..." );
@@ -37,16 +40,24 @@ class Pages extends ProcessorBase {
 			}
 
 			$spaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
-			$spaceDescriptions = $this->dataLookup->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
-			$homepageId = $this->dataLookup->getSpaceHomepageIdForSpaceId( $spaceId );
+			$isBlogPost = strpos( $pageTitle, 'Blog:' ) === 0;
 
-			if ( $pageId === $homepageId ) {
-				$this->output->writeln(
-					"Page '$pageTitle' is a homepage, adding space description to page content if applicable..."
-				);
-				$revisions = $this->dataLookup->getPageRevisionsForPageId( $homepageId );
+			if ( $isBlogPost ) {
+				$revisions = $this->dataLookup->getBlogPostRevisionsForPageId( $pageId );
+				$spaceDescriptions = [];
+				$homepageId = -1;
 			} else {
-				$revisions = $this->dataLookup->getPageRevisionsForPageId( $pageId );
+				$spaceDescriptions = $this->dataLookup->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
+				$homepageId = $this->dataLookup->getSpaceHomepageIdForSpaceId( $spaceId );
+
+				if ( $pageId === $homepageId ) {
+					$this->output->writeln(
+						"Page '$pageTitle' is a homepage, adding space description to page content if applicable..."
+					);
+					$revisions = $this->dataLookup->getPageRevisionsForPageId( $homepageId );
+				} else {
+					$revisions = $this->dataLookup->getPageRevisionsForPageId( $pageId );
+				}
 			}
 
 			foreach ( $revisions as $revision ) {

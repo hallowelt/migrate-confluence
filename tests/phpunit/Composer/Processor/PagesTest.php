@@ -39,13 +39,15 @@ class PagesTest extends TestCase {
 
 		$dataLookup = $this->createMock( DBComposerDataLookup::class );
 		$dataLookup->method( 'getPageIdTargetPageTitleMap' )->willReturn( [
-			1 => 'Blog:32973/Our new tool',
 			2 => 'Regular:Page',
+		] );
+		$dataLookup->method( 'getBlogPostIdTargetBlogPostTitleMap' )->willReturn( [
+			1 => 'Blog:32973/Our new tool',
 		] );
 		$dataLookup->method( 'getSpaceIdForPageId' )->willReturn( 100 );
 		$dataLookup->method( 'getSpaceDescriptionRevisionsForSpaceId' )->willReturn( [] );
 		$dataLookup->method( 'getSpaceHomepageIdForSpaceId' )->willReturn( -1 );
-		$dataLookup->method( 'getPageRevisionsForPageId' )
+		$dataLookup->method( 'getBlogPostRevisionsForPageId' )
 			->willReturnCallback( static function ( int $pageId ): array {
 				if ( $pageId === 1 ) {
 					return [ [
@@ -54,6 +56,10 @@ class PagesTest extends TestCase {
 					] ];
 				}
 
+				return [];
+			} );
+		$dataLookup->method( 'getPageRevisionsForPageId' )
+			->willReturnCallback( static function ( int $pageId ): array {
 				if ( $pageId === 2 ) {
 					return [ [
 						'revision_timestamp' => '20201109160743',

@@ -1013,12 +1013,49 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return array
+	 */
+	public function getBlogPostIdTargetBlogPostTitleMap(): array {
+		$transaction = $this->db->prepare(
+			'SELECT page_id, wiki_title FROM blog_posts WHERE content_status = "current"'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['page_id'];
+			$value = $item['wiki_title'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
 	 * @param int $pageId
 	 * @return array
 	 */
 	public function getPageRevisionsForPageId( int $pageId ): array {
 		$transaction = $this->db->prepare(
 			'SELECT revision_timestamp, version, content_status, body_content_ids FROM pages
+			WHERE page_id = :page_id AND lower( content_status ) != "deleted"
+			ORDER BY revision_timestamp DESC'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @return array
+	 */
+	public function getBlogPostRevisionsForPageId( int $pageId ): array {
+		$transaction = $this->db->prepare(
+			'SELECT revision_timestamp, version, content_status, body_content_ids FROM blog_posts
 			WHERE page_id = :page_id AND lower( content_status ) != "deleted"
 			ORDER BY revision_timestamp DESC'
 		);
