@@ -105,7 +105,7 @@ class CreateFromTemplateMacro implements IProcessor {
 
 		if ( $errorMessage !== null ) {
 			$wikiText .= sprintf(
-				"%s\n%s",
+				"<!-- %s -->\n%s",
 				$errorMessage,
 				$this->getBrokenMacroCategory()
 			);

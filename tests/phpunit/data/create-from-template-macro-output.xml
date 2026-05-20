@@ -4,8 +4,8 @@
 	{{CreateFromTemplate|preload = Template:SomeOtherPage|buttonlabel = New}}
 	{{CreateFromTemplate|preload = Template:SomePage|buttonlabel = Create}}
 	<p>Some text after</p>
-	{{CreateFromTemplate|preload = |buttonlabel = New}}Template could not be found
+	{{CreateFromTemplate|preload = |buttonlabel = New}}&lt;!-- Template could not be found --&gt;
 [[Category:Broken_macro/create-from-template]]
-	{{CreateFromTemplate|preload = |buttonlabel = Create}}Template could not be found
+	{{CreateFromTemplate|preload = |buttonlabel = Create}}&lt;!-- Template could not be found --&gt;
 [[Category:Broken_macro/create-from-template]]
 </xml>
