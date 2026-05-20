@@ -241,6 +241,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 
 			}
 		}
+		$this->output->writeln( "... done" );
 
 		// Update blog_posts table
 		$blogPosts = $this->workspaceDB->getBlogPosts();
@@ -348,6 +349,10 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			$spaceId = (int)$page['space_id'];
 			$confluenceTitle = (string)$page['confluence_title'];
 
+			$this->output->writeln(
+				"Creating wiki title for page ID $pageId with confluence title '$confluenceTitle'"
+			);
+
 			try {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
@@ -374,6 +379,9 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
 
 		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
+			$this->output->writeln(
+				"Updated wiki title for page ID $pageId with title: $wikiTitle"
+			);
 			$this->workspaceDB->updatePageWikiTitle( (int)$pageId, $wikiTitle );
 		}
 	}
@@ -410,6 +418,10 @@ class ConfluenceAnalyzer extends AnalyzerBase
 				continue;
 			}
 
+			$this->output->writeln(
+				"Creating wiki title for blog post ID $pageId with confluence title '$confluenceTitle'"
+			);
+
 			$spaceKey = $spaceIdToSpaceKeyMap[$spaceId];
 			$blogName = self::NS_BLOG_NAME;
 			$titleBuilder = new TitleBuilder( [ $spaceId => "$blogName:$spaceKey/" ], [], [], [] );
@@ -434,6 +446,9 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
 
 		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
+			$this->output->writeln(
+				"Updated wiki title for blog post ID $pageId with title: $wikiTitle"
+			);
 			$this->workspaceDB->updateBlogPostWikiTitle( (int)$pageId, $wikiTitle );
 		}
 	}
@@ -491,6 +506,10 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			$attachmentSpaceId = (int)$attachment['space_id'];
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
+			$this->output->writeln(
+				"Creating wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
+			);
+
 			$pageWikiTitle = $this->workspaceDB->getWikiTitleForAttachmentId( $attachmentId );
 			$pageWikiTitle = substr( $pageWikiTitle, strrpos( $pageWikiTitle, ':' ) );
 			$pageWikiTitleParts = explode( '/', $pageWikiTitle );
@@ -519,7 +538,23 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			// Uncollide file title
 			$exists = $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle );
 			$counter = 1;
+			$maxUncollideAttempts = 10000;
 			while ( $exists ) {
+				if ( $counter > $maxUncollideAttempts ) {
+					$this->logger->warning(
+						"Could not find unique page attachment title for attachment $attachmentId after "
+						. (string)$maxUncollideAttempts . ' attempts'
+					);
+					$this->workspaceDB->addLogEntry(
+						'warning',
+						'analyze',
+						__CLASS__,
+						"Could not find unique page attachment title for attachment $attachmentId after "
+						. (string)$maxUncollideAttempts . ' attempts'
+					);
+					continue 2;
+				}
+
 				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId,
 					$attachmentOrigFilename,
@@ -535,6 +570,10 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			if ( $file->getExtension() === '' || strlen( $file->getExtension() ) > 10 ) {
 				$attatchmentWikiTitle .= '.unknown';
 			}
+
+			$this->output->writeln(
+				"Add page attachment for attachment ID $attachmentId with title: $attatchmentWikiTitle"
+			);
 
 			$this->workspaceDB->addPageAttachment(
 				$attachmentId,
@@ -591,6 +630,10 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			$attachmentSpaceId = (int)$attachment['space_id'];
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
+			$this->output->writeln(
+				"Create wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
+			);
+
 			try {
 				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId,
@@ -618,7 +661,23 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			);
 
 			$counter = 1;
+			$maxUncollideAttempts = 10000;
 			while ( $exists ) {
+				if ( $counter > $maxUncollideAttempts ) {
+					$this->logger->warning(
+						"Could not find unique additional attachment title for attachment $attachmentId after "
+						. (string)$maxUncollideAttempts . ' attempts'
+					);
+					$this->workspaceDB->addLogEntry(
+						'warning',
+						'analyze',
+						__CLASS__,
+						"Could not find unique additional attachment title for attachment $attachmentId after "
+						. (string)$maxUncollideAttempts . ' attempts'
+					);
+					continue 2;
+				}
+
 				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId,
 					$attachmentOrigFilename,
@@ -632,6 +691,10 @@ class ConfluenceAnalyzer extends AnalyzerBase
 				$counter++;
 			}
 
+			$this->output->writeln(
+				"Add additional attachment for attachment ID $attachmentId with title: $attatchmentWikiTitle"
+			);
+
 			$this->workspaceDB->addAdditionalAttachment(
 				$attachmentId,
 				(string)$attachment['filename'],
@@ -644,6 +707,10 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	 * @return void
 	 */
 	private function checkTitles(): void {
+		$this->output->writeln(
+			"Validating titles of pages, blog posts and attachments. This may take a while for large instances..."
+		);
+
 		$titles = [];
 		foreach ( $this->workspaceDB->getPages() as $page ) {
 			$title = '';

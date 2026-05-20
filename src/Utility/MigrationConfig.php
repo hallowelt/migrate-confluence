@@ -54,20 +54,6 @@ class MigrationConfig {
 	/**
 	 * @return array
 	 */
-	public function getConfigIncludeSpaceKeys(): array {
-		return $this->get( 'analyzer-include-spacekey', [] );
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getComposerIncludeNamespace(): array {
-		return $this->get( 'composer-include-namespace', [] );
-	}
-
-	/**
-	 * @return array
-	 */
 	public function getCategories(): array {
 		return $this->get( 'categories', [] );
 	}
@@ -105,5 +91,9 @@ class MigrationConfig {
 	 */
 	public function getComposerSkipTitles(): array {
 		return $this->get( 'composer-skip-titles', [] );
+	}
+
+	public function getNsTalkSuffix(): string {
+		return $this->get( 'ns-talk-suffix', 'Talk' );
 	}
 }

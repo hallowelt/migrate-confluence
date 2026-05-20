@@ -79,12 +79,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 				$builder, $composerDataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig
 			),
-			/*
 			new Comments(
 				$builder, $composerDataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig
 			),
-			*/
 		];
 
 		foreach ( $processors as $processor ) {

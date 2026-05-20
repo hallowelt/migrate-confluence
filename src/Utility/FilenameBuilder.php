@@ -51,6 +51,8 @@ class FilenameBuilder {
 				$filenameWithoutExtension = implode( '.', $originalFilenameParts );
 				$filenameWithoutExtension .= $suffix;
 				$originalFilename = $filenameWithoutExtension . '.' . $extension;
+			} else {
+				$originalFilename .= $suffix;
 			}
 		}
 
