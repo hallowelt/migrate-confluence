@@ -94,6 +94,26 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			}
 		}
 
+		foreach ( $this->workspaceDB->getComments() as $comment ) {
+			if ( !isset( $comment['comment_id'] )
+				|| !isset( $comment['content_status'] )
+				|| !isset( $comment['content_class'] )
+			) {
+				continue;
+			}
+
+			// Comments composer currently handles page-level comments only.
+			if ( strtolower( (string)$comment['content_status'] ) !== 'current'
+				|| (string)$comment['content_class'] !== 'Page'
+			) {
+				continue;
+			}
+
+			$currentContentIds[] = (int)$comment['comment_id'];
+		}
+
+		$currentContentIds = array_values( array_unique( $currentContentIds ) );
+
 		if ( $currentContentIds === [] ) {
 			return;
 		}
