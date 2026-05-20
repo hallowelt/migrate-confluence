@@ -37,6 +37,7 @@ class WorkspaceDB {
 			'attachments',
 			'attachments_meta',
 			'page_attachments',
+			'additional_attachments',
 			'users',
 			'content_properties',
 			'comments',
@@ -1601,6 +1602,33 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Get a single attachment by ID.
+	 *
+	 * @param int $attachmentId
+	 * @return array
+	 */
+	public function getAttachment( int $attachmentId ): array {
+		$transaction = $this->db->prepare(
+			'SELECT * FROM attachments WHERE attachment_id = :attachment_id LIMIT 1'
+		);
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false ) {
+			return [];
+		}
+
+		return $data;
+	}
+
+	/**
 	 * @param int $attachmentId
 	 * @param int $pageId
 	 * @param string $originalAttachmentFilename
@@ -1893,6 +1921,13 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return array
+	 */
+	public function getAdditionalAttachments(): array {
+		return $this->getAllData( 'additional_attachments' );
+	}
+
+	/**
 	 * @param int $pageId
 	 * @return array
 	 */
@@ -2112,6 +2147,27 @@ class WorkspaceDB {
 	 */
 	public function getComments(): array {
 		return $this->getAllData( 'comments' );
+	}
+
+	/**
+	 * Returns all page-level comments and the corresponding page wiki title.
+	 *
+	 * @return array
+	 */
+	public function getCommentsForPages(): array {
+		$transaction = $this->db->prepare(
+			'SELECT c.*, p.wiki_title FROM comments c
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			WHERE c.content_class = :content_class'
+		);
+		$transaction->bindValue( ':content_class', 'Page', SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**

@@ -67,7 +67,6 @@ class FilenameResolver {
 		$pageWikiTitleParts = substr( $assocTitle, strrpos( $assocTitle, ':' ) );
 		$pageWikiTitleParts = explode( '/', $pageWikiTitleParts );
 		$shortPageWikiTitle = end( $pageWikiTitleParts );
-		
 
 		try {
 			$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortPageWikiTitle );
@@ -75,7 +74,7 @@ class FilenameResolver {
 			try {
 				// Probably it is just too long. Let's try to use a shortened variant
 				// This is not ideal, but should be okay as a fallback in most cases.
-				
+
 				$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortPageWikiTitle );
 			} catch ( InvalidTitleException $ex ) {
 				$fileTitle = $ex->getInvalidTitle();

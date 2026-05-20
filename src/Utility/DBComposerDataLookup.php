@@ -34,4 +34,24 @@ class DBComposerDataLookup {
 	public function getSpaceDescriptionRevisionsForSpaceId( int $spaceId ): array {
 		return $this->workspaceDB->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
 	}
+
+	public function getCommentsForPages(): array {
+		return $this->workspaceDB->getCommentsForPages();
+	}
+
+	public function getUsers(): array {
+		return $this->workspaceDB->getUsers();
+	}
+
+	public function getPageAttachments(): array {
+		return $this->workspaceDB->getPageAttachments();
+	}
+
+	public function getAdditionalAttachments(): array {
+		return $this->workspaceDB->getAdditionalAttachments();
+	}
+
+	public function getAttachment( int $attachmentId ): array {
+		return $this->workspaceDB->getAttachment( $attachmentId );
+	}
 }

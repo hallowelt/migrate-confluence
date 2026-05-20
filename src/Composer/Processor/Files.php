@@ -2,15 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
 class Files extends ProcessorBase {
-
-	/** @var DataBuckets */
-	private DataBuckets $customBuckets;
 
 	/**
 	 * @return string
@@ -37,35 +33,91 @@ class Files extends ProcessorBase {
 		 * ini_set( "memory_limit", "-1" );
 		 */
 
-		$this->customBuckets = new DataBuckets( [
-			'title-uploads',
-			'title-uploads-fail'
-		] );
-
-		$this->customBuckets->loadFromWorkspace( $this->workspace );
-
 		$this->addDefaultFiles();
-		$this->addAttachments();
+		$this->addPageAttachments();
+		$this->addAdditionalAttachments();
 
-		$this->customBuckets->saveToWorkspace( $this->workspace );
 		$this->writeOutputFile();
 	}
 
-	private function addAttachments(): void {
-		$titleRevisions = $this->buckets->getBucketData(
-			'global-title-revisions'
-		);
+	private function addPageAttachments(): void {
+		$this->output->writeln( "\nAdding page attachments...\n" );
 
-		/** Add grouped pages */
-		foreach ( $titleRevisions as $pageTitle => $pageRevisions ) {
-			if ( $this->skipTitle( $pageTitle ) ) {
+		$pageAttachments = $this->dataLookup->getPageAttachments();
+
+		foreach ( $pageAttachments as $pageAttachment ) {
+			$attachmentId = $pageAttachment['attachment_id'];
+			$pageTitle = $pageAttachment['target_attachment_filename'];
+
+			$attachment = $this->dataLookup->getAttachment( $attachmentId );
+
+			/** Generalize file title. I can contain a namespace. */
+			$filename = str_replace( ':', '_', $pageTitle );
+
+			$drawIoFileHandler = new DrawIOFileHandler();
+
+			// We do not need DrawIO data files in our wiki, just PNG image
+			if ( $drawIoFileHandler->isDrawIODataFile( $filename ) ) {
 				continue;
 			}
 
-			$sortedRevisions = $this->sortRevisions( $pageRevisions );
-			foreach ( $sortedRevisions as $timestamp => $bodyContentIds ) {
-				// Add attachments
-				$this->addTitleAttachments( $pageTitle );
+			if ( isset( $attachment['attachment_reference'] ) ) {
+				$filePath = $attachment['attachment_reference'];
+
+				if ( file_exists( $filePath ) ) {
+					$this->output->writeln( "Attachment: $filename" );
+				} else {
+					$this->output->writeln( "Attachment file was not found!" );
+					continue;
+				}
+				$attachmentContent = file_get_contents( $filePath );
+
+				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
+				#$this->builder->addFileRevision( $attachment, '', $attachmentContent );
+				$this->workspace->saveUploadFile( $filename, $attachmentContent );
+			} else {
+				$this->output->writeln( "Attachment file was not found!" );
+			}
+		}
+	}
+
+	private function addAdditionalAttachments(): void {
+		$this->output->writeln( "\nAdding additional attachments...\n" );
+
+		$additionalAttachments = $this->dataLookup->getAdditionalAttachments();
+
+		foreach ( $additionalAttachments as $attachment ) {
+			$attachmentId = $attachment['attachment_id'];
+			$pageTitle = $attachment['target_attachment_filename'];
+
+			$attachment = $this->dataLookup->getAttachment( $attachmentId );
+
+			/** Generalize file title. I can contain a namespace. */
+			$filename = str_replace( ':', '_', $pageTitle );
+
+			$drawIoFileHandler = new DrawIOFileHandler();
+
+			// We do not need DrawIO data files in our wiki, just PNG image
+			if ( $drawIoFileHandler->isDrawIODataFile( $filename ) ) {
+				continue;
+			}
+
+			if ( isset( $attachment['attachment_reference'] ) ) {
+				$filePath = $attachment['attachment_reference'];
+
+				if ( file_exists( $filePath ) ) {
+					$this->output->writeln( "Attachment: $filename" );
+				} else {
+					$this->output->writeln( "Attachment file was not found!" );
+					continue;
+				}
+				$attachmentContent = file_get_contents( $filePath );
+
+				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
+				#$this->builder->addFileRevision( $attachment, '', $attachmentContent );
+				$this->workspace->saveUploadFile( $filename, $attachmentContent );
+			} else {
+				$this->output->writeln( "Attachment file was not found!" );
 			}
 		}
 	}
@@ -91,79 +143,6 @@ class Files extends ProcessorBase {
 			// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 			#$this->addFileRevision( $filename, '', $data );
 			$this->workspace->saveUploadFile( $filename, $data );
-		}
-	}
-
-	/**
-	 * @param array $pageRevisions
-	 * @return array
-	 */
-	private function sortRevisions( array $pageRevisions ): array {
-		$sortedRevisions = [];
-		foreach ( $pageRevisions as $pageRevision ) {
-			$pageRevisionData = explode( '@', $pageRevision );
-			$bodyContentIds = $pageRevisionData[0];
-
-			$versionTimestamp = explode( '-', $pageRevisionData[1] );
-			// $version = $versionTimestamp[0];
-			$timestamp = $versionTimestamp[1];
-
-			$sortedRevisions[$bodyContentIds] = $timestamp;
-		}
-
-		// Sorting revisions with timestamps
-		natsort( $sortedRevisions );
-		$sortedRevisions = array_flip( $sortedRevisions );
-
-		// Using history revisions?
-		if ( !$this->includeHistory() ) {
-			$bodyContentIds = end( $sortedRevisions );
-			$timestamp = array_search( $bodyContentIds, $sortedRevisions );
-			// Reset sortedRevisions
-			$sortedRevisions = [];
-			$sortedRevisions[$timestamp] = $bodyContentIds;
-		}
-
-		return $sortedRevisions;
-	}
-
-	/**
-	 * @param string $pageTitle
-	 * @return void
-	 */
-	private function addTitleAttachments( string $pageTitle ): void {
-		$pageAttachmentsMap = $this->buckets->getBucketData( 'global-title-attachments' );
-		$filesMap = $this->buckets->getBucketData( 'global-files' );
-
-		if ( !empty( $pageAttachmentsMap[$pageTitle] ) ) {
-			$this->output->writeln( "\nPage has attachments. Adding them...\n" );
-
-			$attachments = $pageAttachmentsMap[$pageTitle];
-			foreach ( $attachments as $attachment ) {
-				$this->output->writeln( "Attachment: $attachment" );
-
-				$drawIoFileHandler = new DrawIOFileHandler();
-
-				// We do not need DrawIO data files in our wiki, just PNG image
-				if ( $drawIoFileHandler->isDrawIODataFile( $attachment ) ) {
-					continue;
-				}
-				/** Generalize file title. I can contain a namespace. */
-				$filename = str_replace( ':', '_', $attachment );
-
-				if ( isset( $filesMap[$filename] ) ) {
-					$filePath = $filesMap[$filename][0];
-					$attachmentContent = file_get_contents( $filePath );
-
-					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
-					#$this->builder->addFileRevision( $attachment, '', $attachmentContent );
-					$this->workspace->saveUploadFile( $filename, $attachmentContent );
-					$this->customBuckets->addData( 'title-uploads', $pageTitle, $filename );
-				} else {
-					$this->output->writeln( "Attachment file was not found!" );
-					$this->customBuckets->addData( 'title-uploads-fail', $pageTitle, $filename );
-				}
-			}
 		}
 	}
 }

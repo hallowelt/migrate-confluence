@@ -14,4 +14,4 @@ config:
         ext-ns-file-repo-compat: true
         include-history: false,
         composer-page-per-xml-limit: 100,
-        ns-talk-suffix: Talk
+        ns-talk-prefix: Talk
