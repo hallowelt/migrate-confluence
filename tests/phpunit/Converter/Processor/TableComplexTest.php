@@ -24,6 +24,7 @@ class TableComplexTest extends TestCase {
 	private $dir = '';
 
 	/**
+	 * @covers \HalloWelt\MigrateConfluence\Tests\Converter\Processor\TableComplexTest::doTestWith
 	 * @return void
 	 */
 	public function testProcess() {
@@ -32,6 +33,7 @@ class TableComplexTest extends TestCase {
 	}
 
 	/**
+	 * @covers \HalloWelt\MigrateConfluence\Tests\Converter\Processor\TableComplexTest::doTestWith
 	 * @return void
 	 */
 	public function testProcessWithInclude() {

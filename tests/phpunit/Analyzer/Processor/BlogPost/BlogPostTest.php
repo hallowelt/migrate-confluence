@@ -138,6 +138,7 @@ class BlogPostTest extends TestCase {
 
 		$blogPosts = $this->workspaceDB->getBlogPosts();
 
-		$this->assertEmpty( $blogPosts, 'Draft blog post should be skipped and not stored in the database.' );
+		// Draft blog post should be skipped and not stored in the database
+		$this->assertEquals( [], $blogPosts );
 	}
 }
