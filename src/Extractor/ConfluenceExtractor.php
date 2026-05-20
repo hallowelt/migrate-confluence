@@ -7,6 +7,7 @@ use HalloWelt\MediaWiki\Lib\Migration\ExtractorBase;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 
@@ -20,6 +21,9 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
+
+	/** @var DBLog */
+	private DBLog $dbLog;
 
 	/**
 	 * @param array $config
@@ -47,6 +51,13 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/**
 	 * @return void
 	 */
+	private function initDBLog(): void {
+		$this->dbLog = new DBLog( $this->workspaceDB );
+	}
+
+	/**
+	 * @return void
+	 */
 	private function initMigrationConfig(): void {
 		$advancedConfig = [];
 		if ( isset( $this->config['config'] ) ) {
@@ -62,6 +73,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	protected function doExtract( SplFileInfo $file ): bool {
 		$this->initMigrationConfig();
 		$this->initWorkspaceDB();
+		$this->initDBLog();
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
 
@@ -136,6 +148,10 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 
 				$bodyContentHTML = $this->normalizeBodyContentHTML( $body );
 				$targetFileName = $this->workspace->saveRawContent( (string)$bodyContentId, $bodyContentHTML );
+
+				$this->dbLog->addLogEntry(
+					'info', 'extract', __METHOD__, "Extract body content to $targetFileName"
+				);
 			}
 		}
 	}
@@ -188,8 +204,9 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 					]
 				);
 
-				// $this->output->writeln( "Add page meta for page {$page['wiki_title']}" );
-				// TODO: Add output
+				$this->dbLog->addLogEntry(
+					'info', 'extract', __METHOD__ , "Add page meta for page {$page['wiki_title']}"
+				);
 			}
 		}
 	}
@@ -230,8 +247,9 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 					]
 				);
 
-				// $this->output->writeln( "Add blog post meta for blog post {$blogPost['wiki_title']}" );
-				// TODO: Add output
+				$this->dbLog->addLogEntry(
+					'info', 'extract', __METHOD__ , "Add blog post meta for page {$blogPost['wiki_title']}"
+				);
 			}
 		}
 	}
@@ -272,8 +290,9 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 					]
 				);
 
-				// $this->output->writeln( "Add attachment meta for attachment {$attachment['wiki_title']}" );
-				// TODO: Add output
+				$this->dbLog->addLogEntry(
+					'info', 'extract', __METHOD__ , "Add attachment meta for attachment {$attachment['wiki_title']}"
+				);
 			}
 		}
 	}

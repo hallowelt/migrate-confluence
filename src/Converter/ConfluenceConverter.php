@@ -83,6 +83,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
@@ -95,11 +96,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
 
+	/** @var DBLog */
+	private DBLog $dbLog;
+
 	/** @var string */
 	private string $dest;
-
-	/** @var DataBuckets */
-	private DataBuckets $buckets;
 
 	/** @var DBConversionDataLookup */
 	private DBConversionDataLookup $dataLookup;
@@ -167,14 +168,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 */
 	public function convert( SplFileInfo $file ): string {
 		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$this->dbLog = new DBLog( $this->workspaceDB );
 
 		if ( isset( $this->config['config'] ) ) {
 			$this->migrationConfig = new MigrationConfig( $this->config['config'] );
 		} else {
 			$this->migrationConfig = new MigrationConfig( [] );
 		}
-
-		$this->buckets = new DataBuckets( [] );
 
 		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
 		$this->conversionDataWriter = new ConversionDataWriter( $this->dest );
@@ -254,7 +254,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		if ( $this->pageId === -1 ) {
-			$this->workspaceDB->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'error',
 				'convert',
 				__CLASS__,
@@ -264,7 +264,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		if ( $this->currentSpace === -1 ) {
-			$this->workspaceDB->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'error',
 				'convert',
 				__CLASS__,
@@ -281,7 +281,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$unconvertedContent = "<-- Unconvertable RAW start-->\n";
 			$unconvertedContent .= $rawContent;
 			$unconvertedContent .= "\n<-- Unconvertable RAW end-->\n[[Category:Unconvertable]]";
-			$this->workspaceDB->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'warning',
 				'convert',
 				__CLASS__,
@@ -773,7 +773,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$exceed = '100';
 		}
 		if ( $exceed !== '' ) {
-			$this->workspaceDB->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'warning',
 				'convert',
 				__CLASS__,

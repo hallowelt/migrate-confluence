@@ -36,11 +36,14 @@ class Pages extends ProcessorBase {
 			$this->output->writeln( "Processing page '$pageTitle'..." );
 
 			if ( $this->skipTitle( $pageTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $pageTitle );
 				continue;
 			}
 
+			$namespace = $this->getNamespace( $pageTitle );
+
 			$spaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
-			$isBlogPost = strpos( $pageTitle, 'Blog:' ) === 0;
+			$isBlogPost = $this->isBlogPost( $namespace );
 
 			if ( $isBlogPost ) {
 				$revisions = $this->dataLookup->getBlogPostRevisionsForPageId( $pageId );
@@ -89,8 +92,9 @@ class Pages extends ProcessorBase {
 					'',
 					$this->getContentModel( $pageTitle )
 				);
-
 			}
+
+			$this->deploymentInfo->addNamespace( $namespace );
 		}
 	}
 
@@ -194,5 +198,16 @@ class Pages extends ProcessorBase {
 			return '';
 		}
 		return '<div class="space-description">' . $description . '</div>';
+	}
+
+	/**
+	 * @param string $namespace
+	 * @return boolean
+	 */
+	private function isBlogPost( string $namespace ): bool {
+		if ( $namespace === 'Blog' ) {
+			return true;
+		}
+		return false;
 	}
 }
