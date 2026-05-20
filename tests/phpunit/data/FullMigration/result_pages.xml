@@ -461,7 +461,7 @@ useve=true
       <format>text/x-wiki</format>
       <text>Click the button below to create a new project:
 
-{{CreateFromTemplate|preload = Template:Projektvorlage|buttonlabel = Neues Projekt erstellen}}
+{{CreateFromTemplate|preload = Template:CON:Projektvorlage|buttonlabel = Neues Projekt erstellen}}
  &lt;!-- From bodyContent 20000030.mraw --&gt;
 </text>
     </revision>
@@ -534,7 +534,7 @@ Link with content with nested ac:image inside span along content: [https://examp
     </revision>
   </page>
   <page>
-    <title>Template:Projektvorlage</title>
+    <title>Template:CON:Projektvorlage</title>
     <revision>
       <timestamp>20200301100000</timestamp>
       <model>wikitext</model>

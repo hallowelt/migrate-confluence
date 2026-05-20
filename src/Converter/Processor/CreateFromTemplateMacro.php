@@ -135,12 +135,7 @@ class CreateFromTemplateMacro implements IProcessor {
 			return null;
 		}
 
-		$name = $this->dataLookup->getTemplateNameFromTemplateId( $templateId );
-		if ( !$name ) {
-			return null;
-		}
-
-		return 'Template:' . $name;
+		return $this->dataLookup->getTemplateTitleFromTemplateId( $templateId );
 	}
 
 	/**

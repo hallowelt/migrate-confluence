@@ -345,18 +345,6 @@ class ConversionDataLookup {
 	}
 
 	/**
-	 * @param int $pageId
-	 * @return string|null
-	 */
-	public function getWikiTitleFromPageId( int $pageId ): ?string {
-		$wikiTitle = null;
-		if ( isset( $this->pageIdToTitleMap[$pageId] ) ) {
-			return $this->pageIdToTitleMap[$pageId];
-		}
-		return $wikiTitle;
-	}
-
-	/**
 	 * @param int $templateId
 	 * @return string|null
 	 */
@@ -376,5 +364,24 @@ class ConversionDataLookup {
 			return (int)$this->pageTemplateIdToSpaceIdMap[$templateId];
 		}
 		return null;
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return string|null
+	 */
+	public function getTemplateTitleFromTemplateId( int $templateId ): ?string {
+		$name = $this->getTemplateNameFromTemplateId( $templateId );
+		if ( $name === null ) {
+			return null;
+		}
+
+		$spacePrefix = '';
+		$spaceId = $this->getSpaceIdFromTemplateId( $templateId );
+		if ( $spaceId !== null && isset( $this->spaceIdPrefixMap[$spaceId] ) ) {
+			$spacePrefix = $this->spaceIdPrefixMap[$spaceId];
+		}
+
+		return 'Template:' . $spacePrefix . $name;
 	}
 }

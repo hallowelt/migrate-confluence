@@ -10,7 +10,9 @@ class PageTemplates extends ProcessorBase {
 	 * @inheritDoc
 	 */
 	public function getRequiredKeys(): array {
-		return [];
+		return [
+			'global-space-id-to-prefix-map',
+		];
 	}
 
 	/**
@@ -71,7 +73,11 @@ class PageTemplates extends ProcessorBase {
 
 		// Register the template as a page so it flows through the regular conversion pipeline.
 		// Use the template ID as both "page ID" and "body content ID".
-		$targetTitle = 'Template:' . $name;
+		$spacePrefix = '';
+		if ( $spaceId !== null && isset( $this->data['global-space-id-to-prefix-map'][$spaceId] ) ) {
+			$spacePrefix = $this->data['global-space-id-to-prefix-map'][$spaceId];
+		}
+		$targetTitle = 'Template:' . $spacePrefix . $name;
 		$this->data['analyze-page-id-to-title-map'][$templateId] = $targetTitle;
 		$this->data['global-body-content-id-to-page-id-map'][$templateId] = $templateId;
 		if ( $spaceId !== null ) {
