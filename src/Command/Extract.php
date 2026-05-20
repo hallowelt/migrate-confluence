@@ -2,8 +2,13 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Extract as CommandExtract;
+use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
+use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
+use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -14,6 +19,11 @@ class Extract extends CommandExtract {
 	 * @var IExtractor[]
 	 */
 	protected $extractors = [];
+
+	/**
+	 * @var array
+	 */
+	protected $eventhandlers = [];
 
 	/**
 	 * @inheritDoc
@@ -40,9 +50,38 @@ class Extract extends CommandExtract {
 		return new static( $config );
 	}
 
-	protected function beforeProcessFiles(): void {
+	/**
+	 * @return void
+	 */
+	protected function beforeProcessFiles() {
 		$this->readConfigFile( $this->config );
 		parent::beforeProcessFiles();
+		// Explicitly reset the persisted data
+		$this->buckets = new DataBuckets( $this->getBucketKeys() );
+
+		$extractorFactoryCallbacks = $this->config['extractors'];
+		foreach ( $extractorFactoryCallbacks as $key => $callback ) {
+			$extractor = call_user_func_array(
+				$callback,
+				[ $this->config, $this->workspace, $this->buckets ]
+			);
+			if ( $extractor instanceof IExtractor === false ) {
+				throw new Exception(
+					"Factory callback for extractor '$key' did not return an "
+					. "IExtractor object"
+				);
+			}
+			if ( $extractor instanceof IOutputAwareInterface ) {
+				$extractor->setOutput( $this->output );
+			}
+			if ( $extractor instanceof IDestinationPathAware ) {
+				$extractor->setDestinationPath( $this->dest );
+			}
+			$this->extractors[$key] = $extractor;
+			if ( $extractor instanceof IFileProcessorEventHandler ) {
+				$this->eventhandlers[$key] = $extractor;
+			}
+		}
 	}
 
 	/**
@@ -71,15 +110,6 @@ class Extract extends CommandExtract {
 	 * @inheritDoc
 	 */
 	protected function getBucketKeys(): array {
-		return [
-			// From this step
-			'global-title-metadata',
-			'global-blog-title-metadata',
-			'global-attachment-metadata',
-			'global-revision-contents',
-			'global-body-content-id-to-page-id-map',
-			'global-body-content-id-to-comment-id-map',
-			'global-body-content-id-to-space-description-id-map',
-		];
+		return [];
 	}
 }

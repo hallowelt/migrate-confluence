@@ -4,11 +4,12 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
 class UserLinkTest extends TestCase {
-
 		/**
 		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\UserLink::preprocess
 		 * @return void
@@ -22,34 +23,14 @@ class UserLinkTest extends TestCase {
 
 			$currentSpaceId = 42;
 			$currentRawPagename = 'SomePage';
-			$dataLookup = new ConversionDataLookup(
-				[
-					42 => 'ABC',
-					23 => 'DEVOPS'
-				],
-				[
-					'42---Page Title' => 'ABC:Page_Title',
-					'42---Page Title2' => 'ABC:Page_Title2',
-					'42---Page Title3' => 'ABC:Page_Title3',
-					'23---Page Title3' => 'DEVOPS:Page_Title3',
-				],
-				[],
-				[],
-				[],
-				[
-					'123456' => 'TheFirstUser',
-					'789456' => 'TheSecondUser',
-				],
-				[
-					42 => 'ABC',
-					23 => 'DEVOPS'
-				],
-				[],
-				[],
-				[]
-			);
+			$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
-		$processor = new UserLink( $dataLookup, $currentSpaceId, $currentRawPagename, [] );
+		$processor = new UserLink(
+			$dataLookup,
+			$currentSpaceId,
+			$currentRawPagename,
+			new MigrationConfig( [] )
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

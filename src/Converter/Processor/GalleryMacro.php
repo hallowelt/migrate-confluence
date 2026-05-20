@@ -3,8 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 /**
  * @see https://confluence.atlassian.com/doc/gallery-macro-139434.html for documentation
@@ -12,8 +13,8 @@ use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
  */
 class GalleryMacro extends StructuredMacroProcessorBase {
 
-	/** @var ConversionDataLookup */
-	private ConversionDataLookup $dataLookup;
+	/** @var DBConversionDataLookup */
+	private DBConversionDataLookup $dataLookup;
 
 	/** @var int */
 	private int $currentSpaceId;
@@ -21,23 +22,23 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	/** @var string */
 	private string $rawPageTitle;
 
-	/** @var array */
-	private $config;
+	/** @var MigrationConfig */
+	private MigrationConfig $config;
 
 	/** @var FilenameResolver */
 	private FilenameResolver $filenameResolver;
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param array $config
+	 * @param MigrationConfig $config
 	 */
 	public function __construct(
-		ConversionDataLookup $dataLookup,
+		DBConversionDataLookup $dataLookup,
 		int $currentSpaceId,
 		string $rawPageTitle,
-		array $config
+		MigrationConfig $config
 	) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
@@ -237,8 +238,6 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		$filenames = array_map( 'trim', explode( ',', $include ) );
 		$files = [];
 		foreach ( $filenames as $filename ) {
-			$rawPageTitle = str_replace( ' ', '_', basename( $this->rawPageTitle ) );
-
 			[ 'title' => $targetTitle, 'isBroken' => $isBroken ] =
 				$this->filenameResolver->resolve( $this->currentSpaceId, $rawPageTitle, $filename );
 
@@ -320,9 +319,8 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 				}
 			}
 
-			$rawPageTitle = str_replace( ' ', '_', basename( $pageTitle ) );
 			[ 'title' => $targetTitle, 'isBroken' => $isBroken ] =
-				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
+				$this->filenameResolver->resolve( $spaceId, $pageTitle, $filename );
 
 			$files[] = $targetTitle;
 			if ( $isBroken ) {

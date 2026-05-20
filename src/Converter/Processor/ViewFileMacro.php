@@ -4,15 +4,16 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ViewFileMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	protected ConversionDataLookup $dataLookup;
+	protected DBConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
@@ -25,22 +26,22 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	protected string $rawPageTitle;
 
 	/**
-	 * @var array
+	 * @var MigrationConfig
 	 */
-	protected array $config;
+	protected MigrationConfig $migrationConfig;
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param array $config
+	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( ConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, array $config ) {
+	public function __construct( DBConversionDataLookup $dataLookup,
+		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
-		$this->config = $config;
+		$this->migrationConfig = $migrationConfig;
 	}
 
 	/**
@@ -68,7 +69,7 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		$riFilename = $params['_riFilename'];
 		unset( $params['_riFilename'] );
 
-		$filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
+		$filenameResolver = new FilenameResolver( $this->dataLookup, $this->migrationConfig );
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =
 			$filenameResolver->resolve( $this->currentSpaceId, $this->rawPageTitle, $riFilename );
 

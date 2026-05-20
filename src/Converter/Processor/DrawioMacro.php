@@ -3,16 +3,16 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 
 class DrawioMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	protected ConversionDataLookup $dataLookup;
+	protected DBConversionDataLookup $dataLookup;
 
 	/**
 	 * @var ConversionDataWriter
@@ -30,12 +30,12 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	protected string $rawPageTitle;
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
-	public function __construct( ConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
+	public function __construct( DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
 		int $currentSpaceId, string $rawPageTitle ) {
 		$this->dataLookup = $dataLookup;
 		$this->conversionDataWriter = $conversionDataWriter;
@@ -116,9 +116,11 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 */
 	private function getFilename( string $diagramName ): string {
 		$spaceId = $this->currentSpaceId;
-
-		$confluenceFileKey = "$spaceId---{$this->rawPageTitle}---" . str_replace( ' ', '_', $diagramName );
-		$filename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+		$filename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+			$spaceId,
+			$this->rawPageTitle,
+			$diagramName
+		);
 		$originalFilename = $filename;
 
 		if ( $this->getFileExtension( $filename ) === 'unknown' ) {
@@ -135,19 +137,28 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		if ( strtolower( $this->getFileExtension( $filename ) ) !== 'png' ) {
 			// find png
 			$drawioDataFilename = $originalFilename;
-			$confluenceFileKey = "$spaceId---{$this->rawPageTitle}---" . str_replace( ' ', '_', $diagramName ) . ".png";
-			$drawioImageFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+			$drawioImageFilename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+				$spaceId,
+				$this->rawPageTitle,
+				$diagramName
+			);
 		} else {
 			// find data
 			$drawioImageFilename = $filename;
 			$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.png' ) );
-			$confluenceFileKey = "$spaceId---{$this->rawPageTitle}---" . str_replace( ' ', '_', $diagramName );
-			$drawioDataFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+			$drawioDataFilename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+				$spaceId,
+				$this->rawPageTitle,
+				$diagramName
+			);
 			// Maybe png = PNG
 			if ( $drawioDataFilename === '' ) {
 				$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.PNG' ) );
-				$confluenceFileKey = "$spaceId---{$this->rawPageTitle}---" . str_replace( ' ', '_', $diagramName );
-				$drawioDataFilename = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+				$drawioDataFilename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+					$spaceId,
+					$this->rawPageTitle,
+					$diagramName
+				);
 			}
 		}
 
@@ -188,10 +199,10 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		$drawIoFileHandler = new DrawIOFileHandler();
 
 		// Need to make sure that file is really DrawIO file with diagram data
-		$dataFileContent = $this->dataLookup->getConfluenceFileContent( $drawioDataFilename );
+		$dataFileContent = $this->dataLookup->getAttachmentContent( $drawioDataFilename );
 
 		// PNG image file found, "bake" diagram data into it and replace file content
-		$imageFileContent = $this->dataLookup->getConfluenceFileContent( $drawioImageFilename );
+		$imageFileContent = $this->dataLookup->getAttachmentContent( $drawioImageFilename );
 		if ( $dataFileContent === null || $imageFileContent === null ) {
 			echo ( "Drawio error $this->rawPageTitle: $drawioImageFilename, $drawioDataFilename" );
 			return;

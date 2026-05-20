@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ChildrenMacro extends StructuredMacroProcessorBase {
 
@@ -18,16 +18,16 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	private string $currentPageTitle;
 
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	private ConversionDataLookup $dataLookup;
+	private DBConversionDataLookup $dataLookup;
 
 	/**
 	 * @param int $spaceId
 	 * @param string $currentPageTitle
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 */
-	public function __construct( int $spaceId, string $currentPageTitle, ConversionDataLookup $dataLookup ) {
+	public function __construct( int $spaceId, string $currentPageTitle, DBConversionDataLookup $dataLookup ) {
 		$this->spaceId = $spaceId;
 		$this->currentPageTitle = $currentPageTitle;
 		$this->dataLookup = $dataLookup;
@@ -79,21 +79,21 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 								// Get confluence page title if set
 								if ( $pageLink->hasAttribute( 'ri:content-title' ) ) {
 									$pageConfluenceTitle = $pageLink->getAttribute( 'ri:content-title' );
-									$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
 									if ( $pageConfluenceTitle === '' ) {
 										// If no page title can be found mark macro as broken
 										$broken = true;
+
+										$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
 										$params[$name] = "Confluence---$spaceKey---$pageConfluenceTitle";
 										break;
 									}
 
-									$wikiTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey(
-										"$spaceId---$pageConfluenceTitle"
+									$params[$name] = $this->dataLookup->getTargetPageTitleFromSpaceId(
+										$spaceId,
+										$pageConfluenceTitle
 									);
 
-									$params[$name] = $wikiTitle;
-
-									if ( $wikiTitle === '' ) {
+									if ( $params[$name] === '' ) {
 										// If wiki page title is empty mark macro as broken
 										$params[$name] = "Confluence---$spaceKey---$pageConfluenceTitle";
 										$broken = true;
@@ -119,7 +119,10 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		if ( !isset( $params['page'] ) ) {
 			// if no page param was set pass current page title to subpage template
-			$params['page'] = $this->currentPageTitle;
+			$params['page'] = $this->dataLookup->getTargetPageTitleFromSpaceId(
+				$this->spaceId,
+				$this->currentPageTitle
+			);
 		}
 
 		$templateParams = '';

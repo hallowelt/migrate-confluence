@@ -6,14 +6,15 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 abstract class LinkProcessorBase implements IProcessor {
 
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	protected ConversionDataLookup $dataLookup;
+	protected DBConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
@@ -26,9 +27,9 @@ abstract class LinkProcessorBase implements IProcessor {
 	protected string $rawPageTitle;
 
 	/**
-	 * @var array
+	 * @var MigrationConfig
 	 */
-	protected array $config;
+	protected MigrationConfig $migrationConfig;
 
 	/**
 	 * @var DOMNode
@@ -36,17 +37,17 @@ abstract class LinkProcessorBase implements IProcessor {
 	private DOMNode $linkNode;
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param array $config
+	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( ConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, array $config ) {
+	public function __construct( DBConversionDataLookup $dataLookup,
+		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
-		$this->config = $config;
+		$this->migrationConfig = $migrationConfig;
 	}
 
 	/**

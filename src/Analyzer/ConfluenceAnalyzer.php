@@ -8,20 +8,23 @@ use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
-use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\AttachmentFallback;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Comments;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperty;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\Label;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\Labelling;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentBlogPosts;
-use HalloWelt\MigrateConfluence\Analyzer\Processor\ParentPages;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -30,52 +33,29 @@ use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 use XMLReader;
 
-class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, IOutputAwareInterface {
+class ConfluenceAnalyzer extends AnalyzerBase
+	implements LoggerAwareInterface, IOutputAwareInterface, IDestinationPathAware
+{
 
-	/**
-	 * @var DataBuckets
-	 */
-	private DataBuckets $customBuckets;
+	private const NS_BLOG_NAME = 'Blog';
 
-	/**
-	 * @var array
-	 */
-	private array $dataKeys;
+	/** @var string */
+	private string $dest = '';
 
-	/**
-	 * @var LoggerInterface|NullLogger
-	 */
+	/** @var LoggerInterface|NullLogger */
 	private LoggerInterface|NullLogger $logger;
 
-	/**
-	 * @var Output|null
-	 */
+	/** @var Output|null */
 	private ?Output $output = null;
 
 	/** @var SplFileInfo */
 	private SplFileInfo $file;
 
-	/**
-	 * @var string
-	 */
-	private string $mainpage = 'Main Page';
+	/** @var MigrationConfig */
+	private MigrationConfig $migrationConfig;
 
-	/**
-	 * @var array
-	 */
-	private array $advancedConfig = [];
-
-	/** @var array */
-	private array $includeSpaceKey = [];
-
-	/** @var array */
-	private array $spacePrefixMap = [];
-
-	/** @var bool */
-	private bool $includeHistory = false;
-
-	/** @var array */
-	private array $data = [];
+	/** @var WorkspaceDB */
+	private WorkspaceDB $workspaceDB;
 
 	/**
 	 *
@@ -85,102 +65,34 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
-		$this->customBuckets = new DataBuckets( [
-			'warning-analyze-invalid-namespaces',
-			'warning-analyze-invalid-titles',
-			'warning-analyze-invalid-filenames',
-		] );
-
-		$this->dataKeys = [
-			'analyze-added-attachment-id',
-			'analyze-add-file',
-			'analyze-attachment-available-ids',
-			'analyze-attachment-id-to-container-content-id-map',
-			'analyze-attachment-id-to-content-status-map',
-			'analyze-attachment-id-to-orig-filename-map',
-			'analyze-attachment-id-to-reference-map',
-			'analyze-attachment-id-to-space-id-map',
-			'analyze-attachment-id-to-target-filename-map',
-			'global-orig-title-compressed-title-map',
-			'analyze-body-content-id-to-page-id-map',
-			'analyze-body-content-id-to-comment-id-map',
-			'analyze-inline-comment-ids',
-			'analyze-page-id-to-confluence-key-map',
-			'analyze-page-id-to-confluence-title-map',
-			'analyze-page-id-to-parent-page-id-map',
-			'analyze-blogpost-id-to-confluence-title-map',
-			'analyze-blogpost-id-to-parent-page-id-map',
-			'analyze-page-id-to-title-map',
-			'analyze-pages-titles-map',
-			'analyze-pages-titles-duplicates-map',
-			'analyze-blogpost-id-to-confluence-key-map',
-			'analyze-blogpost-id-to-title-map',
-			'analyze-blogposts-titles-map',
-			'analyze-title-revisions',
-			'analyze-title-to-attachment-title',
-			'debug-analyze-invalid-titles-attachment-id-to-title',
-			'debug-analyze-invalid-titles-page-id-to-title',
-			'global-attachment-orig-filename-target-filename-map',
-			'global-body-content-id-to-page-id-map',
-			'global-body-content-id-to-comment-id-map',
-			'global-comment-id-to-metadata-map',
-			'global-filenames-to-filetitles-map',
-			'global-page-id-to-comment-ids-map',
-			'global-page-id-to-space-id',
-			'global-page-id-to-title-map',
-			'global-pages-titles-map',
-			'global-blogpost-id-to-space-id',
-			'global-blogpost-id-to-title-map',
-			'global-blogposts-titles-map',
-			'global-space-details',
-			'global-space-id-homepages',
-			'global-space-id-to-description-id-map',
-			'global-space-id-to-prefix-map',
-			'global-space-id-to-key-map',
-			'global-body-content-id-to-space-description-id-map',
-			'global-space-labelling-id-to-body-content-id-map',
-			'global-title-attachments',
-			'global-title-revisions',
-			'global-userkey-to-username-map',
-			'users',
-		];
 
 		$this->logger = new NullLogger();
+	}
 
-		$this->setConfigVars();
+	/**
+	 * @param string $dest
+	 * @return void
+	 */
+	public function setDestinationPath( string $dest ): void {
+		$this->dest = $dest;
 	}
 
 	/**
 	 * @return void
 	 */
-	private function setConfigVars(): void {
+	private function initWorkspaceDB(): void {
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function initMigrationConfig(): void {
+		$advancedConfig = [];
 		if ( isset( $this->config['config'] ) ) {
-			$this->advancedConfig = $this->config['config'];
+			$advancedConfig = $this->config['config'];
 		}
-
-		if ( isset( $this->advancedConfig['space-prefix'] ) ) {
-			$this->spacePrefixMap = $this->advancedConfig['space-prefix'];
-		}
-
-		if ( isset( $this->advancedConfig['mainpage'] ) ) {
-			$this->mainpage = $this->advancedConfig['mainpage'];
-		}
-
-		if ( isset( $this->advancedConfig['analyzer-include-spacekey'] ) ) {
-			$analyzerIncludeSpacekey = $this->advancedConfig['analyzer-include-spacekey'];
-			$normalizedAnalyzerIncludeSpacekey = [];
-			foreach ( $analyzerIncludeSpacekey as $key ) {
-				$normalizedAnalyzerIncludeSpacekey[] = strtolower( $key );
-			}
-			$this->advancedConfig['analyzer-include-spacekey'] = $normalizedAnalyzerIncludeSpacekey;
-			$this->includeSpaceKey = $normalizedAnalyzerIncludeSpacekey;
-		}
-
-		if ( isset( $this->advancedConfig['include-history'] ) ) {
-			if ( $this->advancedConfig['include-history'] === true ) {
-				$this->includeHistory = $this->advancedConfig['include-history'];
-			}
-		}
+		$this->migrationConfig = new MigrationConfig( $advancedConfig );
 	}
 
 	/**
@@ -207,42 +119,15 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			return true;
 		}
 
-		foreach ( $this->dataKeys as $key ) {
-			$this->data[$key] = $this->workspace->loadData( $key );
-		}
+		$this->initMigrationConfig();
+		$this->initWorkspaceDB();
 
-		$this->customBuckets->loadFromWorkspace( $this->workspace );
 		$result = parent::analyze( $file );
 
 		// Perform validity checks
 		$this->checkTitles();
 
-		// Save buckets
-		foreach ( $this->data as $bucket => $bucketData ) {
-			if ( empty( $bucketData ) ) {
-				continue;
-			}
-			$this->workspace->saveData( $bucket, $bucketData );
-		}
-
-		$this->customBuckets->saveToWorkspace( $this->workspace );
 		return $result;
-	}
-
-	/**
-	 * @return array
-	 */
-	private function getPreProcessors(): array {
-		return [
-			'Space' => new Spaces( $this->spacePrefixMap ),
-			'SpaceDescription' => new SpaceDescription(),
-			'Page' => new ParentPages(),
-			'BlogPost' => new ParentBlogPosts(),
-			'BodyContent' => new BodyContents(),
-			'Attachment' => new Attachments( $this->file ),
-			'ConfluenceUserImpl' => new Users(),
-			'ContentProperty' => new ContentProperties(),
-		];
 	}
 
 	/**
@@ -250,25 +135,17 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	 */
 	private function getProcessors(): array {
 		return [
-			'Page' => new Page(
-				$this->includeSpaceKey,
-				$this->mainpage,
-				$this->includeHistory
-			),
-			'BlogPost' => new BlogPost(
-				$this->includeSpaceKey,
-				$this->includeHistory
-			),
-			'Comment' => new Comments(),
-		];
-	}
-
-	/**
-	 * @return array
-	 */
-	private function getPostProcessors(): array {
-		return [
-			'Attachment' => new AttachmentFallback()
+			'BodyContent' => new BodyContents( $this->workspaceDB ),
+			'Space' => new Spaces( $this->workspaceDB, $this->migrationConfig ),
+			'SpaceDescription' => new SpaceDescription( $this->workspaceDB, $this->migrationConfig ),
+			'Page' => new Page( $this->workspaceDB, $this->migrationConfig ),
+			'BlogPost' => new BlogPost( $this->workspaceDB, $this->migrationConfig ),
+			'Attachment' => new Attachments( $this->workspaceDB, $this->migrationConfig, $this->file->getPath() ),
+			'Comment' => new Comments( $this->workspaceDB ),
+			'Label' => new Label( $this->workspaceDB ),
+			'Labelling' => new Labelling( $this->workspaceDB ),
+			'ContentProperty' => new ContentProperty( $this->workspaceDB ),
+			'ConfluenceUserImpl' => new Users( $this->workspaceDB ),
 		];
 	}
 
@@ -279,7 +156,6 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	private function initProcessors( array $processors ): void {
 		foreach ( $processors as $processor ) {
 			if ( $processor instanceof IAnalyzerProcessor ) {
-				$processor->setConfig( $this->advancedConfig );
 				$processor->setOutput( $this->output );
 				$processor->setLogger( $this->logger );
 			}
@@ -311,12 +187,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 			}
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
-				$processor->setData( $this->data );
 				$processor->execute( $xmlReader );
-				$keys = $processor->getKeys();
-				foreach ( $keys as $key ) {
-					$this->data[$key] = $processor->getData( $key );
-				}
 			}
 
 			$read = $xmlReader->next();
@@ -325,87 +196,20 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	}
 
 	/**
-	 * @return void
-	 */
-	private function compressLongTitles(): void {
-		// compress title lenght
-		$titleCompressor = new TitleCompressor();
-
-		// Merge page and blog post titles so long blog post titles are also compressed
-		$pageIdToTitlesMap = $this->data['analyze-page-id-to-title-map'];
-		$blogPostIdToTitlesMap = $this->data['analyze-blogpost-id-to-title-map'];
-		$compressedTitlesMap = $titleCompressor->execute(
-			array_merge( $pageIdToTitlesMap, $blogPostIdToTitlesMap )
-		);
-
-		$this->data['global-orig-title-compressed-title-map'] = $compressedTitlesMap;
-
-		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
-
-		// pages-titles-map
-		$analyzePagesTitlesMap = $this->data['analyze-pages-titles-map'];
-		$compressedPagesTitlesMap = $applyCompressedTitles->toMapValues( $analyzePagesTitlesMap );
-		ksort( $compressedPagesTitlesMap );
-
-		$this->data['global-pages-titles-map'] = $compressedPagesTitlesMap;
-
-		// blogposts-titles-map
-		$analyzeBlogPostsTitlesMap = $this->data['analyze-blogposts-titles-map'];
-		$compressedBlogPostsTitlesMap = $applyCompressedTitles->toMapValues( $analyzeBlogPostsTitlesMap );
-		ksort( $compressedBlogPostsTitlesMap );
-
-		$this->data['global-blogposts-titles-map'] = $compressedBlogPostsTitlesMap;
-
-		// page-id-to-titles
-		$analyzePageIdToTitleMap = $this->data['analyze-page-id-to-title-map'];
-		$compressedPageIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzePageIdToTitleMap );
-		ksort( $compressedPageIdToTitleMap );
-
-		$this->data['global-page-id-to-title-map'] = $compressedPageIdToTitleMap;
-
-		// blogpost-id-to-titles
-		$analyzeBlogPostIdToTitleMap = $this->data['analyze-blogpost-id-to-title-map'];
-		$compressedBlogPostIdToTitleMap = $applyCompressedTitles->toMapValues( $analyzeBlogPostIdToTitleMap );
-		ksort( $compressedBlogPostIdToTitleMap );
-
-		$this->data['global-blogpost-id-to-title-map'] = $compressedBlogPostIdToTitleMap;
-
-		// title-revisions
-		$analyzeTitleRevisionsMap = $this->data['analyze-title-revisions'];
-		$compressedTitleRevison = $applyCompressedTitles->toMapKeys( $analyzeTitleRevisionsMap );
-		ksort( $compressedTitleRevison );
-
-		$this->data['global-title-revisions'] = $compressedTitleRevison;
-	}
-
-	/**
 	 *
 	 * @param SplFileInfo $file
 	 * @return bool
 	 */
 	protected function doAnalyze( SplFileInfo $file ): bool {
-		// Process Space and BodyContents objects (needed by other objects)
-		$this->output->writeln( "\nPreprocess data:" );
-		$preprocessors = $this->getPreProcessors();
-		$this->processFile( $preprocessors );
-
-		// Process Page objects (needed by other objects)
-		$this->output->writeln( "\nProcess data:" );
+		$this->output->writeln( "\nAnalyze data:" );
 		$processors = $this->getProcessors();
 		$this->processFile( $processors );
 
-		// Reduce title length if lenght exceeds 255 characters
-		$this->compressLongTitles();
-
-		// Process title attachments fallback
-		$this->output->writeln( "\nPostprocess data:" );
-		$postprocessors = $this->getPostProcessors();
-		$this->processFile( $postprocessors );
-
-		// Add files
-		foreach ( $this->data['analyze-add-file'] as $filename => $reference ) {
-			$this->addFile( $filename, $reference );
-		}
+		$this->updateBodyContentIdsFallback();
+		$this->updatePageTableWithWikiTitle();
+		$this->updateBlogPostTableWithWikiTitle();
+		$this->updatePageAttachmentTable();
+		$this->populateAdditionalAttachmentsTable();
 
 		return true;
 	}
@@ -413,146 +217,596 @@ class ConfluenceAnalyzer extends AnalyzerBase implements LoggerAwareInterface, I
 	/**
 	 * @return void
 	 */
+	private function updateBodyContentIdsFallback(): void {
+		// Update pages table
+		$pages = $this->workspaceDB->getPages();
+		foreach ( $pages as $page ) {
+			if ( !isset( $page['page_id'] ) || !isset( $page['body_content_ids'] ) ) {
+				continue;
+			}
+
+			$pageId = (int)$page['page_id'];
+			$bodyContentIds = json_decode( $page['body_content_ids'], true );
+
+			// Check if body_content_ids is empty
+			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
+				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
+				if ( !empty( $foundIds ) ) {
+					$this->output->writeln(
+						"Updated body_content_ids for page ID $pageId with IDs: "
+						. implode( ', ', $foundIds )
+					);
+					$this->workspaceDB->updatePageBodyContentIds( $pageId, $foundIds );
+				}
+
+			}
+		}
+		$this->output->writeln( "... done" );
+
+		// Update blog_posts table
+		$blogPosts = $this->workspaceDB->getBlogPosts();
+		foreach ( $blogPosts as $blogPost ) {
+			if ( !isset( $blogPost['page_id'] ) || !isset( $blogPost['body_content_ids'] ) ) {
+				continue;
+			}
+
+			$pageId = (int)$blogPost['page_id'];
+			$bodyContentIds = json_decode( $blogPost['body_content_ids'], true );
+
+			// Check if body_content_ids is empty
+			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
+				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
+				if ( !empty( $foundIds ) ) {
+					$this->output->writeln(
+						"Updated body_content_ids for blog post ID $pageId with IDs: "
+						. implode( ', ', $foundIds )
+					);
+					$this->workspaceDB->updateBlogPostBodyContentIds( $pageId, $foundIds );
+				}
+			}
+		}
+
+		// Update comments table
+		$comments = $this->workspaceDB->getComments();
+		foreach ( $comments as $comment ) {
+			if ( !isset( $comment['comment_id'] ) || !isset( $comment['body_content_ids'] ) ) {
+				continue;
+			}
+
+			$commentId = (int)$comment['comment_id'];
+			$bodyContentIds = json_decode( $comment['body_content_ids'], true );
+
+			// Check if body_content_ids is empty
+			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
+				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $commentId );
+				if ( !empty( $foundIds ) ) {
+					$this->output->writeln(
+						"Updated body_content_ids for comment ID $commentId with IDs: "
+						. implode( ', ', $foundIds )
+					);
+					$this->workspaceDB->updateCommentBodyContentIds( $commentId, $foundIds );
+				}
+			}
+		}
+
+		// Update spaces_descriptions table
+		$spaceDescriptions = $this->workspaceDB->getSpaceDescriptions();
+		foreach ( $spaceDescriptions as $spaceDesc ) {
+			if ( !isset( $spaceDesc['space_description_id'] ) || !isset( $spaceDesc['body_content_ids'] ) ) {
+				continue;
+			}
+
+			$spaceDescriptionId = (int)$spaceDesc['space_description_id'];
+			$bodyContentIds = json_decode( $spaceDesc['body_content_ids'], true );
+
+			// Check if body_content_ids is empty
+			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
+				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $spaceDescriptionId );
+				if ( !empty( $foundIds ) ) {
+					$this->output->writeln(
+						"Updated body_content_ids for space description ID $spaceDescriptionId with IDs: "
+						. implode( ', ', $foundIds )
+					);
+					$this->workspaceDB->updateSpaceDescriptionBodyContentIds( $spaceDescriptionId, $foundIds );
+				}
+			}
+		}
+	}
+
+	/**
+	 * @return void
+	 */
+	private function updatePageTableWithWikiTitle(): void {
+		$titleBuilder = new TitleBuilder(
+			$this->workspaceDB->getMapSpaceIdToPrefix(),
+			$this->workspaceDB->getMapSpaceIdToHomepageId(),
+			$this->workspaceDB->getMapPageIdtoParentPageId(),
+			$this->workspaceDB->getMapPageIdToConfluenceTitle(),
+			$this->migrationConfig->getMainPageName()
+		);
+
+		$pages = $this->workspaceDB->getPages();
+		$pageIdToWikiTitleMap = [];
+		foreach ( $pages as $page ) {
+			if (
+				!isset( $page['page_id'] )
+				|| !isset( $page['space_id'] )
+				|| !isset( $page['confluence_title'] )
+				|| !isset( $page['content_status'] )
+				// historical versions
+				|| $page['original_version_id'] !== -1
+			) {
+				continue;
+			}
+
+			// Create a wiki page title only for current page versions.
+			// This is needed to avoid creating wiki titles for deleted pages or old page versions.
+			if ( $page['content_status'] !== 'current' ) {
+				continue;
+			}
+
+			$pageId = (int)$page['page_id'];
+			$spaceId = (int)$page['space_id'];
+			$confluenceTitle = (string)$page['confluence_title'];
+
+			$this->output->writeln(
+				"Creating wiki title for page ID $pageId with confluence title '$confluenceTitle'"
+			);
+
+			try {
+				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
+				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
+			} catch ( Exception $ex ) {
+				$this->logger->warning(
+					'Could not build wiki title for page ' . $pageId . ': ' . $ex->getMessage()
+				);
+				$this->workspaceDB->addLogEntry(
+					'warning',
+					'analyze',
+					__CLASS__,
+					"Could not build wiki title for page $pageId: " . $ex->getMessage()
+				);
+			}
+		}
+
+		if ( $pageIdToWikiTitleMap === [] ) {
+			return;
+		}
+
+		$titleCompressor = new TitleCompressor();
+		$compressedTitlesMap = $titleCompressor->execute( $pageIdToWikiTitleMap );
+		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
+		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
+
+		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
+			$this->output->writeln(
+				"Updated wiki title for page ID $pageId with title: $wikiTitle"
+			);
+			$this->workspaceDB->updatePageWikiTitle( (int)$pageId, $wikiTitle );
+		}
+	}
+
+	/**
+	 * @return void
+	 */
+	private function updateBlogPostTableWithWikiTitle(): void {
+		$spaceIdToSpaceKeyMap = $this->workspaceDB->getMapSpaceIdToKey();
+		$blogPosts = $this->workspaceDB->getBlogPosts();
+		$pageIdToWikiTitleMap = [];
+
+		foreach ( $blogPosts as $blogPost ) {
+			if (
+				!isset( $blogPost['page_id'] )
+				|| !isset( $blogPost['space_id'] )
+				|| !isset( $blogPost['confluence_title'] )
+				|| !isset( $blogPost['content_status'] )
+				// historical versions
+				|| $blogPost['original_version_id'] !== -1
+			) {
+				continue;
+			}
+
+			if ( $blogPost['content_status'] !== 'current' ) {
+				continue;
+			}
+
+			$pageId = (int)$blogPost['page_id'];
+			$spaceId = (int)$blogPost['space_id'];
+			$confluenceTitle = (string)$blogPost['confluence_title'];
+
+			if ( !isset( $spaceIdToSpaceKeyMap[$spaceId] ) ) {
+				continue;
+			}
+
+			$this->output->writeln(
+				"Creating wiki title for blog post ID $pageId with confluence title '$confluenceTitle'"
+			);
+
+			$spaceKey = $spaceIdToSpaceKeyMap[$spaceId];
+			$blogName = self::NS_BLOG_NAME;
+			$titleBuilder = new TitleBuilder( [ $spaceId => "$blogName:$spaceKey/" ], [], [], [] );
+
+			try {
+				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
+				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
+			} catch ( Exception $ex ) {
+				$this->logger->warning(
+					'Could not build wiki title for blog post ' . $pageId . ': ' . $ex->getMessage()
+				);
+			}
+		}
+
+		if ( $pageIdToWikiTitleMap === [] ) {
+			return;
+		}
+
+		$titleCompressor = new TitleCompressor();
+		$compressedTitlesMap = $titleCompressor->execute( $pageIdToWikiTitleMap );
+		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
+		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
+
+		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
+			$this->output->writeln(
+				"Updated wiki title for blog post ID $pageId with title: $wikiTitle"
+			);
+			$this->workspaceDB->updateBlogPostWikiTitle( (int)$pageId, $wikiTitle );
+		}
+	}
+
+	/**
+	 * @return void
+	 */
+	private function updatePageAttachmentTable(): void {
+		$pageIdToWikiTitleMap = [];
+		foreach ( $this->workspaceDB->getPages() as $page ) {
+			if ( !isset( $page['page_id'] )
+				|| !isset( $page['wiki_title'] )
+				|| !isset( $page['content_status'] )
+			) {
+				continue;
+			}
+			if ( $page['content_status'] !== 'current' || $page['wiki_title'] === '' ) {
+				continue;
+			}
+			$pageIdToWikiTitleMap[(int)$page['page_id']] = (string)$page['wiki_title'];
+		}
+
+		if ( $pageIdToWikiTitleMap === [] ) {
+			return;
+		}
+
+		$filenameBuilder = new FilenameBuilder(
+			$this->workspaceDB->getMapSpaceIdToPrefix(),
+			$this->migrationConfig
+		);
+
+		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
+			if (
+				!isset( $attachment['attachment_id'] )
+				|| !isset( $attachment['space_id'] )
+				|| !isset( $attachment['filename'] )
+				|| !isset( $attachment['container_id'] )
+				|| !isset( $attachment['content_status'] )
+				// historical versions
+				|| $attachment['original_version_id'] !== -1
+			) {
+				continue;
+			}
+
+			if ( $attachment['content_status'] !== 'current' ) {
+				continue;
+			}
+
+			$pageId = (int)$attachment['container_id'];
+			if ( !isset( $pageIdToWikiTitleMap[$pageId] ) ) {
+				continue;
+			}
+
+			$attachmentId = (int)$attachment['attachment_id'];
+			$attachmentSpaceId = (int)$attachment['space_id'];
+			$attachmentOrigFilename = (string)$attachment['filename'];
+
+			$this->output->writeln(
+				"Creating wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
+			);
+
+			$pageWikiTitle = $this->workspaceDB->getWikiTitleForAttachmentId( $attachmentId );
+			$pageWikiTitle = substr( $pageWikiTitle, strrpos( $pageWikiTitle, ':' ) );
+			$pageWikiTitleParts = explode( '/', $pageWikiTitle );
+			$shortPageWikiTitle = end( $pageWikiTitleParts );
+			try {
+				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+					$attachmentSpaceId,
+					$attachmentOrigFilename,
+					$shortPageWikiTitle,
+				);
+			} catch ( Exception $fallbackEx ) {
+				$this->logger->warning(
+					'Could not build target filename for attachment ' . $attachmentId . ': '
+					. $fallbackEx->getMessage()
+				);
+				$this->workspaceDB->addLogEntry(
+					'warning',
+					'analyze',
+					__CLASS__,
+					"Could not build target filename for attachment $attachmentId: "
+					. $fallbackEx->getMessage()
+				);
+				continue;
+			}
+
+			// Uncollide file title
+			$exists = $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle );
+			$counter = 1;
+			$maxUncollideAttempts = 10000;
+			while ( $exists ) {
+				if ( $counter > $maxUncollideAttempts ) {
+					$this->logger->warning(
+						"Could not find unique page attachment title for attachment $attachmentId after "
+						. (string)$maxUncollideAttempts . ' attempts'
+					);
+					$this->workspaceDB->addLogEntry(
+						'warning',
+						'analyze',
+						__CLASS__,
+						"Could not find unique page attachment title for attachment $attachmentId after "
+						. (string)$maxUncollideAttempts . ' attempts'
+					);
+					continue 2;
+				}
+
+				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+					$attachmentSpaceId,
+					$attachmentOrigFilename,
+					$shortPageWikiTitle,
+					"-(" . (string)$counter . ")"
+				);
+
+				$exists = $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle );
+				$counter++;
+			}
+
+			$file = new SplFileInfo( $attatchmentWikiTitle );
+			if ( $file->getExtension() === '' || strlen( $file->getExtension() ) > 10 ) {
+				$attatchmentWikiTitle .= '.unknown';
+			}
+
+			$this->output->writeln(
+				"Add page attachment for attachment ID $attachmentId with title: $attatchmentWikiTitle"
+			);
+
+			$this->workspaceDB->addPageAttachment(
+				$attachmentId,
+				$pageId,
+				$attachment['filename'],
+				$attatchmentWikiTitle
+			);
+		}
+	}
+
+	/**
+	 * Populate additional_attachments with attachments that are not part of page_attachments.
+	 *
+	 * The target filename is built from space prefix and original filename only.
+	 *
+	 * @return void
+	 */
+	private function populateAdditionalAttachmentsTable(): void {
+		$attachmentIdsInPageAttachments = [];
+		foreach ( $this->workspaceDB->getPageAttachments() as $pageAttachment ) {
+			if ( !isset( $pageAttachment['attachment_id'] ) ) {
+				continue;
+			}
+
+			$attachmentIdsInPageAttachments[(int)$pageAttachment['attachment_id']] = true;
+		}
+
+		$filenameBuilder = new FilenameBuilder(
+			$this->workspaceDB->getMapSpaceIdToPrefix(),
+			$this->migrationConfig
+		);
+
+		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
+			if (
+				!isset( $attachment['attachment_id'] )
+				|| !isset( $attachment['container_id'] )
+				|| !isset( $attachment['space_id'] )
+				|| !isset( $attachment['filename'] )
+				|| !isset( $attachment['content_status'] )
+				|| !isset( $attachment['original_version_id'] )
+			) {
+				continue;
+			}
+
+			if ( $attachment['original_version_id'] !== -1 ) {
+				continue;
+			}
+
+			$attachmentId = (int)$attachment['attachment_id'];
+			if ( isset( $attachmentIdsInPageAttachments[$attachmentId] ) ) {
+				continue;
+			}
+
+			$attachmentSpaceId = (int)$attachment['space_id'];
+			$attachmentOrigFilename = (string)$attachment['filename'];
+
+			$this->output->writeln(
+				"Create wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
+			);
+
+			try {
+				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+					$attachmentSpaceId,
+					$attachmentOrigFilename,
+					''
+				);
+			} catch ( Exception $ex ) {
+				$this->logger->warning(
+					'Could not build target filename for attachment ' . $attachmentId . ': '
+					. $ex->getMessage()
+				);
+				$this->workspaceDB->addLogEntry(
+					'warning',
+					'analyze',
+					__CLASS__,
+					"Could not build target filename for attachment $attachmentId: "
+					. $ex->getMessage()
+				);
+				continue;
+			}
+
+			// Uncollide file title
+			$exists = ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle )
+				|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $attatchmentWikiTitle )
+			);
+
+			$counter = 1;
+			$maxUncollideAttempts = 10000;
+			while ( $exists ) {
+				if ( $counter > $maxUncollideAttempts ) {
+					$this->logger->warning(
+						"Could not find unique additional attachment title for attachment $attachmentId after "
+						. (string)$maxUncollideAttempts . ' attempts'
+					);
+					$this->workspaceDB->addLogEntry(
+						'warning',
+						'analyze',
+						__CLASS__,
+						"Could not find unique additional attachment title for attachment $attachmentId after "
+						. (string)$maxUncollideAttempts . ' attempts'
+					);
+					continue 2;
+				}
+
+				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+					$attachmentSpaceId,
+					$attachmentOrigFilename,
+					'',
+					"-(" . (string)$counter . ")"
+				);
+
+				$exists = ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle )
+					|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $attatchmentWikiTitle )
+				);
+				$counter++;
+			}
+
+			$this->output->writeln(
+				"Add additional attachment for attachment ID $attachmentId with title: $attatchmentWikiTitle"
+			);
+
+			$this->workspaceDB->addAdditionalAttachment(
+				$attachmentId,
+				(string)$attachment['filename'],
+				$attatchmentWikiTitle
+			);
+		}
+	}
+
+	/**
+	 * @return void
+	 */
 	private function checkTitles(): void {
-		$titlesMap = $this->data['global-title-revisions'];
+		$this->output->writeln(
+			"Validating titles of pages, blog posts and attachments. This may take a while for large instances..."
+		);
+
+		$titles = [];
+		foreach ( $this->workspaceDB->getPages() as $page ) {
+			$title = '';
+			$pageId = $page['page_id'];
+			if ( isset( $page['wiki_title'] ) && $page['wiki_title'] !== '' ) {
+				$title = (string)$page['wiki_title'];
+			} elseif ( isset( $page['confluence_title'] ) ) {
+				$title = (string)$page['confluence_title'];
+			}
+
+			if ( $title !== '' ) {
+				$titles[$pageId] = $title;
+			}
+		}
+
+		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
+			$title = '';
+			$pageId = $blogPost['page_id'];
+			if ( isset( $blogPost['wiki_title'] ) && $blogPost['wiki_title'] !== '' ) {
+				$title = (string)$blogPost['wiki_title'];
+			} elseif ( isset( $blogPost['confluence_title'] ) ) {
+				$title = (string)$blogPost['confluence_title'];
+			}
+
+			if ( $title !== '' ) {
+				$titles[$pageId] = $title;
+			}
+		}
+
+		$invalidTitles = false;
 
 		$validityChecker = new TitleValidityChecker();
 
-		$hasInvalidTitles = false;
-		$hasInvalidNamespaces = false;
-		foreach ( $titlesMap as $title => $revisons ) {
+		foreach ( $titles as $pageId => $title ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
-				$this->customBuckets->addData(
-					'warning-analyze-invalid-titles',
-					'invalid_ending', $title,
-					true, true
-				);
-				$hasInvalidTitles = true;
+				$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title ens with invalid character' );
 			}
 			if ( str_contains( $title, ':' ) ) {
 				if ( $validityChecker->hasDoubleColon( $title ) ) {
-					$this->customBuckets->addData(
-						'warning-analyze-invalid-titles',
-						'multiple_collons', $title,
-						true, true
-					);
-					$hasInvalidTitles = true;
+					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title contains multiple collons' );
+					$invalidTitles = true;
 				}
 				$namespace = substr( $title, 0, strpos( $title, ':' ) );
 				$text = substr( $title, strpos( $title, ':' ) + 1 );
 
 				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
-					$this->customBuckets->addData(
-						'warning-analyze-invalid-namespaces',
-						'invalid_char', $namespace,
-						true, true
-					);
-					$hasInvalidNamespaces = true;
+					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Invalid namespace character detected' );
+					$invalidTitles = true;
 				}
 
 				if ( !$validityChecker->hasValidLength( $text ) ) {
-					$this->customBuckets->addData(
-						'warning-analyze-invalid-titles',
-						'length', $title,
-						true, true
-					);
-					$hasInvalidTitles = true;
+					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title contains to many characters (>256)' );
+					$invalidTitles = true;
 				}
 			} else {
 				if ( !$validityChecker->hasValidLength( $title ) ) {
-					$this->customBuckets->addData(
-						'warning-analyze-invalid-titles',
-						'length', $title,
-						true, true
-					);
-					$hasInvalidTitles = true;
+					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title contains to many characters (>256)' );
+					$invalidTitles = true;
 				}
 			}
 		}
 
-		$files = $this->buckets->getBucketData( 'global-files' );
-		$hasInvalidFilenames = false;
-		foreach ( $files as $title => $paths ) {
-			if ( !$validityChecker->hasValidLength( $title ) ) {
-				$this->customBuckets->addData(
-					'warning-analyze-invalid-filenames',
-					'length', $title,
-					true, true
+		$invalidAttachments = false;
+		$pageAttachments = $this->workspaceDB->getPageAttachments();
+		foreach ( $pageAttachments as $attachment ) {
+			$attachmentId = $attachment['attachment_id'];
+			$wikiTitle = $attachment['target_attachment_filename'];
+			if ( !$validityChecker->hasValidLength( $wikiTitle ) ) {
+				$this->workspaceDB->addInvalidTitle(
+					$attachmentId,
+					$wikiTitle,
+					'Attachment title contains to many characters (>256)'
 				);
-				$hasInvalidFilenames = true;
+				$invalidAttachments = true;
 			}
 		}
 
-		if ( $hasInvalidNamespaces === true || $hasInvalidTitles === true || $hasInvalidFilenames === true ) {
-			$this->output->writeln( "\n\nWarning:\n" );
-
-			if ( $hasInvalidNamespaces === true ) {
-				$this->output->writeln( ' - Analyze process found invalid namespaces' );
-			}
-
-			if ( $hasInvalidTitles === true ) {
-				$this->output->writeln( ' - Analyze process found invalid titles' );
-			}
-
-			if ( $hasInvalidFilenames === true ) {
-				$this->output->writeln( ' - Analyze process found invalid filenames' );
-			}
-
+		if ( !empty( $this->workspaceDB->getLogEntriesForStep( 'analyze' ) ) ) {
+			$this->output->writeln( "\n\nWARNINGS / ERRORS:\n" );
 			$this->output->writeln(
-				"\nPlease check"
-			);
-			$this->output->writeln(
-				"\n - \"warning-analyze-invalid-namespaces.php\""
-			);
-			$this->output->writeln(
-				"\n - \"warning-analyze-invalid-titles.php\""
-			);
-			$this->output->writeln(
-				"\n - \"warning-analyze-invalid-filenames.php\""
-			);
-			$this->output->writeln(
-				"\nbefore continuing with extract step"
+				"\nPlease check logging table in workspaceDB for details about invalid titles and filenames\n\n"
 			);
 		}
-	}
 
-	/**
-	 *
-	 * @param string $titleText
-	 * @param string $contentReference
-	 * @return void
-	 */
-	protected function addTitleRevision( $titleText, $contentReference = 'n/a' ): void {
-		$this->buckets->addData( 'global-title-revisions', $titleText, $contentReference, true, true );
-	}
-
-	/**
-	 *
-	 * @param string $titleText
-	 * @param string $attachmentReference
-	 * @return void
-	 */
-	protected function addTitleAttachment( $titleText, $attachmentReference = 'n/a' ): void {
-		$this->buckets->addData( 'global-title-attachments', $titleText, $attachmentReference );
-	}
-
-	/**
-	 *
-	 * @param string $rawFilename
-	 * @param string $attachmentReference
-	 * @return void
-	 */
-	protected function addFile( $rawFilename, $attachmentReference = 'n/a' ): void {
-		try {
-			$filename = $this->getFilename( $rawFilename, $attachmentReference );
-			$filename = ( new WindowsFilename( $filename ) ) . '';
-		} catch ( Exception $ex ) {
-			$this->logger->error( $ex->getMessage() );
-			return;
+		if ( $invalidTitles ) {
+			$this->output->writeln( "\n\INVALID PAGE TITLES DETECTED:\n" );
+			$this->output->writeln(
+				"\nPlease check invalid_titles table in workspaceDB for details\n\n"
+			);
 		}
 
-		$prefixedFilename = $this->maybePrefixFilename( $filename );
-
-		$this->buckets->addData( 'global-files', $prefixedFilename, $attachmentReference );
+		if ( $invalidAttachments ) {
+			$this->output->writeln( "\n\INVALID ATTACHMENT TITLES DETECTED:\n" );
+			$this->output->writeln(
+				"\nPlease check invalid_attachment_titles table in workspaceDB for details\n\n"
+			);
+		}
 	}
 }

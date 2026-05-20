@@ -1,11 +1,5 @@
 <hibernate-generic datetime="2020-01-01 00:00:00">
 
-    <object class="ConfluenceUserImpl" package="com.atlassian.confluence.user">
-        <id name="key"><![CDATA[000000000000000000000000000000001]]></id>
-        <property name="name"><![CDATA[testuser]]></property>
-        <property name="lowerName"><![CDATA[testuser]]></property>
-    </object>
-
     <object class="Space" package="com.atlassian.confluence.spaces">
         <id name="id">10000000</id>
         <property name="name">Confluence-Testbereich</property>
@@ -57,11 +51,64 @@
         <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
     </object>
 
-    <object class="BodyContent" package="com.atlassian.confluence.core">
-        <id name="id">20000001</id>
-        <property name="body"><![CDATA[<h3>Image URL</h3><p><span class="confluence-embedded-file-wrapper"><ac:image ac:border="true"><ri:url ri:value="https://example.com/download/attachments/12345678/test-image.png?version=1&amp;modificationDate=1000000000000&amp;api=v2" /></ac:image></span></p>]]></property>
-        <property name="bodyType">2</property>
-        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000001</id></property>
+    <object class="Page" package="com.atlassian.confluence.pages">
+        <id name="id">10000004</id>
+        <property name="hibernateVersion">1</property>
+        <property name="title">Cross Space Links Page</property>
+        <property name="lowerTitle">cross space links page</property>
+        <property name="version">1</property>
+        <property name="creationDate">2020-01-01 00:00:00.000</property>
+        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
+        <property name="versionComment"></property>
+        <property name="contentStatus">current</property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
+    </object>
+
+    <object class="Page" package="com.atlassian.confluence.pages">
+        <id name="id">10000003</id>
+        <property name="hibernateVersion">1</property>
+        <property name="title">Links Test Page</property>
+        <property name="lowerTitle">links test page</property>
+        <property name="version">1</property>
+        <property name="creationDate">2020-01-01 00:00:00.000</property>
+        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
+        <property name="versionComment"></property>
+        <property name="contentStatus">current</property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
+    </object>
+
+    <object class="Page" package="com.atlassian.confluence.pages">
+        <id name="id">10000011</id>
+        <property name="hibernateVersion">1</property>
+        <property name="title"><![CDATA[Second Space Page]]></property>
+        <property name="lowerTitle">second space page</property>
+        <property name="version">1</property>
+        <property name="creationDate">2020-01-01 00:00:00.000</property>
+        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
+        <property name="versionComment"></property>
+        <property name="contentStatus">current</property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000010</id></property>
+    </object>
+
+    <object class="Page" package="com.atlassian.confluence.pages">
+        <id name="id">10000021</id>
+        <property name="hibernateVersion">1</property>
+        <property name="title"><![CDATA[Third Space Page]]></property>
+        <property name="lowerTitle"><![CDATA[third space page]]></property>
+        <property name="version">1</property>
+        <property name="creationDate">2020-01-01 00:00:00.000</property>
+        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
+        <property name="versionComment"></property>
+        <property name="contentStatus">current</property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000020</id></property>
     </object>
 
     <object class="BlogPost" package="com.atlassian.confluence.pages">
@@ -81,101 +128,6 @@
         </collection>
     </object>
 
-    <object class="BodyContent" package="com.atlassian.confluence.core">
-        <id name="id">20000003</id>
-        <property name="body"><![CDATA[<p>Hello blog world.</p>]]></property>
-        <property name="bodyType">2</property>
-        <property name="content" class="BlogPost" package="com.atlassian.confluence.pages"><id name="id">10000002</id></property>
-    </object>
-
-    <object class="Page" package="com.atlassian.confluence.pages">
-        <id name="id">10000004</id>
-        <property name="hibernateVersion">1</property>
-        <property name="title">Cross Space Links Page</property>
-        <property name="lowerTitle">cross space links page</property>
-        <property name="version">1</property>
-        <property name="creationDate">2020-01-01 00:00:00.000</property>
-        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
-        <property name="versionComment"></property>
-        <property name="contentStatus">current</property>
-        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
-        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
-        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
-    </object>
-
-    <object class="BodyContent" package="com.atlassian.confluence.core">
-        <id name="id">20000012</id>
-        <property name="body"><![CDATA[<p>Link to second space: <ac:link><ri:page ri:space-key="SEC" ri:content-title="Second Space Page"/><ac:link-body>Second Space Page</ac:link-body></ac:link></p>]]></property>
-        <property name="bodyType">2</property>
-        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000004</id></property>
-    </object>
-
-    <object class="Page" package="com.atlassian.confluence.pages">
-        <id name="id">10000003</id>
-        <property name="hibernateVersion">1</property>
-        <property name="title">Links Test Page</property>
-        <property name="lowerTitle">links test page</property>
-        <property name="version">1</property>
-        <property name="creationDate">2020-01-01 00:00:00.000</property>
-        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
-        <property name="versionComment"></property>
-        <property name="contentStatus">current</property>
-        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
-        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
-        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
-    </object>
-
-    <object class="BodyContent" package="com.atlassian.confluence.core">
-        <id name="id">20000005</id>
-        <property name="body"><![CDATA[<p>Simple text link: <a href="https://example.com">Click here</a></p><p>Link with only ac:image: <a href="https://example.com"><ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image></a></p><p>Internal link: <a href="/wiki/SomePage"><span>text</span></a></p><p>Link with span child: <a href="https://example.com"><span>content</span></a></p><p>Link with br child: <a href="https://example.com"><br/></a></p><p>Complex link with span+br+span: <a href="https://example.com"><span>A</span><br/><span>B</span></a></p><p>Extracted children placed before existing next sibling: <a href="https://example.com"><span>child</span></a><em>next</em></p><p>Link with nested ac:image inside span: <a href="https://example.com"><span><ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image></span></a></p><p>Link with nested ac:image along content: <a href="https://example.com"><ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image><span>content</span></a></p><p>Link with nested ac:image inside span along content: <a href="https://example.com"><span><ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image></span><span>content</span></a></p><p>Link with content with nested ac:image inside span along content: <a href="https://example.com"><span>content<ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image></span><span>content</span></a></p>]]></property>
-        <property name="bodyType">2</property>
-        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000003</id></property>
-    </object>
-
-    <object class="Page" package="com.atlassian.confluence.pages">
-        <id name="id">10000011</id>
-        <property name="hibernateVersion">1</property>
-        <property name="title"><![CDATA[Second Space Page]]></property>
-        <property name="lowerTitle">second space page</property>
-        <property name="version">1</property>
-        <property name="creationDate">2020-01-01 00:00:00.000</property>
-        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
-        <property name="versionComment"></property>
-        <property name="contentStatus">current</property>
-        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
-        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
-        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000010</id></property>
-    </object>
-
-    <object class="BodyContent" package="com.atlassian.confluence.core">
-        <id name="id">20000011</id>
-        <property name="body"><![CDATA[<p>Hello from the second space.</p>]]></property>
-        <property name="bodyType">2</property>
-        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000011</id></property>
-    </object>
-
-    <object class="Page" package="com.atlassian.confluence.pages">
-        <id name="id">10000021</id>
-        <property name="hibernateVersion">1</property>
-        <property name="title"><![CDATA[Third Space Page]]></property>
-        <property name="lowerTitle"><![CDATA[third space page]]></property>
-        <property name="version">1</property>
-        <property name="creationDate">2020-01-01 00:00:00.000</property>
-        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
-        <property name="versionComment"></property>
-        <property name="contentStatus">current</property>
-        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
-        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
-        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000020</id></property>
-    </object>
-
-    <object class="BodyContent" package="com.atlassian.confluence.core">
-        <id name="id">20000021</id>
-        <property name="body"><![CDATA[<p>Link to second space: <ac:link><ri:page ri:space-key="SEC" ri:content-title="Second Space Page"/><ac:link-body>Second Space Page</ac:link-body></ac:link></p>]]></property>
-        <property name="bodyType">2</property>
-        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000021</id></property>
-    </object>
-
     <object class="Comment" package="com.atlassian.confluence.pages">
         <id name="id">30000001</id>
         <property name="contentStatus">current</property>
@@ -186,10 +138,58 @@
     </object>
 
     <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000001</id>
+        <property name="body"><![CDATA[<h3>Image URL</h3><p><span class="confluence-embedded-file-wrapper"><ac:image ac:border="true"><ri:url ri:value="https://example.com/download/attachments/12345678/test-image.png?version=1&amp;modificationDate=1000000000000&amp;api=v2" /></ac:image></span></p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000001</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000003</id>
+        <property name="body"><![CDATA[<p>Hello blog world.</p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="BlogPost" package="com.atlassian.confluence.pages"><id name="id">10000002</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000012</id>
+        <property name="body"><![CDATA[<p>Link to second space: <ac:link><ri:page ri:space-key="SEC" ri:content-title="Second Space Page"/><ac:link-body>Second Space Page</ac:link-body></ac:link></p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000004</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000005</id>
+        <property name="body"><![CDATA[<p>Simple text link: <a href="https://example.com">Click here</a></p><p>Link with only ac:image: <a href="https://example.com"><ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image></a></p><p>Internal link: <a href="/wiki/SomePage"><span>text</span></a></p><p>Link with span child: <a href="https://example.com"><span>content</span></a></p><p>Link with br child: <a href="https://example.com"><br/></a></p><p>Complex link with span+br+span: <a href="https://example.com"><span>A</span><br/><span>B</span></a></p><p>Extracted children placed before existing next sibling: <a href="https://example.com"><span>child</span></a><em>next</em></p><p>Link with nested ac:image inside span: <a href="https://example.com"><span><ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image></span></a></p><p>Link with nested ac:image along content: <a href="https://example.com"><ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image><span>content</span></a></p><p>Link with nested ac:image inside span along content: <a href="https://example.com"><span><ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image></span><span>content</span></a></p><p>Link with content with nested ac:image inside span along content: <a href="https://example.com"><span>content<ac:image><ri:url ri:value="https://img.example.com/img.png"/></ac:image></span><span>content</span></a></p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000003</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000011</id>
+        <property name="body"><![CDATA[<p>Hello from the second space.</p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000011</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000021</id>
+        <property name="body"><![CDATA[<p>Link to second space: <ac:link><ri:page ri:space-key="SEC" ri:content-title="Second Space Page"/><ac:link-body>Second Space Page</ac:link-body></ac:link></p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000021</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
         <id name="id">20000002</id>
         <property name="body"><![CDATA[<p>This is a test comment.</p>]]></property>
         <property name="bodyType">2</property>
         <property name="content" class="Comment" package="com.atlassian.confluence.pages"><id name="id">30000001</id></property>
+    </object>
+
+    <object class="ConfluenceUserImpl" package="com.atlassian.confluence.user">
+        <id name="key"><![CDATA[000000000000000000000000000000001]]></id>
+        <property name="name"><![CDATA[Testuser]]></property>
+        <property name="lowerName"><![CDATA[testuser]]></property>
     </object>
 
 </hibernate-generic>

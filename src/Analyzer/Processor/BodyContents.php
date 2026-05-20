@@ -2,25 +2,24 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 class BodyContents extends ProcessorBase {
 
 	/**
-	 * @inheritDoc
+	 * @param WorkspaceDB $workspaceDB
 	 */
-	public function getKeys(): array {
-		return [
-			'analyze-body-content-id-to-page-id-map',
-			'analyze-body-content-id-to-comment-id-map',
-		];
+	public function __construct(
+		private WorkspaceDB $workspaceDB
+	) {
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function doExecute(): void {
-		$bodyContentId = '';
+		$bodyContentId = -1;
 		$properties = [];
 		$contentClass = '';
 
@@ -46,15 +45,34 @@ class BodyContents extends ProcessorBase {
 			return;
 		}
 
-		$contentId = (int)trim( $properties['content'] );
-
-		if ( $contentClass === 'Comment' ) {
-			$this->data['analyze-body-content-id-to-comment-id-map'][$bodyContentId] = $contentId;
-
-			return;
+		// The body will be extracted later as file for pandoc and does not need to be in database.
+		// We store it in a separate table to be able to easily retrieve it for the content transformation and
+		// to keep the main table smaller.
+		if ( isset( $properties['body'] ) ) {
+			$this->workspaceDB->addBodyContentBody(
+				$bodyContentId,
+				$properties['body']
+			);
+			unset( $properties['body'] );
 		}
 
-		$this->data['analyze-body-content-id-to-page-id-map'][$bodyContentId] = $contentId;
+		$contentId = (int)trim( $properties['content'] );
+
+		$status = $this->workspaceDB->addBodyContent(
+			$bodyContentId,
+			$contentId,
+			$contentClass,
+			$properties
+		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add body content (ID:$bodyContentId) to the database."
+			);
+		}
 	}
 
 }

@@ -4,14 +4,14 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ImagePageLinkHelper {
 
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	protected ConversionDataLookup $dataLookup;
+	protected DBConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
@@ -32,11 +32,11 @@ class ImagePageLinkHelper {
 	private string $spaceKey = '';
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
-	public function __construct( ConversionDataLookup $dataLookup,
+	public function __construct( DBConversionDataLookup $dataLookup,
 		int $currentSpaceId, string $rawPageTitle ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
@@ -56,9 +56,10 @@ class ImagePageLinkHelper {
 				$this->currentSpaceId = $this->ensureSpaceId( $page );
 			}
 
-			$confluencePageKey = $this->generatePageConfluenceKey( $this->currentSpaceId, $this->rawPageTitle );
-
-			$targetTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
+			$targetTitle = $this->dataLookup->getTargetPageTitleFromSpaceId(
+				$this->currentSpaceId,
+				$this->rawPageTitle
+			);
 			if ( !empty( $targetTitle ) ) {
 				return $targetTitle;
 			} else {
@@ -90,15 +91,6 @@ class ImagePageLinkHelper {
 		}
 
 		return $spaceId;
-	}
-
-	/**
-	 * @param int $spaceId
-	 * @param string $rawPageTitle
-	 * @return string
-	 */
-	private function generatePageConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		return "$spaceId---$rawPageTitle";
 	}
 
 	/**

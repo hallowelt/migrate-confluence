@@ -8,10 +8,10 @@ use PHPUnit\Framework\TestCase;
 
 class EmoticonTest extends TestCase {
 
-		/**
-		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\EmoticonProcessor::preprocess
-		 * @return void
-		 */
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\EmoticonProcessor::process
+	 * @return void
+	 */
 	public function testPreprocess() {
 		$dir = dirname( dirname( __DIR__ ) ) . '/data';
 		$input = file_get_contents( "$dir/emoticon-input.xml" );

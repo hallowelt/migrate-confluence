@@ -14,51 +14,50 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Converter\UnhandledMacroConverter;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
 class TableComplexTest extends TestCase {
-
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private $dir = '';
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable::postprocess
+	 * @covers \HalloWelt\MigrateConfluence\Tests\Converter\Processor\TableComplexTest::doTestWith
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
+		$this->doTestWith( 'table-complex-input.xml', 'table-complex-output.wikitext' );
+	}
 
-		$input = file_get_contents( "$this->dir/table-complex-input.xml" );
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Tests\Converter\Processor\TableComplexTest::doTestWith
+	 * @return void
+	 */
+	public function testProcessWithInclude() {
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
+		$this->doTestWith( 'table-complex-with-include-input.xml', 'table-complex-with-include-output.wikitext' );
+	}
+
+	/**
+	 * @param string $inputFile
+	 * @param string $outputFile
+	 * @return void
+	 */
+	private function doTestWith( string $inputFile, string $outputFile ): void {
+		$input = file_get_contents( "$this->dir/$inputFile" );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$dataLookup = new ConversionDataLookup(
-			[ 42 => 'ABC', 23 => 'INF' ],
-			[
-				'23---Sed_do_eiusmod_tempor_incididunt'
-					=> 'INF:Sed_do_eiusmod_tempor_incididunt',
-			],
-			[],
-			[],
-			[],
-			[
-				'8a24c45f93bbe67901943c7033640000' => 'UserA',
-				'000000005e7f616b01606dc4e2080003' => 'UserB',
-			],
-			[ 42 => 'ABC', 23 => 'INF' ],
-			[],
-			[],
-			[]
-		);
+		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
 		$processors = [
 			new PreserveTimeTag(),
-			new UserLink( $dataLookup, 42, 'SomePage', [] ),
-			new PageLink( $dataLookup, 42, 'SomePage', [] ),
+			new UserLink( $dataLookup, 42, 'SomePage', new MigrationConfig( [] ) ),
+			new PageLink( $dataLookup, 42, 'SomePage', new MigrationConfig( [] ) ),
 			new TaskListMacro(),
 			new PreservePStyleTag(),
 		];
@@ -90,85 +89,7 @@ class TableComplexTest extends TestCase {
 			$wikiText = $postProcessor->postprocess( $wikiText );
 		}
 
-		$expectedOutput = file_get_contents( "$this->dir/table-complex-output.wikitext" );
-
-		// Normalize consecutive blank lines to account for pandoc version differences
-		$normalize = static function ( $text ) {
-			return preg_replace( "/\n{2,}/", "\n", $text );
-		};
-
-		$this->assertEquals( $normalize( $expectedOutput ), $normalize( $wikiText ) );
-	}
-
-	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable::postprocess
-	 * @return void
-	 */
-	public function testProcessWithInclude() {
-		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
-
-		$input = file_get_contents( "$this->dir/table-complex-with-include-input.xml" );
-
-		$dom = new DOMDocument();
-		$dom->loadXML( $input );
-
-		$dataLookup = new ConversionDataLookup(
-			[ 42 => 'ABC', 23 => 'INF' ],
-			[
-				'23---Sed_do_eiusmod_tempor_incididunt'
-					=> 'INF:Sed_do_eiusmod_tempor_incididunt',
-			],
-			[],
-			[],
-			[],
-			[
-				'8a24c45f93bbe67901943c7033640000' => 'UserA',
-				'000000005e7f616b01606dc4e2080003' => 'UserB',
-			],
-			[ 42 => 'ABC', 23 => 'INF' ],
-			[],
-			[],
-			[]
-		);
-
-		$processors = [
-			new PreserveTimeTag(),
-			new UserLink( $dataLookup, 42, 'SomePage', [] ),
-			new PageLink( $dataLookup, 42, 'SomePage', [] ),
-			new TaskListMacro(),
-			new PreservePStyleTag(),
-		];
-
-		foreach ( $processors as $processor ) {
-			$processor->process( $dom );
-		}
-
-		$unhandled = new UnhandledMacroConverter();
-		$unhandled->process( $dom );
-
-		$tmpFile = tempnam( sys_get_temp_dir(), 'table-complex-with-include-' ) . '.html';
-		$dom->saveHTMLFile( $tmpFile );
-		$result = [];
-		// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.escapeshellcmd,MediaWiki.Usage.ForbiddenFunctions.exec
-		exec( escapeshellcmd( "pandoc -f html -t mediawiki $tmpFile" ), $result );
-		$wikiText = implode( "\n", $result );
-		unlink( $tmpFile );
-
-		$postProcessors = [
-			new RestorePStyleTag(),
-			new RestoreTimeTag(),
-			new FixLineBreakInHeadings(),
-			new FixMultilineTemplate(),
-			new FixMultilineTable(),
-		];
-
-		foreach ( $postProcessors as $postProcessor ) {
-			$wikiText = $postProcessor->postprocess( $wikiText );
-		}
-
-		$expectedOutput = file_get_contents( "$this->dir/table-complex-with-include-output.wikitext" );
-
-		// Normalize consecutive blank lines to account for pandoc version differences
+		$expectedOutput = file_get_contents( "$this->dir/$outputFile" );
 		$normalize = static function ( $text ) {
 			return preg_replace( "/\n{2,}/", "\n", $text );
 		};

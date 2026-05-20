@@ -3,13 +3,14 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
 class ViewFileMacroTest extends TestCase {
-
 	/**
-	 * @var ConversionDataLookup
+	 * @var mixed
 	 */
 	private $dataLookup;
 
@@ -18,33 +19,7 @@ class ViewFileMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dataLookup = new ConversionDataLookup(
-			[
-				42 => 'ABC:',
-				23 => 'DEVOPS:'
-			],
-			[
-				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
-			],
-			[
-				'0---SomePage---Dummy_1.pdf' => 'SomePage_Dummy_1.pdf',
-				'0---SomePage---Dummy_2.docx' => 'SomePage_Dummy_2.docx',
-				'0---SomePage---Dummy_3.png' => 'SomePage_Dummy_3.png',
-				'23---SomePage---Dummy_1.pdf' => 'DEVOPS:SomePage_Dummy_1.pdf',
-				'23---SomePage---Dummy_2.docx' => 'DEVOPS:SomePage_Dummy_2.docx',
-				'23---SomePage---Dummy_3.png' => 'DEVOPS:SomePage_Dummy_3.png',
-			],
-			[],
-			[],
-			[],
-			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[],
-			[],
-			[]
-		);
+		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		/** SpaceId GENERAL */
 		$this->doTest(
@@ -62,9 +37,7 @@ class ViewFileMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcessBrokenMacro() {
-		$this->dataLookup = new ConversionDataLookup(
-			[], [], [], [], [], [], [], [], [], []
-		);
+		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
 		// Macros with no params at all, or with a name param but no ri:filename attribute,
 		// must be replaced with the broken-macro category marker.
@@ -78,12 +51,10 @@ class ViewFileMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcessUnmappedFilename() {
-		$this->dataLookup = new ConversionDataLookup(
-			[], [], [], [], [], [], [], [], [], []
-		);
+		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
 		// ri:filename is present but not found in the migration map: the macro must still
-		// render using the original filename (red link) and append Broken_attachment_link.
+		// render using the expected wiki filename (red link) and append Broken_attachment_link.
 		$this->doTest(
 			0, "SomePage", 'view-file-macro-unmapped-input.xml', 'view-file-macro-unmapped-output.xml'
 		);
@@ -99,7 +70,7 @@ class ViewFileMacroTest extends TestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new ViewFileMacro( $this->dataLookup, $spaceId, $pageName, [] );
+		$processor = new ViewFileMacro( $this->dataLookup, $spaceId, $pageName, new MigrationConfig( [] ) );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );

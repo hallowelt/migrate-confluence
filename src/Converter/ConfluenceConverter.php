@@ -3,11 +3,12 @@
 namespace HalloWelt\MigrateConfluence\Converter;
 
 use DOMDocument;
+use DOMElement;
+use DOMNodeList;
 use DOMXPath;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
-use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
@@ -78,30 +79,39 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ViewPptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
-class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
+class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware {
 
-	/** @var DataBuckets */
-	private DataBuckets $executionTimeBuckets;
+	/** @var MigrationConfig */
+	private MigrationConfig $migrationConfig;
+
+	/** @var WorkspaceDB */
+	private WorkspaceDB $workspaceDB;
+
+	/** @var string */
+	private string $dest;
 
 	/** @var DataBuckets */
 	private DataBuckets $buckets;
 
-	/** @var DataBuckets */
-	private DataBuckets $customBuckets;
-
-	/** @var ConversionDataLookup|null */
-	private ?ConversionDataLookup $dataLookup = null;
+	/** @var DBConversionDataLookup */
+	private DBConversionDataLookup $dataLookup;
 
 	/** @var ConversionDataWriter|null */
 	private ?ConversionDataWriter $conversionDataWriter = null;
 
 	/** @var SplFileInfo|null */
 	private ?SplFileInfo $rawFile = null;
+
+	/** @var int */
+	private int $pageId = -1;
 
 	/** @var string */
 	private string $wikiText = '';
@@ -115,6 +125,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	/** @var int */
 	private int $currentSpace = 0;
 
+	/** @var bool */
+	private bool $isSpaceDescriptionContent = false;
+
 	/** @var SplFileInfo|null */
 	private ?SplFileInfo $preprocessedFile = null;
 
@@ -122,13 +135,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private ?Output $output = null;
 
 	/** @var string */
-	private string $mainpage = 'Main Page';
-
-	/** @var bool */
-	private bool $isSpaceDescriptionContent = false;
-
-	/** @var array */
-	private array $advancedConfig = [];
+	private string $contentType = '';
 
 	/**
 	 * @param array $config
@@ -136,42 +143,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	public function __construct( $config, Workspace $workspace ) {
 		parent::__construct( $config, $workspace );
+	}
 
-		$this->buckets = new DataBuckets( [
-			'global-page-id-to-title-map',
-			'global-pages-titles-map',
-			'global-title-attachments',
-			'global-body-content-id-to-page-id-map',
-			'global-space-id-to-description-id-map',
-			'global-page-id-to-space-id',
-			'global-space-id-to-key-map',
-			'global-space-id-to-prefix-map',
-			'global-space-id-homepages',
-			'global-filenames-to-filetitles-map',
-			'global-title-metadata',
-			'global-blog-title-metadata',
-			'global-attachment-orig-filename-target-filename-map',
-			'global-files',
-			'global-userkey-to-username-map',
-			'global-body-content-id-to-space-description-id-map',
-			'global-gliffy-map',
-			'global-body-content-id-to-comment-id-map',
-			'global-attachment-metadata',
-			'global-attachment-id-to-confluence-file-key-map',
-			'global-blogpost-id-to-space-id',
-			'global-blogpost-id-to-title-map',
-			'global-blogposts-titles-map',
-			'global-orig-title-compressed-title-map',
-		] );
-
-		$this->buckets->loadFromWorkspace( $this->workspace );
-
-		$this->customBuckets = new DataBuckets( [
-			'warning-convert-body-content-id-content-size',
-		] );
-		$this->executionTimeBuckets = new DataBuckets( [
-			'convert-body-content-id-execution-time',
-		] );
+	/**
+	 * @param string $dest
+	 * @return void
+	 */
+	public function setDestinationPath( string $dest ): void {
+		$this->dest = $dest;
 	}
 
 	/**
@@ -182,72 +161,117 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
+	 *
+	 * @param SplFileInfo $file
+	 * @return string
+	 */
+	public function convert( SplFileInfo $file ): string {
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+
+		if ( isset( $this->config['config'] ) ) {
+			$this->migrationConfig = new MigrationConfig( $this->config['config'] );
+		} else {
+			$this->migrationConfig = new MigrationConfig( [] );
+		}
+
+		$this->buckets = new DataBuckets( [] );
+
+		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
+		$this->conversionDataWriter = new ConversionDataWriter( $this->dest );
+
+		$result = parent::convert( $file );
+		return $result;
+	}
+
+	/**
 	 * @inheritDoc
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
-		$executionTime = new ExecutionTime();
+		$this->output->writeln( "Converting file " . $file->getPathname() );
 
-		$this->output->writeln( $file->getPathname() );
-		$this->dataLookup = ConversionDataLookup::newFromBuckets( $this->buckets );
-		$this->conversionDataWriter = ConversionDataWriter::newFromBuckets( $this->buckets );
 		$this->rawFile = $file;
 
-		if ( isset( $this->config['config'] ) ) {
-			$this->advancedConfig = $this->config['config'];
-		}
-
-		if ( isset( $this->advancedConfig['mainpage'] ) ) {
-			$this->mainpage = $this->advancedConfig['mainpage'];
-		}
-
-		$this->isSpaceDescriptionContent = false;
 		$bodyContentId = $this->getBodyContentIdFromFilename();
-		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
-		if ( $pageId === -1 ) {
-			$spaceDescId = $this->getSpaceDescriptionIdFromBodyContentId( $bodyContentId );
-			$spaceId = $this->getSpaceIdFromSpaceDescriptionId( $spaceDescId );
-			$pageId = $this->getSpaceHomepageId( $spaceId );
-			$this->isSpaceDescriptionContent = true;
-		}
-		if ( $pageId === -1 ) {
-			$commentBodyMap = $this->buckets->getBucketData( 'global-body-content-id-to-comment-id-map' );
-			if ( !isset( $commentBodyMap[$bodyContentId] ) ) {
-				return '<-- No context page id found -->';
+		$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
+
+		$this->pageId = -1;
+		$this->isSpaceDescriptionContent = false;
+
+		// Test to which type of content the contentId belongs
+		if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
+			$this->contentType = 'spaceDescription';
+
+			$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
+
+			$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
+
+			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+
+			$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
+			if ( $this->currentPageTitle === '' ) {
+				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 			}
+
+			$this->isSpaceDescriptionContent = true;
+
+		} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
+			$this->contentType = 'page';
+
+			$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
+
+			$this->pageId = $contentId;
+
+			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+
+			$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
+			if ( $this->currentPageTitle === '' ) {
+				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+			}
+		} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
+			$this->contentType = 'blogPost';
+
+			$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId );
+
+			$this->pageId = $contentId;
+
+			$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId );
+
+			$this->currentPageTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
+			if ( $this->currentPageTitle === '' ) {
+				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+			}
+		} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
+			$this->contentType = 'comment';
+
+			$this->pageId = $contentId;
+
 			// Comment body content: convert with minimal context (no page-specific macros expected)
 			$this->currentSpace = 0;
 			$this->currentPageTitle = '';
 			$this->confluencePageTitle = '';
 		} else {
-			$this->currentSpace = $this->getSpaceIdFromPageId( $pageId );
-			if ( $this->currentSpace === -1 ) {
-				return '<-- No context space id found -->';
-			}
+			$this->pageId = -1;
+		}
 
-			$pagesIdsToTitlesMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
-			if ( isset( $pagesIdsToTitlesMap[$pageId] ) ) {
-				$this->currentPageTitle = $pagesIdsToTitlesMap[$pageId];
-				$this->confluencePageTitle = str_replace( ' ', '_', basename( $this->currentPageTitle ) );
-				if ( $this->dataLookup->getOrigTitleFromCompressedTitle( $this->currentPageTitle ) !== '' ) {
-					$confluenceTitle = $this->dataLookup->getOrigTitleFromCompressedTitle( $this->currentPageTitle );
-					$this->confluencePageTitle = str_replace( ' ', '_', basename( $confluenceTitle ) );
-				}
-			} else {
-				$blogPostIdsToTitlesMap = $this->buckets->getBucketData( 'global-blogpost-id-to-title-map' );
-				if ( isset( $blogPostIdsToTitlesMap[$pageId] ) ) {
-					$this->currentPageTitle = $blogPostIdsToTitlesMap[$pageId];
-					$this->confluencePageTitle = str_replace( ' ', '_', basename( $this->currentPageTitle ) );
-					if ( $this->dataLookup->getOrigTitleFromCompressedTitle( $this->currentPageTitle ) !== '' ) {
-						$confluenceTitle = $this->dataLookup->getOrigTitleFromCompressedTitle(
-							$this->currentPageTitle
-						);
-						$this->confluencePageTitle = str_replace( ' ', '_', basename( $confluenceTitle ) );
-					}
-				} else {
-					$this->currentPageTitle = 'not_current_revision_' . $pageId;
-					$this->confluencePageTitle = str_replace( ' ', '_', basename( $this->currentPageTitle ) );
-				}
-			}
+		if ( $this->pageId === -1 ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'convert',
+				__CLASS__,
+				"No context page id found for bodyContentId $bodyContentId"
+			);
+			return '<-- No context page id found -->';
+		}
+
+		if ( $this->currentSpace === -1 ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'convert',
+				__CLASS__,
+				"No context space id found for bodyContentId $bodyContentId"
+			);
+
+			return '<-- No context space id found -->';
 		}
 
 		try {
@@ -257,18 +281,24 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			$unconvertedContent = "<-- Unconvertable RAW start-->\n";
 			$unconvertedContent .= $rawContent;
 			$unconvertedContent .= "\n<-- Unconvertable RAW end-->\n[[Category:Unconvertable]]";
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'convert',
+				__CLASS__,
+				"Unconvertable RAW content for bodyContentId $bodyContentId"
+			);
 			return $unconvertedContent;
 		}
-
-		$xpath = new DOMXPath( $dom );
 
 		$this->runProcessors( $dom );
 
 		$unhandledMacroProcessor = new UnhandledMacroConverter();
 		$unhandledMacroProcessor->process( $dom );
 
+		$xpath = new DOMXPath( $dom );
 		$xpath->registerNamespace( 'ac', 'some' );
 		$xpath->registerNamespace( 'ri', 'thing' );
+
 		$this->postProcessDOM( $xpath );
 
 		$dom->saveHTMLFile(
@@ -276,104 +306,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		);
 
 		$this->wikiText = parent::doConvert( $this->preprocessedFile );
+
 		$this->runPostProcessors();
 
-		$this->postProcessLinks();
 		$this->postprocessWikiText();
 
-		// Content size sometimes breakes import
-		$exceed = '';
-		$wikiTextLength = strlen( $this->wikiText );
-		$wikiTextLength = $wikiTextLength / 1000;
-		if ( $wikiTextLength > 512 ) {
-			$exceed = '512';
-		} elseif ( $wikiTextLength > 256 ) {
-			$exceed = '256';
-		} elseif ( $wikiTextLength > 100 ) {
-			$exceed = '100';
-		}
-		if ( $exceed !== '' ) {
-			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
-		}
-
-		$executionTimeString = $executionTime->getHumanReadableTime();
-
-		// Use an exclusive lock so parallel workers don't corrupt shared bucket files.
-		// The slow conversion work above runs entirely outside the lock.
-		$this->saveDiagnosticsUnderLock( $bodyContentId, $executionTimeString, $exceed );
+		$this->checkContentLength( $bodyContentId );
 
 		return $this->wikiText;
-	}
-
-	/**
-	 * Atomically merges this file's diagnostic entries into the shared workspace bucket files.
-	 * Uses an exclusive flock so parallel workers serialize only on this brief I/O section.
-	 *
-	 * @param int|string $bodyContentId
-	 * @param string $executionTimeString
-	 * @param string $exceed '512', '256', '100', or '' (no warning)
-	 * @return void
-	 */
-	private function saveDiagnosticsUnderLock( $bodyContentId, string $executionTimeString, string $exceed ): void {
-		$lockPath = $this->getDiagnosticsLockFilePath();
-		$lockHandle = fopen( $lockPath, 'c' );
-		if ( $lockHandle === false ) {
-			// Fall back to unlocked save if lock file cannot be created
-			$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
-			$this->customBuckets->loadFromWorkspace( $this->workspace );
-			$this->addDiagnosticEntries( $bodyContentId, $executionTimeString, $exceed );
-			$this->executionTimeBuckets->saveToWorkspace( $this->workspace );
-			$this->customBuckets->saveToWorkspace( $this->workspace );
-			return;
-		}
-
-		flock( $lockHandle, LOCK_EX );
-
-		$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
-		$this->customBuckets->loadFromWorkspace( $this->workspace );
-		$this->addDiagnosticEntries( $bodyContentId, $executionTimeString, $exceed );
-		$this->executionTimeBuckets->saveToWorkspace( $this->workspace );
-		$this->customBuckets->saveToWorkspace( $this->workspace );
-
-		flock( $lockHandle, LOCK_UN );
-		fclose( $lockHandle );
-	}
-
-	/**
-	 * @param int|string $bodyContentId
-	 * @param string $executionTimeString
-	 * @param string $exceed
-	 * @return void
-	 */
-	private function addDiagnosticEntries( $bodyContentId, string $executionTimeString, string $exceed ): void {
-		$this->executionTimeBuckets->addData(
-			'convert-body-content-id-execution-time',
-			$bodyContentId,
-			$executionTimeString,
-			false,
-			true
-		);
-		if ( $exceed !== '' ) {
-			$this->customBuckets->addData(
-				'warning-convert-body-content-id-content-size',
-				$exceed,
-				$bodyContentId
-			);
-		}
-	}
-
-	/**
-	 * Returns a lock file path in the same directory as the workspace bucket files.
-	 * Uses reflection to access the workspace directory since Workspace has no public path getter.
-	 *
-	 * @return string
-	 */
-	private function getDiagnosticsLockFilePath(): string {
-		$ref = new \ReflectionProperty( Workspace::class, 'workspaceDir' );
-		$ref->setAccessible( true );
-		/** @var \SplFileInfo $workspaceDir */
-		$workspaceDir = $ref->getValue( $this->workspace );
-		return $workspaceDir->getPathname() . '/convert-diagnostics.lock';
 	}
 
 	/**
@@ -399,46 +339,82 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new PanelMacro(),
 			new ColumnMacro(),
 			new SectionMacro(),
-			new ChildrenMacro( $this->currentSpace, $this->currentPageTitle, $this->dataLookup ),
+			new ChildrenMacro(
+				$this->currentSpace,
+				$this->currentPageTitle,
+				$this->dataLookup
+			),
 			new PageTreeMacro(
-				$this->dataLookup, $this->currentSpace, $this->currentPageTitle, $this->mainpage
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->currentPageTitle,
+				$this->migrationConfig->getMainPageName()
 			),
 			new RecentlyUpdatedMacro( $this->currentPageTitle ),
-			new IncludeMacro( $this->dataLookup, $this->currentSpace ),
+			new IncludeMacro(
+				$this->dataLookup,
+				$this->currentSpace
+			),
 			new ExcerptMacro(),
-			new ExcerptIncludeMacro( $this->dataLookup, $this->currentSpace ),
+			new ExcerptIncludeMacro(
+				$this->dataLookup,
+				$this->currentSpace
+			),
 			new Emoticon(),
 			new PreserveTasksReportMacro( $this->dataLookup ),
 			new Image(
-				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new AttachmentLink(
-				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new AnchorLink(
-				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new PageLink(
-				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new UserLink(
-				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new PreserveCodeMacro(),
 			new NoFormatMacro(),
 			new TaskListMacro(),
 			new DrawioMacro(
-				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
+				$this->dataLookup,
+				$this->conversionDataWriter,
+				$this->currentSpace,
 				$this->confluencePageTitle
 			),
 			new GliffyMacro(
-				$this->dataLookup, $this->conversionDataWriter, $this->currentSpace,
-				$this->confluencePageTitle, $this->buckets
+				$this->dataLookup,
+				$this->conversionDataWriter,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->workspaceDB
 			),
 			new ContentByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
 			new GalleryMacro(
-				$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new ExpandMacro(),
 			new DetailsMacro(),
@@ -447,24 +423,34 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 			new JiraMacro(),
 			new MarkdownMacro(),
 			new ViewFileMacro(
-				$this->dataLookup, $this->currentSpace,
-				$this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new ViewDocMacro(
-				$this->dataLookup, $this->currentSpace,
-				$this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new ViewXlsMacro(
-				$this->dataLookup, $this->currentSpace,
-				$this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new ViewPptMacro(
-				$this->dataLookup, $this->currentSpace,
-				$this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new ViewPdfMacro(
-				$this->dataLookup, $this->currentSpace,
-				$this->confluencePageTitle, $this->advancedConfig
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
 			),
 			new WidgetMacro(),
 			new PreservePStyleTag(),
@@ -522,19 +508,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 *
 	 * @return int
 	 */
-	private function getPageIdFromBodyContentId( int $bodyContentId ): int {
-		$map = $this->buckets->getBucketData( 'global-body-content-id-to-page-id-map' );
-		return $map[$bodyContentId] ?? -1;
-	}
-
-	/**
-	 *
-	 * @param int $bodyContentId
-	 * @return int
-	 */
-	private function getSpaceDescriptionIdFromBodyContentId( int $bodyContentId ): int {
-		$map = $this->buckets->getBucketData( 'global-body-content-id-to-space-description-id-map' );
-		return $map[$bodyContentId] ?? -1;
+	private function getContentIdFromBodyContentId( int $bodyContentId ): int {
+		$map = $this->workspaceDB->getContentIdForBodyContentId( $bodyContentId );
+		return $map;
 	}
 
 	/**
@@ -542,9 +518,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return int
 	 */
 	private function getSpaceIdFromSpaceDescriptionId( int $spaceDescId ): int {
-		$map = $this->buckets->getBucketData( 'global-space-id-to-description-id-map' );
-		$mapFlipped = array_flip( $map );
-		return $mapFlipped[$spaceDescId] ?? -1;
+		return $this->workspaceDB->getSpaceIdForDescriptionId( $spaceDescId );
 	}
 
 	/**
@@ -552,23 +526,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 * @return int
 	 */
 	private function getSpaceHomepageId( int $spaceId ): int {
-		$map = $this->buckets->getBucketData( 'global-space-id-homepages' );
-		return $map[$spaceId] ?? -1;
+		return $this->workspaceDB->getSpaceHomepageIdForSpaceId( $spaceId );
 	}
 
 	/**
-	 *
 	 * @param int $pageId
-	 *
 	 * @return int
 	 */
 	private function getSpaceIdFromPageId( int $pageId ): int {
-		$map = $this->buckets->getBucketData( 'global-page-id-to-space-id' );
-		if ( isset( $map[$pageId] ) ) {
-			return $map[$pageId];
-		}
-		$blogPostMap = $this->buckets->getBucketData( 'global-blogpost-id-to-space-id' );
-		return $blogPostMap[$pageId] ?? -1;
+		return $this->workspaceDB->getSpaceIdForPageId( $pageId );
+	}
+
+	/**
+	 * @param int $blogPostId
+	 * @return int
+	 */
+	private function getSpaceIdFromBlogPostId( int $blogPostId ): int {
+		return $this->workspaceDB->getSpaceIdForBlogPostId( $blogPostId );
 	}
 
 	/**
@@ -602,12 +576,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	protected function preprocessHTMLSource( SplFileInfo $oHTMLSourceFile ): string {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
-		$bodyContentId = $this->getBodyContentIdFromFilename();
-		$pageId = $this->getPageIdFromBodyContentId( $bodyContentId );
 
 		$preprocessors = [
 			new CDATAClosingFixer()
 		];
+
 		/** @var IHtmlPreprocessor $preprocessor */
 		foreach ( $preprocessors as $preprocessor ) {
 			$sContent = $preprocessor->preprocess( $sContent );
@@ -630,12 +603,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 		}
 
 		// Append categories
-		$categorieMap = $this->buckets->getBucketData( 'global-title-metadata' );
-		$blogCategorieMap = $this->buckets->getBucketData( 'global-blog-title-metadata' );
-		$pageMeta = $categorieMap[$pageId] ?? $blogCategorieMap[$pageId] ?? [];
+		$metaData = [];
+		if ( $this->contentType === 'page' ) {
+			$metaData = $this->workspaceDB->getPageMeta();
+		} elseif ( $this->contentType === 'blogPost' ) {
+			$metaData = $this->workspaceDB->getBlogPostMeta();
+		}
 		$categories = '';
-		if ( isset( $pageMeta['categories'] ) ) {
-			foreach ( $pageMeta['categories'] as $key => $category ) {
+		if ( isset( $metaData['categories'] ) ) {
+			foreach ( $metaData['categories'] as $category ) {
 				$category = ucfirst( $category );
 				$categories .= "[[Category:$category]]\n";
 			}
@@ -674,31 +650,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	 */
 	public function postProcessDOM( DOMXPath $xpath ): void {
 		$oElementsWithDataAttr = $xpath->query( '//*[@data-atlassian-layout]' );
-		foreach ( $oElementsWithDataAttr as $oElementWithDataAttr ) {
-			$oElementWithDataAttr->setAttribute( 'data-atlassian-layout', null );
+		if ( !( $oElementsWithDataAttr instanceof DOMNodeList ) ) {
+			return;
 		}
-	}
 
-	/**
-	 *
-	 * @return void
-	 */
-	public function postProcessLinks(): void {
-		$oldToNewTitlesMap = array_merge(
-			$this->buckets->getBucketData( 'global-pages-titles-map' ),
-			$this->buckets->getBucketData( 'global-blogposts-titles-map' )
-		);
-
-		$this->wikiText = preg_replace_callback(
-			"/\[\[Media:(.*)]]/",
-			static function ( $matches ) use( $oldToNewTitlesMap ) {
-				if ( isset( $oldToNewTitlesMap[$matches[1]] ) ) {
-					return $oldToNewTitlesMap[$matches[1]];
-				}
-				return $matches[0];
-			},
-			$this->wikiText
-		);
+		foreach ( $oElementsWithDataAttr as $oElementWithDataAttr ) {
+			if ( $oElementWithDataAttr instanceof DOMElement ) {
+				$oElementWithDataAttr->setAttribute( 'data-atlassian-layout', '' );
+			}
+		}
 	}
 
 	/**
@@ -739,18 +699,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	private function addAdditionalAttachments(): string {
 		$wikiText = '';
 
-		$attachmentsMap = $this->buckets->getBucketData( 'global-title-attachments' );
-
 		$linkProcessor = new AttachmentLink(
-			$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->advancedConfig
+			$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->migrationConfig
 		);
 
-		if ( isset( $attachmentsMap[$this->currentPageTitle] ) ) {
+		$pageAttachments = $this->dataLookup->getPageAttachmentsForPageId( $this->pageId );
+		if ( !empty( $pageAttachments ) ) {
 			$mediaExludeList = $this->buildMediaExcludeList( $this->wikiText );
 
 			$attachmentList = [];
-			foreach ( $attachmentsMap[$this->currentPageTitle] as $attachmentFileName ) {
-				$mediaLink = $linkProcessor->makeLink( [ $attachmentFileName ] );
+			foreach ( $pageAttachments as $attachment ) {
+				$mediaLink = $linkProcessor->makeLink( [ $attachment['target_attachment_filename'] ] );
 				$matches = [];
 				preg_match( "#\[\[\s*(Media):(.*?)\s*[\|*|\]\]]#im", $mediaLink, $matches );
 
@@ -797,20 +756,30 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface {
 	}
 
 	/**
-	 * @return string
+	 * Content size sometimes breakes import
+	 *
+	 * @param int $bodyContentId
+	 * @return void
 	 */
-	private function getCurrentPageTitle(): string {
-		$spaceIdPrefixMap = $this->buckets->getBucketData( 'global-space-id-to-prefix-map' );
-		if ( !isset( $spaceIdPrefixMap[$this->currentSpace] ) ) {
-			$this->output->writeln( "SpaceId $this->currentSpace not found in spaceIdPrefixMap" );
+	private function checkContentLength( int $bodyContentId ): void {
+		$exceed = '';
+		$wikiTextLength = strlen( $this->wikiText );
+		$wikiTextLength = $wikiTextLength / 1000;
+		if ( $wikiTextLength > 512 ) {
+			$exceed = '512';
+		} elseif ( $wikiTextLength > 256 ) {
+			$exceed = '256';
+		} elseif ( $wikiTextLength > 100 ) {
+			$exceed = '100';
 		}
-		$prefix = $spaceIdPrefixMap[$this->currentSpace] ?? "";
-		$currentPageTitle = $this->currentPageTitle;
-
-		if ( substr( $currentPageTitle, 0, strlen( $prefix ) ) === $prefix ) {
-			$currentPageTitle = substr( $currentPageTitle, strlen( $prefix ) );
+		if ( $exceed !== '' ) {
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'convert',
+				__CLASS__,
+				"bodyContentId $bodyContentId contains large content (>$exceed KB)"
+			);
+			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 		}
-
-		return $currentPageTitle;
 	}
 }

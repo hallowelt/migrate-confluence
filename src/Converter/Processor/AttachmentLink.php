@@ -32,7 +32,7 @@ class AttachmentLink extends LinkProcessorBase {
 				$rawPageTitle = $nestedPageEl->getAttribute( 'ri:content-title' );
 			}
 
-			$filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
+			$filenameResolver = new FilenameResolver( $this->dataLookup, $this->migrationConfig );
 			[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =
 				$filenameResolver->resolve( $spaceId, $rawPageTitle, $riFilename );
 

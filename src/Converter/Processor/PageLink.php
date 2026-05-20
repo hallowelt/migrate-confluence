@@ -32,9 +32,10 @@ class PageLink extends LinkProcessorBase {
 			$rawPageTitle = $node->getAttribute( 'ri:content-title' );
 			$spaceId = $this->ensureSpaceId( $node );
 
-			$confluencePageKey = $this->generatePageConfluenceKey( $spaceId, $rawPageTitle );
-
-			$targetTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
+			$targetTitle = $this->dataLookup->getTargetPageTitleFromSpaceId(
+				$spaceId,
+				$rawPageTitle
+			);
 			$linkParts = [];
 			if ( !empty( $targetTitle ) ) {
 				$linkParts[] = $targetTitle;
@@ -73,21 +74,6 @@ class PageLink extends LinkProcessorBase {
 		}
 
 		return $spaceId;
-	}
-
-	/**
-	 * @param int $spaceId
-	 * @param string $rawPageTitle
-	 *
-	 * @return string
-	 * @throws InvalidTitleException
-	 */
-	private function generatePageConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		$genericTitleBuilder = new GenericTitleBuilder( [] );
-			$rawPageTitle = $genericTitleBuilder
-				->appendTitleSegment( $rawPageTitle )->build();
-			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
-		return "$spaceId---$rawPageTitle";
 	}
 
 	/**

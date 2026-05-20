@@ -28,10 +28,70 @@ class Comments extends ProcessorBase {
 	 * @return void
 	 */
 	private function addBlogPages(): void {
-		$pageIdToCommentIds = $this->buckets->getBucketData( 'global-page-id-to-comment-ids-map' );
-		$commentIdToMetadata = $this->buckets->getBucketData( 'global-comment-id-to-metadata-map' );
-		$pageIdToTitleMap = $this->buckets->getBucketData( 'global-page-id-to-title-map' );
-		$userkeyToUsernameMap = $this->buckets->getBucketData( 'global-userkey-to-username-map' );
+		$comments = $this->dataLookup->getCommentsForPages();
+		if ( empty( $comments ) ) {
+			$this->output->writeln( "No comments found, skipping comment processing." );
+			return;
+		}
+
+		$pageIdToCommentIds = [];
+		$pageIdToTitleMap = [];
+		foreach ( $comments as $comment ) {
+			$commentId = $comment['comment_id'];
+			$containerContentId = $comment['container_id'];
+			$contentStatus = $comment['content_status'];
+			$wikiTitle = $comment['wiki_title'];
+
+			// Only handle page-level comments with content status 'current'
+			if ( $containerContentId === null || $contentStatus !== 'current' ) {
+				continue;
+			}
+
+			if ( $wikiTitle === null || $wikiTitle === '' ) {
+				continue;
+			}
+
+			if ( !isset( $pageIdToCommentIds[$containerContentId] ) ) {
+				$pageIdToCommentIds[$containerContentId] = [];
+			}
+			$pageIdToCommentIds[$containerContentId][] = $commentId;
+
+			if ( !isset( $pageIdToTitleMap[$containerContentId] ) ) {
+				$pageIdToTitleMap[$containerContentId] = '';
+			}
+			$pageIdToTitleMap[$containerContentId] = $wikiTitle;
+		}
+
+		$commentIdToMetadata = [];
+		foreach ( $comments as $comment ) {
+			$commentId = $comment['comment_id'];
+			$pageId = $comment['container_id'];
+			$bodyContentIds = json_decode( $comment['body_content_ids'], true );
+			$bodyContentId = $bodyContentIds[0] ?? null;
+			$creatorKey = $comment['user_key'];
+			$created = $comment['created'];
+			$modified = $comment['modified'];
+
+			if ( $bodyContentId === null ) {
+				continue;
+			}
+
+			$commentIdToMetadata[$commentId] = [
+				'page_id' => $pageId,
+				'body_content_id' => $bodyContentId,
+				'creator_key' => $creatorKey,
+				'created' => $created,
+				'modified' => $modified,
+			];
+		}
+
+		$userkeyToUsernameMap = [];
+		$users = $this->dataLookup->getUsers();
+		foreach ( $users as $user ) {
+			$userKey = $user['user_key'];
+			$username = $user['wiki_user_name'];
+			$userkeyToUsernameMap[$userKey] = $username;
+		}
 
 		if ( empty( $pageIdToCommentIds ) ) {
 			return;
@@ -66,11 +126,12 @@ class Comments extends ProcessorBase {
 	 * @return string
 	 */
 	private function buildTalkTitle( string $pageTitle ): string {
+		$prefix = $this->migrationConfig->getNsTalkPrefix();
 		if ( strpos( $pageTitle, ':' ) !== false ) {
 			[ $ns, $titlePart ] = explode( ':', $pageTitle, 2 );
-			return $ns . '_Talk:' . $titlePart;
+			return $ns . '_' . "$prefix:$titlePart";
 		}
-		return 'Talk:' . $pageTitle;
+		return $prefix . ':' . $pageTitle;
 	}
 
 	/**
