@@ -105,7 +105,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$namespaces = $deploymentInfo->getNamespaces();
 		$content .= $this->makeListContent( $namespaces );
 
-		$content = "\n\n# File extensions\n\n";
+		$content .= "\n\n# File extensions\n\n";
 		$fileExtensions = $deploymentInfo->getFileExtensions();
 		$content .= $this->makeListContent( $fileExtensions );
 
