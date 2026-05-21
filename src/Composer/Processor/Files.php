@@ -75,6 +75,8 @@ class Files extends ProcessorBase {
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 				#$this->builder->addFileRevision( $attachment, '', $attachmentContent );
 				$this->workspace->saveUploadFile( $filename, $attachmentContent );
+
+				$this->deploymentInfo->addFileExtension( $attachment['file_extension'] );
 			} else {
 				$this->output->writeln( "Attachment file was not found!" );
 			}

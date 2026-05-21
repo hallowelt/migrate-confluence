@@ -8,7 +8,6 @@ use DOMNodeList;
 use DOMXPath;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
@@ -84,6 +83,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
@@ -96,11 +96,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
 
+	/** @var DBLog */
+	private DBLog $dbLog;
+
 	/** @var string */
 	private string $dest;
-
-	/** @var DataBuckets */
-	private DataBuckets $buckets;
 
 	/** @var DBConversionDataLookup */
 	private DBConversionDataLookup $dataLookup;
@@ -168,14 +168,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 */
 	public function convert( SplFileInfo $file ): string {
 		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$this->dbLog = new DBLog( $this->workspaceDB );
 
 		if ( isset( $this->config['config'] ) ) {
 			$this->migrationConfig = new MigrationConfig( $this->config['config'] );
 		} else {
 			$this->migrationConfig = new MigrationConfig( [] );
 		}
-
-		$this->buckets = new DataBuckets( [] );
 
 		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
 		$this->conversionDataWriter = new ConversionDataWriter( $this->dest );
@@ -255,7 +254,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		if ( $this->pageId === -1 ) {
-			$this->workspaceDB->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'error',
 				'convert',
 				__CLASS__,
@@ -265,7 +264,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		if ( $this->currentSpace === -1 ) {
-			$this->workspaceDB->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'error',
 				'convert',
 				__CLASS__,
@@ -282,7 +281,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$unconvertedContent = "<-- Unconvertable RAW start-->\n";
 			$unconvertedContent .= $rawContent;
 			$unconvertedContent .= "\n<-- Unconvertable RAW end-->\n[[Category:Unconvertable]]";
-			$this->workspaceDB->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'warning',
 				'convert',
 				__CLASS__,
@@ -693,6 +692,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			},
 			$this->wikiText
 		);
+		// Filenames from the DB may contain '&', which gets encoded to '&amp;' when
+		// the DOM is serialized to HTML for Pandoc. Decode it back in media/file links.
+		$this->wikiText = preg_replace_callback(
+			'#\[\[(Media|File):(.*?)\]\]#s',
+			static function ( $matches ) {
+				return '[[' . $matches[1] . ':' . html_entity_decode( $matches[2], ENT_QUOTES | ENT_HTML5 ) . ']]';
+			},
+			$this->wikiText
+		);
 
 		if ( !$this->isSpaceDescriptionContent ) {
 			$this->wikiText .= $this->addAdditionalAttachments();
@@ -781,7 +789,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$exceed = '100';
 		}
 		if ( $exceed !== '' ) {
-			$this->workspaceDB->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'warning',
 				'convert',
 				__CLASS__,

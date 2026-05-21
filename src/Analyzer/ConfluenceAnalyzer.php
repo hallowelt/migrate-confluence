@@ -23,6 +23,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
@@ -58,6 +59,9 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
 
+	/** @var DBLog */
+	private DBLog $dbLog;
+
 	/**
 	 *
 	 * @param array $config
@@ -83,6 +87,13 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	 */
 	private function initWorkspaceDB(): void {
 		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function initDBLog(): void {
+		$this->dbLog = new DBLog( $this->workspaceDB );
 	}
 
 	/**
@@ -122,6 +133,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 
 		$this->initMigrationConfig();
 		$this->initWorkspaceDB();
+		$this->initDBLog();
 
 		$result = parent::analyze( $file );
 
@@ -795,7 +807,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			}
 		}
 
-		if ( !empty( $this->workspaceDB->getLogEntriesForStep( 'analyze' ) ) ) {
+		if ( !empty( $this->dbLog->getLogEntriesForStep( 'analyze' ) ) ) {
 			$this->output->writeln( "\n\nWARNINGS / ERRORS:\n" );
 			$this->output->writeln(
 				"\nPlease check logging table in workspaceDB for details about invalid titles and filenames\n\n"
