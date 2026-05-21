@@ -3,9 +3,10 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
 abstract class ProcessorBase implements IConfluenceComposerProcessor {
@@ -13,8 +14,8 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	/** @var Builder */
 	protected Builder $builder;
 
-	/** @var DataBuckets */
-	protected DataBuckets $buckets;
+	/** @var DBComposerDataLookup */
+	protected DBComposerDataLookup $dataLookup;
 
 	/** @var Workspace */
 	protected Workspace $workspace;
@@ -25,8 +26,8 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	/** @var string */
 	protected string $dest = '';
 
-	/** @var array */
-	protected array $config = [];
+	/** @var MigrationConfig */
+	protected MigrationConfig $migrationConfig;
 
 	/** @var bool */
 	protected bool $multiXmlOutputEnabled = false;
@@ -42,25 +43,25 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 
 	/**
 	 * @param Builder $builder
-	 * @param DataBuckets $buckets
+	 * @param DBComposerDataLookup $dataLookup
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
-	 * @param array $config
+	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		Builder $builder, DataBuckets $buckets, Workspace $workspace,
-		Output $output, string $dest, array $config
+		Builder $builder, DBComposerDataLookup $dataLookup, Workspace $workspace,
+		Output $output, string $dest, MigrationConfig $migrationConfig
 	) {
 		$this->builder = $builder;
-		$this->buckets = $buckets;
+		$this->dataLookup = $dataLookup;
 		$this->workspace = $workspace;
 		$this->output = $output;
 		$this->dest = $dest;
-		$this->config = $config;
+		$this->migrationConfig = $migrationConfig;
 
-		if ( isset( $this->config['composer-page-per-xml-limit'] ) ) {
-			$this->limit = $this->config['composer-page-per-xml-limit'];
+		$this->limit = $this->migrationConfig->getComposerPagePerXmlLimit();
+		if ( $this->limit > 0 ) {
 			$this->multiXmlOutputEnabled = true;
 		}
 	}
@@ -144,12 +145,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 * @return bool
 	 */
 	protected function includeHistory(): bool {
-		if ( isset( $this->config['include-history'] )
-			&& $this->config['include-history'] === true
-		) {
-			return true;
-		}
-		return false;
+		return $this->migrationConfig->getIncludeHistory();
 	}
 
 	/**
@@ -161,9 +157,9 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 */
 	protected function skipTitle( string $pageTitle ): bool {
 		$namespace = $this->getNamespace( $pageTitle );
-		if (
-			isset( $this->config['composer-skip-namespace'] )
-			&& in_array( $namespace, $this->config['composer-skip-namespace'] )
+
+		$skipNamespaces = $this->migrationConfig->getComposerSkipNamespaces();
+		if ( in_array( $namespace, $skipNamespaces )
 		) {
 			$this->output->writeln( "Namespace $namespace skipped by configuration" );
 			return true;
@@ -171,10 +167,8 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 
 		// Sometimes titles have contents >256kB which might break the import. To skip this titles
 		// use this option
-		if (
-			isset( $this->config['composer-skip-titles'] )
-			&& in_array( $pageTitle, $this->config['composer-skip-titles'] )
-		) {
+		$skipTitles = $this->migrationConfig->getComposerSkipTitles();
+		if ( in_array( $pageTitle, $skipTitles ) ) {
 			$this->output->writeln( "Page $pageTitle skipped by configuration" );
 			return true;
 		}

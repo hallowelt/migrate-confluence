@@ -3,13 +3,14 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewPdfMacro;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
 class ViewPdfMacroTest extends TestCase {
-
 	/**
-	 * @var ConversionDataLookup
+	 * @var mixed
 	 */
 	private $dataLookup;
 
@@ -26,34 +27,7 @@ class ViewPdfMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testPreprocess() {
-		$this->dataLookup = new ConversionDataLookup(
-			[
-				42 => 'ABC:',
-				23 => 'DEVOPS:'
-			],
-			[
-				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
-			],
-			[
-				'0---SomePage---Dummy_1.pdf' => 'SomePage_Dummy_1.pdf',
-				'0---SomePage---Dummy_2.doc' => 'SomePage_Dummy_2.doc',
-				'0---SomePage---Dummy_3.xls' => 'SomePage_Dummy_3.xls',
-				'23---SomePage---Dummy_1.pdf' => 'DEVOPS:SomePage_Dummy_1.pdf',
-				'23---SomePage---Dummy_2.doc' => 'DEVOPS:SomePage_Dummy_2.doc',
-				'23---SomePage---Dummy_3.xls' => 'DEVOPS:SomePage_Dummy_3.xls',
-			],
-			[],
-			[],
-			[],
-			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[],
-			[],
-			[],
-			[]
-		);
+		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		/** SpaceId GENERAL */
 		$this->doTest(
@@ -76,7 +50,7 @@ class ViewPdfMacroTest extends TestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new ViewPdfMacro( $this->dataLookup, $spaceId, $pageName, [] );
+		$processor = new ViewPdfMacro( $this->dataLookup, $spaceId, $pageName, new MigrationConfig( [] ) );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );

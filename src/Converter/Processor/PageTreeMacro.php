@@ -4,15 +4,15 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 /**
  * Partially converting pagetree macro
  */
 class PageTreeMacro extends StructuredMacroProcessorBase {
 
-	/** @var ConversionDataLookup */
-	private ConversionDataLookup $dataLookup;
+	/** @var DBConversionDataLookup */
+	private DBConversionDataLookup $dataLookup;
 
 	/** @var int */
 	private int $currentSpace;
@@ -34,13 +34,13 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpace
 	 * @param string $currentPageTitle
 	 * @param string $mainpage
 	 */
 	public function __construct(
-		ConversionDataLookup $dataLookup, int $currentSpace, string $currentPageTitle, string $mainpage
+		DBConversionDataLookup $dataLookup, int $currentSpace, string $currentPageTitle, string $mainpage
 	) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpace = $currentSpace;
@@ -159,8 +159,10 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 		switch ( $params['content-title'] ) {
 			case '@home':
 				// Main Page
-				$key = $this->getTitleLookupKey( $this->currentSpace, $this->mainpage );
-				$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+				$text = $this->dataLookup->getTargetPageTitleFromSpaceId(
+					$this->currentSpace,
+					$this->mainpage
+				);
 				if ( $text === '' ) {
 					$params['broken-macro'] = true;
 					break;
@@ -169,8 +171,10 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				break;
 			case '@self':
 				// current PageTitle
-				$key = $this->getTitleLookupKey( $this->currentSpace, $this->currentPageTitle );
-				$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+				$text = $this->dataLookup->getTargetPageTitleFromSpaceId(
+					$this->currentSpace,
+					$this->currentPageTitle
+				);
 				if ( $text === '' ) {
 					$params['broken-macro'] = true;
 					break;
@@ -179,8 +183,10 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				break;
 			case '@parent':
 				// parent of current PageTitle
-				$key = $this->getTitleLookupKey( $this->currentSpace, $this->currentPageTitle );
-				$currentPageTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+				$currentPageTitle = $this->dataLookup->getTargetPageTitleFromSpaceId(
+					$this->currentSpace,
+					$this->currentPageTitle
+				);
 				if ( $currentPageTitle === '' ) {
 					$params['broken-macro'] = true;
 					break;
@@ -200,7 +206,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				$params['content-title'] = '';
 
 				if ( isset( $params['space-key'] ) ) {
-					$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
+					$namespace = $this->dataLookup->getNamepspaceFromSpaceKey( $params['space-key'] );
 					if ( is_string( $namespace ) ) {
 						$params['space-key'] = $namespace;
 					} else {
@@ -219,8 +225,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				} else {
 					$spaceId = $this->currentSpace;
 				}
-				$key = $this->getTitleLookupKey( $spaceId, $params['content-title'] );
-				$text = $this->dataLookup->getTargetTitleFromConfluencePageKey( $key );
+				$text = $this->dataLookup->getTargetPageTitleFromSpaceId( $spaceId, $params['content-title'] );
 				if ( $text === '' ) {
 					$params['broken-macro'] = true;
 					break;
@@ -229,7 +234,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 					$params['content-title'] = $text;
 				}
 				if ( isset( $params['space-key'] ) ) {
-					$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $params['space-key'] );
+					$namespace = $this->dataLookup->getNamepspaceFromSpaceKey( $params['space-key'] );
 					if ( is_string( $namespace ) ) {
 						$params['space-key'] = $namespace;
 					}
@@ -238,15 +243,5 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 		}
 
 		return $params;
-	}
-
-	/**
-	 * @param int $spaceId
-	 * @param string $text
-	 * @return string
-	 */
-	private function getTitleLookupKey( int $spaceId, string $text ): string {
-		$rawText = basename( $text );
-		return $spaceId . '---' . $rawText;
 	}
 }

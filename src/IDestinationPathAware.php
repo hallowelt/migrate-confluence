@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Composer;
+namespace HalloWelt\MigrateConfluence;
 
 interface IDestinationPathAware {
 

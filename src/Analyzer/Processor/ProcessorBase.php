@@ -22,16 +22,6 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	/** @var XMLReader */
 	protected XMLReader $xmlReader;
 
-	/** @var array */
-	protected array $data = [];
-
-	/**
-	 * @param array $config
-	 */
-	public function setConfig( array $config ): void {
-		$this->config = $config;
-	}
-
 	/**
 	 * @param Output $output
 	 */
@@ -48,44 +38,10 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	}
 
 	/**
-	 * @param array $data
-	 * @return void
-	 */
-	public function setData( array $data ): void {
-		$this->data = $data;
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function getData( string $key ): array {
-		if ( isset( $this->data[$key] ) ) {
-			return $this->data[$key];
-		}
-		return [];
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getRequiredKeys(): array {
-		return [];
-	}
-
-	/**
 	 * @param XMLReader $xmlReader
 	 * @return void
 	 */
 	public function execute( XMLReader $xmlReader ): void {
-		$keys = array_merge(
-			$this->getRequiredKeys(),
-			$this->getKeys()
-		);
-		foreach ( $keys as $key ) {
-			if ( !isset( $this->data[$key] ) ) {
-				$this->data[$key] = [];
-			}
-		}
 		$this->xmlReader = $xmlReader;
 		$this->doExecute();
 	}

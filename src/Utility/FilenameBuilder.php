@@ -9,9 +9,9 @@ use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 class FilenameBuilder {
 
 	/**
-	 * @var array
+	 * @var MigrationConfig
 	 */
-	private array $config;
+	private MigrationConfig $migrationConfig;
 
 	/**
 	 * @var array
@@ -20,11 +20,11 @@ class FilenameBuilder {
 
 	/**
 	 * @param array $spaceIdPrefixMap
-	 * @param array $config
+	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( array $spaceIdPrefixMap, array $config = [] ) {
+	public function __construct( array $spaceIdPrefixMap, MigrationConfig $migrationConfig ) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
-		$this->config = $config;
+		$this->migrationConfig = $migrationConfig;
 	}
 
 	/**
@@ -35,29 +35,40 @@ class FilenameBuilder {
 	 * @return string
 	 * @throws InvalidTitleException
 	 */
-	public function buildFromAttachmentData( int $spaceId, string $originalFilename, string $assocTitle ): string {
+	public function buildFromAttachmentData(
+		int $spaceId, string $originalFilename, string $assocTitle, string $suffix = ''
+	): string {
 		$builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
 		$builder->setNamespace( $spaceId );
 
-		if ( !empty( $assocTitle ) ) {
-			$assocTitle = str_replace( '/', '_', $assocTitle );
-			// Unset potential namespace prefix to avoid duplications
-			// $assocTitle already contains namespace
-			$builder->setNamespace( 0 );
-			$builder->appendTitleSegment( "-$originalFilename" );
-			$builder->appendTitleSegment( $assocTitle );
-		} else {
-			$builder->appendTitleSegment( $originalFilename );
+		$originalFilename = str_replace( [ ' ', '/' ], '_', $originalFilename );
+
+		if ( !empty( $suffix ) ) {
+			$suffix = str_replace( [ ' ', '/' ], '_', $suffix );
+			$originalFilenameParts = explode( '.', $originalFilename );
+			if ( count( $originalFilenameParts ) > 1 ) {
+				$extension = array_pop( $originalFilenameParts );
+				$filenameWithoutExtension = implode( '.', $originalFilenameParts );
+				$filenameWithoutExtension .= $suffix;
+				$originalFilename = $filenameWithoutExtension . '.' . $extension;
+			} else {
+				$originalFilename .= $suffix;
+			}
 		}
+
+		$builder->appendTitleSegment( $originalFilename );
+
+		if ( !empty( $assocTitle ) ) {
+			$assocTitle = str_replace( [ ' ', '/' ], '_', $assocTitle );
+			$builder->appendTitleSegment( "$assocTitle-" );
+		}
+
 		$builtTitle = $builder->invertTitleSegments()->build();
 
 		$filename = new WindowsFilename( $builtTitle );
 		$filename = (string)$filename;
 
-		if (
-			isset( $this->config['ext-ns-file-repo-compat'] )
-			&& $this->config['ext-ns-file-repo-compat'] === true
-		) {
+		if ( $this->migrationConfig->getExtNsFileRepoCompat() === true ) {
 			if ( isset( $this->spaceIdPrefixMap[$spaceId] ) ) {
 				$filePrefix = $this->spaceIdPrefixMap[$spaceId];
 				if ( $filePrefix !== '' ) {

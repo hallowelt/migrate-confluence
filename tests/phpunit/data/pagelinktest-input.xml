@@ -31,7 +31,7 @@
 
 	<div>
         <ac:link>
-            <ri:page ri:content-title="Page Title3/Test" ri:space-key="DEVOPS" />
+            <ri:page ri:content-title="Page Title3, Test" ri:space-key="DEVOPS" />
         </ac:link>
     </div>
 

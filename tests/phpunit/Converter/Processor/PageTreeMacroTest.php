@@ -3,91 +3,37 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 class PageTreeMacroTest extends TestCase {
-
-	/**
-	 * @var ConversionDataLookup
-	 */
+	/** @var DBConversionDataLookup */
 	private $dataLookup;
 
 	/**
-	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dataLookup = new ConversionDataLookup(
-			[
-				0 => '',
-				42 => 'ABC:',
-				23 => 'DEVOPS:'
-			],
-			[
-				'23---Main_Page' => 'DEVOPS:Main Page',
-				'23---Testpage' => 'DEVOPS:Testpage',
-				'42---Main_Page' => 'ABC:Main Page',
-				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
-				'42---Testpage' => 'ABC:SomeLinkedPage/Testpage',
-			],
-			[
-				'0---SomePage---Dummy_1.pdf' => 'SomePage_Dummy_1.pdf'
-			],
-			[],
-			[],
-			[],
-			[
-				0 => '',
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[],
-			[],
-			[],
-			[]
-		);
-
-		/** SpaceId GENERAL */
+		$this->dataLookup = $this->makeLookup();
 		$this->doTest( 'pagetree-macro-input.xml', 'pagetree-macro-output.xml' );
 	}
 
 	/**
-	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
 	 * @return void
 	 */
 	public function testProcessWithoutSpaceKey() {
-		$this->dataLookup = new ConversionDataLookup(
-			[
-				0 => '',
-				42 => 'ABC:',
-				23 => 'DEVOPS:'
-			],
-			[
-				'23---Main_Page' => 'DEVOPS:Main Page',
-				'23---Testpage' => 'DEVOPS:Testpage',
-				'42---Main_Page' => 'ABC:Main Page',
-				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
-				'42---Testpage' => 'ABC:SomeLinkedPage/Testpage',
-			],
-			[
-				'0---SomePage---Dummy_1.pdf' => 'SomePage_Dummy_1.pdf'
-			],
-			[],
-			[],
-			[],
-			[
-				0 => '',
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[],
-			[],
-			[],
-			[]
-		);
-
+		$this->dataLookup = $this->makeLookup();
 		$this->doTest( 'pagetree-macro-no-spacekey-input.xml', 'pagetree-macro-no-spacekey-output.xml' );
+	}
+
+	/**
+	 * @return DBConversionDataLookup
+	 */
+	private function makeLookup() {
+		return new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 	}
 
 	/**
@@ -95,7 +41,7 @@ class PageTreeMacroTest extends TestCase {
 	 * @param string $output
 	 * @return void
 	 */
-	private function doTest( $input, $output ) {
+	private function doTest( string $input, string $output ) {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );

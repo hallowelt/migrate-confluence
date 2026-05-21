@@ -4,15 +4,16 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
 class ImageTest extends TestCase {
-
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	private $dataLookup;
+	private DBConversionDataLookup $dataLookup;
 
 	/**
 	 * @var string
@@ -26,30 +27,7 @@ class ImageTest extends TestCase {
 	public function testPreprocess() {
 		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
 
-		$this->dataLookup = new ConversionDataLookup(
-			[
-				42 => 'ABC:',
-				23 => 'DEVOPS:'
-			],
-			[
-				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
-			],
-			[
-				'0---SomePage---SomeImage2.png' => 'SomePage_SomeImage2.png',
-				'23---SomePage---SomeImage2.png' => 'DEVOPS:SomePage_SomeImage2.png'
-			],
-			[],
-			[],
-			[],
-			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[],
-			[],
-			[],
-			[]
-		);
+		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		/** SpaceId GENERAL */
 		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-1-general.xml', 0, 'SomePage' );
@@ -67,7 +45,7 @@ class ImageTest extends TestCase {
 	public function testUrlImageInExternalLink() {
 		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
 
-		$dataLookup = new ConversionDataLookup( [], [], [], [], [], [], [], [], [], [], [] );
+		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(
 			$dataLookup,
 			'image-url-external-link-input.xml',
@@ -89,20 +67,20 @@ class ImageTest extends TestCase {
 	}
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 * @param string $input
 	 * @param string $output
 	 * @param int $spaceId
 	 * @param string $rawPageTitle
 	 * @return void
 	 */
-	private function doTestWith( ConversionDataLookup $dataLookup, $input, $output, $spaceId, $rawPageTitle ): void {
+	private function doTestWith( DBConversionDataLookup $dataLookup, $input, $output, $spaceId, $rawPageTitle ): void {
 		$input = file_get_contents( "$this->dir/$input" );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new Image( $dataLookup, $spaceId, $rawPageTitle, [] );
+		$processor = new Image( $dataLookup, $spaceId, $rawPageTitle, new MigrationConfig( [] ) );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

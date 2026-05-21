@@ -11,22 +11,21 @@ use HalloWelt\MigrateConfluence\Composer\Processor\Comments;
 use HalloWelt\MigrateConfluence\Composer\Processor\Files;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
 use HalloWelt\MigrateConfluence\Composer\Processor\TemplateContentPostProcessor;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
 class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
-
-	/**
-	 * @var DataBuckets
-	 */
-	private DataBuckets $customBuckets;
 
 	/**
 	 * @var Output|null
 	 */
 	private ?Output $output = null;
 
-	/** @var array */
-	private array $advancedConfig = [];
+	/** @var MigrationConfig */
+	private MigrationConfig $migrationConfig;
 
 	/** @var string */
 	private string $dest = '';
@@ -39,15 +38,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
 
-		$this->customBuckets = new DataBuckets( [
-			'title-uploads',
-			'title-uploads-fail'
-		] );
-
-		$this->customBuckets->loadFromWorkspace( $this->workspace );
-
 		if ( isset( $config['config'] ) ) {
-			$this->advancedConfig = $config['config'];
+			$this->migrationConfig = new MigrationConfig( $config['config'] );
+		} else {
+			$this->migrationConfig = new MigrationConfig( [] );
 		}
 	}
 
@@ -70,26 +64,26 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @return void
 	 */
 	public function buildXML( Builder $builder ): void {
+		$workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$composerDataLookup = new DBComposerDataLookup( $workspaceDB );
 		$processors = [
 			new Files(
-				$builder, $this->buckets, $this->workspace,
-				$this->output, $this->dest, $this->advancedConfig
+				$builder, $composerDataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig
 			),
 			new Pages(
-				$builder, $this->buckets, $this->workspace,
-				$this->output, $this->dest, $this->advancedConfig,
+				$builder, $composerDataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
 				new TemplateContentPostProcessor()
 			),
 			new Comments(
-				$builder, $this->buckets, $this->workspace,
-				$this->output, $this->dest, $this->advancedConfig
+				$builder, $composerDataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig
 			),
 		];
 
 		foreach ( $processors as $processor ) {
 			$processor->execute();
 		}
-
-		$this->customBuckets->saveToWorkspace( $this->workspace );
 	}
 }

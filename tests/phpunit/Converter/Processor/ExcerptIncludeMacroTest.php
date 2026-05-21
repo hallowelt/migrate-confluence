@@ -4,11 +4,11 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 class ExcerptIncludeMacroTest extends TestCase {
-
 	protected function getInput(): string {
 		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/excerpt-include-macro-input.xml' );
 	}
@@ -22,25 +22,7 @@ class ExcerptIncludeMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testPreprocess() {
-		$dataLookup = new ConversionDataLookup(
-			[
-				42 => 'ABC:'
-			],
-			[
-				'42---Some Confluence page name' => 'ABC:Some_MediaWiki_page_name',
-			],
-			[],
-			[],
-			[],
-			[],
-			[
-				42 => 'ABC',
-			],
-			[],
-			[],
-			[],
-			[]
-		);
+		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$currentSpaceId = 42;
 
 		$input = $this->getInput();

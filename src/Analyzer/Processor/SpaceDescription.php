@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 /**
@@ -30,13 +32,12 @@ use XMLReader;
 class SpaceDescription extends ProcessorBase {
 
 	/**
-	 * @inheritDoc
+	 * @param WorkspaceDB $workspaceDB
 	 */
-	public function getKeys(): array {
-		return [
-			'global-body-content-id-to-space-description-id-map',
-			'global-space-labelling-id-to-body-content-id-map'
-		];
+	public function __construct(
+		private WorkspaceDB $workspaceDB,
+		private MigrationConfig $migrationConfig
+	) {
 	}
 
 	/**
@@ -66,22 +67,66 @@ class SpaceDescription extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 
+		$bodyContentIds = [];
 		if ( isset( $collection['bodyContents'] ) ) {
-			$bodyContents = $collection['bodyContents'];
+			$bodyContentIds = $collection['bodyContents'];
 		}
+		// A fallback mechanism for body content IDs in case they are not found in the collection
+		// is placed in the ConfluenceAnalyzer, which will attempt to retrieve them from the
+		// body_contents table based on the space description ID.
+
+		$labellingsIds = [];
 		if ( isset( $collection['labellings'] ) ) {
-			$labellings = $collection['labellings'];
+			$labellingsIds = $collection['labellings'];
 		}
 
-		foreach ( $bodyContents as $bodyContent ) {
-			$this->data['global-body-content-id-to-space-description-id-map'][$bodyContent] = (int)$descriptionId;
-			$this->output->writeln( "\nAdd space description ($bodyContent)" );
+		$version = '';
+		if ( isset( $properties['version'] ) ) {
+			$version = $properties['version'];
 		}
 
-		foreach ( $labellings as $labelling ) {
-			$this->data['global-space-labelling-id-to-body-content-id-map'][$labelling] = (int)$descriptionId;
-			$this->output->writeln( "\nAdd space labelling ($labelling)" );
+		$lastModificationDate = '';
+		if ( isset( $properties['lastModificationDate'] ) ) {
+			$lastModificationDate = $properties['lastModificationDate'];
 		}
+
+		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
+
+		$originalVersionId = -1;
+		if ( isset( $properties['originalVersion'] ) ) {
+			$originalVersionId = (int)$properties['originalVersion'];
+		}
+
+		$contentStatus = null;
+		if ( isset( $properties['contentStatus'] ) ) {
+			$contentStatus = $properties['contentStatus'];
+		}
+
+		if ( !$this->migrationConfig->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
+			return;
+		}
+
+		$status = $this->workspaceDB->addSpaceDescription(
+			(int)$descriptionId,
+			$revisionTimestamp,
+			strtolower( $contentStatus ),
+			$version,
+			$originalVersionId,
+			$bodyContentIds,
+			$labellingsIds,
+			$properties,
+			$collection
+		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add space description (ID:$descriptionId) to the database."
+			);
+		}
+
+		$this->output->writeln( "\nAdd space description ($descriptionId)" );
 	}
-
 }

@@ -3,80 +3,57 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 class GliffyMacroTest extends TestCase {
-
-	/**
-	 * @var ConversionDataLookup
-	 */
+	/** @var DBConversionDataLookup */
 	private $dataLookup;
 
-	/**
-	 * @var ConversionDataWriter
-	 */
+	/** @var ConversionDataWriter */
 	private $conversionDataWriter;
 
+	/** @var WorkspaceDB */
+	private $workspaceDB;
+
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\GliffyMacro::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro::process
 	 * @return void
 	 */
-	public function testPreprocess() {
-		$this->dataLookup = new ConversionDataLookup(
-			[
-				42 => 'ABC:',
-				23 => 'DEVOPS:'
-			],
-			[
-				'42---SomeLinkedPage' => 'ABC:SomeLinkedPage',
-			],
-			[
-				'0---SomePage---gliffy-file-1.png' => 'SomePage_gliffy-file-1.png',
-				'0---SomePage---gliffy-file-1' => 'SomePage_gliffy-file-1.unknown',
-				'0---SomePage---gliffy-file-2.png' => 'SomePage_gliffy-file-2.png',
-				'0---SomePage---gliffy-file-2' => 'SomePage_gliffy-file-2.unknown',
-				'0---SomePage---gliffy-file-2.svg' => 'SomePage_gliffy-file-2.svg',
-				'23---SomePage---gliffy-file-1.png' => 'DEVOPS:SomePage_gliffy-file-1.png',
-				'23---SomePage---gliffy-file-1' => 'DEVOPS:SomePage_gliffy-file-1.unknown',
-				'23---SomePage---gliffy-file-2.png' => 'DEVOPS:SomePage_gliffy-file-2.png',
-				'23---SomePage---gliffy-file-2' => 'DEVOPS:SomePage_gliffy-file-2.unknown',
-				'23---SomePage---gliffy-file-2.svg' => 'DEVOPS:SomePage_gliffy-file-2.svg',
-			],
-			[],
-			[],
-			[],
-			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[],
-			[],
-			[],
-			[]
-		);
-		$this->conversionDataWriter = new ConversionDataWriter( [] );
+	public function testProcess() {
+		$tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-test-' . uniqid();
+		$this->conversionDataWriter = new ConversionDataWriter( $tempDir );
+		$this->workspaceDB = ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat();
+		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
 
-		/** SpaceId GENERAL */
 		$this->doTest( 0, 'gliffy-macro-input.xml', 'gliffy-macro-output-1.xml' );
-
-		/** Random SpaceId */
 		$this->doTest( 23, 'gliffy-macro-input.xml', 'gliffy-macro-output-2.xml' );
 	}
 
-	private function doTest( $spaceId, $input, $output ) {
+	/**
+	 * @param int $spaceId
+	 * @param string $input
+	 * @param string $output
+	 * @return void
+	 */
+	private function doTest( int $spaceId, string $input, string $output ) {
 		$input = file_get_contents( dirname( __DIR__, 2 ) . "/data/$input" );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . "/data/$output" );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$dataBuckets = new DataBuckets( [ 'gliffy-map' ] );
-		$processor = new GliffyMacro( $this->dataLookup, $this->conversionDataWriter,
-			$spaceId, 'SomePage', $dataBuckets );
+		$processor = new GliffyMacro(
+			$this->dataLookup,
+			$this->conversionDataWriter,
+			$spaceId,
+			'SomePage',
+			$this->workspaceDB
+		);
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 

@@ -1,13 +1,13 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 	<div>
-		[[File:SomePage_SomeImage2.png|500x200px|thumb|center]]
+		[[File:SomePage-SomeImage2.png|500x200px|thumb|center]]
 	</div>
 	<p>
-		[[File:SomePage_SomeImage2.png|x215px]]
+		[[File:SomePage-SomeImage2.png|x215px]]
 	</p>
 	<p>
-		[[File:SomePage_SomeImage2.png|x164px]]
+		[[File:SomePage-SomeImage2.png|x164px]]
 	</p>
-	[[File:SomePage_SomeImage2.png|305px|center|link=ABC:SomeLinkedPage]]
-	[[File:SomePage_SomeImage2.png|500x200px|thumb|center|link=https://www.mediawiki.org/wiki/Help:Images#Display_image,_link_it_to_another_page_or_website]]
+	[[File:SomePage-SomeImage2.png|305px|center|link=ABC:SomeLinkedPage]]
+	[[File:SomePage-SomeImage2.png|500x200px|thumb|center|link=https://www.mediawiki.org/wiki/Help:Images#Display_image,_link_it_to_another_page_or_website]]
 </xml>

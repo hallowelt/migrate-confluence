@@ -2,32 +2,20 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 class PageTemplates extends ProcessorBase {
 
 	/**
-	 * @inheritDoc
+	 * @param WorkspaceDB $workspaceDB
+	 * @param MigrationConfig $migrationConfig
 	 */
-	public function getRequiredKeys(): array {
-		return [
-			'global-space-id-to-prefix-map',
-		];
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function getKeys(): array {
-		return [
-			'global-page-template-id-to-name-map',
-			'global-page-template-id-to-space-id-map',
-			'global-page-template-id-to-content-map',
-			'global-body-content-id-to-page-id-map',
-			'global-page-id-to-space-id',
-			'analyze-page-id-to-title-map',
-			'analyze-title-revisions',
-		];
+	public function __construct(
+		private WorkspaceDB $workspaceDB,
+		private MigrationConfig $migrationConfig
+	) {
 	}
 
 	/**
@@ -63,32 +51,31 @@ class PageTemplates extends ProcessorBase {
 		$spaceId = isset( $properties['space'] ) ? (int)$properties['space'] : null;
 		$content = $properties['content'] ?? '';
 
-		$this->data['global-page-template-id-to-name-map'][$templateId] = $name;
-		if ( $spaceId !== null ) {
-			$this->data['global-page-template-id-to-space-id-map'][$templateId] = $spaceId;
-		}
-		if ( $content !== '' ) {
-			$this->data['global-page-template-id-to-content-map'][$templateId] = $content;
-		}
+		$this->workspaceDB->addPageTemplate( $templateId, $name, $spaceId, $content );
 
 		// Register the template as a page so it flows through the regular conversion pipeline.
 		// Use the template ID as both "page ID" and "body content ID".
-		$spacePrefix = '';
-		if ( $spaceId !== null && isset( $this->data['global-space-id-to-prefix-map'][$spaceId] ) ) {
-			$spacePrefix = $this->data['global-space-id-to-prefix-map'][$spaceId];
-		}
-		$targetTitle = 'Template:' . $spacePrefix . $name;
-		$this->data['analyze-page-id-to-title-map'][$templateId] = $targetTitle;
-		$this->data['global-body-content-id-to-page-id-map'][$templateId] = $templateId;
-		if ( $spaceId !== null ) {
-			$this->data['global-page-id-to-space-id'][$templateId] = $spaceId;
-		}
-
 		$lastModificationDate = $properties['lastModificationDate'] ?? '';
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 		$version = $properties['version'] ?? '1';
-		$revision = "$templateId@$version-$revisionTimestamp";
-		$this->data['analyze-title-revisions'][$targetTitle][] = $revision;
+
+		$this->workspaceDB->addPage(
+			$templateId,
+			$spaceId ?? -1,
+			$name,
+			'',
+			$revisionTimestamp,
+			'current',
+			$version,
+			-1,
+			-1,
+			[ $templateId ],
+			[],
+			$properties,
+			[]
+		);
+
+		$this->workspaceDB->addBodyContent( $templateId, $templateId, 'PageTemplate', [] );
 
 		$this->output->writeln( "Found page template '$name' (ID:$templateId)" );
 	}

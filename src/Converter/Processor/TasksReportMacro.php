@@ -5,17 +5,17 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMElement;
 use DOMNode;
 use DOMText;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class TasksReportMacro extends StructuredMacroProcessorBase {
 
-	/** @var ConversionDataLookup */
-	protected ConversionDataLookup $dataLookup;
+	/** @var DBConversionDataLookup */
+	protected DBConversionDataLookup $dataLookup;
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 */
-	public function __construct( ConversionDataLookup $dataLookup ) {
+	public function __construct( DBConversionDataLookup $dataLookup ) {
 		$this->dataLookup = $dataLookup;
 	}
 

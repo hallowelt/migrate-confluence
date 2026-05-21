@@ -2,7 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Analyze as CommandAnalyze;
+use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
+use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -40,7 +44,29 @@ class Analyze extends CommandAnalyze {
 	 */
 	protected function doProcessFile(): bool {
 		$this->readConfigFile( $this->config );
-		return parent::doProcessFile();
+		$this->output->writeln( "Analyzing file '{$this->currentFile->getFilename()}'" );
+		$analyzerFactoryCallbacks = $this->config['analyzers'];
+		foreach ( $analyzerFactoryCallbacks as $key => $callback ) {
+			$analyzer = call_user_func_array(
+				$callback,
+				[ $this->config, $this->workspace, $this->buckets ]
+			);
+			if ( $analyzer instanceof IAnalyzer === false ) {
+				throw new Exception(
+					"Factory callback for analyzer '$key' did not return an "
+					. "IAnalyzer object"
+				);
+			}
+			if ( $analyzer instanceof IOutputAwareInterface ) {
+				$analyzer->setOutput( $this->output );
+			}
+			if ( $analyzer instanceof IDestinationPathAware ) {
+				$analyzer->setDestinationPath( $this->dest );
+			}
+			$result = $analyzer->analyze( $this->currentFile );
+			// TODO: Evaluate result
+		}
+		return true;
 	}
 
 	/**
@@ -69,8 +95,6 @@ class Analyze extends CommandAnalyze {
 	 * @inheritDoc
 	 */
 	protected function getBucketKeys(): array {
-		return [
-			'global-files',
-		];
+		return [];
 	}
 }

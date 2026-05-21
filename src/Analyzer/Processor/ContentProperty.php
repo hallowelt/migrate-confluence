@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 /**
@@ -9,27 +10,33 @@ use XMLReader;
  * and collects the IDs of inline comments (identified by having an
  * "inline-comment" or "inline-marker-ref" property).
  */
-class ContentProperties extends ProcessorBase {
+class ContentProperty extends ProcessorBase {
 
 	/**
-	 * @inheritDoc
+	 * @param WorkspaceDB $workspaceDB
 	 */
-	public function getKeys(): array {
-		return [
-			'analyze-inline-comment-ids',
-		];
+	public function __construct(
+		private WorkspaceDB $workspaceDB
+	) {
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	protected function doExecute(): void {
+		$propertyId = [];
 		$properties = [];
-		$contentClass = null;
+		$contentClass = '';
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( $this->xmlReader->name === 'property' ) {
+			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
+					$propertyId = (int)$this->getCDATAValue();
+				} else {
+					$propertyId = (int)$this->getTextValue();
+				}
+			} elseif ( $this->xmlReader->name === 'property' ) {
 				// Capture the class attribute before processPropertyNodes consumes the element
 				if ( $this->xmlReader->getAttribute( 'name' ) === 'content' ) {
 					$contentClass = $this->xmlReader->getAttribute( 'class' );
@@ -38,23 +45,27 @@ class ContentProperties extends ProcessorBase {
 			}
 			$this->xmlReader->next();
 		}
-
-		if ( $contentClass !== 'Comment' ) {
-			return;
-		}
-
 		$propName = $properties['name'] ?? null;
 		if ( $propName !== 'inline-comment' && $propName !== 'inline-marker-ref' ) {
 			return;
 		}
 
-		$commentId = isset( $properties['content'] ) ? (int)$properties['content'] : -1;
-		if ( $commentId === -1 ) {
-			return;
+		$status = $this->workspaceDB->addContentProperty(
+			$propertyId,
+			$propName,
+			$contentClass,
+			$properties
+		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add content property '$propName' to the database."
+			);
 		}
 
-		if ( !in_array( $commentId, $this->data['analyze-inline-comment-ids'] ) ) {
-			$this->data['analyze-inline-comment-ids'][] = $commentId;
-		}
+		$this->output->writeln( "Add content property '$propName'" );
 	}
 }

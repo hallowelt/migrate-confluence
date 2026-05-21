@@ -2,30 +2,16 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
-
 class ConversionDataWriter {
 
-	/**
-	 * @var array
-	 */
-	private array $confluenceFiles;
+	/** @var string */
+	private string $dest;
 
 	/**
-	 * @param DataBuckets $buckets
-	 * @return ConversionDataWriter
+	 * @param string $dest
 	 */
-	public static function newFromBuckets( DataBuckets $buckets ): ConversionDataWriter {
-		return new static(
-			$buckets->getBucketData( 'global-files' )
-		);
-	}
-
-	/**
-	 * @param array $confluenceFiles
-	 */
-	public function __construct( array $confluenceFiles ) {
-		$this->confluenceFiles = $confluenceFiles;
+	public function __construct( string $dest ) {
+		$this->dest = $dest;
 	}
 
 	/**
@@ -34,8 +20,9 @@ class ConversionDataWriter {
 	 * @return void
 	 */
 	public function replaceConfluenceFileContent( string $targetFileName, string $newFileContent ): void {
-		if ( isset( $this->confluenceFiles[$targetFileName] ) ) {
-			file_put_contents( $this->confluenceFiles[$targetFileName][0], $newFileContent );
+		if ( !is_dir( $this->dest . '/images' ) ) {
+			mkdir( $this->dest . '/images', 0755, true );
 		}
+		file_put_contents( $this->dest . "/images/$targetFileName", $newFileContent );
 	}
 }

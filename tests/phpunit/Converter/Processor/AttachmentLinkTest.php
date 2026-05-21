@@ -4,11 +4,12 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
 class AttachmentLinkTest extends TestCase {
-
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\AttatchmentsLinkProcessor::preprocess
 	 * @return void
@@ -36,31 +37,14 @@ class AttachmentLinkTest extends TestCase {
 
 		$currentSpaceId = 42;
 		$currentRawPagename = 'SomePage';
-		$dataLookup = new ConversionDataLookup(
-			[
-				42 => 'ABC:',
-				23 => 'DEVOPS:'
-			],
-			[],
-			[
-				'42---SomePage---SomeImage.png' => 'ABC_SomePage_SomeImage.png',
-				'42---SomePage---SomeImage1.png' => 'ABC_SomePage_SomeImage1.png',
-				'23---SomePage---SomeImage2.png' => 'DEVOPS_SomePage_SomeImage2.png'
-			],
-			[],
-			[],
-			[],
-			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[],
-			[],
-			[],
-			[]
-		);
+		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
-		$processor = new AttachmentLink( $dataLookup, $currentSpaceId, $currentRawPagename, [] );
+		$processor = new AttachmentLink(
+			$dataLookup,
+			$currentSpaceId,
+			$currentRawPagename,
+			new MigrationConfig( [] )
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

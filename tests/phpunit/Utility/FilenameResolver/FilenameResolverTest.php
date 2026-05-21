@@ -2,8 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Utility\FilenameResolver;
 
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
 class FilenameResolverTest extends TestCase {
@@ -15,7 +17,7 @@ class FilenameResolverTest extends TestCase {
 		// Test default
 		$filenameResolver = new FilenameResolver(
 			$this->getConversionDataLookupDefault(),
-			[]
+			new MigrationConfig( [] )
 		);
 
 		// Image exists in the conversion data lookup
@@ -36,9 +38,11 @@ class FilenameResolverTest extends TestCase {
 		// Test with ext-ns-file-repo-compat
 		$filenameResolver = new FilenameResolver(
 			$this->getConversionDataLookupExtNsFileRepoCompat(),
-			[
-				'ext-ns-file-repo-compat' => true
-			]
+			new MigrationConfig(
+				[
+					'ext-ns-file-repo-compat' => true
+				]
+			)
 		);
 
 		// Image exists in the conversion data lookup
@@ -58,65 +62,23 @@ class FilenameResolverTest extends TestCase {
 	}
 
 	/**
-	 * @return ConversionDataLookup
+	 * @return DBConversionDataLookup
 	 */
-	private function getConversionDataLookupDefault(): ConversionDataLookup {
-		return new ConversionDataLookup(
-			[
-				42 => 'ABC:',
-				23 => 'DEVOPS:'
-			],
-			[
-				'42---SomePage' => 'ABC:SomePage',
-				'23---SomePage' => 'DEVOPS:SomePage'
-			],
-			[
-				'0---SomePage---SomeImage2.png' => 'SomePage-SomeImage2.png',
-				'23---SomePage---SomeImage2.png' => 'DEVOPS_SomePage-SomeImage2.png'
-			],
-			[],
-			[],
-			[],
-			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[],
-			[],
-			[],
-			[]
+	private function getConversionDataLookupDefault(): DBConversionDataLookup {
+		$dataLookup = new DBConversionDataLookup(
+			( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat()
 		);
+		return $dataLookup;
 	}
 
 	/**
-	 * @return ConversionDataLookup
+	 * @return DBConversionDataLookup
 	 */
-	private function getConversionDataLookupExtNsFileRepoCompat(): ConversionDataLookup {
-		return new ConversionDataLookup(
-			[
-				42 => 'ABC:',
-				23 => 'DEVOPS:'
-			],
-			[
-				'42---SomePage' => 'ABC:SomePage',
-				'23---SomePage' => 'DEVOPS:SomePage'
-			],
-			[
-				'0---SomePage---SomeImage2.png' => 'SomePage-SomeImage2.png',
-				'23---SomePage---SomeImage2.png' => 'DEVOPS:SomePage-SomeImage2.png'
-			],
-			[],
-			[],
-			[],
-			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[],
-			[],
-			[],
-			[]
+	private function getConversionDataLookupExtNsFileRepoCompat(): DBConversionDataLookup {
+		$dataLookup = new DBConversionDataLookup(
+			( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat()
 		);
+		return $dataLookup;
 	}
 
 	/**

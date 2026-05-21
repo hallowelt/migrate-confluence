@@ -4,15 +4,14 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
-use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class IncludeMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	protected ConversionDataLookup $dataLookup;
+	protected DBConversionDataLookup $dataLookup;
 
 	/**
 	 * @var int
@@ -30,10 +29,10 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	protected ?DOMNode $currentNode = null;
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 */
-	public function __construct( ConversionDataLookup $dataLookup, int $currentSpaceId ) {
+	public function __construct( DBConversionDataLookup $dataLookup, int $currentSpaceId ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 	}
@@ -77,22 +76,9 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 			return;
 		}
 		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );
-		$confluencePageKey = $this->generatePageConfluenceKey( $this->currentSpaceId, $targetPageName );
-		$this->mediaWikiPageName = $this->dataLookup->getTargetTitleFromConfluencePageKey( $confluencePageKey );
-	}
-
-	/**
-	 * @param int $spaceId
-	 * @param string $rawPageTitle
-	 *
-	 * @return string
-	 * @throws InvalidTitleException
-	 */
-	private function generatePageConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		$genericTitleBuilder = new GenericTitleBuilder( [] );
-			$rawPageTitle = $genericTitleBuilder
-				->appendTitleSegment( $rawPageTitle )->build();
-			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
-		return "$spaceId---$rawPageTitle";
+		$this->mediaWikiPageName = $this->dataLookup->getTargetPageTitleFromSpaceId(
+			$this->currentSpaceId,
+			$targetPageName
+		);
 	}
 }

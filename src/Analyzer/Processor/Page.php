@@ -2,97 +2,27 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
-use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
-use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
-use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
-use SplFileInfo;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 class Page extends ProcessorBase {
 
-	/** @var array */
-	private array $includeSpaceKey;
-
-	/** @var string */
-	private string $mainpage;
-
-	/** @var bool */
-	private bool $includeHistory;
-
-	/** @var int|null */
-	private ?int $spaceId;
-
-	/** @var int|null */
-	private ?int $pageId;
-
-	/** @var string */
-	private string $targetTitle = '';
-
 	/**
-	 * @param array $includeSpaceKey
-	 * @param string $mainpage
-	 * @param bool $includeHistory
+	 * @param WorkspaceDB $workspaceDB
+	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		array $includeSpaceKey,
-		string $mainpage,
-		bool $includeHistory
+		private WorkspaceDB $workspaceDB,
+		private MigrationConfig $migrationConfig
 	) {
-		$this->includeSpaceKey = $includeSpaceKey;
-		$this->mainpage = $mainpage;
-		$this->includeHistory = $includeHistory;
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function getRequiredKeys(): array {
-		return [
-			'global-space-id-to-prefix-map',
-			'global-space-id-to-key-map',
-			'global-space-id-homepages',
-			'analyze-page-id-to-parent-page-id-map',
-			'analyze-attachment-id-to-orig-filename-map',
-			'analyze-attachment-id-to-space-id-map',
-			'analyze-attachment-id-to-reference-map',
-			'global-body-content-id-to-page-id-map',
-			'analyze-pages-titles-map',
-			'analyze-page-id-to-confluence-key-map',
-		];
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function getKeys(): array {
-		return [
-			'debug-analyze-invalid-titles-page-id-to-title',
-			'debug-analyze-invalid-titles-attachment-id-to-title',
-			'analyze-page-id-to-confluence-key-map',
-			'analyze-pages-titles-map',
-			'analyze-pages-titles-duplicates-map',
-			'analyze-page-id-to-title-map',
-			'analyze-title-revisions',
-			'analyze-title-to-attachment-title',
-			'analyze-attachment-id-to-target-filename-map',
-			'analyze-add-file',
-			'analyze-added-attachment-id',
-			'global-page-id-to-space-id',
-			'global-body-content-id-to-page-id-map',
-			'global-filenames-to-filetitles-map',
-			'global-attachment-orig-filename-target-filename-map',
-			'global-filenames-to-filetitles-map',
-			'global-title-attachments',
-			'analyze-page-id-to-confluence-title-map',
-			'global-attachment-id-to-confluence-file-key-map',
-		];
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function doExecute(): void {
+		$pageId = -1;
 		$properties = [];
 		$collection = [];
 
@@ -100,9 +30,9 @@ class Page extends ProcessorBase {
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
 			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
 				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
-					$this->pageId = (int)$this->getCDATAValue();
+					$pageId = (int)$this->getCDATAValue();
 				} else {
-					$this->pageId = (int)$this->getTextValue();
+					$pageId = (int)$this->getTextValue();
 				}
 			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
 				$properties = $this->processPropertyNodes( $properties );
@@ -112,158 +42,64 @@ class Page extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 
-		$status = null;
+		$contentStatus = '';
 		if ( isset( $properties['contentStatus'] ) ) {
-			$status = $properties['contentStatus'];
+			$contentStatus = $properties['contentStatus'];
 		}
-		if ( !$this->includeHistory && ( $status !== 'current' ) ) {
+
+		if ( strtolower( $contentStatus ) !== 'current' ) {
+			// Ignore draft and deleted versions of pages, as they are not relevant for the migration.
 			return;
 		}
 
-		$this->spaceId = null;
+		$spaceId = -1;
 		if ( isset( $properties['space'] ) ) {
-			$this->spaceId = (int)$properties['space'];
+			$spaceId = (int)$properties['space'];
 		}
 
-		if ( $this->spaceId === null ) {
+		if ( !$this->migrationConfig->getIncludeHistory() && $spaceId === -1 ) {
 			return;
 		}
 
-		if ( !isset( $this->data['global-space-id-to-key-map'][$this->spaceId] ) ) {
-			return;
-		}
-		$spaceKey = $this->data['global-space-id-to-key-map'][$this->spaceId];
-
-		if (
-			!empty( $this->includeSpaceKey )
-			&& !in_array( strtolower( $spaceKey ), $this->includeSpaceKey )
-		) {
-			return;
-		}
-
-		$originalVersionID = null;
+		$originalVersionId = -1;
 		if ( isset( $properties['originalVersion'] ) ) {
-			$originalVersionID = (int)$properties['originalVersion'];
+			$originalVersionId = (int)$properties['originalVersion'];
 		}
-		if ( $originalVersionID !== null ) {
+
+		$confluenceTitle = $properties['title'] ?? "";
+		if ( empty( $confluenceTitle ) ) {
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__CLASS__,
+				"Page with ID $pageId has no title"
+			);
 			return;
 		}
-
-		$title = $properties['title'] ?? "";
-		if ( empty( $title ) ) {
-			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
-				$this->pageId => "Invalid source title"
-			];
-
-			return;
-		}
-
-		$titleBuilder = new TitleBuilder(
-			$this->data['global-space-id-to-prefix-map'],
-			$this->data['global-space-id-homepages'],
-			$this->data['analyze-page-id-to-parent-page-id-map'],
-			$this->data['analyze-page-id-to-confluence-title-map'],
-			$this->mainpage
-		);
-
-		try {
-			$this->targetTitle = $titleBuilder->buildTitle( $this->spaceId, $this->pageId, $title );
-		} catch ( InvalidTitleException $ex ) {
-			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [
-				$this->pageId => $ex->getInvalidTitle()
-			];
-			// We don't want to lose this page. Title can be modified after analyze process
-			$this->targetTitle = $ex->getInvalidTitle();
-		}
-
-		if ( $this->targetTitle === '' ) {
-			$this->data['debug-analyze-invalid-titles-page-id-to-title'][] = [ $this->pageId => $this->targetTitle ];
-			return;
-		}
-
-		$this->output->writeln( "Add page '$this->targetTitle' (ID:$this->pageId)" );
-
-		$this->process( $title, $properties, $collection );
-	}
-
-	/**
-	 * @param string $title
-	 * @param array $properties
-	 * @param array $collection
-	 *
-	 * @return void
-	 * @throws InvalidTitleException
-	 */
-	private function process( string $title, array $properties, array $collection ): void {
-		/**
-		 * Adds data bucket "analyze-pages-titles-map", which contains mapping from page title itself to
-		 * full page title.
-		 * Full page title contains parent pages and namespace (if it is not general space).
-		 *
-		 * After testing for title validity and sanitizing titles they will be added to global-pages-titles-map later.
-		 * Example:
-		 * "Detailed_planning" -> "Dokumentation/Detailed_planning"
-		 */
-		$pageConfluenceTitle = $title;
-		$genericTitleBuilder = new GenericTitleBuilder( [] );
-		$pageConfluenceTitle = $genericTitleBuilder
-			->appendTitleSegment( $pageConfluenceTitle )->build();
-		// We need to preserve the spaceID, so we can properly resolve cross-space links
-		// in the `convert` stage
-		$pageConfluenceKey = "$this->spaceId---$pageConfluenceTitle";
-		// Some normalization
-		$pageConfluenceKey = str_replace( ' ', '_', $pageConfluenceKey );
-
-		// Bail out if page object was already handled
-		if ( isset( $this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] ) ) {
-			return;
-		}
-
-		$this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] = $pageConfluenceKey;
-
-		/**
-		 * pages-titles-map is used to resolve link targets.
-		 * It can be that the pageConfluenceKey is the same between a parent and a child, but pageId is different.
-		 * We don't want this duplicates in the pages-titles-map.
-		 */
-		if ( isset( $this->data['analyze-pages-titles-map'][$pageConfluenceKey] ) ) {
-			$this->handleDuplicateConfluenceKeys( $pageConfluenceKey );
-			return;
-		}
-
-		$this->data['analyze-pages-titles-map'][$pageConfluenceKey] = $this->targetTitle;
-
-		// Also add pages IDs in Confluence to full page title mapping.
-		// It is needed to have enough context on converting stage,
-		// to know from filename which page is currently being converted.
-		$this->data['analyze-page-id-to-title-map'][$this->pageId] = $this->targetTitle;
-		$this->data['global-page-id-to-space-id'][$this->pageId] = $this->spaceId;
-
-		$lastModificationDate = '';
-		if ( isset( $properties['lastModificationDate'] ) ) {
-			$lastModificationDate = $properties['lastModificationDate'];
-		}
-		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 
 		$bodyContentIds = [];
 		if ( isset( $collection['bodyContents'] ) ) {
 			$bodyContentIds = $collection['bodyContents'];
 		}
+		// A fallback mechanism for body content IDs in case they are not found in the collection
+		// is placed in the ConfluenceAnalyzer, which will attempt to retrieve them from the
+		// body_contents table based on the page ID.
 
-		if ( !empty( $bodyContentIds ) ) {
-			foreach ( $bodyContentIds as $bodyContentId ) {
-				// TODO: Add UserImpl-key or directly MediaWiki username
-				// (could also be done in `extract` as "metadata" )
-				$this->data['global-body-content-id-to-page-id-map'][$bodyContentId] = $this->pageId;
-			}
-		} else {
-			$bodyContentIds = [];
-			foreach ( $this->data['analyze-body-content-id-to-page-id-map'] as $bodyContentId => $contentPageId ) {
-				if ( $this->pageId === $contentPageId ) {
-					$bodyContentIds[] = $bodyContentId;
-					$this->data['global-body-content-id-to-page-id-map'][$bodyContentId] = $this->pageId;
-				}
-			}
+		$lastModificationDate = '';
+		if ( isset( $properties['lastModificationDate'] ) ) {
+			$lastModificationDate = $properties['lastModificationDate'];
+		}
+
+		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
+
+		$historicalIds = [];
+		if ( isset( $collection['historicalVersions'] ) ) {
+			$historicalIds = $collection['historicalVersions'];
+		}
+
+		$parentPageId = -1;
+		if ( isset( $properties['parent'] ) ) {
+			$parentPageId = $properties['parent'];
 		}
 
 		$version = '';
@@ -271,179 +107,44 @@ class Page extends ProcessorBase {
 			$version = $properties['version'];
 		}
 
-		$revision = implode( '/', $bodyContentIds ) . "@$version-$revisionTimestamp";
+		$this->output->writeln( "Add page '$confluenceTitle' (ID:$pageId)" );
 
-		$this->data['analyze-title-revisions'][$this->targetTitle][] = $revision;
-
-		// Find attachments
-		$this->getAttachmentsFromCollection( $this->spaceId, $collection );
-	}
-
-	/**
-	 * @param int $spaceId
-	 * @param array $collection
-	 * @return void
-	 */
-	private function getAttachmentsFromCollection( int $spaceId, array $collection ): void {
-		if ( !isset( $this->data['analyze-page-id-to-confluence-title-map'][$this->pageId] ) ) {
-			return;
-		}
-		$confluenceTitle = $this->data['analyze-page-id-to-confluence-title-map'][$this->pageId];
-
-		if ( !isset( $this->data['analyze-page-id-to-confluence-key-map'][$this->pageId] ) ) {
-			return;
-		}
-		if ( !isset( $this->data['analyze-page-id-to-title-map'][$this->pageId] ) ) {
-			return;
-		}
-		$wikiTitle = $this->data['analyze-page-id-to-title-map'][$this->pageId];
-
-		// In case of ERM34465 this seems to be empty because
-		// title-attachments and debug-missing-attachment-id-to-filename are empty
-		$attachmentRefs = [];
-		if ( isset( $collection['attachments'] ) ) {
-			$attachmentRefs = $collection['attachments'];
-		}
-
-		foreach ( $attachmentRefs as $attachmentId ) {
-			$attachmentId = (int)$attachmentId;
-			if ( in_array( $attachmentId, $this->data['analyze-added-attachment-id'] ) ) {
-				continue;
-			}
-			if ( !isset( $this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId] ) ) {
-				continue;
-			}
-
-			$attachmentOrigFilename = $this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId];
-
-			$attachmentSpaceId = $spaceId;
-			if ( isset( $this->data['analyze-attachment-id-to-space-id-map'][$attachmentId] ) ) {
-				$attachmentSpaceId = $this->data['analyze-attachment-id-to-space-id-map'][$attachmentId];
-			}
-
-			$attachmentTargetFilename = $this->makeAttachmentTargetFilenameFromData(
-				$attachmentId, $attachmentSpaceId,
-				$attachmentOrigFilename, $wikiTitle
+		if ( empty( $bodyContentIds ) ) {
+			$warning = "Warning: No body content IDs found for page '$confluenceTitle' (ID:$pageId)";
+			$this->output->writeln( $warning );
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__CLASS__,
+				$warning
 			);
-
-			if ( $attachmentTargetFilename === '' ) {
-				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId]
-					= $attachmentTargetFilename;
-				continue;
-			}
-
-			if ( !isset( $this->data['analyze-attachment-id-to-reference-map'][$attachmentId] ) ) {
-				continue;
-			}
-			$attachmentReference = $this->data['analyze-attachment-id-to-reference-map'][$attachmentId];
-
-			// In case of ERM34465 no files are added to title-attachments
-			$this->data['global-title-attachments'][$wikiTitle][] = $attachmentTargetFilename;
-			$this->data['analyze-add-file'][$attachmentTargetFilename] = $attachmentReference;
-			$this->data['analyze-title-to-attachment-title'][$wikiTitle][] = $attachmentTargetFilename;
-			$this->data['analyze-added-attachment-id'][] = $attachmentId;
-
-			$confluenceFileKey = str_replace( ' ', '_', "$spaceId---$confluenceTitle---$attachmentOrigFilename" );
-
-			$this->data['global-filenames-to-filetitles-map'][$confluenceFileKey]
-				= $attachmentTargetFilename;
-
-			$this->data['analyze-attachment-id-to-target-filename-map'][$attachmentId]
-				= $attachmentTargetFilename;
-
-			$this->data['global-attachment-id-to-confluence-file-key-map'][$attachmentId]
-				= $confluenceFileKey;
-			if (
-				!isset( $this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] )
-			) {
-				$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename] = [];
-			}
-			$this->data['global-attachment-orig-filename-target-filename-map'][$attachmentOrigFilename][]
-				= $attachmentTargetFilename;
-		}
-	}
-
-	/**
-	 * @param int $attachmentId
-	 * @param int $attachmentSpaceId
-	 * @param string $attachmentOrigFilename
-	 * @param string $containerTitle
-	 * @return string
-	 */
-	private function makeAttachmentTargetFilenameFromData(
-		int $attachmentId, int $attachmentSpaceId,
-		string $attachmentOrigFilename, string $containerTitle
-	): string {
-		$filenameBuilder = new FilenameBuilder( $this->data['global-space-id-to-prefix-map'], $this->config );
-		try {
-			$targetName = $filenameBuilder->buildFromAttachmentData(
-				$attachmentSpaceId, $attachmentOrigFilename, $containerTitle );
-		} catch ( InvalidTitleException $e ) {
-			try {
-				// Probably it is just too long. Let's try to use a shortened variant
-				// This is not ideal, but should be okay as a fallback in most cases.
-				$shortTargetTitle = basename( $containerTitle );
-				$targetName = $filenameBuilder->buildFromAttachmentData(
-					$attachmentSpaceId, $attachmentOrigFilename, $shortTargetTitle );
-			} catch ( InvalidTitleException $ex ) {
-				$this->data['debug-analyze-invalid-titles-attachment-id-to-title'][$attachmentId]
-					= $ex->getInvalidTitle();
-				$this->logger->error( $ex->getMessage() );
-				$targetName = $ex->getInvalidTitle();
-			}
 		}
 
-		/*
-		 * Some attachments do not have a file extension available. We try
-		 * to find an extension by looking at the content type, but
-		 * sometimes even this won't help... ("octet-stream")
-		 */
-		$file = new SplFileInfo( $targetName );
-		if ( $this->hasNoExplicitFileExtension( $file ) ) {
-			$this->logger->debug(
-				"Could not find file extension for $attachmentId"
+		$status = $this->workspaceDB->addPage(
+			$pageId,
+			$spaceId,
+			$confluenceTitle,
+			'',
+			$revisionTimestamp,
+			strtolower( $contentStatus ),
+			$version,
+			$originalVersionId,
+			$parentPageId,
+			$bodyContentIds,
+			$historicalIds,
+			$properties,
+			$collection
+		);
+
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add page '$confluenceTitle' (ID:$pageId) to the database."
+				. " This may indicate a problem with the page id. Maybe it does exist twice."
 			);
-			$targetName .= '.unknown';
 		}
-
-		return $targetName;
 	}
 
-	/**
-	 * @param SplFileInfo $file
-	 *
-	 * @return bool
-	 */
-	private function hasNoExplicitFileExtension( SplFileInfo $file ): bool {
-		if ( $file->getExtension() === '' ) {
-			return true;
-		}
-		// Evil hack for Names like "02.1 Some-Workflow File"
-		if ( strlen( $file->getExtension() ) > 10 ) {
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * @param string $pageConfluenceKey
-	 *
-	 * @return void
-	 */
-	private function handleDuplicateConfluenceKeys( string $pageConfluenceKey ): void {
-		if ( !isset( $this->data['analyze-pages-titles-map'][$pageConfluenceKey] ) ) {
-			return;
-		}
-
-		if ( !isset( $this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey] ) ) {
-			$this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey] = [
-				$this->data['analyze-pages-titles-map'][$pageConfluenceKey],
-				$this->targetTitle
-			];
-
-			return;
-		}
-
-		$this->data['analyze-pages-titles-duplicates-map'][$pageConfluenceKey][] = $this->targetTitle;
-	}
 }

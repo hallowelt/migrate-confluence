@@ -2,7 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
+use HalloWelt\MediaWiki\Lib\Migration\IConverter;
+use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -11,6 +15,9 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
 class Convert extends CommandConvert {
+
+	/** @var string */
+	private string $wikiTextBasePath = '';
 
 	/**
 	 * @return void
@@ -72,6 +79,40 @@ class Convert extends CommandConvert {
 		}
 
 		return parent::execute( $input, $output );
+	}
+
+	protected function doProcessFile(): bool {
+		$converterFactoryCallbacks = $this->config['converters'];
+
+		$this->wikiTextBasePath = $this->dest . '/content/wikitext';
+		$this->makeTargetPathname();
+		$this->ensureTargetPath();
+
+		$this->readConfigFile( $this->config );
+
+		foreach ( $converterFactoryCallbacks as $key => $callback ) {
+			$converter = call_user_func_array(
+				$callback,
+				[ $this->config, $this->workspace ]
+			);
+			if ( $converter instanceof IConverter === false ) {
+				throw new Exception(
+					"Factory callback for converter '$key' did not return an "
+					. "IConverter object"
+				);
+			}
+			if ( $converter instanceof IOutputAwareInterface ) {
+				$converter->setOutput( $this->output );
+			}
+			if ( $converter instanceof IDestinationPathAware ) {
+				$converter->setDestinationPath( $this->dest );
+			}
+
+			$result = $converter->convert( $this->currentFile );
+
+			file_put_contents( $this->targetPathname, $result );
+		}
+		return true;
 	}
 
 	/**
@@ -207,11 +248,6 @@ class Convert extends CommandConvert {
 		$this->files = $filtered;
 	}
 
-	protected function doProcessFile(): bool {
-		$this->readConfigFile( $this->config );
-		return parent::doProcessFile();
-	}
-
 	/**
 	 * @param array &$config
 	 *
@@ -232,4 +268,21 @@ class Convert extends CommandConvert {
 			}
 		}
 	}
+
+	private function makeTargetPathname() {
+		$this->targetPathname = str_replace(
+			$this->src,
+			$this->wikiTextBasePath,
+			$this->currentFile->getPathname()
+		);
+		$this->targetPathname = preg_replace( '#\.mraw$#', '.wiki', $this->targetPathname );
+	}
+
+	private function ensureTargetPath() {
+		$baseTargetPath = dirname( $this->targetPathname );
+		if ( !file_exists( $baseTargetPath ) ) {
+			mkdir( $baseTargetPath, 0755, true );
+		}
+	}
+
 }

@@ -12,78 +12,75 @@ use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 class FilenameResolver {
 
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	protected ConversionDataLookup $dataLookup;
+	protected DBConversionDataLookup $dataLookup;
 
 	/**
-	 * @var array
+	 * @var MigrationConfig
 	 */
-	private array $config;
+	private MigrationConfig $migrationConfig;
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
-	 * @param array $config
+	 * @param DBConversionDataLookup $dataLookup
+	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( ConversionDataLookup $dataLookup, array $config = [] ) {
+	public function __construct( DBConversionDataLookup $dataLookup, MigrationConfig $migrationConfig ) {
 		$this->dataLookup = $dataLookup;
-		$this->config = $config;
+		$this->migrationConfig = $migrationConfig;
 	}
 
 	/**
 	 * @param int $spaceId
-	 * @param string $rawPageTitle
+	 * @param string $confluencePageTitle
 	 * @param string $filename
 	 * @return array
 	 */
-	public function resolve( int $spaceId, string $rawPageTitle, string $filename ): array {
-		$confluenceFileKey = $this->generateConfluenceKey( $spaceId, $rawPageTitle, $filename );
-		$fileTitle = $this->dataLookup->getTargetFileTitleFromConfluenceFileKey( $confluenceFileKey );
+	public function resolve( int $spaceId, string $confluencePageTitle, string $filename ): array {
+		$fileTitle = $this->dataLookup->getTargetFileTitleFromSpaceId(
+			$spaceId,
+			$confluencePageTitle,
+			$filename
+		);
 		if ( $fileTitle !== '' ) {
 			return $this->getResult( $fileTitle, false );
 		}
 
-		$fileTitle = $this->buildFileTitle( $spaceId, $rawPageTitle, $filename );
+		$fileTitle = $this->buildFileTitle( $spaceId, $confluencePageTitle, $filename );
 		return $this->getResult( $fileTitle, true );
 	}
 
 	/**
 	 * @param int $spaceId
-	 * @param string $rawPageTitle
+	 * @param string $confluencePageTitle
 	 * @param string $filename
 	 * @return string
 	 */
-	private function buildFileTitle( int $spaceId, string $rawPageTitle, string $filename ): string {
-		$assocTitle = $this->dataLookup->getTargetTitleFromConfluencePageKey( "$spaceId---$rawPageTitle" );
+	private function buildFileTitle( int $spaceId, string $confluencePageTitle, string $filename ): string {
+		$assocTitle = $this->dataLookup->getTargetPageTitleFromSpaceId( $spaceId, $confluencePageTitle );
 
 		$filenameBuilder = new FilenameBuilder(
 			$this->dataLookup->getSpaceIdToPrefixMap(),
-			$this->config
+			$this->migrationConfig
 		);
 
+		$pageWikiTitleParts = substr( $assocTitle, strrpos( $assocTitle, ':' ) );
+		$pageWikiTitleParts = explode( '/', $pageWikiTitleParts );
+		$shortPageWikiTitle = end( $pageWikiTitleParts );
+
 		try {
-			$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $assocTitle );
+			$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortPageWikiTitle );
 		} catch ( InvalidTitleException $ex ) {
 			try {
 				// Probably it is just too long. Let's try to use a shortened variant
 				// This is not ideal, but should be okay as a fallback in most cases.
-				$shortTargetTitle = basename( $assocTitle );
-				$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortTargetTitle );
+
+				$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortPageWikiTitle );
 			} catch ( InvalidTitleException $ex ) {
 				$fileTitle = $ex->getInvalidTitle();
 			}
 		}
 		return $fileTitle;
-	}
-
-	/**
-	 * @param int $spaceId
-	 * @param string $rawPageTitle
-	 * @param string $filename
-	 * @return string
-	 */
-	private function generateConfluenceKey( int $spaceId, string $rawPageTitle, string $filename ): string {
-		return "$spaceId---$rawPageTitle---$filename";
 	}
 
 	/**

@@ -2,33 +2,23 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 use XMLReader;
 
 class Attachments extends ProcessorBase {
 
-	/** @var SplFileInfo */
-	private SplFileInfo $file;
-
 	/**
-	 * @param SplFileInfo $file
+	 * @param WorkspaceDB $workspaceDB
+	 * @param MigrationConfig $migrationConfig
+	 * @param string $xmlPath
 	 */
-	public function __construct( SplFileInfo $file ) {
-		$this->file = $file;
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function getKeys(): array {
-		return [
-			'analyze-attachment-available-ids',
-			'analyze-attachment-id-to-orig-filename-map',
-			'analyze-attachment-id-to-space-id-map',
-			'analyze-attachment-id-to-reference-map',
-			'analyze-attachment-id-to-container-content-id-map',
-			'analyze-attachment-id-to-content-status-map'
-		];
+	public function __construct(
+		private WorkspaceDB $workspaceDB,
+		private MigrationConfig $migrationConfig,
+		private string $xmlPath
+	) {
 	}
 
 	/**
@@ -37,6 +27,7 @@ class Attachments extends ProcessorBase {
 	public function doExecute(): void {
 		$attachmentId = null;
 		$properties = [];
+		$collection = [];
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
@@ -48,6 +39,8 @@ class Attachments extends ProcessorBase {
 				}
 			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
 				$properties = $this->processPropertyNodes( $properties );
+			} elseif ( strtolower( $this->xmlReader->name ) === 'collection' ) {
+				$collection = $this->processCollectionNodes( $collection );
 			}
 			$this->xmlReader->next();
 		}
@@ -56,72 +49,88 @@ class Attachments extends ProcessorBase {
 			return;
 		}
 
-		$this->process( (int)$attachmentId, $properties );
-	}
-
-	/**
-	 * @param int $attachmentId
-	 * @param array $properties
-	 * @return void
-	 */
-	private function process( int $attachmentId, array $properties ): void {
-		$this->data['analyze-attachment-available-ids'][] = $attachmentId;
-
-		$attachmentFilename = '';
+		$confluenceFilename = '';
 		if ( isset( $properties['fileName'] ) ) {
-			$attachmentFilename = $properties['fileName'];
+			$confluenceFilename = $properties['fileName'];
 		}
-		if ( $attachmentFilename === '' && isset( $properties['title'] ) ) {
-			$attachmentFilename = $properties['title'];
-		}
-
-		if ( $attachmentFilename !== '' ) {
-			$this->data['analyze-attachment-id-to-orig-filename-map'][$attachmentId] = $attachmentFilename;
+		if ( $confluenceFilename === '' && isset( $properties['title'] ) ) {
+			$confluenceFilename = $properties['title'];
 		}
 
-		$attachmentSpaceId = null;
+		$spaceId = -1;
 		if ( isset( $properties['space'] ) ) {
-			$attachmentSpaceId = $properties['space'];
-		}
-		if ( is_int( $attachmentSpaceId ) ) {
-			$this->data['analyze-attachment-id-to-space-id-map'][$attachmentId] = $attachmentSpaceId;
+			$spaceId = $properties['space'];
 		}
 
-		$attachmentReference = $this->makeAttachmentReference( $attachmentId, $properties );
-		if ( $attachmentReference !== '' ) {
-			$this->data['analyze-attachment-id-to-reference-map'][$attachmentId] = $attachmentReference;
+		if ( !$this->migrationConfig->getIncludeHistory() && $spaceId === -1 ) {
+			return;
 		}
 
 		$containerContentId = -1;
 		if ( isset( $properties['containerContent'] ) ) {
 			$containerContentId = (int)$properties['containerContent'];
 		}
-		if ( $containerContentId >= 0 ) {
-			$this->data['analyze-attachment-id-to-container-content-id-map'][$attachmentId] = $containerContentId;
+
+		$contentStatus = '';
+		if ( isset( $properties['contentStatus'] ) ) {
+			$contentStatus = $properties['contentStatus'];
 		}
 
-		$attachmentNodeContentStatus = '';
+		$contentStatus = '';
 		if ( isset( $properties['contentStatus'] ) ) {
-			$attachmentNodeContentStatus = $properties['contentStatus'];
+			$contentStatus = $properties['contentStatus'];
 		}
-		$this->data['analyze-attachment-id-to-content-status-map'][$attachmentId] = $attachmentNodeContentStatus;
+
+		if ( strtolower( $contentStatus ) !== 'current' ) {
+			// Ignore draft and deleted versions of pages, as they are not relevant for the migration.
+			return;
+		}
+
+		$version = '';
+		if ( isset( $properties['version'] ) ) {
+			$version = $properties['version'];
+		}
+
+		$originalVersionId = -1;
+		if ( isset( $properties['originalVersion'] ) ) {
+			$originalVersionId = (int)$properties['originalVersion'];
+		}
+
+		$historicalIds = [];
+		if ( isset( $collection['historicalVersions'] ) ) {
+			$historicalIds = $collection['historicalVersions'];
+		}
+
+		$attachmentReference = $this->makeAttachmentReference(
+			$attachmentId,
+			$containerContentId,
+			$properties
+		);
+
+		$this->workspaceDB->addAttachment(
+			$attachmentId,
+			$spaceId,
+			$confluenceFilename,
+			$this->guessFileExtension( $attachmentReference, $confluenceFilename ),
+			$containerContentId,
+			strtolower( $contentStatus ),
+			$version,
+			$originalVersionId,
+			$attachmentReference,
+			$historicalIds,
+			$properties,
+			$collection
+		);
 	}
 
 	/**
 	 * @param int $attachmentId
+	 * @param int $containerContentId
 	 * @param array $properties
 	 * @return string
 	 */
-	private function makeAttachmentReference( int $attachmentId, array $properties ): string {
-		$basePath = $this->file->getPath() . '/attachments';
-
-		$containerId = '';
-		if ( isset( $properties['content'] ) ) {
-			$containerId = $properties['content'];
-		}
-		if ( $containerId === '' && isset( $properties['containerContent'] ) ) {
-			$containerId = $properties['containerContent'];
-		}
+	private function makeAttachmentReference( int $attachmentId, int $containerContentId, array $properties ): string {
+		$basePath = $this->xmlPath . '/attachments';
 
 		$attachmentVersion = '';
 		if ( isset( $properties['attachmentVersion'] ) ) {
@@ -138,11 +147,25 @@ class Attachments extends ProcessorBase {
 			$attachmentVersion = '__LATEST__';
 		}
 
-		$path = $basePath . "/" . $containerId . '/' . $attachmentId . '/' . $attachmentVersion;
-		if ( !file_exists( $path ) ) {
-			return '';
+		return $basePath . "/" . $containerContentId . '/' . $attachmentId . '/' . $attachmentVersion;
+	}
+
+	/**
+	 * @param string $attachmentReference
+	 * @return string
+	 */
+	private function guessFileExtension( string $attachmentReference, string $confluenceFilename ): string {
+		$fileExtension = '';
+		$file = new SplFileInfo( $attachmentReference );
+		$fileExtension = $file->getExtension();
+
+		if ( $fileExtension === '' ) {
+			$filenameParts = explode( '.', $confluenceFilename );
+			if ( count( $filenameParts ) > 1 ) {
+				$fileExtension = end( $filenameParts );
+			}
 		}
 
-		return $path;
+		return $fileExtension;
 	}
 }

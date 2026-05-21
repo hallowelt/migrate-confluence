@@ -1,14 +1,14 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
     <div>
-        [[Media:ABC_SomePage_SomeImage.png|Link to a Confluence Attachment]]
+        [[Media:ABC_SomePage-SomeImage.png|Link to a Confluence Attachment]]
     </div>
 
     <div>
-        [[Media:ABC_SomePage_SomeImage1.png]]
+        [[Media:ABC_SomePage-SomeImage1.png]]
     </div>
 
     <div>
-        [[Media:DEVOPS_SomePage_SomeImage2.png]]
+        [[Media:DEVOPS_SomePage-SomeImage2.png]]
     </div>
 
     <div>

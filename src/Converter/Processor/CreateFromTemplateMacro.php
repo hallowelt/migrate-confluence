@@ -7,7 +7,7 @@ use DOMElement;
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 // phpcs:disable Generic.Files.LineLength.TooLong
 
@@ -39,14 +39,14 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
 class CreateFromTemplateMacro implements IProcessor {
 
 	/**
-	 * @var ConversionDataLookup
+	 * @var DBConversionDataLookup
 	 */
-	private ConversionDataLookup $dataLookup;
+	private DBConversionDataLookup $dataLookup;
 
 	/**
-	 * @param ConversionDataLookup $dataLookup
+	 * @param DBConversionDataLookup $dataLookup
 	 */
-	public function __construct( ConversionDataLookup $dataLookup ) {
+	public function __construct( DBConversionDataLookup $dataLookup ) {
 		$this->dataLookup = $dataLookup;
 	}
 
