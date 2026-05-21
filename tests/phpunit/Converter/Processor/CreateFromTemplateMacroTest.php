@@ -4,7 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataLookup;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 class CreateFromTemplateMacroTest extends TestCase {
@@ -32,33 +33,11 @@ class CreateFromTemplateMacroTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$dataLookup = new ConversionDataLookup(
-			[
-				42 => 'ABC:',
-				23 => 'DEVOPS:'
-			],
-			[],
-			[
-				'42---SomePage---SomeImage.png' => 'ABC_SomePage_SomeImage.png',
-				'42---SomePage---SomeImage1.png' => 'ABC_SomePage_SomeImage1.png',
-				'23---SomePage---SomeImage2.png' => 'DEVOPS_SomePage_SomeImage2.png'
-			],
-			[],
-			[],
-			[],
-			[
-				42 => 'ABC',
-				23 => 'DEVOPS'
-			],
-			[],
-			[],
-			[],
-			[],
-			[
-				123456 => 'SomePage',
-				7890 => 'SomeOtherPage'
-			]
-		);
+		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
+		$workspaceDB->addPageTemplate( 123456, 'SomePage', null, '' );
+		$workspaceDB->addPageTemplate( 7890, 'SomeOtherPage', null, '' );
+
+		$dataLookup = new DBConversionDataLookup( $workspaceDB );
 
 		$processor = new CreateFromTemplateMacro( $dataLookup );
 		$processor->process( $dom );
