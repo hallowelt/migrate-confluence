@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IPageContentPostProcessor;
+use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use RecursiveDirectoryIterator;
@@ -29,7 +30,7 @@ class Pages extends ProcessorBase {
 	 */
 	public function __construct(
 		Builder $builder, DBComposerDataLookup $dataLookup, Workspace $workspace,
-		Output $output, string $dest, MigrationConfig $migrationConfig,
+		Output $output, string $dest, MigrationConfig $migrationConfig, ComposerDeploymentInfo $deploymentInfo,
 		?IPageContentPostProcessor $contentPostProcessor = null
 	) {
 		parent::__construct(
@@ -38,7 +39,8 @@ class Pages extends ProcessorBase {
 			$workspace,
 			$output,
 			$dest,
-			$migrationConfig
+			$migrationConfig,
+			$deploymentInfo
 		);
 		$this->contentPostProcessor = $contentPostProcessor;
 	}
