@@ -26,6 +26,7 @@ class Pages extends ProcessorBase {
 	 * @param Output $output
 	 * @param string $dest
 	 * @param MigrationConfig $migrationConfig
+	 * @param ComposerDeploymentInfo $deploymentInfo
 	 * @param IPageContentPostProcessor|null $contentPostProcessor
 	 */
 	public function __construct(
