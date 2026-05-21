@@ -78,6 +78,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		$this->buckets->loadFromWorkspace( $this->workspace );
 
 		$this->extractBodyContents();
+		$this->extractTemplateContents();
 		$this->extractPagesMetaData();
 		$this->extractBlogPostsMetaData();
 		$this->extractAttachmentsMetaData();
@@ -164,6 +165,24 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		// For a strange reason the CDATA blocks are not closed properly...
 		$fixedValue = str_replace( ']] >', ']]>', $rawValue );
 		return '<html><body>' . $fixedValue . '</body></html>';
+	}
+
+	/**
+	 * Extract template content and save as raw content for conversion.
+	 *
+	 * @return void
+	 */
+	private function extractTemplateContents(): void {
+		foreach ( $this->workspaceDB->getPageTemplates() as $template ) {
+			$templateId = (int)$template['template_id'];
+			$content = $template['content'] ?? '';
+			if ( $content === '' ) {
+				continue;
+			}
+
+			$bodyContentHTML = $this->normalizeBodyContentHTML( $content );
+			$this->workspace->saveRawContent( (string)$templateId, $bodyContentHTML );
+		}
 	}
 
 	/**

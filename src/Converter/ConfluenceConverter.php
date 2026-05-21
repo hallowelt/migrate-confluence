@@ -33,6 +33,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro as PreserveCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ContentByLabelMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
@@ -457,6 +458,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new LocalTabMacro(),
 			new LocalTabGroupMacro(),
 			new LoremIpsumMacro(),
+			new CreateFromTemplateMacro(
+				$this->dataLookup
+			)
 		];
 
 		/** @var IProcessor $processor */
@@ -601,6 +605,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$sContent = str_replace( $sEntity, $replacement, $sContent );
 		}
 
+		// Strip Confluence blueprint template declarations (not relevant for wiki output)
+		$sContent = preg_replace( '/<at:declarations\s*\/>/', '', $sContent );
+		$sContent = preg_replace( '/<at:declarations[^>]*>.*?<\/at:declarations>/s', '', $sContent );
+
 		// Append categories
 		$metaData = [];
 		if ( $this->contentType === 'page' ) {
@@ -618,7 +626,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$sContent = str_replace( '</body>', $categories . '</body>', $sContent );
 
 		// phpcs:ignore Generic.Files.LineLength.TooLong
-		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">' . $sContent . '</xml>';
+		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice" xmlns:at="atlassian-template">' . $sContent . '</xml>';
 
 		return $sContent;
 	}

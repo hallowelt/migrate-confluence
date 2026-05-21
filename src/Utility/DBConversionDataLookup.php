@@ -170,4 +170,12 @@ class DBConversionDataLookup {
 	public function getPageAttachmentsForPageId( int $pageId ): array {
 		return $this->workspaceDB->getPageAttachmentsForPageId( $pageId );
 	}
+
+	/**
+	 * @param int $templateId
+	 * @return string|null
+	 */
+	public function getTemplateTitleFromTemplateId( int $templateId ): ?string {
+		return $this->workspaceDB->getTemplateTitleFromTemplateId( $templateId );
+	}
 }

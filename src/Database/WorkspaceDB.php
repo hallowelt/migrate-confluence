@@ -31,6 +31,7 @@ class WorkspaceDB {
 			'spaces_descriptions',
 			'pages',
 			'pages_meta',
+			'page_templates',
 			'blog_posts',
 			'blog_posts_meta',
 			'body_contents',
@@ -120,6 +121,7 @@ class WorkspaceDB {
 		$this->createTablePagesMeta();
 		$this->createTableBlogPostsMeta();
 		$this->createTableAttachmentsMeta();
+		$this->createTablePageTemplates();
 	}
 
 	/**
@@ -2747,4 +2749,126 @@ class WorkspaceDB {
 		return $this->executeTransactionWithStatus( $transaction );
 	}
 
+	/**
+	 * @return void
+	 */
+	private function createTablePageTemplates(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS page_templates (
+				template_id INT PRIMARY KEY,
+				name CHAR,
+				space_id INT,
+				content TEXT
+			);'
+		);
+	}
+
+	/**
+	 * @param int $templateId
+	 * @param string $name
+	 * @param int|null $spaceId
+	 * @param string $content
+	 * @return bool
+	 */
+	public function addPageTemplate( int $templateId, string $name, ?int $spaceId, string $content ): bool {
+		$transaction = $this->db->prepare(
+			'INSERT OR REPLACE INTO page_templates (
+				template_id,
+				name,
+				space_id,
+				content
+			) VALUES (
+				:template_id,
+				:name,
+				:space_id,
+				:content
+			)'
+		);
+
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':name', $name, SQLITE3_TEXT );
+		if ( $spaceId !== null ) {
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
+		}
+		$transaction->bindValue( ':content', $content, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return array|null
+	 */
+	public function getPageTemplateById( int $templateId ): ?array {
+		$transaction = $this->db->prepare(
+			'SELECT * FROM page_templates WHERE template_id = :template_id LIMIT 1'
+		);
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		if ( $row === false ) {
+			return null;
+		}
+
+		return $row;
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return string|null
+	 */
+	public function getTemplateNameFromTemplateId( int $templateId ): ?string {
+		$template = $this->getPageTemplateById( $templateId );
+		if ( $template === null ) {
+			return null;
+		}
+		return $template['name'] ?? null;
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return int|null
+	 */
+	public function getSpaceIdFromTemplateId( int $templateId ): ?int {
+		$template = $this->getPageTemplateById( $templateId );
+		if ( $template === null || $template['space_id'] === null ) {
+			return null;
+		}
+		return (int)$template['space_id'];
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return string|null
+	 */
+	public function getTemplateTitleFromTemplateId( int $templateId ): ?string {
+		$template = $this->getPageTemplateById( $templateId );
+		if ( $template === null || empty( $template['name'] ) ) {
+			return null;
+		}
+
+		$spacePrefix = '';
+		if ( $template['space_id'] !== null ) {
+			$spaceId = (int)$template['space_id'];
+			$spaces = $this->getMapSpaceIdToPrefix();
+			if ( isset( $spaces[$spaceId] ) ) {
+				$spacePrefix = $spaces[$spaceId];
+			}
+		}
+
+		return 'Template:' . $spacePrefix . $template['name'];
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPageTemplates(): array {
+		return $this->getAllData( 'page_templates' );
+	}
 }

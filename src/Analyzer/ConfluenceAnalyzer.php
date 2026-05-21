@@ -17,6 +17,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperty;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Label;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Labelling;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\PageTemplates;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
@@ -158,6 +159,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			'Labelling' => new Labelling( $this->workspaceDB ),
 			'ContentProperty' => new ContentProperty( $this->workspaceDB ),
 			'ConfluenceUserImpl' => new Users( $this->workspaceDB ),
+			'PageTemplate' => new PageTemplates( $this->workspaceDB, $this->migrationConfig ),
 		];
 	}
 
@@ -348,6 +350,11 @@ class ConfluenceAnalyzer extends AnalyzerBase
 				// historical versions
 				|| $page['original_version_id'] !== -1
 			) {
+				continue;
+			}
+
+			// Skip pages that already have a wiki_title set (e.g. templates).
+			if ( isset( $page['wiki_title'] ) && $page['wiki_title'] !== '' ) {
 				continue;
 			}
 
