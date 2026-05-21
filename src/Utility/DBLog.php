@@ -9,7 +9,8 @@ class DBLog {
 	/**
 	 * @param WorkspaceDB $workspaceDB
 	 */
-	public function __construct( private WorkspaceDB $workspaceDB ){}
+	public function __construct( private WorkspaceDB $workspaceDB ) {
+	}
 
 	/**
 	 * @param string $type

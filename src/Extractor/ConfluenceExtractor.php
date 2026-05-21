@@ -205,7 +205,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 				);
 
 				$this->dbLog->addLogEntry(
-					'info', 'extract', __METHOD__ , "Add page meta for page {$page['wiki_title']}"
+					'info', 'extract', __METHOD__, "Add page meta for page {$page['wiki_title']}"
 				);
 			}
 		}
@@ -248,7 +248,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 				);
 
 				$this->dbLog->addLogEntry(
-					'info', 'extract', __METHOD__ , "Add blog post meta for page {$blogPost['wiki_title']}"
+					'info', 'extract', __METHOD__, "Add blog post meta for page {$blogPost['wiki_title']}"
 				);
 			}
 		}
@@ -291,7 +291,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 				);
 
 				$this->dbLog->addLogEntry(
-					'info', 'extract', __METHOD__ , "Add attachment meta for attachment {$attachment['wiki_title']}"
+					'info', 'extract', __METHOD__, "Add attachment meta for attachment {$attachment['wiki_title']}"
 				);
 			}
 		}

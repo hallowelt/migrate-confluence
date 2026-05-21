@@ -202,7 +202,7 @@ class Pages extends ProcessorBase {
 
 	/**
 	 * @param string $namespace
-	 * @return boolean
+	 * @return bool
 	 */
 	private function isBlogPost( string $namespace ): bool {
 		if ( $namespace === 'Blog' ) {

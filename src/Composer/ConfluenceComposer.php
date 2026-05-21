@@ -150,7 +150,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @param string $type
 	 * @return void
 	 */
-	private function writeDBLogContent(  DBLog $dbLog , string $type ): void {
+	private function writeDBLogContent( DBLog $dbLog, string $type ): void {
 		$data = $dbLog->getLogEntriesForStep( 'compose', $type );
 		$content = '';
 		foreach ( $data as $item ) {
