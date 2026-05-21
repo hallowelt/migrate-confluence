@@ -7,7 +7,10 @@ use DOMXPath;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -89,13 +92,16 @@ class PagesTest extends TestCase {
 		$migrationConfig->method( 'getComposerSkipNamespaces' )->willReturn( [] );
 		$migrationConfig->method( 'getComposerSkipTitles' )->willReturn( [] );
 
+		$composerDeploymentInfo = new ComposerDeploymentInfo();
+
 		$processor = new Pages(
 			new Builder(),
 			$dataLookup,
 			$workspace,
 			$this->makeOutput(),
 			$this->tmpDir,
-			$migrationConfig
+			$migrationConfig,
+			$composerDeploymentInfo
 		);
 
 		$processor->execute();
@@ -128,13 +134,16 @@ class PagesTest extends TestCase {
 			->with( 200 )
 			->willReturn( 'Valid description revision' );
 
+		$composerDeploymentInfo = new ComposerDeploymentInfo();
+
 		$processor = new Pages(
 			$builder,
 			$dataLookup,
 			$workspace,
 			$this->makeOutput(),
 			$this->tmpDir,
-			$migrationConfig
+			$migrationConfig,
+			$composerDeploymentInfo
 		);
 
 		$spaceDescriptionRevisions = [
