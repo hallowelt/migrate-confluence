@@ -11,14 +11,40 @@ use PHPUnit\Framework\TestCase;
 class CreateFromTemplateMacroTest extends TestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro::process
 	 * @return void
 	 */
-	public function testPreprocess() {
-		$this->doTestAttachments(
+	public function testProcess() {
+		$this->doTest(
 			'create-from-template-macro-input.xml',
 			'create-from-template-macro-output.xml'
 		);
+	}
+
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro::process
+	 * @return void
+	 */
+	public function testProcessWithSpacePrefix() {
+		$dir = dirname( __DIR__, 2 ) . '/data';
+		$input = file_get_contents( "$dir/create-from-template-macro-input.xml" );
+
+		$dom = new DOMDocument();
+		$dom->loadXML( $input );
+
+		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
+		$workspaceDB->addPageTemplate( 123456, 'SomePage', 42, '' );
+		$workspaceDB->addPageTemplate( 7890, 'SomeOtherPage', 23, '' );
+
+		$dataLookup = new DBConversionDataLookup( $workspaceDB );
+
+		$processor = new CreateFromTemplateMacro( $dataLookup );
+		$processor->process( $dom );
+
+		$actualOutput = $dom->saveXML( $dom->documentElement );
+
+		$this->assertStringContainsString( 'Template:ABC:SomePage', $actualOutput );
+		$this->assertStringContainsString( 'Template:DEVOPS:SomeOtherPage', $actualOutput );
 	}
 
 	/**
@@ -26,7 +52,7 @@ class CreateFromTemplateMacroTest extends TestCase {
 	 * @param string $output
 	 * @return void
 	 */
-	private function doTestAttachments( $input, $output ): void {
+	private function doTest( $input, $output ): void {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/$input" );
 

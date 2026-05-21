@@ -31,6 +31,7 @@ class WorkspaceDB {
 			'spaces_descriptions',
 			'pages',
 			'pages_meta',
+			'page_templates',
 			'blog_posts',
 			'blog_posts_meta',
 			'body_contents',

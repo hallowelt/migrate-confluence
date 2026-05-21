@@ -7,8 +7,7 @@ class MigrationConfig {
 	/**
 	 * @param array $config
 	 */
-	public function __construct( private array $config ) {
-		$this->config = $config;
+	public function __construct( private readonly array $config ) {
 	}
 
 	/**

@@ -606,6 +606,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$sContent = str_replace( $sEntity, $replacement, $sContent );
 		}
 
+		// Strip Confluence blueprint template declarations (not relevant for wiki output)
+		$sContent = preg_replace( '/<at:declarations\s*\/>/', '', $sContent );
+		$sContent = preg_replace( '/<at:declarations[^>]*>.*?<\/at:declarations>/s', '', $sContent );
+
 		// Append categories
 		$metaData = [];
 		if ( $this->contentType === 'page' ) {
@@ -623,7 +627,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$sContent = str_replace( '</body>', $categories . '</body>', $sContent );
 
 		// phpcs:ignore Generic.Files.LineLength.TooLong
-		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice">' . $sContent . '</xml>';
+		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice" xmlns:at="atlassian-template">' . $sContent . '</xml>';
 
 		return $sContent;
 	}
