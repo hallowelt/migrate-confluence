@@ -692,15 +692,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			},
 			$this->wikiText
 		);
-		// Filenames from the DB may contain '&', which gets encoded to '&amp;' when
-		// the DOM is serialized to HTML for Pandoc. Decode it back in media/file links.
-		$this->wikiText = preg_replace_callback(
-			'#\[\[(Media|File):(.*?)\]\]#s',
-			static function ( $matches ) {
-				return '[[' . $matches[1] . ':' . html_entity_decode( $matches[2], ENT_QUOTES | ENT_HTML5 ) . ']]';
-			},
-			$this->wikiText
-		);
 
 		if ( !$this->isSpaceDescriptionContent ) {
 			$this->wikiText .= $this->addAdditionalAttachments();

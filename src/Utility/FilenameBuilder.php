@@ -65,6 +65,11 @@ class FilenameBuilder {
 
 		$builtTitle = $builder->invertTitleSegments()->build();
 
+		// Replace '&' and '?' characters, which are not allowed in wiki file titles, with '_'.
+		$builtTitle = str_replace( [ '&', '?' ], '_', $builtTitle );
+		// Avoid multiple '_' in a row
+		$builtTitle = preg_replace( '/_+/', '_', $builtTitle ) ?? $builtTitle;
+
 		$filename = new WindowsFilename( $builtTitle );
 		$filename = (string)$filename;
 
