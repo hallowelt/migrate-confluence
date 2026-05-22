@@ -1,0 +1,38 @@
+name: prepare-release
+#
+# Currently this workflow is rather useless. It creates an updated VERSION file that is
+# then discarded. The aim is later to produce releases semi-automatically with it.
+#
+
+on:
+  workflow_run:
+    workflows: ["basic-tests"]
+    types:
+      - completed
+  push:
+    tags:
+      - '*'
+
+jobs:
+  set-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set version from tag
+        id: set_version
+        run: |
+          ./bin/mkversion.sh --from-env
+
+      # TODO we could let git-archive do this job and define exclusions in .gitattributes.
+      - name: create zip file for release
+        run: zip -r "migrate-confluence-{{ github.ref_name }}" bin doc docker src tests .phpcs.xml box.json composer.json Dockerfile LICENSE README.md VERSION
+        if: startsWith(github.ref, 'refs/tags/')
+
+      # TODO do we want to auto-create releases for each tag? If yes, how do we handle release notes?
+      # - name: create release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     files: "migrate-confluence-{{ github.ref_name }}".zip
+      #   if: startsWith(github.ref, 'refs/tags/')

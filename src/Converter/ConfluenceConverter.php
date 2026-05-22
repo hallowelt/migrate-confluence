@@ -88,6 +88,7 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
+use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 

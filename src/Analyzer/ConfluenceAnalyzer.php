@@ -28,6 +28,7 @@ use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
+use HalloWelt\MigrateConfluence\Utility\Version;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -94,6 +95,12 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	 */
 	private function initDBLog(): void {
 		$this->dbLog = new DBLog( $this->workspaceDB );
+		$this->dbLog->addLogEntry(
+			'info',
+			'analyze',
+			__CLASS__,
+			sprintf( 'use version %s', Version::getVersion() )
+		);
 	}
 
 	/**

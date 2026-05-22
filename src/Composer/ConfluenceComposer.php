@@ -17,6 +17,7 @@ use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Output\Output;
 
 class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
@@ -68,6 +69,12 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	public function buildXML( Builder $builder ): void {
 		$workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
 		$dbLog = new DBLog( $workspaceDB );
+		$dbLog->addLogEntry(
+			'info',
+			'compose',
+			__CLASS__,
+			sprintf( 'use version %s', Version::getVersion() )
+		);
 		$composerDataLookup = new DBComposerDataLookup( $workspaceDB );
 		$deploymentInfo = new ComposerDeploymentInfo();
 		$processors = [

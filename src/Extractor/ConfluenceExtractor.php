@@ -9,6 +9,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
 
 class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware {
@@ -53,6 +54,12 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	private function initDBLog(): void {
 		$this->dbLog = new DBLog( $this->workspaceDB );
+		$this->dbLog->addLogEntry(
+			'info',
+			'extract',
+			__CLASS__,
+			sprintf( 'use version %s', Version::getVersion() )
+		);
 	}
 
 	/**
