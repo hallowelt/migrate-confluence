@@ -85,6 +85,7 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
@@ -138,6 +139,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var string */
 	private string $contentType = '';
 
+	/** @var TocMacroUsage */
+	private TocMacroUsage $tocMacroUsage;
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -178,6 +182,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
 		$this->conversionDataWriter = new ConversionDataWriter( $this->dest );
+
+		// Indicates usage of toc-macro
+		$this->tocMacroUsage = new TocMacroUsage();
 
 		$result = parent::convert( $file );
 		return $result;
@@ -335,7 +342,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new NoteMacro(),
 			new WarningMacro(),
 			new StatusMacro(),
-			new TocMacro(),
+			new TocMacro( $this->tocMacroUsage ),
 			new PanelMacro(),
 			new ColumnMacro(),
 			new SectionMacro(),
@@ -695,6 +702,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 		if ( !$this->isSpaceDescriptionContent ) {
 			$this->wikiText .= $this->addAdditionalAttachments();
+		}
+
+		// If toc-macro is not explicitly used set __NOTOC__
+		if ( $this->tocMacroUsage->getStatus() === false ) {
+			$this->wikiText .= "\n__NOTOC__\n";
 		}
 
 		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";

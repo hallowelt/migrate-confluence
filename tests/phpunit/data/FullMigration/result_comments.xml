@@ -10,7 +10,7 @@
         <role>cs-comments</role>
         <model>json</model>
         <format>application/json</format>
-        <text>{"1":{"type":"comment","author":"Testuser","created":"20200102100000","modified":"20200102100500","title":"","block":null,"wikitext":"This is a test comment.\n \u003C!-- From bodyContent 20000002.mraw --\u003E"}}</text>
+        <text>{"1":{"type":"comment","author":"Testuser","created":"20200102100000","modified":"20200102100500","title":"","block":null,"wikitext":"This is a test comment.\n__NOTOC__\n\n \u003C!-- From bodyContent 20000002.mraw --\u003E"}}</text>
       </content>
     </revision>
   </page>
