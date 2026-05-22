@@ -11,13 +11,50 @@ class WorkspaceDB {
 	/** @var SQLite3 */
 	private SQLite3 $db;
 
+	/** @var array Cached prepared statements keyed by SQL string */
+	private array $stmtCache = [];
+
 	/**
 	 * @param string $name
 	 */
 	public function __construct( string $name ) {
 		$this->db = new SQLite3( $name );
 
+		$this->db->exec( 'PRAGMA journal_mode = WAL' );
+		$this->db->exec( 'PRAGMA synchronous = NORMAL' );
+		$this->db->busyTimeout( 5000 );
+
 		$this->createTables();
+	}
+
+	/**
+	 * @return void
+	 */
+	public function beginTransaction(): void {
+		$this->db->exec( 'BEGIN TRANSACTION' );
+	}
+
+	/**
+	 * @return void
+	 */
+	public function commitTransaction(): void {
+		$this->db->exec( 'COMMIT' );
+	}
+
+	/**
+	 * Prepare a statement, caching it for reuse across repeated calls with the same SQL.
+	 *
+	 * @param string $sql
+	 * @return SQLite3Stmt
+	 */
+	private function cachedPrepare( string $sql ): SQLite3Stmt {
+		if ( !isset( $this->stmtCache[$sql] ) ) {
+			$this->stmtCache[$sql] = $this->db->prepare( $sql );
+		} else {
+			// Suppress warning: reset() re-reports the error from a previously failed execution.
+			@$this->stmtCache[$sql]->reset();
+		}
+		return $this->stmtCache[$sql];
 	}
 
 	/**
@@ -80,7 +117,7 @@ class WorkspaceDB {
 	 * @return bool
 	 */
 	private function executeTransactionWithStatus( SQLite3Stmt $transaction ): bool {
-		$result = $transaction->execute();
+		$result = @$transaction->execute();
 
 		if ( $result === false ) {
 			return false;
@@ -122,6 +159,28 @@ class WorkspaceDB {
 		$this->createTableBlogPostsMeta();
 		$this->createTableAttachmentsMeta();
 		$this->createTablePageTemplates();
+
+		$this->createIndexes();
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createIndexes(): void {
+		$this->db->exec( 'CREATE INDEX IF NOT EXISTS idx_body_contents_content_id ON body_contents (content_id)' );
+		$this->db->exec( 'CREATE INDEX IF NOT EXISTS idx_attachments_container_id ON attachments (container_id)' );
+		$this->db->exec(
+			'CREATE INDEX IF NOT EXISTS idx_page_attachments_target ON page_attachments (target_attachment_filename)'
+		);
+		$this->db->exec(
+			'CREATE INDEX IF NOT EXISTS idx_additional_attachments_target'
+			. ' ON additional_attachments (target_attachment_filename)'
+		);
+		$this->db->exec( 'CREATE INDEX IF NOT EXISTS idx_pages_space_id ON pages (space_id)' );
+		$this->db->exec(
+			'CREATE INDEX IF NOT EXISTS idx_pages_space_title ON pages (space_id, confluence_title)'
+		);
+		$this->db->exec( 'CREATE INDEX IF NOT EXISTS idx_blog_posts_space_id ON blog_posts (space_id)' );
 	}
 
 	/**
@@ -467,7 +526,7 @@ class WorkspaceDB {
 	public function addLogEntry(
 		string $type, string $step, string $caller, string $text
 	): void {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO logging (
 				type,
 				step,
@@ -495,13 +554,13 @@ class WorkspaceDB {
 	 */
 	public function getLogEntriesForStep( string $step, string $type = '' ): array {
 		if ( $type !== '' ) {
-			$transaction = $this->db->prepare(
+			$transaction = $this->cachedPrepare(
 				'SELECT caller,text FROM logging WHERE step = :step AND type = :type'
 			);
 			$transaction->bindValue( ':step', $step, SQLITE3_TEXT );
 			$transaction->bindValue( ':type', $type, SQLITE3_TEXT );
 		} else {
-			$transaction = $this->db->prepare(
+			$transaction = $this->cachedPrepare(
 				'SELECT type,caller,text FROM logging WHERE step = :step'
 			);
 			$transaction->bindValue( ':step', $step, SQLITE3_TEXT );
@@ -518,7 +577,7 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function addInvalidTitle( int $pageId, string $wikiTitle, string $text ): void {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO invalid_titles (
 				page_id,
 				wiki_title,
@@ -549,7 +608,7 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function addInvalidBodyContent( int $bodyContentId, string $text ): void {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO invalid_body_contents (
 				body_content_id,
 				text
@@ -578,7 +637,7 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function addInvalidAttachmentTitle( int $attachmentId, string $wikiTitle, string $text ): void {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO invalid_attachment_titles (
 				attachment_id,
 				wiki_title,
@@ -616,7 +675,7 @@ class WorkspaceDB {
 		int $spaceId, string $spaceKey, string $spaceName,
 		string $prefix, int $homepageId, int $descriptionId
 	): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO spaces (
 				space_id,
 				space_key,
@@ -651,7 +710,7 @@ class WorkspaceDB {
 	}
 
 	public function getSpaceHomepageIdForSpaceId( int $spaceId ): int {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT homepage_id FROM spaces WHERE space_id = :space_id LIMIT 1'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
@@ -676,7 +735,7 @@ class WorkspaceDB {
 	 * @return int
 	 */
 	public function getSpaceIdForDescriptionId( int $descriptionId ): int {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT space_id FROM spaces WHERE description_id = :description_id LIMIT 1'
 		);
 		$transaction->bindValue( ':description_id', $descriptionId, SQLITE3_INTEGER );
@@ -716,7 +775,7 @@ class WorkspaceDB {
 		$labellingIdsJson = json_encode( $lagellingIds );
 		$propertiesJson = json_encode( $properties );
 		$collectionJson = json_encode( $collection );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO spaces_descriptions (
 				space_description_id,
 				revision_timestamp,
@@ -757,7 +816,7 @@ class WorkspaceDB {
 	 * @return int
 	 */
 	public function getSpaceIdFromSpaceKey( string $spaceKey ): int {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT space_id FROM spaces WHERE space_key = :space_key LIMIT 1'
 		);
 		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
@@ -785,7 +844,7 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getSpacePrefixFromSpaceKey( string $spaceKey ): string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT space_prefix FROM spaces WHERE space_key = :space_key LIMIT 1'
 		);
 		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
@@ -819,7 +878,7 @@ class WorkspaceDB {
 	 * @return bool
 	 */
 	public function spaceDescriptionIdExists( int $spaceDescriptionId ): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT space_description_id FROM spaces_descriptions
 			WHERE space_description_id = :space_description_id LIMIT 1'
 		);
@@ -871,7 +930,7 @@ class WorkspaceDB {
 		$historicalIdsJson = json_encode( $historicalIds );
 		$propertiesJson = json_encode( $properties );
 		$collectionJson = json_encode( $collection );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO pages (
 				page_id,
 				space_id,
@@ -925,7 +984,7 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updatePageWikiTitle( int $pageId, string $wikiTitle ): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'UPDATE pages SET wiki_title = :wiki_title WHERE page_id = :page_id'
 		);
 
@@ -947,7 +1006,7 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getTargetPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM pages WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
@@ -973,7 +1032,7 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getTargetPageTitleFromPageId( int $pageId ): string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM pages WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
@@ -997,7 +1056,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getPageIdTargetPageTitleMap(): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT page_id, wiki_title FROM pages WHERE content_status = "current"'
 		);
 
@@ -1018,7 +1077,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getBlogPostIdTargetBlogPostTitleMap(): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT page_id, wiki_title FROM blog_posts WHERE content_status = "current"'
 		);
 
@@ -1040,7 +1099,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getPageRevisionsForPageId( int $pageId ): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT revision_timestamp, version, content_status, body_content_ids FROM pages
 			WHERE page_id = :page_id AND lower( content_status ) != "deleted"
 			ORDER BY revision_timestamp DESC'
@@ -1056,7 +1115,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getBlogPostRevisionsForPageId( int $pageId ): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT revision_timestamp, version, content_status, body_content_ids FROM blog_posts
 			WHERE page_id = :page_id AND lower( content_status ) != "deleted"
 			ORDER BY revision_timestamp DESC'
@@ -1076,7 +1135,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getSpaceDescriptionRevisionsForSpaceId( int $spaceId ): array {
-		$anchorTransaction = $this->db->prepare(
+		$anchorTransaction = $this->cachedPrepare(
 			'SELECT description_id FROM spaces WHERE space_id = :space_id LIMIT 1'
 		);
 		$anchorTransaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
@@ -1095,7 +1154,7 @@ class WorkspaceDB {
 
 		$descriptionId = (int)$anchorData['description_id'];
 
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT * FROM spaces_descriptions
 			WHERE space_description_id = :description_id
 				OR original_version_id = :description_id
@@ -1116,7 +1175,7 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getConfluencePageTitleFromPageId( int $pageId ): string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT confluence_title FROM pages WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
@@ -1143,7 +1202,7 @@ class WorkspaceDB {
 	 * @return bool
 	 */
 	public function pageIdExists( int $pageId ): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT page_id FROM pages WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
@@ -1164,7 +1223,7 @@ class WorkspaceDB {
 	 * @return int The space_id for the given page_id, or -1 if not found.
 	 */
 	public function getSpaceIdForPageId( int $pageId ): int {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT space_id FROM pages WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
@@ -1217,7 +1276,7 @@ class WorkspaceDB {
 		$historicalIdsJson = json_encode( $historicalIds );
 		$propertiesJson = json_encode( $properties );
 		$collectionJson = json_encode( $collection );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO blog_posts (
 				page_id,
 				space_id,
@@ -1275,7 +1334,7 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updateBlogPostWikiTitle( int $pageId, string $wikiTitle ): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'UPDATE blog_posts SET wiki_title = :wiki_title WHERE page_id = :page_id'
 		);
 
@@ -1289,7 +1348,7 @@ class WorkspaceDB {
 	 * @return bool
 	 */
 	public function blogPostIdExists( int $blogPostId ): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT page_id FROM blog_posts WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
@@ -1310,7 +1369,7 @@ class WorkspaceDB {
 	 * @return int The space_id for the given blog post page_id, or -1 if not found.
 	 */
 	public function getSpaceIdForBlogPostId( int $blogPostId ): int {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT space_id FROM blog_posts WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
@@ -1337,7 +1396,7 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getTargetBlogPostTitleFromBlogPostId( int $blogPostId ): string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM blog_posts WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
@@ -1364,7 +1423,7 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getConfluenceBlogPostTitleFromBlogPostId( int $blogPostId ): string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM blog_posts WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
@@ -1398,7 +1457,7 @@ class WorkspaceDB {
 		array $properties
 	): bool {
 		$propertiesJson = json_encode( $properties );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO body_contents (
 				body_content_id,
 				content_id,
@@ -1431,7 +1490,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getBodyContentIdsForContentId( int $contentId ): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT body_content_id FROM body_contents WHERE content_id = :content_id'
 		);
 		$transaction->bindValue( ':content_id', $contentId, SQLITE3_INTEGER );
@@ -1455,7 +1514,7 @@ class WorkspaceDB {
 	 * @return int
 	 */
 	public function getContentIdForBodyContentId( int $bodyContentId ): int {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT content_id FROM body_contents WHERE body_content_id = :body_content_id'
 		);
 		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
@@ -1484,7 +1543,7 @@ class WorkspaceDB {
 		int $bodyContentId,
 		string $body
 	): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO body_content_bodies (
 				body_content_id,
 				body
@@ -1511,7 +1570,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getBodyForBodyContentId( int $bodyContentId ): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT body FROM body_content_bodies WHERE body_content_id = :body_content_id'
 		);
 		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
@@ -1535,7 +1594,7 @@ class WorkspaceDB {
 	 * @return string|null
 	 */
 	public function getBodyContentBodyByBodyContentId( int $bodyContentId ): ?string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT body FROM body_content_bodies WHERE body_content_id = :body_content_id LIMIT 1'
 		);
 		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
@@ -1588,7 +1647,7 @@ class WorkspaceDB {
 		$collectionJson = json_encode( $collection );
 		$historicalIdsJson = json_encode( $historicalIds );
 
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO attachments (
 				attachment_id,
 				space_id,
@@ -1647,7 +1706,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getAttachment( int $attachmentId ): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT * FROM attachments WHERE attachment_id = :attachment_id LIMIT 1'
 		);
 		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
@@ -1680,7 +1739,7 @@ class WorkspaceDB {
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO page_attachments (
 				attachment_id,
 				page_id,
@@ -1712,7 +1771,7 @@ class WorkspaceDB {
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO additional_attachments (
 				attachment_id,
 				original_attachment_filename,
@@ -1743,7 +1802,7 @@ class WorkspaceDB {
 	public function getTargetFileTitleFromSpaceKey(
 		string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename
 	): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT pa.target_attachment_filename FROM page_attachments pa
 			JOIN pages p ON pa.page_id = p.page_id
 			WHERE p.space_key = :space_key AND p.confluence_title = :confluence_title
@@ -1789,7 +1848,7 @@ class WorkspaceDB {
 	public function getTargetFileTitleFromSpaceId(
 		int $spaceId, string $confluenceTitle, string $originalAttachmentFilename
 	): string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT pa.target_attachment_filename FROM page_attachments pa
 			JOIN pages p ON pa.page_id = p.page_id
 			WHERE p.space_id = :space_id AND p.confluence_title = :confluence_title
@@ -1820,7 +1879,7 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getAttachmentReference( string $attachmentTargetFileTitle ): string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT a.attachment_reference FROM attachments a
 			JOIN page_attachments pa ON pa.attachment_id = a.attachment_id
 			WHERE pa.target_attachment_filename = :target_attachment_filename
@@ -1852,7 +1911,7 @@ class WorkspaceDB {
 	 * @return string[]
 	 */
 	public function getTargetFileTitlesForPage( int $spaceId, string $rawPageTitle ): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT pa.target_attachment_filename FROM attachments a
 			JOIN pages p ON a.container_id = p.page_id
 			JOIN page_attachments pa ON pa.attachment_id = a.attachment_id AND pa.page_id = p.page_id
@@ -1889,7 +1948,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getAllTargetFileTitlesBySpaceKey( string $spaceKey, string $confluenceTitle ): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT pa.original_attachment_filename, pa.target_attachment_filename FROM page_attachments pa
 			JOIN pages p ON pa.page_id = p.page_id
 			WHERE p.space_key = :space_key AND p.confluence_title = :confluence_title'
@@ -1923,7 +1982,7 @@ class WorkspaceDB {
 	 * @return bool
 	 */
 	public function checkPageAttachmentWikiTitleExists( string $wikiTitle ): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT 1 FROM page_attachments WHERE target_attachment_filename = :wiki_title LIMIT 1'
 		);
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
@@ -1940,7 +1999,7 @@ class WorkspaceDB {
 	 * @return bool
 	 */
 	public function checkAdditionalAttachmentWikiTitleExists( string $wikiTitle ): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT 1 FROM additional_attachments WHERE target_attachment_filename = :wiki_title LIMIT 1'
 		);
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
@@ -1971,7 +2030,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getPageAttachmentsForPageId( int $pageId ): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT * FROM page_attachments WHERE page_id = :page_id'
 		);
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
@@ -1991,7 +2050,7 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getWikiTitleForAttachmentId( int $attachmentId ): string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT p.wiki_title FROM attachments a
 			JOIN pages p ON p.page_id = a.container_id
 			WHERE a.attachment_id = :attachment_id
@@ -2029,7 +2088,7 @@ class WorkspaceDB {
 		array $properties
 	): bool {
 		$propertiesJson = json_encode( $properties );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT OR IGNORE INTO users (
 				user_key,
 				wiki_user_name,
@@ -2065,7 +2124,7 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getUsernameFromUserKey( string $userKey ): string {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT wiki_user_name FROM users WHERE user_key = :user_key LIMIT 1'
 		);
 		$transaction->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
@@ -2099,7 +2158,7 @@ class WorkspaceDB {
 		array $properties
 	): bool {
 		$propertiesJson = json_encode( $properties );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO content_properties (
 				property_id,
 				property_name,
@@ -2145,7 +2204,7 @@ class WorkspaceDB {
 	): bool {
 		$propertiesJson = json_encode( $properties );
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO comments (
 				comment_id,
 				container_id,
@@ -2194,7 +2253,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getCommentsForPages(): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT c.*, p.wiki_title FROM comments c
 			LEFT JOIN pages p ON p.page_id = c.container_id
 			WHERE c.content_class = :content_class'
@@ -2214,7 +2273,7 @@ class WorkspaceDB {
 	 * @return bool
 	 */
 	public function commentIdExists( int $commentId ): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT comment_id FROM comments WHERE comment_id = :comment_id LIMIT 1'
 		);
 		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
@@ -2240,7 +2299,7 @@ class WorkspaceDB {
 		int $labellingId, int $labelId, array $properties
 	): bool {
 		$propertiesJson = json_encode( $properties );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO labellings (
 				labelling_id,
 				label_id,
@@ -2270,7 +2329,7 @@ class WorkspaceDB {
 	 * @return array|null
 	 */
 	public function getLabellingById( int $labellingId ): ?array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT * FROM labellings WHERE labelling_id = :labelling_id LIMIT 1'
 		);
 		$transaction->bindValue( ':labelling_id', $labellingId, SQLITE3_INTEGER );
@@ -2296,7 +2355,7 @@ class WorkspaceDB {
 		int $labelId, string $name, string $namespace, array $properties
 	): bool {
 		$propertiesJson = json_encode( $properties );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO labels (
 				label_id,
 				name,
@@ -2329,7 +2388,7 @@ class WorkspaceDB {
 	 * @return array|null
 	 */
 	public function getLabelById( int $labelId ): ?array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT * FROM labels WHERE label_id = :label_id LIMIT 1'
 		);
 		$transaction->bindValue( ':label_id', $labelId, SQLITE3_INTEGER );
@@ -2353,7 +2412,7 @@ class WorkspaceDB {
 		int $pageId, array $meta
 	): bool {
 		$metaJson = json_encode( $meta );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO pages_meta (
 				page_id,
 				meta
@@ -2384,7 +2443,7 @@ class WorkspaceDB {
 		int $pageId, array $meta
 	): bool {
 		$metaJson = json_encode( $meta );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO blog_posts_meta (
 				page_id,
 				meta
@@ -2415,7 +2474,7 @@ class WorkspaceDB {
 		int $attachmentId, array $meta
 	): bool {
 		$metaJson = json_encode( $meta );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO attachments_meta (
 				attachment_id,
 				meta
@@ -2450,7 +2509,7 @@ class WorkspaceDB {
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT INTO gliffy (
 				space_id,
 				confluence_title,
@@ -2489,7 +2548,7 @@ class WorkspaceDB {
 	 * @return string[] Map of confluenceFileKey => metadata (including 'targetTitle')
 	 */
 	public function getAttachmentMetadataForPage( int $spaceId, string $rawPageTitle ): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT pa.original_attachment_filename, pa.target_attachment_filename, am.meta FROM page_attachments pa
 			JOIN pages p ON pa.page_id = p.page_id
 			LEFT JOIN attachments_meta am ON pa.attachment_id = am.attachment_id
@@ -2531,7 +2590,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getMapSpaceIdToPrefix(): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT space_id,space_prefix FROM spaces'
 		);
 
@@ -2552,7 +2611,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getMapSpaceIdToKey(): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT space_id,space_key FROM spaces'
 		);
 
@@ -2573,7 +2632,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getMapSpaceIdToHomepageId(): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT space_id,homepage_id FROM spaces'
 		);
 
@@ -2594,7 +2653,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getMapPageIdtoParentPageId(): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT page_id,parent_page_id FROM pages'
 		);
 
@@ -2615,7 +2674,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getMapPagesTitles(): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT space_id,confluence_title,wiki_title FROM pages'
 		);
 
@@ -2638,7 +2697,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getMapPageIdToConfluenceTitle(): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT page_id,confluence_title FROM pages'
 		);
 
@@ -2659,7 +2718,7 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getMapLabellingIdToLabelId(): array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT labelling_id,label_id FROM labellings'
 		);
 
@@ -2685,7 +2744,7 @@ class WorkspaceDB {
 	 */
 	public function updatePageBodyContentIds( int $pageId, array $bodyContentIds ): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'UPDATE pages SET body_content_ids = :body_content_ids WHERE page_id = :page_id'
 		);
 
@@ -2703,7 +2762,7 @@ class WorkspaceDB {
 	 */
 	public function updateBlogPostBodyContentIds( int $pageId, array $bodyContentIds ): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'UPDATE blog_posts SET body_content_ids = :body_content_ids WHERE page_id = :page_id'
 		);
 
@@ -2721,7 +2780,7 @@ class WorkspaceDB {
 	 */
 	public function updateCommentBodyContentIds( int $commentId, array $bodyContentIds ): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'UPDATE comments SET body_content_ids = :body_content_ids WHERE comment_id = :comment_id'
 		);
 
@@ -2739,7 +2798,7 @@ class WorkspaceDB {
 	 */
 	public function updateSpaceDescriptionBodyContentIds( int $spaceDescriptionId, array $bodyContentIds ): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'UPDATE spaces_descriptions SET body_content_ids = :body_content_ids 
 			WHERE space_description_id = :space_description_id'
 		);
@@ -2771,7 +2830,7 @@ class WorkspaceDB {
 	 * @return bool
 	 */
 	public function addPageTemplate( int $templateId, string $name, ?int $spaceId, string $content ): bool {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'INSERT OR REPLACE INTO page_templates (
 				template_id,
 				name,
@@ -2801,7 +2860,7 @@ class WorkspaceDB {
 	 * @return array|null
 	 */
 	public function getPageTemplateById( int $templateId ): ?array {
-		$transaction = $this->db->prepare(
+		$transaction = $this->cachedPrepare(
 			'SELECT * FROM page_templates WHERE template_id = :template_id LIMIT 1'
 		);
 		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
