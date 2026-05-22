@@ -19,6 +19,7 @@ class WorkspaceDB {
 	 */
 	public function __construct( string $name ) {
 		$this->db = new SQLite3( $name );
+		$this->db->enableExceptions( true );
 
 		$this->db->exec( 'PRAGMA journal_mode = WAL' );
 		$this->db->exec( 'PRAGMA synchronous = NORMAL' );
@@ -51,8 +52,12 @@ class WorkspaceDB {
 		if ( !isset( $this->stmtCache[$sql] ) ) {
 			$this->stmtCache[$sql] = $this->db->prepare( $sql );
 		} else {
-			// Suppress warning: reset() re-reports the error from a previously failed execution.
-			@$this->stmtCache[$sql]->reset();
+			try {
+				$this->stmtCache[$sql]->reset();
+			} catch ( \Exception $e ) {
+				// Statement was in an error state from a previously failed execution; re-prepare it.
+				$this->stmtCache[$sql] = $this->db->prepare( $sql );
+			}
 		}
 		return $this->stmtCache[$sql];
 	}
@@ -117,9 +122,9 @@ class WorkspaceDB {
 	 * @return bool
 	 */
 	private function executeTransactionWithStatus( SQLite3Stmt $transaction ): bool {
-		$result = @$transaction->execute();
-
-		if ( $result === false ) {
+		try {
+			$result = $transaction->execute();
+		} catch ( \Exception $e ) {
 			return false;
 		}
 
