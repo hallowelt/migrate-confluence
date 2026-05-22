@@ -25,13 +25,13 @@ class BodyContents extends ProcessorBase {
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+			if ( $this->xmlReader->name === 'id' ) {
 				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
 					$bodyContentId = (int)$this->getCDATAValue();
 				} else {
 					$bodyContentId = (int)$this->getTextValue();
 				}
-			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
+			} elseif ( $this->xmlReader->name === 'property' ) {
 				$name = $this->xmlReader->getAttribute( 'name' );
 				if ( $name === 'content' ) {
 					$contentClass = $this->xmlReader->getAttribute( 'class' ) ?? '';

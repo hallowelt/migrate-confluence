@@ -188,7 +188,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 
 		$read = $xmlReader->read();
 		while ( $read ) {
-			if ( strtolower( $xmlReader->name ) !== 'object' ) {
+			if ( $xmlReader->name !== 'object' ) {
 				// Usually all root nodes should be objects.
 				$read = $xmlReader->read();
 				continue;
@@ -217,6 +217,8 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	protected function doAnalyze( SplFileInfo $file ): bool {
 		$this->output->writeln( "\nAnalyze data:" );
 		$processors = $this->getProcessors();
+
+		$this->workspaceDB->beginTransaction();
 		$this->processFile( $processors );
 
 		$this->updateBodyContentIdsFallback();
@@ -224,6 +226,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		$this->updateBlogPostTableWithWikiTitle();
 		$this->updatePageAttachmentTable();
 		$this->populateAdditionalAttachmentsTable();
+		$this->workspaceDB->commitTransaction();
 
 		return true;
 	}

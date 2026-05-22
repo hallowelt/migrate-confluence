@@ -239,7 +239,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		$files = [];
 		foreach ( $filenames as $filename ) {
 			[ 'title' => $targetTitle, 'isBroken' => $isBroken ] =
-				$this->filenameResolver->resolve( $this->currentSpaceId, $rawPageTitle, $filename );
+				$this->filenameResolver->resolve( $this->currentSpaceId, $this->rawPageTitle, $filename );
 
 			$files[] = $targetTitle;
 			if ( $isBroken ) {

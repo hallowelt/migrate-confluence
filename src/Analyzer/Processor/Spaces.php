@@ -27,13 +27,13 @@ class Spaces extends ProcessorBase {
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+			if ( $this->xmlReader->name === 'id' ) {
 				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
 					$spaceId = $this->getCDATAValue();
 				} else {
 					$spaceId = $this->getTextValue();
 				}
-			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
+			} elseif ( $this->xmlReader->name === 'property' ) {
 				$properties = $this->processPropertyNodes( $properties );
 			}
 			$this->xmlReader->next();
