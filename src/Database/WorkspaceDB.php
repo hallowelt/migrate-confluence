@@ -2089,7 +2089,6 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getUsernameFromUserKey( string $userKey ): string {
-		var_dump( $userKey );
 		$transaction = $this->db->prepare(
 			'SELECT wiki_user_name FROM users WHERE user_key = :user_key LIMIT 1'
 		);

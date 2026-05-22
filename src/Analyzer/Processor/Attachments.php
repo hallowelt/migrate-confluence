@@ -101,14 +101,20 @@ class Attachments extends ProcessorBase {
 			$historicalIds = $collection['historicalVersions'];
 		}
 
-		$lastModifier = '';
-		if ( isset( $properties['lastModifier'] ) ) {
-			$lastModifier = $properties['lastModifier'];
+		$lastModificationDate = '';
+		if ( isset( $properties['lastModificationDate'] ) && $properties['lastModificationDate'] !== '' ) {
+			$lastModificationDate = $properties['lastModificationDate'];
+		} elseif ( isset( $properties['creationDate'] ) && $properties['creationDate'] !== '' ) {
+			$lastModificationDate = $properties['creationDate'];
 		}
 
-		$lastModificationDate = '';
-		if ( isset( $properties['lastModificationDate'] ) ) {
-			$lastModificationDate = $properties['lastModificationDate'];
+		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
+
+		$lastModifier = '';
+		if ( isset( $properties['lastModifier'] ) && $properties['lastModifier'] !== '' ) {
+			$lastModifier = $properties['lastModifier'];
+		} elseif ( isset( $properties['creator'] ) && $properties['creator'] !== '' ) {
+			$lastModifier = $properties['creator'];
 		}
 
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
