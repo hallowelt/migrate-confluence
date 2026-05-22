@@ -117,8 +117,6 @@ class Attachments extends ProcessorBase {
 			$lastModifier = $properties['creator'];
 		}
 
-		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
-
 		$attachmentReference = $this->makeAttachmentReference(
 			$attachmentId,
 			$containerContentId,
