@@ -578,7 +578,7 @@ class WorkspaceDB {
 	 */
 	public function addInvalidTitle( int $pageId, string $wikiTitle, string $text ): void {
 		$transaction = $this->cachedPrepare(
-			'INSERT INTO invalid_titles (
+			'INSERT OR IGNORE INTO invalid_titles (
 				page_id,
 				wiki_title,
 				text
@@ -609,7 +609,7 @@ class WorkspaceDB {
 	 */
 	public function addInvalidBodyContent( int $bodyContentId, string $text ): void {
 		$transaction = $this->cachedPrepare(
-			'INSERT INTO invalid_body_contents (
+			'INSERT OR IGNORE INTO invalid_body_contents (
 				body_content_id,
 				text
 			) VALUES (
@@ -638,7 +638,7 @@ class WorkspaceDB {
 	 */
 	public function addInvalidAttachmentTitle( int $attachmentId, string $wikiTitle, string $text ): void {
 		$transaction = $this->cachedPrepare(
-			'INSERT INTO invalid_attachment_titles (
+			'INSERT OR IGNORE INTO invalid_attachment_titles (
 				attachment_id,
 				wiki_title,
 				text

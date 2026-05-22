@@ -57,7 +57,7 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	 */
 	protected function processIdNode(): string {
 		$id = '';
-		if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+		if ( $this->xmlReader->name === 'id' ) {
 			$name = $this->xmlReader->getAttribute( 'name' );
 			if ( $name === 'key' ) {
 				$id = $this->getCDATAValue();
@@ -94,8 +94,9 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( $this->processIdNode() !== '' ) {
-				$data = $this->processIdNode();
+			$idValue = $this->processIdNode();
+			if ( $idValue !== '' ) {
+				$data = $idValue;
 			} elseif ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
 				$data = $this->getCDATAValue();
 			} elseif ( $this->xmlReader->nodeType === XMLReader::TEXT ) {

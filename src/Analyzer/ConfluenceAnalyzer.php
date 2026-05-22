@@ -188,7 +188,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 
 		$read = $xmlReader->read();
 		while ( $read ) {
-			if ( strtolower( $xmlReader->name ) !== 'object' ) {
+			if ( $xmlReader->name !== 'object' ) {
 				// Usually all root nodes should be objects.
 				$read = $xmlReader->read();
 				continue;

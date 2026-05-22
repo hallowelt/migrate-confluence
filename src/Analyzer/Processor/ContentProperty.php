@@ -30,7 +30,7 @@ class ContentProperty extends ProcessorBase {
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+			if ( $this->xmlReader->name === 'id' ) {
 				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
 					$propertyId = (int)$this->getCDATAValue();
 				} else {

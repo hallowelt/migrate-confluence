@@ -28,15 +28,15 @@ class BlogPost extends ProcessorBase {
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
-			if ( strtolower( $this->xmlReader->name ) === 'id' ) {
+			if ( $this->xmlReader->name === 'id' ) {
 				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
 					$pageId = (int)$this->getCDATAValue();
 				} else {
 					$pageId = (int)$this->getTextValue();
 				}
-			} elseif ( strtolower( $this->xmlReader->name ) === 'property' ) {
+			} elseif ( $this->xmlReader->name === 'property' ) {
 				$properties = $this->processPropertyNodes( $properties );
-			} elseif ( strtolower( $this->xmlReader->name ) === 'collection' ) {
+			} elseif ( $this->xmlReader->name === 'collection' ) {
 				$collection = $this->processCollectionNodes( $collection );
 			}
 			$this->xmlReader->next();
