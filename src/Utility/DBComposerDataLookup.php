@@ -102,4 +102,12 @@ class DBComposerDataLookup {
 	public function getAttachment( int $attachmentId ): array {
 		return $this->workspaceDB->getAttachment( $attachmentId );
 	}
+
+	/**
+	 * @param string $userKey
+	 * @return string
+	 */
+	public function getUsernameFromUserKey( string $userKey ): string {
+		return $this->workspaceDB->getUsernameFromUserKey( $userKey );
+	}
 }

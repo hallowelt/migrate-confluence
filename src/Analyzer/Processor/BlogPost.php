@@ -115,12 +115,18 @@ class BlogPost extends ProcessorBase {
 			$historicalIds = $collection['historicalVersions'];
 		}
 
+		$lastModifier = '';
+		if ( isset( $properties['lastModifier'] ) ) {
+			$lastModifier = $properties['lastModifier'];
+		}
+
 		$status = $this->workspaceDB->addBlogPost(
 			$pageId,
 			$spaceId,
 			$confluenceTitle,
 			'',
 			$revisionTimestamp,
+			$lastModifier,
 			strtolower( $contentStatus ),
 			$version,
 			$originalVersionId,

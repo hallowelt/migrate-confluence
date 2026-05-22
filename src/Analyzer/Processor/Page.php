@@ -62,7 +62,9 @@ class Page extends ProcessorBase {
 		}
 
 		$originalVersionId = -1;
-		if ( isset( $properties['originalVersion'] ) ) {
+		if ( isset( $properties['originalVersionId'] ) ) {
+			$originalVersionId = (int)$properties['originalVersionId'];
+		} elseif ( isset( $properties['originalVersion'] ) ) {
 			$originalVersionId = (int)$properties['originalVersion'];
 		}
 
@@ -85,12 +87,26 @@ class Page extends ProcessorBase {
 		// is placed in the ConfluenceAnalyzer, which will attempt to retrieve them from the
 		// body_contents table based on the page ID.
 
-		$lastModificationDate = '';
-		if ( isset( $properties['lastModificationDate'] ) ) {
-			$lastModificationDate = $properties['lastModificationDate'];
+		$lastModificationDate = $properties['lastModificationDate'] ?? '';
+		if ( $lastModificationDate === '' && isset( $properties['creationDate'] ) ) {
+			$lastModificationDate = $properties['creationDate'];
+		}
+		if ( $lastModificationDate === '' && isset( $properties['revisionDate'] ) ) {
+			$lastModificationDate = $properties['revisionDate'];
+		}
+		if ( $lastModificationDate === '' && isset( $properties['revisionTime'] ) ) {
+			$lastModificationDate = $properties['revisionTime'];
 		}
 
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
+
+		$lastModifier = $properties['lastModifier'] ?? '';
+		if ( $lastModifier === '' && isset( $properties['creator'] ) ) {
+			$lastModifier = $properties['creator'];
+		}
+		if ( $lastModifier === '' && isset( $properties['lastModifierName'] ) ) {
+			$lastModifier = $properties['lastModifierName'];
+		}
 
 		$historicalIds = [];
 		if ( isset( $collection['historicalVersions'] ) ) {
@@ -126,6 +142,7 @@ class Page extends ProcessorBase {
 			$confluenceTitle,
 			'',
 			$revisionTimestamp,
+			$lastModifier,
 			strtolower( $contentStatus ),
 			$version,
 			$originalVersionId,

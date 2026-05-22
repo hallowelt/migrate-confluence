@@ -76,6 +76,7 @@ class PageTemplates extends ProcessorBase {
 			$name,
 			$wikiTitle,
 			$revisionTimestamp,
+			'',
 			'current',
 			$version,
 			-1,

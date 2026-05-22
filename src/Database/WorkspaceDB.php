@@ -184,6 +184,7 @@ class WorkspaceDB {
 				confluence_title CHAR,
 				wiki_title CHAR,
 				revision_timestamp CHAR,
+				last_modifier CHAR,
 				content_status CHAR,
 				original_version_id INT,
 				version CHAR,
@@ -207,6 +208,7 @@ class WorkspaceDB {
 				confluence_title CHAR,
 				wiki_title CHAR,
 				revision_timestamp CHAR,
+				last_modifier CHAR,
 				content_status CHAR,
 				version CHAR,
 				original_version_id INT,
@@ -257,6 +259,8 @@ class WorkspaceDB {
 				container_id INT,
 				content_status CHAR,
 				version CHAR,
+				revision_timestamp CHAR,
+				last_modifier CHAR,
 				original_version_id INT,
 				attachment_reference CHAR,
 				historical_ids BLOB,
@@ -842,6 +846,7 @@ class WorkspaceDB {
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
 	 * @param string $revisionTimestamp
+	 * @param string $lastModifier
 	 * @param string $contentStatus
 	 * @param string $version
 	 * @param int $originalVersionId
@@ -858,6 +863,7 @@ class WorkspaceDB {
 		string $confluenceTitle,
 		string $wikiTitle,
 		string $revisionTimestamp,
+		string $lastModifier,
 		string $contentStatus,
 		string $version,
 		int $originalVersionId,
@@ -878,9 +884,10 @@ class WorkspaceDB {
 				confluence_title,
 				wiki_title,
 				revision_timestamp,
+				last_modifier,
 				content_status,
-				original_version_id,
 				version,
+				original_version_id,
 				parent_page_id,
 				body_content_ids,
 				historical_ids,
@@ -892,9 +899,10 @@ class WorkspaceDB {
 				:confluence_title,
 				:wiki_title,
 				:revision_timestamp,
+				:last_modifier,
 				:content_status,
-				:original_version_id,
 				:version,
+				:original_version_id,
 				:parent_page_id,
 				:body_content_ids,
 				:historical_ids,
@@ -908,6 +916,7 @@ class WorkspaceDB {
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':last_modifier', $lastModifier, SQLITE3_TEXT );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
@@ -1190,6 +1199,7 @@ class WorkspaceDB {
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
 	 * @param string $revisionTimestamp
+	 * @param string $lastModifier
 	 * @param string $contentStatus
 	 * @param string $version
 	 * @param int $originalVersionId
@@ -1205,6 +1215,7 @@ class WorkspaceDB {
 		string $confluenceTitle,
 		string $wikiTitle,
 		string $revisionTimestamp,
+		string $lastModifier,
 		string $contentStatus,
 		string $version,
 		int $originalVersionId,
@@ -1224,6 +1235,7 @@ class WorkspaceDB {
 				confluence_title,
 				wiki_title,
 				revision_timestamp,
+				last_modifier,
 				content_status,
 				version,
 				original_version_id,
@@ -1237,6 +1249,7 @@ class WorkspaceDB {
 				:confluence_title,
 				:wiki_title,
 				:revision_timestamp,
+				:last_modifier,
 				:content_status,
 				:version,
 				:original_version_id,
@@ -1252,6 +1265,7 @@ class WorkspaceDB {
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':last_modifier', $lastModifier, SQLITE3_TEXT );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
@@ -1563,6 +1577,8 @@ class WorkspaceDB {
 	 * @param int $containerContentId
 	 * @param string $contentStatus
 	 * @param string $version
+	 * @param string $revisionTimestamp
+	 * @param string $lastModifier
 	 * @param int $originalVersionId
 	 * @param string $attachmentReference
 	 * @param array $historicalIds
@@ -1578,6 +1594,8 @@ class WorkspaceDB {
 		int $containerContentId,
 		string $contentStatus,
 		string $version,
+		string $revisionTimestamp,
+		string $lastModifier,
 		int $originalVersionId,
 		string $attachmentReference,
 		array $historicalIds,
@@ -1597,6 +1615,8 @@ class WorkspaceDB {
 				container_id,
 				content_status,
 				version,
+				revision_timestamp,
+				last_modifier,
 				original_version_id,
 				attachment_reference,
 				historical_ids,
@@ -1610,6 +1630,8 @@ class WorkspaceDB {
 				:container_id,
 				:content_status,
 				:version,
+				:revision_timestamp,
+				:last_modifier,
 				:original_version_id,
 				:attachment_reference,
 				:historical_ids,
@@ -1625,6 +1647,8 @@ class WorkspaceDB {
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':file_extension', $fileExtension, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
+		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':last_modifier', $lastModifier, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':attachment_reference', $attachmentReference, SQLITE3_TEXT );
 		$transaction->bindValue( ':historical_ids', $historicalIdsJson, SQLITE3_TEXT );
@@ -2065,6 +2089,7 @@ class WorkspaceDB {
 	 * @return string
 	 */
 	public function getUsernameFromUserKey( string $userKey ): string {
+		var_dump( $userKey );
 		$transaction = $this->db->prepare(
 			'SELECT wiki_user_name FROM users WHERE user_key = :user_key LIMIT 1'
 		);

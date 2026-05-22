@@ -179,6 +179,27 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	 * @return string
 	 */
 	protected function buildTimestamp( string $lastModificationDate ): string {
+		$lastModificationDate = trim( $lastModificationDate );
+		if ( $lastModificationDate === '' ) {
+			return '';
+		}
+
+		if ( ctype_digit( $lastModificationDate ) ) {
+			if ( strlen( $lastModificationDate ) >= 13 ) {
+				$time = (int)floor( (int)$lastModificationDate / 1000 );
+			} else {
+				$time = (int)$lastModificationDate;
+			}
+
+			if ( $time > 0 ) {
+				return date( 'YmdHis', $time );
+			}
+		}
+
+		if ( preg_match( '/^\d{14}$/', $lastModificationDate ) === 1 ) {
+			return $lastModificationDate;
+		}
+
 		$time = strtotime( $lastModificationDate );
 
 		if ( $time === false ) {

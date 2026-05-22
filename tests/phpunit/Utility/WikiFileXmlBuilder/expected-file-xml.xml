@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<mediawiki>
+  <file>
+    <title>dummy_1.png</title>
+    <revision>
+      <timestamp>20260524123708</timestamp>
+      <contributor>
+        <user>SomeOtherUser</user>
+      </contributor>
+      <data>./images/dummy_1.png</data>
+    </revision>
+  </file>
+  <file>
+    <title>dummy_2.jpg</title>
+    <revision>
+      <timestamp>20260524133708</timestamp>
+      <contributor>
+        <user>TestUser</user>
+      </contributor>
+      <data>./images/dummy_2.jpg</data>
+    </revision>
+  </file>
+</mediawiki>
