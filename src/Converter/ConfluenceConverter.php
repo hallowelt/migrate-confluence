@@ -23,6 +23,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\Table;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\html\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
@@ -645,7 +646,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	protected function preprocessDomSource( DOMDocument $dom ): void {
 		$preprocessors = [
 			new SanitizeLinkContent(),
-			new HoistMacroFromHeading()
+			new HoistMacroFromHeading(),
+			new Table()
 		];
 
 		/** @var IDomPreprocessor $preprocessor */
