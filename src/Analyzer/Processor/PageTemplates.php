@@ -3,18 +3,15 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 class PageTemplates extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
-	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB,
-		private MigrationConfig $migrationConfig
+		private WorkspaceDB $workspaceDB
 	) {
 	}
 

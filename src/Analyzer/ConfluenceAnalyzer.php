@@ -159,7 +159,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			'Labelling' => new Labelling( $this->workspaceDB ),
 			'ContentProperty' => new ContentProperty( $this->workspaceDB ),
 			'ConfluenceUserImpl' => new Users( $this->workspaceDB ),
-			'PageTemplate' => new PageTemplates( $this->workspaceDB, $this->migrationConfig ),
+			'PageTemplate' => new PageTemplates( $this->workspaceDB ),
 		];
 	}
 
