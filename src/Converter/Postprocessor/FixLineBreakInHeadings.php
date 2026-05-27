@@ -74,4 +74,12 @@ class FixLineBreakInHeadings implements IPostprocessor {
 		// catastrophic backtracking.
 		return "#^($tag(?!=))([^\n]*<br\s*/?>[^\n]*(?:\n[^\n]*){0,3})($tag)(?!=)[ \t]*$#m";
 	}
+
+	/**
+	 * @param string $pageTitle
+	 * @return bool
+	 */
+	public function skipForPageTitle( string $pageTitle ): bool {
+		return false;
+	}
 }

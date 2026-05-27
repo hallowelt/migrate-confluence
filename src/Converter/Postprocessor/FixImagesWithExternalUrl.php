@@ -46,4 +46,12 @@ class FixImagesWithExternalUrl implements IPostprocessor {
 
 		return $wikiText;
 	}
+
+	/**
+	 * @param string $pageTitle
+	 * @return bool
+	 */
+	public function skipForPageTitle( string $pageTitle ): bool {
+		return false;
+	}
 }

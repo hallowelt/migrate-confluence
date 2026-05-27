@@ -588,11 +588,10 @@ Bitte hier die Beschreibung einfuegen.
 | '''Startdatum'''
 |
 |}
+&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
 __NOTOC__
 
  &lt;!-- From bodyContent 50000001.mraw --&gt;
-
-&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
 </text>
     </revision>
   </page>

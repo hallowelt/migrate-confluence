@@ -4,19 +4,14 @@ namespace HalloWelt\MigrateConfluence\Converter\Postprocessor;
 
 use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 
-class RestoreTimeTag implements IPostprocessor {
+class TemplateContentPostProcessor implements IPostprocessor {
 
 	/**
-	 * @inheritDoc
+	 * @param string $wikiText
+	 * @return string
 	 */
 	public function postprocess( string $wikiText ): string {
-		$newWikiText = preg_replace(
-			'#<span class="PRESERVEDATETIME">(.*?)</span>#si',
-			'<datetime>$1</datetime>',
-			$wikiText
-		);
-
-		return $newWikiText;
+		return $wikiText . "\n<includeonly>{{#set: Created by macro=$1 }}</includeonly>";
 	}
 
 	/**
@@ -24,6 +19,10 @@ class RestoreTimeTag implements IPostprocessor {
 	 * @return bool
 	 */
 	public function skipForPageTitle( string $pageTitle ): bool {
+		if ( !str_starts_with( $pageTitle, 'Template:' ) ) {
+			return true;
+		}
+
 		return false;
 	}
 }

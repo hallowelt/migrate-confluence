@@ -2889,30 +2889,6 @@ class WorkspaceDB {
 	 * @param int $templateId
 	 * @return string|null
 	 */
-	public function getTemplateNameFromTemplateId( int $templateId ): ?string {
-		$template = $this->getPageTemplateById( $templateId );
-		if ( $template === null ) {
-			return null;
-		}
-		return $template['name'] ?? null;
-	}
-
-	/**
-	 * @param int $templateId
-	 * @return int|null
-	 */
-	public function getSpaceIdFromTemplateId( int $templateId ): ?int {
-		$template = $this->getPageTemplateById( $templateId );
-		if ( $template === null || $template['space_id'] === null ) {
-			return null;
-		}
-		return (int)$template['space_id'];
-	}
-
-	/**
-	 * @param int $templateId
-	 * @return string|null
-	 */
 	public function getTemplateTitleFromTemplateId( int $templateId ): ?string {
 		$template = $this->getPageTemplateById( $templateId );
 		if ( $template === null || empty( $template['wiki_title'] ) ) {

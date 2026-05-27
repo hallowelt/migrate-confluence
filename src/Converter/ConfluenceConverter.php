@@ -21,6 +21,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\Table;
@@ -494,10 +495,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
 			new FixMultilineTable(),
+			new TemplateContentPostProcessor()
 		];
 
 		/** @var IPostprocessor $postProcessor */
 		foreach ( $postProcessors as $postProcessor ) {
+			if ( $postProcessor->skipForPageTitle( $this->currentPageTitle ) ) {
+				continue;
+			}
+
 			$this->wikiText = $postProcessor->postprocess( $this->wikiText );
 		}
 	}
