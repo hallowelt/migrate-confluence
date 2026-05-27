@@ -177,7 +177,7 @@ class WorkspaceDB {
 		$this->createTablePagesMeta();
 		$this->createTableBlogPostsMeta();
 		$this->createTableAttachmentsMeta();
-		$this->createTablePageTemplate()
+		$this->createTablePageTemplate();
 		$this->createTablePageTemplateContents();
 
 		$this->createIndexes();
