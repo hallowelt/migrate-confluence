@@ -74,7 +74,7 @@ class PageTemplates extends ProcessorBase {
 		}
 		$wikiTitle = 'Template:' . $spacePrefix . $name;
 
-		$status = $this->workspaceDB->addPage(
+		$status = $this->workspaceDB->addPageTemplate(
 			$templateId,
 			$spaceId,
 			$name,
