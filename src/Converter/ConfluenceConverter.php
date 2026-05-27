@@ -255,7 +255,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				$this->pageId = $contentId;
 
-				$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId );
+				$this->confluencePageTitle = $this->workspaceDB
+					->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId );
 
 				$this->currentPageTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
 				if ( $this->currentPageTitle === '' ) {

@@ -79,7 +79,7 @@ class PageTemplates extends ProcessorBase {
 	 * @return string
 	 */
 	private function buildTemplateTitle( string $name, ?int $spaceId ): string {
-		$templateNamespace= "Template";
+		$templateNamespace = "Template";
 
 		if ( !$spaceId ) {
 			return "$templateNamespace:$name";

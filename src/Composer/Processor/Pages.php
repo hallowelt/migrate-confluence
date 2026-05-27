@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
-
 class Pages extends ProcessorBase {
 
 	/**
