@@ -96,6 +96,29 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * @return array
+	 */
+	public function getPageTemplateIdTargetTitleMap(): array {
+		return $this->workspaceDB->getPageTemplateIdTargetTitleMap();
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return array
+	 */
+	public function getPageTemplateRevisionsForTemplateId( int $templateId ): array {
+		return $this->workspaceDB->getPageTemplateRevisionsForTemplateId( $templateId );
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return int
+	 */
+	public function getSpaceIdForTemplateId( int $templateId ): int {
+		return $this->workspaceDB->getSpaceIdFromTemplateId( $templateId ) ?? 0;
+	}
+
+	/**
 	 * @param int $attachmentId
 	 * @return array
 	 */

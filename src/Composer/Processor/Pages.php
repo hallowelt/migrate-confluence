@@ -20,8 +20,51 @@ class Pages extends ProcessorBase {
 	public function execute(): void {
 		$this->addDefaultPages();
 		$this->addContentPages();
+		$this->addTemplatePages();
 
 		$this->writeOutputFile();
+	}
+
+	private function addTemplatePages(): void {
+		$wikiTitles = $this->dataLookup->getPageTemplateIdTargetTitleMap();
+
+		foreach ( $wikiTitles as $templateId => $pageTitle ) {
+			$this->output->writeln( "Processing template '$pageTitle'..." );
+
+			if ( $this->skipTitle( $pageTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $pageTitle );
+				continue;
+			}
+
+			$namespace = $this->getNamespace( $pageTitle );
+
+			$revisions = $this->dataLookup->getPageTemplateRevisionsForTemplateId( $templateId );
+
+			foreach ( $revisions as $revision ) {
+				$timestamp = $revision['revision_timestamp'];
+				$bodyContentIds = json_decode( $revision['body_content_ids'], true );
+
+				$pageContent = '';
+				foreach ( $bodyContentIds as $bodyContentId ) {
+					if ( $bodyContentId === '' ) {
+						continue;
+					}
+
+					$this->output->writeln( "Getting '$bodyContentId' body content..." );
+					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
+				}
+
+				$this->addRevision(
+					$pageTitle,
+					$pageContent,
+					$timestamp,
+					'',
+					$this->getContentModel( $pageTitle )
+				);
+			}
+
+			$this->deploymentInfo->addNamespace( $namespace );
+		}
 	}
 
 	private function addContentPages(): void {

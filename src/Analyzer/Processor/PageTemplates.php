@@ -51,31 +51,20 @@ class PageTemplates extends ProcessorBase {
 		$spaceId = isset( $properties['space'] ) ? (int)$properties['space'] : null;
 		$content = $properties['content'] ?? '';
 
-		$this->workspaceDB->addPageTemplate( $templateId, $name, $spaceId, $content );
-
-		// Register the template as a page so it flows through the regular conversion pipeline.
-		// Use the template ID as both "page ID" and "body content ID".
 		$lastModificationDate = $properties['lastModificationDate'] ?? '';
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 		$version = $properties['version'] ?? '1';
 
-		$this->workspaceDB->addPage(
+		$this->workspaceDB->addPageTemplate(
 			$templateId,
-			$spaceId ?? -1,
 			$name,
+			$spaceId,
+			$content,
 			$this->buildTemplateTitle( $name, $spaceId ),
 			$revisionTimestamp,
-			'current',
 			$version,
-			-1,
-			-1,
-			[ $templateId ],
-			[],
-			$properties,
-			[]
+			$properties
 		);
-
-		$this->workspaceDB->addBodyContent( $templateId, $templateId, 'PageTemplate', [] );
 
 		$this->output->writeln( "Found page template '$name' (ID:$templateId)" );
 	}

@@ -201,65 +201,78 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->rawFile = $file;
 
 		$bodyContentId = $this->getBodyContentIdFromFilename();
-		$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
 
 		$this->pageId = -1;
 		$this->isSpaceDescriptionContent = false;
 
-		// Test to which type of content the contentId belongs
-		if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
-			$this->contentType = 'spaceDescription';
-
-			$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
-
-			$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
-
-			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
-
-			$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
+		// Page templates use the template ID as the body content file name directly.
+		if ( $this->workspaceDB->pageTemplateIdExists( $bodyContentId ) ) {
+			$this->contentType = 'pageTemplate';
+			$this->pageId = $bodyContentId;
+			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId ) ?? 0;
+			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromTemplateId( $bodyContentId );
+			$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromTemplateId( $bodyContentId );
 			if ( $this->currentPageTitle === '' ) {
 				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 			}
-
-			$this->isSpaceDescriptionContent = true;
-
-		} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
-			$this->contentType = 'page';
-
-			$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
-
-			$this->pageId = $contentId;
-
-			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
-
-			$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
-			if ( $this->currentPageTitle === '' ) {
-				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
-			}
-		} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
-			$this->contentType = 'blogPost';
-
-			$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId );
-
-			$this->pageId = $contentId;
-
-			$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId );
-
-			$this->currentPageTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
-			if ( $this->currentPageTitle === '' ) {
-				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
-			}
-		} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
-			$this->contentType = 'comment';
-
-			$this->pageId = $contentId;
-
-			// Comment body content: convert with minimal context (no page-specific macros expected)
-			$this->currentSpace = 0;
-			$this->currentPageTitle = '';
-			$this->confluencePageTitle = '';
 		} else {
-			$this->pageId = -1;
+			$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
+
+			// Test to which type of content the contentId belongs
+			if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
+				$this->contentType = 'spaceDescription';
+
+				$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
+
+				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
+
+				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+
+				$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
+				if ( $this->currentPageTitle === '' ) {
+					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+				}
+
+				$this->isSpaceDescriptionContent = true;
+
+			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
+				$this->contentType = 'page';
+
+				$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
+
+				$this->pageId = $contentId;
+
+				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+
+				$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
+				if ( $this->currentPageTitle === '' ) {
+					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+				}
+			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
+				$this->contentType = 'blogPost';
+
+				$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId );
+
+				$this->pageId = $contentId;
+
+				$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId );
+
+				$this->currentPageTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
+				if ( $this->currentPageTitle === '' ) {
+					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+				}
+			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
+				$this->contentType = 'comment';
+
+				$this->pageId = $contentId;
+
+				// Comment body content: convert with minimal context (no page-specific macros expected)
+				$this->currentSpace = 0;
+				$this->currentPageTitle = '';
+				$this->confluencePageTitle = '';
+			} else {
+				$this->pageId = -1;
+			}
 		}
 
 		if ( $this->pageId === -1 ) {

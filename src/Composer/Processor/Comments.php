@@ -55,10 +55,6 @@ class Comments extends ProcessorBase {
 				$pageIdToCommentIds[$containerContentId] = [];
 			}
 			$pageIdToCommentIds[$containerContentId][] = $commentId;
-
-			if ( !isset( $pageIdToTitleMap[$containerContentId] ) ) {
-				$pageIdToTitleMap[$containerContentId] = '';
-			}
 			$pageIdToTitleMap[$containerContentId] = $wikiTitle;
 		}
 
