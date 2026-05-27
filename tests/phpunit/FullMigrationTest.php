@@ -150,6 +150,29 @@ class FullMigrationTest extends TestCase {
 			);
 		}
 
+		// Verify templates.xml
+		$expectedTemplatesFile = $this->dataDir . '/result_templates.xml';
+		$expectedTemplates = $this->extractPages( $expectedTemplatesFile );
+
+		$actualTemplatesFile = $this->tempDir . '/single-source/workspace/result/templates.xml';
+		$this->assertFileExists( $actualTemplatesFile );
+		$actualTemplates = $this->extractPages( $actualTemplatesFile );
+
+		$this->assertSame(
+			array_keys( $expectedTemplates ),
+			array_keys( $actualTemplates ),
+			'Template titles do not match'
+		);
+
+		foreach ( $expectedTemplates as $title => $expectedTemplateXml ) {
+			$this->assertArrayHasKey( $title, $actualTemplates, "Missing template: $title" );
+			$this->assertXmlStringEqualsXmlString(
+				$expectedTemplateXml,
+				$actualTemplates[$title],
+				"Template content mismatch for: $title"
+			);
+		}
+
 		// Verify comments.xml
 		$expectedCommentsFile = $this->dataDir . '/result_comments.xml';
 		$actualCommentsFile = $this->tempDir . '/single-source/workspace/result/comments.xml';
