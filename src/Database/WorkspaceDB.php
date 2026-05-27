@@ -63,6 +63,19 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param string $indexName
+	 * @param string $tableName
+	 * @param string $columnName
+	 * @return void
+	 */
+	private function doCreateIndex( string $indexName, string $tableName, string $columnName ): void {
+		$this->db->exec(
+			'CREATE INDEX IF NOT EXISTS ' . $indexName
+			. ' ON ' . $tableName . ' (' . $columnName . ')'
+		);
+	}
+
+	/**
 	 * @param string $table
 	 * @return array
 	 */
@@ -74,6 +87,7 @@ class WorkspaceDB {
 			'pages',
 			'pages_meta',
 			'page_templates',
+			'page_template_contents',
 			'blog_posts',
 			'blog_posts_meta',
 			'body_contents',
@@ -163,29 +177,24 @@ class WorkspaceDB {
 		$this->createTablePagesMeta();
 		$this->createTableBlogPostsMeta();
 		$this->createTableAttachmentsMeta();
-		$this->createTablePageTemplates();
+		$this->createTablePageTemplate()
+		$this->createTablePageTemplateContents();
 
 		$this->createIndexes();
 	}
 
-	/**
+			/**
 	 * @return void
 	 */
 	private function createIndexes(): void {
-		$this->db->exec( 'CREATE INDEX IF NOT EXISTS idx_body_contents_content_id ON body_contents (content_id)' );
-		$this->db->exec( 'CREATE INDEX IF NOT EXISTS idx_attachments_container_id ON attachments (container_id)' );
-		$this->db->exec(
-			'CREATE INDEX IF NOT EXISTS idx_page_attachments_target ON page_attachments (target_attachment_filename)'
-		);
-		$this->db->exec(
-			'CREATE INDEX IF NOT EXISTS idx_additional_attachments_target'
-			. ' ON additional_attachments (target_attachment_filename)'
-		);
-		$this->db->exec( 'CREATE INDEX IF NOT EXISTS idx_pages_space_id ON pages (space_id)' );
-		$this->db->exec(
-			'CREATE INDEX IF NOT EXISTS idx_pages_space_title ON pages (space_id, confluence_title)'
-		);
-		$this->db->exec( 'CREATE INDEX IF NOT EXISTS idx_blog_posts_space_id ON blog_posts (space_id)' );
+		$this->doCreateIndex( 'idx_body_contents_content_id', 'body_contents', 'content_id' );
+		$this->doCreateIndex( 'idx_attachments_container_id', 'attachments', 'container_id' );
+		$this->doCreateIndex( 'idx_page_attachments_target', 'page_attachments', 'target_attachment_filename' );
+		$this->doCreateIndex( 'idx_additional_attachments_target', 'additional_attachments', 'target_attachment_filename' );
+		$this->doCreateIndex( 'idx_pages_space_id', 'pages', 'space_id' );
+		$this->doCreateIndex( 'idx_pages_space_title', 'pages', 'space_id, confluence_title' );
+		$this->doCreateIndex( 'idx_blog_posts_space_id', 'blog_posts', 'space_id' );
+		$this->doCreateIndex( 'idx_page_templates_template_id', 'page_templates', 'template_id' );
 	}
 
 	/**
@@ -197,6 +206,44 @@ class WorkspaceDB {
 				type CHAR,
 				step CHAR,
 				caller CHAR,
+				text CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableInvalidTitles(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS invalid_titles (
+				page_id INT PRIMARY KEY,
+				wiki_title CHAR,
+				text CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableInvalidBodyContents(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS invalid_body_contents (
+				body_content_id INT PRIMARY KEY,
+				text CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableInvalidAttachmentTitles(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS invalid_attachment_titles (
+				attachment_id INT PRIMARY KEY,
+				wiki_title CHAR,
 				text CHAR
 			);'
 		);
@@ -248,6 +295,7 @@ class WorkspaceDB {
 				confluence_title CHAR,
 				wiki_title CHAR,
 				revision_timestamp CHAR,
+				last_modifier CHAR,
 				content_status CHAR,
 				original_version_id INT,
 				version CHAR,
@@ -271,6 +319,7 @@ class WorkspaceDB {
 				confluence_title CHAR,
 				wiki_title CHAR,
 				revision_timestamp CHAR,
+				last_modifier CHAR,
 				content_status CHAR,
 				version CHAR,
 				original_version_id INT,
@@ -321,11 +370,27 @@ class WorkspaceDB {
 				container_id INT,
 				content_status CHAR,
 				version CHAR,
+				revision_timestamp CHAR,
+				last_modifier CHAR,
 				original_version_id INT,
 				attachment_reference CHAR,
 				historical_ids BLOB,
 				properties BLOB,
 				collection BLOB
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTablePageAttachments(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS page_attachments (
+				attachment_id INT,
+				page_id INT,
+				original_attachment_filename CHAR,
+				target_attachment_filename CHAR
 			);'
 		);
 	}
@@ -346,20 +411,6 @@ class WorkspaceDB {
 	/**
 	 * $attachment id is not set as primary key because there can be multiple entries for the same attachment id
 	 * if the attachment is attached to multiple pages with different names.
-	 * @return void
-	 */
-	private function createTablePageAttachments(): void {
-		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS page_attachments (
-				attachment_id INT,
-				page_id INT,
-				original_attachment_filename CHAR,
-				target_attachment_filename CHAR
-			);'
-		);
-	}
-
-	/**
 	 * @return void
 	 */
 	private function createTableUsers(): void {
@@ -486,12 +537,23 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createTableInvalidTitles(): void {
+	private function createTablePageTemplate(): void {
 		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS invalid_titles (
-				page_id INT PRIMARY KEY,
+			'CREATE TABLE IF NOT EXISTS page_templates (
+				template_id INT PRIMARY KEY,
+				space_id INT,
+				confluence_title CHAR,
 				wiki_title CHAR,
-				text CHAR
+				revision_timestamp CHAR,
+				last_modifier CHAR,
+				content_status CHAR,
+				original_version_id INT,
+				version CHAR,
+				parent_page_id INT,		
+				body_content_ids BLOB,
+				historical_ids BLOB,
+				properties BLOB,
+				collection BLOB
 			);'
 		);
 	}
@@ -499,24 +561,13 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createTableInvalidBodyContents(): void {
+	private function createTablePageTemplateContents(): void {
 		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS invalid_body_contents (
-				body_content_id INT PRIMARY KEY,
-				text CHAR
-			);'
-		);
-	}
-
-	/**
-	 * @return void
-	 */
-	private function createTableInvalidAttachmentTitles(): void {
-		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS invalid_attachment_titles (
-				attachment_id INT PRIMARY KEY,
-				wiki_title CHAR,
-				text CHAR
+			'CREATE TABLE IF NOT EXISTS page_template_contents (
+				template_id INT PRIMARY KEY,
+				space_id INT,
+				name CHAR,
+				content TEXT
 			);'
 		);
 	}
@@ -761,6 +812,122 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param string $spaceKey
+	 * @return int
+	 */
+	public function getSpaceIdFromSpaceKey( string $spaceKey ): int {
+		$transaction = $this->cachedPrepare(
+			'SELECT space_id FROM spaces WHERE space_key = :space_key LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return -1;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['space_id'] ) ) {
+			return -1;
+		}
+
+		return (int)$data['space_id'];
+	}
+
+	/**
+	 * Get the mediawiki namespace for a given space key.
+	 * If space key is not found, return the space key as namespace as default.
+	 *
+	 * @param string $spaceKey
+	 * @return string
+	 */
+	public function getSpacePrefixFromSpaceKey( string $spaceKey ): string {
+		$transaction = $this->cachedPrepare(
+			'SELECT space_prefix FROM spaces WHERE space_key = :space_key LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return "$spaceKey:";
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['space_prefix'] ) ) {
+			return "$spaceKey:";
+		}
+
+		return $data['space_prefix'];
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapSpaceIdToPrefix(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT space_id,space_prefix FROM spaces'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['space_id'];
+			$value = $item['space_prefix'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapSpaceIdToKey(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT space_id,space_key FROM spaces'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['space_id'];
+			$value = $item['space_key'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapSpaceIdToHomepageId(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT space_id,homepage_id FROM spaces'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['space_id'];
+			$value = $item['homepage_id'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
 	 * @param int $spaceDescriptionId
 	 * @param string $revisionTimestamp
 	 * @param string $contentStatus
@@ -817,56 +984,22 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param string $spaceKey
-	 * @return int
-	 */
-	public function getSpaceIdFromSpaceKey( string $spaceKey ): int {
-		$transaction = $this->cachedPrepare(
-			'SELECT space_id FROM spaces WHERE space_key = :space_key LIMIT 1'
-		);
-		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
-
-		$result = $transaction->execute();
-		if ( $result === false ) {
-			return -1;
-		}
-
-		$data = $result->fetchArray( SQLITE3_ASSOC );
-		$result->finalize();
-
-		if ( $data === false || !isset( $data['space_id'] ) ) {
-			return -1;
-		}
-
-		return (int)$data['space_id'];
-	}
-
-	/**
-	 * Get the mediawiki namespace for a given space key.
-	 * If space key is not found, return the space key as namespace as default.
+	 * Update body_content_ids for a space description.
 	 *
-	 * @param string $spaceKey
-	 * @return string
+	 * @param int $spaceDescriptionId
+	 * @param array $bodyContentIds
+	 * @return bool True on success, false on error.
 	 */
-	public function getSpacePrefixFromSpaceKey( string $spaceKey ): string {
+	public function updateSpaceDescriptionBodyContentIds( int $spaceDescriptionId, array $bodyContentIds ): bool {
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$transaction = $this->cachedPrepare(
-			'SELECT space_prefix FROM spaces WHERE space_key = :space_key LIMIT 1'
+			'UPDATE spaces_descriptions SET body_content_ids = :body_content_ids 
+			WHERE space_description_id = :space_description_id'
 		);
-		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
 
-		$result = $transaction->execute();
-		if ( $result === false ) {
-			return "$spaceKey:";
-		}
-
-		$data = $result->fetchArray( SQLITE3_ASSOC );
-		$result->finalize();
-
-		if ( $data === false || !isset( $data['space_prefix'] ) ) {
-			return "$spaceKey:";
-		}
-
-		return $data['space_prefix'];
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
 	}
 
 	/**
@@ -874,261 +1007,6 @@ class WorkspaceDB {
 	 */
 	public function getSpaceDescriptions(): array {
 		return $this->getAllData( 'spaces_descriptions' );
-	}
-
-	/**
-	 * Check if a space description with the given space description ID already exists in the database.
-	 *
-	 * @param int $spaceDescriptionId
-	 * @return bool
-	 */
-	public function spaceDescriptionIdExists( int $spaceDescriptionId ): bool {
-		$transaction = $this->cachedPrepare(
-			'SELECT space_description_id FROM spaces_descriptions
-			WHERE space_description_id = :space_description_id LIMIT 1'
-		);
-		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
-
-		$result = $transaction->execute();
-		if ( $result === false ) {
-			return false;
-		}
-
-		$exists = $result->fetchArray( SQLITE3_ASSOC ) !== false;
-		$result->finalize();
-
-		return $exists;
-	}
-
-	/**
-	 * @param int $pageId
-	 * @param int $spaceId
-	 * @param string $confluenceTitle
-	 * @param string $wikiTitle
-	 * @param string $revisionTimestamp
-	 * @param string $contentStatus
-	 * @param string $version
-	 * @param int $originalVersionId
-	 * @param int $parentPageId
-	 * @param array $bodyContentIds
-	 * @param array $historicalIds
-	 * @param array $properties
-	 * @param array $collection
-	 * @return bool
-	 */
-	public function addPage(
-		int $pageId,
-		int $spaceId,
-		string $confluenceTitle,
-		string $wikiTitle,
-		string $revisionTimestamp,
-		string $contentStatus,
-		string $version,
-		int $originalVersionId,
-		int $parentPageId,
-		array $bodyContentIds,
-		array $historicalIds,
-		array $properties,
-		array $collection
-	): bool {
-		$bodyContentIdsJson = json_encode( $bodyContentIds );
-		$historicalIdsJson = json_encode( $historicalIds );
-		$propertiesJson = json_encode( $properties );
-		$collectionJson = json_encode( $collection );
-		$transaction = $this->cachedPrepare(
-			'INSERT INTO pages (
-				page_id,
-				space_id,
-				confluence_title,
-				wiki_title,
-				revision_timestamp,
-				content_status,
-				original_version_id,
-				version,
-				parent_page_id,
-				body_content_ids,
-				historical_ids,
-				properties,
-				collection
-			) VALUES (
-				:page_id,
-				:space_id,
-				:confluence_title,
-				:wiki_title,
-				:revision_timestamp,
-				:content_status,
-				:original_version_id,
-				:version,
-				:parent_page_id,
-				:body_content_ids,
-				:historical_ids,
-				:properties,
-				:collection
-			)'
-		);
-
-		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
-		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
-		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
-		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
-		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
-		$transaction->bindValue( ':parent_page_id', $parentPageId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
-		$transaction->bindValue( ':historical_ids', $historicalIdsJson, SQLITE3_TEXT );
-		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
-		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
-		return $this->executeTransactionWithStatus( $transaction );
-	}
-
-	/**
-	 * @param int $pageId
-	 * @param string $wikiTitle
-	 * @return bool True on success, false on error.
-	 */
-	public function updatePageWikiTitle( int $pageId, string $wikiTitle ): bool {
-		$transaction = $this->cachedPrepare(
-			'UPDATE pages SET wiki_title = :wiki_title WHERE page_id = :page_id'
-		);
-
-		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
-		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
-		return $this->executeTransactionWithStatus( $transaction );
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getPages(): array {
-		return $this->getAllData( 'pages' );
-	}
-
-	/**
-	 * @param int $spaceId
-	 * @param string $confluenceTitle
-	 * @return string
-	 */
-	public function getTargetPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): string {
-		$transaction = $this->cachedPrepare(
-			'SELECT wiki_title FROM pages WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
-		);
-		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
-
-		$result = $transaction->execute();
-		if ( $result === false ) {
-			return '';
-		}
-
-		$data = $result->fetchArray( SQLITE3_ASSOC );
-		$result->finalize();
-
-		if ( $data === false || !isset( $data['wiki_title'] ) ) {
-			return '';
-		}
-
-		return $data['wiki_title'];
-	}
-
-	/**
-	 * @param int $pageId
-	 * @return string
-	 */
-	public function getTargetPageTitleFromPageId( int $pageId ): string {
-		$transaction = $this->cachedPrepare(
-			'SELECT wiki_title FROM pages WHERE page_id = :page_id LIMIT 1'
-		);
-		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
-
-		$result = $transaction->execute();
-		if ( $result === false ) {
-			return '';
-		}
-
-		$data = $result->fetchArray( SQLITE3_ASSOC );
-		$result->finalize();
-
-		if ( $data === false || !isset( $data['wiki_title'] ) ) {
-			return '';
-		}
-
-		return $data['wiki_title'];
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getPageIdTargetPageTitleMap(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT page_id, wiki_title FROM pages WHERE content_status = "current"'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['page_id'];
-			$value = $item['wiki_title'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getBlogPostIdTargetBlogPostTitleMap(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT page_id, wiki_title FROM blog_posts WHERE content_status = "current"'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['page_id'];
-			$value = $item['wiki_title'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @param int $pageId
-	 * @return array
-	 */
-	public function getPageRevisionsForPageId( int $pageId ): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT revision_timestamp, version, content_status, body_content_ids FROM pages
-			WHERE page_id = :page_id AND lower( content_status ) != "deleted"
-			ORDER BY revision_timestamp DESC'
-		);
-		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
-
-		$result = $transaction->execute();
-		return $this->fetchDbArray( $result );
-	}
-
-	/**
-	 * @param int $pageId
-	 * @return array
-	 */
-	public function getBlogPostRevisionsForPageId( int $pageId ): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT revision_timestamp, version, content_status, body_content_ids FROM blog_posts
-			WHERE page_id = :page_id AND lower( content_status ) != "deleted"
-			ORDER BY revision_timestamp DESC'
-		);
-		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
-
-		$result = $transaction->execute();
-		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -1172,6 +1050,275 @@ class WorkspaceDB {
 			return [];
 		}
 
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * Check if a space description with the given space description ID already exists in the database.
+	 *
+	 * @param int $spaceDescriptionId
+	 * @return bool
+	 */
+	public function spaceDescriptionIdExists( int $spaceDescriptionId ): bool {
+		$transaction = $this->cachedPrepare(
+			'SELECT space_description_id FROM spaces_descriptions
+			WHERE space_description_id = :space_description_id LIMIT 1'
+		);
+		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return false;
+		}
+
+		$exists = $result->fetchArray( SQLITE3_ASSOC ) !== false;
+		$result->finalize();
+
+		return $exists;
+	}
+
+	/**
+	 * @param int $pageId
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $wikiTitle
+	 * @param string $revisionTimestamp
+	 * @param string $lastModifier
+	 * @param string $contentStatus
+	 * @param string $version
+	 * @param int $originalVersionId
+	 * @param int $parentPageId
+	 * @param array $bodyContentIds
+	 * @param array $historicalIds
+	 * @param array $properties
+	 * @param array $collection
+	 * @return bool
+	 */
+	public function addPage(
+		int $pageId,
+		int $spaceId,
+		string $confluenceTitle,
+		string $wikiTitle,
+		string $revisionTimestamp,
+		string $lastModifier,
+		string $contentStatus,
+		string $version,
+		int $originalVersionId,
+		int $parentPageId,
+		array $bodyContentIds,
+		array $historicalIds,
+		array $properties,
+		array $collection
+	): bool {
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$historicalIdsJson = json_encode( $historicalIds );
+		$propertiesJson = json_encode( $properties );
+		$collectionJson = json_encode( $collection );
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO pages (
+				page_id,
+				space_id,
+				confluence_title,
+				wiki_title,
+				revision_timestamp,
+				last_modifier,
+				content_status,
+				version,
+				original_version_id,
+				parent_page_id,
+				body_content_ids,
+				historical_ids,
+				properties,
+				collection
+			) VALUES (
+				:page_id,
+				:space_id,
+				:confluence_title,
+				:wiki_title,
+				:revision_timestamp,
+				:last_modifier,
+				:content_status,
+				:version,
+				:original_version_id,
+				:parent_page_id,
+				:body_content_ids,
+				:historical_ids,
+				:properties,
+				:collection
+			)'
+		);
+
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':last_modifier', $lastModifier, SQLITE3_TEXT );
+		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
+		$transaction->bindValue( ':parent_page_id', $parentPageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':historical_ids', $historicalIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @param string $wikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageWikiTitle( int $pageId, string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE pages SET wiki_title = :wiki_title WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @param int $spaceId
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageSpaceId( int $pageId, int $spaceId ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE pages SET space_id = :space_id WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Update body_content_ids for a page.
+	 *
+	 * @param int $pageId
+	 * @param array $bodyContentIds
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageBodyContentIds( int $pageId, array $bodyContentIds ): bool {
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$transaction = $this->cachedPrepare(
+			'UPDATE pages SET body_content_ids = :body_content_ids WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPages(): array {
+		return $this->getAllData( 'pages' );
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @return string
+	 */
+	public function getTargetPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_title FROM pages WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return '';
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['wiki_title'] ) ) {
+			return '';
+		}
+
+		return $data['wiki_title'];
+	}
+
+	/**
+	 * Get the target page title for a given page ID.
+	 * If the page has an original version, recursively look up the original version
+	 * until the original version is reached and return its wiki title.
+	 *
+	 * @param int $pageId
+	 * @return string
+	 */
+	public function getTargetPageTitleFromPageId( int $pageId ): string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_title FROM pages WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return '';
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false ) {
+			return '';
+		}
+
+		if ( isset( $data['original_version_id'] ) && $data['original_version_id'] > 0 ) {
+			$originalVersionId = (int)$data['original_version_id'];
+			return $this->getTargetPageTitleFromPageId( $originalVersionId );
+		}
+
+		if ( !isset( $data['wiki_title'] ) ) {
+			return '';
+		}
+
+		return $data['wiki_title'];
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPageIdTargetPageTitleMap(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT page_id, wiki_title FROM pages WHERE content_status = "current"'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['page_id'];
+			$value = $item['wiki_title'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @param int $pageId
+	 * @return array
+	 */
+	public function getPageRevisionsForPageId( int $pageId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT revision_timestamp, version, body_content_ids FROM pages
+			WHERE page_id = :page_id OR original_version_id = :page_id
+			ORDER BY revision_timestamp DESC'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
 		return $this->fetchDbArray( $result );
 	}
 
@@ -1249,11 +1396,77 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return array
+	 */
+	public function getMapPageIdtoParentPageId(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT page_id,parent_page_id FROM pages'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['page_id'];
+			$value = $item['parent_page_id'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapPagesTitles(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT space_id,confluence_title,wiki_title FROM pages'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$spaceId = $item['space_id'];
+			$confluenceTitle = $item['confluence_title'];
+			$key = "$spaceId---$confluenceTitle";
+			$value = $item['wiki_title'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapPageIdToConfluenceTitle(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT page_id,confluence_title FROM pages'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['page_id'];
+			$value = $item['confluence_title'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
 	 * @param int $pageId
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
 	 * @param string $revisionTimestamp
+	 * @param string $lastModifier
 	 * @param string $contentStatus
 	 * @param string $version
 	 * @param int $originalVersionId
@@ -1269,6 +1482,7 @@ class WorkspaceDB {
 		string $confluenceTitle,
 		string $wikiTitle,
 		string $revisionTimestamp,
+		string $lastModifier,
 		string $contentStatus,
 		string $version,
 		int $originalVersionId,
@@ -1288,6 +1502,7 @@ class WorkspaceDB {
 				confluence_title,
 				wiki_title,
 				revision_timestamp,
+				last_modifier,
 				content_status,
 				version,
 				original_version_id,
@@ -1301,6 +1516,7 @@ class WorkspaceDB {
 				:confluence_title,
 				:wiki_title,
 				:revision_timestamp,
+				:last_modifier,
 				:content_status,
 				:version,
 				:original_version_id,
@@ -1316,6 +1532,7 @@ class WorkspaceDB {
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':last_modifier', $lastModifier, SQLITE3_TEXT );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
@@ -1324,13 +1541,6 @@ class WorkspaceDB {
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getBlogPosts(): array {
-		return $this->getAllData( 'blog_posts' );
 	}
 
 	/**
@@ -1346,6 +1556,83 @@ class WorkspaceDB {
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @param int $spaceId
+	 * @return bool True on success, false on error.
+	 */
+	public function updateBlogPostSpaceId( int $pageId, int $spaceId ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE blog_posts SET space_id = :space_id WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Update body_content_ids for a blog post.
+	 *
+	 * @param int $pageId
+	 * @param array $bodyContentIds
+	 * @return bool True on success, false on error.
+	 */
+	public function updateBlogPostBodyContentIds( int $pageId, array $bodyContentIds ): bool {
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$transaction = $this->cachedPrepare(
+			'UPDATE blog_posts SET body_content_ids = :body_content_ids WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getBlogPosts(): array {
+		return $this->getAllData( 'blog_posts' );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getBlogPostIdTargetBlogPostTitleMap(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT page_id, wiki_title FROM blog_posts WHERE content_status = "current"'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['page_id'];
+			$value = $item['wiki_title'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @param int $blogPostId
+	 * @return array
+	 */
+	public function getBlogPostRevisionsForPageId( int $blogPostId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT revision_timestamp, version, content_status, body_content_ids FROM blog_posts
+			WHERE page_id = :page_id OR original_version_id = :page_id
+			ORDER BY revision_timestamp DESC'
+		);
+		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -1627,6 +1914,8 @@ class WorkspaceDB {
 	 * @param int $containerContentId
 	 * @param string $contentStatus
 	 * @param string $version
+	 * @param string $revisionTimestamp
+	 * @param string $lastModifier
 	 * @param int $originalVersionId
 	 * @param string $attachmentReference
 	 * @param array $historicalIds
@@ -1642,6 +1931,8 @@ class WorkspaceDB {
 		int $containerContentId,
 		string $contentStatus,
 		string $version,
+		string $revisionTimestamp,
+		string $lastModifier,
 		int $originalVersionId,
 		string $attachmentReference,
 		array $historicalIds,
@@ -1661,6 +1952,8 @@ class WorkspaceDB {
 				container_id,
 				content_status,
 				version,
+				revision_timestamp,
+				last_modifier,
 				original_version_id,
 				attachment_reference,
 				historical_ids,
@@ -1674,6 +1967,8 @@ class WorkspaceDB {
 				:container_id,
 				:content_status,
 				:version,
+				:revision_timestamp,
+				:last_modifier,
 				:original_version_id,
 				:attachment_reference,
 				:historical_ids,
@@ -1689,6 +1984,8 @@ class WorkspaceDB {
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':file_extension', $fileExtension, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
+		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':last_modifier', $lastModifier, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':attachment_reference', $attachmentReference, SQLITE3_TEXT );
 		$transaction->bindValue( ':historical_ids', $historicalIdsJson, SQLITE3_TEXT );
@@ -1729,6 +2026,31 @@ class WorkspaceDB {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Get all revisions of an attachment for a given attachment ID.
+	 *
+	 * Revisions are linked through `original_version_id` and sorted newest first.
+	 *
+	 * @param int $attachmentId
+	 * @return array
+	 */
+	public function getAttachmentRevisionsForAttachmentId( int $attachmentId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM attachments
+			WHERE attachment_id = :attachment_id
+				OR original_version_id = :attachment_id
+			ORDER BY revision_timestamp DESC'
+		);
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -1980,6 +2302,52 @@ class WorkspaceDB {
 		$result->finalize();
 
 		return $fileTitles;
+	}
+
+	/**
+	 * Returns target file titles with their full metadata for all attachments on a page.
+	 * The returned array is keyed by confluence file key. Each value contains 'targetTitle'
+	 * plus any additional metadata fields (e.g. 'labels', 'mediaType', etc.).
+	 *
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return string[] Map of confluenceFileKey => metadata (including 'targetTitle')
+	 */
+	public function getAttachmentMetadataForPage( int $spaceId, string $rawPageTitle ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT pa.original_attachment_filename, pa.target_attachment_filename, am.meta FROM page_attachments pa
+			JOIN pages p ON pa.page_id = p.page_id
+			LEFT JOIN attachments_meta am ON pa.attachment_id = am.attachment_id
+			WHERE p.space_id = :space_id AND p.confluence_title = :confluence_title'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $rawPageTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		$metadataMap = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			if ( isset( $row['original_attachment_filename'] ) && isset( $row['target_attachment_filename'] ) ) {
+				$confluenceFileKey = $row['original_attachment_filename'];
+				$meta = json_decode( $row['meta'] ?? '[]', true );
+				if ( !is_array( $meta ) ) {
+					$meta = [];
+				}
+
+				$metadataMap[$confluenceFileKey] = array_merge(
+					$meta,
+					[ 'targetTitle' => $row['target_attachment_filename'] ]
+				);
+			}
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $metadataMap;
 	}
 
 	/**
@@ -2246,6 +2614,24 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Update body_content_ids for a comment.
+	 *
+	 * @param int $commentId
+	 * @param array $bodyContentIds
+	 * @return bool True on success, false on error.
+	 */
+	public function updateCommentBodyContentIds( int $commentId, array $bodyContentIds ): bool {
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$transaction = $this->cachedPrepare(
+			'UPDATE comments SET body_content_ids = :body_content_ids WHERE comment_id = :comment_id'
+		);
+
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getComments(): array {
@@ -2350,6 +2736,27 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return array
+	 */
+	public function getMapLabellingIdToLabelId(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT labelling_id,label_id FROM labellings'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$key = $item['labelling_id'];
+			$value = $item['label_id'];
+			$map[$key] = $value;
+		}
+
+		return $map;
+	}
+
+	/**
 	 * @param int $labelId
 	 * @param string $name
 	 * @param string $namespace
@@ -2406,6 +2813,48 @@ class WorkspaceDB {
 		}
 
 		return $data[0];
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $originalAttachmentFilename
+	 * @param string $targetAttachmentFilename
+	 * @return bool
+	 */
+	public function addGliffy(
+		int $spaceId,
+		string $confluenceTitle,
+		string $originalAttachmentFilename,
+		string $targetAttachmentFilename
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO gliffy (
+				space_id,
+				confluence_title,
+				original_attachment_filename,
+				target_attachment_filename
+			) VALUES (
+				:space_id,
+				:confluence_title,
+				:original_attachment_filename,
+				:target_attachment_filename
+			)'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
+		$transaction->bindValue( ':target_attachment_filename', $targetAttachmentFilename, SQLITE3_TEXT );
+
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getGliffy(): array {
+		return $this->getAllData( 'gliffy' );
 	}
 
 	/**
@@ -2501,363 +2950,82 @@ class WorkspaceDB {
 		return $this->getAllData( 'attachments_meta' );
 	}
 
-	/**
-	 * @param int $spaceId
-	 * @param string $confluenceTitle
-	 * @param string $originalAttachmentFilename
-	 * @param string $targetAttachmentFilename
-	 * @return bool
-	 */
-	public function addGliffy(
+	public function addPageTemplate(
+		int $templateId,
 		int $spaceId,
 		string $confluenceTitle,
-		string $originalAttachmentFilename,
-		string $targetAttachmentFilename
+		string $wikiTitle,
+		string $revisionTimestamp,
+		string $lastModifier,
+		string $contentStatus,
+		string $version,
+		int $originalVersionId,
+		int $parentPageId,
+		array $bodyContentIds,
+		array $historicalIds,
+		array $properties,
+		array $collection
 	): bool {
+		$bodyContentIdsJson = json_encode( $bodyContentIds );
+		$historicalIdsJson = json_encode( $historicalIds );
+		$propertiesJson = json_encode( $properties );
+		$collectionJson = json_encode( $collection );
 		$transaction = $this->cachedPrepare(
-			'INSERT INTO gliffy (
+			'INSERT INTO pages (
+				template_id,
 				space_id,
 				confluence_title,
-				original_attachment_filename,
-				target_attachment_filename
-			) VALUES (
-				:space_id,
-				:confluence_title,
-				:original_attachment_filename,
-				:target_attachment_filename
-			)'
-		);
-
-		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
-		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
-		$transaction->bindValue( ':target_attachment_filename', $targetAttachmentFilename, SQLITE3_TEXT );
-
-		return $this->executeTransactionWithStatus( $transaction );
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getGliffy(): array {
-		return $this->getAllData( 'gliffy' );
-	}
-
-	/**
-	 * Returns target file titles with their full metadata for all attachments on a page.
-	 * The returned array is keyed by confluence file key. Each value contains 'targetTitle'
-	 * plus any additional metadata fields (e.g. 'labels', 'mediaType', etc.).
-	 *
-	 * @param int $spaceId
-	 * @param string $rawPageTitle
-	 * @return string[] Map of confluenceFileKey => metadata (including 'targetTitle')
-	 */
-	public function getAttachmentMetadataForPage( int $spaceId, string $rawPageTitle ): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT pa.original_attachment_filename, pa.target_attachment_filename, am.meta FROM page_attachments pa
-			JOIN pages p ON pa.page_id = p.page_id
-			LEFT JOIN attachments_meta am ON pa.attachment_id = am.attachment_id
-			WHERE p.space_id = :space_id AND p.confluence_title = :confluence_title'
-		);
-		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $rawPageTitle, SQLITE3_TEXT );
-
-		$result = $transaction->execute();
-		if ( $result === false ) {
-			return [];
-		}
-
-		$metadataMap = [];
-		$row = $result->fetchArray( SQLITE3_ASSOC );
-		while ( $row ) {
-			if ( isset( $row['original_attachment_filename'] ) && isset( $row['target_attachment_filename'] ) ) {
-				$confluenceFileKey = $row['original_attachment_filename'];
-				$meta = json_decode( $row['meta'] ?? '[]', true );
-				if ( !is_array( $meta ) ) {
-					$meta = [];
-				}
-
-				$metadataMap[$confluenceFileKey] = array_merge(
-					$meta,
-					[ 'targetTitle' => $row['target_attachment_filename'] ]
-				);
-			}
-			$row = $result->fetchArray( SQLITE3_ASSOC );
-		}
-		$result->finalize();
-
-		return $metadataMap;
-	}
-
-	// Mapping functions
-
-	/**
-	 * @return array
-	 */
-	public function getMapSpaceIdToPrefix(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT space_id,space_prefix FROM spaces'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['space_id'];
-			$value = $item['space_prefix'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMapSpaceIdToKey(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT space_id,space_key FROM spaces'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['space_id'];
-			$value = $item['space_key'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMapSpaceIdToHomepageId(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT space_id,homepage_id FROM spaces'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['space_id'];
-			$value = $item['homepage_id'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMapPageIdtoParentPageId(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT page_id,parent_page_id FROM pages'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['page_id'];
-			$value = $item['parent_page_id'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMapPagesTitles(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT space_id,confluence_title,wiki_title FROM pages'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$spaceId = $item['space_id'];
-			$confluenceTitle = $item['confluence_title'];
-			$key = "$spaceId---$confluenceTitle";
-			$value = $item['wiki_title'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMapPageIdToConfluenceTitle(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT page_id,confluence_title FROM pages'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['page_id'];
-			$value = $item['confluence_title'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMapLabellingIdToLabelId(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT labelling_id,label_id FROM labellings'
-		);
-
-		$result = $transaction->execute();
-		$data = $this->fetchDbArray( $result );
-
-		$map = [];
-		foreach ( $data as $item ) {
-			$key = $item['labelling_id'];
-			$value = $item['label_id'];
-			$map[$key] = $value;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * Update body_content_ids for a page.
-	 *
-	 * @param int $pageId
-	 * @param array $bodyContentIds
-	 * @return bool True on success, false on error.
-	 */
-	public function updatePageBodyContentIds( int $pageId, array $bodyContentIds ): bool {
-		$bodyContentIdsJson = json_encode( $bodyContentIds );
-		$transaction = $this->cachedPrepare(
-			'UPDATE pages SET body_content_ids = :body_content_ids WHERE page_id = :page_id'
-		);
-
-		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
-		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
-		return $this->executeTransactionWithStatus( $transaction );
-	}
-
-	/**
-	 * Update body_content_ids for a blog post.
-	 *
-	 * @param int $pageId
-	 * @param array $bodyContentIds
-	 * @return bool True on success, false on error.
-	 */
-	public function updateBlogPostBodyContentIds( int $pageId, array $bodyContentIds ): bool {
-		$bodyContentIdsJson = json_encode( $bodyContentIds );
-		$transaction = $this->cachedPrepare(
-			'UPDATE blog_posts SET body_content_ids = :body_content_ids WHERE page_id = :page_id'
-		);
-
-		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
-		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
-		return $this->executeTransactionWithStatus( $transaction );
-	}
-
-	/**
-	 * Update body_content_ids for a comment.
-	 *
-	 * @param int $commentId
-	 * @param array $bodyContentIds
-	 * @return bool True on success, false on error.
-	 */
-	public function updateCommentBodyContentIds( int $commentId, array $bodyContentIds ): bool {
-		$bodyContentIdsJson = json_encode( $bodyContentIds );
-		$transaction = $this->cachedPrepare(
-			'UPDATE comments SET body_content_ids = :body_content_ids WHERE comment_id = :comment_id'
-		);
-
-		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
-		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
-		return $this->executeTransactionWithStatus( $transaction );
-	}
-
-	/**
-	 * Update body_content_ids for a space description.
-	 *
-	 * @param int $spaceDescriptionId
-	 * @param array $bodyContentIds
-	 * @return bool True on success, false on error.
-	 */
-	public function updateSpaceDescriptionBodyContentIds( int $spaceDescriptionId, array $bodyContentIds ): bool {
-		$bodyContentIdsJson = json_encode( $bodyContentIds );
-		$transaction = $this->cachedPrepare(
-			'UPDATE spaces_descriptions SET body_content_ids = :body_content_ids 
-			WHERE space_description_id = :space_description_id'
-		);
-
-		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
-		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
-		return $this->executeTransactionWithStatus( $transaction );
-	}
-
-	/**
-	 * @return void
-	 */
-	private function createTablePageTemplates(): void {
-		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS page_templates (
-				template_id INT PRIMARY KEY,
-				name CHAR,
-				space_id INT,
-				content TEXT
-			);'
-		);
-	}
-
-	/**
-	 * @param int $templateId
-	 * @param string $name
-	 * @param int|null $spaceId
-	 * @param string $content
-	 * @return bool
-	 */
-	public function addPageTemplate( int $templateId, string $name, ?int $spaceId, string $content ): bool {
-		$transaction = $this->cachedPrepare(
-			'INSERT OR REPLACE INTO page_templates (
-				template_id,
-				name,
-				space_id,
-				content
+				wiki_title,
+				revision_timestamp,
+				last_modifier,
+				content_status,
+				version,
+				original_version_id,
+				parent_page_id,
+				body_content_ids,
+				historical_ids,
+				properties,
+				collection
 			) VALUES (
 				:template_id,
-				:name,
 				:space_id,
-				:content
+				:confluence_title,
+				:wiki_title,
+				:revision_timestamp,
+				:last_modifier,
+				:content_status,
+				:version,
+				:original_version_id,
+				:parent_page_id,
+				:body_content_ids,
+				:historical_ids,
+				:properties,
+				:collection
 			)'
 		);
 
 		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':name', $name, SQLITE3_TEXT );
-		if ( $spaceId !== null ) {
-			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		} else {
-			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
-		}
-		$transaction->bindValue( ':content', $content, SQLITE3_TEXT );
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':last_modifier', $lastModifier, SQLITE3_TEXT );
+		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
+		$transaction->bindValue( ':parent_page_id', $parentPageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':historical_ids', $historicalIdsJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPageTemplates(): array {
+		return $this->getAllData( 'page_templates' );
 	}
 
 	/**
@@ -2934,5 +3102,45 @@ class WorkspaceDB {
 	 */
 	public function getPageTemplates(): array {
 		return $this->getAllData( 'page_templates' );
+	}
+
+		/**
+	 * @param int $templateId
+	 * @param int $spaceId
+	 * @param string $name
+	 * @param string $content
+	 * @return bool
+	 */
+	public function addPageTemplateContent( int $templateId, int $spaceId, string $name, string $content ): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR REPLACE INTO page_template_contents (
+				template_id,
+				space_id,
+				name,
+				content
+			) VALUES (
+				:template_id,
+				:space_id,
+				:name,
+				:content
+			)'
+		);
+
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':name', $name, SQLITE3_TEXT );
+		if ( $spaceId !== null ) {
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
+		}
+		$transaction->bindValue( ':content', $content, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPageTemplateContents(): array {
+		return $this->getAllData( 'page_template_contents' );
 	}
 }

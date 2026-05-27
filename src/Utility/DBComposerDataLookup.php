@@ -102,4 +102,32 @@ class DBComposerDataLookup {
 	public function getAttachment( int $attachmentId ): array {
 		return $this->workspaceDB->getAttachment( $attachmentId );
 	}
+
+	/**
+	 * @param string $userKey
+	 * @return string
+	 */
+	public function getUsernameFromUserKey( string $userKey ): string {
+		return $this->workspaceDB->getUsernameFromUserKey( $userKey );
+	}
+
+	/**
+	 * Get the target page title for a given page ID.
+	 * If the page has an original version, recursively look up the original version
+	 * until the original version is reached and return its wiki title.
+	 *
+	 * @param int $pageId
+	 * @return string
+	 */
+	public function getTargetPageTitleFromPageId( int $pageId ): string {
+		return $this->workspaceDB->getTargetPageTitleFromPageId( $pageId );
+	}
+
+	/**
+	 * @param int $attachmentId
+	 * @return array
+	 */
+	public function getAttachmentRevisionsForAttachmentId( int $attachmentId ): array {
+		return $this->workspaceDB->getAttachmentRevisionsForAttachmentId( $attachmentId );
+	}
 }

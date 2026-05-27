@@ -707,7 +707,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		// If toc-macro is not explicitly used set __NOTOC__
-		if ( $this->tocMacroUsage->getStatus() === false ) {
+		if ( $this->tocMacroUsage->getStatus() === false && $this->contentType !== 'spaceDescription' ) {
 			$this->wikiText .= "\n__NOTOC__\n";
 		}
 

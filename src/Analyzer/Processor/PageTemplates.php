@@ -48,21 +48,25 @@ class PageTemplates extends ProcessorBase {
 			return;
 		}
 
-		$spaceId = isset( $properties['space'] ) ? (int)$properties['space'] : null;
+		$spaceId = isset( $properties['space'] ) ? (int)$properties['space'] : -1;
 		$content = $properties['content'] ?? '';
-
-		$this->workspaceDB->addPageTemplate( $templateId, $name, $spaceId, $content );
 
 		// Register the template as a page so it flows through the regular conversion pipeline.
 		// Use the template ID as both "page ID" and "body content ID".
 		$lastModificationDate = $properties['lastModificationDate'] ?? '';
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 		$version = $properties['version'] ?? '1';
+		$lastModifier = '';
+		if ( isset( $properties['lastModifier'] ) && $properties['lastModifier'] !== '' ) {
+			$lastModifier = $properties['lastModifier'];
+		} elseif ( isset( $properties['creator'] ) && $properties['creator'] !== '' ) {
+			$lastModifier = $properties['creator'];
+		}
 
 		// Build the wiki title for the template page upfront.
 		// This avoids relying on updatePageTableWithWikiTitle() which doesn't handle templates.
 		$spacePrefix = '';
-		if ( $spaceId !== null ) {
+		if ( $spaceId !== -1 ) {
 			$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();
 			if ( isset( $spaces[$spaceId] ) ) {
 				$spacePrefix = $spaces[$spaceId];
@@ -70,12 +74,13 @@ class PageTemplates extends ProcessorBase {
 		}
 		$wikiTitle = 'Template:' . $spacePrefix . $name;
 
-		$this->workspaceDB->addPage(
+		$status = $this->workspaceDB->addPage(
 			$templateId,
-			$spaceId ?? -1,
+			$spaceId,
 			$name,
 			$wikiTitle,
 			$revisionTimestamp,
+			$lastModifier,
 			'current',
 			$version,
 			-1,
@@ -86,7 +91,7 @@ class PageTemplates extends ProcessorBase {
 			[]
 		);
 
-		$this->workspaceDB->addBodyContent( $templateId, $templateId, 'PageTemplate', [] );
+		$this->workspaceDB->addPageTemplateContent( $templateId, $spaceId, $name, $content );
 
 		$this->output->writeln( "Found page template '$name' (ID:$templateId)" );
 	}

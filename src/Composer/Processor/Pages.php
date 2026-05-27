@@ -2,49 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
-use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
-use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Composer\IPageContentPostProcessor;
-use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Symfony\Component\Console\Output\Output;
 
 class Pages extends ProcessorBase {
-
-	/**
-	 * @var IPageContentPostProcessor|null
-	 */
-	private ?IPageContentPostProcessor $contentPostProcessor;
-
-	/**
-	 * @param Builder $builder
-	 * @param DBComposerDataLookup $dataLookup
-	 * @param Workspace $workspace
-	 * @param Output $output
-	 * @param string $dest
-	 * @param MigrationConfig $migrationConfig
-	 * @param ComposerDeploymentInfo $deploymentInfo
-	 * @param IPageContentPostProcessor|null $contentPostProcessor
-	 */
-	public function __construct(
-		Builder $builder, DBComposerDataLookup $dataLookup, Workspace $workspace,
-		Output $output, string $dest, MigrationConfig $migrationConfig, ComposerDeploymentInfo $deploymentInfo,
-		?IPageContentPostProcessor $contentPostProcessor = null
-	) {
-		parent::__construct(
-			$builder,
-			$dataLookup,
-			$workspace,
-			$output,
-			$dest,
-			$migrationConfig,
-			$deploymentInfo
-		);
-		$this->contentPostProcessor = $contentPostProcessor;
-	}
 
 	/**
 	 * @return string
@@ -72,7 +33,7 @@ class Pages extends ProcessorBase {
 			+ $this->dataLookup->getBlogPostIdTargetBlogPostTitleMap();
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
-			$this->output->writeln( "Processing page '$pageTitle'..." );
+			# $this->output->writeln( "Processing page '$pageTitle'..." );
 
 			if ( $this->skipTitle( $pageTitle ) ) {
 				$this->deploymentInfo->addSkippedPage( $pageTitle );
@@ -113,7 +74,7 @@ class Pages extends ProcessorBase {
 						continue;
 					}
 
-					$this->output->writeln( "Getting '$bodyContentId' body content..." );
+					# $this->output->writeln( "Getting '$bodyContentId' body content..." );
 					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
 				}
 
@@ -126,7 +87,7 @@ class Pages extends ProcessorBase {
 
 				$this->addRevision(
 					$pageTitle,
-					$this->postProcessContent( $pageTitle, $pageContent ),
+					$pageContent,
 					$timestamp,
 					'',
 					$this->getContentModel( $pageTitle )
@@ -147,18 +108,6 @@ class Pages extends ProcessorBase {
 		}
 
 		return '';
-	}
-
-	/**
-	 * @param string $pageTitle
-	 * @param string $pageContent
-	 * @return string
-	 */
-	private function postProcessContent( string $pageTitle, string $pageContent ): string {
-		if ( $this->contentPostProcessor === null ) {
-			return $pageContent;
-		}
-		return $this->contentPostProcessor->postProcess( $pageTitle, $pageContent );
 	}
 
 	/**

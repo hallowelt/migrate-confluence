@@ -77,7 +77,10 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
 
-		$this->extractBodyContents();
+		$this->extractSpaceDescriptionBodyContents();
+		$this->extractPagesBodyContents();
+		$this->extractBlogPostsBodyContents();
+		$this->extractCommentsBodyContents();
 		$this->extractTemplateContents();
 		$this->extractPagesMetaData();
 		$this->extractBlogPostsMetaData();
@@ -89,7 +92,23 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/**
 	 * @return void
 	 */
-	private function extractBodyContents(): void {
+	private function extractSpaceDescriptionBodyContents(): void {
+		$currentContentIds = [];
+		foreach ( $this->workspaceDB->getSpaceDescriptions() as $spaceDescription ) {
+			if ( isset( $spaceDescription['space_description_id'] ) && isset( $spaceDescription['content_status'] )
+				&& strtolower( (string)$spaceDescription['content_status'] ) === 'current'
+			) {
+				$currentContentIds[] = (int)$spaceDescription['space_description_id'];
+			}
+		}
+
+		$this->doExtractBodyContent( $currentContentIds );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function extractPagesBodyContents(): void {
 		$currentContentIds = [];
 		foreach ( $this->workspaceDB->getPages() as $page ) {
 			if ( isset( $page['page_id'] ) && isset( $page['content_status'] )
@@ -99,6 +118,14 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			}
 		}
 
+		$this->doExtractBodyContent( $currentContentIds );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function extractBlogPostsBodyContents(): void {
+		$currentContentIds = [];
 		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
 			if ( isset( $blogPost['page_id'] ) && isset( $blogPost['content_status'] )
 				&& strtolower( (string)$blogPost['content_status'] ) === 'current'
@@ -107,6 +134,14 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			}
 		}
 
+		$this->doExtractBodyContent( $currentContentIds );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function extractCommentsBodyContents(): void {
+		$currentContentIds = [];
 		foreach ( $this->workspaceDB->getComments() as $comment ) {
 			if ( !isset( $comment['comment_id'] )
 				|| !isset( $comment['content_status'] )
@@ -125,12 +160,6 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			$currentContentIds[] = (int)$comment['comment_id'];
 		}
 
-		$currentContentIds = array_values( array_unique( $currentContentIds ) );
-
-		if ( $currentContentIds === [] ) {
-			return;
-		}
-
 		$this->doExtractBodyContent( $currentContentIds );
 	}
 
@@ -139,6 +168,12 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return void
 	 */
 	public function doExtractBodyContent( array $currentContentIds ): void {
+		$currentContentIds = array_values( array_unique( $currentContentIds ) );
+
+		if ( $currentContentIds === [] ) {
+			return;
+		}
+
 		foreach ( $currentContentIds as $currentContentId ) {
 			$bodyContentIds = $this->workspaceDB->getBodyContentIdsForContentId( $currentContentId );
 			foreach ( $bodyContentIds as $bodyContentId ) {
