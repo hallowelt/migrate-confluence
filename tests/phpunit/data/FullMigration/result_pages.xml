@@ -484,7 +484,7 @@ __NOTOC__
       <format>text/x-wiki</format>
       <text>Click the button below to create a new project:
 
-{{CreateFromTemplate|preload = Template:CON:Projektvorlage|buttonlabel = Neues Projekt erstellen|macroid = abc12345-def6-7890-abcd-ef1234567890}}
+{{CreateFromTemplate|preload = Template:CON/Projektvorlage|buttonlabel = Neues Projekt erstellen|macroid = abc12345-def6-7890-abcd-ef1234567890}}
 __NOTOC__
 
  &lt;!-- From bodyContent 20000030.mraw --&gt;
@@ -567,7 +567,7 @@ __NOTOC__
     </revision>
   </page>
   <page>
-    <title>Template:CON:Projektvorlage</title>
+    <title>Template:CON/Projektvorlage</title>
     <revision>
       <timestamp>20200301100000</timestamp>
       <model>wikitext</model>

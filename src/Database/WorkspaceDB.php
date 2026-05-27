@@ -2866,7 +2866,9 @@ class WorkspaceDB {
 	 */
 	public function getPageTemplateById( int $templateId ): ?array {
 		$transaction = $this->cachedPrepare(
-			'SELECT * FROM page_templates WHERE template_id = :template_id LIMIT 1'
+			'SELECT pt.*, p.wiki_title FROM page_templates pt
+			LEFT JOIN pages p ON pt.template_id = p.page_id
+			WHERE pt.template_id = :template_id LIMIT 1'
 		);
 		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
 
@@ -2913,20 +2915,11 @@ class WorkspaceDB {
 	 */
 	public function getTemplateTitleFromTemplateId( int $templateId ): ?string {
 		$template = $this->getPageTemplateById( $templateId );
-		if ( $template === null || empty( $template['name'] ) ) {
+		if ( $template === null || empty( $template['wiki_title'] ) ) {
 			return null;
 		}
 
-		$spacePrefix = '';
-		if ( $template['space_id'] !== null ) {
-			$spaceId = (int)$template['space_id'];
-			$spaces = $this->getMapSpaceIdToPrefix();
-			if ( isset( $spaces[$spaceId] ) ) {
-				$spacePrefix = $spaces[$spaceId];
-			}
-		}
-
-		return 'Template:' . $spacePrefix . $template['name'];
+		return $template['wiki_title'];
 	}
 
 	/**

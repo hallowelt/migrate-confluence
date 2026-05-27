@@ -59,22 +59,11 @@ class PageTemplates extends ProcessorBase {
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 		$version = $properties['version'] ?? '1';
 
-		// Build the wiki title for the template page upfront.
-		// This avoids relying on updatePageTableWithWikiTitle() which doesn't handle templates.
-		$spacePrefix = '';
-		if ( $spaceId !== null ) {
-			$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();
-			if ( isset( $spaces[$spaceId] ) ) {
-				$spacePrefix = $spaces[$spaceId];
-			}
-		}
-		$wikiTitle = 'Template:' . $spacePrefix . $name;
-
 		$this->workspaceDB->addPage(
 			$templateId,
 			$spaceId ?? -1,
 			$name,
-			$wikiTitle,
+			$this->buildTemplateTitle( $name, $spaceId ),
 			$revisionTimestamp,
 			'current',
 			$version,
@@ -89,5 +78,34 @@ class PageTemplates extends ProcessorBase {
 		$this->workspaceDB->addBodyContent( $templateId, $templateId, 'PageTemplate', [] );
 
 		$this->output->writeln( "Found page template '$name' (ID:$templateId)" );
+	}
+
+	/**
+	 * Build the wiki title for the template page upfront.
+	 * This avoids relying on updatePageTableWithWikiTitle() which doesn't handle templates.
+	 *
+	 * @param string $name
+	 * @param int|null $spaceId
+	 *
+	 * @return string
+	 */
+	private function buildTemplateTitle( string $name, ?int $spaceId ): string {
+		$templateNamespace= "Template";
+
+		if ( !$spaceId ) {
+			return "$templateNamespace:$name";
+		}
+
+		$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();
+
+		if ( !isset( $spaces[$spaceId] ) ) {
+			return "$templateNamespace:$name";
+		}
+
+		$spacePrefix = $spaces[$spaceId];
+		// Remove colon from space prefix
+		$spacePrefix = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) );
+
+		return "$templateNamespace:$spacePrefix/$name";
 	}
 }
