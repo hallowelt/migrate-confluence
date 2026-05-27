@@ -7,22 +7,20 @@ use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 class TemplateContentPostProcessor implements IPostprocessor {
 
 	/**
+	 * @param string $currentPageTitle
+	 */
+	public function __construct( private string $currentPageTitle ) {
+	}
+
+	/**
 	 * @param string $wikiText
 	 * @return string
 	 */
 	public function postprocess( string $wikiText ): string {
-		return $wikiText . "\n<includeonly>{{#set: Created by macro=$1 }}</includeonly>";
-	}
-
-	/**
-	 * @param string $pageTitle
-	 * @return bool
-	 */
-	public function skipForPageTitle( string $pageTitle ): bool {
-		if ( !str_starts_with( $pageTitle, 'Template:' ) ) {
-			return true;
+		if ( !str_starts_with( $this->currentPageTitle, 'Template:' ) ) {
+			return $wikiText;
 		}
 
-		return false;
+		return $wikiText . "\n<includeonly>{{#set: Created by macro=$1 }}</includeonly>";
 	}
 }

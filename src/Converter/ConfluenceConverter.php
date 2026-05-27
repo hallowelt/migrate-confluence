@@ -205,8 +205,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->pageId = -1;
 		$this->isSpaceDescriptionContent = false;
 
-		// Page templates use the template ID as the body content file name directly.
-		if ( $this->workspaceDB->pageTemplateIdExists( $bodyContentId ) ) {
+		$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
+
+		// Page templates use the template ID as the body content file name directly,
+		// so there is no entry in body_contents for them. Only fall back to the template
+		// check when the ID is not found in body_contents to avoid any accidental match.
+		if ( $contentId === -1 && $this->workspaceDB->pageTemplateIdExists( $bodyContentId ) ) {
 			$this->contentType = 'pageTemplate';
 			$this->pageId = $bodyContentId;
 			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId ) ?? 0;
@@ -216,7 +220,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 			}
 		} else {
-			$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
 
 			// Test to which type of content the contentId belongs
 			if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
@@ -509,15 +512,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
 			new FixMultilineTable(),
-			new TemplateContentPostProcessor()
+			new TemplateContentPostProcessor( $this->currentPageTitle )
 		];
 
 		/** @var IPostprocessor $postProcessor */
 		foreach ( $postProcessors as $postProcessor ) {
-			if ( $postProcessor->skipForPageTitle( $this->currentPageTitle ) ) {
-				continue;
-			}
-
 			$this->wikiText = $postProcessor->postprocess( $this->wikiText );
 		}
 	}
@@ -722,7 +721,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$this->wikiText
 		);
 
-		if ( !$this->isSpaceDescriptionContent ) {
+		if ( !$this->isSpaceDescriptionContent && $this->contentType !== 'pageTemplate' ) {
 			$this->wikiText .= $this->addAdditionalAttachments();
 		}
 

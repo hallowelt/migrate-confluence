@@ -116,11 +116,4 @@ class EscapePipesInTemplateBody implements IPostprocessor {
 		return implode( "\n", $lines );
 	}
 
-	/**
-	 * @param string $pageTitle
-	 * @return bool
-	 */
-	public function skipForPageTitle( string $pageTitle ): bool {
-		return false;
-	}
 }

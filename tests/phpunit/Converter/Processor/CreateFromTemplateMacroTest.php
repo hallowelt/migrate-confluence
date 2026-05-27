@@ -33,8 +33,6 @@ class CreateFromTemplateMacroTest extends TestCase {
 		$dom->loadXML( $input );
 
 		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
-		$workspaceDB->addPageTemplate( 123456, 'SomePage', 42, '', 'Template:ABC/SomePage' );
-		$workspaceDB->addPageTemplate( 7890, 'SomeOtherPage', 23, '', 'Template:DEVOPS/SomeOtherPage' );
 
 		$dataLookup = new DBConversionDataLookup( $workspaceDB );
 
@@ -60,8 +58,6 @@ class CreateFromTemplateMacroTest extends TestCase {
 		$dom->loadXML( $input );
 
 		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
-		$workspaceDB->addPageTemplate( 123456, 'SomePage', null, '', 'Template:SomePage' );
-		$workspaceDB->addPageTemplate( 7890, 'SomeOtherPage', null, '', 'Template:SomeOtherPage' );
 
 		$dataLookup = new DBConversionDataLookup( $workspaceDB );
 

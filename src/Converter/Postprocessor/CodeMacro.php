@@ -60,11 +60,4 @@ class CodeMacro implements IPostprocessor {
 		return $params;
 	}
 
-	/**
-	 * @param string $pageTitle
-	 * @return bool
-	 */
-	public function skipForPageTitle( string $pageTitle ): bool {
-		return false;
-	}
 }
