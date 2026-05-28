@@ -21,6 +21,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\Table;
@@ -200,65 +201,82 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->rawFile = $file;
 
 		$bodyContentId = $this->getBodyContentIdFromFilename();
-		$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
 
 		$this->pageId = -1;
 		$this->isSpaceDescriptionContent = false;
 
-		// Test to which type of content the contentId belongs
-		if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
-			$this->contentType = 'spaceDescription';
+		$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
 
-			$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
-
-			$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
-
-			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
-
-			$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
+		// Page templates use the template ID as the body content file name directly,
+		// so there is no entry in body_contents for them. Only fall back to the template
+		// check when the ID is not found in body_contents to avoid any accidental match.
+		if ( $contentId === -1 && $this->workspaceDB->pageTemplateIdExists( $bodyContentId ) ) {
+			$this->contentType = 'pageTemplate';
+			$this->pageId = $bodyContentId;
+			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId ) ?? 0;
+			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromTemplateId( $bodyContentId );
+			$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromTemplateId( $bodyContentId );
 			if ( $this->currentPageTitle === '' ) {
 				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 			}
-
-			$this->isSpaceDescriptionContent = true;
-
-		} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
-			$this->contentType = 'page';
-
-			$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
-
-			$this->pageId = $contentId;
-
-			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
-
-			$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
-			if ( $this->currentPageTitle === '' ) {
-				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
-			}
-		} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
-			$this->contentType = 'blogPost';
-
-			$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId );
-
-			$this->pageId = $contentId;
-
-			$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId );
-
-			$this->currentPageTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
-			if ( $this->currentPageTitle === '' ) {
-				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
-			}
-		} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
-			$this->contentType = 'comment';
-
-			$this->pageId = $contentId;
-
-			// Comment body content: convert with minimal context (no page-specific macros expected)
-			$this->currentSpace = 0;
-			$this->currentPageTitle = '';
-			$this->confluencePageTitle = '';
 		} else {
-			$this->pageId = -1;
+
+			// Test to which type of content the contentId belongs
+			if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
+				$this->contentType = 'spaceDescription';
+
+				$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
+
+				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
+
+				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+
+				$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
+				if ( $this->currentPageTitle === '' ) {
+					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+				}
+
+				$this->isSpaceDescriptionContent = true;
+
+			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
+				$this->contentType = 'page';
+
+				$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
+
+				$this->pageId = $contentId;
+
+				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+
+				$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
+				if ( $this->currentPageTitle === '' ) {
+					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+				}
+			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
+				$this->contentType = 'blogPost';
+
+				$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId );
+
+				$this->pageId = $contentId;
+
+				$this->confluencePageTitle = $this->workspaceDB
+					->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId );
+
+				$this->currentPageTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
+				if ( $this->currentPageTitle === '' ) {
+					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+				}
+			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
+				$this->contentType = 'comment';
+
+				$this->pageId = $contentId;
+
+				// Comment body content: convert with minimal context (no page-specific macros expected)
+				$this->currentSpace = 0;
+				$this->currentPageTitle = '';
+				$this->confluencePageTitle = '';
+			} else {
+				$this->pageId = -1;
+			}
 		}
 
 		if ( $this->pageId === -1 ) {
@@ -494,6 +512,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
 			new FixMultilineTable(),
+			new TemplateContentPostProcessor( $this->currentPageTitle )
 		];
 
 		/** @var IPostprocessor $postProcessor */
@@ -702,7 +721,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$this->wikiText
 		);
 
-		if ( !$this->isSpaceDescriptionContent ) {
+		if ( !$this->isSpaceDescriptionContent && $this->contentType !== 'pageTemplate' ) {
 			$this->wikiText .= $this->addAdditionalAttachments();
 		}
 

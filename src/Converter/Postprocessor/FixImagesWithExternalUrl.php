@@ -46,4 +46,5 @@ class FixImagesWithExternalUrl implements IPostprocessor {
 
 		return $wikiText;
 	}
+
 }

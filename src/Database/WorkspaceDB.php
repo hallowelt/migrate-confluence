@@ -2822,7 +2822,12 @@ class WorkspaceDB {
 				template_id INT PRIMARY KEY,
 				name CHAR,
 				space_id INT,
-				content TEXT
+				content TEXT,
+				wiki_title CHAR,
+				revision_timestamp CHAR,
+				version CHAR,
+				properties BLOB,
+				content_status CHAR
 			);'
 		);
 	}
@@ -2832,20 +2837,44 @@ class WorkspaceDB {
 	 * @param string $name
 	 * @param int|null $spaceId
 	 * @param string $content
+	 * @param string $wikiTitle
+	 * @param string $revisionTimestamp
+	 * @param string $version
+	 * @param array $properties
 	 * @return bool
 	 */
-	public function addPageTemplate( int $templateId, string $name, ?int $spaceId, string $content ): bool {
+	public function addPageTemplate(
+		int $templateId,
+		string $name,
+		?int $spaceId,
+		string $content,
+		string $wikiTitle = '',
+		string $revisionTimestamp = '',
+		string $version = '1',
+		array $properties = []
+	): bool {
+		$propertiesJson = json_encode( $properties );
 		$transaction = $this->cachedPrepare(
 			'INSERT OR REPLACE INTO page_templates (
 				template_id,
 				name,
 				space_id,
-				content
+				content,
+				wiki_title,
+				revision_timestamp,
+				version,
+				properties,
+				content_status
 			) VALUES (
 				:template_id,
 				:name,
 				:space_id,
-				:content
+				:content,
+				:wiki_title,
+				:revision_timestamp,
+				:version,
+				:properties,
+				\'current\'
 			)'
 		);
 
@@ -2857,6 +2886,10 @@ class WorkspaceDB {
 			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
 		}
 		$transaction->bindValue( ':content', $content, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
 
@@ -2887,6 +2920,19 @@ class WorkspaceDB {
 	 * @param int $templateId
 	 * @return string|null
 	 */
+	public function getTemplateTitleFromTemplateId( int $templateId ): ?string {
+		$template = $this->getPageTemplateById( $templateId );
+		if ( $template === null || empty( $template['wiki_title'] ) ) {
+			return null;
+		}
+
+		return $template['wiki_title'];
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return string|null
+	 */
 	public function getTemplateNameFromTemplateId( int $templateId ): ?string {
 		$template = $this->getPageTemplateById( $templateId );
 		if ( $template === null ) {
@@ -2908,25 +2954,45 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param int $templateId
-	 * @return string|null
+	 * @return array
 	 */
-	public function getTemplateTitleFromTemplateId( int $templateId ): ?string {
-		$template = $this->getPageTemplateById( $templateId );
-		if ( $template === null || empty( $template['name'] ) ) {
-			return null;
+	public function getPageTemplateIdTargetTitleMap(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT template_id, wiki_title FROM page_templates WHERE content_status = "current"'
+		);
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		$map = [];
+		foreach ( $data as $item ) {
+			$map[$item['template_id']] = $item['wiki_title'];
 		}
 
-		$spacePrefix = '';
-		if ( $template['space_id'] !== null ) {
-			$spaceId = (int)$template['space_id'];
-			$spaces = $this->getMapSpaceIdToPrefix();
-			if ( isset( $spaces[$spaceId] ) ) {
-				$spacePrefix = $spaces[$spaceId];
-			}
-		}
+		return $map;
+	}
 
-		return 'Template:' . $spacePrefix . $template['name'];
+	/**
+	 * @param int $templateId
+	 * @return array
+	 */
+	public function getPageTemplateRevisionsForTemplateId( int $templateId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT revision_timestamp, version, content_status FROM page_templates
+			WHERE template_id = :template_id AND lower( content_status ) != "deleted"'
+		);
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		// The body content ID for a template is the template ID itself.
+		foreach ( $data as &$row ) {
+			$row['body_content_ids'] = json_encode( [ $templateId ] );
+		}
+		unset( $row );
+
+		return $data;
 	}
 
 	/**
@@ -2934,5 +3000,52 @@ class WorkspaceDB {
 	 */
 	public function getPageTemplates(): array {
 		return $this->getAllData( 'page_templates' );
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return bool
+	 */
+	public function pageTemplateIdExists( int $templateId ): bool {
+		$transaction = $this->cachedPrepare(
+			'SELECT template_id FROM page_templates WHERE template_id = :template_id LIMIT 1'
+		);
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return false;
+		}
+
+		$exists = $result->fetchArray( SQLITE3_ASSOC ) !== false;
+		$result->finalize();
+
+		return $exists;
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return string
+	 */
+	public function getTargetPageTitleFromTemplateId( int $templateId ): string {
+		$template = $this->getPageTemplateById( $templateId );
+		if ( $template === null || empty( $template['wiki_title'] ) ) {
+			return '';
+		}
+
+		return $template['wiki_title'];
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return string
+	 */
+	public function getConfluencePageTitleFromTemplateId( int $templateId ): string {
+		$template = $this->getPageTemplateById( $templateId );
+		if ( $template === null || empty( $template['name'] ) ) {
+			return '';
+		}
+
+		return $template['name'];
 	}
 }

@@ -2,49 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
-use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
-use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Composer\IPageContentPostProcessor;
-use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use Symfony\Component\Console\Output\Output;
-
 class Pages extends ProcessorBase {
-
-	/**
-	 * @var IPageContentPostProcessor|null
-	 */
-	private ?IPageContentPostProcessor $contentPostProcessor;
-
-	/**
-	 * @param Builder $builder
-	 * @param DBComposerDataLookup $dataLookup
-	 * @param Workspace $workspace
-	 * @param Output $output
-	 * @param string $dest
-	 * @param MigrationConfig $migrationConfig
-	 * @param ComposerDeploymentInfo $deploymentInfo
-	 * @param IPageContentPostProcessor|null $contentPostProcessor
-	 */
-	public function __construct(
-		Builder $builder, DBComposerDataLookup $dataLookup, Workspace $workspace,
-		Output $output, string $dest, MigrationConfig $migrationConfig, ComposerDeploymentInfo $deploymentInfo,
-		?IPageContentPostProcessor $contentPostProcessor = null
-	) {
-		parent::__construct(
-			$builder,
-			$dataLookup,
-			$workspace,
-			$output,
-			$dest,
-			$migrationConfig,
-			$deploymentInfo
-		);
-		$this->contentPostProcessor = $contentPostProcessor;
-	}
 
 	/**
 	 * @return string
@@ -57,7 +15,6 @@ class Pages extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$this->addDefaultPages();
 		$this->addContentPages();
 
 		$this->writeOutputFile();
@@ -126,7 +83,7 @@ class Pages extends ProcessorBase {
 
 				$this->addRevision(
 					$pageTitle,
-					$this->postProcessContent( $pageTitle, $pageContent ),
+					$pageContent,
 					$timestamp,
 					'',
 					$this->getContentModel( $pageTitle )
@@ -147,44 +104,6 @@ class Pages extends ProcessorBase {
 		}
 
 		return '';
-	}
-
-	/**
-	 * @param string $pageTitle
-	 * @param string $pageContent
-	 * @return string
-	 */
-	private function postProcessContent( string $pageTitle, string $pageContent ): string {
-		if ( $this->contentPostProcessor === null ) {
-			return $pageContent;
-		}
-		return $this->contentPostProcessor->postProcess( $pageTitle, $pageContent );
-	}
-
-	/**
-	 * @return void
-	 */
-	private function addDefaultPages(): void {
-		$basepath = dirname( __DIR__ ) . '/_defaultpages/';
-
-		$files = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $basepath ),
-			RecursiveIteratorIterator::LEAVES_ONLY
-		);
-
-		foreach ( $files as $fileObj ) {
-			if ( $fileObj->isDir() ) {
-				continue;
-			}
-
-			$file = $fileObj->getPathname();
-			$namespacePrefix = basename( dirname( $file ) );
-			$pageName = basename( $file );
-			$wikiPageName = "$namespacePrefix:$pageName";
-			$wikiText = file_get_contents( $file );
-
-			$this->addRevision( $wikiPageName, $wikiText );
-		}
 	}
 
 	/**

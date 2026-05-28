@@ -18,4 +18,5 @@ class RestoreTimeTag implements IPostprocessor {
 
 		return $newWikiText;
 	}
+
 }

@@ -33,8 +33,6 @@ class CreateFromTemplateMacroTest extends TestCase {
 		$dom->loadXML( $input );
 
 		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
-		$workspaceDB->addPageTemplate( 123456, 'SomePage', 42, '' );
-		$workspaceDB->addPageTemplate( 7890, 'SomeOtherPage', 23, '' );
 
 		$dataLookup = new DBConversionDataLookup( $workspaceDB );
 
@@ -43,8 +41,8 @@ class CreateFromTemplateMacroTest extends TestCase {
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
 
-		$this->assertStringContainsString( 'Template:ABC:SomePage', $actualOutput );
-		$this->assertStringContainsString( 'Template:DEVOPS:SomeOtherPage', $actualOutput );
+		$this->assertStringContainsString( 'Template:ABC/SomePage', $actualOutput );
+		$this->assertStringContainsString( 'Template:DEVOPS/SomeOtherPage', $actualOutput );
 	}
 
 	/**
@@ -60,8 +58,6 @@ class CreateFromTemplateMacroTest extends TestCase {
 		$dom->loadXML( $input );
 
 		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
-		$workspaceDB->addPageTemplate( 123456, 'SomePage', null, '' );
-		$workspaceDB->addPageTemplate( 7890, 'SomeOtherPage', null, '' );
 
 		$dataLookup = new DBConversionDataLookup( $workspaceDB );
 

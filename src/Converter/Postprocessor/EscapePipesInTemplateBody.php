@@ -115,4 +115,5 @@ class EscapePipesInTemplateBody implements IPostprocessor {
 		}
 		return implode( "\n", $lines );
 	}
+
 }

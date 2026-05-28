@@ -17,4 +17,5 @@ class TasksReportMacro implements IPostprocessor {
 		);
 		return $newWikiText;
 	}
+
 }

@@ -45,4 +45,5 @@ class FixMultilineTemplate implements IPostprocessor {
 
 		return $wikiText;
 	}
+
 }

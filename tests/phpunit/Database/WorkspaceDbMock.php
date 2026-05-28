@@ -52,6 +52,7 @@ class WorkspaceDbMock {
 		$this->seedPageMappings( $workspaceDB );
 		$this->seedTableComplexMappings( $workspaceDB );
 		$this->seedAttachmentMappings( $workspaceDB, $keepAttachmentNamespaceColon );
+		$this->seedPageTemplateMappings( $workspaceDB );
 
 		return $workspaceDB;
 	}
@@ -138,6 +139,11 @@ class WorkspaceDbMock {
 			'Sed_do_eiusmod_tempor_incididunt',
 			'INF:Sed_do_eiusmod_tempor_incididunt'
 		);
+	}
+
+	private function seedPageTemplateMappings( WorkspaceDB $workspaceDB ): void {
+		$workspaceDB->addPageTemplate( 123456, 'SomePage', 42, '', 'Template:ABC/SomePage' );
+		$workspaceDB->addPageTemplate( 7890, 'SomeOtherPage', 23, '', 'Template:DEVOPS/SomeOtherPage' );
 	}
 
 	private function seedAttachmentMappings( WorkspaceDB $workspaceDB, bool $keepAttachmentNamespaceColon ): void {

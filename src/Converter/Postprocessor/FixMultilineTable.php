@@ -139,4 +139,5 @@ class FixMultilineTable implements IPostprocessor {
 
 		return $wikiText;
 	}
+
 }

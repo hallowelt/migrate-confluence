@@ -55,10 +55,6 @@ class Comments extends ProcessorBase {
 				$pageIdToCommentIds[$containerContentId] = [];
 			}
 			$pageIdToCommentIds[$containerContentId][] = $commentId;
-
-			if ( !isset( $pageIdToTitleMap[$containerContentId] ) ) {
-				$pageIdToTitleMap[$containerContentId] = '';
-			}
 			$pageIdToTitleMap[$containerContentId] = $wikiTitle;
 		}
 
@@ -153,7 +149,7 @@ class Comments extends ProcessorBase {
 			$bodyContentId = $metadata['body_content_id'];
 
 			$wikitext = $this->workspace->getConvertedContent( $bodyContentId );
-			if ( $wikitext === false ) {
+			if ( empty( $wikitext ) ) {
 				$this->output->writeln(
 					"Warning: No converted content for comment $commentId (body content $bodyContentId), skipping."
 				);

@@ -38,6 +38,9 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
  */
 class CreateFromTemplateMacro implements IProcessor {
 
+	/** @var string */
+	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
+
 	/**
 	 * @var DBConversionDataLookup
 	 */
@@ -83,8 +86,6 @@ class CreateFromTemplateMacro implements IProcessor {
 			}
 		}
 	}
-
-	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
 
 	/**
 	 * @param DOMNode $node

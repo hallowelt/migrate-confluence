@@ -26,4 +26,5 @@ class RestoreExcerptMacro implements IPostprocessor {
 			$wikiText
 		);
 	}
+
 }

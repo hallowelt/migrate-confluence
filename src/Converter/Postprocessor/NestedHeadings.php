@@ -106,4 +106,5 @@ class NestedHeadings implements IPostprocessor {
 	private function getHeadingReplacement( string $markup, string $text ): string {
 		return $markup . $text . $markup;
 	}
+
 }

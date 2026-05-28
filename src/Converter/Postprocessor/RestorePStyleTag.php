@@ -22,4 +22,5 @@ class RestorePStyleTag implements IPostprocessor {
 
 		return $newWikiText;
 	}
+
 }

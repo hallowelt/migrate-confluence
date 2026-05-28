@@ -59,4 +59,5 @@ class CodeMacro implements IPostprocessor {
 		}
 		return $params;
 	}
+
 }

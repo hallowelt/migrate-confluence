@@ -2,19 +2,18 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
+use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 class PageTemplates extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
-	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB,
-		private MigrationConfig $migrationConfig
+		private WorkspaceDB $workspaceDB
 	) {
 	}
 
@@ -40,54 +39,93 @@ class PageTemplates extends ProcessorBase {
 		}
 
 		if ( $templateId === null ) {
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__CLASS__,
+				"Page Template has no ID."
+			);
+
 			return;
 		}
 
 		$name = $properties['name'] ?? '';
 		if ( $name === '' ) {
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__CLASS__,
+				"Page Template with ID $templateId has no title."
+			);
+
 			return;
 		}
 
 		$spaceId = isset( $properties['space'] ) ? (int)$properties['space'] : null;
 		$content = $properties['content'] ?? '';
 
-		$this->workspaceDB->addPageTemplate( $templateId, $name, $spaceId, $content );
-
-		// Register the template as a page so it flows through the regular conversion pipeline.
-		// Use the template ID as both "page ID" and "body content ID".
 		$lastModificationDate = $properties['lastModificationDate'] ?? '';
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 		$version = $properties['version'] ?? '1';
 
-		// Build the wiki title for the template page upfront.
-		// This avoids relying on updatePageTableWithWikiTitle() which doesn't handle templates.
-		$spacePrefix = '';
-		if ( $spaceId !== null ) {
-			$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();
-			if ( isset( $spaces[$spaceId] ) ) {
-				$spacePrefix = $spaces[$spaceId];
-			}
-		}
-		$wikiTitle = 'Template:' . $spacePrefix . $name;
+		try {
+			$wikiTitle = $this->buildTemplateTitle( $name, $spaceId );
+		} catch ( InvalidTitleException $e ) {
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__CLASS__,
+				"Page Template with ID $templateId has invalid title '$name': " . $e->getMessage()
+			);
 
-		$this->workspaceDB->addPage(
+			return;
+		}
+
+		$status = $this->workspaceDB->addPageTemplate(
 			$templateId,
-			$spaceId ?? -1,
 			$name,
+			$spaceId,
+			$content,
 			$wikiTitle,
 			$revisionTimestamp,
-			'current',
 			$version,
-			-1,
-			-1,
-			[ $templateId ],
-			[],
-			$properties,
-			[]
+			$properties
 		);
 
-		$this->workspaceDB->addBodyContent( $templateId, $templateId, 'PageTemplate', [] );
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add page '$name' (ID: $templateId) to the database."
+				. " This may indicate a problem with the page id. Maybe it does exist twice."
+			);
+		}
+	}
 
-		$this->output->writeln( "Found page template '$name' (ID:$templateId)" );
+	/**
+	 * Build the wiki title for the template page upfront.
+	 * This avoids relying on updatePageTableWithWikiTitle() which doesn't handle templates.
+	 *
+	 * @param string $name
+	 * @param int|null $spaceId
+	 *
+	 * @return string
+	 * @throws InvalidTitleException
+	 */
+	private function buildTemplateTitle( string $name, ?int $spaceId ): string {
+		$builder = new GenericTitleBuilder( $this->workspaceDB->getMapSpaceIdToPrefix() );
+		$builder->setNamespace( GenericTitleBuilder::NS_TEMPLATE );
+
+		$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();
+		if ( isset( $spaces[$spaceId] ) ) {
+			$spacePrefix = $spaces[$spaceId];
+			// Remove colon from space prefix
+			$spacePrefix = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) );
+			$builder->appendTitleSegment( $spacePrefix );
+		}
+
+		$builder->appendTitleSegment( $name );
+		return $builder->build();
 	}
 }
