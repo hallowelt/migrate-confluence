@@ -77,6 +77,7 @@ class PageTemplates extends ProcessorBase {
 				__CLASS__,
 				"Page Template with ID $templateId has invalid title '$name': " . $e->getMessage()
 			);
+
 			return;
 		}
 
