@@ -464,7 +464,8 @@ class FullMigrationTest extends TestCase {
 
 		$rawFiles = glob( $dest . '/content/raw/*.mraw' );
 		foreach ( $rawFiles as $rawFilePath ) {
-			$converter = new ConfluenceConverter( $config, $workspace, $pipe );
+			$converter = new ConfluenceConverter( $config, $workspace );
+			$converter->setPipe( $pipe );
 			$converter->setDestinationPath( $dest );
 			$converter->setOutput( $output );
 

@@ -6,6 +6,7 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MigrateConfluence\Converter\IPipeSender;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -87,6 +88,8 @@ class Convert extends CommandConvert {
 		$workers = (int)$input->getOption( 'workers' );
 		$isWorker = $input->hasParameterOption( '--worker' );
 
+		$this->setupDB( $input, !$isWorker );
+
 		if ( $workers > 1 && !$isWorker ) {
 			return $this->spawnWorkers( $input, $output, $workers );
 		}
@@ -94,12 +97,13 @@ class Convert extends CommandConvert {
 		/* this is the "single worker" case. Here we define our own pipe for the converter to
 		 * send data to. */
 		if ( !$isWorker ) {
-			$this->pipe = fopen( 'php://temp', 'w' );
+			$this->pipe = fopen( 'php://temp', 'r+' );
 		}
 
 		$returnValue = parent::execute( $input, $output );
 
 		if ( $this->pipe !== false ) {
+			rewind( $this->pipe );
 			$line = fgets( $this->pipe );
 			while ( $line !== false ) {
 				$this->storeWorkerResponse( $line );
@@ -109,6 +113,33 @@ class Convert extends CommandConvert {
 		}
 
 		return $returnValue;
+	}
+
+	/**
+	 * set up DB connection
+	 *
+	 * We use this connection here in order to prevent multiple write connections to the DB in
+	 * the case of more than one worker.
+	 *
+	 * @param InputInterface $input
+	 * @param bool $logUsage mention the run in the log, if this is either the only or the host process
+	 */
+	private function setupDB( InputInterface $input, bool $logUsage ): void {
+		/* dest is never set if parent::execute is not called. This is unfortunately
+		 * the case in the host/worker situation */
+		$this->dest = realpath( $input->getOption( 'dest' ) );
+
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$this->dbLog = new DBLog( $this->workspaceDB );
+
+		if ( $logUsage ) {
+			$this->dbLog->addLogEntry(
+				'info',
+				'convert',
+				__CLASS__,
+				sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
+			);
+		}
 	}
 
 	protected function doProcessFile(): bool {
@@ -137,6 +168,9 @@ class Convert extends CommandConvert {
 			if ( $converter instanceof IDestinationPathAware ) {
 				$converter->setDestinationPath( $this->dest );
 			}
+			if ( $converter instanceof IPipeSender ) {
+				$converter->setPipe( $this->pipe );
+			}
 
 			$result = $converter->convert( $this->currentFile );
 
@@ -155,21 +189,6 @@ class Convert extends CommandConvert {
 	 * @return int
 	 */
 	private function spawnWorkers( InputInterface $input, OutputInterface $output, int $workers ): int {
-		/* dest is never set if parent::execute is not called. This is
-		 * unfortunately the case in the host/worker situation, where we need
-		 * the DB, therefore we set it here separately */
-		$this->dest = realpath( $this->input->getOption( 'dest' ) );
-
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
-		$this->dbLog = new DBLog( $this->workspaceDB );
-
-		$this->dbLog->addLogEntry(
-			'info',
-			'convert',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
-
 		$baseCmd = $this->buildBaseCommand();
 		$descriptors = [
 			0 => [ 'pipe', 'r' ],
