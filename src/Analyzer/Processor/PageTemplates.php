@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
+use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
@@ -37,11 +39,25 @@ class PageTemplates extends ProcessorBase {
 		}
 
 		if ( $templateId === null ) {
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__CLASS__,
+				"Page Template has no ID."
+			);
+
 			return;
 		}
 
 		$name = $properties['name'] ?? '';
 		if ( $name === '' ) {
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__CLASS__,
+				"Page Template with ID $templateId has no title."
+			);
+
 			return;
 		}
 
@@ -52,12 +68,24 @@ class PageTemplates extends ProcessorBase {
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 		$version = $properties['version'] ?? '1';
 
+		try {
+			$wikiTitle = $this->buildTemplateTitle( $name, $spaceId );
+		} catch (InvalidTitleException $e) {
+			$this->workspaceDB->addLogEntry(
+				'warning',
+				'analyze',
+				__CLASS__,
+				"Page Template with ID $templateId has invalid title '$name': " . $e->getMessage()
+			);
+			return;
+		}
+
 		$this->workspaceDB->addPageTemplate(
 			$templateId,
 			$name,
 			$spaceId,
 			$content,
-			$this->buildTemplateTitle( $name, $spaceId ),
+			$wikiTitle,
 			$revisionTimestamp,
 			$version,
 			$properties
@@ -74,24 +102,21 @@ class PageTemplates extends ProcessorBase {
 	 * @param int|null $spaceId
 	 *
 	 * @return string
+	 * @throws InvalidTitleException
 	 */
 	private function buildTemplateTitle( string $name, ?int $spaceId ): string {
-		$templateNamespace = "Template";
-
-		if ( !$spaceId ) {
-			return "$templateNamespace:$name";
-		}
+		$builder = new GenericTitleBuilder( $this->workspaceDB->getMapSpaceIdToPrefix() );
+		$builder->setNamespace( GenericTitleBuilder::NS_TEMPLATE );
 
 		$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();
-
-		if ( !isset( $spaces[$spaceId] ) ) {
-			return "$templateNamespace:$name";
+		if ( isset( $spaces[$spaceId] ) ) {
+			$spacePrefix = $spaces[$spaceId];
+			// Remove colon from space prefix
+			$spacePrefix = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) );
+			$builder->appendTitleSegment( $spacePrefix );
 		}
 
-		$spacePrefix = $spaces[$spaceId];
-		// Remove colon from space prefix
-		$spacePrefix = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) );
-
-		return "$templateNamespace:$spacePrefix/$name";
+		$builder->appendTitleSegment( $name );
+		return $builder->build();
 	}
 }
