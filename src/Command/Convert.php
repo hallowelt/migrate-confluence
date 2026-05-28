@@ -84,20 +84,8 @@ class Convert extends CommandConvert {
 	 * @return int
 	 */
 	protected function execute( InputInterface $input, OutputInterface $output ): int {
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
-		$this->dbLog = new DBLog( $this->workspaceDB );
-
 		$workers = (int)$input->getOption( 'workers' );
 		$isWorker = $input->hasParameterOption( '--worker' );
-
-		if ( !$isWorker ) {
-			$this->dbLog->addLogEntry(
-				'info',
-				'convert',
-				__CLASS__,
-				sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-			);
-		}
 
 		if ( $workers > 1 && !$isWorker ) {
 			return $this->spawnWorkers( $input, $output, $workers );
@@ -167,6 +155,21 @@ class Convert extends CommandConvert {
 	 * @return int
 	 */
 	private function spawnWorkers( InputInterface $input, OutputInterface $output, int $workers ): int {
+		/* dest is never set if parent::execute is not called. This is
+		 * unfortunately the case in the host/worker situation, where we need
+		 * the DB, therefore we set it here separately */
+		$this->dest = realpath( $this->input->getOption( 'dest' ) );
+
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$this->dbLog = new DBLog( $this->workspaceDB );
+
+		$this->dbLog->addLogEntry(
+			'info',
+			'convert',
+			__CLASS__,
+			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
+		);
+
 		$baseCmd = $this->buildBaseCommand();
 		$descriptors = [
 			0 => [ 'pipe', 'r' ],
