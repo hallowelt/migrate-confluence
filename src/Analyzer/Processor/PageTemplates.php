@@ -81,7 +81,7 @@ class PageTemplates extends ProcessorBase {
 			return;
 		}
 
-		$this->workspaceDB->addPageTemplate(
+		$status = $this->workspaceDB->addPageTemplate(
 			$templateId,
 			$name,
 			$spaceId,
@@ -92,7 +92,15 @@ class PageTemplates extends ProcessorBase {
 			$properties
 		);
 
-		$this->output->writeln( "Found page template '$name' (ID:$templateId)" );
+		if ( !$status ) {
+			$this->workspaceDB->addLogEntry(
+				'error',
+				'analyze',
+				__CLASS__,
+				"Failed to add page '$name' (ID: $templateId) to the database."
+				. " This may indicate a problem with the page id. Maybe it does exist twice."
+			);
+		}
 	}
 
 	/**
