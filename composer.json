@@ -43,7 +43,7 @@
 	},
 	"scripts": {
 		"unittest": [
-			"vendor/phpunit/phpunit/phpunit --configuration .phpunit.xml"
+			"vendor/phpunit/phpunit/phpunit --configuration phpunit.xml"
 		],
 		"test": [
 			"parallel-lint . --exclude vendor --exclude node_modules",

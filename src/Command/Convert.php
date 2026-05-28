@@ -10,6 +10,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
+use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -88,6 +89,15 @@ class Convert extends CommandConvert {
 
 		$workers = (int)$input->getOption( 'workers' );
 		$isWorker = $input->hasParameterOption( '--worker' );
+
+		if ( !$isWorker ) {
+			$this->dbLog->addLogEntry(
+				'info',
+				'convert',
+				__CLASS__,
+				sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
+			);
+		}
 
 		if ( $workers > 1 && !$isWorker ) {
 			return $this->spawnWorkers( $input, $output, $workers );
