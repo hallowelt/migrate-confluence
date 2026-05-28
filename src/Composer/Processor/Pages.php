@@ -25,7 +25,7 @@ class Pages extends ProcessorBase {
 
 		// Get all page titles from DB and add them as pages to the workspace
 		// Key is pageId, value is pageTitle - do not use array_merge at this point to avoid renumbering of keys
-		$wikiTitles = $this->dataLookup->getPageIdTargetPageTitleMap()
+		$wikiTitles = $this->dataLookup->getPageIdTargetWikiTitleMap()
 			+ $this->dataLookup->getBlogPostIdTargetBlogPostTitleMap();
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {

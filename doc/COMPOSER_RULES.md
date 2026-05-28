@@ -37,7 +37,7 @@ Composer processors handle building specific parts of the final MediaWiki XML.
 ### Class Convention
 - Implements: `IPageContentPostProcessor`
 - Namespace: `HalloWelt\MigrateConfluence\Composer\Processor`
-- Method to implement: `process( string $pageId, string $pageTitle, string $content ): string`
+- Method to implement: `process( string $pageId, string $wikiTitle, string $content ): string`
 
 ### Responsibilities
 - Accept page content as WikiText string

@@ -39,7 +39,7 @@ class PagesTest extends TestCase {
 		file_put_contents( $this->tmpDir . '/workspace/content/wikitext/20.wiki', 'Page body' );
 
 		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPageIdTargetPageTitleMap' )->willReturn( [
+		$dataLookup->method( 'getPageIdTargetWikiTitleMap' )->willReturn( [
 			2 => 'Regular:Page',
 		] );
 		$dataLookup->method( 'getBlogPostIdTargetBlogPostTitleMap' )->willReturn( [

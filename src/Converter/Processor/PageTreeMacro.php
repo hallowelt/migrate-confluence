@@ -11,18 +11,6 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
  */
 class PageTreeMacro extends StructuredMacroProcessorBase {
 
-	/** @var DBConversionDataLookup */
-	private DBConversionDataLookup $dataLookup;
-
-	/** @var int */
-	private int $currentSpace;
-
-	/** @var string */
-	private string $currentPageTitle;
-
-	/** @var string */
-	private string $mainpage;
-
 	/** @var array */
 	private array $params = [];
 
@@ -36,16 +24,15 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpace
-	 * @param string $currentPageTitle
+	 * @param string $currentWikiTitle
 	 * @param string $mainpage
 	 */
 	public function __construct(
-		DBConversionDataLookup $dataLookup, int $currentSpace, string $currentPageTitle, string $mainpage
+		private DBConversionDataLookup $dataLookup,
+		private int $currentSpace,
+		private string $currentWikiTitle,
+		private string $mainpage
 	) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpace = $currentSpace;
-		$this->currentPageTitle = $currentPageTitle;
-		$this->mainpage = $mainpage;
 	}
 
 	/**
@@ -159,7 +146,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 		switch ( $params['content-title'] ) {
 			case '@home':
 				// Main Page
-				$text = $this->dataLookup->getTargetPageTitleFromSpaceId(
+				$text = $this->dataLookup->getTargetWikiTitleFromSpaceId(
 					$this->currentSpace,
 					$this->mainpage
 				);
@@ -170,10 +157,10 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				$params['content-title'] = $text;
 				break;
 			case '@self':
-				// current PageTitle
-				$text = $this->dataLookup->getTargetPageTitleFromSpaceId(
+				// current WikiTitle
+				$text = $this->dataLookup->getTargetWikiTitleFromSpaceId(
 					$this->currentSpace,
-					$this->currentPageTitle
+					$this->currentWikiTitle
 				);
 				if ( $text === '' ) {
 					$params['broken-macro'] = true;
@@ -183,20 +170,20 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				break;
 			case '@parent':
 				// parent of current PageTitle
-				$currentPageTitle = $this->dataLookup->getTargetPageTitleFromSpaceId(
+				$currentWikiTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId(
 					$this->currentSpace,
-					$this->currentPageTitle
+					$this->currentWikiTitle
 				);
-				if ( $currentPageTitle === '' ) {
+				if ( $currentWikiTitle === '' ) {
 					$params['broken-macro'] = true;
 					break;
 				}
-				$currentPageParts = explode( '/', $currentPageTitle );
+				$currentPageParts = explode( '/', $currentWikiTitle );
 				if ( count( $currentPageParts ) > 1 ) {
 					array_pop( $currentPageParts );
 					$text = implode( '/', $currentPageParts );
 				} else {
-					$text = $this->currentPageTitle;
+					$text = $this->currentWikiTitle;
 					$params['broken-macro'] = true;
 				}
 				$params['content-title'] = $text;
@@ -225,7 +212,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				} else {
 					$spaceId = $this->currentSpace;
 				}
-				$text = $this->dataLookup->getTargetPageTitleFromSpaceId( $spaceId, $params['content-title'] );
+				$text = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $params['content-title'] );
 				if ( $text === '' ) {
 					$params['broken-macro'] = true;
 					break;

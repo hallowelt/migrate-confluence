@@ -1017,7 +1017,7 @@ class WorkspaceDB {
 	 * @param string $confluenceTitle
 	 * @return string
 	 */
-	public function getTargetPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): string {
+	public function getTargetWikiTitleFromSpaceId( int $spaceId, string $confluenceTitle ): string {
 		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM pages WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
 		);
@@ -1043,7 +1043,7 @@ class WorkspaceDB {
 	 * @param int $pageId
 	 * @return string
 	 */
-	public function getTargetPageTitleFromPageId( int $pageId ): string {
+	public function getTargetWikiTitleFromPageId( int $pageId ): string {
 		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM pages WHERE page_id = :page_id LIMIT 1'
 		);
@@ -1067,7 +1067,7 @@ class WorkspaceDB {
 	/**
 	 * @return array
 	 */
-	public function getPageIdTargetPageTitleMap(): array {
+	public function getPageIdTargetWikiTitleMap(): array {
 		$transaction = $this->cachedPrepare(
 			'SELECT page_id, wiki_title FROM pages WHERE content_status = "current"'
 		);
@@ -3034,7 +3034,7 @@ class WorkspaceDB {
 	 * @param int $templateId
 	 * @return string
 	 */
-	public function getTargetPageTitleFromTemplateId( int $templateId ): string {
+	public function getTargetWikiTitleFromTemplateId( int $templateId ): string {
 		$template = $this->getPageTemplateById( $templateId );
 		if ( $template === null || empty( $template['wiki_title'] ) ) {
 			return '';

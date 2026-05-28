@@ -121,7 +121,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	private string $wikiText = '';
 
 	/** @var string */
-	private string $currentPageTitle = '';
+	private string $currentWikiTitle = '';
 
 	/** @var string */
 	private string $confluencePageTitle = '';
@@ -216,9 +216,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$this->pageId = $bodyContentId;
 			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId ) ?? 0;
 			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromTemplateId( $bodyContentId );
-			$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromTemplateId( $bodyContentId );
-			if ( $this->currentPageTitle === '' ) {
-				$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+			$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromTemplateId( $bodyContentId );
+			if ( $this->currentWikiTitle === '' ) {
+				$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
 			}
 		} else {
 
@@ -232,9 +232,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
 
-				$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
-				if ( $this->currentPageTitle === '' ) {
-					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId );
+				if ( $this->currentWikiTitle === '' ) {
+					$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
 				}
 
 				$this->isSpaceDescriptionContent = true;
@@ -248,9 +248,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
 
-				$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
-				if ( $this->currentPageTitle === '' ) {
-					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId );
+				if ( $this->currentWikiTitle === '' ) {
+					$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
 				}
 			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
 				$this->contentType = 'blogPost';
@@ -262,9 +262,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->confluencePageTitle = $this->workspaceDB
 					->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId );
 
-				$this->currentPageTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
-				if ( $this->currentPageTitle === '' ) {
-					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
+				$this->currentWikiTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
+				if ( $this->currentWikiTitle === '' ) {
+					$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
 				}
 			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
 				$this->contentType = 'comment';
@@ -273,7 +273,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				// Comment body content: convert with minimal context (no page-specific macros expected)
 				$this->currentSpace = 0;
-				$this->currentPageTitle = '';
+				$this->currentWikiTitle = '';
 				$this->confluencePageTitle = '';
 			} else {
 				$this->pageId = -1;
@@ -371,16 +371,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new SectionMacro(),
 			new ChildrenMacro(
 				$this->currentSpace,
-				$this->currentPageTitle,
+				$this->currentWikiTitle,
 				$this->dataLookup
 			),
 			new PageTreeMacro(
 				$this->dataLookup,
 				$this->currentSpace,
-				$this->currentPageTitle,
+				$this->currentWikiTitle,
 				$this->migrationConfig->getMainPageName()
 			),
-			new RecentlyUpdatedMacro( $this->currentPageTitle ),
+			new RecentlyUpdatedMacro( $this->currentWikiTitle ),
 			new IncludeMacro(
 				$this->dataLookup,
 				$this->currentSpace
@@ -438,7 +438,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->confluencePageTitle,
 				$this->pipeToDB
 			),
-			new ContentByLabelMacro( $this->currentPageTitle ),
+			new ContentByLabelMacro( $this->currentWikiTitle ),
 			new AttachmentsMacro(),
 			new GalleryMacro(
 				$this->dataLookup,
@@ -516,7 +516,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
 			new FixMultilineTable(),
-			new TemplateContentPostProcessor( $this->currentPageTitle )
+			new TemplateContentPostProcessor( $this->currentWikiTitle )
 		];
 
 		/** @var IPostprocessor $postProcessor */

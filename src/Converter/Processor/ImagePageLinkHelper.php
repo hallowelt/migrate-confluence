@@ -56,7 +56,7 @@ class ImagePageLinkHelper {
 				$this->currentSpaceId = $this->ensureSpaceId( $page );
 			}
 
-			$targetTitle = $this->dataLookup->getTargetPageTitleFromSpaceId(
+			$targetTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId(
 				$this->currentSpaceId,
 				$this->rawPageTitle
 			);

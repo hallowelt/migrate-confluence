@@ -15,7 +15,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @var string
 	 */
-	private string $currentPageTitle;
+	private string $currentWikiTitle;
 
 	/**
 	 * @var DBConversionDataLookup
@@ -24,12 +24,12 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param int $spaceId
-	 * @param string $currentPageTitle
+	 * @param string $currentWikiTitle
 	 * @param DBConversionDataLookup $dataLookup
 	 */
-	public function __construct( int $spaceId, string $currentPageTitle, DBConversionDataLookup $dataLookup ) {
+	public function __construct( int $spaceId, string $currentWikiTitle, DBConversionDataLookup $dataLookup ) {
 		$this->spaceId = $spaceId;
-		$this->currentPageTitle = $currentPageTitle;
+		$this->currentWikiTitle = $currentWikiTitle;
 		$this->dataLookup = $dataLookup;
 	}
 
@@ -88,7 +88,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 										break;
 									}
 
-									$params[$name] = $this->dataLookup->getTargetPageTitleFromSpaceId(
+									$params[$name] = $this->dataLookup->getTargetWikiTitleFromSpaceId(
 										$spaceId,
 										$pageConfluenceTitle
 									);
@@ -119,9 +119,9 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		if ( !isset( $params['page'] ) ) {
 			// if no page param was set pass current page title to subpage template
-			$params['page'] = $this->dataLookup->getTargetPageTitleFromSpaceId(
+			$params['page'] = $this->dataLookup->getTargetWikiTitleFromSpaceId(
 				$this->spaceId,
-				$this->currentPageTitle
+				$this->currentWikiTitle
 			);
 		}
 

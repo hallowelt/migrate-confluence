@@ -32,7 +32,7 @@ class PageLink extends LinkProcessorBase {
 			$rawPageTitle = $node->getAttribute( 'ri:content-title' );
 			$spaceId = $this->ensureSpaceId( $node );
 
-			$targetTitle = $this->dataLookup->getTargetPageTitleFromSpaceId(
+			$targetTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId(
 				$spaceId,
 				$rawPageTitle
 			);
