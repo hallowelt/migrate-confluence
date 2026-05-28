@@ -84,8 +84,8 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
@@ -98,8 +98,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
 
-	/** @var DBLog */
-	private DBLog $dbLog;
+	/** @var PipeToDB */
+	private PipeToDB $pipeToDB;
 
 	/** @var string */
 	private string $dest;
@@ -172,8 +172,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return string
 	 */
 	public function convert( SplFileInfo $file ): string {
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
-		$this->dbLog = new DBLog( $this->workspaceDB );
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite', true );
+		$this->pipeToDB = new PipeToDB();
 
 		if ( isset( $this->config['config'] ) ) {
 			$this->migrationConfig = new MigrationConfig( $this->config['config'] );
@@ -262,7 +262,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		if ( $this->pageId === -1 ) {
-			$this->dbLog->addLogEntry(
+			$this->pipeToDB->send(
+				'log',
 				'error',
 				'convert',
 				__CLASS__,
@@ -272,7 +273,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		if ( $this->currentSpace === -1 ) {
-			$this->dbLog->addLogEntry(
+			$this->pipeToDB->send(
+				'log',
 				'error',
 				'convert',
 				__CLASS__,
@@ -289,7 +291,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$unconvertedContent = "<-- Unconvertable RAW start-->\n";
 			$unconvertedContent .= $rawContent;
 			$unconvertedContent .= "\n<-- Unconvertable RAW end-->\n[[Category:Unconvertable]]";
-			$this->dbLog->addLogEntry(
+			$this->pipeToDB->send(
+				'log',
 				'warning',
 				'convert',
 				__CLASS__,
@@ -414,7 +417,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->conversionDataWriter,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->workspaceDB
+				$this->pipeToDB
 			),
 			new ContentByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
@@ -794,7 +797,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$exceed = '100';
 		}
 		if ( $exceed !== '' ) {
-			$this->dbLog->addLogEntry(
+			$this->pipeToDB->send(
+				'log',
 				'warning',
 				'convert',
 				__CLASS__,

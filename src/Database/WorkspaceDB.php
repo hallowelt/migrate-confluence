@@ -14,18 +14,25 @@ class WorkspaceDB {
 	/** @var array Cached prepared statements keyed by SQL string */
 	private array $stmtCache = [];
 
+	/** @var bool readonly mark this connection as read-only */
+	private bool $readonly = false;
+
 	/**
 	 * @param string $name
+	 * @param bool $readonly
 	 */
-	public function __construct( string $name ) {
-		$this->db = new SQLite3( $name );
+	public function __construct( string $name, bool $readonly = false ) {
+		$this->readonly = $readonly;
+		$this->db = new SQLite3( $name,
+			$this->readonly ? SQLITE3_OPEN_READONLY : ( SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE ) );
 		$this->db->enableExceptions( true );
 
-		$this->db->exec( 'PRAGMA journal_mode = WAL' );
-		$this->db->exec( 'PRAGMA synchronous = NORMAL' );
 		$this->db->busyTimeout( 5000 );
-
-		$this->createTables();
+		if ( !$this->readonly ) {
+			$this->db->exec( 'PRAGMA journal_mode = WAL' );
+			$this->db->exec( 'PRAGMA synchronous = NORMAL' );
+			$this->createTables();
+		}
 	}
 
 	/**
@@ -251,7 +258,7 @@ class WorkspaceDB {
 				content_status CHAR,
 				original_version_id INT,
 				version CHAR,
-				parent_page_id INT,		
+				parent_page_id INT,
 				body_content_ids BLOB,
 				historical_ids BLOB,
 				properties BLOB,
@@ -2804,7 +2811,7 @@ class WorkspaceDB {
 	public function updateSpaceDescriptionBodyContentIds( int $spaceDescriptionId, array $bodyContentIds ): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$transaction = $this->cachedPrepare(
-			'UPDATE spaces_descriptions SET body_content_ids = :body_content_ids 
+			'UPDATE spaces_descriptions SET body_content_ids = :body_content_ids
 			WHERE space_description_id = :space_description_id'
 		);
 

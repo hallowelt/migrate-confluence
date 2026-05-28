@@ -6,7 +6,10 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
+use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -131,9 +134,11 @@ class Convert extends CommandConvert {
 			1 => [ 'pipe', 'w' ],
 			2 => [ 'pipe', 'w' ],
 		];
+		$descriptors[PipeToDB::FILE_DESCRIPTOR] = [ 'pipe', 'w' ];
 
 		$processes = [];
 		$pipes = [];
+		$DBWritePipes = [];
 
 		for ( $i = 0; $i < $workers; $i++ ) {
 			$cmd = array_merge( $baseCmd, [ '--worker=' . $i ] );
@@ -150,7 +155,11 @@ class Convert extends CommandConvert {
 			fclose( $workerPipes[0] );
 			$processes[$i] = $proc;
 			$pipes[$i] = [ $workerPipes[1], $workerPipes[2] ];
+			$DBWritePipes[$i] = $workerPipes[3];
 		}
+
+		$workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$dbLog = new DBLog( $workspaceDB );
 
 		$exitCodes = array_fill( 0, $workers, null );
 		while ( count( array_filter( $processes ) ) > 0 ) {
@@ -165,6 +174,11 @@ class Convert extends CommandConvert {
 						$line = fgets( $pipe );
 					}
 				}
+				$line = fgets( $DBWritePipes[$i] );
+				while ( $line !== false ) {
+					$this->storeWorkerResponse( $workspaceDB, $dbLog, $line );
+					$line = fgets( $DBWritePipes[$i] );
+				}
 				$status = proc_get_status( $proc );
 				if ( !$status['running'] ) {
 					// Drain any remaining output
@@ -175,6 +189,12 @@ class Convert extends CommandConvert {
 						}
 						fclose( $pipe );
 					}
+					$line = fgets( $DBWritePipes[$i] );
+					while ( $line !== false ) {
+						$this->storeWorkerResponse( $workspaceDB, $dbLog, $line );
+						$line = fgets( $DBWritePipes[$i] );
+					}
+					fclose( $DBWritePipes[$i] );
 					$exitCodes[$i] = proc_close( $proc );
 					$processes[$i] = null;
 					$output->writeln( "Worker {$i} finished with exit code {$exitCodes[$i]}." );
@@ -195,6 +215,28 @@ class Convert extends CommandConvert {
 
 		$output->writeln( '<info>All workers completed successfully.</info>' );
 		return Command::SUCCESS;
+	}
+
+	/**
+	 *
+	 */
+	private function storeWorkerResponse( WorkspaceDB $workspaceDB, DBLog $dbLog, string $line ): void {
+		$data = json_decode( $line, true );
+		if ( is_array( $data ) && count( $data ) > 1 ) {
+			$method = array_shift( $data );
+			if ( $method === 'log' ) {
+				$dbLog->addLogEntry( ...$data );
+			} else {
+				call_user_func_array( [ $workspaceDB, $method ], $data );
+			}
+		} else {
+			$dbLog->addLogEntry(
+				'error',
+				'invalid-worker-output',
+				__CLASS__,
+				$line
+			);
+		}
 	}
 
 	/**

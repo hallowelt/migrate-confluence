@@ -3,10 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 
 class GliffyMacro extends StructuredMacroProcessorBase {
 
@@ -31,29 +30,24 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	protected string $rawPageTitle;
 
 	/**
-	 * @var DataBuckets
+	 * @var PipeToDB
 	 */
-	private DataBuckets $dataBuckets;
-
-	/**
-	 * @var WorkspaceDB
-	 */
-	private WorkspaceDB $workspaceDB;
+	private PipeToDB $pipeToDB;
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param WorkspaceDB $workspaceDB
+	 * @param PipeToDB $pipeToDB
 	 */
 	public function __construct( DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
-		int $currentSpaceId, string $rawPageTitle, WorkspaceDB $workspaceDB ) {
+		int $currentSpaceId, string $rawPageTitle, PipeToDB $pipeToDB ) {
 		$this->dataLookup = $dataLookup;
 		$this->conversionDataWriter = $conversionDataWriter;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
-		$this->workspaceDB = $workspaceDB;
+		$this->pipeToDB = $pipeToDB;
 	}
 
 	/**
@@ -131,7 +125,8 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 			return '';
 		}
 
-		$this->workspaceDB->addGliffy(
+		$this->pipeToDB->send(
+			'addGliffy',
 			$this->currentSpaceId,
 			$this->rawPageTitle,
 			$name,
