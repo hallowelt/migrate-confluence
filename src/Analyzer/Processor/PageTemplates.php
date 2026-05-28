@@ -70,7 +70,7 @@ class PageTemplates extends ProcessorBase {
 
 		try {
 			$wikiTitle = $this->buildTemplateTitle( $name, $spaceId );
-		} catch (InvalidTitleException $e) {
+		} catch ( InvalidTitleException $e ) {
 			$this->workspaceDB->addLogEntry(
 				'warning',
 				'analyze',
