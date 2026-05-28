@@ -147,9 +147,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
+	 * @param resource|false $pipe
 	 */
-	public function __construct( $config, Workspace $workspace ) {
+	public function __construct( $config, Workspace $workspace, $pipe = false ) {
 		parent::__construct( $config, $workspace );
+		$this->pipeToDB = new PipeToDB( $pipe );
 	}
 
 	/**
@@ -174,7 +176,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 */
 	public function convert( SplFileInfo $file ): string {
 		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite', true );
-		$this->pipeToDB = new PipeToDB();
 
 		if ( isset( $this->config['config'] ) ) {
 			$this->migrationConfig = new MigrationConfig( $this->config['config'] );

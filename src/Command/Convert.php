@@ -22,6 +22,15 @@ class Convert extends CommandConvert {
 	/** @var string */
 	private string $wikiTextBasePath = '';
 
+	/** @var WorkspaceDB */
+	private WorkspaceDB $workspaceDB;
+
+	/** @var DBLog */
+	private DBLog $dbLog;
+
+	/** @var resource|false */
+	private $pipe = false;
+
 	/**
 	 * @return void
 	 */
@@ -74,6 +83,9 @@ class Convert extends CommandConvert {
 	 * @return int
 	 */
 	protected function execute( InputInterface $input, OutputInterface $output ): int {
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$this->dbLog = new DBLog( $this->workspaceDB );
+
 		$workers = (int)$input->getOption( 'workers' );
 		$isWorker = $input->hasParameterOption( '--worker' );
 
@@ -81,7 +93,24 @@ class Convert extends CommandConvert {
 			return $this->spawnWorkers( $input, $output, $workers );
 		}
 
-		return parent::execute( $input, $output );
+		/* this is the "single worker" case. Here we define our own pipe for the converter to
+		 * send data to. */
+		if ( !$isWorker ) {
+			$this->pipe = fopen( 'php://temp', 'w' );
+		}
+
+		$returnValue = parent::execute( $input, $output );
+
+		if ( $this->pipe !== false ) {
+			$line = fgets( $this->pipe );
+			while ( $line !== false ) {
+				$this->storeWorkerResponse( $line );
+				$line = fgets( $this->pipe );
+			}
+			fclose( $this->pipe );
+		}
+
+		return $returnValue;
 	}
 
 	protected function doProcessFile(): bool {
@@ -96,7 +125,7 @@ class Convert extends CommandConvert {
 		foreach ( $converterFactoryCallbacks as $key => $callback ) {
 			$converter = call_user_func_array(
 				$callback,
-				[ $this->config, $this->workspace ]
+				[ $this->config, $this->workspace, $this->pipe ]
 			);
 			if ( $converter instanceof IConverter === false ) {
 				throw new Exception(
@@ -158,9 +187,6 @@ class Convert extends CommandConvert {
 			$DBWritePipes[$i] = $workerPipes[3];
 		}
 
-		$workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
-		$dbLog = new DBLog( $workspaceDB );
-
 		$exitCodes = array_fill( 0, $workers, null );
 		while ( count( array_filter( $processes ) ) > 0 ) {
 			foreach ( $processes as $i => $proc ) {
@@ -176,7 +202,7 @@ class Convert extends CommandConvert {
 				}
 				$line = fgets( $DBWritePipes[$i] );
 				while ( $line !== false ) {
-					$this->storeWorkerResponse( $workspaceDB, $dbLog, $line );
+					$this->storeWorkerResponse( $line );
 					$line = fgets( $DBWritePipes[$i] );
 				}
 				$status = proc_get_status( $proc );
@@ -191,7 +217,7 @@ class Convert extends CommandConvert {
 					}
 					$line = fgets( $DBWritePipes[$i] );
 					while ( $line !== false ) {
-						$this->storeWorkerResponse( $workspaceDB, $dbLog, $line );
+						$this->storeWorkerResponse( $line );
 						$line = fgets( $DBWritePipes[$i] );
 					}
 					fclose( $DBWritePipes[$i] );
@@ -220,19 +246,19 @@ class Convert extends CommandConvert {
 	/**
 	 *
 	 */
-	private function storeWorkerResponse( WorkspaceDB $workspaceDB, DBLog $dbLog, string $line ): void {
+	private function storeWorkerResponse( string $line ): void {
 		$data = json_decode( $line, true );
 		if ( is_array( $data ) && count( $data ) > 1 ) {
 			$method = array_shift( $data );
 			if ( $method === 'log' ) {
-				$dbLog->addLogEntry( ...$data );
+				$this->dbLog->addLogEntry( ...$data );
 			} else {
-				call_user_func_array( [ $workspaceDB, $method ], $data );
+				call_user_func_array( [ $this->workspaceDB, $method ], $data );
 			}
 		} else {
-			$dbLog->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'error',
-				'invalid-worker-output',
+				'convert.invalid-worker-output',
 				__CLASS__,
 				$line
 			);
