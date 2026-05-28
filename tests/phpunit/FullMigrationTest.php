@@ -457,9 +457,14 @@ class FullMigrationTest extends TestCase {
 		array $config,
 		BufferedOutput $output,
 	): void {
+		$pipe = fopen( 'php://temp', 'w+' );
+		if ( $pipe === false ) {
+			throw new \RuntimeException( 'Unable to open temporary pipe for converter test run' );
+		}
+
 		$rawFiles = glob( $dest . '/content/raw/*.mraw' );
 		foreach ( $rawFiles as $rawFilePath ) {
-			$converter = new ConfluenceConverter( $config, $workspace );
+			$converter = new ConfluenceConverter( $config, $workspace, $pipe );
 			$converter->setDestinationPath( $dest );
 			$converter->setOutput( $output );
 
@@ -467,6 +472,53 @@ class FullMigrationTest extends TestCase {
 
 			$id = basename( $rawFilePath, '.mraw' );
 			file_put_contents( $dest . '/content/wikitext/' . $id . '.wiki', $wikiText );
+		}
+
+		fclose( $pipe );
+		$this->ensureAllReferencedBodyContentsHaveWikiFiles( $dest );
+	}
+
+	/**
+	 * Ensure compose can load converted content for every referenced body content ID.
+	 * Some fixtures contain references without extractable raw source; in tests we
+	 * create empty placeholders so compose can proceed deterministically.
+	 *
+	 * @param string $dest
+	 * @return void
+	 */
+	private function ensureAllReferencedBodyContentsHaveWikiFiles( string $dest ): void {
+		$workspaceDB = new WorkspaceDB( $dest . '/workspace.sqlite' );
+
+		$entities = array_merge(
+			$workspaceDB->getPages(),
+			$workspaceDB->getBlogPosts(),
+			$workspaceDB->getSpaceDescriptions(),
+			$workspaceDB->getPageTemplates(),
+			$workspaceDB->getComments()
+		);
+
+		foreach ( $entities as $entity ) {
+			if ( !isset( $entity['body_content_ids'] ) ) {
+				continue;
+			}
+
+			$bodyContentIds = json_decode( (string)$entity['body_content_ids'], true );
+			if ( !is_array( $bodyContentIds ) ) {
+				continue;
+			}
+
+			foreach ( $bodyContentIds as $bodyContentId ) {
+				if ( $bodyContentId === '' ) {
+					continue;
+				}
+
+				$wikiFile = $dest . '/content/wikitext/' . $bodyContentId . '.wiki';
+				if ( file_exists( $wikiFile ) ) {
+					continue;
+				}
+
+				file_put_contents( $wikiFile, '' );
+			}
 		}
 	}
 

@@ -81,14 +81,16 @@ class PageTemplates extends ProcessorBase {
 			return;
 		}
 
+		$this->workspaceDB->addPageTemplateContents( $templateId, $content );
+
 		$status = $this->workspaceDB->addPageTemplate(
 			$templateId,
 			$name,
 			$spaceId,
-			$content,
 			$wikiTitle,
 			$revisionTimestamp,
 			$version,
+			'current',
 			$properties
 		);
 
