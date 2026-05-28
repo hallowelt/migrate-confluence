@@ -73,7 +73,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			'info',
 			'compose',
 			__CLASS__,
-			sprintf( 'use version %s', Version::getVersion() )
+			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 		);
 		$composerDataLookup = new DBComposerDataLookup( $workspaceDB );
 		$deploymentInfo = new ComposerDeploymentInfo();

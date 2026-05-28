@@ -58,7 +58,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			'info',
 			'extract',
 			__CLASS__,
-			sprintf( 'use version %s', Version::getVersion() )
+			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 		);
 	}
 

@@ -99,7 +99,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			'info',
 			'analyze',
 			__CLASS__,
-			sprintf( 'use version %s', Version::getVersion() )
+			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 		);
 	}
 

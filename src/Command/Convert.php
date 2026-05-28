@@ -95,7 +95,7 @@ class Convert extends CommandConvert {
 				'info',
 				'convert',
 				__CLASS__,
-				sprintf( 'use version %s', Version::getVersion() )
+				sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 			);
 		}
 
