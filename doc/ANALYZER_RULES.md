@@ -44,6 +44,10 @@ For any new processor, follow this checklist:
 | Postprocessor | `src/Converter/Postprocessor/` | `{Fix/Operation}.php` | `FixLineBreaks.php` |
 | Preprocessor | `src/Converter/Preprocessor/` | Domain-specific | `HtmlPreprocessor.php` |
 
+## Wiki Title Conventions
+
+- Wiki titles have to be created using `HalloWelt\MigrateConfluence\Utility\TitleBuilder` or `HalloWelt\MediaWiki\Lib\Migration\TitleBuilder`
+
 ## 4. Database Relationships
 
 Current entities and their tables:
@@ -57,6 +61,7 @@ Current entities and their tables:
 - **Labels** → `labels`, `labellings`
 - **Content Properties** → `content_properties`
 - **Gliffy** → `gliffy`
+- **PageTemplates** → `page_templates`, `page_template_contents`
 
 ## 5. Adding a New Processor
 

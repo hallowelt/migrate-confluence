@@ -78,7 +78,7 @@ The Extractor provides methods to extract each data type:
 
 ### Logging
 - Use `DBLog` to record extraction errors and warnings
-- Call `$this->dbLog->addLog()` for significant events
+- Call `$this->dbLog->addLogEntry()` for significant events
 - Log file move/copy failures explicitly
 
 ### Robustness
