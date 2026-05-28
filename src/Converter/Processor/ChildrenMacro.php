@@ -8,29 +8,15 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 class ChildrenMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var int
-	 */
-	private int $spaceId;
-
-	/**
-	 * @var string
-	 */
-	private string $currentWikiTitle;
-
-	/**
-	 * @var DBConversionDataLookup
-	 */
-	private DBConversionDataLookup $dataLookup;
-
-	/**
 	 * @param int $spaceId
 	 * @param string $currentWikiTitle
 	 * @param DBConversionDataLookup $dataLookup
 	 */
-	public function __construct( int $spaceId, string $currentWikiTitle, DBConversionDataLookup $dataLookup ) {
-		$this->spaceId = $spaceId;
-		$this->currentWikiTitle = $currentWikiTitle;
-		$this->dataLookup = $dataLookup;
+	public function __construct(
+		private int $spaceId,
+		private string $currentWikiTitle,
+		private DBConversionDataLookup $dataLookup
+	) {
 	}
 
 	/**
@@ -119,10 +105,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		if ( !isset( $params['page'] ) ) {
 			// if no page param was set pass current page title to subpage template
-			$params['page'] = $this->dataLookup->getTargetWikiTitleFromSpaceId(
-				$this->spaceId,
-				$this->currentWikiTitle
-			);
+			$params['page'] = $this->currentWikiTitle;
 		}
 
 		$templateParams = '';
