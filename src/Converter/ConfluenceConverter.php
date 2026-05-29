@@ -91,7 +91,7 @@ use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
-class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware {
+class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware, IPipeSender {
 
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
@@ -144,10 +144,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
+	 */
+	public function __construct( $config, Workspace $workspace ) {
+		parent::__construct( $config, $workspace );
+	}
+
+	/**
 	 * @param resource|false $pipe
 	 */
-	public function __construct( $config, Workspace $workspace, $pipe = false ) {
-		parent::__construct( $config, $workspace );
+	public function setPipe( $pipe ): void {
 		$this->pipeToDB = new PipeToDB( $pipe );
 	}
 
