@@ -16,6 +16,7 @@ class Templates extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$this->addDefaultPages();
+
 		$wikiTitles = $this->dataLookup->getPageTemplateIdTargetTitleMap();
 
 		foreach ( $wikiTitles as $templateId => $pageTitle ) {
@@ -41,7 +42,7 @@ class Templates extends ProcessorBase {
 					}
 
 					$this->output->writeln( "Getting '$bodyContentId' body content..." );
-					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
+					$pageContent .= $this->workspace->getConvertedContent( 'pt_' . $bodyContentId ) . "\n";
 				}
 
 				$this->addRevision(

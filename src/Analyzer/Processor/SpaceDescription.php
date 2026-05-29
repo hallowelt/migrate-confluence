@@ -47,8 +47,6 @@ class SpaceDescription extends ProcessorBase {
 		$descriptionId = '';
 		$properties = [];
 		$collection = [];
-		$bodyContents = [];
-		$labellings = [];
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
@@ -102,7 +100,7 @@ class SpaceDescription extends ProcessorBase {
 			$contentStatus = $properties['contentStatus'];
 		}
 
-		if ( !$this->migrationConfig->getIncludeHistory() && ( strtolower( $contentStatus ) !== 'current' ) ) {
+		if ( !$this->migrationConfig->getIncludeHistory() && $originalVersionId > 0 ) {
 			return;
 		}
 

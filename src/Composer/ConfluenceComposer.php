@@ -79,7 +79,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$deploymentInfo = new ComposerDeploymentInfo();
 		$processors = [
 			new Files(
-				$builder, $composerDataLookup, $this->workspace,
+				$composerDataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo
 			),

@@ -21,8 +21,6 @@ class Pages extends ProcessorBase {
 	}
 
 	private function addContentPages(): void {
-		/** Add content pages */
-
 		// Get all page titles from DB and add them as pages to the workspace
 		// Key is pageId, value is pageTitle - do not use array_merge at this point to avoid renumbering of keys
 		$wikiTitles = $this->dataLookup->getPageIdTargetPageTitleMap()
@@ -42,7 +40,7 @@ class Pages extends ProcessorBase {
 			$isBlogPost = $this->isBlogPost( $namespace );
 
 			if ( $isBlogPost ) {
-				$revisions = $this->dataLookup->getBlogPostRevisionsForPageId( $pageId );
+				$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $pageId );
 				$spaceDescriptions = [];
 				$homepageId = -1;
 			} else {

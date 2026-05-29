@@ -48,7 +48,7 @@ class PagesTest extends TestCase {
 		$dataLookup->method( 'getSpaceIdForPageId' )->willReturn( 100 );
 		$dataLookup->method( 'getSpaceDescriptionRevisionsForSpaceId' )->willReturn( [] );
 		$dataLookup->method( 'getSpaceHomepageIdForSpaceId' )->willReturn( -1 );
-		$dataLookup->method( 'getBlogPostRevisionsForPageId' )
+		$dataLookup->method( 'getBlogPostRevisionsForBlogPostId' )
 			->willReturnCallback( static function ( int $pageId ): array {
 				if ( $pageId === 1 ) {
 					return [ [
