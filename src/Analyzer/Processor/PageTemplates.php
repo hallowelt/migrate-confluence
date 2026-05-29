@@ -101,6 +101,8 @@ class PageTemplates extends ProcessorBase {
 				. " This may indicate a problem with the page id. Maybe it does exist twice."
 			);
 		}
+
+		$this->output->writeln( "Add page template '$name' (ID:$templateId)" );
 	}
 
 	/**

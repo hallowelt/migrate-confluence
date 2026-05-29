@@ -324,7 +324,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			$bodyContentIds = json_decode( $spaceDesc['body_content_ids'], true );
 
 			// Check if body_content_ids is empty
-			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
+			if ( empty( $bodyContentIds ) ) {
 				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $spaceDescriptionId );
 				if ( !empty( $foundIds ) ) {
 					$this->output->writeln(
