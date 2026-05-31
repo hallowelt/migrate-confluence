@@ -1,0 +1,155 @@
+<?php
+
+namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
+
+use Exception;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
+use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use SplFileInfo;
+
+/**
+ */
+class UpdatePageAttachmentTable extends ProcessorBase {
+
+	/** @var MigrationConfig */
+	private MigrationConfig $migrationConfig;
+
+	/**
+	 * @param WorkspaceDB $workspaceDB
+	 * @param DBLog $dbLog
+	 * @param MigrationConfig $migrationConfig
+	 */
+	public function __construct(
+		WorkspaceDB $workspaceDB, DBLog $dbLog, MigrationConfig $migrationConfig
+	) {
+		parent::__construct( $workspaceDB, $dbLog );
+
+		$this->migrationConfig = $migrationConfig;
+	}
+
+	/**
+	 * @return void
+	 */
+	public function execute(): void {
+		$pageIdToWikiTitleMap = [];
+		foreach ( $this->workspaceDB->getPages() as $page ) {
+			if ( !isset( $page['page_id'] )
+				|| !isset( $page['wiki_title'] )
+				|| !isset( $page['content_status'] )
+			) {
+				continue;
+			}
+			if ( $page['content_status'] !== 'current' ) {
+				continue;
+			}
+			$pageIdToWikiTitleMap[(int)$page['page_id']] = (string)$page['wiki_title'];
+		}
+
+		if ( $pageIdToWikiTitleMap === [] ) {
+			return;
+		}
+
+		$filenameBuilder = new FilenameBuilder(
+			$this->workspaceDB->getMapSpaceIdToPrefix(),
+			$this->migrationConfig
+		);
+
+		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
+			if (
+				!isset( $attachment['attachment_id'] )
+				|| !isset( $attachment['space_id'] )
+				|| !isset( $attachment['filename'] )
+				|| !isset( $attachment['container_id'] )
+				|| !isset( $attachment['content_status'] )
+				// historical versions
+				|| $attachment['original_version_id'] !== -1
+			) {
+				continue;
+			}
+
+			if ( $attachment['content_status'] !== 'current' ) {
+				continue;
+			}
+
+			$pageId = (int)$attachment['container_id'];
+			if ( !isset( $pageIdToWikiTitleMap[$pageId] ) ) {
+				continue;
+			}
+
+			$attachmentId = (int)$attachment['attachment_id'];
+			$attachmentSpaceId = (int)$attachment['space_id'];
+			$attachmentOrigFilename = (string)$attachment['filename'];
+
+			$this->writeln(
+				"Creating wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
+			);
+
+			$pageWikiTitle = $this->workspaceDB->getWikiTitleForAttachmentId( $attachmentId );
+			$pageWikiTitle = substr( $pageWikiTitle, strrpos( $pageWikiTitle, ':' ) );
+			$pageWikiTitleParts = explode( '/', $pageWikiTitle );
+			$shortPageWikiTitle = end( $pageWikiTitleParts );
+			try {
+				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+					$attachmentSpaceId,
+					$attachmentOrigFilename,
+					$shortPageWikiTitle,
+				);
+			} catch ( Exception $fallbackEx ) {
+				$this->dbLog->addLogEntry(
+					'warning',
+					'analyze',
+					__CLASS__,
+					"Could not build target filename for attachment $attachmentId: "
+					. $fallbackEx->getMessage()
+				);
+				continue;
+			}
+
+			// Uncollide file title
+			$exists = $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle );
+			$counter = 1;
+			$maxUncollideAttempts = 10000;
+			while ( $exists ) {
+				if ( $counter > $maxUncollideAttempts ) {
+					$this->dbLog->addLogEntry(
+						'warning',
+						'analyze',
+						__CLASS__,
+						"Could not find unique page attachment title for attachment $attachmentId after "
+						. (string)$maxUncollideAttempts . ' attempts'
+					);
+					continue 2;
+				}
+
+				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+					$attachmentSpaceId,
+					$attachmentOrigFilename,
+					$shortPageWikiTitle,
+					"-(" . (string)$counter . ")"
+				);
+
+				$exists = $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle );
+				$counter++;
+			}
+
+			$file = new SplFileInfo( $attatchmentWikiTitle );
+			if ( $file->getExtension() === '' || strlen( $file->getExtension() ) > 10 ) {
+				$attatchmentWikiTitle .= '.unknown';
+			}
+
+			$this->writeln(
+				"Add page attachment for attachment ID $attachmentId with title: $attatchmentWikiTitle"
+			);
+
+			$this->workspaceDB->addPageAttachment(
+				$attachmentId,
+				$pageId,
+				$attachment['filename'],
+				$attatchmentWikiTitle
+			);
+		}
+	}
+
+}
