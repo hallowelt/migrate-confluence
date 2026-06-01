@@ -55,46 +55,49 @@ class Files extends FileProcessorBase {
 
 			$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 			foreach ( $attachments as $attachment ) {
-				if ( isset( $attachment['attachment_reference'] ) ) {
-					$timestamp = $attachment['revision_timestamp'];
-					$userKey = $attachment['last_modifier'];
-					$username = $this->dataLookup->getUsernameFromUserKey( $userKey );
-					$filePath = $attachment['attachment_reference'];
-
-					if ( file_exists( $filePath ) ) {
-						$this->output->writeln( "Attachment: $filename in version from $timestamp" );
-					} else {
-						$this->output->writeln( "Attachment $filename in version from $timestamp was not found!" );
-						continue;
-					}
-
-					$testFilePath = $this->dest . '/images/' . $filename;
-					if ( file_exists( $testFilePath ) ) {
-						$this->output->writeln( "Attachment file override detected. Using override!" );
-						$filePath = $testFilePath;
-					} elseif ( file_exists( $filePath ) ) {
-						$this->output->writeln( "Upload attachment file." );
-					} else {
-						$this->output->writeln( "Attachment file not found (ID: $attachmentId)!" );
-						continue;
-					}
-
-					$attachmentContent = file_get_contents( $filePath );
-					$uploadFilePath = $this->workspace->saveUploadFile( $filename, $attachmentContent );
-
-					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
-					$this->builder->addFileRevision(
-						$attachmentPageTitle,
-						$this->getRelativeFilePath( $uploadFilePath ),
-						$timestamp,
-						$username
-					);
-
-					// Log file extension
-					$this->deploymentInfo->addFileExtension( $attachment['file_extension'] );
-				} else {
-					$this->output->writeln( "Attachment file was not found!" );
+				$attachmentId = $attachment['attachment_id'];
+				if ( !isset( $attachment['attachment_reference'] ) ) {
+					$this->output->writeln( "Attachment (ID: $attachmentId) file was not found!" );
+					continue;
 				}
+				$timestamp = $attachment['revision_timestamp'];
+				$version = $attachment['version'];
+				$userKey = $attachment['last_modifier'];
+				$username = $this->dataLookup->getUsernameFromUserKey( $userKey );
+				$filePath = $attachment['attachment_reference'];
+
+				if ( file_exists( $filePath ) ) {
+					$this->output->writeln( "Attachment: $filename in version from $timestamp" );
+				} else {
+					$this->output->writeln( "Attachment $filename in version from $timestamp was not found!" );
+					continue;
+				}
+
+				$testFilePath = $this->dest . '/images/' . $filename;
+				if ( file_exists( $testFilePath ) ) {
+					$this->output->writeln( "Attachment file override detected. Using override!" );
+					$filePath = $testFilePath;
+				} elseif ( file_exists( $filePath ) ) {
+					$this->output->writeln( "Upload attachment file." );
+				} else {
+					$this->output->writeln( "Attachment file not found (ID: $attachmentId)!" );
+					continue;
+				}
+
+				$attachmentContent = file_get_contents( $filePath );
+				$subDir = "result/images/$filename/$version";
+				$uploadFilePath = $this->workspace->saveUploadFile( $filename, $attachmentContent, $subDir );
+
+				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
+				$this->builder->addFileRevision(
+					$attachmentPageTitle,
+					$this->getRelativeFilePath( $uploadFilePath ),
+					$timestamp,
+					$username
+				);
+
+				// Log file extension
+				$this->deploymentInfo->addFileExtension( $attachment['file_extension'] );
 			}
 		}
 	}
@@ -117,6 +120,16 @@ class Files extends FileProcessorBase {
 
 			$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 			foreach ( $attachments as $attachment ) {
+				$attachmentId = $attachment['attachment_id'];
+				if ( !isset( $attachment['attachment_reference'] ) ) {
+					$this->output->writeln( "Attachment (ID: $attachmentId) file was not found!" );
+					continue;
+				}
+				$timestamp = $attachment['revision_timestamp'];
+				$version = $attachment['version'];
+				$userKey = $attachment['last_modifier'];
+				$username = $this->dataLookup->getUsernameFromUserKey( $userKey );
+				$filePath = $attachment['attachment_reference'];
 
 				$drawIoFileHandler = new DrawIOFileHandler();
 
@@ -147,7 +160,8 @@ class Files extends FileProcessorBase {
 					}
 
 					$attachmentContent = file_get_contents( $filePath );
-					$uploadFilePath = $this->workspace->saveUploadFile( $filename, $attachmentContent );
+					$subDir = "result/images/$filename/$version";
+					$uploadFilePath = $this->workspace->saveUploadFile( $filename, $attachmentContent, $subDir );
 
 					$timestamp = $attachment['revision_timestamp'];
 					$userKey = $attachment['last_modifier'];
