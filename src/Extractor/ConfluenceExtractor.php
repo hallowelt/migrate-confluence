@@ -165,7 +165,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return void
 	 */
 	private function checkTitles(): void {
-		$this->output->writeln(
+		$this->writeln(
 			"Validating titles of pages, blog posts and attachments. This may take a while for large instances..."
 		);
 
@@ -247,24 +247,35 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		}
 
 		if ( !empty( $this->dbLog->getLogEntriesForStep( 'analyze' ) ) ) {
-			$this->output->writeln( "\n\nWARNINGS / ERRORS:\n" );
-			$this->output->writeln(
+			$this->writeln( "\n\nWARNINGS / ERRORS:\n" );
+			$this->writeln(
 				"\nPlease check logging table in workspaceDB for details about invalid titles and filenames\n\n"
 			);
 		}
 
 		if ( $invalidTitles ) {
-			$this->output->writeln( "\n\INVALID PAGE TITLES DETECTED:\n" );
-			$this->output->writeln(
+			$this->writeln( "\n\INVALID PAGE TITLES DETECTED:\n" );
+			$this->writeln(
 				"\nPlease check invalid_titles table in workspaceDB for details\n\n"
 			);
 		}
 
 		if ( $invalidAttachments ) {
-			$this->output->writeln( "\n\INVALID ATTACHMENT TITLES DETECTED:\n" );
-			$this->output->writeln(
+			$this->writeln( "\n\INVALID ATTACHMENT TITLES DETECTED:\n" );
+			$this->writeln(
 				"\nPlease check invalid_attachment_titles table in workspaceDB for details\n\n"
 			);
+		}
+	}
+
+	/**
+	 * @param string $text
+	 * @param int $options
+	 * @return void
+	 */
+	private function writeln( string $text, int $options = Output::OUTPUT_NORMAL ): void {
+		if ( $this->output instanceof Output ) {
+			$this->output->writeln( $text, $options );
 		}
 	}
 }
