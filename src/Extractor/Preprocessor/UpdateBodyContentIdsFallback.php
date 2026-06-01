@@ -14,7 +14,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 	public function execute(): void {
 		// Update pages table
 		$this->updatePagesTable();
-		
+
 		// Update blog_posts table
 		$this->updateBlogPostsTable();
 

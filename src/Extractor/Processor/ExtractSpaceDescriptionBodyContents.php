@@ -72,9 +72,9 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 	}
 
 		/**
-	 * @param string $rawValue
-	 * @return string
-	 */
+		 * @param string $rawValue
+		 * @return string
+		 */
 	protected function normalizeBodyContentHTML( string $rawValue ): string {
 		// For a strange reason the CDATA blocks are not closed properly...
 		$fixedValue = str_replace( ']] >', ']]>', $rawValue );
