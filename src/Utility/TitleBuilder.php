@@ -79,16 +79,16 @@ class TitleBuilder {
 			return $builder->build();
 		}
 
-		$titles = $this->addParentTitles( $pageId, $title );
+		$titleParts = $this->addParentTitles( $pageId, $title );
 
-		foreach ( $titles as $title ) {
-			$title = str_replace(
+		foreach ( $titleParts as $titlePart ) {
+			$titlePart = str_replace(
 				[ ':', '%', '?', '#', '<', '>', '+', '[', ']', '{', '}', '|' ],
 				'_',
-				$title
+				$titlePart
 			);
-			$title = preg_replace( '/_+/', '_', $title );
-			$builder->appendTitleSegment( $title );
+			$titleParts = preg_replace( '/_+/', '_', $titlePart );
+			$builder->appendTitleSegment( $titlePart );
 		}
 
 		return $builder->invertTitleSegments()->build();
