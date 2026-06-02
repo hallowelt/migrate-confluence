@@ -567,13 +567,13 @@ class WorkspaceDB {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS page_templates (
 				template_id INT PRIMARY KEY,
-				name CHAR,
 				space_id INT,
+				confluence_title CHAR,
 				wiki_title CHAR,
 				revision_timestamp CHAR,
 				version CHAR,
 				properties BLOB,
-				content_status CHAR
+				collection BLOB
 			);'
 		);
 	}
@@ -2973,50 +2973,51 @@ class WorkspaceDB {
 
 	/**
 	 * @param int $templateId
-	 * @param string $name
+	 * @param string $confluenceTitle
 	 * @param int|null $spaceId
 	 * @param string $wikiTitle
 	 * @param string $revisionTimestamp
 	 * @param string $version
-	 * @param string $contentStatus
 	 * @param array $properties
+	 * @param array $collection
 	 * @return bool
 	 */
 	public function addPageTemplate(
 		int $templateId,
-		string $name,
+		string $confluenceTitle,
 		?int $spaceId,
 		string $wikiTitle = '',
 		string $revisionTimestamp = '',
 		string $version = '1',
-		string $contentStatus = 'current',
-		array $properties = []
+		array $properties = [],
+		array $collection = []
 	): bool {
 		$propertiesJson = json_encode( $properties );
+		$collectionJson = json_encode( $collection );
 		$transaction = $this->cachedPrepare(
 			'INSERT OR REPLACE INTO page_templates (
 				template_id,
-				name,
 				space_id,
+				confluence_title,
 				wiki_title,
 				revision_timestamp,
 				version,
 				properties,
-				content_status
+				collection
 			) VALUES (
 				:template_id,
-				:name,
 				:space_id,
+				:confluence_title,
 				:wiki_title,
 				:revision_timestamp,
 				:version,
 				:properties,
-				:content_status
+				:collection
 			)'
 		);
 
 		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':name', $name, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 		if ( $spaceId !== null ) {
 			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 		} else {
@@ -3025,7 +3026,7 @@ class WorkspaceDB {
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
-		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
+		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
@@ -3126,7 +3127,7 @@ class WorkspaceDB {
 	 */
 	public function getPageTemplateIdTargetTitleMap(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT template_id, wiki_title FROM page_templates WHERE content_status = "current"'
+			'SELECT template_id, wiki_title FROM page_templates'
 		);
 
 		$result = $transaction->execute();
@@ -3145,18 +3146,44 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getPageTemplateRevisionsForTemplateId( int $templateId ): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT revision_timestamp, version FROM page_templates
-			WHERE template_id = :template_id AND lower( content_status ) != "deleted"'
+		$anchorTransaction = $this->cachedPrepare(
+			'SELECT confluence_title FROM page_templates WHERE template_id = :template_id LIMIT 1'
 		);
-		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+		$anchorTransaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+
+		$anchorResult = $anchorTransaction->execute();
+		if ( $anchorResult === false ) {
+			return [];
+		}
+
+		$anchorData = $anchorResult->fetchArray( SQLITE3_ASSOC );
+		$anchorResult->finalize();
+
+		if ( $anchorData === false || !isset( $anchorData['confluence_title'] ) ) {
+			return [];
+		}
+
+		$confluenceTitle = (string)$anchorData['confluence_title'];
+
+		$transaction = $this->cachedPrepare(
+			'SELECT template_id, revision_timestamp, version FROM page_templates
+			WHERE confluence_title = :confluence_title
+			ORDER BY revision_timestamp DESC'
+		);
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
 		$data = $this->fetchDbArray( $result );
 
-		// The body content ID for a template is the template ID itself.
+		// The template content ID for a template revision is its template ID.
 		foreach ( $data as &$row ) {
-			$row['body_content_ids'] = json_encode( [ $templateId ] );
+			$templateRevisionId = isset( $row['template_id'] ) ? (int)$row['template_id'] : $templateId;
+			$row['template_content_ids'] = json_encode( [ $templateRevisionId ] );
+			unset( $row['template_id'] );
 		}
 		unset( $row );
 
@@ -3210,10 +3237,10 @@ class WorkspaceDB {
 	 */
 	public function getConfluencePageTitleFromTemplateId( int $templateId ): string {
 		$template = $this->getPageTemplateById( $templateId );
-		if ( $template === null || empty( $template['name'] ) ) {
+		if ( $template === null ) {
 			return '';
 		}
 
-		return $template['name'];
+		return $template['confluence_title'];
 	}
 }

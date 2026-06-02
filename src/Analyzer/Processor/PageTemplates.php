@@ -23,6 +23,7 @@ class PageTemplates extends ProcessorBase {
 	public function doExecute(): void {
 		$templateId = null;
 		$properties = [];
+		$collection = [];
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
@@ -34,6 +35,8 @@ class PageTemplates extends ProcessorBase {
 				}
 			} elseif ( $this->xmlReader->name === 'property' ) {
 				$properties = $this->processPropertyNodes( $properties );
+			} elseif ( $this->xmlReader->name === 'collection' ) {
+				$collection = $this->processCollectionNodes( $collection );
 			}
 			$this->xmlReader->next();
 		}
@@ -83,6 +86,8 @@ class PageTemplates extends ProcessorBase {
 
 		$this->workspaceDB->addPageTemplateContents( $templateId, $content );
 
+		unset( $properties['content'] );
+
 		$status = $this->workspaceDB->addPageTemplate(
 			$templateId,
 			$name,
@@ -90,8 +95,8 @@ class PageTemplates extends ProcessorBase {
 			$wikiTitle,
 			$revisionTimestamp,
 			$version,
-			'current',
-			$properties
+			$properties,
+			$collection
 		);
 
 		if ( !$status ) {
