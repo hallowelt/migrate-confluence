@@ -397,7 +397,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new SectionMacro(),
 			new ChildrenMacro(
 				$this->currentSpace,
-				$this->currentWikiTitle,
+				$this->confluencePageTitle,
 				$this->dataLookup
 			),
 			new PageTreeMacro(

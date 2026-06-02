@@ -13,12 +13,12 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param int $spaceId
-	 * @param string $currentWikiTitle
+	 * @param string $confluencePageTitle
 	 * @param DBConversionDataLookup $dataLookup
 	 */
 	public function __construct(
 		private int $spaceId,
-		private string $currentWikiTitle,
+		private string $confluencePageTitle,
 		private DBConversionDataLookup $dataLookup
 	) {
 		$this->isBroken = false;
@@ -61,8 +61,8 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 		}
 
 		if ( !isset( $params['page'] ) ) {
-			// if no page param was set pass current page title to subpage template
-			$params['page'] = $this->currentWikiTitle;
+			// if no page param was set resolve current page's wiki title as subpage root
+			$params['page'] = $this->resolveWikiTitle( $this->spaceId, '', $this->confluencePageTitle );
 		}
 
 		// page must not contain underscores
@@ -76,6 +76,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 		$wikiText = '{{SubpageList' . $templateParams . '}}';
 		if ( $this->isBroken ) {
 			$wikiText .= $this->getBrokenMacroCategory();
+			$this->isBroken = false;
 		}
 
 		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
@@ -90,8 +91,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @return string
 	 */
 	private function processPageParam( DOMNode $paramNode ): string {
-		// Fallback if param 'page' doesn't have a ac:link child element
-		$pageName = $this->currentWikiTitle;
+		$pageName = null;
 
 		if ( $paramNode->hasChildnodes() ) {
 			foreach ( $paramNode->childNodes as $childNode ) {
@@ -103,7 +103,6 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 						$childWikiTitle = $this->findChildWikiTitle( $pageLink );
 
 						if ( !$childWikiTitle ) {
-							$this->isBroken = true;
 							continue;
 						}
 
@@ -113,8 +112,12 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			}
 		}
 
+		// Fallback if param 'page' doesn't have a ac:link child element
+		if ( !$pageName ) {
+			$pageName = $this->resolveWikiTitle( $this->spaceId, '', $this->confluencePageTitle );
+		}
 
-		return str_replace( '_', ' ', $pageName );
+		return $pageName;
 	}
 
 	/**
@@ -123,36 +126,40 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @return string|null
 	 */
 	private function findChildWikiTitle( DOMNode $pageLink ): ?string {
-		// If no confluence title was found set empty page title and mark macro as broken
 		if ( !$pageLink->hasAttribute( 'ri:content-title' ) ) {
 			return null;
 		}
 
-		$pageConfluenceTitle = $pageLink->getAttribute( 'ri:content-title' );
-		if ( empty( $pageConfluenceTitle ) ) {
+		$confluenceTitle = $pageLink->getAttribute( 'ri:content-title' );
+		if ( empty( $confluenceTitle ) ) {
 			return null;
 		}
 
 		$spaceId = $this->spaceId;
-
-		// Get space key if set. Otherwise use current space key
 		$spaceKey = '';
 		if ( $pageLink->hasAttribute( 'ri:space-key' ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey(
-				$pageLink->getAttribute( 'ri:space-key' )
-			);
+			$spaceKey = $pageLink->getAttribute( 'ri:space-key' );
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 		}
 
+		return $this->resolveWikiTitle( $spaceId, $spaceKey, $confluenceTitle );
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $spaceKey Empty string when using the current page's space
+	 * @param string $confluenceTitle
+	 *
+	 * @return string
+	 */
+	private function resolveWikiTitle( int $spaceId, string $spaceKey, string $confluenceTitle ): string {
 		try {
-			return $this->dataLookup->getTargetWikiTitleFromSpaceId(
-				$spaceId,
-				$pageConfluenceTitle
-			);
+			$wikiTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $confluenceTitle );
 		} catch ( Exception $e ) {
-			// If no page title can be found mark macro as broken
-			$pageConfluenceTitle = str_replace( ' ', '_', $pageConfluenceTitle );
-
-			return "Confluence---$spaceKey---$pageConfluenceTitle";
+			$this->isBroken = true;
+			$wikiTitle = "Confluence---$spaceKey---$confluenceTitle";
 		}
+
+		return str_replace( ' ', '_', $wikiTitle );
 	}
 }
