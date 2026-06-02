@@ -3142,35 +3142,22 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * There are page template revisions but they are missing space_id, original_version_id
+	 * or histroy_version_ids.
+	 * It is not possible to link a template revision to its original template or other revisions,
+	 * especially if more than one spaces are involved, but we can still return the revision info
+	 * with the template_id as the template_content_id for the latest version for now.
+	 *
 	 * @param int $templateId
 	 * @return array
 	 */
 	public function getPageTemplateRevisionsForTemplateId( int $templateId ): array {
-		$anchorTransaction = $this->cachedPrepare(
-			'SELECT confluence_title FROM page_templates WHERE template_id = :template_id LIMIT 1'
-		);
-		$anchorTransaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
-
-		$anchorResult = $anchorTransaction->execute();
-		if ( $anchorResult === false ) {
-			return [];
-		}
-
-		$anchorData = $anchorResult->fetchArray( SQLITE3_ASSOC );
-		$anchorResult->finalize();
-
-		if ( $anchorData === false || !isset( $anchorData['confluence_title'] ) ) {
-			return [];
-		}
-
-		$confluenceTitle = (string)$anchorData['confluence_title'];
-
 		$transaction = $this->cachedPrepare(
 			'SELECT template_id, revision_timestamp, version FROM page_templates
-			WHERE confluence_title = :confluence_title
+			WHERE template_id = :template_id
 			ORDER BY revision_timestamp DESC'
 		);
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
