@@ -14,26 +14,6 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 class Image implements IProcessor {
 
 	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var int
-	 */
-	protected int $currentSpaceId;
-
-	/**
-	 * @var string
-	 */
-	protected string $rawPageTitle;
-
-	/**
-	 * @var MigrationConfig
-	 */
-	protected MigrationConfig $migrationConfig;
-
-	/**
 	 * @var FilenameResolver
 	 */
 	protected FilenameResolver $filenameResolver;
@@ -44,20 +24,19 @@ class Image implements IProcessor {
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
-		$this->migrationConfig = $migrationConfig;
+	public function __construct(
+		private DBConversionDataLookup $dataLookup,
+		private int $currentSpaceId,
+		private string $rawPageTitle,
+		MigrationConfig $migrationConfig
+	) {
+		$this->filenameResolver = new FilenameResolver( $dataLookup, $migrationConfig );
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
-		$this->filenameResolver = new FilenameResolver( $this->dataLookup, $this->migrationConfig );
-
 		$imageNodes = $dom->getElementsByTagName( 'image' );
 
 		$nonLiveList = [];
@@ -210,7 +189,7 @@ class Image implements IProcessor {
 	/**
 	 * MediaWiki does not render an img tag.
 	 * But with $wgAllowExternalImages it can show external images.
-	 * If this varaiable is false we show at least the url as link.
+	 * If this variable is false we show at least the url as link.
 	 *
 	 * @param DOMElement $node
 	 *
@@ -279,14 +258,12 @@ class Image implements IProcessor {
 
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 
-		$replacementNode = $this->makeImageLinkWithDebugInfo(
+		return $this->makeImageLinkWithDebugInfo(
 			$node->ownerDocument,
 			$params,
 			$confluenceFileKey,
 			$brokenFileInfo
 		);
-
-		return $replacementNode;
 	}
 
 	/**

@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
+use Exception;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
 class DBConversionDataLookup {
@@ -74,13 +75,13 @@ class DBConversionDataLookup {
 	}
 
 	/**
-	 * Get the mediawiki page title for a given space key and confluence page title.
-	 * If no mapping is found return the confluence title itself as page title
-	 * and a flag indicating that the title is not mapped.
+	 * Get the wiki page title for a given space key.
 	 *
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
+	 *
 	 * @return string
+	 * @throws Exception
 	 */
 	public function getTargetWikiTitleFromSpaceId(
 		int $spaceId, string $confluenceTitle

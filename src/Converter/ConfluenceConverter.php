@@ -197,6 +197,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 	/**
 	 * @inheritDoc
+	 * @throws Exception
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
 		$this->output->writeln( "Converting file " . $file->getPathname() );
@@ -210,18 +211,25 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$bodyContentId = $this->getBodyContentIdFromPageTemplateFilename();
 			$this->contentType = 'pageTemplate';
 			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId ) ?? 0;
-			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromTemplateId( $bodyContentId );
-			$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromTemplateId( $bodyContentId );
-			if ( $this->currentWikiTitle === '' ) {
+
+			try {
+				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromTemplateId( $bodyContentId );
+			} catch (Exception $e ) {
+				$this->addNonBLockingLogEntry( $e->getMessage() );
+				$this->confluencePageTitle = '';
+			}
+
+			try {
+				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromTemplateId( $bodyContentId );
+			} catch (Exception $e ) {
+				$this->addNonBLockingLogEntry( $e->getMessage() );
 				$this->currentWikiTitle = 'not_current_revision_for_page_template_' . $bodyContentId;
 			}
+
 			if ( $this->currentSpace === -1 ) {
-				$this->pipeToDB->send(
-					'log',
-					'error',
-					'convert',
-					__CLASS__,
-					"No context space id found for page template $bodyContentId"
+				$this->addNonBLockingLogEntry(
+					"No context space id found for page template $bodyContentId",
+					'error'
 				);
 
 				return '<-- No context space id found -->';
@@ -238,10 +246,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
 
-				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+				try {
+					$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+				} catch (Exception $e ) {
+					$this->addNonBLockingLogEntry( $e->getMessage() );
+					$this->confluencePageTitle = '';
+				}
 
-				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId );
-				if ( $this->currentWikiTitle === '' ) {
+				try {
+					$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId );
+				} catch (Exception $e ) {
+					$this->addNonBLockingLogEntry( $e->getMessage() );
 					$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
 				}
 			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
@@ -251,10 +266,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				$this->pageId = $contentId;
 
-				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+				try {
+					$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+				} catch (Exception $e ) {
+					$this->addNonBLockingLogEntry( $e->getMessage() );
+					$this->confluencePageTitle = '';
+				}
 
-				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId );
-				if ( $this->currentWikiTitle === '' ) {
+				try {
+					$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId );
+				} catch (Exception $e ) {
+					$this->addNonBLockingLogEntry( $e->getMessage() );
 					$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
 				}
 			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
@@ -264,11 +286,19 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				$this->pageId = $contentId;
 
-				$this->confluencePageTitle = $this->workspaceDB
-					->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId );
+				try {
+					$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId(
+						$this->pageId
+					);
+				} catch ( Exception $e ) {
+					$this->addNonBLockingLogEntry( $e->getMessage() );
+					$this->confluencePageTitle = '';
+				}
 
-				$this->currentWikiTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
-				if ( $this->currentWikiTitle === '' ) {
+				try {
+					$this->currentWikiTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
+				} catch (Exception $e ) {
+					$this->addNonBLockingLogEntry( $e->getMessage() );
 					$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
 				}
 			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
@@ -285,23 +315,18 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			}
 
 			if ( $this->contentType !== 'pageTemplate' && $this->pageId === -1 ) {
-				$this->pipeToDB->send(
-					'log',
-					'error',
-					'convert',
-					__CLASS__,
-					"No context page id found for bodyContentId $bodyContentId"
+				$this->addNonBLockingLogEntry(
+					"No context page id found for bodyContentId $bodyContentId",
+					'error'
 				);
+
 				return '<-- No context page id found -->';
 			}
 
 			if ( $this->currentSpace === -1 ) {
-				$this->pipeToDB->send(
-					'log',
-					'error',
-					'convert',
-					__CLASS__,
-					"No context space id found for bodyContentId $bodyContentId"
+				$this->addNonBLockingLogEntry(
+					"No context space id found for bodyContentId $bodyContentId",
+					'error'
 				);
 
 				return '<-- No context space id found -->';
@@ -315,13 +340,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$unconvertedContent = "<-- Unconvertable RAW start-->\n";
 			$unconvertedContent .= $rawContent;
 			$unconvertedContent .= "\n<-- Unconvertable RAW end-->\n[[Category:Unconvertable]]";
-			$this->pipeToDB->send(
-				'log',
-				'warning',
-				'convert',
-				__CLASS__,
-				"Unconvertable RAW content for bodyContentId $bodyContentId"
-			);
+
+			$this->addNonBLockingLogEntry( "Unconvertable RAW content for bodyContentId $bodyContentId" );
+
 			return $unconvertedContent;
 		}
 
@@ -382,7 +403,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new PageTreeMacro(
 				$this->dataLookup,
 				$this->currentSpace,
-				$this->currentWikiTitle,
+				$this->confluencePageTitle,
 				$this->migrationConfig->getMainPageName()
 			),
 			new RecentlyUpdatedMacro( $this->currentWikiTitle ),
@@ -840,14 +861,24 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$exceed = '100';
 		}
 		if ( $exceed !== '' ) {
-			$this->pipeToDB->send(
-				'log',
-				'warning',
-				'convert',
-				__CLASS__,
-				"bodyContentId $bodyContentId contains large content (>$exceed KB)"
-			);
+			$this->addNonBLockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
 			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 		}
+	}
+
+	/**
+	 * @param string $type
+	 * @param string $message
+	 *
+	 * @return void
+	 */
+	private function addNonBLockingLogEntry( string $message, string $type = 'warning' ): void {
+		$this->pipeToDB->send(
+			'log',
+			$type,
+			'convert',
+			__CLASS__,
+			$message
+		);
 	}
 }

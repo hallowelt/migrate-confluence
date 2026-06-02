@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 
 /**
@@ -46,7 +47,13 @@ class FilenameResolver {
 			return $this->getResult( $fileTitle, false );
 		}
 
-		$fileTitle = $this->buildFileTitle( $spaceId, $confluencePageTitle, $filename );
+		try {
+			$fileTitle = $this->buildFileTitle( $spaceId, $confluencePageTitle, $filename );
+		} catch ( Exception $ex ) {
+			// In case of any error, we want to return a result with the original filename as title, so that at least a red link is rendered.
+			$fileTitle = $filename;
+		}
+
 		return $this->getResult( $fileTitle, true );
 	}
 
@@ -54,7 +61,9 @@ class FilenameResolver {
 	 * @param int $spaceId
 	 * @param string $confluencePageTitle
 	 * @param string $filename
+	 *
 	 * @return string
+	 * @throws Exception
 	 */
 	private function buildFileTitle( int $spaceId, string $confluencePageTitle, string $filename ): string {
 		$assocTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $confluencePageTitle );

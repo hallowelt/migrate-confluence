@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 
@@ -27,42 +28,44 @@ class PageLink extends LinkProcessorBase {
 	 * @throws InvalidTitleException
 	 */
 	protected function doProcessLink( DOMNode $node ): void {
-		if ( $node instanceof DOMElement ) {
-			$isBrokenLink = false;
-			$rawPageTitle = $node->getAttribute( 'ri:content-title' );
-			$spaceId = $this->ensureSpaceId( $node );
+		if ( !($node instanceof DOMElement) ) {
+			return;
+		}
 
+		$isBrokenLink = false;
+		$rawPageTitle = $node->getAttribute( 'ri:content-title' );
+		$spaceId = $this->ensureSpaceId( $node );
+
+		try {
 			$targetTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId(
 				$spaceId,
 				$rawPageTitle
 			);
-			$linkParts = [];
-			if ( !empty( $targetTitle ) ) {
-				$linkParts[] = $targetTitle;
-			} else {
-				// If not in migation data, save some info for manual post migration work
-				$linkParts[] = $this->generateConfluenceKey( $spaceId, $rawPageTitle );
-				$isBrokenLink = true;
-			}
-
-			$this->getLinkBody( $node, $linkParts );
-
-			$replacement = $this->getBrokenLinkReplacement();
-
-			if ( !empty( $linkParts ) ) {
-				$replacement = $this->makeLink( $linkParts );
-			}
-
-			if ( $isBrokenLink ) {
-				$replacement .= '[[Category:Broken_page_link]]';
-			}
-
-			$this->replaceLink( $node, $replacement );
+		} catch ( Exception $e ) {
+			// If not in migration data, save some info for manual post migration work
+			$targetTitle = $this->generateConfluenceKey( $spaceId, $rawPageTitle );
+			$isBrokenLink = true;
 		}
+
+		$linkParts = [ $targetTitle ];
+		$this->getLinkBody( $node, $linkParts );
+
+		$replacement = $this->getBrokenLinkReplacement();
+
+		if ( !empty( $linkParts ) ) {
+			$replacement = $this->makeLink( $linkParts );
+		}
+
+		if ( $isBrokenLink ) {
+			$replacement .= '[[Category:Broken_page_link]]';
+		}
+
+		$this->replaceLink( $node, $replacement );
 	}
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return int
 	 */
 	private function ensureSpaceId( DOMNode $node ): int {
@@ -86,8 +89,7 @@ class PageLink extends LinkProcessorBase {
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
 		if ( !empty( $rawPageTitle ) ) {
 			$genericTitleBuilder = new GenericTitleBuilder( [] );
-			$rawPageTitle = $genericTitleBuilder
-				->appendTitleSegment( $rawPageTitle )->build();
+			$rawPageTitle = $genericTitleBuilder->appendTitleSegment( $rawPageTitle )->build();
 			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
 		}
 
@@ -95,11 +97,13 @@ class PageLink extends LinkProcessorBase {
 		if ( $this->spaceKey !== '' ) {
 			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
 		}
+
 		return $confluenceKey;
 	}
 
 	/**
 	 * @param array $linkParts
+	 *
 	 * @return string
 	 */
 	public function makeLink( array $linkParts ): string {
