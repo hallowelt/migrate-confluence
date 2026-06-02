@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
 use Exception;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;

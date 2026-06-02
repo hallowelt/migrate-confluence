@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
+use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
+
 /**
  * Fallback to set valid body content id's. This is sometimes
  * required.

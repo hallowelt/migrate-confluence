@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
+use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
+
 /**
  * Space id of historical versions can be -1 but we need the space id for converter
  * Use space id from original version and update history versions

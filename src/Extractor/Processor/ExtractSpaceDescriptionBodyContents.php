@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 
 /**
