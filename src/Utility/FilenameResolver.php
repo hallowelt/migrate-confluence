@@ -47,12 +47,7 @@ class FilenameResolver {
 			return $this->getResult( $fileTitle, false );
 		}
 
-		try {
-			$fileTitle = $this->buildFileTitle( $spaceId, $confluencePageTitle, $filename );
-		} catch ( Exception $ex ) {
-			// In case of any error, we want to return a result with the original filename as title, so that at least a red link is rendered.
-			$fileTitle = $filename;
-		}
+		$fileTitle = $this->buildFileTitle( $spaceId, $confluencePageTitle, $filename );
 
 		return $this->getResult( $fileTitle, true );
 	}
@@ -63,10 +58,13 @@ class FilenameResolver {
 	 * @param string $filename
 	 *
 	 * @return string
-	 * @throws Exception
 	 */
 	private function buildFileTitle( int $spaceId, string $confluencePageTitle, string $filename ): string {
-		$assocTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $confluencePageTitle );
+		try {
+			$assocTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $confluencePageTitle );
+		} catch ( Exception $ex ) {
+			$assocTitle = '';
+		}
 
 		$filenameBuilder = new FilenameBuilder(
 			$this->dataLookup->getSpaceIdToPrefixMap(),
