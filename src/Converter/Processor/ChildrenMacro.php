@@ -60,6 +60,14 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			$params[$name] = $paramNode->nodeValue;
 		}
 
+		if ( !isset( $params['page'] ) ) {
+			// if no page param was set pass current page title to subpage template
+			$params['page'] = $this->currentWikiTitle;
+		}
+
+		// page must not contain underscores
+		$params['page'] = str_replace( '_', ' ', $params['page'] );
+
 		$templateParams = '';
 		foreach ( $params as $key => $value ) {
 			$templateParams .= '|' . $key . '=' . $value;
@@ -83,8 +91,6 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 */
 	private function processPageParam( DOMNode $paramNode ): string {
 		// Fallback if param 'page' doesn't have a ac:link child element
-		// TODO: which of them is correct fallback?
-		$pageName = $paramNode->nodeValue;
 		$pageName = $this->currentWikiTitle;
 
 		if ( $paramNode->hasChildnodes() ) {
@@ -107,7 +113,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			}
 		}
 
-		// page param must not contain underscores
+
 		return str_replace( '_', ' ', $pageName );
 	}
 
