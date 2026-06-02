@@ -38,8 +38,8 @@ class DBComposerDataLookup {
 	 * @param int $pageId
 	 * @return array
 	 */
-	public function getBlogPostRevisionsForPageId( int $pageId ): array {
-		return $this->workspaceDB->getBlogPostRevisionsForPageId( $pageId );
+	public function getBlogPostRevisionsForBlogPostId( int $pageId ): array {
+		return $this->workspaceDB->getBlogPostRevisionsForBlogPostId( $pageId );
 	}
 
 	/**
@@ -79,6 +79,14 @@ class DBComposerDataLookup {
 	 */
 	public function getUsers(): array {
 		return $this->workspaceDB->getUsers();
+	}
+
+	/**
+	 * @param string $userKey
+	 * @return string
+	 */
+	public function getUsernameFromUserKey( string $userKey ): string {
+		return $this->workspaceDB->getUsernameFromUserKey( $userKey );
 	}
 
 	/**
@@ -124,5 +132,25 @@ class DBComposerDataLookup {
 	 */
 	public function getAttachment( int $attachmentId ): array {
 		return $this->workspaceDB->getAttachment( $attachmentId );
+	}
+
+	/**
+	 * Get the target page title for a given page ID.
+	 * If the page has an original version, recursively look up the original version
+	 * until the original version is reached and return its wiki title.
+	 *
+	 * @param int $pageId
+	 * @return string
+	 */
+	public function getTargetPageTitleFromPageId( int $pageId ): string {
+		return $this->workspaceDB->getTargetPageTitleFromPageId( $pageId );
+	}
+
+	/**
+	 * @param int $attachmentId
+	 * @return array
+	 */
+	public function getAttachmentRevisionsForAttachmentId( int $attachmentId ): array {
+		return $this->workspaceDB->getAttachmentRevisionsForAttachmentId( $attachmentId );
 	}
 }

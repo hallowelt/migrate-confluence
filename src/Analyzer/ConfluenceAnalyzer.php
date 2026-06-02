@@ -229,12 +229,14 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		$this->processFile( $processors );
 
 		$this->updateBodyContentIdsFallback();
+		$this->updatePageTableWithSpaceIdOfHistoryVersions();
 		$this->updatePageTableWithWikiTitle();
+		$this->updateBlogPostTableWithSpaceIdOfHistoryVersions();
 		$this->updateBlogPostTableWithWikiTitle();
 		$this->updatePageAttachmentTable();
 		$this->populateAdditionalAttachmentsTable();
-		$this->workspaceDB->commitTransaction();
 
+		$this->workspaceDB->commitTransaction();
 		return true;
 	}
 
@@ -338,6 +340,59 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	}
 
 	/**
+	 * Space id of historical versions can be -1 but we need the space id for converter
+	 * Use space id from original version and update history versions
+	 *
+	 * @return void
+	 */
+	private function updatePageTableWithSpaceIdOfHistoryVersions(): void {
+		$pageIdToSpaceIdMap = [];
+		$pages = $this->workspaceDB->getPages();
+
+		foreach ( $pages as $page ) {
+			if ( !isset( $page['page_id'] ) || !array_key_exists( 'space_id', $page ) ) {
+				continue;
+			}
+
+			if ( $page['space_id'] === null ) {
+				continue;
+			}
+
+			$pageIdToSpaceIdMap[(int)$page['page_id']] = (int)$page['space_id'];
+		}
+
+		foreach ( $pages as $page ) {
+			if ( !isset( $page['page_id'] )
+				|| !array_key_exists( 'space_id', $page )
+				|| !isset( $page['original_version_id'] )
+			) {
+				continue;
+			}
+
+			$originalVersionId = (int)$page['original_version_id'];
+			if ( $originalVersionId === -1 ) {
+				continue;
+			}
+
+			if ( $page['space_id'] !== null ) {
+				continue;
+			}
+
+			$pageId = (int)$page['page_id'];
+
+			if ( !isset( $pageIdToSpaceIdMap[$originalVersionId] ) ) {
+				continue;
+			}
+			$originalSpaceId = (int)$pageIdToSpaceIdMap[$originalVersionId];
+
+			$this->workspaceDB->updatePageSpaceId( $pageId, $originalSpaceId );
+			$this->output->writeln(
+				"Updated space_id for historical page ID $pageId with space_id: $originalSpaceId"
+			);
+		}
+	}
+
+	/**
 	 * @return void
 	 */
 	private function updatePageTableWithWikiTitle(): void {
@@ -416,6 +471,59 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	}
 
 	/**
+	 * Space id of historical versions can be -1 but we need the space id for converter
+	 * Use space id from original version and update history versions
+	 *
+	 * @return void
+	 */
+	private function updateBlogPostTableWithSpaceIdOfHistoryVersions(): void {
+		$pageIdToSpaceIdMap = [];
+		$blogPosts = $this->workspaceDB->getBlogPosts();
+
+		foreach ( $blogPosts as $blogPost ) {
+			if ( !isset( $blogPost['page_id'] ) || !array_key_exists( 'space_id', $blogPost ) ) {
+				continue;
+			}
+
+			if ( $blogPost['space_id'] === null ) {
+				continue;
+			}
+
+			$pageIdToSpaceIdMap[(int)$blogPost['page_id']] = (int)$blogPost['space_id'];
+		}
+
+		foreach ( $blogPosts as $blogPost ) {
+			if ( !isset( $blogPost['page_id'] )
+				|| !array_key_exists( 'space_id', $blogPost )
+				|| !isset( $blogPost['original_version_id'] )
+			) {
+				continue;
+			}
+
+			$originalVersionId = (int)$blogPost['original_version_id'];
+			if ( $originalVersionId === -1 ) {
+				continue;
+			}
+
+			if ( $blogPost['space_id'] !== null ) {
+				continue;
+			}
+			$pageId = (int)$blogPost['page_id'];
+
+			if ( !isset( $pageIdToSpaceIdMap[$originalVersionId] ) ) {
+				continue;
+			}
+
+			$originalSpaceId = (int)$pageIdToSpaceIdMap[$originalVersionId];
+
+			$this->workspaceDB->updateBlogPostSpaceId( $pageId, $originalSpaceId );
+			$this->output->writeln(
+				"Updated space_id for historical blog post ID $pageId with space_id: $originalSpaceId"
+			);
+		}
+	}
+
+	/**
 	 * @return void
 	 */
 	private function updateBlogPostTableWithWikiTitle(): void {
@@ -451,9 +559,12 @@ class ConfluenceAnalyzer extends AnalyzerBase
 				"Creating wiki title for blog post ID $pageId with confluence title '$confluenceTitle'"
 			);
 
-			$spaceKey = $spaceIdToSpaceKeyMap[$spaceId];
+			$spaceKey = '';
+			if ( isset( $spaceIdToSpaceKeyMap[$spaceId] ) ) {
+				$spaceKey = $spaceIdToSpaceKeyMap[$spaceId] . '/';
+			}
 			$blogName = self::NS_BLOG_NAME;
-			$titleBuilder = new TitleBuilder( [ $spaceId => "$blogName:$spaceKey/" ], [], [], [] );
+			$titleBuilder = new TitleBuilder( [ $spaceId => "$blogName:$spaceKey" ], [], [], [] );
 
 			try {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
@@ -494,7 +605,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			) {
 				continue;
 			}
-			if ( $page['content_status'] !== 'current' || $page['wiki_title'] === '' ) {
+			if ( $page['content_status'] !== 'current' ) {
 				continue;
 			}
 			$pageIdToWikiTitleMap[(int)$page['page_id']] = (string)$page['wiki_title'];

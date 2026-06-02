@@ -23,6 +23,7 @@ class PageTemplates extends ProcessorBase {
 	public function doExecute(): void {
 		$templateId = null;
 		$properties = [];
+		$collection = [];
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
@@ -34,6 +35,8 @@ class PageTemplates extends ProcessorBase {
 				}
 			} elseif ( $this->xmlReader->name === 'property' ) {
 				$properties = $this->processPropertyNodes( $properties );
+			} elseif ( $this->xmlReader->name === 'collection' ) {
+				$collection = $this->processCollectionNodes( $collection );
 			}
 			$this->xmlReader->next();
 		}
@@ -62,6 +65,15 @@ class PageTemplates extends ProcessorBase {
 		}
 
 		$spaceId = isset( $properties['space'] ) ? (int)$properties['space'] : null;
+		if ( $spaceId === null ) {
+			// History version of a template is missing space, original_version_id
+			// or histroy_version_ids.
+			// It is not possible to link a template revision to its original template
+			// or other revisions, especially if more than.
+			// Therefor we skip the template if space is missing for now.
+			return;
+		}
+
 		$content = $properties['content'] ?? '';
 
 		$lastModificationDate = $properties['lastModificationDate'] ?? '';
@@ -81,15 +93,19 @@ class PageTemplates extends ProcessorBase {
 			return;
 		}
 
+		$this->workspaceDB->addPageTemplateContents( $templateId, $content );
+
+		unset( $properties['content'] );
+
 		$status = $this->workspaceDB->addPageTemplate(
 			$templateId,
 			$name,
 			$spaceId,
-			$content,
 			$wikiTitle,
 			$revisionTimestamp,
 			$version,
-			$properties
+			$properties,
+			$collection
 		);
 
 		if ( !$status ) {

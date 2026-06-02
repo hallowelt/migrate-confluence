@@ -142,8 +142,8 @@ class WorkspaceDbMock {
 	}
 
 	private function seedPageTemplateMappings( WorkspaceDB $workspaceDB ): void {
-		$workspaceDB->addPageTemplate( 123456, 'SomePage', 42, '', 'Template:ABC/SomePage' );
-		$workspaceDB->addPageTemplate( 7890, 'SomeOtherPage', 23, '', 'Template:DEVOPS/SomeOtherPage' );
+		$workspaceDB->addPageTemplate( 123456, 'SomePage', 42, 'Template:ABC/SomePage' );
+		$workspaceDB->addPageTemplate( 7890, 'SomeOtherPage', 23, 'Template:DEVOPS/SomeOtherPage' );
 	}
 
 	private function seedAttachmentMappings( WorkspaceDB $workspaceDB, bool $keepAttachmentNamespaceColon ): void {
@@ -324,7 +324,8 @@ class WorkspaceDbMock {
 			$spaceId,
 			$confluenceTitle,
 			$wikiTitle,
-			'2024-01-01T00:00:00.000Z',
+			'20240101000000',
+			'',
 			'current',
 			'1',
 			-1,
@@ -358,7 +359,9 @@ class WorkspaceDbMock {
 			$fileExtension,
 			$pageId,
 			$contentStatus,
-			1,
+			'1',
+			'20240101000000',
+			'',
 			-1,
 			$attachmentReference,
 			[],

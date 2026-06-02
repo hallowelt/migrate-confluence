@@ -33,9 +33,9 @@ class Attachments extends ProcessorBase {
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
 			if ( $this->xmlReader->name === 'id' ) {
 				if ( $this->xmlReader->nodeType === XMLReader::CDATA ) {
-					$attachmentId = $this->getCDATAValue();
+					$attachmentId = (int)$this->getCDATAValue();
 				} else {
-					$attachmentId = $this->getTextValue();
+					$attachmentId = (int)$this->getTextValue();
 				}
 			} elseif ( $this->xmlReader->name === 'property' ) {
 				$properties = $this->processPropertyNodes( $properties );
@@ -48,6 +48,7 @@ class Attachments extends ProcessorBase {
 		if ( $attachmentId === null ) {
 			return;
 		}
+		$referenceAttachmentId = (int)$attachmentId;
 
 		$confluenceFilename = '';
 		if ( isset( $properties['fileName'] ) ) {
@@ -57,13 +58,9 @@ class Attachments extends ProcessorBase {
 			$confluenceFilename = $properties['title'];
 		}
 
-		$spaceId = -1;
+		$spaceId = null;
 		if ( isset( $properties['space'] ) ) {
-			$spaceId = $properties['space'];
-		}
-
-		if ( !$this->migrationConfig->getIncludeHistory() && $spaceId === -1 ) {
-			return;
+			$spaceId = (int)$properties['space'];
 		}
 
 		$containerContentId = -1;
@@ -94,6 +91,11 @@ class Attachments extends ProcessorBase {
 		$originalVersionId = -1;
 		if ( isset( $properties['originalVersion'] ) ) {
 			$originalVersionId = (int)$properties['originalVersion'];
+			$referenceAttachmentId = $originalVersionId;
+		}
+
+		if ( !$this->migrationConfig->getIncludeHistory() && $originalVersionId > 0 ) {
+			return;
 		}
 
 		$historicalIds = [];
@@ -101,8 +103,24 @@ class Attachments extends ProcessorBase {
 			$historicalIds = $collection['historicalVersions'];
 		}
 
+		$lastModificationDate = '';
+		if ( isset( $properties['lastModificationDate'] ) && $properties['lastModificationDate'] !== '' ) {
+			$lastModificationDate = $properties['lastModificationDate'];
+		} elseif ( isset( $properties['creationDate'] ) && $properties['creationDate'] !== '' ) {
+			$lastModificationDate = $properties['creationDate'];
+		}
+
+		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
+
+		$lastModifier = '';
+		if ( isset( $properties['lastModifier'] ) && $properties['lastModifier'] !== '' ) {
+			$lastModifier = $properties['lastModifier'];
+		} elseif ( isset( $properties['creator'] ) && $properties['creator'] !== '' ) {
+			$lastModifier = $properties['creator'];
+		}
+
 		$attachmentReference = $this->makeAttachmentReference(
-			$attachmentId,
+			$referenceAttachmentId,
 			$containerContentId,
 			$properties
 		);
@@ -115,6 +133,8 @@ class Attachments extends ProcessorBase {
 			$containerContentId,
 			strtolower( $contentStatus ),
 			$version,
+			$revisionTimestamp,
+			$lastModifier,
 			$originalVersionId,
 			$attachmentReference,
 			$historicalIds,

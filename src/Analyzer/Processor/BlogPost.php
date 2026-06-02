@@ -52,18 +52,18 @@ class BlogPost extends ProcessorBase {
 			return;
 		}
 
-		$spaceId = -1;
+		$spaceId = null;
 		if ( isset( $properties['space'] ) ) {
 			$spaceId = (int)$properties['space'];
-		}
-
-		if ( !$this->migrationConfig->getIncludeHistory() && $spaceId === -1 ) {
-			return;
 		}
 
 		$originalVersionId = -1;
 		if ( isset( $properties['originalVersion'] ) ) {
 			$originalVersionId = (int)$properties['originalVersion'];
+		}
+
+		if ( !$this->migrationConfig->getIncludeHistory() && $originalVersionId > 0 ) {
+			return;
 		}
 
 		$confluenceTitle = $properties['title'] ?? "";
@@ -86,11 +86,20 @@ class BlogPost extends ProcessorBase {
 		// the body_contents table based on the blog post ID.
 
 		$lastModificationDate = '';
-		if ( isset( $properties['lastModificationDate'] ) ) {
+		if ( isset( $properties['lastModificationDate'] ) && $properties['lastModificationDate'] !== '' ) {
 			$lastModificationDate = $properties['lastModificationDate'];
+		} elseif ( isset( $properties['creationDate'] ) && $properties['creationDate'] !== '' ) {
+			$lastModificationDate = $properties['creationDate'];
 		}
 
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
+
+		$lastModifier = '';
+		if ( isset( $properties['lastModifier'] ) && $properties['lastModifier'] !== '' ) {
+			$lastModifier = $properties['lastModifier'];
+		} elseif ( isset( $properties['creator'] ) && $properties['creator'] !== '' ) {
+			$lastModifier = $properties['creator'];
+		}
 
 		$version = '';
 		if ( isset( $properties['version'] ) ) {
@@ -119,8 +128,9 @@ class BlogPost extends ProcessorBase {
 			$pageId,
 			$spaceId,
 			$confluenceTitle,
-			'',
+			'1',
 			$revisionTimestamp,
+			$lastModifier,
 			strtolower( $contentStatus ),
 			$version,
 			$originalVersionId,

@@ -91,7 +91,7 @@ use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
-class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware {
+class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware, IPipeSender {
 
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
@@ -129,9 +129,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var int */
 	private int $currentSpace = 0;
 
-	/** @var bool */
-	private bool $isSpaceDescriptionContent = false;
-
 	/** @var SplFileInfo|null */
 	private ?SplFileInfo $preprocessedFile = null;
 
@@ -147,10 +144,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
+	 */
+	public function __construct( $config, Workspace $workspace ) {
+		parent::__construct( $config, $workspace );
+	}
+
+	/**
 	 * @param resource|false $pipe
 	 */
-	public function __construct( $config, Workspace $workspace, $pipe = false ) {
-		parent::__construct( $config, $workspace );
+	public function setPipe( $pipe ): void {
 		$this->pipeToDB = new PipeToDB( $pipe );
 	}
 
@@ -201,26 +203,32 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 		$this->rawFile = $file;
 
-		$bodyContentId = $this->getBodyContentIdFromFilename();
-
 		$this->pageId = -1;
-		$this->isSpaceDescriptionContent = false;
 
-		$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
-
-		// Page templates use the template ID as the body content file name directly,
-		// so there is no entry in body_contents for them. Only fall back to the template
-		// check when the ID is not found in body_contents to avoid any accidental match.
-		if ( $contentId === -1 && $this->workspaceDB->pageTemplateIdExists( $bodyContentId ) ) {
+		if ( str_starts_with( $this->rawFile->getFilename(), 'pt_' ) ) {
+			// This is the content of a page template
+			$bodyContentId = $this->getBodyContentIdFromPageTemplateFilename();
 			$this->contentType = 'pageTemplate';
-			$this->pageId = $bodyContentId;
 			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId ) ?? 0;
 			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromTemplateId( $bodyContentId );
 			$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromTemplateId( $bodyContentId );
 			if ( $this->currentWikiTitle === '' ) {
-				$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
+				$this->currentWikiTitle = 'not_current_revision_for_page_template_' . $bodyContentId;
+			}
+			if ( $this->currentSpace === -1 ) {
+				$this->pipeToDB->send(
+					'log',
+					'error',
+					'convert',
+					__CLASS__,
+					"No context space id found for page template $bodyContentId"
+				);
+
+				return '<-- No context space id found -->';
 			}
 		} else {
+			$bodyContentId = $this->getBodyContentIdFromFilename();
+			$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
 
 			// Test to which type of content the contentId belongs
 			if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
@@ -236,9 +244,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				if ( $this->currentWikiTitle === '' ) {
 					$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
 				}
-
-				$this->isSpaceDescriptionContent = true;
-
 			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
 				$this->contentType = 'page';
 
@@ -278,29 +283,29 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			} else {
 				$this->pageId = -1;
 			}
-		}
 
-		if ( $this->pageId === -1 ) {
-			$this->pipeToDB->send(
-				'log',
-				'error',
-				'convert',
-				__CLASS__,
-				"No context page id found for bodyContentId $bodyContentId"
-			);
-			return '<-- No context page id found -->';
-		}
+			if ( $this->contentType !== 'pageTemplate' && $this->pageId === -1 ) {
+				$this->pipeToDB->send(
+					'log',
+					'error',
+					'convert',
+					__CLASS__,
+					"No context page id found for bodyContentId $bodyContentId"
+				);
+				return '<-- No context page id found -->';
+			}
 
-		if ( $this->currentSpace === -1 ) {
-			$this->pipeToDB->send(
-				'log',
-				'error',
-				'convert',
-				__CLASS__,
-				"No context space id found for bodyContentId $bodyContentId"
-			);
+			if ( $this->currentSpace === -1 ) {
+				$this->pipeToDB->send(
+					'log',
+					'error',
+					'convert',
+					__CLASS__,
+					"No context space id found for bodyContentId $bodyContentId"
+				);
 
-			return '<-- No context space id found -->';
+				return '<-- No context space id found -->';
+			}
 		}
 
 		try {
@@ -538,6 +543,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 	/**
 	 *
+	 * @return int
+	 */
+	private function getBodyContentIdFromPageTemplateFilename(): int {
+		// e.g. "pt_67856345.mraw"
+		$filename = $this->rawFile->getFilename();
+		$filenameParts = explode( '.', $filename, 2 );
+		return (int)substr( $filenameParts[0], 3 );
+	}
+
+	/**
+	 *
 	 * @param int $bodyContentId
 	 *
 	 * @return int
@@ -725,12 +741,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$this->wikiText
 		);
 
-		if ( !$this->isSpaceDescriptionContent && $this->contentType !== 'pageTemplate' ) {
+		if ( $this->contentType !== 'spaceDescription' && $this->contentType !== 'pageTemplate' ) {
 			$this->wikiText .= $this->addAdditionalAttachments();
 		}
 
 		// If toc-macro is not explicitly used set __NOTOC__
-		if ( $this->tocMacroUsage->getStatus() === false ) {
+		if (
+			$this->tocMacroUsage->getStatus() === false
+			&& $this->contentType !== 'spaceDescription'
+			&& $this->contentType !== 'pageTemplate'
+		) {
 			$this->wikiText .= "\n__NOTOC__\n";
 		}
 
@@ -744,7 +764,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$wikiText = '';
 
 		$linkProcessor = new AttachmentLink(
-			$this->dataLookup, $this->currentSpace, $this->confluencePageTitle, $this->migrationConfig
+			$this->dataLookup,
+			$this->currentSpace,
+			$this->confluencePageTitle,
+			$this->migrationConfig
 		);
 
 		$pageAttachments = $this->dataLookup->getPageAttachmentsForPageId( $this->pageId );

@@ -84,10 +84,12 @@ class PageLink extends LinkProcessorBase {
 	 * @throws InvalidTitleException
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		$genericTitleBuilder = new GenericTitleBuilder( [] );
-		$rawPageTitle = $genericTitleBuilder
-			->appendTitleSegment( $rawPageTitle )->build();
-		$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
+		if ( !empty( $rawPageTitle ) ) {
+			$genericTitleBuilder = new GenericTitleBuilder( [] );
+			$rawPageTitle = $genericTitleBuilder
+				->appendTitleSegment( $rawPageTitle )->build();
+			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
+		}
 
 		$confluenceKey = "Confluence---$spaceId---$rawPageTitle";
 		if ( $this->spaceKey !== '' ) {
