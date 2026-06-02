@@ -65,6 +65,15 @@ class PageTemplates extends ProcessorBase {
 		}
 
 		$spaceId = isset( $properties['space'] ) ? (int)$properties['space'] : null;
+		if ( $spaceId === null ) {
+			// History version of a template is missing space, original_version_id
+			// or histroy_version_ids.
+			// It is not possible to link a template revision to its original template
+			// or other revisions, especially if more than.
+			// Therefor we skip the template if space is missing for now.
+			return;
+		}
+
 		$content = $properties['content'] ?? '';
 
 		$lastModificationDate = $properties['lastModificationDate'] ?? '';
