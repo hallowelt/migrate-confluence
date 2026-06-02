@@ -33,16 +33,16 @@ class Templates extends ProcessorBase {
 
 			foreach ( $revisions as $revision ) {
 				$timestamp = $revision['revision_timestamp'];
-				$bodyContentIds = json_decode( $revision['body_content_ids'], true );
+				$templateContentIds = json_decode( $revision['template_content_ids'], true );
 
 				$pageContent = '';
-				foreach ( $bodyContentIds as $bodyContentId ) {
-					if ( $bodyContentId === '' ) {
+				foreach ( $templateContentIds as $templateContentId ) {
+					if ( $templateContentId === '' ) {
 						continue;
 					}
 
-					$this->output->writeln( "Getting '$bodyContentId' body content..." );
-					$pageContent .= $this->workspace->getConvertedContent( 'pt_' . $bodyContentId ) . "\n";
+					$this->output->writeln( "Getting '$templateContentId' template content..." );
+					$pageContent .= $this->workspace->getConvertedContent( 'pt_' . $templateContentId ) . "\n";
 				}
 
 				$this->addRevision(
