@@ -6,42 +6,26 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use PHPUnit\Framework\TestCase;
 
 class GliffyMacroTest extends TestCase {
 	/** @var DBConversionDataLookup */
 	private $dataLookup;
 
-	/** @var ConversionDataWriter */
-	private $conversionDataWriter;
-
 	/** @var WorkspaceDB */
 	private $workspaceDB;
-
-	/** @var PipeToDB */
-	private $pipeToDB;
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
-		$tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-test-' . uniqid();
-		$this->conversionDataWriter = new ConversionDataWriter( $tempDir );
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat();
 		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
-		$pipe = fopen( 'php://temp', 'r+' );
-		$this->pipeToDB = new PipeToDB( $pipe );
 
 		$this->doTest( 0, 'gliffy-macro-input.xml', 'gliffy-macro-output-1.xml' );
 		$this->doTest( 23, 'gliffy-macro-input.xml', 'gliffy-macro-output-2.xml' );
-
-		rewind( $pipe );
-		$this->assertStringContainsString( '"addGliffy"', stream_get_contents( $pipe ) );
-		fclose( $pipe );
 	}
 
 	/**
@@ -59,10 +43,8 @@ class GliffyMacroTest extends TestCase {
 
 		$processor = new GliffyMacro(
 			$this->dataLookup,
-			$this->conversionDataWriter,
 			$spaceId,
-			'SomePage',
-			$this->pipeToDB
+			'SomePage'
 		);
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();

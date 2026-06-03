@@ -96,7 +96,6 @@ class WorkspaceDB {
 			'comments',
 			'labellings',
 			'labels',
-			'gliffy',
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -212,7 +211,6 @@ class WorkspaceDB {
 		$this->createTableComments();
 		$this->createTableLabellings();
 		$this->createTableLabels();
-		$this->createTableGliffy();
 		$this->createTablePagesMeta();
 		$this->createTableBlogPostsMeta();
 		$this->createTableAttachmentsMeta();
@@ -506,20 +504,6 @@ class WorkspaceDB {
 				name CHAR,
 				namespace CHAR,
 				properties BLOB
-			);'
-		);
-	}
-
-	/**
-	 * @return void
-	 */
-	private function createTableGliffy(): void {
-		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS gliffy (
-				space_id INT,
-				confluence_title CHAR,
-				original_attachment_filename CHAR,
-				target_attachment_filename CHAR
 			);'
 		);
 	}
@@ -2877,52 +2861,6 @@ class WorkspaceDB {
 	 */
 	public function getAttachmentMeta(): array {
 		return $this->getAllData( 'attachments_meta' );
-	}
-
-	/**
-	 * @param int|null $spaceId
-	 * @param string $confluenceTitle
-	 * @param string $originalAttachmentFilename
-	 * @param string $targetAttachmentFilename
-	 * @return bool
-	 */
-	public function addGliffy(
-		?int $spaceId,
-		string $confluenceTitle,
-		string $originalAttachmentFilename,
-		string $targetAttachmentFilename
-	): bool {
-		$transaction = $this->cachedPrepare(
-			'INSERT INTO gliffy (
-				space_id,
-				confluence_title,
-				original_attachment_filename,
-				target_attachment_filename
-			) VALUES (
-				:space_id,
-				:confluence_title,
-				:original_attachment_filename,
-				:target_attachment_filename
-			)'
-		);
-
-		if ( $spaceId !== null ) {
-			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		} else {
-			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
-		}
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
-		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
-		$transaction->bindValue( ':target_attachment_filename', $targetAttachmentFilename, SQLITE3_TEXT );
-
-		return $this->executeTransactionWithStatus( $transaction );
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getGliffy(): array {
-		return $this->getAllData( 'gliffy' );
 	}
 
 	/**

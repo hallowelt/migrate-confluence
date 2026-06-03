@@ -3,51 +3,20 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 
 class GliffyMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var ConversionDataWriter
-	 */
-	protected ConversionDataWriter $conversionDataWriter;
-
-	/**
-	 * @var int
-	 */
-	protected int $currentSpaceId;
-
-	/**
-	 * @var string
-	 */
-	protected string $rawPageTitle;
-
-	/**
-	 * @var PipeToDB
-	 */
-	private PipeToDB $pipeToDB;
-
-	/**
 	 * @param DBConversionDataLookup $dataLookup
-	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param PipeToDB $pipeToDB
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
-		int $currentSpaceId, string $rawPageTitle, PipeToDB $pipeToDB ) {
-		$this->dataLookup = $dataLookup;
-		$this->conversionDataWriter = $conversionDataWriter;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
-		$this->pipeToDB = $pipeToDB;
+	public function __construct(
+		private DBConversionDataLookup $dataLookup,
+		private int $currentSpaceId,
+		private string $rawPageTitle
+	) {
 	}
 
 	/**
@@ -82,6 +51,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param array $params
+	 *
 	 * @return string
 	 */
 	private function makeParamsString( array $params ): string {
@@ -90,7 +60,12 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 
 			$extension = substr( $name, strlen( $name ) - 4 );
 
-			$validExtensions = [ '.SVG', '.PNG', '.svg', '.png' ];
+			$validExtensions = [
+				'.SVG',
+				'.PNG',
+				'.svg',
+				'.png'
+			];
 			if ( !in_array( $extension, $validExtensions, true ) ) {
 				$name .= '.png';
 			}
@@ -102,7 +77,12 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 			);
 
 			if ( $filename === '' ) {
-				$fallbackExtensions = [ '.SVG', '.PNG', '.svg', '.png' ];
+				$fallbackExtensions = [
+					'.SVG',
+					'.PNG',
+					'.svg',
+					'.png'
+				];
 				foreach ( $fallbackExtensions as $ext ) {
 					$name = $params['name'] . $ext;
 
@@ -124,14 +104,6 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 		} else {
 			return '';
 		}
-
-		$this->pipeToDB->send(
-			'addGliffy',
-			$this->currentSpaceId,
-			$this->rawPageTitle,
-			$name,
-			$filename
-		);
 
 		if ( isset( $params['macroId'] ) ) {
 			unset( $params['macroId'] );
