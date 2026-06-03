@@ -1,27 +1,19 @@
 <?xml version="1.0"?>
 <mediawiki>
   <user>
-    <username>Margit.link-rodrigue</username>
-    <confluence-name>margit.link-rodrigue@hallowelt.com</confluence-name>
-    <lowerName>margit.link-rodrigue@hallowelt.com</lowerName>
-    <atlassianAccountId>624c4eb01da0e100713d309c</atlassianAccountId>
-    <confluence-key>624c4eb01da0e100713d309c</confluence-key>
-    <email/>
-  </user>
-  <user>
-    <username>712020:ff718bc8-3534-4e4b-baff-2b4f9663e4b3</username>
-    <confluence-name>712020:ff718bc8-3534-4e4b-baff-2b4f9663e4b3</confluence-name>
-    <lowerName>712020:ff718bc8-3534-4e4b-baff-2b4f9663e4b3</lowerName>
+    <username>Bettina.huber</username>
+    <confluence-name>bettina.huber@hallowelt.com</confluence-name>
+    <lowerName>bettina.huber@hallowelt.com</lowerName>
     <atlassianAccountId>712020:ff718bc8-3534-4e4b-baff-2b4f9663e4b3</atlassianAccountId>
     <confluence-key>712020:ff718bc8-3534-4e4b-baff-2b4f9663e4b3</confluence-key>
     <email/>
   </user>
   <user>
-    <username>712020:8ce18a99-c8a3-4de0-98ce-06ae7ff42bb6</username>
-    <confluence-name>712020:8ce18a99-c8a3-4de0-98ce-06ae7ff42bb6</confluence-name>
-    <lowerName>712020:8ce18a99-c8a3-4de0-98ce-06ae7ff42bb6</lowerName>
-    <atlassianAccountId>712020:8ce18a99-c8a3-4de0-98ce-06ae7ff42bb6</atlassianAccountId>
-    <confluence-key>712020:8ce18a99-c8a3-4de0-98ce-06ae7ff42bb6</confluence-key>
+    <username>624c4eb01da0e100713d309c</username>
+    <confluence-name>624c4eb01da0e100713d309c</confluence-name>
+    <lowerName>624c4eb01da0e100713d309c</lowerName>
+    <atlassianAccountId>624c4eb01da0e100713d309c</atlassianAccountId>
+    <confluence-key>624c4eb01da0e100713d309c</confluence-key>
     <email/>
   </user>
   <user>
@@ -38,6 +30,14 @@
     <lowerName>6035864ce2020c0070b5285b</lowerName>
     <atlassianAccountId>6035864ce2020c0070b5285b</atlassianAccountId>
     <confluence-key>8a7f808a7a045426017a047e745f0023</confluence-key>
+    <email/>
+  </user>
+  <user>
+    <username>712020:8ce18a99-c8a3-4de0-98ce-06ae7ff42bb6</username>
+    <confluence-name>712020:8ce18a99-c8a3-4de0-98ce-06ae7ff42bb6</confluence-name>
+    <lowerName>712020:8ce18a99-c8a3-4de0-98ce-06ae7ff42bb6</lowerName>
+    <atlassianAccountId>712020:8ce18a99-c8a3-4de0-98ce-06ae7ff42bb6</atlassianAccountId>
+    <confluence-key>712020:8ce18a99-c8a3-4de0-98ce-06ae7ff42bb6</confluence-key>
     <email/>
   </user>
 </mediawiki>
