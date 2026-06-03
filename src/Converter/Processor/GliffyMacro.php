@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 
 class GliffyMacro extends StructuredMacroProcessorBase {
 
@@ -11,11 +12,13 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
+	 * @param PipeToDB $pipeToDB
 	 */
 	public function __construct(
 		private DBConversionDataLookup $dataLookup,
 		private int $currentSpaceId,
-		private string $rawPageTitle
+		private string $rawPageTitle,
+		private PipeToDB $pipeToDB
 	) {
 	}
 
@@ -93,6 +96,14 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 		} else {
 			return '';
 		}
+
+		$this->pipeToDB->send(
+			'addGliffy',
+			$this->currentSpaceId,
+			$this->rawPageTitle,
+			$name,
+			$filename
+		);
 
 		if ( isset( $params['macroId'] ) ) {
 			unset( $params['macroId'] );

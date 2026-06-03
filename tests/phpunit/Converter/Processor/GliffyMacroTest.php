@@ -7,6 +7,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use PHPUnit\Framework\TestCase;
 
 class GliffyMacroTest extends TestCase {
@@ -16,6 +17,9 @@ class GliffyMacroTest extends TestCase {
 	/** @var WorkspaceDB */
 	private $workspaceDB;
 
+	/** @var PipeToDB */
+	private $pipeToDB;
+
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro::process
 	 * @return void
@@ -23,9 +27,15 @@ class GliffyMacroTest extends TestCase {
 	public function testProcess() {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat();
 		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
+		$pipe = fopen( 'php://temp', 'r+' );
+		$this->pipeToDB = new PipeToDB( $pipe );
 
 		$this->doTest( 0, 'gliffy-macro-input.xml', 'gliffy-macro-output-1.xml' );
 		$this->doTest( 23, 'gliffy-macro-input.xml', 'gliffy-macro-output-2.xml' );
+
+		rewind( $pipe );
+		$this->assertStringContainsString( '"addGliffy"', stream_get_contents( $pipe ) );
+		fclose( $pipe );
 	}
 
 	/**
@@ -44,7 +54,8 @@ class GliffyMacroTest extends TestCase {
 		$processor = new GliffyMacro(
 			$this->dataLookup,
 			$spaceId,
-			'SomePage'
+			'SomePage',
+			$this->pipeToDB
 		);
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();

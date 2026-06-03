@@ -439,7 +439,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new GliffyMacro(
 				$this->dataLookup,
 				$this->currentSpace,
-				$this->confluencePageTitle
+				$this->confluencePageTitle,
+				$this->pipeToDB
 			),
 			new ContentByLabelMacro( $this->currentPageTitle ),
 			new AttachmentsMacro(),
