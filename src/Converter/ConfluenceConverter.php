@@ -704,14 +704,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return void
 	 */
 	public function postProcessDOM( DOMXPath $xpath ): void {
-		$oElementsWithDataAttr = $xpath->query( '//*[@data-atlassian-layout]' );
-		if ( !( $oElementsWithDataAttr instanceof DOMNodeList ) ) {
-			return;
-		}
-
-		foreach ( $oElementsWithDataAttr as $oElementWithDataAttr ) {
-			if ( $oElementWithDataAttr instanceof DOMElement ) {
-				$oElementWithDataAttr->setAttribute( 'data-atlassian-layout', '' );
+		$elementsWithDataAttr = $xpath->query( '//*[@*[starts-with(name(), "data-")]]' );
+		if ( $elementsWithDataAttr instanceof DOMNodeList ) {
+			foreach ( $elementsWithDataAttr as $elementWithDataAttr ) {
+				if ( $elementWithDataAttr instanceof DOMElement ) {
+					foreach ( $elementWithDataAttr->attributes as $attribute ) {
+						if ( $attribute->name === 'data-atlassian-layout' ) {
+							$elementWithDataAttr->setAttribute( 'data-atlassian-layout', '' );
+						} elseif ( str_starts_with( $attribute->name, 'data-' ) ) {
+							/* pandoc strips "data-" prefixes from data attributes.
+							 * @see https://github.com/jgm/pandoc/issues/11680 */
+							$elementWithDataAttr->setAttribute(
+								'permanent-attr-' . $attribute->name,
+								 $attribute->value );
+							$elementWithDataAttr->removeAttribute( $attribute->name );
+						}
+					}
+				}
 			}
 		}
 	}
@@ -729,6 +738,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
 		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
+		$this->wikiText = str_replace( " permanent-attr-data-", " data-", $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
 				"#&lt;headertabs /&gt;#si",
