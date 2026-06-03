@@ -18,8 +18,6 @@ useve=true
 {{#ask: [[Created by macro::{{{macroid|}}}]]
 | format=embedded
 | sort=Creation date
-| order=desc
-| limit=5
-| searchlabel=More
+| order=asc
 }}
 </includeonly>
