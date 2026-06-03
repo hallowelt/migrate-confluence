@@ -713,7 +713,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 							/* pandoc strips "data-" prefixes from data attributes.
 							 * @see https://github.com/jgm/pandoc/issues/11680 */
 							$elementWithDataAttr->setAttribute(
-								'permanent-attr-' . $attribute->name,
+								'preserve-attr-' . $attribute->name,
 								 $attribute->value );
 							$elementWithDataAttr->removeAttribute( $attribute->name );
 						}
@@ -736,7 +736,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
 		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
-		$this->wikiText = str_replace( " permanent-attr-data-", " data-", $this->wikiText );
+		$this->wikiText = str_replace( " preserve-attr-data-", " data-", $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
 				"#&lt;headertabs /&gt;#si",

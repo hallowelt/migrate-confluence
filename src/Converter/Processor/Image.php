@@ -77,24 +77,7 @@ class Image implements IProcessor {
 	 * @throws DOMException
 	 */
 	private function doProcessImage( DOMElement $node ): void {
-		$replacementNode = $node->ownerDocument->createTextNode( '[[Category:Broken_image]]' );
-
-		if ( $node instanceof DOMElement ) {
-			foreach ( $node->childNodes as $childNode ) {
-				if ( $childNode instanceof DOMElement === false ) {
-					continue;
-				}
-				if ( $childNode->nodeName === 'ri:url' ) {
-					$replacementNode = $this->makeImageUrlReplacement( $childNode );
-				} elseif ( $childNode->nodeName === 'ri:attachment' ) {
-					$replacementNode = $this->makeImageAttachmentReplacement( $childNode );
-				}
-			}
-		}
-
-		$isImageWithPageLink = $this->isImageWithPageLink( $node );
-		$isImageWithExternalLink = $this->isImageWithExternalLink( $node );
-		if ( $isImageWithPageLink ) {
+		if ( $this->isImageWithPageLink( $node ) ) {
 			$pageLinkReplacementNode = $this->makeImagePageLinkReplacement( $node );
 
 			$linkBody = $node->parentNode;
@@ -103,7 +86,7 @@ class Image implements IProcessor {
 				$pageLinkReplacementNode,
 				$linkNode
 			);
-		} elseif ( $isImageWithExternalLink ) {
+		} elseif ( $this->isImageWithExternalLink( $node ) ) {
 			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node );
 
 			$linkNode = $node->parentNode;
@@ -123,6 +106,19 @@ class Image implements IProcessor {
 				);
 			}
 		} else {
+			$replacementNode = $node->ownerDocument->createTextNode( '[[Category:Broken_image]]' );
+
+			foreach ( $node->childNodes as $childNode ) {
+				if ( $childNode instanceof DOMElement === false ) {
+					continue;
+				}
+				if ( $childNode->nodeName === 'ri:url' ) {
+					$replacementNode = $this->makeImageUrlReplacement( $childNode );
+				} elseif ( $childNode->nodeName === 'ri:attachment' ) {
+					$replacementNode = $this->makeImageAttachmentReplacement( $childNode );
+				}
+			}
+
 			$node->parentNode->replaceChild(
 				$replacementNode,
 				$node
@@ -220,7 +216,8 @@ class Image implements IProcessor {
 	private function makeImageUrlReplacement( DOMElement $node ): DOMNode {
 		$attributes = $this->getImageAttributes( $node->parentNode );
 
-		$parsedUrl = parse_url( $node->getAttribute( 'ri:value' ) );
+		$originalUrl = $node->getAttribute( 'ri:value' );
+		$parsedUrl = parse_url( $originalUrl );
 
 		if ( !isset( $parsedUrl['scheme'] ) || !isset( $parsedUrl['host'] ) || !isset( $parsedUrl['path'] ) ) {
 			return $node;
@@ -233,6 +230,10 @@ class Image implements IProcessor {
 
 		foreach ( $attributes as $name => $value ) {
 			$replacementNode->setAttribute( $name, $value );
+		}
+
+		if ( $originalUrl !== $src ) {
+			$replacementNode->setAttribute( 'data-original-url', $originalUrl );
 		}
 
 		$replacementNode->appendChild(
