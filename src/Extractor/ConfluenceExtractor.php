@@ -4,18 +4,39 @@ namespace HalloWelt\MigrateConfluence\Extractor;
 
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExtractorBase;
+use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithSpaceIdOfHistoryVersions;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithWikiTitle;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBodyContentIdsFallback;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithSpaceIdOfHistoryVersions;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithWikiTitle;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractAttachmentsMetaData;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsMetaData;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractCommentsBodyContents;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesBodyContents;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyContents;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
+use Symfony\Component\Console\Output\Output;
 
-class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware {
+class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware, IOutputAwareInterface {
 
 	/** @var string */
 	private string $dest = '';
+
+	/** @var Output|null */
+	private ?Output $output = null;
 
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
@@ -40,6 +61,13 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	public function setDestinationPath( string $dest ): void {
 		$this->dest = $dest;
+	}
+
+	/**
+	 * @param Output $output
+	 */
+	public function setOutput( Output $output ): void {
+		$this->output = $output;
 	}
 
 	/**
@@ -84,278 +112,170 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
 
-		$this->extractSpaceDescriptionBodyContents();
-		$this->extractPagesBodyContents();
-		$this->extractBlogPostsBodyContents();
-		$this->extractCommentsBodyContents();
-		$this->extractTemplateContents();
-		$this->extractPagesMetaData();
-		$this->extractBlogPostsMetaData();
-		$this->extractAttachmentsMetaData();
+		// preparation
+		$preprocessors = $this->getPreprocessors();
+		foreach ( $preprocessors as $processor ) {
+			$processor->execute();
+		}
+
+		// Perform validity checks
+		$this->checkTitles();
+
+		// extraction
+		$processors = $this->getProcessors();
+		foreach ( $processors as $processor ) {
+			$processor->execute();
+		}
 
 		return true;
 	}
 
 	/**
-	 * @return void
+	 * @return array
 	 */
-	private function extractSpaceDescriptionBodyContents(): void {
-		$currentContentIds = [];
-		foreach ( $this->workspaceDB->getSpaceDescriptions() as $spaceDescription ) {
-			if ( isset( $spaceDescription['space_description_id'] ) && isset( $spaceDescription['content_status'] )
-				&& strtolower( (string)$spaceDescription['content_status'] ) === 'current'
-			) {
-				$currentContentIds[] = (int)$spaceDescription['space_description_id'];
-			}
-		}
+	private function getPreprocessors(): array {
+		return [
+			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog ),
+			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
+			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
+			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+		];
+	}
 
-		$this->doExtractBodyContent( $currentContentIds );
+	/**
+	 * @return array
+	 */
+	private function getProcessors(): array {
+		return [
+			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
+			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
+			new ExtractBlogPostsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
+			new ExtractCommentsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
+			new ExtractPageTemplateContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
+			new ExtractPagesMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+		];
 	}
 
 	/**
 	 * @return void
 	 */
-	private function extractPagesBodyContents(): void {
-		$currentContentIds = [];
+	private function checkTitles(): void {
+		$this->writeln(
+			"Validating titles of pages, blog posts and attachments. This may take a while for large instances..."
+		);
+
+		$titles = [];
 		foreach ( $this->workspaceDB->getPages() as $page ) {
-			if ( isset( $page['page_id'] ) && isset( $page['content_status'] )
-				&& strtolower( (string)$page['content_status'] ) === 'current'
-			) {
-				$currentContentIds[] = (int)$page['page_id'];
+			$title = '';
+			$pageId = $page['page_id'];
+			if ( isset( $page['wiki_title'] ) && $page['wiki_title'] !== '' ) {
+				$title = (string)$page['wiki_title'];
+			} elseif ( isset( $page['confluence_title'] ) ) {
+				$title = (string)$page['confluence_title'];
+			}
+
+			if ( $title !== '' ) {
+				$titles[$pageId] = $title;
 			}
 		}
 
-		$this->doExtractBodyContent( $currentContentIds );
-	}
-
-	/**
-	 * @return void
-	 */
-	private function extractBlogPostsBodyContents(): void {
-		$currentContentIds = [];
 		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
-			if ( isset( $blogPost['page_id'] ) && isset( $blogPost['content_status'] )
-				&& strtolower( (string)$blogPost['content_status'] ) === 'current'
-			) {
-				$currentContentIds[] = (int)$blogPost['page_id'];
+			$title = '';
+			$pageId = $blogPost['page_id'];
+			if ( isset( $blogPost['wiki_title'] ) && $blogPost['wiki_title'] !== '' ) {
+				$title = (string)$blogPost['wiki_title'];
+			} elseif ( isset( $blogPost['confluence_title'] ) ) {
+				$title = (string)$blogPost['confluence_title'];
+			}
+
+			if ( $title !== '' ) {
+				$titles[$pageId] = $title;
 			}
 		}
 
-		$this->doExtractBodyContent( $currentContentIds );
+		$invalidTitles = false;
+
+		$validityChecker = new TitleValidityChecker();
+
+		foreach ( $titles as $pageId => $title ) {
+			if ( !$validityChecker->hasValidEnding( $title ) ) {
+				$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title ens with invalid character' );
+			}
+			if ( str_contains( $title, ':' ) ) {
+				if ( $validityChecker->hasDoubleColon( $title ) ) {
+					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title contains multiple collons' );
+					$invalidTitles = true;
+				}
+				$namespace = substr( $title, 0, strpos( $title, ':' ) );
+				$text = substr( $title, strpos( $title, ':' ) + 1 );
+
+				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
+					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Invalid namespace character detected' );
+					$invalidTitles = true;
+				}
+
+				if ( !$validityChecker->hasValidLength( $text ) ) {
+					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title contains to many characters (>256)' );
+					$invalidTitles = true;
+				}
+			} else {
+				if ( !$validityChecker->hasValidLength( $title ) ) {
+					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title contains to many characters (>256)' );
+					$invalidTitles = true;
+				}
+			}
+		}
+
+		$invalidAttachments = false;
+		$pageAttachments = $this->workspaceDB->getPageAttachments();
+		foreach ( $pageAttachments as $attachment ) {
+			$attachmentId = $attachment['attachment_id'];
+			$wikiTitle = $attachment['target_attachment_filename'];
+			if ( !$validityChecker->hasValidLength( $wikiTitle ) ) {
+				$this->workspaceDB->addInvalidTitle(
+					$attachmentId,
+					$wikiTitle,
+					'Attachment title contains to many characters (>256)'
+				);
+				$invalidAttachments = true;
+			}
+		}
+
+		if ( !empty( $this->dbLog->getLogEntriesForStep( 'analyze' ) ) ) {
+			$this->writeln( "\n\nWARNINGS / ERRORS:\n" );
+			$this->writeln(
+				"\nPlease check logging table in workspaceDB for details about invalid titles and filenames\n\n"
+			);
+		}
+
+		if ( $invalidTitles ) {
+			$this->writeln( "\n\INVALID PAGE TITLES DETECTED:\n" );
+			$this->writeln(
+				"\nPlease check invalid_titles table in workspaceDB for details\n\n"
+			);
+		}
+
+		if ( $invalidAttachments ) {
+			$this->writeln( "\n\INVALID ATTACHMENT TITLES DETECTED:\n" );
+			$this->writeln(
+				"\nPlease check invalid_attachment_titles table in workspaceDB for details\n\n"
+			);
+		}
 	}
 
 	/**
+	 * @param string $text
+	 * @param int $options
 	 * @return void
 	 */
-	private function extractCommentsBodyContents(): void {
-		$currentContentIds = [];
-		foreach ( $this->workspaceDB->getComments() as $comment ) {
-			if ( !isset( $comment['comment_id'] )
-				|| !isset( $comment['content_status'] )
-				|| !isset( $comment['content_class'] )
-			) {
-				continue;
-			}
-
-			// Comments composer currently handles page-level comments only.
-			if ( strtolower( (string)$comment['content_status'] ) !== 'current'
-				|| (string)$comment['content_class'] !== 'Page'
-			) {
-				continue;
-			}
-
-			$currentContentIds[] = (int)$comment['comment_id'];
+	private function writeln( string $text, int $options = Output::OUTPUT_NORMAL ): void {
+		if ( $this->output instanceof Output ) {
+			$this->output->writeln( $text, $options );
 		}
-
-		$this->doExtractBodyContent( $currentContentIds );
-	}
-
-	/**
-	 * @param array $currentContentIds
-	 * @return void
-	 */
-	public function doExtractBodyContent( array $currentContentIds ): void {
-		$currentContentIds = array_values( array_unique( $currentContentIds ) );
-
-		if ( $currentContentIds === [] ) {
-			return;
-		}
-
-		foreach ( $currentContentIds as $currentContentId ) {
-			$bodyContentIds = $this->workspaceDB->getBodyContentIdsForContentId( $currentContentId );
-			foreach ( $bodyContentIds as $bodyContentId ) {
-				$body = $this->workspaceDB->getBodyContentBodyByBodyContentId( $bodyContentId );
-				if ( $body === null ) {
-					continue;
-				}
-
-				$bodyContentHTML = $this->normalizeBodyContentHTML( $body );
-				$targetFileName = $this->workspace->saveRawContent( (string)$bodyContentId, $bodyContentHTML );
-
-				$this->dbLog->addLogEntry(
-					'info', 'extract', __METHOD__, "Extract body content to $targetFileName"
-				);
-			}
-		}
-	}
-
-	/**
-	 * Extract template content and save as raw content for conversion.
-	 *
-	 * @return void
-	 */
-	private function extractTemplateContents(): void {
-		foreach ( $this->workspaceDB->getPageTemplateContents() as $templateContent ) {
-			$templateId = (int)$templateContent['template_id'];
-			$content = $templateContent['content'] ?? '';
-			if ( $content === '' ) {
-				continue;
-			}
-
-			$bodyContentHTML = $this->normalizeBodyContentHTML( $content );
-			$rawName = 'pt_' . (string)$templateId;
-			$this->workspace->saveRawContent( $rawName, $bodyContentHTML );
-		}
-	}
-
-	/**
-	 * @return void
-	 */
-	private function extractPagesMetaData(): void {
-		foreach ( $this->workspaceDB->getPages() as $page ) {
-			$categories = $this->migrationConfig->getCategories();
-
-			if ( isset( $page['page_id'] ) && isset( $page['content_status'] )
-				&& strtolower( (string)$page['content_status'] ) === 'current'
-			) {
-				if ( !isset( $page['collection']['labellings'] ) ) {
-					continue;
-				}
-
-				$labellings = $page['collection']['labellings'];
-				foreach ( $labellings as $labellingId ) {
-					$labelling = $this->workspaceDB->getLabellingById( (int)$labellingId );
-					if ( $labelling === null || !isset( $labelling['label_id'] ) ) {
-						continue;
-					}
-					$labelId = (int)$labelling['label_id'];
-					$label = $this->workspaceDB->getLabelById( $labelId );
-					if ( $label === null || !isset( $label['name'] ) ) {
-						continue;
-					}
-
-					$categories[] = $label['name'];
-				}
-
-				$categories = array_unique( $categories );
-
-				$this->workspaceDB->addPageMeta(
-					(int)$page['page_id'],
-					[
-						'categories' => $categories
-					]
-				);
-
-				$this->dbLog->addLogEntry(
-					'info', 'extract', __METHOD__, "Add page meta for page {$page['wiki_title']}"
-				);
-			}
-		}
-	}
-
-	/**
-	 * @return void
-	 */
-	private function extractBlogPostsMetaData(): void {
-		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
-			$categories = [];
-
-			if ( isset( $blogPost['page_id'] ) && isset( $blogPost['content_status'] )
-				&& strtolower( (string)$blogPost['content_status'] ) === 'current'
-			) {
-				if ( !isset( $blogPost['collection']['labellings'] ) ) {
-					continue;
-				}
-
-				$labellings = $blogPost['collection']['labellings'];
-				foreach ( $labellings as $labellingId ) {
-					$labelling = $this->workspaceDB->getLabellingById( (int)$labellingId );
-					if ( $labelling === null || !isset( $labelling['label_id'] ) ) {
-						continue;
-					}
-					$labelId = (int)$labelling['label_id'];
-					$label = $this->workspaceDB->getLabelById( $labelId );
-					if ( $label === null || !isset( $label['name'] ) ) {
-						continue;
-					}
-
-					$categories[] = $label['name'];
-				}
-
-				$this->workspaceDB->addBlogPostMeta(
-					(int)$blogPost['page_id'],
-					[
-						'categories' => $categories
-					]
-				);
-
-				$this->dbLog->addLogEntry(
-					'info', 'extract', __METHOD__, "Add blog post meta for page {$blogPost['wiki_title']}"
-				);
-			}
-		}
-	}
-
-	/**
-	 * @return void
-	 */
-	private function extractAttachmentsMetaData(): void {
-		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
-			$categories = [];
-
-			if ( isset( $attachment['page_id'] ) && isset( $attachment['content_status'] )
-				&& strtolower( (string)$attachment['content_status'] ) === 'current'
-			) {
-				if ( !isset( $attachment['collection']['labellings'] ) ) {
-					continue;
-				}
-
-				$labellings = $attachment['collection']['labellings'];
-				foreach ( $labellings as $labellingId ) {
-					$labelling = $this->workspaceDB->getLabellingById( (int)$labellingId );
-					if ( $labelling === null || !isset( $labelling['label_id'] ) ) {
-						continue;
-					}
-					$labelId = (int)$labelling['label_id'];
-					$label = $this->workspaceDB->getLabelById( $labelId );
-					if ( $label === null || !isset( $label['name'] ) ) {
-						continue;
-					}
-
-					$categories[] = $label['name'];
-				}
-
-				$this->workspaceDB->addAttachmentMeta(
-					(int)$attachment['page_id'],
-					[
-						'categories' => $categories
-					]
-				);
-
-				$this->dbLog->addLogEntry(
-					'info', 'extract', __METHOD__, "Add attachment meta for attachment {$attachment['wiki_title']}"
-				);
-			}
-		}
-	}
-
-	/**
-	 * @param string $rawValue
-	 * @return string
-	 */
-	private function normalizeBodyContentHTML( string $rawValue ): string {
-		// For a strange reason the CDATA blocks are not closed properly...
-		$fixedValue = str_replace( ']] >', ']]>', $rawValue );
-		return '<html><body>' . $fixedValue . '</body></html>';
 	}
 }
