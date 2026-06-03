@@ -51,7 +51,6 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param array $params
-	 *
 	 * @return string
 	 */
 	private function makeParamsString( array $params ): string {
@@ -60,12 +59,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 
 			$extension = substr( $name, strlen( $name ) - 4 );
 
-			$validExtensions = [
-				'.SVG',
-				'.PNG',
-				'.svg',
-				'.png'
-			];
+			$validExtensions = [ '.SVG', '.PNG', '.svg', '.png' ];
 			if ( !in_array( $extension, $validExtensions, true ) ) {
 				$name .= '.png';
 			}
@@ -77,12 +71,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 			);
 
 			if ( $filename === '' ) {
-				$fallbackExtensions = [
-					'.SVG',
-					'.PNG',
-					'.svg',
-					'.png'
-				];
+				$fallbackExtensions = [ '.SVG', '.PNG', '.svg', '.png' ];
 				foreach ( $fallbackExtensions as $ext ) {
 					$name = $params['name'] . $ext;
 
