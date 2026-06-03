@@ -193,7 +193,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 * @return bool
 	 */
 	protected function skipPageId( int $pageId, string $title ): bool {
-		if ( !$this->dataLookup->isPageInvalid( $pageId ) ) {
+		if ( $this->dataLookup->isPageInvalid( $pageId ) ) {
 			$this->output->writeln( "Page $title skipped due to invalid title or content" );
 			return true;
 		}
@@ -208,7 +208,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 * @return bool
 	 */
 	protected function skipBlogPostId( int $pageId, string $title ): bool {
-		if ( !$this->dataLookup->isBlogPostInvalid( $pageId ) ) {
+		if ( $this->dataLookup->isBlogPostInvalid( $pageId ) ) {
 			$this->output->writeln( "BlogPost $title skipped due to invalid title or content" );
 			return true;
 		}

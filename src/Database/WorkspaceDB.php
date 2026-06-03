@@ -915,7 +915,7 @@ class WorkspaceDB {
 		}
 
 		// Check if any body_content_id is listed as invalid
-		$hasInvalidContent = false;
+		
 		foreach ( $bodyContentIds as $bodyContentId ) {
 			$stmt = $this->cachedPrepare(
 				'SELECT body_content_id FROM body_content_invalids
@@ -925,12 +925,12 @@ class WorkspaceDB {
 			$stmt->bindValue( ':body_content_id', (int)$bodyContentId, SQLITE3_INTEGER );
 			$result = $stmt->execute();
 			$invalidRow = $result->fetchArray( SQLITE3_ASSOC );
-			if ( $invalidRow === false || !isset( $invalidRow['body_content_id'] ) ) {
-				$hasInvalidContent = true;
+			if ( $invalidRow !== false && isset( $invalidRow['body_content_id'] ) ) {
+				return true;
 			}
 		}
 
-		return $hasInvalidContent;
+		return false;
 	}
 
 	/**
@@ -983,7 +983,6 @@ class WorkspaceDB {
 		}
 
 		// Check if any body_content_id is listed as invalid
-		$hasInvalidContent = false;
 		foreach ( $bodyContentIds as $bodyContentId ) {
 			$stmt = $this->cachedPrepare(
 				'SELECT body_content_id FROM body_content_invalids
@@ -993,12 +992,12 @@ class WorkspaceDB {
 			$stmt->bindValue( ':body_content_id', (int)$bodyContentId, SQLITE3_INTEGER );
 			$result = $stmt->execute();
 			$invalidRow = $result->fetchArray( SQLITE3_ASSOC );
-			if ( $invalidRow === false || !isset( $invalidRow['body_content_id'] ) ) {
-				$hasInvalidContent = true;
+			if ( $invalidRow !== false && isset( $invalidRow['body_content_id'] ) ) {
+				return true;
 			}
 		}
 
-		return $hasInvalidContent;
+		return false;
 	}
 
 	/**

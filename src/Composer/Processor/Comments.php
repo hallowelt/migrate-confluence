@@ -43,14 +43,8 @@ class Comments extends ProcessorBase {
 			$wikiTitle = $comment['wiki_title'];
 
 			if ( $this->skipTitleByConfig( $wikiTitle ) ) {
-				$this->output->writeln(
-					"Processing comment $commentId for page '$wikiTitle' by configuration."
-				);
 				continue;
 			} elseif ( $this->dataLookup->isPageInvalid( $containerContentId ) ) {
-				$this->output->writeln(
-					"Skipping comment $commentId for page '$wikiTitle' because the page is marked as invalid."
-				);
 				continue;
 			}
 
