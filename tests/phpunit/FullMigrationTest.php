@@ -187,8 +187,6 @@ class FullMigrationTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
 	 */
 	public function testMigrationWithMultipleExportDirectories(): void {
-		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
-
 		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];
 
 		$output = new BufferedOutput();

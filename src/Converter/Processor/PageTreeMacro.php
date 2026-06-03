@@ -159,7 +159,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 					$this->currentSpace,
 					$this->confluenceTitle
 				);
-				if ( $text === '' ) {
+				if ( $text === null ) {
 					$params['broken-macro'] = true;
 					break;
 				}
@@ -171,7 +171,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 					$this->currentSpace,
 					$this->confluenceTitle
 				);
-				if ( $currentWikiTitle === '' ) {
+				if ( $currentWikiTitle === null ) {
 					$params['broken-macro'] = true;
 					break;
 				}
@@ -210,13 +210,11 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 					$spaceId = $this->currentSpace;
 				}
 				$text = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $params['content-title'] );
-				if ( $text === '' ) {
+				if ( $text === null ) {
 					$params['broken-macro'] = true;
 					break;
 				}
-				if ( is_string( $text ) ) {
-					$params['content-title'] = $text;
-				}
+				$params['content-title'] = $text;
 				if ( isset( $params['space-key'] ) ) {
 					$namespace = $this->dataLookup->getNamepspaceFromSpaceKey( $params['space-key'] );
 					if ( is_string( $namespace ) ) {

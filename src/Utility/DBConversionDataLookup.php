@@ -80,12 +80,12 @@ class DBConversionDataLookup {
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 *
-	 * @return string
+	 * @return string|null
 	 * @throws Exception
 	 */
 	public function getTargetWikiTitleFromSpaceId(
 		int $spaceId, string $confluenceTitle
-	): string {
+	): ?string {
 		return $this->workspaceDB->getTargetWikiTitleFromSpaceId( $spaceId, $confluenceTitle );
 	}
 

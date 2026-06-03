@@ -115,16 +115,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	private ?SplFileInfo $rawFile = null;
 
 	/** @var int */
-	private int $pageId = -1;
+	private int $pageId;
 
 	/** @var string */
 	private string $wikiText = '';
 
-	/** @var string */
-	private string $currentWikiTitle = '';
+	/** @var string|null */
+	private ?string $currentWikiTitle;
 
-	/** @var string */
-	private string $confluencePageTitle = '';
+	/** @var string|null */
+	private ?string $confluencePageTitle;
 
 	/** @var int */
 	private int $currentSpace = 0;
@@ -191,8 +191,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		// Indicates usage of toc-macro
 		$this->tocMacroUsage = new TocMacroUsage();
 
-		$result = parent::convert( $file );
-		return $result;
+		return parent::convert( $file );
 	}
 
 	/**
@@ -212,19 +211,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$this->contentType = 'pageTemplate';
 			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId ) ?? 0;
 
-			try {
-				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromTemplateId( $bodyContentId );
-			} catch (Exception $e ) {
-				$this->addNonBLockingLogEntry( $e->getMessage() );
-				$this->confluencePageTitle = '';
-			}
-
-			try {
-				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromTemplateId( $bodyContentId );
-			} catch (Exception $e ) {
-				$this->addNonBLockingLogEntry( $e->getMessage() );
-				$this->currentWikiTitle = 'not_current_revision_for_page_template_' . $bodyContentId;
-			}
+			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromTemplateId( $bodyContentId ) ?? '';
+			$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromTemplateId( $bodyContentId )
+				?? 'not_current_revision_for_page_template_' . $bodyContentId;
 
 			if ( $this->currentSpace === -1 ) {
 				$this->addNonBLockingLogEntry(
@@ -246,19 +235,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
 
-				try {
-					$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
-				} catch (Exception $e ) {
-					$this->addNonBLockingLogEntry( $e->getMessage() );
-					$this->confluencePageTitle = '';
-				}
-
-				try {
-					$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId );
-				} catch (Exception $e ) {
-					$this->addNonBLockingLogEntry( $e->getMessage() );
-					$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
-				}
+				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId ) ?? '';
+				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId )
+					?? 'not_current_revision_' . $this->pageId;
 			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
 				$this->contentType = 'page';
 
@@ -266,19 +245,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				$this->pageId = $contentId;
 
-				try {
-					$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
-				} catch (Exception $e ) {
-					$this->addNonBLockingLogEntry( $e->getMessage() );
-					$this->confluencePageTitle = '';
-				}
-
-				try {
-					$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId );
-				} catch (Exception $e ) {
-					$this->addNonBLockingLogEntry( $e->getMessage() );
-					$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
-				}
+				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId ) ?? '';
+				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId )
+					?? 'not_current_revision_' . $this->pageId;
 			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
 				$this->contentType = 'blogPost';
 
@@ -286,21 +255,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				$this->pageId = $contentId;
 
-				try {
-					$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId(
-						$this->pageId
-					);
-				} catch ( Exception $e ) {
-					$this->addNonBLockingLogEntry( $e->getMessage() );
-					$this->confluencePageTitle = '';
-				}
-
-				try {
-					$this->currentWikiTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
-				} catch (Exception $e ) {
-					$this->addNonBLockingLogEntry( $e->getMessage() );
-					$this->currentWikiTitle = 'not_current_revision_' . $this->pageId;
-				}
+				$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId ) ?? '';
+				$this->currentWikiTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId )
+					?? 'not_current_revision_' . $this->pageId;
 			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
 				$this->contentType = 'comment';
 
@@ -344,6 +301,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$this->addNonBLockingLogEntry( "Unconvertable RAW content for bodyContentId $bodyContentId" );
 
 			return $unconvertedContent;
+		}
+
+		if ( $this->confluencePageTitle === null ) {
+			throw new Exception( "No Confluence page title found for bodyContentId $bodyContentId" );
+		}
+
+		if ( !$this->currentWikiTitle === null ) {
+			throw new Exception( "No wiki title found for bodyContentId $bodyContentId" );
 		}
 
 		$this->runProcessors( $dom );

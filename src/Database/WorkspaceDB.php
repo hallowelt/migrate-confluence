@@ -1229,20 +1229,9 @@ class WorkspaceDB {
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 *
-	 * @return string
-	 * @throws Exception
+	 * @return string|null
 	 */
-	public function getTargetWikiTitleFromSpaceId( int $spaceId, string $confluenceTitle ): string {
-		if ( $confluenceTitle === '' ) {
-			throw new Exception( "Empty confluence title" );
-		}
-
-		if ( $spaceId === -1 ) {
-			throw new Exception( "Invalid space ID ($spaceId)" );
-		}
-
-		$wikiTitle = null;
-
+	public function getTargetWikiTitleFromSpaceId( int $spaceId, string $confluenceTitle ): ?string {
 		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM pages WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
 		);
@@ -1250,52 +1239,36 @@ class WorkspaceDB {
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
-		if ( $result ) {
-			$data = $result->fetchArray( SQLITE3_ASSOC );
-			if ( !empty( $data['wiki_title'] ) ) {
-				$wikiTitle = $data['wiki_title'];
-			}
+		if ( !$result ) {
+			return null;
 		}
 
+		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		if ( empty( $wikiTitle) ) {
-			throw new Exception( "Wiki title not found for space $spaceId and confluence title $confluenceTitle" );
-		}
-
-		return $wikiTitle;
+		return !empty( $data['wiki_title'] ) ? $data['wiki_title'] : null;
 	}
 
 	/**
 	 * @param int $pageId
 	 *
-	 * @return string
-	 * @throws Exception
+	 * @return string|null
 	 */
-	public function getTargetWikiTitleFromPageId( int $pageId ): string {
-		$wikiTitle = null;
-
+	public function getTargetWikiTitleFromPageId( int $pageId ): ?string {
 		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM pages WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
 
 		$result = $transaction->execute();
-
-		if ( $result ) {
-			$data = $result->fetchArray( SQLITE3_ASSOC );
-			if ( !empty( $data['wiki_title'] ) ) {
-				$wikiTitle = $data['wiki_title'];
-			}
+		if ( !$result ) {
+			return null;
 		}
 
+		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		if ( empty( $wikiTitle) ) {
-			throw new Exception( "Wiki title not found for page $pageId" );
-		}
-
-		return $wikiTitle;
+		return !empty( $data['wiki_title'] ) ? $data['wiki_title'] : null;
 	}
 
 	/**
@@ -1421,32 +1394,23 @@ class WorkspaceDB {
 	/**
 	 * @param int $pageId
 	 *
-	 * @return string
-	 * @throws Exception
+	 * @return string|null
 	 */
-	public function getConfluencePageTitleFromPageId( int $pageId ): string {
-		$confluenceTitle = null;
-
+	public function getConfluencePageTitleFromPageId( int $pageId ): ?string {
 		$transaction = $this->cachedPrepare(
 			'SELECT confluence_title FROM pages WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
 
 		$result = $transaction->execute();
-		if ( $result ) {
-			$data = $result->fetchArray( SQLITE3_ASSOC );
-			if ( !empty( $data['confluence_title'] ) ) {
-				$confluenceTitle = $data['confluence_title'];
-			}
+		if ( !$result ) {
+			return null;
 		}
 
+		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		if ( empty( $confluenceTitle) ) {
-			throw new Exception( "Confluence title not found for page $pageId" );
-		}
-
-		return $confluenceTitle;
+		return !empty( $data['confluence_title'] ) ? $data['confluence_title'] : null;
 	}
 
 	/**
@@ -1727,32 +1691,23 @@ class WorkspaceDB {
 	 *
 	 * @param int $blogPostId
 	 *
-	 * @return string
-	 * @throws Exception
+	 * @return string|null
 	 */
-	public function getTargetBlogPostTitleFromBlogPostId( int $blogPostId ): string {
-		$wikiTitle = null;
-
+	public function getTargetBlogPostTitleFromBlogPostId( int $blogPostId ): ?string {
 		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM blog_posts WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
 
 		$result = $transaction->execute();
-		if ( $result ) {
-			$data = $result->fetchArray( SQLITE3_ASSOC );
-			if ( !empty( $data['wiki_title'] ) ) {
-				$wikiTitle = $data['wiki_title'];
-			}
+		if ( !$result ) {
+			return null;
 		}
 
+		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		if ( empty( $wikiTitle) ) {
-			throw new Exception( "Wiki title not found for blog post $blogPostId" );
-		}
-
-		return $wikiTitle;
+		return !empty( $data['wiki_title'] ) ? $data['wiki_title'] : null;
 	}
 
 	/**
@@ -1760,32 +1715,23 @@ class WorkspaceDB {
 	 *
 	 * @param int $blogPostId
 	 *
-	 * @return string
-	 * @throws Exception
+	 * @return string|null
 	 */
-	public function getConfluenceBlogPostTitleFromBlogPostId( int $blogPostId ): string {
-		$confluenceTitle = null;
-
+	public function getConfluenceBlogPostTitleFromBlogPostId( int $blogPostId ): ?string {
 		$transaction = $this->cachedPrepare(
 			'SELECT confluence_title FROM blog_posts WHERE page_id = :page_id LIMIT 1'
 		);
 		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
 
 		$result = $transaction->execute();
-		if ( $result ) {
-			$data = $result->fetchArray( SQLITE3_ASSOC );
-			if ( !empty( $data['confluence_title'] ) ) {
-				$confluenceTitle = $data['confluence_title'];
-			}
+		if ( !$result ) {
+			return null;
 		}
 
+		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		if ( empty( $confluenceTitle) ) {
-			throw new Exception( "Confluence title not found for blog post $blogPostId" );
-		}
-
-		return $confluenceTitle;
+		return !empty( $data['confluence_title'] ) ? $data['confluence_title'] : null;
 	}
 
 	/**
@@ -3248,14 +3194,13 @@ class WorkspaceDB {
 	/**
 	 * @param int $templateId
 	 *
-	 * @return string
-	 * @throws Exception
+	 * @return string|null
 	 */
-	public function getTargetWikiTitleFromTemplateId( int $templateId ): string {
+	public function getTargetWikiTitleFromTemplateId( int $templateId ): ?string {
 		$template = $this->getPageTemplateById( $templateId );
 
 		if ( $template === null || empty( $template['wiki_title']) ) {
-			throw new Exception("Wiki title not found for template $templateId" );
+			return null;
 		}
 
 		return $template['wiki_title'];
@@ -3264,14 +3209,13 @@ class WorkspaceDB {
 	/**
 	 * @param int $templateId
 	 *
-	 * @return string
-	 * @throws Exception
+	 * @return string|null
 	 */
-	public function getConfluencePageTitleFromTemplateId( int $templateId ): string {
+	public function getConfluencePageTitleFromTemplateId( int $templateId ): ?string {
 		$template = $this->getPageTemplateById( $templateId );
 
 		if ( $template === null || empty( $template['confluence_title']) ) {
-			throw new Exception("Confluence title not found for template $templateId" );
+			return null;
 		}
 
 		return $template['confluence_title'];

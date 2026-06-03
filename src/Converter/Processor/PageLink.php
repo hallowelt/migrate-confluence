@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
-use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 
@@ -36,12 +35,8 @@ class PageLink extends LinkProcessorBase {
 		$rawPageTitle = $node->getAttribute( 'ri:content-title' );
 		$spaceId = $this->ensureSpaceId( $node );
 
-		try {
-			$targetTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId(
-				$spaceId,
-				$rawPageTitle
-			);
-		} catch ( Exception $e ) {
+		$targetTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $rawPageTitle );
+		if ( $targetTitle === null ) {
 			// If not in migration data, save some info for manual post migration work
 			$targetTitle = $this->generateConfluenceKey( $spaceId, $rawPageTitle );
 			$isBrokenLink = true;

@@ -79,6 +79,6 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 		$this->mediaWikiPageName = $this->dataLookup->getTargetWikiTitleFromSpaceId(
 			$this->currentSpaceId,
 			$targetPageName
-		);
+		) ?? '';
 	}
 }

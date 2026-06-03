@@ -60,13 +60,12 @@ class ImagePageLinkHelper {
 				$this->currentSpaceId,
 				$this->rawPageTitle
 			);
-			if ( !empty( $targetTitle ) ) {
+			if ( $targetTitle !== null ) {
 				return $targetTitle;
-			} else {
-				$this->isBrokenLink = true;
-				// If not in migation data, save some info for manual post migration work
-				return $this->generateConfluenceKey( $this->currentSpaceId, $this->rawPageTitle );
 			}
+		$this->isBrokenLink = true;
+		// If not in migration data, save some info for manual post migration work
+		return $this->generateConfluenceKey( $this->currentSpaceId, $this->rawPageTitle );
 		}
 
 		return '';

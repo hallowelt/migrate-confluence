@@ -8,9 +8,6 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ChildrenMacro extends StructuredMacroProcessorBase {
 
-	/** @var bool */
-	private bool $isBroken;
-
 	/**
 	 * @param int $spaceId
 	 * @param string $confluencePageTitle
@@ -21,7 +18,6 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 		private string $confluencePageTitle,
 		private DBConversionDataLookup $dataLookup
 	) {
-		$this->isBroken = false;
 	}
 
 	/**
@@ -33,8 +29,11 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
+	 * @throws Exception
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
+		$isBroken = false;
+
 		$paramNodes = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -52,6 +51,9 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 			if ( $name === 'page' ) {
 				$params['page'] = $this->processPageParam( $paramNode );
+				if ( str_starts_with( $params['page'], 'Confluence---' ) ) {
+					$isBroken = true;
+				}
 
 				continue;
 			}
@@ -62,7 +64,11 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		if ( !isset( $params['page'] ) ) {
 			// if no page param was set resolve current page's wiki title as subpage root
-			$params['page'] = $this->resolveWikiTitle( $this->spaceId, '', $this->confluencePageTitle );
+			$resolved = $this->resolveWikiTitle( $this->spaceId, $this->confluencePageTitle );
+			$params['page'] = $resolved ?? "Confluence---{$this->confluencePageTitle}";
+			if ( $resolved === null ) {
+				$isBroken = true;
+			}
 		}
 
 		// page must not contain underscores
@@ -74,9 +80,8 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 		}
 
 		$wikiText = '{{SubpageList' . $templateParams . '}}';
-		if ( $this->isBroken ) {
+		if ( $isBroken ) {
 			$wikiText .= $this->getBrokenMacroCategory();
-			$this->isBroken = false;
 		}
 
 		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
@@ -89,41 +94,39 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @param DOMNode $paramNode
 	 *
 	 * @return string
+	 * @throws Exception
 	 */
 	private function processPageParam( DOMNode $paramNode ): string {
-		$pageName = null;
-
 		if ( $paramNode->hasChildnodes() ) {
 			foreach ( $paramNode->childNodes as $childNode ) {
 				if ( $childNode->nodeName === 'ac:link' ) {
 					$pageLinks = $childNode->getElementsByTagname( 'page' );
 					if ( count( $pageLinks ) > 0 ) {
 						$pageLink = $pageLinks->item( 0 );
-
-						$childWikiTitle = $this->findChildWikiTitle( $pageLink );
-
-						if ( !$childWikiTitle ) {
-							continue;
+						$resolved = $this->findChildWikiTitle( $pageLink );
+						if ( $resolved !== null ) {
+							return $resolved;
 						}
-
-						$pageName = $childWikiTitle;
+						$confluenceTitle = $pageLink->getAttribute( 'ri:content-title' );
+						$spaceKey = $pageLink->getAttribute( 'ri:space-key' );
+						return $spaceKey !== ''
+							? "Confluence---{$spaceKey}---{$confluenceTitle}"
+							: "Confluence---{$confluenceTitle}";
 					}
 				}
 			}
 		}
 
 		// Fallback if param 'page' doesn't have a ac:link child element
-		if ( !$pageName ) {
-			$pageName = $this->resolveWikiTitle( $this->spaceId, '', $this->confluencePageTitle );
-		}
-
-		return $pageName;
+		return $this->resolveWikiTitle( $this->spaceId, $this->confluencePageTitle )
+			?? "Confluence---{$this->confluencePageTitle}";
 	}
 
 	/**
 	 * @param DOMNode $pageLink
 	 *
 	 * @return string|null
+	 * @throws Exception
 	 */
 	private function findChildWikiTitle( DOMNode $pageLink ): ?string {
 		if ( !$pageLink->hasAttribute( 'ri:content-title' ) ) {
@@ -136,28 +139,27 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 		}
 
 		$spaceId = $this->spaceId;
-		$spaceKey = '';
 		if ( $pageLink->hasAttribute( 'ri:space-key' ) ) {
-			$spaceKey = $pageLink->getAttribute( 'ri:space-key' );
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey(
+				$pageLink->getAttribute( 'ri:space-key' )
+			);
 		}
 
-		return $this->resolveWikiTitle( $spaceId, $spaceKey, $confluenceTitle );
+		return $this->resolveWikiTitle( $spaceId, $confluenceTitle );
 	}
 
 	/**
 	 * @param int $spaceId
-	 * @param string $spaceKey Empty string when using the current page's space
 	 * @param string $confluenceTitle
 	 *
-	 * @return string
+	 * @return string|null
+	 * @throws Exception
 	 */
-	private function resolveWikiTitle( int $spaceId, string $spaceKey, string $confluenceTitle ): string {
-		try {
-			$wikiTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $confluenceTitle );
-		} catch ( Exception $e ) {
-			$this->isBroken = true;
-			$wikiTitle = "Confluence---$spaceKey---$confluenceTitle";
+	private function resolveWikiTitle( int $spaceId, string $confluenceTitle ): ?string {
+		$wikiTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $confluenceTitle );
+
+		if ( $wikiTitle === null ) {
+			return null;
 		}
 
 		return str_replace( ' ', '_', $wikiTitle );
