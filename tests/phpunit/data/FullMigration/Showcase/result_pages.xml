@@ -53104,6 +53104,20 @@ When no paragraph count is specified:
 | paragraphs = 0
 | body = 
 }}
+
+&lt;span id="source-xml"&gt;&lt;/span&gt;
+== Source XML ==
+
+&lt;syntaxhighlight lang="xml"&gt;&lt;ac:structured-macro ac:name="loremipsum" ac:schema-version="1"&gt;
+  &lt;ac:parameter ac:name=""&gt;1&lt;/ac:parameter&gt;
+&lt;/ac:structured-macro&gt;
+
+&lt;ac:structured-macro ac:name="loremipsum" ac:schema-version="1"&gt;
+  &lt;ac:parameter ac:name=""&gt;3&lt;/ac:parameter&gt;
+&lt;/ac:structured-macro&gt;
+
+&lt;ac:structured-macro ac:name="loremipsum" ac:schema-version="1"&gt;
+&lt;/ac:structured-macro&gt;&lt;/syntaxhighlight&gt;
 __NOTOC__
 
  &lt;!-- From bodyContent 913113089.mraw --&gt;
@@ -67344,6 +67358,30 @@ Our CI/CD pipeline is visualized below:
 == Database Schema ==
 
 {{Gliffy|displayName=Database ER Diagram |name=database-er-diagram.svg |pagePin=1 }}
+
+&lt;span id="source-xml"&gt;&lt;/span&gt;
+== Source XML ==
+
+&lt;syntaxhighlight lang="xml"&gt;&lt;ac:structured-macro ac:name="gliffy" ac:schema-version="1" ac:macro-id="a1b2c3d4-e5f6-7890-abcd-ef1234567890"&gt;
+  &lt;ac:parameter ac:name="macroId"&gt;940000010&lt;/ac:parameter&gt;
+  &lt;ac:parameter ac:name="displayName"&gt;Network Architecture Overview&lt;/ac:parameter&gt;
+  &lt;ac:parameter ac:name="name"&gt;network-architecture-overview&lt;/ac:parameter&gt;
+  &lt;ac:parameter ac:name="pagePin"&gt;3&lt;/ac:parameter&gt;
+&lt;/ac:structured-macro&gt;
+
+&lt;ac:structured-macro ac:name="gliffy" ac:schema-version="1" ac:macro-id="b2c3d4e5-f6a7-8901-bcde-f12345678901"&gt;
+  &lt;ac:parameter ac:name="macroId"&gt;940000011&lt;/ac:parameter&gt;
+  &lt;ac:parameter ac:name="displayName"&gt;CI/CD Pipeline Flow&lt;/ac:parameter&gt;
+  &lt;ac:parameter ac:name="name"&gt;ci-cd-pipeline-flow.png&lt;/ac:parameter&gt;
+  &lt;ac:parameter ac:name="pagePin"&gt;2&lt;/ac:parameter&gt;
+&lt;/ac:structured-macro&gt;
+
+&lt;ac:structured-macro ac:name="gliffy" ac:schema-version="1" ac:macro-id="c3d4e5f6-a7b8-9012-cdef-123456789012"&gt;
+  &lt;ac:parameter ac:name="macroId"&gt;940000012&lt;/ac:parameter&gt;
+  &lt;ac:parameter ac:name="displayName"&gt;Database ER Diagram&lt;/ac:parameter&gt;
+  &lt;ac:parameter ac:name="name"&gt;database-er-diagram.svg&lt;/ac:parameter&gt;
+  &lt;ac:parameter ac:name="pagePin"&gt;1&lt;/ac:parameter&gt;
+&lt;/ac:structured-macro&gt;&lt;/syntaxhighlight&gt;
 __NOTOC__
 
  &lt;!-- From bodyContent 940000002.mraw --&gt;
@@ -67374,6 +67412,27 @@ The product roadmap deck for the upcoming quarter:
 == Training Materials ==
 
 {{ViewPpt|filename = Migration_PowerPoint_Presentations-Onboarding_Training.pptx}}[[Category:Broken_attachment_link]]
+
+&lt;span id="source-xml"&gt;&lt;/span&gt;
+== Source XML ==
+
+&lt;syntaxhighlight lang="xml"&gt;&lt;ac:structured-macro ac:name="viewppt" ac:schema-version="1"&gt;
+  &lt;ac:parameter ac:name="name"&gt;
+    &lt;ri:attachment ri:filename="Q2_2026_Results.pptx"/&gt;
+  &lt;/ac:parameter&gt;
+&lt;/ac:structured-macro&gt;
+
+&lt;ac:structured-macro ac:name="viewppt" ac:schema-version="1"&gt;
+  &lt;ac:parameter ac:name="name"&gt;
+    &lt;ri:attachment ri:filename="Product_Roadmap_2026.ppt"/&gt;
+  &lt;/ac:parameter&gt;
+&lt;/ac:structured-macro&gt;
+
+&lt;ac:structured-macro ac:name="viewppt" ac:schema-version="1"&gt;
+  &lt;ac:parameter ac:name="name"&gt;
+    &lt;ri:attachment ri:filename="Onboarding_Training.pptx"/&gt;
+  &lt;/ac:parameter&gt;
+&lt;/ac:structured-macro&gt;&lt;/syntaxhighlight&gt;
 __NOTOC__
 
  &lt;!-- From bodyContent 940000004.mraw --&gt;
