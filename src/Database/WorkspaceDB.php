@@ -81,13 +81,19 @@ class WorkspaceDB {
 			'spaces',
 			'spaces_descriptions',
 			'pages',
+			'page_invalid_titles',
 			'pages_meta',
 			'page_templates',
+			'page_template_invalid_titles',
 			'page_template_contents',
+			'page_template_invalid_contents',
 			'blog_posts',
+			'blog_post_invalid_titles',
 			'blog_posts_meta',
 			'body_contents',
+			'body_content_invalids',
 			'attachments',
+			'attachment_invalid_titles',
 			'attachments_meta',
 			'page_attachments',
 			'additional_attachments',
@@ -197,6 +203,8 @@ class WorkspaceDB {
 		$this->createTableInvalidBlogPostWikiTitles();
 		$this->createTableInvalidBodyContents();
 		$this->createTableInvalidAttachmentWikiTitles();
+		$this->createTableInvalidPageTemplateTitles();
+		$this->createTableInvalidPageTemplateContents();
 
 		// Object tables
 		$this->createTableSpaces();
@@ -271,6 +279,31 @@ class WorkspaceDB {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS body_content_invalids (
 				body_content_id INT PRIMARY KEY,
+				text CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableInvalidPageTemplateTitles(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS page_template_invalid_titles (
+				template_id INT PRIMARY KEY,
+				wiki_title CHAR,
+				text CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableInvalidPageTemplateContents(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS page_template_invalid_contents (
+				template_id INT PRIMARY KEY,
 				text CHAR
 			);'
 		);
@@ -751,6 +784,88 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int $templateId
+	 * @param string $wikiTitle
+	 * @param string $text
+	 * @return void
+	 */
+	public function addInvalidPageTemplateTitle( int $templateId, string $wikiTitle, string $text ): void {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO page_template_invalid_titles (
+				template_id,
+				wiki_title,
+				text
+			) VALUES (
+				:template_id,
+				:wiki_title,
+				:text
+			)'
+		);
+
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':text', $text, SQLITE3_TEXT );
+		$transaction->execute();
+	}
+
+	/**
+	 * @param int $templateId
+	 * @param string $text
+	 * @return void
+	 */
+	public function addInvalidPageTemplateContent( int $templateId, string $text ): void {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO page_template_invalid_contents (
+				template_id,
+				text
+			) VALUES (
+				:template_id,
+				:text
+			)'
+		);
+
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':text', $text, SQLITE3_TEXT );
+		$transaction->execute();
+	}
+
+	/**
+	 * Returns true if the page template is considered invalid.
+	 *
+	 * A page template is invalid if its wiki_title appears in page_template_invalid_titles,
+	 * or if its content appears in page_template_invalid_contents.
+	 *
+	 * @param int $templateId
+	 * @return bool
+	 */
+	public function isPageTemplateInvalid( int $templateId ): bool {
+		// Check if the wiki_title of the template is in page_template_invalid_titles
+		$stmt = $this->cachedPrepare(
+			'SELECT template_id FROM page_template_invalid_titles
+			WHERE template_id = :template_id
+			LIMIT 1'
+		);
+		$stmt->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+		$result = $stmt->execute();
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		if ( $row !== false && isset( $row['template_id'] ) ) {
+			return true;
+		}
+
+		// Check if the content of the template is in page_template_invalid_contents
+		$stmt = $this->cachedPrepare(
+			'SELECT template_id FROM page_template_invalid_contents
+			WHERE template_id = :template_id
+			LIMIT 1'
+		);
+		$stmt->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+		$result = $stmt->execute();
+		$invalidContentRow = $result->fetchArray( SQLITE3_ASSOC );
+
+		return $invalidContentRow !== false && isset( $invalidContentRow['template_id'] );
+	}
+
+	/**
 	 * Returns true if the page is considered invalid.
 	 *
 	 * A page is invalid if its wiki_title appears in page_invalid_titles,
@@ -800,6 +915,7 @@ class WorkspaceDB {
 		}
 
 		// Check if any body_content_id is listed as invalid
+		$hasInvalidContent = false;
 		foreach ( $bodyContentIds as $bodyContentId ) {
 			$stmt = $this->cachedPrepare(
 				'SELECT body_content_id FROM body_content_invalids
@@ -809,12 +925,12 @@ class WorkspaceDB {
 			$stmt->bindValue( ':body_content_id', (int)$bodyContentId, SQLITE3_INTEGER );
 			$result = $stmt->execute();
 			$invalidRow = $result->fetchArray( SQLITE3_ASSOC );
-			if ( $invalidRow !== false && isset( $invalidRow['body_content_id'] ) ) {
-				return true;
+			if ( $invalidRow === false || !isset( $invalidRow['body_content_id'] ) ) {
+				$hasInvalidContent = true;
 			}
 		}
 
-		return false;
+		return $hasInvalidContent;
 	}
 
 	/**
@@ -867,6 +983,7 @@ class WorkspaceDB {
 		}
 
 		// Check if any body_content_id is listed as invalid
+		$hasInvalidContent = false;
 		foreach ( $bodyContentIds as $bodyContentId ) {
 			$stmt = $this->cachedPrepare(
 				'SELECT body_content_id FROM body_content_invalids
@@ -876,12 +993,12 @@ class WorkspaceDB {
 			$stmt->bindValue( ':body_content_id', (int)$bodyContentId, SQLITE3_INTEGER );
 			$result = $stmt->execute();
 			$invalidRow = $result->fetchArray( SQLITE3_ASSOC );
-			if ( $invalidRow !== false && isset( $invalidRow['body_content_id'] ) ) {
-				return true;
+			if ( $invalidRow === false || !isset( $invalidRow['body_content_id'] ) ) {
+				$hasInvalidContent = true;
 			}
 		}
 
-		return false;
+		return $hasInvalidContent;
 	}
 
 	/**

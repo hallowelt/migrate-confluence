@@ -177,4 +177,12 @@ class DBComposerDataLookup {
 	public function isAttachmentInvalid( int $attachmentId ): bool {
 		return $this->workspaceDB->isAttachmentInvalid( $attachmentId );
 	}
+
+	/**
+	 * @param int $templateId
+	 * @return bool
+	 */
+	public function isPageTemplateInvalid( int $templateId ): bool {
+		return $this->workspaceDB->isPageTemplateInvalid( $templateId );
+	}
 }

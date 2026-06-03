@@ -147,7 +147,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/**
 	 * @return array
 	 */
-	private function getPostProcessors(): array {
+	private function getProcessors(): array {
 		return [
 			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
 			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),

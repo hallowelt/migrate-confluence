@@ -850,8 +850,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$exceed = '100';
 		}
 		if ( $exceed !== '' ) {
+			$method = 'addInvalidBodyContent';
+			if ( strpos( $this->rawFile->getFileInfo(), 0, 3 ) === 'pt_' ) {
+				$method = 'addInvalidPageTemplateContent';
+			}
 			$this->pipeToDB->send(
-				'addInvalidBodyContent',
+				$method,
 				$bodyContentId
 			);
 
