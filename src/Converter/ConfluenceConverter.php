@@ -307,7 +307,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			throw new Exception( "No Confluence page title found for bodyContentId $bodyContentId" );
 		}
 
-		if ( !$this->currentWikiTitle === null ) {
+		if ( $this->currentWikiTitle === null ) {
 			throw new Exception( "No wiki title found for bodyContentId $bodyContentId" );
 		}
 
@@ -491,7 +491,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	}
 
 	/**
-	 *
 	 * @return void
 	 */
 	private function runPostProcessors(): void {
