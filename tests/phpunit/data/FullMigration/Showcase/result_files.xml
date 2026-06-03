@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<mediawiki>
+  <file>
+    <title>File:Icon-note.svg</title>
+    <revision>
+      <data>./images/Icon-note.svg</data>
+    </revision>
+  </file>
+  <file>
+    <title>File:Icon-info.svg</title>
+    <revision>
+      <data>./images/Icon-info.svg</data>
+    </revision>
+  </file>
+  <file>
+    <title>File:Icon-warning.svg</title>
+    <revision>
+      <data>./images/Icon-warning.svg</data>
+    </revision>
+  </file>
+  <file>
+    <title>File:Icon-tip.svg</title>
+    <revision>
+      <data>./images/Icon-tip.svg</data>
+    </revision>
+  </file>
+</mediawiki>

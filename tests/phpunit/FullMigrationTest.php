@@ -67,6 +67,19 @@ class FullMigrationTest extends TestCase {
 			mkdir( $this->tempDir . '/multi-source/input/' . $space, 0755, true );
 			copy( $sourceFile, $this->tempDir . '/multi-source/input/' . $space . '/entities.xml' );
 		}
+
+		// Showcase migration test
+		mkdir( $this->tempDir . '/showcase', 0755, true );
+		mkdir( $this->tempDir . '/showcase/input', 0755, true );
+		mkdir( $this->tempDir . '/showcase/workspace', 0755, true );
+		mkdir( $this->tempDir . '/showcase/workspace/content', 0755, true );
+		mkdir( $this->tempDir . '/showcase/workspace/content/raw', 0755, true );
+		mkdir( $this->tempDir . '/showcase/workspace/content/wikitext', 0755, true );
+		mkdir( $this->tempDir . '/showcase/workspace/content/result', 0755, true );
+		mkdir( $this->tempDir . '/showcase/workspace/content/result/images', 0755, true );
+
+		$sourceFile = $this->dataDir . '/Showcase/input/entities.xml';
+		copy( $sourceFile, $this->tempDir . '/showcase/input/entities.xml' );
 	}
 
 	protected function tearDown(): void {
@@ -89,7 +102,7 @@ class FullMigrationTest extends TestCase {
 
 		$output = new BufferedOutput();
 
-		$configFile = $this->dataDir . '/config.yaml';
+		$configFile = $this->dataDir . '/SingleSource/config.yaml';
 		$config = file_exists( $configFile )
 			? Yaml::parseFile( $configFile )
 			: [];
@@ -128,7 +141,7 @@ class FullMigrationTest extends TestCase {
 		);
 
 		// Step 5: Verify
-		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
+		$expectedPagesFile = $this->dataDir . '/SingleSource/result_pages.xml';
 		$expectedPages = $this->extractPages( $expectedPagesFile );
 
 		$actualFile = $this->tempDir . '/single-source/workspace/result/pages.xml';
@@ -151,7 +164,7 @@ class FullMigrationTest extends TestCase {
 		}
 
 		// Verify templates.xml
-		$expectedTemplatesFile = $this->dataDir . '/result_templates.xml';
+		$expectedTemplatesFile = $this->dataDir . '/SingleSource/result_templates.xml';
 		$expectedTemplates = $this->extractPages( $expectedTemplatesFile );
 
 		$actualTemplatesFile = $this->tempDir . '/single-source/workspace/result/templates.xml';
@@ -174,7 +187,7 @@ class FullMigrationTest extends TestCase {
 		}
 
 		// Verify comments.xml
-		$expectedCommentsFile = $this->dataDir . '/result_comments.xml';
+		$expectedCommentsFile = $this->dataDir . '/SingleSource/result_comments.xml';
 		$actualCommentsFile = $this->tempDir . '/single-source/workspace/result/comments.xml';
 		$this->assertFileExists( $actualCommentsFile );
 		$this->assertXmlFileEqualsXmlFile( $expectedCommentsFile, $actualCommentsFile );
@@ -187,8 +200,6 @@ class FullMigrationTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
 	 */
 	public function testMigrationWithMultipleExportDirectories(): void {
-		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
-
 		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];
 
 		$output = new BufferedOutput();
@@ -397,6 +408,122 @@ class FullMigrationTest extends TestCase {
 
 		foreach ( $expectedTitles as $title ) {
 			$this->assertArrayHasKey( $title, $actualPages, "Missing page: $title" );
+		}
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor
+	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverter
+	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
+	 */
+	public function testShowcaseMigration(): void {
+		$src = $this->tempDir . '/showcase/input';
+		$dest = $this->tempDir . '/showcase/workspace';
+
+		$workspace = new Workspace(
+			new SplFileInfo( $this->tempDir . '/showcase/workspace' )
+		);
+
+		$output = new BufferedOutput();
+
+		$configFile = $this->dataDir . '/Showcase/config.yaml';
+		$config = file_exists( $configFile )
+			? Yaml::parseFile( $configFile )
+			: [];
+
+		// Step 1: Analyze
+		$this->runAnalyze(
+			$src,
+			$dest,
+			$workspace,
+			$config,
+			$output
+		);
+
+		// Step 2: Extract
+		$this->runExtract(
+			$src,
+			$dest,
+			$workspace,
+			$config,
+		);
+
+		// Step 3: Convert
+		$this->runConvert(
+			$dest,
+			$workspace,
+			$config,
+			$output
+		);
+
+		// Step 4: Compose
+		$this->runCompose(
+			$dest,
+			$workspace,
+			$config,
+			$output
+		);
+
+		// Step 5: Verify
+		$expectedPagesFile = $this->dataDir . '/Showcase/result_pages.xml';
+		if ( file_exists( $expectedPagesFile ) ) {
+			$expectedPages = $this->extractPages( $expectedPagesFile );
+
+			$actualFile = $this->tempDir . '/showcase/workspace/result/pages.xml';
+			$this->assertFileExists( $actualFile );
+			$actualPages = $this->extractPages( $actualFile );
+
+			$this->assertSame(
+				array_keys( $expectedPages ),
+				array_keys( $actualPages ),
+				'Page titles do not match'
+			);
+
+			foreach ( $expectedPages as $title => $expectedPageXml ) {
+				$this->assertArrayHasKey( $title, $actualPages, "Missing page: $title" );
+				$this->assertXmlStringEqualsXmlString(
+					$expectedPageXml,
+					$actualPages[$title],
+					"Page content mismatch for: $title"
+				);
+			}
+		} else {
+			$actualFile = $this->tempDir . '/showcase/workspace/result/pages.xml';
+			$this->assertFileExists( $actualFile );
+		}
+
+		// Verify templates.xml
+		$expectedTemplatesFile = $this->dataDir . '/Showcase/result_templates.xml';
+		if ( file_exists( $expectedTemplatesFile ) ) {
+			$expectedTemplates = $this->extractPages( $expectedTemplatesFile );
+
+			$actualTemplatesFile = $this->tempDir . '/showcase/workspace/result/templates.xml';
+			$this->assertFileExists( $actualTemplatesFile );
+			$actualTemplates = $this->extractPages( $actualTemplatesFile );
+
+			$this->assertSame(
+				array_keys( $expectedTemplates ),
+				array_keys( $actualTemplates ),
+				'Template titles do not match'
+			);
+
+			foreach ( $expectedTemplates as $title => $expectedTemplateXml ) {
+				$this->assertArrayHasKey( $title, $actualTemplates, "Missing template: $title" );
+				$this->assertXmlStringEqualsXmlString(
+					$expectedTemplateXml,
+					$actualTemplates[$title],
+					"Template content mismatch for: $title"
+				);
+			}
+		}
+
+		// Verify comments.xml
+		$expectedCommentsFile = $this->dataDir . '/Showcase/result_comments.xml';
+		if ( file_exists( $expectedCommentsFile ) ) {
+			$actualCommentsFile = $this->tempDir . '/showcase/workspace/result/comments.xml';
+			$this->assertFileExists( $actualCommentsFile );
+			$this->assertXmlFileEqualsXmlFile( $expectedCommentsFile, $actualCommentsFile );
 		}
 	}
 

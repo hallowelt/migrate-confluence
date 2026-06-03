@@ -1,0 +1,769 @@
+<?xml version="1.0"?>
+<mediawiki>
+  <page>
+    <title>Template:ViewPpt</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewppt"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:LayoutStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;templatestyles src="Template:Layout.css" /&gt;&lt;div class="ac-layout"&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Info</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{Textbox|boxtype=important|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Layout.css</title>
+    <revision>
+      <model>sanitized-css</model>
+      <format>text/css</format>
+      <text>.ac-layout-section {
+	display: flex;
+}
+
+.ac-layout-section.three_equal .ac-layout-cell {
+	flex: 33%;
+}
+
+.ac-layout-section.two_equal .ac-layout-cell {
+	flex: 50%;
+}
+
+.ac-layout-section.three_with_sidebars .ac-layout-cell:nth-child(1) {
+	flex: 25%;
+}
+.ac-layout-section.three_with_sidebars .ac-layout-cell:nth-child(2) {
+	flex: 50%;
+}
+.ac-layout-section.three_with_sidebars .ac-layout-cell:nth-child(3) {
+	flex: 25%;
+}
+
+.ac-layout-section.two_right_sidebar .ac-layout-cell:nth-child(1) {
+	flex: 66%;
+}
+.ac-layout-section.two_right_sidebar .ac-layout-cell:nth-child(2) {
+	flex: 33%;
+}
+
+.ac-layout-section.two_left_sidebar .ac-layout-cell:nth-child(1) {
+	flex: 33%;
+}
+.ac-layout-section.two_left_sidebar .ac-layout-cell:nth-child(2) {
+	flex: 66%;
+}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Tip</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{Textbox|boxtype=tip|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:DetailsSummaryEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+|}
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Drawio</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{#tag:drawio
+|
+|filename={{{diagramName}}}
+}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Jira</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Links to Jira issues and queries via interwiki links.
+* Use &lt;code&gt;{{Jira|key=PROJECT-123}}&lt;/code&gt; to link to a specific issue (uses the &lt;code&gt;jira-task&lt;/code&gt; interwiki prefix).
+* Use &lt;code&gt;{{Jira|jql=...}}&lt;/code&gt; to link to a Jira filter. When the value is a Jira URL, the view type is detected from the path:
+** &lt;code&gt;/timeline&lt;/code&gt; &#x2192; &lt;code&gt;jira-timeline&lt;/code&gt;
+** &lt;code&gt;/calendar&lt;/code&gt; &#x2192; &lt;code&gt;jira-calendar&lt;/code&gt;
+** &lt;code&gt;/summary&lt;/code&gt; &#x2192; &lt;code&gt;jira-summary&lt;/code&gt;
+** &lt;code&gt;/boards&lt;/code&gt; &#x2192; &lt;code&gt;jira-board&lt;/code&gt;
+** otherwise &#x2192; &lt;code&gt;jira-jql&lt;/code&gt; (plain JQL query)
+&lt;/noinclude&gt;&lt;includeonly&gt;{{#if:{{{key|}}}|[[jira-task:{{{key}}}]]|{{#if:{{#pos:{{{jql|}}}|/timeline}}|[[jira-timeline:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/calendar}}|[[jira-calendar:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/summary}}|[[jira-summary:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/boards}}|[[jira-board:{{{jql}}}]]|[[jira-jql:{{{jql}}}]]}}}}}}}}}}&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:RecentlyUpdated</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+{{#ask:[[{{NAMESPACE}}:+]][[Modification date::+]]
+|format=ul
+|limit=10
+}}
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ContentByLabel</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;This template is used to convert the structured macro "contentbylabel".&lt;/noinclude&gt;
+&lt;includeonly&gt;
+{{#ask:{{#if:{{{conditions|}}}|{{{conditions|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
+|format=ul
+|limit=999
+}}
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ColumnStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="ac-column"&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:DetailsSummaryStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{| class="mw-collapsible mw-collapsed wikitable"
+! {{{title|}}}
+|-
+|
+&lt;includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:TableFilterEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+&lt;/div&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:SubpageList</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{{#ask:[[-Subpage::{{{page|{{FULLPAGENAME}}}}}]]
+|format=template
+|template=SubpageListRow
+|userparam={{{page|{{FULLPAGENAME}}}}}
+|limit=9999
+|link=none
+}}&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:DetailsStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="macro-details" {{#if:{{{id|}}}|data-id="{{{id|}}}"}} {{#if:{{{hidden|}}}|style="display:none;"}}&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Note</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{Textbox|boxtype=note|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ExpandStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{| class="mw-collapsible mw-collapsed wikitable"
+! {{{title|}}}
+|-
+|
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:PanelStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="panel"&gt;{{#if:{{{title|}}}|
+&lt;span class="panel__heading"&gt;'''{{{title|}}}'''&lt;/span&gt;&lt;br /&gt;
+|}}&lt;div class="panel__content"&gt;
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ViewDoc</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewdoc"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[Media:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:SubpageListRow</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{{#ifeq:{{#titleparts: {{{1}}} | -1 }}|{{{#userparam}}}|*[[{{{1}}}|{{#titleparts: {{{1}}} | | -1 }}]]}}&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:InlineComment</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;span style="display:inline-block;padding:0.2em;background-color:yellow"&gt;{{{1|N/A}}}&lt;/span&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:DetailsEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;/div&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Status</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;span style="display:inline-block;padding:0.2em;font-variant-caps:all-small-caps;background-color:{{{colour|none}}}"&gt;{{{title|N/A}}}&lt;/span&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ViewFile</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "view-file"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ExcerptInclude</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{:{{{target|}}}}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:FallbackCreateFromTemplate</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;
+Fallback template preloaded into pages created via CreateFromTemplate when the original Confluence template could not be resolved. Sets the "Created by macro" property so the page appears in the correct macro instance's listing.
+
+Parameters:
+* $1 - The macro-id of the CreateFromTemplate instance that created this page
+&lt;/noinclude&gt;&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ColumnEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;/div&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:PanelEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Warning</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{Textbox|boxtype=warning|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:AttachmentsSectionStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+== Attachments ==
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:LoremIpsum</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{{{body|}}}&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:TableFilterStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="macro-table-filter"&gt;
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:PageTree</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{{#subpages:{{{content-title}}}}}&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ViewXls</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewxls"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[Media:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ExpandEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+|}
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:SpaceDetails</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for macro "space-details"
+&lt;/noinclude&gt;&lt;includeonly&gt;{| class="wikitable" style="width:{{{width}}}"
+|-
+| Name || {{NAMESPACE}}
+|-
+| Description || {{#ask:[[{{NAMESPACE}}:+]][[Space description::+]]|?Space description=|mainlabel=-|link=none}}
+|-
+| Pages in namespace || {{#ask:[[{{NAMESPACE}}:+]]|format=count}}
+|-
+| Last page edit || {{#ask:[[{{NAMESPACE}}:+]]|limit=1|sort=Modification date|order=desc|searchlabel=}} 
+|-
+| Last modification date || {{#ask:[[{{NAMESPACE}}:+]]|?Modification date=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}} 
+|-
+| Last modifier || {{#ask:[[{{NAMESPACE}}:+]]|?Last editor is=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}} 
+|}&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Gliffy</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{#tag:drawio
+|
+|filename={{{name}}}
+}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ViewPdf</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewpdf"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:AttachmentsSectionEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;!-- Nothing to do here --&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:CreateFromTemplate</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;
+Renders an inputbox for creating new pages from a template and lists pages previously created by this macro instance.
+
+Parameters:
+* preload - The template page to preload when creating a new page
+* buttonlabel - Label for the create button
+* macroid - Unique identifier for this macro instance (used to scope created pages)
+&lt;/noinclude&gt;&lt;includeonly&gt;
+{{#tag:inputbox|
+type=create
+preload={{{preload|preload}}}
+preloadparams[]={{{macroid|}}}
+buttonlabel={{{buttonlabel|Create from template}}}
+width=28
+break=no
+useve=true
+}}
+{{#ask: [[Created by macro::{{{macroid|}}}]]
+| format=embedded
+| sort=Creation date
+| order=desc
+| limit=5
+| searchlabel=More
+}}
+&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Migration/Standard_meeting_minutes</title>
+    <revision>
+      <timestamp>20260309143610</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;span id="meeting-title"&gt;&lt;/span&gt;
+== '''Meeting Title''' ==
+
+''Example: Marketing Weekly Sync''
+
+'''Date:'''&lt;br /&gt;
+'''Time:'''&lt;br /&gt;
+'''Location:'''&lt;br /&gt;
+'''Facilitator:'''&lt;br /&gt;
+'''Note Taker:'''&lt;br /&gt;
+'''Attendees:'''&lt;br /&gt;
+'''Absentees:'''
+
+
+-----
+
+&lt;span id="agenda"&gt;&lt;/span&gt;
+== '''Agenda''' ==
+
+{| class="wikitable" layout="default" ac:local-id="4fd9cf6b-4c9d-408a-90c4-a58489e3a7e4" data-table-width="1800"
+|- ac:local-id="7f8f3409-b7fb-4e16-9a2c-f5ec0aa32894"
+! ac:local-id="cdef3283-5ce0-4adf-a8fc-1e91c592161e"|
+#
+
+! ac:local-id="4ab825c8-9ee2-4ce3-98fe-fc4fa70da843"| Topic
+
+! ac:local-id="07221caf-dfe3-4157-acf5-c2a9a1ad2f1d"| Presenter
+
+! ac:local-id="c682bb38-3798-4a77-9c46-f813a07bd1e7"| Time
+
+|- ac:local-id="803d509a-5570-457e-ac88-676cf46ef98b"
+| ac:local-id="f0e7b073-11e9-44ca-8108-1f9237225222"| 1
+
+| ac:local-id="b5c25d47-a887-46fc-b903-6c40042ecf01"|
+| ac:local-id="77988e7d-3b20-4a7c-ba48-60bf9d90f7e9"|
+| ac:local-id="a83493ea-1d8d-442b-b43e-4dfb718e50ca"|
+|- ac:local-id="a952811e-4e07-4a52-9e92-de5c415b4d56"
+| ac:local-id="241dbea1-71d1-4a05-9545-22d5bf2f6b46"| 2
+
+| ac:local-id="09931448-3dc4-4686-a70c-3aea76eda925"|
+| ac:local-id="4b9507a8-04ff-4f15-8a0e-aa0232afa9bf"|
+| ac:local-id="5de29089-3bac-4b94-9888-cfb265ec6a44"|
+|- ac:local-id="364ae3c1-6323-4f78-9d22-ae92037a8ccc"
+| ac:local-id="009c067f-eb75-483c-93b0-38e85afd528f"| 3
+
+| ac:local-id="469f87af-dbc3-428c-a837-31a091fb7917"|
+| ac:local-id="138d13bd-fff1-4b26-b5ef-9290f4c31c7b"|
+| ac:local-id="ae278c90-8bd2-4f26-b4e1-64cd171ea2fa"|
+|- ac:local-id="26064d39-592c-4e88-bdf7-26dbb86e1d22"
+| ac:local-id="13bb35e7-bbf0-42dd-8d10-6c694cb63900"| 4
+
+| ac:local-id="831a9780-db54-4f61-aefc-2995635abfbe"|
+| ac:local-id="13fd279b-c636-43e4-b3ee-8127abad7308"|
+| ac:local-id="93606bc0-9673-4bc7-ad48-d2d85e009f0d"|
+|}
+
+
+-----
+
+&lt;span id="discussion-notes"&gt;&lt;/span&gt;
+== '''Discussion Notes''' ==
+
+&lt;span id="topic-1"&gt;&lt;/span&gt;
+=== '''1. Topic 1''' ===
+
+* Key points:
+* Decisions:
+* Questions / follow-up:
+
+&lt;span id="topic-2"&gt;&lt;/span&gt;
+=== '''2. Topic 2''' ===
+
+* Key points:
+* Decisions:
+* Questions / follow-up:
+
+&lt;span id="topic-3"&gt;&lt;/span&gt;
+=== '''3. Topic 3''' ===
+
+* Key points:
+* Decisions:
+* Questions / follow-up:
+
+
+-----
+
+&lt;span id="action-items"&gt;&lt;/span&gt;
+== '''Action Items''' ==
+
+{| class="wikitable" layout="default" ac:local-id="58b17aa0-04b4-4a2d-b2f6-1b0b852b1d6b" data-table-width="1800"
+|- ac:local-id="3ede40b0-f8b5-4ab4-bf79-995fdd4ba7fc"
+! ac:local-id="5338e5c5-42fe-4274-bfa8-45a59840941a"| Action Item
+
+! ac:local-id="ac7f5121-1200-495e-bea5-d028c5b1db95"| Owner
+
+! ac:local-id="b10b9e27-4d12-4db1-8711-e37eb9e16a01"| Due Date
+
+! ac:local-id="f2f27868-11f3-4742-b30c-7be2ac560e9a"| Status
+
+|- ac:local-id="35d59bc3-b157-4bb7-ace7-0ec8c4c2c271"
+| ac:local-id="fc8a35e4-e03f-4de3-b889-f2c20e58e5e2"|
+| ac:local-id="e1d9e8a7-01a2-4089-86e6-30c2c3941a17"|
+| ac:local-id="73e17aff-a542-4073-8cba-b44d3e5ea597"|
+| ac:local-id="11af4a2b-f700-455f-88e3-b06c18baa5c9"| Open
+
+|- ac:local-id="b54b0c0a-1302-49d3-88e3-799aab28ac3d"
+| ac:local-id="05a68aad-7201-4b54-b4cc-831456ff8aab"|
+| ac:local-id="5483b9df-a365-4eaa-8c98-323766888f1d"|
+| ac:local-id="de3a7388-c3a0-40aa-aace-22b0ed15334f"|
+| ac:local-id="1a92cee6-1a07-476a-b87f-312409c7cf7b"| In Progress
+
+|- ac:local-id="ccbd99e2-ad26-4d1c-aa2a-2fff6a594f3a"
+| ac:local-id="5177de8e-40bd-4d22-8e88-b782d109ec83"|
+| ac:local-id="8c3a21dc-ecd5-4506-a437-b49825e5140e"|
+| ac:local-id="592ced2e-8dba-4142-a9b5-7885ac2a6b28"|
+| ac:local-id="3d2850e5-3417-40d6-a7ab-db021cd15dc3"| Done
+
+|}
+
+
+-----
+
+&lt;span id="decisions"&gt;&lt;/span&gt;
+== '''Decisions''' ==
+
+{| class="wikitable" layout="default" ac:local-id="50d6687a-41a1-444b-8374-e2c9755b115f" data-table-width="1800"
+|- ac:local-id="92289b94-9e3d-4641-936d-b4698efc0f71"
+! ac:local-id="b6e05ce2-9833-4029-b964-0ff355642530"| Decision
+
+! ac:local-id="22637197-5d42-4535-9dd6-93adaad9bf2f"| Owner
+
+! ac:local-id="4fd46828-e98c-402c-8868-5f05de1491da"| Date
+
+|- ac:local-id="237bc5c4-577a-4324-a141-e1934157868d"
+| ac:local-id="899dfdcd-a4ec-48e7-ba68-e65d30f982c7"|
+| ac:local-id="786d04b6-bf1f-4c98-8b1f-1bb5e51dee7d"|
+| ac:local-id="a7f26b41-4db9-4e47-9018-5601af3d7579"|
+|- ac:local-id="1646e538-77cd-43db-b792-9a4550023037"
+| ac:local-id="cc1c7327-6c71-4ab4-841c-a637a578250a"|
+| ac:local-id="fcaba8b4-94cc-47a3-96d5-8e5c2ed763a1"|
+| ac:local-id="fce78171-6ae0-4092-85c9-f7a48e879179"|
+|}
+&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
+ &lt;!-- From bodyContent pt_847708164.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Migration/Document_info</title>
+    <revision>
+      <timestamp>20260311164832</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{ExpandStart
+|breakoutWidth = 760
+}}
+{{ExpandEnd}}{{DetailsStart}}
+{| class="wikitable" layout="default" ac:local-id="48330cce-331f-4ed6-9711-7fc6933bf635" data-table-width="760"
+|- ac:local-id="f53aa330f3ed"
+! ac:local-id="c768e6e3c8aa"| Owner
+
+| ac:local-id="7bad6c2c7958" data-highlight-colour="#ffffff"| &amp;lt;!-- List the &#x2018;value&#x2019; for each key in this column - these will populate the rows in your report table --&amp;gt;
+
+|- ac:local-id="c3dfe70b10bb"
+! ac:local-id="a90b6cf4286b" data-highlight-colour="#f4f5f7"| Document type
+
+| ac:local-id="01d45d6c7637"|
+|}
+
+{{DetailsEnd}}
+&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
+ &lt;!-- From bodyContent pt_850296871.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Migration/Marketing_Product_Launch_Checklist</title>
+    <revision>
+      <timestamp>20260311160705</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;span id="launch-planned"&gt;&lt;/span&gt;
+== Launch Planned ==
+
+&lt;div class="ac-task-list"&gt;
+
+[] Confirm launch scope with Product&lt;br /&gt;
+[] Confirm target release date&lt;br /&gt;
+[] Gather initial product details&lt;br /&gt;
+[] Identify key stakeholders&lt;br /&gt;
+[] Create internal launch folder for planning and assets&lt;br /&gt;
+
+
+&lt;/div&gt;
+&lt;span id="define-goals-and-messaging"&gt;&lt;/span&gt;
+== Define Goals and Messaging ==
+
+&lt;div class="ac-task-list"&gt;
+
+[] Define launch objectives (awareness, adoption, leads, retention)&lt;br /&gt;
+[] Identify primary and secondary audiences&lt;br /&gt;
+[] Draft value proposition&lt;br /&gt;
+[] Create messaging pillars&lt;br /&gt;
+[] Validate messaging with Product and Leadership&lt;br /&gt;
+[] Finalize messaging brief&lt;br /&gt;
+
+
+&lt;/div&gt;
+&lt;span id="create-launch-plan"&gt;&lt;/span&gt;
+== Create Launch Plan ==
+
+&lt;div class="ac-task-list"&gt;
+
+[] Build launch timeline with milestones&lt;br /&gt;
+[] Identify required content (blog, email, social, website)&lt;br /&gt;
+[] Identify required assets (graphics, screenshots, visuals)&lt;br /&gt;
+[] Define channels and distribution strategy&lt;br /&gt;
+[] Assign responsibilities within Marketing&lt;br /&gt;
+[] Identify dependencies (design, product info, approvals)&lt;br /&gt;
+[] Share plan with stakeholders&lt;br /&gt;
+
+
+&lt;/div&gt;
+&lt;span id="coordinate-with-internal-teams"&gt;&lt;/span&gt;
+== Coordinate with Internal Teams ==
+
+&lt;div class="ac-task-list"&gt;
+
+[] Align with Product on feature accuracy&lt;br /&gt;
+[] Align with Sales on enablement needs&lt;br /&gt;
+[] Align with Customer Success on customer communication&lt;br /&gt;
+[] Confirm design resource availability&lt;br /&gt;
+[] Update plan based on feedback&lt;br /&gt;
+[] Finalize internal alignment&lt;br /&gt;
+
+
+&lt;/div&gt;
+&lt;span id="create-launch-content"&gt;&lt;/span&gt;
+== Create Launch Content ==
+
+&lt;div class="ac-task-list"&gt;
+
+[] Draft blog post or announcement&lt;br /&gt;
+[] Draft email campaigns&lt;br /&gt;
+[] Draft social media posts&lt;br /&gt;
+[] Draft website copy updates&lt;br /&gt;
+[] Review content internally&lt;br /&gt;
+[] Apply revisions&lt;br /&gt;
+[] Finalize all written content&lt;br /&gt;
+
+
+&lt;/div&gt;
+&lt;span id="prepare-launch-assets"&gt;&lt;/span&gt;
+== Prepare Launch Assets ==
+
+&lt;div class="ac-task-list"&gt;
+
+[] Request required visuals from Design&lt;br /&gt;
+[] Provide messaging and content to Design&lt;br /&gt;
+[] Review draft visuals&lt;br /&gt;
+[] Request revisions if needed&lt;br /&gt;
+[] Approve final assets&lt;br /&gt;
+[] Prepare files for publishing (correct formats, sizes)&lt;br /&gt;
+
+
+&lt;/div&gt;
+&lt;span id="publish-launch-communications"&gt;&lt;/span&gt;
+== Publish Launch Communications ==
+
+&lt;div class="ac-task-list"&gt;
+
+[] Publish blog post&lt;br /&gt;
+[] Send email campaigns&lt;br /&gt;
+[] Post on social channels&lt;br /&gt;
+[] Update website pages&lt;br /&gt;
+[] Notify internal teams that launch is live&lt;br /&gt;
+
+
+&lt;/div&gt;
+&lt;span id="monitor-performance-and-report"&gt;&lt;/span&gt;
+== Monitor Performance and Report ==
+
+&lt;div class="ac-task-list"&gt;
+
+[] Track KPIs (traffic, engagement, conversions, adoption)&lt;br /&gt;
+[] Monitor customer feedback&lt;br /&gt;
+[] Review campaign performance&lt;br /&gt;
+[] Document insights and lessons learned&lt;br /&gt;
+[] Share post-launch report with stakeholders&lt;br /&gt;
+
+
+&lt;/div&gt;
+&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
+ &lt;!-- From bodyContent pt_850198554.mraw --&gt;
+</text>
+    </revision>
+  </page>
+</mediawiki>

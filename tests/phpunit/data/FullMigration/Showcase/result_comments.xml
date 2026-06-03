@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<mediawiki>
+  <page>
+    <title>Migration_Talk:Macros/Supported_macros/inline-comment</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text></text>
+      <content>
+        <role>cs-comments</role>
+        <model>json</model>
+        <format>application/json</format>
+        <text>{"1":{"type":"comment","author":"Margit.link-rodrigue","created":"20260312154915","modified":"20260312154915","title":"","block":null,"wikitext":"This comment was edited directly via the comment-button in read-mode.\n__NOTOC__\n\n \u003C!-- From bodyContent 855048205.mraw --\u003E"}}</text>
+      </content>
+    </revision>
+  </page>
+</mediawiki>

@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<mediawiki>
+  <page>
+    <title>Blog:CON/My_Blog_Post</title>
+    <revision>
+      <timestamp>20200615083000</timestamp>
+      <model>blog_post</model>
+      <format>text/x-wiki</format>
+      <text>Hello blog world.
+__NOTOC__
+
+ &lt;!-- From bodyContent 20000003.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>CON:Create_Project_Page</title>
+    <revision>
+      <timestamp>20200302100000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Click the button below to create a new project:
+
+{{CreateFromTemplate|preload = Template:CON/Projektvorlage|buttonlabel = Neues Projekt erstellen|macroid = abc12345-def6-7890-abcd-ef1234567890}}
+__NOTOC__
+
+ &lt;!-- From bodyContent 20000030.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>CON:Cross_Space_Links_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Link to second space: [[SECOND:Second_Space_Page|Second Space Page]]
+__NOTOC__
+
+ &lt;!-- From bodyContent 20000012.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>CON:Links_Test_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Simple text link: [https://example.com Click here]
+
+Link with only ac:image: [https://example.com https://img.example.com/img.png]
+
+Internal link: [[wiki/SomePage|&lt;span&gt;text&lt;/span&gt;]]
+
+Link with span child: [https://example.com &lt;span&gt;content&lt;/span&gt;]
+
+Link with br child: [https://example.com ]
+
+Complex link with span+br+span: [https://example.com &lt;span&gt;A&lt;/span&gt;&lt;span&gt;B&lt;/span&gt;]
+
+Extracted children placed before existing next sibling: [https://example.com &lt;span&gt;child&lt;/span&gt;]''next''
+
+Link with nested ac:image inside span: [https://example.com https://img.example.com/img.png]&lt;span&gt;&lt;/span&gt;
+
+Link with nested ac:image along content: [https://example.com https://img.example.com/img.png]&lt;span&gt;content&lt;/span&gt;
+
+Link with nested ac:image inside span along content: [https://example.com https://img.example.com/img.png]&lt;span&gt;&lt;/span&gt;&lt;span&gt;content&lt;/span&gt;
+
+Link with content with nested ac:image inside span along content: [https://example.com https://img.example.com/img.png]&lt;span&gt;content&lt;/span&gt;&lt;span&gt;content&lt;/span&gt;
+__NOTOC__
+
+ &lt;!-- From bodyContent 20000005.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>CON:Test_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;span id="image-url"&gt;&lt;/span&gt;
+=== Image URL ===
+
+&lt;span class="confluence-embedded-file-wrapper"&gt;&lt;span data-original-url="https://example.com/download/attachments/12345678/test-image.png?version=1&amp;amp;modificationDate=1000000000000&amp;amp;api=v2"&gt;https://example.com/download/attachments/12345678/test-image.png&lt;/span&gt;&lt;/span&gt;
+__NOTOC__
+
+ &lt;!-- From bodyContent 20000001.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>SECOND:Second_Space_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Hello from the second space.
+__NOTOC__
+
+ &lt;!-- From bodyContent 20000011.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Third_Space_Page</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>Link to second space: [[SECOND:Second_Space_Page|Second Space Page]]
+__NOTOC__
+
+ &lt;!-- From bodyContent 20000021.mraw --&gt;
+</text>
+    </revision>
+  </page>
+</mediawiki>
