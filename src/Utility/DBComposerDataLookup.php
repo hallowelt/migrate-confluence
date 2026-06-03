@@ -153,4 +153,28 @@ class DBComposerDataLookup {
 	public function getAttachmentRevisionsForAttachmentId( int $attachmentId ): array {
 		return $this->workspaceDB->getAttachmentRevisionsForAttachmentId( $attachmentId );
 	}
+
+	/**
+	 * @param int $pageId
+	 * @return bool
+	 */
+	public function isPageInvalid( int $pageId ): bool {
+		return $this->workspaceDB->isPageInvalid( $pageId );
+	}
+
+	/**
+	 * @param int $blogPostId
+	 * @return bool
+	 */
+	public function isBlogPostInvalid( int $blogPostId ): bool {
+		return $this->workspaceDB->isBlogPostInvalid( $blogPostId );
+	}
+
+	/**
+	 * @param int $attachmentId
+	 * @return bool
+	 */
+	public function isAttachmentInvalid( int $attachmentId ): bool {
+		return $this->workspaceDB->isAttachmentInvalid( $attachmentId );
+	}
 }

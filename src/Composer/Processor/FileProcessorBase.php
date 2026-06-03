@@ -123,15 +123,19 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 	}
 
 	/**
-	 * Sometimes not all namespaces should be used for the import.
+	 * Sometimes it is neccessary to skip certain pages or namespace.
+	 * This can be because e.g. the content length is to long or the namespace
+	 * should simply not be part of the migration result.
+	 *
 	 * To skip this namespaces use this option.
 	 *
-	 * @param string $pageTitle
+	 * @param string $title
 	 * @return bool
 	 */
-	protected function skipTitle( string $pageTitle ): bool {
-		$namespace = $this->getNamespace( $pageTitle );
+	protected function skipTitleByConfig( string $title ): bool {
+		$namespace = $this->getNamespace( $title );
 
+		// Skip namespaces by configuration
 		$skipNamespaces = $this->migrationConfig->getComposerSkipNamespaces();
 		if ( in_array( $namespace, $skipNamespaces )
 		) {
@@ -139,11 +143,55 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 			return true;
 		}
 
-		// Sometimes titles have contents >256kB which might break the import. To skip this titles
-		// use this option
+		// Skip titles by configuration
 		$skipTitles = $this->migrationConfig->getComposerSkipTitles();
-		if ( in_array( $pageTitle, $skipTitles ) ) {
-			$this->output->writeln( "Page $pageTitle skipped by configuration" );
+		if ( in_array( $title, $skipTitles ) ) {
+			$this->output->writeln( "Page $title skipped by configuration" );
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Skip pages automatically that have to long titles or contents.
+	 *
+	 * @param int $pageId
+	 * @param string $title
+	 * @return bool
+	 */
+	protected function skipPageId( int $pageId, string $title ): bool {
+		if ( !$this->dataLookup->isPageInvalid( $pageId ) ) {
+			$this->output->writeln( "Page $title skipped due to invalid title or content" );
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Skip pages automatically that have to long titles or contents.
+	 *
+	 * @param int $pageId
+	 * @param string $title
+	 * @return bool
+	 */
+	protected function skipBlogPostId( int $pageId, string $title ): bool {
+		if ( !$this->dataLookup->isBlogPostInvalid( $pageId ) ) {
+			$this->output->writeln( "BlogPost $title skipped due to invalid title or content" );
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Skip pages automatically that have to long titles or contents.
+	 *
+	 * @param int $attachmentId
+	 * @param string $title
+	 * @return bool
+	 */
+	protected function skipAttachmentId( int $attachmentId, string $title ): bool {
+		if ( !$this->dataLookup->isAttachmentInvalid( $attachmentId ) ) {
+			$this->output->writeln( "Attachment $title skipped due to invalid title or content" );
 			return true;
 		}
 		return false;

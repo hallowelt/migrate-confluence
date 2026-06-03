@@ -25,7 +25,6 @@ use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyC
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
@@ -148,7 +147,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/**
 	 * @return array
 	 */
-	private function getProcessors(): array {
+	private function getPostProcessors(): array {
 		return [
 			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
 			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
@@ -165,87 +164,6 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return void
 	 */
 	private function checkTitles(): void {
-		$this->writeln(
-			"Validating titles of pages, blog posts and attachments. This may take a while for large instances..."
-		);
-
-		$titles = [];
-		foreach ( $this->workspaceDB->getPages() as $page ) {
-			$title = '';
-			$pageId = $page['page_id'];
-			if ( isset( $page['wiki_title'] ) && $page['wiki_title'] !== '' ) {
-				$title = (string)$page['wiki_title'];
-			} elseif ( isset( $page['confluence_title'] ) ) {
-				$title = (string)$page['confluence_title'];
-			}
-
-			if ( $title !== '' ) {
-				$titles[$pageId] = $title;
-			}
-		}
-
-		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
-			$title = '';
-			$pageId = $blogPost['page_id'];
-			if ( isset( $blogPost['wiki_title'] ) && $blogPost['wiki_title'] !== '' ) {
-				$title = (string)$blogPost['wiki_title'];
-			} elseif ( isset( $blogPost['confluence_title'] ) ) {
-				$title = (string)$blogPost['confluence_title'];
-			}
-
-			if ( $title !== '' ) {
-				$titles[$pageId] = $title;
-			}
-		}
-
-		$invalidTitles = false;
-
-		$validityChecker = new TitleValidityChecker();
-
-		foreach ( $titles as $pageId => $title ) {
-			if ( !$validityChecker->hasValidEnding( $title ) ) {
-				$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title ens with invalid character' );
-			}
-			if ( str_contains( $title, ':' ) ) {
-				if ( $validityChecker->hasDoubleColon( $title ) ) {
-					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title contains multiple collons' );
-					$invalidTitles = true;
-				}
-				$namespace = substr( $title, 0, strpos( $title, ':' ) );
-				$text = substr( $title, strpos( $title, ':' ) + 1 );
-
-				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
-					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Invalid namespace character detected' );
-					$invalidTitles = true;
-				}
-
-				if ( !$validityChecker->hasValidLength( $text ) ) {
-					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title contains to many characters (>256)' );
-					$invalidTitles = true;
-				}
-			} else {
-				if ( !$validityChecker->hasValidLength( $title ) ) {
-					$this->workspaceDB->addInvalidTitle( $pageId, $title, 'Title contains to many characters (>256)' );
-					$invalidTitles = true;
-				}
-			}
-		}
-
-		$invalidAttachments = false;
-		$pageAttachments = $this->workspaceDB->getPageAttachments();
-		foreach ( $pageAttachments as $attachment ) {
-			$attachmentId = $attachment['attachment_id'];
-			$wikiTitle = $attachment['target_attachment_filename'];
-			if ( !$validityChecker->hasValidLength( $wikiTitle ) ) {
-				$this->workspaceDB->addInvalidTitle(
-					$attachmentId,
-					$wikiTitle,
-					'Attachment title contains to many characters (>256)'
-				);
-				$invalidAttachments = true;
-			}
-		}
-
 		if ( !empty( $this->dbLog->getLogEntriesForStep( 'analyze' ) ) ) {
 			$this->writeln( "\n\nWARNINGS / ERRORS:\n" );
 			$this->writeln(
@@ -253,14 +171,21 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			);
 		}
 
-		if ( $invalidTitles ) {
+		if ( !empty( $this->workspaceDB->getInvalidPageWikiTitles() ) ) {
 			$this->writeln( "\n\INVALID PAGE TITLES DETECTED:\n" );
 			$this->writeln(
-				"\nPlease check invalid_titles table in workspaceDB for details\n\n"
+				"\nPlease check page_invalid_titles table in workspaceDB for details\n\n"
 			);
 		}
 
-		if ( $invalidAttachments ) {
+		if ( !empty( $this->workspaceDB->getInvalidBlogPostWikiTitles() ) ) {
+			$this->writeln( "\n\INVALID BLOG POST TITLES DETECTED:\n" );
+			$this->writeln(
+				"\nPlease check blog_post_invalid_titles table in workspaceDB for details\n\n"
+			);
+		}
+
+		if ( !empty( $this->workspaceDB->getInvalidAttachmentTitles() ) ) {
 			$this->writeln( "\n\INVALID ATTACHMENT TITLES DETECTED:\n" );
 			$this->writeln(
 				"\nPlease check invalid_attachment_titles table in workspaceDB for details\n\n"

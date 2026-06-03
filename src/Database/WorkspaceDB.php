@@ -193,9 +193,10 @@ class WorkspaceDB {
 		$this->createTableLogging();
 
 		// Tables to collect invalid titles or BodyContents ( e. g. content length)
-		$this->createTableInvalidTitles();
+		$this->createTableInvalidPageWikiTitles();
+		$this->createTableInvalidBlogPostWikiTitles();
 		$this->createTableInvalidBodyContents();
-		$this->createTableInvalidAttachmentTitles();
+		$this->createTableInvalidAttachmentWikiTitles();
 
 		// Object tables
 		$this->createTableSpaces();
@@ -240,9 +241,22 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createTableInvalidTitles(): void {
+	private function createTableInvalidPageWikiTitles(): void {
 		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS invalid_titles (
+			'CREATE TABLE IF NOT EXISTS page_invalid_titles (
+				page_id INT PRIMARY KEY,
+				wiki_title CHAR,
+				text CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableInvalidBlogPostWikiTitles(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS blog_post_invalid_titles (
 				page_id INT PRIMARY KEY,
 				wiki_title CHAR,
 				text CHAR
@@ -255,7 +269,7 @@ class WorkspaceDB {
 	 */
 	private function createTableInvalidBodyContents(): void {
 		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS invalid_body_contents (
+			'CREATE TABLE IF NOT EXISTS body_content_invalids (
 				body_content_id INT PRIMARY KEY,
 				text CHAR
 			);'
@@ -265,9 +279,9 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createTableInvalidAttachmentTitles(): void {
+	private function createTableInvalidAttachmentWikiTitles(): void {
 		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS invalid_attachment_titles (
+			'CREATE TABLE IF NOT EXISTS attachment_invalid_titles (
 				attachment_id INT PRIMARY KEY,
 				wiki_title CHAR,
 				text CHAR
@@ -650,9 +664,9 @@ class WorkspaceDB {
 	 * @param string $text
 	 * @return void
 	 */
-	public function addInvalidTitle( int $pageId, string $wikiTitle, string $text ): void {
+	public function addInvalidPageWikiTitle( int $pageId, string $wikiTitle, string $text ): void {
 		$transaction = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO invalid_titles (
+			'INSERT OR IGNORE INTO page_invalid_titles (
 				page_id,
 				wiki_title,
 				text
@@ -672,8 +686,40 @@ class WorkspaceDB {
 	/**
 	 * @return array
 	 */
-	public function getInvalidTitles(): array {
-		return $this->getAllData( 'invalid_titles' );
+	public function getInvalidPageWikiTitles(): array {
+		return $this->getAllData( 'page_invalid_titles' );
+	}
+
+	/**
+	 * @param int $blogPostId
+	 * @param string $wikiTitle
+	 * @param string $text
+	 * @return void
+	 */
+	public function addInvalidBlogPostWikiTitle( int $blogPostId, string $wikiTitle, string $text ): void {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO blog_post_invalid_titles (
+				page_id,
+				wiki_title,
+				text
+			) VALUES (
+				:page_id,
+				:wiki_title,
+				:text
+			)'
+		);
+
+		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':text', $text, SQLITE3_TEXT );
+		$transaction->execute();
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getInvalidBlogPostWikiTitles(): array {
+		return $this->getAllData( 'blog_post_invalid_titles' );
 	}
 
 	/**
@@ -683,7 +729,7 @@ class WorkspaceDB {
 	 */
 	public function addInvalidBodyContent( int $bodyContentId, string $text ): void {
 		$transaction = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO invalid_body_contents (
+			'INSERT OR IGNORE INTO body_content_invalids (
 				body_content_id,
 				text
 			) VALUES (
@@ -701,7 +747,141 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getInvalidBodyContents(): array {
-		return $this->getAllData( 'invalid_body_contents' );
+		return $this->getAllData( 'body_content_invalids' );
+	}
+
+	/**
+	 * Returns true if the page is considered invalid.
+	 *
+	 * A page is invalid if its wiki_title appears in page_invalid_titles,
+	 * or if any of its body_content_ids are listed in body_content_invalids.
+	 *
+	 * @param int $pageId
+	 * @return bool
+	 */
+	public function isPageInvalid( int $pageId ): bool {
+		// Check if the wiki_title of the page is in page_invalid_titles
+		$stmt = $this->cachedPrepare(
+			'SELECT page_id FROM page_invalid_titles
+			WHERE page_id = :page_id
+			LIMIT 1'
+		);
+		$stmt->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$result = $stmt->execute();
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		if ( $row !== false && isset( $row['page_id'] ) ) {
+			return true;
+		}
+
+		// Fetch body_content_ids for the page and all its historical versions
+		$stmt = $this->cachedPrepare(
+			'SELECT body_content_ids FROM pages
+			WHERE page_id = :page_id OR original_version_id = :page_id'
+		);
+		$stmt->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$result = $stmt->execute();
+
+		$bodyContentIds = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row !== false ) {
+			if ( empty( $row['body_content_ids'] ) ) {
+				$row = $result->fetchArray( SQLITE3_ASSOC );
+				continue;
+			}
+			$ids = json_decode( $row['body_content_ids'], true );
+			if ( is_array( $ids ) ) {
+				$bodyContentIds = array_merge( $bodyContentIds, $ids );
+			}
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+
+		if ( count( $bodyContentIds ) === 0 ) {
+			return false;
+		}
+
+		// Check if any body_content_id is listed as invalid
+		foreach ( $bodyContentIds as $bodyContentId ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT body_content_id FROM body_content_invalids
+				WHERE body_content_id = :body_content_id
+				LIMIT 1'
+			);
+			$stmt->bindValue( ':body_content_id', (int)$bodyContentId, SQLITE3_INTEGER );
+			$result = $stmt->execute();
+			$invalidRow = $result->fetchArray( SQLITE3_ASSOC );
+			if ( $invalidRow !== false && isset( $invalidRow['body_content_id'] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns true if the blog post is considered invalid.
+	 *
+	 * A blog post is invalid if its wiki_title appears in blog_post_invalid_titles,
+	 * or if any of its body_content_ids are listed in body_content_invalids.
+	 *
+	 * @param int $blogPostId
+	 * @return bool
+	 */
+	public function isBlogPostInvalid( int $blogPostId ): bool {
+		// Check if the wiki_title of the blog post is in blog_post_invalid_titles
+		$stmt = $this->cachedPrepare(
+			'SELECT page_id FROM blog_post_invalid_titles
+			WHERE page_id = :page_id
+			LIMIT 1'
+		);
+		$stmt->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
+		$result = $stmt->execute();
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		if ( $row !== false && isset( $row['page_id'] ) ) {
+			return true;
+		}
+
+		// Fetch body_content_ids for the blog post and all its historical versions
+		$stmt = $this->cachedPrepare(
+			'SELECT body_content_ids FROM blog_posts
+			WHERE page_id = :page_id OR original_version_id = :page_id'
+		);
+		$stmt->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
+		$result = $stmt->execute();
+
+		$bodyContentIds = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row !== false ) {
+			if ( empty( $row['body_content_ids'] ) ) {
+				$row = $result->fetchArray( SQLITE3_ASSOC );
+				continue;
+			}
+			$ids = json_decode( $row['body_content_ids'], true );
+			if ( is_array( $ids ) ) {
+				$bodyContentIds = array_merge( $bodyContentIds, $ids );
+			}
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+
+		if ( count( $bodyContentIds ) === 0 ) {
+			return false;
+		}
+
+		// Check if any body_content_id is listed as invalid
+		foreach ( $bodyContentIds as $bodyContentId ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT body_content_id FROM body_content_invalids
+				WHERE body_content_id = :body_content_id
+				LIMIT 1'
+			);
+			$stmt->bindValue( ':body_content_id', (int)$bodyContentId, SQLITE3_INTEGER );
+			$result = $stmt->execute();
+			$invalidRow = $result->fetchArray( SQLITE3_ASSOC );
+			if ( $invalidRow !== false && isset( $invalidRow['body_content_id'] ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -712,7 +892,7 @@ class WorkspaceDB {
 	 */
 	public function addInvalidAttachmentTitle( int $attachmentId, string $wikiTitle, string $text ): void {
 		$transaction = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO invalid_attachment_titles (
+			'INSERT OR IGNORE INTO attachment_invalid_titles (
 				attachment_id,
 				wiki_title,
 				text
@@ -733,7 +913,31 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getInvalidAttachmentTitles(): array {
-		return $this->getAllData( 'invalid_attachment_titles' );
+		return $this->getAllData( 'attachment_invalid_titles' );
+	}
+
+	/**
+	 * Returns true if the attachment is considered invalid.
+	 *
+	 * An attachment is invalid if its attachment_id appears in attachment_invalid_titles.
+	 *
+	 * @param int $attachmentId
+	 * @return bool
+	 */
+	public function isAttachmentInvalid( int $attachmentId ): bool {
+		$stmt = $this->cachedPrepare(
+			'SELECT attachment_id FROM attachment_invalid_titles
+			WHERE attachment_id = :attachment_id
+			LIMIT 1'
+		);
+		$stmt->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		$result = $stmt->execute();
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		if ( $row !== false && isset( $row['attachment_id'] ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

@@ -7,6 +7,7 @@ use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\Processor\BlogPosts;
 use HalloWelt\MigrateConfluence\Composer\Processor\Comments;
 use HalloWelt\MigrateConfluence\Composer\Processor\Files;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
@@ -85,6 +86,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 				$deploymentInfo
 			),
 			new Pages(
+				$builder, $composerDataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo
+			),
+			new BlogPosts(
 				$builder, $composerDataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo

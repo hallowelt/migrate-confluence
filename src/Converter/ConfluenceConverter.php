@@ -851,6 +851,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 		if ( $exceed !== '' ) {
 			$this->pipeToDB->send(
+				'addInvalidBodyContent',
+				$bodyContentId
+			);
+
+			$this->pipeToDB->send(
 				'log',
 				'warning',
 				'convert',

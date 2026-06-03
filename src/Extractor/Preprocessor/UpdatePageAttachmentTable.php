@@ -8,6 +8,7 @@ use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use SplFileInfo;
 
 /**
@@ -34,6 +35,11 @@ class UpdatePageAttachmentTable extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
+		$this->addPageAttachments();
+		$this->checkWikiTitles();
+	}
+
+	private function addPageAttachments(): void {
 		$pageIdToWikiTitleMap = [];
 		foreach ( $this->workspaceDB->getPages() as $page ) {
 			if ( !isset( $page['page_id'] )
@@ -153,4 +159,22 @@ class UpdatePageAttachmentTable extends ProcessorBase {
 		}
 	}
 
+	/**
+	 * @return void
+	 */
+	private function checkWikiTitles(): void {
+		$pageAttachments = $this->workspaceDB->getPageAttachments();
+		$validityChecker = new TitleValidityChecker();
+		foreach ( $pageAttachments as $attachment ) {
+			$attachmentId = $attachment['attachment_id'];
+			$wikiTitle = $attachment['target_attachment_filename'];
+			if ( !$validityChecker->hasValidLength( $wikiTitle ) ) {
+				$this->workspaceDB->addInvalidAttachmentTitle(
+					$attachmentId,
+					$wikiTitle,
+					'Attachment title contains to many characters (>256)'
+				);
+			}
+		}
+	}
 }
