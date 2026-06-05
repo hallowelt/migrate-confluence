@@ -67,10 +67,10 @@ class PageTemplates extends ProcessorBase {
 		$spaceId = isset( $properties['space'] ) ? (int)$properties['space'] : null;
 		if ( $spaceId === null ) {
 			// History version of a template is missing space, original_version_id
-			// or histroy_version_ids.
-			// It is not possible to link a template revision to its original template
+			// or history_version_ids.
+			// It is not possible to link a template revision to its original template_id
 			// or other revisions, especially if more than.
-			// Therefor we skip the template if space is missing for now.
+			// Therefore we skip the template if space is missing for now.
 			return;
 		}
 
@@ -80,6 +80,7 @@ class PageTemplates extends ProcessorBase {
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 		$version = $properties['version'] ?? '1';
 
+		$wikiTitle = '';
 		try {
 			$wikiTitle = $this->buildTemplateTitle( $name, $spaceId );
 		} catch ( InvalidTitleException $e ) {
@@ -87,6 +88,12 @@ class PageTemplates extends ProcessorBase {
 				'warning',
 				'analyze',
 				__CLASS__,
+				"Page Template with ID $templateId has invalid title '$name': " . $e->getMessage()
+			);
+
+			$this->workspaceDB->addInvalidPageTemplateTitle(
+				$templateId,
+				$wikiTitle,
 				"Page Template with ID $templateId has invalid title '$name': " . $e->getMessage()
 			);
 

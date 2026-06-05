@@ -8,6 +8,7 @@ use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 
 /**
  * Populate additional_attachments with attachments that are not part of page_attachments.
@@ -36,6 +37,11 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
+		$this->addAdditionalAttachments();
+		$this->checkWikiTitles();
+	}
+
+	private function addAdditionalAttachments(): void {
 		$attachmentIdsInPageAttachments = [];
 		foreach ( $this->workspaceDB->getPageAttachments() as $pageAttachment ) {
 			if ( !isset( $pageAttachment['attachment_id'] ) ) {
@@ -139,4 +145,22 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 		}
 	}
 
+	/**
+	 * @return void
+	 */
+	private function checkWikiTitles(): void {
+		$additionalAttachments = $this->workspaceDB->getAdditionalAttachments();
+		$validityChecker = new TitleValidityChecker();
+		foreach ( $additionalAttachments as $attachment ) {
+			$attachmentId = $attachment['attachment_id'];
+			$wikiTitle = $attachment['target_attachment_filename'];
+			if ( !$validityChecker->hasValidLength( $wikiTitle ) ) {
+				$this->workspaceDB->addInvalidAttachmentTitle(
+					$attachmentId,
+					$wikiTitle,
+					'Attachment title contains to many characters (>256)'
+				);
+			}
+		}
+	}
 }

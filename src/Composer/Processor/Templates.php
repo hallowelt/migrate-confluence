@@ -22,7 +22,10 @@ class Templates extends ProcessorBase {
 		foreach ( $wikiTitles as $templateId => $pageTitle ) {
 			$this->output->writeln( "Processing template '$pageTitle'..." );
 
-			if ( $this->skipTitle( $pageTitle ) ) {
+			if ( $this->skipTitleByConfig( $pageTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $pageTitle );
+				continue;
+			} elseif ( $this->dataLookup->isPageTemplateInvalid( $templateId ) ) {
 				$this->deploymentInfo->addSkippedPage( $pageTitle );
 				continue;
 			}
