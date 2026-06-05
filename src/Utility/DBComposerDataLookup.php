@@ -185,4 +185,20 @@ class DBComposerDataLookup {
 	public function isPageTemplateInvalid( int $templateId ): bool {
 		return $this->workspaceDB->isPageTemplateInvalid( $templateId );
 	}
+
+	public function getInvalidPages(): array {
+		return $this->workspaceDB->getInvalidPages();
+	}
+
+	public function getInvalidBlogPosts(): array {
+		return $this->workspaceDB->getInvalidBlogPosts();
+	}
+
+	public function getInvalidAttachments(): array {
+		return $this->workspaceDB->getInvalidAttachments();
+	}
+
+	public function getInvalidPageTemplates(): array {
+		return $this->workspaceDB->getInvalidPageTemplates();
+	}
 }
