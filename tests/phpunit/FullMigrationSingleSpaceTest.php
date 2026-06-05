@@ -88,12 +88,12 @@ class FullMigrationSingleSpaceTest extends TestCase {
 
 		$workspaceDB = new WorkspaceDB( "$dest/workspace.sqlite", true );
 		$pages = $workspaceDB->getPages();
-		$this->assertEquals( 6, count( $pages ), "Analyze: Invalid number of pages found" );
+		$this->assertCount( 6, $pages, "Analyze: Invalid number of pages found" );
 		$blogPosts = $workspaceDB->getBlogPosts();
-		$this->assertEquals( 1, count( $blogPosts ), "Analyze: Invalid number of blog_posts found" );
+		$this->assertCount( 1, $blogPosts, "Analyze: Invalid number of blog_posts found" );
 
 		$blogBodyContent = $workspaceDB->getBodyContentIdsForContentId( 10000001 );
-		$this->assertEquals( 1, count( $blogBodyContent ), "Analyze: No bodyContent found for page id 20000003" );
+		$this->assertCount( 1, $blogBodyContent, "Analyze: No bodyContent found for page id 20000003" );
 		$blogBodyContentContent = $workspaceDB->getBodyContentIdsForContentId( 10000002 );
 		$this->assertNotNull( $blogBodyContentContent, "Analyze: No bodyContent found for blog_post id 10000002" );
 
