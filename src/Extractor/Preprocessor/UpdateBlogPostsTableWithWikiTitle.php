@@ -10,6 +10,7 @@ use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
+use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 
 /**
  */
@@ -37,6 +38,11 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
+		$this->updateWikiTitles();
+		$this->checkWikiTitles();
+	}
+
+	private function updateWikiTitles(): void {
 		$spaceIdToSpaceKeyMap = $this->workspaceDB->getMapSpaceIdToKey();
 		$blogPosts = $this->workspaceDB->getBlogPosts();
 		$pageIdToWikiTitleMap = [];
@@ -106,4 +112,61 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		}
 	}
 
+	/**
+	 * @return void
+	 */
+	private function checkWikiTitles(): void {
+		$titles = [];
+		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
+			$title = '';
+			$pageId = $blogPost['page_id'];
+			if ( isset( $blogPost['wiki_title'] ) && $blogPost['wiki_title'] !== '' ) {
+				$title = (string)$blogPost['wiki_title'];
+			} elseif ( isset( $blogPost['confluence_title'] ) ) {
+				$title = (string)$blogPost['confluence_title'];
+			}
+
+			if ( $title !== '' ) {
+				$titles[$pageId] = $title;
+			}
+		}
+
+		$validityChecker = new TitleValidityChecker();
+
+		foreach ( $titles as $pageId => $title ) {
+			if ( !$validityChecker->hasValidEnding( $title ) ) {
+				$this->workspaceDB->addInvalidBlogPostWikiTitle(
+					$pageId, $title, 'Title ens with invalid character'
+				);
+			}
+
+			if ( str_contains( $title, ':' ) ) {
+				if ( $validityChecker->hasDoubleColon( $title ) ) {
+					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+						$pageId, $title, 'Title contains multiple collons'
+					);
+				}
+				$namespace = substr( $title, 0, strpos( $title, ':' ) );
+				$text = substr( $title, strpos( $title, ':' ) + 1 );
+
+				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
+					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+						$pageId, $title, 'Invalid namespace character detected'
+					);
+				}
+
+				if ( !$validityChecker->hasValidLength( $text ) ) {
+					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+						$pageId, $title, 'Title contains to many characters (>256)'
+					);
+				}
+			} else {
+				if ( !$validityChecker->hasValidLength( $title ) ) {
+					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+						$pageId, $title, 'Title contains to many characters (>256)'
+					);
+				}
+			}
+		}
+	}
 }

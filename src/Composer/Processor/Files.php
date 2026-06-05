@@ -37,15 +37,25 @@ class Files extends FileProcessorBase {
 
 		foreach ( $pageAttachments as $pageAttachment ) {
 			$attachmentId = $pageAttachment['attachment_id'];
+			$attachmentPageTitle = $pageAttachment['target_attachment_filename'];
 
 			$assocPageTitle = $this->dataLookup->getTargetPageTitleFromPageId(
 				$pageAttachment['page_id']
 			);
-			if ( $this->skipTitle( $assocPageTitle ) ) {
+
+			if ( $this->skipTitleByConfig( $assocPageTitle )
+				|| $this->skipTitleByConfig( $attachmentPageTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
+				continue;
+			} elseif ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
+				continue;
+			} elseif ( $this->skipPageId( $pageAttachment['page_id'], $assocPageTitle )
+				|| $this->skipBlogPostId( $pageAttachment['page_id'], $assocPageTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
 				continue;
 			}
 
-			$attachmentPageTitle = $pageAttachment['target_attachment_filename'];
 			$filename = $this->gereralizeFilename( $attachmentPageTitle );
 
 			// We do not need DrawIO data files in our wiki, just PNG image
@@ -114,6 +124,14 @@ class Files extends FileProcessorBase {
 
 			$attachmentPageTitle = $additionalAttachment['target_attachment_filename'];
 			$filename = $this->gereralizeFilename( $attachmentPageTitle );
+
+			if ( $this->skipTitleByConfig( $attachmentPageTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
+				continue;
+			} elseif ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
+				continue;
+			}
 
 			$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 			foreach ( $attachments as $attachment ) {

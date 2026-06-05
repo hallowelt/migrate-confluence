@@ -7,6 +7,7 @@ use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\Processor\BlogPosts;
 use HalloWelt\MigrateConfluence\Composer\Processor\Comments;
 use HalloWelt\MigrateConfluence\Composer\Processor\Files;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
@@ -33,6 +34,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 	/** @var string */
 	private string $dest = '';
+
+	private DBComposerDataLookup $dataLookup;
 
 	/**
 	 * @param array $config
@@ -76,31 +79,36 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			__CLASS__,
 			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 		);
-		$composerDataLookup = new DBComposerDataLookup( $workspaceDB );
+		$this->dataLookup = new DBComposerDataLookup( $workspaceDB );
 		$deploymentInfo = new ComposerDeploymentInfo();
 		$processors = [
 			new Files(
-				$composerDataLookup, $this->workspace,
+				$this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo
 			),
 			new Pages(
-				$builder, $composerDataLookup, $this->workspace,
+				$builder, $this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo
+			),
+			new BlogPosts(
+				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo
 			),
 			new Templates(
-				$builder, $composerDataLookup, $this->workspace,
+				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo
 			),
 			new Comments(
-				$builder, $composerDataLookup, $this->workspace,
+				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo
 			),
 			new Users(
-				$composerDataLookup, $this->output, $this->dest
+				$this->dataLookup, $this->output, $this->dest
 			),
 		];
 
@@ -111,6 +119,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$this->writeDeploymentLog( $deploymentInfo );
 		$this->writeSkippedPagesLog( $deploymentInfo );
 		$this->writeUserReadableDBLog( $dbLog );
+		$this->writeInvalidPagesLog( $dbLog );
+		$this->writeInvalidBlogPostsLog( $dbLog );
+		$this->writeInvalidAttachmentsLog( $dbLog );
+		$this->writeInvalidPageTemplatesLog( $dbLog );
 	}
 
 	/**
@@ -174,5 +186,72 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$content .= $item['caller'] . ': ' . $item['text'] . "\n";
 		}
 		file_put_contents( $this->dest . "/composer_{$type}.log", $content );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function writeInvalidPagesLog(): void {
+		$data = $this->dataLookup->getInvalidPages();
+		$content = "page_id;space_id;confluence_title;wiki_title;text\n";
+		foreach ( $data as $item ) {
+			$line = $item['page_id'] . ';';
+			$line .= $item['space_id'] . ';';
+			$line .= $item['confluence_title'] . ';';
+			$line .= $item['wiki_title'] . ';';
+			$line .= $item['text'] . ';';
+			$content .= $line . "\n";
+		}
+		file_put_contents( $this->dest . "/invalid_pages.log", $content );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function writeInvalidBlogPostsLog(): void {
+		$data = $this->dataLookup->getInvalidBlogPosts();
+		$content = "blog_post_id;space_id;confluence_title;wiki_title;text\n";
+		foreach ( $data as $item ) {
+			$line = $item['blog_post_id'] . ';';
+			$line .= $item['space_id'] . ';';
+			$line .= $item['confluence_title'] . ';';
+			$line .= $item['wiki_title'] . ';';
+			$line .= $item['text'] . ';';
+			$content .= $line . "\n";
+		}
+		file_put_contents( $this->dest . "/invalid_blog_posts.log", $content );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function writeInvalidPageTemplatesLog(): void {
+		$data = $this->dataLookup->getInvalidPageTemplates();
+		$content = "template_id;confluence_title;wiki_title;text\n";
+		foreach ( $data as $item ) {
+			$line = $item['template_id'] . ';';
+			$line .= $item['confluence_title'] . ';';
+			$line .= $item['wiki_title'] . ';';
+			$line .= $item['text'] . ';';
+			$content .= $line . "\n";
+		}
+		file_put_contents( $this->dest . "/invalid_page_templates.log", $content );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function writeInvalidAttachmentsLog(): void {
+		$data = $this->dataLookup->getInvalidAttachments();
+		$content = "attachment_id;page_id;confluence_title;wiki_title;text\n";
+		foreach ( $data as $item ) {
+			$line = $item['attachment_id'] . ';';
+			$line .= $item['page_id'] . ';';
+			$line .= $item['confluence_title'] . ';';
+			$line .= $item['wiki_title'] . ';';
+			$line .= $item['text'] . ';';
+			$content .= $line . "\n";
+		}
+		file_put_contents( $this->dest . "/invalid_attachments.log", $content );
 	}
 }

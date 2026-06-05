@@ -42,6 +42,12 @@ class Comments extends ProcessorBase {
 			$contentStatus = $comment['content_status'];
 			$wikiTitle = $comment['wiki_title'];
 
+			if ( $this->skipTitleByConfig( $wikiTitle ) ) {
+				continue;
+			} elseif ( $this->dataLookup->isPageInvalid( $containerContentId ) ) {
+				continue;
+			}
+
 			// Only handle page-level comments with content status 'current'
 			if ( $containerContentId === null || $contentStatus !== 'current' ) {
 				continue;

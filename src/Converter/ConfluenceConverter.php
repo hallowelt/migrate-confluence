@@ -233,49 +233,35 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			// Test to which type of content the contentId belongs
 			if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
 				$this->contentType = 'spaceDescription';
-
 				$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
-
 				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
-
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
-
 				$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
 				if ( $this->currentPageTitle === '' ) {
 					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 				}
 			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
 				$this->contentType = 'page';
-
 				$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
-
 				$this->pageId = $contentId;
-
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
-
 				$this->currentPageTitle = $this->workspaceDB->getTargetPageTitleFromPageId( $this->pageId );
 				if ( $this->currentPageTitle === '' ) {
 					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 				}
 			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
 				$this->contentType = 'blogPost';
-
 				$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId );
-
 				$this->pageId = $contentId;
-
 				$this->confluencePageTitle = $this->workspaceDB
 					->getConfluenceBlogPostTitleFromBlogPostId( $this->pageId );
-
 				$this->currentPageTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId );
 				if ( $this->currentPageTitle === '' ) {
 					$this->currentPageTitle = 'not_current_revision_' . $this->pageId;
 				}
 			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
 				$this->contentType = 'comment';
-
 				$this->pageId = $contentId;
-
 				// Comment body content: convert with minimal context (no page-specific macros expected)
 				$this->currentSpace = 0;
 				$this->currentPageTitle = '';
@@ -850,6 +836,15 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$exceed = '100';
 		}
 		if ( $exceed !== '' ) {
+			$method = 'addInvalidBodyContent';
+			if ( strpos( $this->rawFile->getFileInfo(), 0, 3 ) === 'pt_' ) {
+				$method = 'addInvalidPageTemplateContent';
+			}
+			$this->pipeToDB->send(
+				$method,
+				$bodyContentId
+			);
+
 			$this->pipeToDB->send(
 				'log',
 				'warning',

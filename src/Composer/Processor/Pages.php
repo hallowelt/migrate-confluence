@@ -22,14 +22,15 @@ class Pages extends ProcessorBase {
 
 	private function addContentPages(): void {
 		// Get all page titles from DB and add them as pages to the workspace
-		// Key is pageId, value is pageTitle - do not use array_merge at this point to avoid renumbering of keys
-		$wikiTitles = $this->dataLookup->getPageIdTargetPageTitleMap()
-			+ $this->dataLookup->getBlogPostIdTargetBlogPostTitleMap();
+		$wikiTitles = $this->dataLookup->getPageIdTargetPageTitleMap();
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
 			$this->output->writeln( "Processing page '$pageTitle'..." );
 
-			if ( $this->skipTitle( $pageTitle ) ) {
+			if ( $this->skipTitleByConfig( $pageTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $pageTitle );
+				continue;
+			} elseif ( $this->skipPageId( $pageId, $pageTitle ) ) {
 				$this->deploymentInfo->addSkippedPage( $pageTitle );
 				continue;
 			}
@@ -37,24 +38,16 @@ class Pages extends ProcessorBase {
 			$namespace = $this->getNamespace( $pageTitle );
 
 			$spaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
-			$isBlogPost = $this->isBlogPost( $namespace );
+			$spaceDescriptions = $this->dataLookup->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
+			$homepageId = $this->dataLookup->getSpaceHomepageIdForSpaceId( $spaceId );
 
-			if ( $isBlogPost ) {
-				$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $pageId );
-				$spaceDescriptions = [];
-				$homepageId = -1;
+			if ( $pageId === $homepageId ) {
+				$this->output->writeln(
+					"Page '$pageTitle' is a homepage, adding space description to page content if applicable..."
+				);
+				$revisions = $this->dataLookup->getPageRevisionsForPageId( $homepageId );
 			} else {
-				$spaceDescriptions = $this->dataLookup->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
-				$homepageId = $this->dataLookup->getSpaceHomepageIdForSpaceId( $spaceId );
-
-				if ( $pageId === $homepageId ) {
-					$this->output->writeln(
-						"Page '$pageTitle' is a homepage, adding space description to page content if applicable..."
-					);
-					$revisions = $this->dataLookup->getPageRevisionsForPageId( $homepageId );
-				} else {
-					$revisions = $this->dataLookup->getPageRevisionsForPageId( $pageId );
-				}
+				$revisions = $this->dataLookup->getPageRevisionsForPageId( $pageId );
 			}
 
 			foreach ( $revisions as $revision ) {
@@ -82,26 +75,12 @@ class Pages extends ProcessorBase {
 				$this->addRevision(
 					$pageTitle,
 					$pageContent,
-					$timestamp,
-					'',
-					$this->getContentModel( $pageTitle )
+					$timestamp
 				);
 			}
 
 			$this->deploymentInfo->addNamespace( $namespace );
 		}
-	}
-
-	/**
-	 * @param string $pageTitle
-	 * @return string
-	 */
-	private function getContentModel( string $pageTitle ): string {
-		if ( strpos( $pageTitle, 'Blog:' ) === 0 ) {
-			return 'blog_post';
-		}
-
-		return '';
 	}
 
 	/**
@@ -166,16 +145,5 @@ class Pages extends ProcessorBase {
 			return '';
 		}
 		return '<div class="space-description">' . $description . '</div>';
-	}
-
-	/**
-	 * @param string $namespace
-	 * @return bool
-	 */
-	private function isBlogPost( string $namespace ): bool {
-		if ( $namespace === 'Blog' ) {
-			return true;
-		}
-		return false;
 	}
 }

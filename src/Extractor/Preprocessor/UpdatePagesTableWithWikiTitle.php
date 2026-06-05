@@ -10,6 +10,7 @@ use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
+use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 
 /**
  */
@@ -35,6 +36,14 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
+		$this->updateWikiTitles();
+		$this->checkWikiTitles();
+	}
+
+	/**
+	 * @return void
+	 */
+	private function updateWikiTitles(): void {
 		$titleBuilder = new TitleBuilder(
 			$this->workspaceDB->getMapSpaceIdToPrefix(),
 			$this->workspaceDB->getMapSpaceIdToHomepageId(),
@@ -106,4 +115,61 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		}
 	}
 
+	/**
+	 * @return void
+	 */
+	private function checkWikiTitles(): void {
+		$titles = [];
+		foreach ( $this->workspaceDB->getPages() as $page ) {
+			$title = '';
+			$pageId = $page['page_id'];
+			if ( isset( $page['wiki_title'] ) && $page['wiki_title'] !== '' ) {
+				$title = (string)$page['wiki_title'];
+			} elseif ( isset( $page['confluence_title'] ) ) {
+				$title = (string)$page['confluence_title'];
+			}
+
+			if ( $title !== '' ) {
+				$titles[$pageId] = $title;
+			}
+		}
+
+		$validityChecker = new TitleValidityChecker();
+
+		foreach ( $titles as $pageId => $title ) {
+			if ( !$validityChecker->hasValidEnding( $title ) ) {
+				$this->workspaceDB->addInvalidPageWikiTitle(
+					$pageId, $title, 'Title ens with invalid character'
+				);
+			}
+
+			if ( str_contains( $title, ':' ) ) {
+				if ( $validityChecker->hasDoubleColon( $title ) ) {
+					$this->workspaceDB->addInvalidPageWikiTitle(
+						$pageId, $title, 'Title contains multiple collons'
+					);
+				}
+				$namespace = substr( $title, 0, strpos( $title, ':' ) );
+				$text = substr( $title, strpos( $title, ':' ) + 1 );
+
+				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
+					$this->workspaceDB->addInvalidPageWikiTitle(
+						$pageId, $title, 'Invalid namespace character detected'
+					);
+				}
+
+				if ( !$validityChecker->hasValidLength( $text ) ) {
+					$this->workspaceDB->addInvalidPageWikiTitle(
+						$pageId, $title, 'Title contains to many characters (>256)'
+					);
+				}
+			} else {
+				if ( !$validityChecker->hasValidLength( $title ) ) {
+					$this->workspaceDB->addInvalidPageWikiTitle(
+						$pageId, $title, 'Title contains to many characters (>256)'
+					);
+				}
+			}
+		}
+	}
 }
