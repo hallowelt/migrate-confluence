@@ -18,38 +18,11 @@ use SplFileInfo;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Yaml\Yaml;
 
-class FullMigrationTest extends TestCase {
-
-	/** @var string */
-	private string $tempDir;
-
-	/** @var string */
-	private string $dataDir;
-
-	/** @var WorkspaceDB */
-	private WorkspaceDB $workspaceDB;
-
-	/** @var MigrationConfig */
-	private MigrationConfig $migrationConfig;
-
+class FullMigrationMultiSpaceTest extends FullMigrationSingleSpaceTest {
 	protected function setUp(): void {
 		$this->dataDir = __DIR__ . '/data/FullMigration';
 
 		$this->tempDir = sys_get_temp_dir() . '/confluence-migration-test-' . uniqid();
-
-		// Single source migration test
-		mkdir( $this->tempDir, 0755, true );
-		mkdir( $this->tempDir . '/single-source', 0755, true );
-		mkdir( $this->tempDir . '/single-source/input', 0755, true );
-		mkdir( $this->tempDir . '/single-source/workspace', 0755, true );
-		mkdir( $this->tempDir . '/single-source/workspace/content', 0755, true );
-		mkdir( $this->tempDir . '/single-source/workspace/content/raw', 0755, true );
-		mkdir( $this->tempDir . '/single-source/workspace/content/wikitext', 0755, true );
-		mkdir( $this->tempDir . '/single-source/workspace/content/result', 0755, true );
-		mkdir( $this->tempDir . '/single-source/workspace/content/result/images', 0755, true );
-
-		$sourceFile = $this->dataDir . '/SingleSource/input/entities.xml';
-		copy( $sourceFile, $this->tempDir . '/single-source/input/entities.xml' );
 
 		// Multi source migration test
 		mkdir( $this->tempDir . '/multi-source', 0755, true );
@@ -80,113 +53,6 @@ class FullMigrationTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
 	 */
 	public function testMigration(): void {
-		$src = $this->tempDir . '/single-source/input';
-		$dest = $this->tempDir . '/single-source/workspace';
-
-		$workspace = new Workspace(
-			new SplFileInfo( $this->tempDir . '/single-source/workspace' )
-		);
-
-		$output = new BufferedOutput();
-
-		$configFile = $this->dataDir . '/config.yaml';
-		$config = file_exists( $configFile )
-			? Yaml::parseFile( $configFile )
-			: [];
-
-		// Step 1: Analyze
-		$this->runAnalyze(
-			$src,
-			$dest,
-			$workspace,
-			$config,
-			$output
-		);
-
-		// Step 2: Extract
-		$this->runExtract(
-			$src,
-			$dest,
-			$workspace,
-			$config,
-		);
-
-		// Step 3: Convert
-		$this->runConvert(
-			$dest,
-			$workspace,
-			$config,
-			$output
-		);
-
-		// Step 4: Compose
-		$this->runCompose(
-			$dest,
-			$workspace,
-			$config,
-			$output
-		);
-
-		// Step 5: Verify
-		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
-		$expectedPages = $this->extractPages( $expectedPagesFile );
-
-		$actualFile = $this->tempDir . '/single-source/workspace/result/pages.xml';
-		$this->assertFileExists( $actualFile );
-		$actualPages = $this->extractPages( $actualFile );
-
-		$this->assertSame(
-			array_keys( $expectedPages ),
-			array_keys( $actualPages ),
-			'Page titles do not match'
-		);
-
-		foreach ( $expectedPages as $title => $expectedPageXml ) {
-			$this->assertArrayHasKey( $title, $actualPages, "Missing page: $title" );
-			$this->assertXmlStringEqualsXmlString(
-				$expectedPageXml,
-				$actualPages[$title],
-				"Page content mismatch for: $title"
-			);
-		}
-
-		// Verify templates.xml
-		$expectedTemplatesFile = $this->dataDir . '/result_templates.xml';
-		$expectedTemplates = $this->extractPages( $expectedTemplatesFile );
-
-		$actualTemplatesFile = $this->tempDir . '/single-source/workspace/result/templates.xml';
-		$this->assertFileExists( $actualTemplatesFile );
-		$actualTemplates = $this->extractPages( $actualTemplatesFile );
-
-		$this->assertSame(
-			array_keys( $expectedTemplates ),
-			array_keys( $actualTemplates ),
-			'Template titles do not match'
-		);
-
-		foreach ( $expectedTemplates as $title => $expectedTemplateXml ) {
-			$this->assertArrayHasKey( $title, $actualTemplates, "Missing template: $title" );
-			$this->assertXmlStringEqualsXmlString(
-				$expectedTemplateXml,
-				$actualTemplates[$title],
-				"Template content mismatch for: $title"
-			);
-		}
-
-		// Verify comments.xml
-		$expectedCommentsFile = $this->dataDir . '/result_comments.xml';
-		$actualCommentsFile = $this->tempDir . '/single-source/workspace/result/comments.xml';
-		$this->assertFileExists( $actualCommentsFile );
-		$this->assertXmlFileEqualsXmlFile( $expectedCommentsFile, $actualCommentsFile );
-	}
-
-	/**
-	 * @covers \HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer
-	 * @covers \HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor
-	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverter
-	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
-	 */
-	public function testMigrationWithMultipleExportDirectories(): void {
 		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
 
 		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];

@@ -22,24 +22,23 @@ class BlogPosts extends ProcessorBase {
 
 	private function addBlogPages(): void {
 		// Get all page titles from DB and add them as pages to the workspace
-		// Key is pageId, value is pageTitle - do not use array_merge at this point to avoid renumbering of keys
+		// Key is blogPostId, value is blogPostTitle - do not use array_merge at this point to avoid renumbering of keys
 		$wikiTitles = $this->dataLookup->getBlogPostIdTargetBlogPostTitleMap();
 
-		foreach ( $wikiTitles as $pageId => $pageTitle ) {
-			$this->output->writeln( "Processing page '$pageTitle'..." );
+		foreach ( $wikiTitles as $blogPostId => $blogPostTitle ) {
+			$this->output->writeln( "Processing page '$blogPostTitle'..." );
 
-			if ( $this->skipTitleByConfig( $pageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $pageTitle );
+			if ( $this->skipTitleByConfig( $blogPostTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $blogPostTitle );
 				continue;
-			} elseif ( $this->skipBlogPostId( $pageId, $pageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $pageTitle );
+			} elseif ( $this->skipBlogPostId( $blogPostId, $blogPostTitle ) ) {
+				$this->deploymentInfo->addSkippedPage( $blogPostTitle );
 				continue;
 			}
 
-			$namespace = $this->getNamespace( $pageTitle );
+			$namespace = $this->getNamespace( $blogPostTitle );
 
-			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $pageId );
-
+			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $blogPostId );
 			foreach ( $revisions as $revision ) {
 				$timestamp = $revision['revision_timestamp'];
 				$bodyContentIds = json_decode( $revision['body_content_ids'], true );
@@ -56,7 +55,7 @@ class BlogPosts extends ProcessorBase {
 				}
 
 				$this->addRevision(
-					$pageTitle,
+					$blogPostTitle,
 					$pageContent,
 					$timestamp,
 					'',
