@@ -27,7 +27,7 @@ class PageLink extends LinkProcessorBase {
 	 * @throws InvalidTitleException
 	 */
 	protected function doProcessLink( DOMNode $node ): void {
-		if ( !($node instanceof DOMElement) ) {
+		if ( !( $node instanceof DOMElement ) ) {
 			return;
 		}
 

@@ -6,7 +6,6 @@ use DOMNode;
 
 class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 
-
 	/**
 	 * @param string $currentWikiTitle
 	 */

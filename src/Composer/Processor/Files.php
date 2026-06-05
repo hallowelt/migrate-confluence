@@ -39,7 +39,7 @@ class Files extends FileProcessorBase {
 			$attachmentId = $pageAttachment['attachment_id'];
 			$attachmentPageTitle = $pageAttachment['target_attachment_filename'];
 
-			$assocPageTitle = $this->dataLookup->getTargetPageTitleFromPageId(
+			$assocPageTitle = $this->dataLookup->getTargetWikiPageTitleFromPageId(
 				$pageAttachment['page_id']
 			);
 

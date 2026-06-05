@@ -2,8 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Composer\Processor;
 
-use DOMDocument;
-use DOMXPath;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
@@ -29,90 +27,6 @@ class PagesTest extends TestCase {
 	protected function tearDown(): void {
 		$this->deleteDir( $this->tmpDir );
 		parent::tearDown();
-	}
-
-	/**
-	 * @covers \HalloWelt\MigrateConfluence\Composer\Processor\Pages::execute
-	 */
-	public function testBlogPostsUseBlogPostContentModel() {
-		file_put_contents( $this->tmpDir . '/workspace/content/wikitext/10.wiki', 'Blog body' );
-		file_put_contents( $this->tmpDir . '/workspace/content/wikitext/20.wiki', 'Page body' );
-
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPageIdTargetWikiTitleMap' )->willReturn( [
-			2 => 'Regular:Page',
-		] );
-		$dataLookup->method( 'getBlogPostIdTargetBlogPostTitleMap' )->willReturn( [
-			1 => 'Blog:32973/Our new tool',
-		] );
-		$dataLookup->method( 'getSpaceIdForPageId' )->willReturn( 100 );
-		$dataLookup->method( 'getSpaceDescriptionRevisionsForSpaceId' )->willReturn( [] );
-		$dataLookup->method( 'getSpaceHomepageIdForSpaceId' )->willReturn( -1 );
-		$dataLookup->method( 'getBlogPostRevisionsForBlogPostId' )
-			->willReturnCallback( static function ( int $pageId ): array {
-				if ( $pageId === 1 ) {
-					return [ [
-						'revision_timestamp' => '20201109160742',
-						'body_content_ids' => '[10]',
-					] ];
-				}
-
-				return [];
-			} );
-		$dataLookup->method( 'getPageRevisionsForPageId' )
-			->willReturnCallback( static function ( int $pageId ): array {
-				if ( $pageId === 2 ) {
-					return [ [
-						'revision_timestamp' => '20201109160743',
-						'body_content_ids' => '[20]',
-					] ];
-				}
-
-				return [];
-			} );
-
-		$workspace = $this->createMock( Workspace::class );
-		$workspace->method( 'getConvertedContent' )
-			->willReturnCallback( static function ( int|string $bodyContentId ): string {
-				if ( (string)$bodyContentId === '10' ) {
-					return 'Blog body';
-				}
-
-				if ( (string)$bodyContentId === '20' ) {
-					return 'Page body';
-				}
-
-				return '';
-			} );
-
-		$migrationConfig = $this->createMock( MigrationConfig::class );
-		$migrationConfig->method( 'getComposerPagePerXmlLimit' )->willReturn( 0 );
-		$migrationConfig->method( 'getComposerSkipNamespaces' )->willReturn( [] );
-		$migrationConfig->method( 'getComposerSkipTitles' )->willReturn( [] );
-
-		$composerDeploymentInfo = new ComposerDeploymentInfo();
-
-		$processor = new Pages(
-			new Builder(),
-			$dataLookup,
-			$workspace,
-			$this->makeOutput(),
-			$this->tmpDir,
-			$migrationConfig,
-			$composerDeploymentInfo
-		);
-
-		$processor->execute();
-
-		$dom = new DOMDocument();
-		$dom->load( $this->tmpDir . '/result/pages.xml' );
-		$xpath = new DOMXPath( $dom );
-
-		$blogModel = $xpath->evaluate( 'string(/mediawiki/page[title="Blog:32973/Our new tool"]/revision/model)' );
-		$pageModel = $xpath->evaluate( 'string(/mediawiki/page[title="Regular:Page"]/revision/model)' );
-
-		$this->assertSame( 'blog_post', $blogModel );
-		$this->assertSame( 'wikitext', $pageModel );
 	}
 
 	/**

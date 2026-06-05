@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Database;
 
 use Exception;
+use InvalidArgumentException;
 use SQLite3;
 use SQLite3Result;
 use SQLite3Stmt;
@@ -107,7 +108,7 @@ class WorkspaceDB {
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
-			throw new \InvalidArgumentException( 'Table not allowed: ' . $table );
+			throw new InvalidArgumentException( 'Table not allowed: ' . $table );
 		}
 
 		$transaction = $this->db->prepare(
@@ -463,7 +464,7 @@ class WorkspaceDB {
 	private function createTablePageAttachments(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS page_attachments (
-				attachment_id INT,
+				attachment_id INT PRIMARY KEY,
 				page_id INT,
 				original_attachment_filename CHAR,
 				target_attachment_filename CHAR
@@ -477,7 +478,7 @@ class WorkspaceDB {
 	private function createTableAdditionalAttachments(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS additional_attachments (
-				attachment_id INT,
+				attachment_id INT PRIMARY KEY,
 				original_attachment_filename CHAR,
 				target_attachment_filename CHAR
 			);'
@@ -1922,7 +1923,7 @@ class WorkspaceDB {
 	/**
 	 * @return array
 	 */
-	public function getPageIdTargetWikiTitleMap(): array {
+	public function getPageIdTargetWikiPageTitleMap(): array {
 		$transaction = $this->cachedPrepare(
 			'SELECT page_id, wiki_title FROM pages WHERE content_status = "current"'
 		);
@@ -3847,7 +3848,7 @@ class WorkspaceDB {
 	public function getTargetWikiPageTitleFromTemplateId( int $templateId ): ?string {
 		$template = $this->getPageTemplateById( $templateId );
 
-		if ( $template === null || empty( $template['wiki_title']) ) {
+		if ( $template === null || empty( $template['wiki_title'] ) ) {
 			return null;
 		}
 
@@ -3862,7 +3863,7 @@ class WorkspaceDB {
 	public function getConfluencePageTitleFromTemplateId( int $templateId ): ?string {
 		$template = $this->getPageTemplateById( $templateId );
 
-		if ( $template === null || empty( $template['confluence_title']) ) {
+		if ( $template === null || empty( $template['confluence_title'] ) ) {
 			return null;
 		}
 

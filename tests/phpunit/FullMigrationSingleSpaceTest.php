@@ -105,7 +105,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			$config,
 		);
 
-		$pageTitle = $workspaceDB->getTargetPageTitleFromPageId( 10000030 );
+		$pageTitle = $workspaceDB->getTargetWikiPageTitleFromPageId( 10000030 );
 		$this->assertEquals( 'CON:Create_Project_Page', $pageTitle );
 		$blogPostTitle = $workspaceDB->getTargetBlogPostTitleFromBlogPostId( 10000002 );
 		$this->assertEquals( 'Blog:CON/My_Blog_Post', $blogPostTitle );

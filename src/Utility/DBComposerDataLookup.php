@@ -15,8 +15,8 @@ class DBComposerDataLookup {
 	/**
 	 * @return array
 	 */
-	public function getPageIdTargetWikiTitleMap(): array {
-		return $this->workspaceDB->getPageIdTargetWikiTitleMap();
+	public function getPageIdTargetWikiPageTitleMap(): array {
+		return $this->workspaceDB->getPageIdTargetWikiPageTitleMap();
 	}
 
 	/**
@@ -142,8 +142,8 @@ class DBComposerDataLookup {
 	 * @param int $pageId
 	 * @return string
 	 */
-	public function getTargetPageTitleFromPageId( int $pageId ): string {
-		return $this->workspaceDB->getTargetPageTitleFromPageId( $pageId );
+	public function getTargetWikiPageTitleFromPageId( int $pageId ): string {
+		return $this->workspaceDB->getTargetWikiPageTitleFromPageId( $pageId );
 	}
 
 	/**
