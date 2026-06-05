@@ -34,19 +34,20 @@ class FilenameResolver {
 	 * @param int $spaceId
 	 * @param string $confluencePageTitle
 	 * @param string $filename
+	 * @param string $prefix
 	 * @return array
 	 */
-	public function resolve( int $spaceId, string $confluencePageTitle, string $filename ): array {
-		$fileTitle = $this->dataLookup->getTargetFileTitleFromSpaceId(
+	public function resolve( int $spaceId, string $confluencePageTitle, string $filename, string $prefix = '' ): array {
+		$fileTitle = $this->dataLookup->getWikiFileTitleFromSpaceId(
 			$spaceId,
 			$confluencePageTitle,
 			$filename
-		);
+		) ?? '';
 		if ( $fileTitle !== '' ) {
 			return $this->getResult( $fileTitle, false );
 		}
 
-		$fileTitle = $this->buildFileTitle( $spaceId, $confluencePageTitle, $filename );
+		$fileTitle = $this->buildFileTitle( $spaceId, $confluencePageTitle, $filename, $prefix );
 
 		return $this->getResult( $fileTitle, true );
 	}
@@ -55,20 +56,25 @@ class FilenameResolver {
 	 * @param int $spaceId
 	 * @param string $confluencePageTitle
 	 * @param string $filename
+	 * @param string $prefix
 	 *
 	 * @return string
 	 */
 	private function buildFileTitle( int $spaceId, string $confluencePageTitle, string $filename ): string {
-		$assocTitle = $this->dataLookup->getTargetWikiPageTitleFromSpaceId( $spaceId, $confluencePageTitle ) ?? '';
+		$assocTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluencePageTitle ) ?? '';
+
+		if ( $assocTitle !== '' ) {
+			$pageWikiTitleParts = substr( $assocTitle, strrpos( $assocTitle, ':' ) );
+			$pageWikiTitleParts = explode( '/', $pageWikiTitleParts );
+			$shortPageWikiTitle = end( $pageWikiTitleParts );
+		} else {
+			$shortPageWikiTitle = '';
+		}
 
 		$filenameBuilder = new FilenameBuilder(
 			$this->dataLookup->getSpaceIdToPrefixMap(),
 			$this->migrationConfig
 		);
-
-		$pageWikiTitleParts = substr( $assocTitle, strrpos( $assocTitle, ':' ) );
-		$pageWikiTitleParts = explode( '/', $pageWikiTitleParts );
-		$shortPageWikiTitle = end( $pageWikiTitleParts );
 
 		try {
 			$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortPageWikiTitle );

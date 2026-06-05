@@ -27,7 +27,7 @@ class UserLink extends LinkProcessorBase {
 			$userKey = $node->getAttribute( 'ri:userkey' );
 
 			if ( !empty( $userKey ) ) {
-				$username = $this->dataLookup->getUsernameFromUserKey( $userKey );
+				$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
 				$linkParts[] = 'User:' . $username;
 				$linkParts[] = $username;
 			} else {

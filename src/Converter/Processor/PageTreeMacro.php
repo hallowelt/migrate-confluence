@@ -23,14 +23,16 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
-	 * @param int $currentSpace
+	 * @param int $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $wikiTitle
 	 * @param string $mainpage
 	 */
 	public function __construct(
 		private DBConversionDataLookup $dataLookup,
-		private int $currentSpace,
+		private int $spaceId,
 		private string $confluenceTitle,
+		private string $wikiTitle,
 		private string $mainpage
 	) {
 	}
@@ -145,50 +147,46 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 
 		switch ( $params['content-title'] ) {
 			case '@home':
+				$params['content-title'] = '';
 				// Main Page
-				$text = $this->mainpage;
-				if ( $text === '' ) {
+				$targetTitle = $this->dataLookup->getSpaceMainPageWikiTitleForSpaceId( $this->spaceId );
+				if ( $targetTitle === null ) {
 					$params['broken-macro'] = true;
 					break;
 				}
-				$params['content-title'] = $text;
+				$params['content-title'] = $targetTitle;
 				break;
 			case '@self':
+				$params['content-title'] = '';
 				// current WikiTitle
-				$text = $this->dataLookup->getTargetWikiPageTitleFromSpaceId(
-					$this->currentSpace,
-					$this->confluenceTitle
-				);
-				if ( $text === null ) {
+				$targetTitle = $this->wikiTitle;
+				if ( $targetTitle === null ) {
 					$params['broken-macro'] = true;
 					break;
 				}
-				$params['content-title'] = $text;
+				$params['content-title'] = $targetTitle;
 				break;
 			case '@parent':
+				$params['content-title'] = '';
 				// parent of current PageTitle
-				$currentWikiTitle = $this->dataLookup->getTargetWikiPageTitleFromSpaceId(
-					$this->currentSpace,
-					$this->confluenceTitle
-				);
-				if ( $currentWikiTitle === null ) {
+				$targetTitle = $this->wikiTitle;
+				if ( $targetTitle === null ) {
 					$params['broken-macro'] = true;
 					break;
 				}
-				$currentPageParts = explode( '/', $currentWikiTitle );
+				$currentPageParts = explode( '/', $targetTitle );
 				if ( count( $currentPageParts ) > 1 ) {
 					array_pop( $currentPageParts );
-					$text = implode( '/', $currentPageParts );
+					$targetTitle = implode( '/', $currentPageParts );
 				} else {
-					$text = $this->confluenceTitle;
+					$targetTitle = $this->confluenceTitle;
 					$params['broken-macro'] = true;
 				}
-				$params['content-title'] = $text;
+				$params['content-title'] = $targetTitle;
 				break;
 			case '@none':
-				// all pages in namespace
 				$params['content-title'] = '';
-
+				// all pages in namespace
 				if ( isset( $params['space-key'] ) ) {
 					$namespace = $this->dataLookup->getNamepspaceFromSpaceKey( $params['space-key'] );
 					if ( is_string( $namespace ) ) {
@@ -205,11 +203,13 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 			default:
 				// create new content-title from space key and content title
 				if ( isset( $params['space-key'] ) ) {
-					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] );
+					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] ) ?? 0;
+					// TODO: Log if spaceId is null, but we should be able to
+					// resolve the filename without spaceId as well, so we can continue processing
 				} else {
-					$spaceId = $this->currentSpace;
+					$spaceId = $this->spaceId;
 				}
-				$text = $this->dataLookup->getTargetWikiPageTitleFromSpaceId( $spaceId, $params['content-title'] );
+				$text = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $params['content-title'] );
 				if ( $text === null ) {
 					$params['broken-macro'] = true;
 					break;

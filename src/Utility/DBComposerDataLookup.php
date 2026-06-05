@@ -44,17 +44,17 @@ class DBComposerDataLookup {
 
 	/**
 	 * @param int $pageId
-	 * @return int
+	 * @return int|null The space_id for the given page_id, or null if not found.
 	 */
-	public function getSpaceIdForPageId( int $pageId ): int {
+	public function getSpaceIdForPageId( int $pageId ): ?int {
 		return $this->workspaceDB->getSpaceIdForPageId( $pageId );
 	}
 
 	/**
 	 * @param int $spaceId
-	 * @return int
+	 * @return int|null The page_id of the space homepage for the given space_id, or null if not found.
 	 */
-	public function getSpaceHomepageIdForSpaceId( int $spaceId ): int {
+	public function getSpaceHomepageIdForSpaceId( int $spaceId ): ?int {
 		return $this->workspaceDB->getSpaceHomepageIdForSpaceId( $spaceId );
 	}
 
@@ -83,9 +83,9 @@ class DBComposerDataLookup {
 
 	/**
 	 * @param string $userKey
-	 * @return string
+	 * @return string|null
 	 */
-	public function getUsernameFromUserKey( string $userKey ): string {
+	public function getUsernameFromUserKey( string $userKey ): ?string {
 		return $this->workspaceDB->getUsernameFromUserKey( $userKey );
 	}
 
@@ -140,10 +140,10 @@ class DBComposerDataLookup {
 	 * until the original version is reached and return its wiki title.
 	 *
 	 * @param int $pageId
-	 * @return string
+	 * @return string|null
 	 */
-	public function getTargetWikiPageTitleFromPageId( int $pageId ): string {
-		return $this->workspaceDB->getTargetWikiPageTitleFromPageId( $pageId );
+	public function getWikiPageTitleFromPageId( int $pageId ): ?string {
+		return $this->workspaceDB->getWikiPageTitleFromPageId( $pageId );
 	}
 
 	/**

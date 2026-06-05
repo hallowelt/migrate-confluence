@@ -247,7 +247,9 @@ class Image implements IProcessor {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			}
 			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				// TODO: Log if spaceId is null, but we should be able to
+				//resolve the filename without spaceId as well, so we can continue processing
 			}
 		}
 
@@ -292,7 +294,9 @@ class Image implements IProcessor {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			}
 			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				// TODO: Log if spaceId is null, but we should be able to
+				// resolve the filename without spaceId as well, so we can continue processing
 			}
 		}
 
@@ -359,7 +363,9 @@ class Image implements IProcessor {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			}
 			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				// TODO: Log if spaceId is null, but we should be able to
+				// resolve the filename without spaceId as well, so we can continue processing
 			}
 		}
 

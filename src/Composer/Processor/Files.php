@@ -39,7 +39,7 @@ class Files extends FileProcessorBase {
 			$attachmentId = $pageAttachment['attachment_id'];
 			$attachmentPageTitle = $pageAttachment['target_attachment_filename'];
 
-			$assocPageTitle = $this->dataLookup->getTargetWikiPageTitleFromPageId(
+			$assocPageTitle = $this->dataLookup->getWikiPageTitleFromPageId(
 				$pageAttachment['page_id']
 			);
 
@@ -68,7 +68,7 @@ class Files extends FileProcessorBase {
 				if ( isset( $attachment['attachment_reference'] ) ) {
 					$timestamp = $attachment['revision_timestamp'];
 					$userKey = $attachment['last_modifier'];
-					$username = $this->dataLookup->getUsernameFromUserKey( $userKey );
+					$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
 					$filePath = $attachment['attachment_reference'];
 
 					if ( file_exists( $filePath ) ) {
@@ -169,7 +169,7 @@ class Files extends FileProcessorBase {
 
 					$timestamp = $attachment['revision_timestamp'];
 					$userKey = $attachment['last_modifier'];
-					$username = $this->dataLookup->getUsernameFromUserKey( $userKey );
+					$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
 
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					$this->builder->addFileRevision(

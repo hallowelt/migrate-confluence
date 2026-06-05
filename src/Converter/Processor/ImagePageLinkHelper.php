@@ -56,7 +56,7 @@ class ImagePageLinkHelper {
 				$this->currentSpaceId = $this->ensureSpaceId( $page );
 			}
 
-			$targetTitle = $this->dataLookup->getTargetWikiPageTitleFromSpaceId(
+			$targetTitle = $this->dataLookup->getWikiPageTitleFromSpaceId(
 				$this->currentSpaceId,
 				$this->rawPageTitle
 			);
@@ -86,7 +86,9 @@ class ImagePageLinkHelper {
 		$spaceId = $this->currentSpaceId;
 		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
 		if ( !empty( $this->spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey );
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey ) ?? 0;
+			// TODO: Log if spaceId is null, but we should be able to
+			// resolve the filename without spaceId as well, so we can continue processing
 		}
 
 		return $spaceId;
@@ -102,6 +104,6 @@ class ImagePageLinkHelper {
 		if ( $this->spaceKey !== '' ) {
 			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
 		}
-		return $confluenceKey;
+		return str_replace( ' ', '_', $confluenceKey );
 	}
 }

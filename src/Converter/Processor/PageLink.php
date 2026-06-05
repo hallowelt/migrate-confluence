@@ -35,7 +35,7 @@ class PageLink extends LinkProcessorBase {
 		$rawPageTitle = $node->getAttribute( 'ri:content-title' );
 		$spaceId = $this->ensureSpaceId( $node );
 
-		$targetTitle = $this->dataLookup->getTargetWikiPageTitleFromSpaceId( $spaceId, $rawPageTitle );
+		$targetTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $rawPageTitle );
 		if ( $targetTitle === null ) {
 			// If not in migration data, save some info for manual post migration work
 			$targetTitle = $this->generateConfluenceKey( $spaceId, $rawPageTitle );
@@ -68,7 +68,10 @@ class PageLink extends LinkProcessorBase {
 		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
 
 		if ( !empty( $this->spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey );
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey ) ?? 0;
+			// TODO: Log if spaceId is null,
+			// but we should be able to resolve the filename without spaceId as well,
+			// so we can continue processing
 		}
 
 		return $spaceId;
@@ -85,7 +88,6 @@ class PageLink extends LinkProcessorBase {
 		if ( !empty( $rawPageTitle ) ) {
 			$genericTitleBuilder = new GenericTitleBuilder( [] );
 			$rawPageTitle = $genericTitleBuilder->appendTitleSegment( $rawPageTitle )->build();
-			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
 		}
 
 		$confluenceKey = "Confluence---$spaceId---$rawPageTitle";
@@ -93,7 +95,7 @@ class PageLink extends LinkProcessorBase {
 			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
 		}
 
-		return $confluenceKey;
+		return str_replace( ' ', '_', $confluenceKey );
 	}
 
 	/**

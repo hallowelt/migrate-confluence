@@ -116,11 +116,11 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 */
 	private function getFilename( string $diagramName ): string {
 		$spaceId = $this->currentSpaceId;
-		$filename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+		$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 			$spaceId,
 			$this->rawPageTitle,
 			$diagramName
-		);
+		) ?? '';
 		$originalFilename = $filename;
 
 		if ( $this->getFileExtension( $filename ) === 'unknown' ) {
@@ -137,28 +137,28 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		if ( strtolower( $this->getFileExtension( $filename ) ) !== 'png' ) {
 			// find png
 			$drawioDataFilename = $originalFilename;
-			$drawioImageFilename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+			$drawioImageFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 				$spaceId,
 				$this->rawPageTitle,
 				$diagramName
-			);
+			) ?? '';
 		} else {
 			// find data
 			$drawioImageFilename = $filename;
 			$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.png' ) );
-			$drawioDataFilename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+			$drawioDataFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 				$spaceId,
 				$this->rawPageTitle,
 				$diagramName
-			);
+			) ?? '';
 			// Maybe png = PNG
 			if ( $drawioDataFilename === '' ) {
 				$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.PNG' ) );
-				$drawioDataFilename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+				$drawioDataFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 					$spaceId,
 					$this->rawPageTitle,
 					$diagramName
-				);
+				) ?? '';
 			}
 		}
 

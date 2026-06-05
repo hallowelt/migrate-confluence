@@ -65,12 +65,14 @@ class Pages extends ProcessorBase {
 					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
 				}
 
-				$pageContent .= $this->addSpaceDescriptionToMainPage(
-					$pageId,
-					$homepageId,
-					$timestamp,
-					$spaceDescriptions
-				);
+				if ( $homepageId !== null ) {
+					$pageContent .= $this->addSpaceDescriptionToMainPage(
+						$pageId,
+						$homepageId,
+						$timestamp,
+						$spaceDescriptions
+					);
+				}
 
 				$this->addRevision(
 					$pageTitle,

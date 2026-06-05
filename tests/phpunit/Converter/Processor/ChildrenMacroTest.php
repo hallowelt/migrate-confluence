@@ -18,6 +18,6 @@ class ChildrenMacroTest extends StructuredMacroProcessorTestBase {
 
 	protected function getProcessorToTest(): IProcessor {
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
-		return new ChildrenMacro( 42, 'Some page', $dataLookup );
+		return new ChildrenMacro( 42, 'ABC:Some_page', $dataLookup );
 	}
 }

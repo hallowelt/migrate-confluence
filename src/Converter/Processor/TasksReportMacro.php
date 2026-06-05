@@ -106,7 +106,7 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 			return '';
 		}
 		$key = $user->getAttribute( 'ri:userkey' );
-		$username = $this->dataLookup->getUsernameFromUserKey( $key );
+		$username = $this->dataLookup->getUsernameFromUserKey( $key ) ?? $key;
 		return $username;
 	}
 }

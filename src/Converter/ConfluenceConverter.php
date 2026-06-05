@@ -114,20 +114,20 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var SplFileInfo|null */
 	private ?SplFileInfo $rawFile = null;
 
-	/** @var int */
-	private int $pageId;
+	/** @var int|null */
+	private ?int $pageId = null;
 
 	/** @var string */
 	private string $wikiText = '';
 
 	/** @var string|null */
-	private ?string $currentWikiTitle;
+	private ?string $wikiPageTitle;
 
 	/** @var string|null */
 	private ?string $confluencePageTitle;
 
-	/** @var int */
-	private int $currentSpace = 0;
+	/** @var int|null */
+	private ?int $currentSpace = null;
 
 	/** @var SplFileInfo|null */
 	private ?SplFileInfo $preprocessedFile = null;
@@ -203,21 +203,22 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 		$this->rawFile = $file;
 
-		$this->pageId = -1;
+		$this->pageId = null;
 
 		if ( str_starts_with( $this->rawFile->getFilename(), 'pt_' ) ) {
 			// This is the content of a page template
 			$bodyContentId = $this->getBodyContentIdFromPageTemplateFilename();
 			$this->contentType = 'pageTemplate';
-			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId ) ?? 0;
+			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId );
 
-			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromTemplateId( $bodyContentId )
-				?? '';
-			$this->currentWikiTitle = $this->workspaceDB->getTargetWikiPageTitleFromTemplateId( $bodyContentId )
+			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTemplateTitleFromPageTemplateId(
+				$bodyContentId
+			);
+			$this->wikiPageTitle = $this->workspaceDB->getWikiPageTemplateTitleFromPageTemplateId( $bodyContentId )
 				?? 'not_current_revision_for_page_template_' . $bodyContentId;
 
-			if ( $this->currentSpace === -1 ) {
-				$this->addNonBLockingLogEntry(
+			if ( $this->currentSpace === null ) {
+				$this->addNonBlockingLogEntry(
 					"No context space id found for page template $bodyContentId",
 					'error'
 				);
@@ -227,6 +228,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		} else {
 			$bodyContentId = $this->getBodyContentIdFromFilename();
 			$contentId = $this->getContentIdFromBodyContentId( $bodyContentId );
+			if ( $contentId === null ) {
+				$this->addNonBlockingLogEntry(
+					"No content id found for bodyContentId $bodyContentId",
+					'error'
+				);
+
+				return "<-- No  content id found for body content id $bodyContentId -->";
+			}
 
 			// Test to which type of content the contentId belongs
 			if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
@@ -234,18 +243,16 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
 				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
 
-				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId )
-					?? '';
-				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiPageTitleFromPageId( $this->pageId )
+				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+				$this->wikiPageTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $this->pageId )
 					?? 'not_current_revision_' . $this->pageId;
 			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
 				$this->contentType = 'page';
 				$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
 				$this->pageId = $contentId;
 
-				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId )
-					?? '';
-				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiPageTitleFromPageId( $this->pageId )
+				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId );
+				$this->wikiPageTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $this->pageId )
 					?? 'not_current_revision_' . $this->pageId;
 			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
 				$this->contentType = 'blogPost';
@@ -254,22 +261,20 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 				$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId(
 					$this->pageId
-				) ?? '';
-				$this->currentWikiTitle = $this->workspaceDB->getTargetBlogPostTitleFromBlogPostId( $this->pageId )
+				);
+				$this->wikiPageTitle = $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $this->pageId )
 					?? 'not_current_revision_' . $this->pageId;
 			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
 				$this->contentType = 'comment';
 				$this->pageId = $contentId;
 				// Comment body content: convert with minimal context (no page-specific macros expected)
 				$this->currentSpace = 0;
-				$this->currentWikiTitle = '';
+				$this->wikiPageTitle = '';
 				$this->confluencePageTitle = '';
-			} else {
-				$this->pageId = -1;
 			}
 
 			if ( $this->contentType !== 'pageTemplate' && $this->pageId === -1 ) {
-				$this->addNonBLockingLogEntry(
+				$this->addNonBlockingLogEntry(
 					"No context page id found for bodyContentId $bodyContentId",
 					'error'
 				);
@@ -277,8 +282,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				return '<-- No context page id found -->';
 			}
 
-			if ( $this->currentSpace === -1 ) {
-				$this->addNonBLockingLogEntry(
+			if ( $this->currentSpace === null ) {
+				$this->addNonBlockingLogEntry(
 					"No context space id found for bodyContentId $bodyContentId",
 					'error'
 				);
@@ -295,17 +300,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$unconvertedContent .= $rawContent;
 			$unconvertedContent .= "\n<-- Unconvertable RAW end-->\n[[Category:Unconvertable]]";
 
-			$this->addNonBLockingLogEntry( "Unconvertable RAW content for bodyContentId $bodyContentId" );
+			$this->addNonBlockingLogEntry( "Unconvertable RAW content for bodyContentId $bodyContentId" );
 
 			return $unconvertedContent;
-		}
-
-		if ( $this->confluencePageTitle === null ) {
-			throw new Exception( "No Confluence page title found for bodyContentId $bodyContentId" );
-		}
-
-		if ( $this->currentWikiTitle === null ) {
-			throw new Exception( "No wiki title found for bodyContentId $bodyContentId" );
 		}
 
 		$this->runProcessors( $dom );
@@ -359,16 +356,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new SectionMacro(),
 			new ChildrenMacro(
 				$this->currentSpace,
-				$this->confluencePageTitle,
+				$this->wikiPageTitle,
 				$this->dataLookup
 			),
 			new PageTreeMacro(
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
+				$this->wikiPageTitle,
 				$this->migrationConfig->getMainPageName()
 			),
-			new RecentlyUpdatedMacro( $this->currentWikiTitle ),
+			new RecentlyUpdatedMacro( $this->wikiPageTitle ),
 			new IncludeMacro(
 				$this->dataLookup,
 				$this->currentSpace
@@ -426,7 +424,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->confluencePageTitle,
 				$this->pipeToDB
 			),
-			new ContentByLabelMacro( $this->currentWikiTitle ),
+			new ContentByLabelMacro( $this->wikiPageTitle ),
 			new AttachmentsMacro(),
 			new GalleryMacro(
 				$this->dataLookup,
@@ -503,7 +501,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
 			new FixMultilineTable(),
-			new TemplateContentPostProcessor( $this->currentWikiTitle )
+			new TemplateContentPostProcessor( $this->wikiPageTitle )
 		];
 
 		/** @var IPostprocessor $postProcessor */
@@ -538,42 +536,42 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 *
 	 * @param int $bodyContentId
 	 *
-	 * @return int
+	 * @return int|null
 	 */
-	private function getContentIdFromBodyContentId( int $bodyContentId ): int {
+	private function getContentIdFromBodyContentId( int $bodyContentId ): ?int {
 		$map = $this->workspaceDB->getContentIdForBodyContentId( $bodyContentId );
 		return $map;
 	}
 
 	/**
 	 * @param int $spaceDescId
-	 * @return int
+	 * @return int|null
 	 */
-	private function getSpaceIdFromSpaceDescriptionId( int $spaceDescId ): int {
+	private function getSpaceIdFromSpaceDescriptionId( int $spaceDescId ): ?int {
 		return $this->workspaceDB->getSpaceIdForDescriptionId( $spaceDescId );
 	}
 
 	/**
 	 * @param int $spaceId
-	 * @return int
+	 * @return int|null
 	 */
-	private function getSpaceHomepageId( int $spaceId ): int {
+	private function getSpaceHomepageId( int $spaceId ): ?int {
 		return $this->workspaceDB->getSpaceHomepageIdForSpaceId( $spaceId );
 	}
 
 	/**
 	 * @param int $pageId
-	 * @return int
+	 * @return int|null
 	 */
-	private function getSpaceIdFromPageId( int $pageId ): int {
+	private function getSpaceIdFromPageId( int $pageId ): ?int {
 		return $this->workspaceDB->getSpaceIdForPageId( $pageId );
 	}
 
 	/**
 	 * @param int $blogPostId
-	 * @return int
+	 * @return int|null
 	 */
-	private function getSpaceIdFromBlogPostId( int $blogPostId ): int {
+	private function getSpaceIdFromBlogPostId( int $blogPostId ): ?int {
 		return $this->workspaceDB->getSpaceIdForBlogPostId( $blogPostId );
 	}
 
@@ -841,7 +839,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$bodyContentId
 			);
 
-			$this->addNonBLockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
+			$this->addNonBlockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
 			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 		}
 	}
@@ -852,7 +850,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 *
 	 * @return void
 	 */
-	private function addNonBLockingLogEntry( string $message, string $type = 'warning' ): void {
+	private function addNonBlockingLogEntry( string $message, string $type = 'warning' ): void {
 		$this->pipeToDB->send(
 			'log',
 			$type,

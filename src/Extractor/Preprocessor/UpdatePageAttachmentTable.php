@@ -93,7 +93,7 @@ class UpdatePageAttachmentTable extends ProcessorBase {
 				"Creating wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
 			);
 
-			$pageWikiTitle = $this->workspaceDB->getWikiTitleForAttachmentId( $attachmentId );
+			$pageWikiTitle = $pageIdToWikiTitleMap[$pageId];
 			$pageWikiTitle = substr( $pageWikiTitle, strrpos( $pageWikiTitle, ':' ) );
 			$pageWikiTitleParts = explode( '/', $pageWikiTitle );
 			$shortPageWikiTitle = end( $pageWikiTitleParts );

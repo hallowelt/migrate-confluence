@@ -15,9 +15,9 @@ class DBConversionDataLookup {
 
 	/**
 	 * @param string $userKey
-	 * @return string
+	 * @return string|null
 	 */
-	public function getUsernameFromUserKey( string $userKey ): string {
+	public function getUsernameFromUserKey( string $userKey ): ?string {
 		return $this->workspaceDB->getUsernameFromUserKey( $userKey );
 	}
 
@@ -31,15 +31,23 @@ class DBConversionDataLookup {
 	/**
 	 * @param string $spaceKey
 	 *
-	 * @return int
+	 * @return int|null
 	 */
-	public function getSpaceIdFromSpaceKey( string $spaceKey ): int {
+	public function getSpaceIdFromSpaceKey( string $spaceKey ): ?int {
 		// See src/Analyzer/Processor/Spaces
 		if ( $spaceKey === 'GENERAL' ) {
 			$spaceKey = '';
 		}
 
 		return $this->workspaceDB->getSpaceIdFromSpaceKey( $spaceKey );
+	}
+
+	/**
+	 * @param integer $spaceId
+	 * @return string|null
+	 */
+	public function getSpaceKeyFromSpaceId( int $spaceId ): ?string {
+		return $this->workspaceDB->getSpaceKeyFromSpaceId( $spaceId );
 	}
 
 	/**
@@ -75,6 +83,14 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $spaceId
+	 * @return string|null
+	 */
+	public function getSpaceMainPageWikiTitleForSpaceId( int $spaceId ): ?string {
+		return $this->workspaceDB->getSpaceMainPageWikiTitleForSpaceId( $spaceId );
+	}
+
+	/**
 	 * Get the wiki page title for a given space key.
 	 *
 	 * @param int $spaceId
@@ -83,10 +99,10 @@ class DBConversionDataLookup {
 	 * @return string|null
 	 * @throws Exception
 	 */
-	public function getTargetWikiPageTitleFromSpaceId(
+	public function getWikiPageTitleFromSpaceId(
 		int $spaceId, string $confluenceTitle
 	): ?string {
-		return $this->workspaceDB->getTargetWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle );
+		return $this->workspaceDB->getWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle );
 	}
 
 	/**
@@ -99,10 +115,10 @@ class DBConversionDataLookup {
 	 * @param string $originalAttachmentFilename
 	 * @return array
 	 */
-	public function getTargetFileTitleFromSpaceKey(
+	public function getWikiFileTitleFromSpaceKey(
 		string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename
 	): array {
-		return $this->workspaceDB->getTargetFileTitleFromSpaceKey(
+		return $this->workspaceDB->getWikiFileTitleFromSpaceKey(
 			$spaceKey, $confluenceTitle, $originalAttachmentFilename
 		);
 	}
@@ -115,12 +131,12 @@ class DBConversionDataLookup {
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $originalAttachmentFilename
-	 * @return string
+	 * @return string|null
 	 */
-	public function getTargetFileTitleFromSpaceId(
+	public function getWikiFileTitleFromSpaceId(
 		int $spaceId, string $confluenceTitle, string $originalAttachmentFilename
-	): string {
-		return $this->workspaceDB->getTargetFileTitleFromSpaceId(
+	): ?string {
+		return $this->workspaceDB->getWikiFileTitleFromSpaceId(
 			$spaceId, $confluenceTitle, $originalAttachmentFilename
 		);
 	}
@@ -146,6 +162,9 @@ class DBConversionDataLookup {
 	 */
 	public function getAttachmentContent( string $attachmentTargetFileTitle ): ?string {
 		$reference = $this->workspaceDB->getAttachmentReference( $attachmentTargetFileTitle );
+		if ( !$reference ) {
+			return null;
+		}
 		if ( $reference === null || !file_exists( $reference ) ) {
 			return null;
 		}
@@ -161,8 +180,8 @@ class DBConversionDataLookup {
 	 * @param string $rawPageTitle
 	 * @return array
 	 */
-	public function getTargetFileTitlesForPage( int $spaceId, string $rawPageTitle ): array {
-		return $this->workspaceDB->getTargetFileTitlesForPage( $spaceId, $rawPageTitle );
+	public function getWikiFileTitlesForPage( int $spaceId, string $rawPageTitle ): array {
+		return $this->workspaceDB->getWikiFileTitlesForPage( $spaceId, $rawPageTitle );
 	}
 
 	/**
