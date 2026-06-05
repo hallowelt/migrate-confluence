@@ -212,7 +212,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId ) ?? 0;
 
 			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromTemplateId( $bodyContentId ) ?? '';
-			$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromTemplateId( $bodyContentId )
+			$this->currentWikiTitle = $this->workspaceDB->getTargetWikiPageTitleFromTemplateId( $bodyContentId )
 				?? 'not_current_revision_for_page_template_' . $bodyContentId;
 
 			if ( $this->currentSpace === -1 ) {
@@ -236,7 +236,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
 
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId ) ?? '';
-				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId )
+				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiPageTitleFromPageId( $this->pageId )
 					?? 'not_current_revision_' . $this->pageId;
 			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
 				$this->contentType = 'page';
@@ -246,7 +246,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->pageId = $contentId;
 
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId ) ?? '';
-				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiTitleFromPageId( $this->pageId )
+				$this->currentWikiTitle = $this->workspaceDB->getTargetWikiPageTitleFromPageId( $this->pageId )
 					?? 'not_current_revision_' . $this->pageId;
 			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
 				$this->contentType = 'blogPost';

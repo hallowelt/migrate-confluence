@@ -76,7 +76,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 			return;
 		}
 		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );
-		$this->mediaWikiPageName = $this->dataLookup->getTargetWikiTitleFromSpaceId(
+		$this->mediaWikiPageName = $this->dataLookup->getTargetWikiPageTitleFromSpaceId(
 			$this->currentSpaceId,
 			$targetPageName
 		) ?? '';

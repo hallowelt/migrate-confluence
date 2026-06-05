@@ -155,7 +155,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				break;
 			case '@self':
 				// current WikiTitle
-				$text = $this->dataLookup->getTargetWikiTitleFromSpaceId(
+				$text = $this->dataLookup->getTargetWikiPageTitleFromSpaceId(
 					$this->currentSpace,
 					$this->confluenceTitle
 				);
@@ -167,7 +167,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				break;
 			case '@parent':
 				// parent of current PageTitle
-				$currentWikiTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId(
+				$currentWikiTitle = $this->dataLookup->getTargetWikiPageTitleFromSpaceId(
 					$this->currentSpace,
 					$this->confluenceTitle
 				);
@@ -209,7 +209,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				} else {
 					$spaceId = $this->currentSpace;
 				}
-				$text = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $params['content-title'] );
+				$text = $this->dataLookup->getTargetWikiPageTitleFromSpaceId( $spaceId, $params['content-title'] );
 				if ( $text === null ) {
 					$params['broken-macro'] = true;
 					break;

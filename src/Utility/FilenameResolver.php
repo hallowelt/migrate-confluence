@@ -59,7 +59,7 @@ class FilenameResolver {
 	 * @return string
 	 */
 	private function buildFileTitle( int $spaceId, string $confluencePageTitle, string $filename ): string {
-		$assocTitle = $this->dataLookup->getTargetWikiTitleFromSpaceId( $spaceId, $confluencePageTitle ) ?? '';
+		$assocTitle = $this->dataLookup->getTargetWikiPageTitleFromSpaceId( $spaceId, $confluencePageTitle ) ?? '';
 
 		$filenameBuilder = new FilenameBuilder(
 			$this->dataLookup->getSpaceIdToPrefixMap(),

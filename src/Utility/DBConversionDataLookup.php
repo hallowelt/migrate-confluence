@@ -83,10 +83,10 @@ class DBConversionDataLookup {
 	 * @return string|null
 	 * @throws Exception
 	 */
-	public function getTargetWikiTitleFromSpaceId(
+	public function getTargetWikiPageTitleFromSpaceId(
 		int $spaceId, string $confluenceTitle
 	): ?string {
-		return $this->workspaceDB->getTargetWikiTitleFromSpaceId( $spaceId, $confluenceTitle );
+		return $this->workspaceDB->getTargetWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle );
 	}
 
 	/**

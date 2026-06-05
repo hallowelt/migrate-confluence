@@ -1231,7 +1231,7 @@ class WorkspaceDB {
 	 *
 	 * @return string|null
 	 */
-	public function getTargetWikiTitleFromSpaceId( int $spaceId, string $confluenceTitle ): ?string {
+	public function getTargetWikiPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): ?string {
 		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM pages WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
 		);
@@ -1254,7 +1254,7 @@ class WorkspaceDB {
 	 *
 	 * @return string|null
 	 */
-	public function getTargetWikiTitleFromPageId( int $pageId ): ?string {
+	public function getTargetWikiPageTitleFromPageId( int $pageId ): ?string {
 		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM pages WHERE page_id = :page_id LIMIT 1'
 		);
@@ -3196,7 +3196,7 @@ class WorkspaceDB {
 	 *
 	 * @return string|null
 	 */
-	public function getTargetWikiTitleFromTemplateId( int $templateId ): ?string {
+	public function getTargetWikiPageTitleFromTemplateId( int $templateId ): ?string {
 		$template = $this->getPageTemplateById( $templateId );
 
 		if ( $template === null || empty( $template['wiki_title']) ) {
