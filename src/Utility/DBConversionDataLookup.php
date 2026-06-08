@@ -43,7 +43,7 @@ class DBConversionDataLookup {
 	}
 
 	/**
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @return string|null
 	 */
 	public function getSpaceKeyFromSpaceId( int $spaceId ): ?string {

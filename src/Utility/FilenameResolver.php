@@ -34,10 +34,9 @@ class FilenameResolver {
 	 * @param int $spaceId
 	 * @param string $confluencePageTitle
 	 * @param string $filename
-	 * @param string $prefix
 	 * @return array
 	 */
-	public function resolve( int $spaceId, string $confluencePageTitle, string $filename, string $prefix = '' ): array {
+	public function resolve( int $spaceId, string $confluencePageTitle, string $filename ): array {
 		$fileTitle = $this->dataLookup->getWikiFileTitleFromSpaceId(
 			$spaceId,
 			$confluencePageTitle,
@@ -47,7 +46,7 @@ class FilenameResolver {
 			return $this->getResult( $fileTitle, false );
 		}
 
-		$fileTitle = $this->buildFileTitle( $spaceId, $confluencePageTitle, $filename, $prefix );
+		$fileTitle = $this->buildFileTitle( $spaceId, $confluencePageTitle, $filename );
 
 		return $this->getResult( $fileTitle, true );
 	}
@@ -56,7 +55,6 @@ class FilenameResolver {
 	 * @param int $spaceId
 	 * @param string $confluencePageTitle
 	 * @param string $filename
-	 * @param string $prefix
 	 *
 	 * @return string
 	 */
