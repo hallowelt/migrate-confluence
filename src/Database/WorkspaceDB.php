@@ -1988,7 +1988,7 @@ class WorkspaceDB {
 	/**
 	 * @return array
 	 */
-	public function getPageIdTargetWikiPageTitleMap(): array {
+	public function getPageIdWikiPageTitleMap(): array {
 		$transaction = $this->cachedPrepare(
 			'SELECT page_id, wiki_title FROM pages WHERE content_status = "current"'
 		);
@@ -2320,7 +2320,7 @@ class WorkspaceDB {
 	/**
 	 * @return array
 	 */
-	public function getBlogPostIdTargetBlogPostTitleMap(): array {
+	public function getBlogPostIdBlogPostTitleMap(): array {
 		$transaction = $this->cachedPrepare(
 			'SELECT page_id, wiki_title FROM blog_posts WHERE content_status = "current"'
 		);
@@ -3825,7 +3825,7 @@ class WorkspaceDB {
 	/**
 	 * @return array
 	 */
-	public function getPageTemplateIdTargetTitleMap(): array {
+	public function getPageTemplateIdWikiTitleMap(): array {
 		$transaction = $this->cachedPrepare(
 			'SELECT template_id, wiki_title FROM page_templates'
 		);

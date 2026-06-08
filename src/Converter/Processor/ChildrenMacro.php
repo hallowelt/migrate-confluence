@@ -32,101 +32,25 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @throws Exception
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
-		$isBroken = false;
-		$paramNodes = [];
-		foreach ( $node->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter' ) {
-				$paramNodes[] = $childNode;
-			}
-		}
+		$params = $this->processParams( $node );
 
-		$params = [];
-		foreach ( $paramNodes as $paramNode ) {
-			if ( !$paramNode->hasAttributes() ) {
-				continue;
-			}
-			$name = $paramNode->getAttribute( 'ac:name' );
-			if ( $name === 'page' ) {
-				if ( $paramNode->hasChildnodes() ) {
-					foreach ( $paramNode->childNodes as $childNode ) {
-						// page param is a ac:link node
-						if ( $childNode->nodeName === 'ac:link' ) {
-							$pageLinks = $childNode->getElementsByTagname( 'page' );
-							if ( count( $pageLinks ) > 0 ) {
-								$pageLink = $pageLinks->item( 0 );
-								$spaceId = $this->spaceId;
-
-								// Get space key if set. Otherwise use current space key
-								$spaceKey = $this->dataLookup->getSpaceKeyFromSpaceId( $this->spaceId );
-								if ( $pageLink->hasAttribute( 'ri:space-key' ) ) {
-									$spaceKey = $pageLink->getAttribute( 'ri:space-key' );
-									$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
-									// TODO: Log if spaceId is null, but we should be able to resolve the filename
-									// without spaceId as well, so we can continue processing
-								}
-
-								// Get confluence page title if set
-								if ( $pageLink->hasAttribute( 'ri:content-title' ) ) {
-									$pageConfluenceTitle = $pageLink->getAttribute( 'ri:content-title' );
-									if ( $pageConfluenceTitle === '' ) {
-										// If no page title can be found mark macro as broken
-										$params[$name] = str_replace(
-											' ', '_', "Confluence---$spaceKey---(no confluence title found)"
-										);
-										$isBroken = true;
-										break;
-									}
-
-									$wikiTitle = $this->dataLookup->getWikiPageTitleFromSpaceId(
-										$spaceId,
-										$pageConfluenceTitle
-									);
-
-									if ( $wikiTitle === null ) {
-										// If wiki page title is empty mark macro as broken
-										$params[$name] = str_replace(
-											' ', '_', "Confluence---$spaceKey---$pageConfluenceTitle"
-										);
-										$isBroken = true;
-										break;
-									}
-
-									$params[$name] = $wikiTitle;
-								} else {
-									// If no page title was found set empty page title and mark macro as broken
-									$isBroken = true;
-									$params[$name] = '';
-								}
-							}
-						}
-					}
-				} else {
-					// Fallback if param 'page' doesn't have a ac:link child element
-					$params[$name] = $paramNode->nodeValue;
-				}
-			} else {
-				// All other params
-				$params[$name] = $paramNode->nodeValue;
-			}
-		}
-
+		// if no page param was set resolve current page's wiki title as subpage root
 		if ( !isset( $params['page'] ) ) {
-			// if no page param was set pass current page title to subpage template
 			$params['page'] = $this->wikiPageTitle;
 		}
 
+		// page must not contain underscores
+		$params['page'] = str_replace( '_', ' ', $params['page'] );
+
 		$templateParams = '';
 		foreach ( $params as $key => $value ) {
-			// page param must not contain underscores
-			if ( $key === 'page' && !$isBroken ) {
-				$value = str_replace( '_', ' ', $value );
-			}
-
 			$templateParams .= '|' . $key . '=' . $value;
 		}
 
 		$wikiText = '{{SubpageList' . $templateParams . '}}';
-		if ( $isBroken ) {
+
+		// Check for broken and handle
+		if ( str_starts_with( $params['page'], 'Confluence---' ) ) {
 			$wikiText .= $this->getBrokenMacroCategory();
 		}
 
@@ -134,5 +58,134 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 		$textNode = $node->ownerDocument->createTextNode( $wikiText );
 
 		$node->parentNode->replaceChild( $textNode, $node );
+	}
+
+	/**
+	 * @param DOMNode $node
+	 *
+	 * @return array
+	 * @throws Exception
+	 */
+	private function processParams( DOMNode $node ): array {
+		$params = [];
+
+		foreach ( $node->childNodes as $paramNode ) {
+			if ( $paramNode->nodeName !== 'ac:parameter' ) {
+				continue;
+			}
+
+			if ( !$paramNode->hasAttributes() ) {
+				continue;
+			}
+
+			$name = $paramNode->getAttribute( 'ac:name' );
+
+			// Page param
+			if ( $name === 'page' ) {
+				$pageParamTitle = $this->processPageParam( $paramNode );
+
+				// Fallback will be wiki page title if page param is invalid.
+				if ( $pageParamTitle === null ) {
+					continue;
+				}
+
+				$params['page'] = $pageParamTitle;
+
+				continue;
+			}
+
+			// All other params
+			$params[$name] = $paramNode->nodeValue;
+		}
+
+		return $params;
+	}
+
+	/**
+	 * @param DOMNode $paramNode
+	 *
+	 * @return string|null
+	 * @throws Exception
+	 */
+	private function processPageParam( DOMNode $paramNode ): ?string {
+		if ( $paramNode->hasChildnodes() ) {
+			foreach ( $paramNode->childNodes as $childNode ) {
+				if ( $childNode->nodeName === 'ac:link' ) {
+					$pageLinks = $childNode->getElementsByTagname( 'page' );
+					if ( count( $pageLinks ) > 0 ) {
+						$pageLink = $pageLinks->item( 0 );
+						$resolved = $this->findChildWikiTitle( $pageLink );
+
+						if ( $resolved !== null ) {
+							return $resolved;
+						}
+
+						return $this->createBrokenTitle(
+							$pageLink->getAttribute( 'ri:content-title' ),
+							$pageLink->getAttribute( 'ri:space-key' )
+						);
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * @param DOMNode $pageLink
+	 *
+	 * @return string|null
+	 * @throws Exception
+	 */
+	private function findChildWikiTitle( DOMNode $pageLink ): ?string {
+		if ( !$pageLink->hasAttribute( 'ri:content-title' ) ) {
+			return null;
+		}
+
+		$confluenceTitle = $pageLink->getAttribute( 'ri:content-title' );
+		if ( empty( $confluenceTitle ) ) {
+			return null;
+		}
+
+		$spaceId = $this->spaceId;
+		if ( $pageLink->hasAttribute( 'ri:space-key' ) ) {
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey(
+				$pageLink->getAttribute( 'ri:space-key' )
+			);
+		}
+
+		return $this->resolveWikiTitle( $spaceId, $confluenceTitle );
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 *
+	 * @return string|null
+	 * @throws Exception
+	 */
+	private function resolveWikiTitle( int $spaceId, string $confluenceTitle ): ?string {
+		$wikiTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle );
+
+		if ( $wikiTitle === null ) {
+			return null;
+		}
+
+		return str_replace( ' ', '_', $wikiTitle );
+	}
+
+	/**
+	 * @param string $confluenceTitle
+	 * @param string|null $spaceKey
+	 *
+	 * @return string
+	 */
+	private function createBrokenTitle( string $confluenceTitle, ?string $spaceKey = null ): string {
+		if ( empty( $spaceKey ) ) {
+			return "Confluence---------$confluenceTitle";
+		}
+
+		return "Confluence---$spaceKey---$confluenceTitle";
 	}
 }

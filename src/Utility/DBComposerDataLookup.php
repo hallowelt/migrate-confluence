@@ -15,15 +15,15 @@ class DBComposerDataLookup {
 	/**
 	 * @return array
 	 */
-	public function getPageIdTargetWikiPageTitleMap(): array {
-		return $this->workspaceDB->getPageIdTargetWikiPageTitleMap();
+	public function getPageIdWikiPageTitleMap(): array {
+		return $this->workspaceDB->getPageIdWikiPageTitleMap();
 	}
 
 	/**
 	 * @return array
 	 */
-	public function getBlogPostIdTargetBlogPostTitleMap(): array {
-		return $this->workspaceDB->getBlogPostIdTargetBlogPostTitleMap();
+	public function getBlogPostIdBlogPostTitleMap(): array {
+		return $this->workspaceDB->getBlogPostIdBlogPostTitleMap();
 	}
 
 	/**
@@ -106,8 +106,8 @@ class DBComposerDataLookup {
 	/**
 	 * @return array
 	 */
-	public function getPageTemplateIdTargetTitleMap(): array {
-		return $this->workspaceDB->getPageTemplateIdTargetTitleMap();
+	public function getPageTemplateIdWikiTitleMap(): array {
+		return $this->workspaceDB->getPageTemplateIdWikiTitleMap();
 	}
 
 	/**
@@ -135,7 +135,7 @@ class DBComposerDataLookup {
 	}
 
 	/**
-	 * Get the target page title for a given page ID.
+	 * Get the wiki page title for a given page ID.
 	 * If the page has an original version, recursively look up the original version
 	 * until the original version is reached and return its wiki title.
 	 *

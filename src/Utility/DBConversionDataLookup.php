@@ -70,7 +70,7 @@ class DBConversionDataLookup {
 	 *
 	 * @return string
 	 */
-	public function getNamepspaceFromSpaceKey( string $spaceKey ): string {
+	public function getNamespaceFromSpaceKey( string $spaceKey ): string {
 		$spacePrefix = $this->workspaceDB->getSpacePrefixFromSpaceKey( $spaceKey );
 		if ( $spacePrefix === '' ) {
 			return '';

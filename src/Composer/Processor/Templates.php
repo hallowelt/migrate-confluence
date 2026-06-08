@@ -17,7 +17,7 @@ class Templates extends ProcessorBase {
 	public function execute(): void {
 		$this->addDefaultPages();
 
-		$wikiTitles = $this->dataLookup->getPageTemplateIdTargetTitleMap();
+		$wikiTitles = $this->dataLookup->getPageTemplateIdWikiTitleMap();
 
 		foreach ( $wikiTitles as $templateId => $pageTitle ) {
 			$this->output->writeln( "Processing template '$pageTitle'..." );
