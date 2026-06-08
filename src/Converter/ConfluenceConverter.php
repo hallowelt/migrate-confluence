@@ -822,11 +822,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$exceed = '';
 		$wikiTextLength = strlen( $this->wikiText );
 		$wikiTextLength = $wikiTextLength / 1000;
-		if ( $wikiTextLength > 512 ) {
+		if ( $wikiTextLength >= 512 ) {
 			$exceed = '512';
-		} elseif ( $wikiTextLength > 256 ) {
+		} elseif ( $wikiTextLength >= 256 ) {
 			$exceed = '256';
-		} elseif ( $wikiTextLength > 100 ) {
+		} elseif ( $wikiTextLength >= 100 ) {
 			$exceed = '100';
 		}
 		if ( $exceed !== '' ) {
@@ -834,10 +834,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			if ( strpos( $this->rawFile->getFileInfo(), 0, 3 ) === 'pt_' ) {
 				$method = 'addInvalidPageTemplateContent';
 			}
-			$this->pipeToDB->send(
-				$method,
-				$bodyContentId
-			);
+			if ( $exceed >= 512 ) {
+				$this->pipeToDB->send(
+					$method,
+					$bodyContentId,
+					'BodyContent exeeded length of 512 characters'
+				);
+			}
 
 			$this->addNonBlockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
 			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
