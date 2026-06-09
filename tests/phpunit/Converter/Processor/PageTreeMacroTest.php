@@ -45,7 +45,7 @@ class PageTreeMacroTest extends TestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new PageTreeMacro( $this->dataLookup, 42, 'Testpage', 'Main Page' );
+		$processor = new PageTreeMacro( $this->dataLookup, 42, 'Testpage', 'ABC:SomeLinkedPage/Testpage', 'Main Page' );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );

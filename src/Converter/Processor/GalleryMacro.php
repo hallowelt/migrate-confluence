@@ -137,7 +137,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			);
 			$allFiles = $this->filterAttachmentsByLabel( $allAttachments, $includeLabels, $excludeLabels );
 		} else {
-			$allFiles = $this->dataLookup->getTargetFileTitlesForPage(
+			$allFiles = $this->dataLookup->getWikiFileTitlesForPage(
 				$this->currentSpaceId,
 				$this->rawPageTitle
 			);
@@ -193,7 +193,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 				$pageAttachments = $this->dataLookup->getAttachmentMetadataForPage( $spaceId, $pageTitle );
 				$pageFiles = $this->filterAttachmentsByLabel( $pageAttachments, $includeLabels, $excludeLabels );
 			} else {
-				$pageFiles = $this->dataLookup->getTargetFileTitlesForPage( $spaceId, $pageTitle );
+				$pageFiles = $this->dataLookup->getWikiFileTitlesForPage( $spaceId, $pageTitle );
 			}
 			foreach ( $pageFiles as $file ) {
 				$files[] = $file;
@@ -333,9 +333,9 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param string $spaceKey
-	 * @return int
+	 * @return int|null
 	 */
-	private function resolveSpaceId( string $spaceKey ): int {
+	private function resolveSpaceId( string $spaceKey ): ?int {
 		return $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 	}
 

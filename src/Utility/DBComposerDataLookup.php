@@ -15,15 +15,15 @@ class DBComposerDataLookup {
 	/**
 	 * @return array
 	 */
-	public function getPageIdTargetPageTitleMap(): array {
-		return $this->workspaceDB->getPageIdTargetPageTitleMap();
+	public function getPageIdWikiPageTitleMap(): array {
+		return $this->workspaceDB->getPageIdWikiPageTitleMap();
 	}
 
 	/**
 	 * @return array
 	 */
-	public function getBlogPostIdTargetBlogPostTitleMap(): array {
-		return $this->workspaceDB->getBlogPostIdTargetBlogPostTitleMap();
+	public function getBlogPostIdWikiBlogPostTitleMap(): array {
+		return $this->workspaceDB->getBlogPostIdWikiBlogPostTitleMap();
 	}
 
 	/**
@@ -44,17 +44,17 @@ class DBComposerDataLookup {
 
 	/**
 	 * @param int $pageId
-	 * @return int
+	 * @return int|null The space_id for the given page_id, or null if not found.
 	 */
-	public function getSpaceIdForPageId( int $pageId ): int {
+	public function getSpaceIdForPageId( int $pageId ): ?int {
 		return $this->workspaceDB->getSpaceIdForPageId( $pageId );
 	}
 
 	/**
 	 * @param int $spaceId
-	 * @return int
+	 * @return int|null The page_id of the space homepage for the given space_id, or null if not found.
 	 */
-	public function getSpaceHomepageIdForSpaceId( int $spaceId ): int {
+	public function getSpaceHomepageIdForSpaceId( int $spaceId ): ?int {
 		return $this->workspaceDB->getSpaceHomepageIdForSpaceId( $spaceId );
 	}
 
@@ -83,9 +83,9 @@ class DBComposerDataLookup {
 
 	/**
 	 * @param string $userKey
-	 * @return string
+	 * @return string|null
 	 */
-	public function getUsernameFromUserKey( string $userKey ): string {
+	public function getUsernameFromUserKey( string $userKey ): ?string {
 		return $this->workspaceDB->getUsernameFromUserKey( $userKey );
 	}
 
@@ -106,8 +106,8 @@ class DBComposerDataLookup {
 	/**
 	 * @return array
 	 */
-	public function getPageTemplateIdTargetTitleMap(): array {
-		return $this->workspaceDB->getPageTemplateIdTargetTitleMap();
+	public function getPageTemplateIdWikiTitleMap(): array {
+		return $this->workspaceDB->getPageTemplateIdWikiTitleMap();
 	}
 
 	/**
@@ -135,15 +135,15 @@ class DBComposerDataLookup {
 	}
 
 	/**
-	 * Get the target page title for a given page ID.
+	 * Get the wiki page title for a given page ID.
 	 * If the page has an original version, recursively look up the original version
 	 * until the original version is reached and return its wiki title.
 	 *
 	 * @param int $pageId
-	 * @return string
+	 * @return string|null
 	 */
-	public function getTargetPageTitleFromPageId( int $pageId ): string {
-		return $this->workspaceDB->getTargetPageTitleFromPageId( $pageId );
+	public function getWikiPageTitleFromPageId( int $pageId ): ?string {
+		return $this->workspaceDB->getWikiPageTitleFromPageId( $pageId );
 	}
 
 	/**

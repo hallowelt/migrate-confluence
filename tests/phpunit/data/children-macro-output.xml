@@ -1,21 +1,24 @@
 <?xml version="1.0"?>
 <html xmlns:ac="some" xmlns:ri="thing">
-	<p>
-		{{SubpageList|page=ABC:Some page}}
-	</p>
-	<p>
-		{{SubpageList|all=true|style=h2|sort=creation|reverse=true|page=ABC:Some page}}
-	</p>
-	<p>
-		{{SubpageList|all=true|depth=1|style=h2|page=ABC:Some page}}
-	</p>
-	<p>
-		{{SubpageList|all=true|depth=1|style=h2|page=DEVOPS:Some other page}}
-	</p>
-	<p>
-		{{SubpageList|all=true|depth=1|style=h2|page=Confluence---DEVOPS---Unknown page}}[[Category:Broken_macro/children]]
-	</p>
-	<p>
-		{{SubpageList|all=true|depth=1|style=h2|page=ABC:Some page}}
-	</p>
+    <p>
+        {{SubpageList|page=ABC:Some page}}
+    </p>
+    <p>
+        {{SubpageList|all=true|style=h2|sort=creation|reverse=true|page=ABC:Some page}}
+    </p>
+    <p>
+        {{SubpageList|all=true|depth=1|style=h2|page=ABC:Some page}}
+    </p>
+    <p>
+        {{SubpageList|all=true|depth=1|style=h2|page=DEVOPS:Some other page}}
+    </p>
+    <p>
+        {{SubpageList|all=true|depth=1|style=h2|page=Confluence---DEVOPS---Unknown_page}}[[Category:Broken_macro/children]]
+    </p>
+    <p>
+        {{SubpageList|all=true|depth=1|style=h2|page=Confluence---------Unknown_page}}[[Category:Broken_macro/children]]
+    </p>
+    <p>
+        {{SubpageList|all=true|depth=1|style=h2|page=ABC:Some page}}
+    </p>
 </html>

@@ -219,5 +219,4 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		$this->workspaceDB->commitTransaction();
 		return true;
 	}
-
 }

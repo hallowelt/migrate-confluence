@@ -51,10 +51,14 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	protected function doProcessMacro( DOMNode $node ): void {
 		$this->currentNode = $node;
 		$this->setMediaWikiPageName();
-		if ( $this->mediaWikiPageName === '' ) {
-			return;
-		}
+
 		$wikiTextTemplateCall = $this->makeTemplateCall();
+
+		if ( $this->mediaWikiPageName === '' ) {
+			$category = "[[Category:Broken_macro/Include]]";
+			$wikiTextTemplateCall .= $category;
+		}
+
 		$wikiTextTemplateCallNode = $node->ownerDocument->createTextNode( $wikiTextTemplateCall );
 		$node->parentNode->replaceChild( $wikiTextTemplateCallNode, $node );
 	}
@@ -76,9 +80,9 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 			return;
 		}
 		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );
-		$this->mediaWikiPageName = $this->dataLookup->getTargetPageTitleFromSpaceId(
+		$this->mediaWikiPageName = $this->dataLookup->getWikiPageTitleFromSpaceId(
 			$this->currentSpaceId,
 			$targetPageName
-		);
+		) ?? '';
 	}
 }

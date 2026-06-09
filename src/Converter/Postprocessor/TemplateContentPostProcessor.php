@@ -7,9 +7,9 @@ use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 class TemplateContentPostProcessor implements IPostprocessor {
 
 	/**
-	 * @param string $currentPageTitle
+	 * @param string $currentWikiTitle
 	 */
-	public function __construct( private string $currentPageTitle ) {
+	public function __construct( private string $currentWikiTitle ) {
 	}
 
 	/**
@@ -17,7 +17,7 @@ class TemplateContentPostProcessor implements IPostprocessor {
 	 * @return string
 	 */
 	public function postprocess( string $wikiText ): string {
-		if ( !str_starts_with( $this->currentPageTitle, 'Template:' ) ) {
+		if ( !str_starts_with( $this->currentWikiTitle, 'Template:' ) ) {
 			return $wikiText;
 		}
 

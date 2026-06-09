@@ -35,9 +35,9 @@ Composer processors handle building specific parts of the final MediaWiki XML.
 - Example: `TemplateContentPostProcessor.php`
 
 ### Class Convention
-- Implements: `IPageContentPostProcessor`
+- Name: Name of the processed object, e.g. `Page.php`, `Blog.php`
 - Namespace: `HalloWelt\MigrateConfluence\Composer\Processor`
-- Method to implement: `process( string $pageId, string $pageTitle, string $content ): string`
+
 
 ### Responsibilities
 - Accept page content as WikiText string

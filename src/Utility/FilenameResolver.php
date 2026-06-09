@@ -37,16 +37,17 @@ class FilenameResolver {
 	 * @return array
 	 */
 	public function resolve( int $spaceId, string $confluencePageTitle, string $filename ): array {
-		$fileTitle = $this->dataLookup->getTargetFileTitleFromSpaceId(
+		$fileTitle = $this->dataLookup->getWikiFileTitleFromSpaceId(
 			$spaceId,
 			$confluencePageTitle,
 			$filename
-		);
+		) ?? '';
 		if ( $fileTitle !== '' ) {
 			return $this->getResult( $fileTitle, false );
 		}
 
 		$fileTitle = $this->buildFileTitle( $spaceId, $confluencePageTitle, $filename );
+
 		return $this->getResult( $fileTitle, true );
 	}
 
@@ -54,19 +55,24 @@ class FilenameResolver {
 	 * @param int $spaceId
 	 * @param string $confluencePageTitle
 	 * @param string $filename
+	 *
 	 * @return string
 	 */
 	private function buildFileTitle( int $spaceId, string $confluencePageTitle, string $filename ): string {
-		$assocTitle = $this->dataLookup->getTargetPageTitleFromSpaceId( $spaceId, $confluencePageTitle );
+		$assocTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluencePageTitle ) ?? '';
+
+		if ( $assocTitle !== '' ) {
+			$pageWikiTitleParts = substr( $assocTitle, strrpos( $assocTitle, ':' ) );
+			$pageWikiTitleParts = explode( '/', $pageWikiTitleParts );
+			$shortPageWikiTitle = end( $pageWikiTitleParts );
+		} else {
+			$shortPageWikiTitle = '';
+		}
 
 		$filenameBuilder = new FilenameBuilder(
 			$this->dataLookup->getSpaceIdToPrefixMap(),
 			$this->migrationConfig
 		);
-
-		$pageWikiTitleParts = substr( $assocTitle, strrpos( $assocTitle, ':' ) );
-		$pageWikiTitleParts = explode( '/', $pageWikiTitleParts );
-		$shortPageWikiTitle = end( $pageWikiTitleParts );
 
 		try {
 			$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortPageWikiTitle );

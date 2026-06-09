@@ -4,24 +4,13 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
+use Exception;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 /**
  * Partially converting pagetree macro
  */
 class PageTreeMacro extends StructuredMacroProcessorBase {
-
-	/** @var DBConversionDataLookup */
-	private DBConversionDataLookup $dataLookup;
-
-	/** @var int */
-	private int $currentSpace;
-
-	/** @var string */
-	private string $currentPageTitle;
-
-	/** @var string */
-	private string $mainpage;
 
 	/** @var array */
 	private array $params = [];
@@ -35,21 +24,21 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
-	 * @param int $currentSpace
-	 * @param string $currentPageTitle
-	 * @param string $mainpage
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $wikiTitle
 	 */
 	public function __construct(
-		DBConversionDataLookup $dataLookup, int $currentSpace, string $currentPageTitle, string $mainpage
+		private DBConversionDataLookup $dataLookup,
+		private int $spaceId,
+		private string $confluenceTitle,
+		private string $wikiTitle
 	) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpace = $currentSpace;
-		$this->currentPageTitle = $currentPageTitle;
-		$this->mainpage = $mainpage;
 	}
 
 	/**
 	 * @inheritDoc
+	 * @throws Exception
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
 		$this->macroParams( $node );
@@ -80,6 +69,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	 * @param DOMNode $macro
 	 *
 	 * @return void
+	 * @throws Exception
 	 */
 	private function macroParams( DOMNode $macro ): void {
 		$params = [];
@@ -109,10 +99,9 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 			$this->params['content-title'] = '{{FULLPAGENAME}}';
 
 			if ( isset( $this->params['space-key'] ) ) {
-				$namespace = $this->dataLookup->getSpacePrefixFromSpaceKey( $this->params['space-key'] );
-				if ( is_string( $namespace ) ) {
-					$this->params['space-key'] = $namespace;
-				}
+				$this->params['space-key'] = $this->dataLookup->getSpacePrefixFromSpaceKey(
+					$this->params['space-key']
+				);
 			}
 		}
 	}
@@ -150,6 +139,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	 * @param array $params
 	 *
 	 * @return array
+	 * @throws Exception
 	 */
 	private function translateRootPageParams( array $params ): array {
 		if ( !isset( $params['content-title'] ) ) {
@@ -158,60 +148,48 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 
 		switch ( $params['content-title'] ) {
 			case '@home':
+				$params['content-title'] = '';
 				// Main Page
-				$text = $this->dataLookup->getTargetPageTitleFromSpaceId(
-					$this->currentSpace,
-					$this->mainpage
-				);
-				if ( $text === '' ) {
+				$targetTitle = $this->dataLookup->getSpaceMainPageWikiTitleForSpaceId( $this->spaceId );
+				if ( $targetTitle === null ) {
 					$params['broken-macro'] = true;
 					break;
 				}
-				$params['content-title'] = $text;
+				$params['content-title'] = $targetTitle;
 				break;
 			case '@self':
-				// current PageTitle
-				$text = $this->dataLookup->getTargetPageTitleFromSpaceId(
-					$this->currentSpace,
-					$this->currentPageTitle
-				);
-				if ( $text === '' ) {
+				$params['content-title'] = '';
+				// current WikiTitle
+				$targetTitle = $this->wikiTitle;
+				if ( $targetTitle === null ) {
 					$params['broken-macro'] = true;
 					break;
 				}
-				$params['content-title'] = $text;
+				$params['content-title'] = $targetTitle;
 				break;
 			case '@parent':
+				$params['content-title'] = '';
 				// parent of current PageTitle
-				$currentPageTitle = $this->dataLookup->getTargetPageTitleFromSpaceId(
-					$this->currentSpace,
-					$this->currentPageTitle
-				);
-				if ( $currentPageTitle === '' ) {
+				$targetTitle = $this->wikiTitle;
+				if ( $targetTitle === null ) {
 					$params['broken-macro'] = true;
 					break;
 				}
-				$currentPageParts = explode( '/', $currentPageTitle );
+				$currentPageParts = explode( '/', $targetTitle );
 				if ( count( $currentPageParts ) > 1 ) {
 					array_pop( $currentPageParts );
-					$text = implode( '/', $currentPageParts );
+					$targetTitle = implode( '/', $currentPageParts );
 				} else {
-					$text = $this->currentPageTitle;
+					$targetTitle = $this->confluenceTitle;
 					$params['broken-macro'] = true;
 				}
-				$params['content-title'] = $text;
+				$params['content-title'] = $targetTitle;
 				break;
 			case '@none':
-				// all pages in namespace
 				$params['content-title'] = '';
-
+				// all pages in namespace
 				if ( isset( $params['space-key'] ) ) {
-					$namespace = $this->dataLookup->getNamepspaceFromSpaceKey( $params['space-key'] );
-					if ( is_string( $namespace ) ) {
-						$params['space-key'] = $namespace;
-					} else {
-						$params['space-key'] = '{{NAMESPACE}}';
-					}
+					$params['space-key'] = $this->dataLookup->getNamespaceFromSpaceKey( $params['space-key'] );
 				} else {
 					$params['space-key'] = '{{NAMESPACE}}';
 				}
@@ -221,23 +199,20 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 			default:
 				// create new content-title from space key and content title
 				if ( isset( $params['space-key'] ) ) {
-					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] );
+					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] ) ?? 0;
+					// TODO: Log if spaceId is null, but we should be able to
+					// resolve the filename without spaceId as well, so we can continue processing
 				} else {
-					$spaceId = $this->currentSpace;
+					$spaceId = $this->spaceId;
 				}
-				$text = $this->dataLookup->getTargetPageTitleFromSpaceId( $spaceId, $params['content-title'] );
-				if ( $text === '' ) {
+				$text = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $params['content-title'] );
+				if ( $text === null ) {
 					$params['broken-macro'] = true;
 					break;
 				}
-				if ( is_string( $text ) ) {
-					$params['content-title'] = $text;
-				}
+				$params['content-title'] = $text;
 				if ( isset( $params['space-key'] ) ) {
-					$namespace = $this->dataLookup->getNamepspaceFromSpaceKey( $params['space-key'] );
-					if ( is_string( $namespace ) ) {
-						$params['space-key'] = $namespace;
-					}
+					$params['space-key'] = $this->dataLookup->getNamespaceFromSpaceKey( $params['space-key'] );
 				}
 				break;
 		}

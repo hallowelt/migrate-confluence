@@ -56,17 +56,16 @@ class ImagePageLinkHelper {
 				$this->currentSpaceId = $this->ensureSpaceId( $page );
 			}
 
-			$targetTitle = $this->dataLookup->getTargetPageTitleFromSpaceId(
+			$targetTitle = $this->dataLookup->getWikiPageTitleFromSpaceId(
 				$this->currentSpaceId,
 				$this->rawPageTitle
 			);
-			if ( !empty( $targetTitle ) ) {
+			if ( $targetTitle !== null ) {
 				return $targetTitle;
-			} else {
-				$this->isBrokenLink = true;
-				// If not in migation data, save some info for manual post migration work
-				return $this->generateConfluenceKey( $this->currentSpaceId, $this->rawPageTitle );
 			}
+			$this->isBrokenLink = true;
+			// If not in migration data, save some info for manual post migration work
+			return $this->generateConfluenceKey( $this->currentSpaceId, $this->rawPageTitle );
 		}
 
 		return '';
@@ -87,7 +86,9 @@ class ImagePageLinkHelper {
 		$spaceId = $this->currentSpaceId;
 		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
 		if ( !empty( $this->spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey );
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey ) ?? 0;
+			// TODO: Log if spaceId is null, but we should be able to
+			// resolve the filename without spaceId as well, so we can continue processing
 		}
 
 		return $spaceId;
@@ -103,6 +104,6 @@ class ImagePageLinkHelper {
 		if ( $this->spaceKey !== '' ) {
 			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
 		}
-		return $confluenceKey;
+		return str_replace( ' ', '_', $confluenceKey );
 	}
 }

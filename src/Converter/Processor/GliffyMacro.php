@@ -67,22 +67,22 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 				$name .= '.png';
 			}
 
-			$filename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+			$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 				$this->currentSpaceId,
 				$this->rawPageTitle,
 				$name
-			);
+			) ?? '';
 
 			if ( $filename === '' ) {
 				$fallbackExtensions = [ '.SVG', '.PNG', '.svg', '.png' ];
 				foreach ( $fallbackExtensions as $ext ) {
 					$name = $params['name'] . $ext;
 
-					$filename = $this->dataLookup->getTargetFileTitleFromSpaceId(
+					$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 						$this->currentSpaceId,
 						$this->rawPageTitle,
 						$name
-					);
+					) ?? '';
 
 					if ( $filename !== '' ) {
 						break;

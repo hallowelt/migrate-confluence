@@ -60,7 +60,6 @@ class Compose extends CommandCompose {
 				$composer->setDestinationPath( $this->dest );
 			}
 			$composer->buildXML( $mediawikixmlbuilder );
-
 		}
 
 		$this->logExecutionTime();

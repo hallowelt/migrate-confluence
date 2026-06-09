@@ -23,7 +23,9 @@ class AttachmentLink extends LinkProcessorBase {
 	protected function doProcessLink( DOMNode $node ): void {
 		if ( $node instanceof DOMElement ) {
 			$riFilename = $node->getAttribute( 'ri:filename' );
-			$spaceId = $this->ensureSpaceId( $node );
+			$spaceId = $this->ensureSpaceId( $node ) ?? 0;
+			// TODO: Log if spaceId is null, but we should be able to
+			// resolve the filename without spaceId as well, so we can continue processing
 
 			$nestedPageEl = $node->getElementsByTagName( 'page' )->item( 0 );
 
@@ -55,9 +57,9 @@ class AttachmentLink extends LinkProcessorBase {
 
 	/**
 	 * @param DOMNode $node
-	 * @return int
+	 * @return int|null
 	 */
-	private function ensureSpaceId( DOMNode $node ): int {
+	private function ensureSpaceId( DOMNode $node ): ?int {
 		$spaceId = $this->currentSpaceId;
 		$pageNode = $node->getElementsByTagName( 'page' )->item( 0 );
 

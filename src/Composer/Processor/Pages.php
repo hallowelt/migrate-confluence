@@ -22,7 +22,7 @@ class Pages extends ProcessorBase {
 
 	private function addContentPages(): void {
 		// Get all page titles from DB and add them as pages to the workspace
-		$wikiTitles = $this->dataLookup->getPageIdTargetPageTitleMap();
+		$wikiTitles = $this->dataLookup->getPageIdWikiPageTitleMap();
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
 			$this->output->writeln( "Processing page '$pageTitle'..." );
@@ -65,12 +65,14 @@ class Pages extends ProcessorBase {
 					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
 				}
 
-				$pageContent .= $this->addSpaceDescriptionToMainPage(
-					$pageId,
-					$homepageId,
-					$timestamp,
-					$spaceDescriptions
-				);
+				if ( $homepageId !== null ) {
+					$pageContent .= $this->addSpaceDescriptionToMainPage(
+						$pageId,
+						$homepageId,
+						$timestamp,
+						$spaceDescriptions
+					);
+				}
 
 				$this->addRevision(
 					$pageTitle,

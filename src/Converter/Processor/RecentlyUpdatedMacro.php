@@ -7,15 +7,9 @@ use DOMNode;
 class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var string
+	 * @param string $wikiTitle
 	 */
-	private string $currentPageTitle;
-
-	/**
-	 * @param string $currentPageTitle
-	 */
-	public function __construct( string $currentPageTitle ) {
-		$this->currentPageTitle = $currentPageTitle;
+	public function __construct( private string $wikiTitle ) {
 	}
 
 	/**
@@ -31,7 +25,7 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
 		$namespace = '';
-		$titleParts = explode( ':', $this->currentPageTitle, 2 );
+		$titleParts = explode( ':', $this->wikiTitle, 2 );
 		if ( count( $titleParts ) === 2 ) {
 			$namespace = $titleParts[0];
 		}

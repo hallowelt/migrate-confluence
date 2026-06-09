@@ -8,15 +8,9 @@ use HalloWelt\MigrateConfluence\Utility\CQLParser;
 class ContentByLabelMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var string
+	 * @param string $currentWikiTitle
 	 */
-	private string $currentPageTitle;
-
-	/**
-	 * @param string $currentPageTitle
-	 */
-	public function __construct( string $currentPageTitle ) {
-		$this->currentPageTitle = $currentPageTitle;
+	public function __construct( private string $currentWikiTitle ) {
 	}
 
 	/**
@@ -45,7 +39,7 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 
 			$name = $paramNode->getAttribute( 'ac:name' );
 			if ( $name === 'page' ) {
-				$params[$name] = $this->currentPageTitle;
+				$params[$name] = $this->currentWikiTitle;
 				continue;
 			}
 

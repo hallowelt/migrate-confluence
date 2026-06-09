@@ -50,6 +50,7 @@ class WorkspaceDbMock {
 		$this->seedDefaultSpaces( $workspaceDB );
 		$this->seedUsers( $workspaceDB );
 		$this->seedPageMappings( $workspaceDB );
+		$this->seedSpaceHomepages( $workspaceDB );
 		$this->seedTableComplexMappings( $workspaceDB );
 		$this->seedAttachmentMappings( $workspaceDB, $keepAttachmentNamespaceColon );
 		$this->seedPageTemplateMappings( $workspaceDB );
@@ -139,6 +140,21 @@ class WorkspaceDbMock {
 			'Sed_do_eiusmod_tempor_incididunt',
 			'INF:Sed_do_eiusmod_tempor_incididunt'
 		);
+	}
+
+	private function seedSpaceHomepages( WorkspaceDB $workspaceDB ): void {
+		$mainPages = [
+			0 => [ 'Page Title6', 'Page_Title6' ],
+			1 => [ 'MyPage', 'MKT:MyPage' ],
+			23 => [ 'Main Page', 'DEVOPS:Main Page' ],
+			42 => [ 'Main Page', 'ABC:Main Page' ],
+			52 => [ 'Sed do eiusmod tempor incididunt', 'INF:Sed_do_eiusmod_tempor_incididunt' ],
+		];
+
+		foreach ( $mainPages as $spaceId => $titles ) {
+			$pageId = $this->findPageId( $workspaceDB, $spaceId, $titles[0], $titles[1] );
+			$workspaceDB->updateSpaceHomepageId( $spaceId, $pageId );
+		}
 	}
 
 	private function seedPageTemplateMappings( WorkspaceDB $workspaceDB ): void {

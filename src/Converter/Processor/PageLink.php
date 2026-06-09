@@ -27,42 +27,40 @@ class PageLink extends LinkProcessorBase {
 	 * @throws InvalidTitleException
 	 */
 	protected function doProcessLink( DOMNode $node ): void {
-		if ( $node instanceof DOMElement ) {
-			$isBrokenLink = false;
-			$rawPageTitle = $node->getAttribute( 'ri:content-title' );
-			$spaceId = $this->ensureSpaceId( $node );
-
-			$targetTitle = $this->dataLookup->getTargetPageTitleFromSpaceId(
-				$spaceId,
-				$rawPageTitle
-			);
-			$linkParts = [];
-			if ( !empty( $targetTitle ) ) {
-				$linkParts[] = $targetTitle;
-			} else {
-				// If not in migation data, save some info for manual post migration work
-				$linkParts[] = $this->generateConfluenceKey( $spaceId, $rawPageTitle );
-				$isBrokenLink = true;
-			}
-
-			$this->getLinkBody( $node, $linkParts );
-
-			$replacement = $this->getBrokenLinkReplacement();
-
-			if ( !empty( $linkParts ) ) {
-				$replacement = $this->makeLink( $linkParts );
-			}
-
-			if ( $isBrokenLink ) {
-				$replacement .= '[[Category:Broken_page_link]]';
-			}
-
-			$this->replaceLink( $node, $replacement );
+		if ( !( $node instanceof DOMElement ) ) {
+			return;
 		}
+
+		$isBrokenLink = false;
+		$rawPageTitle = $node->getAttribute( 'ri:content-title' );
+		$spaceId = $this->ensureSpaceId( $node );
+
+		$targetTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $rawPageTitle );
+		if ( $targetTitle === null ) {
+			// If not in migration data, save some info for manual post migration work
+			$targetTitle = $this->generateConfluenceKey( $spaceId, $rawPageTitle );
+			$isBrokenLink = true;
+		}
+
+		$linkParts = [ $targetTitle ];
+		$this->getLinkBody( $node, $linkParts );
+
+		$replacement = $this->getBrokenLinkReplacement();
+
+		if ( !empty( $linkParts ) ) {
+			$replacement = $this->makeLink( $linkParts );
+		}
+
+		if ( $isBrokenLink ) {
+			$replacement .= '[[Category:Broken_page_link]]';
+		}
+
+		$this->replaceLink( $node, $replacement );
 	}
 
 	/**
 	 * @param DOMNode $node
+	 *
 	 * @return int
 	 */
 	private function ensureSpaceId( DOMNode $node ): int {
@@ -70,7 +68,10 @@ class PageLink extends LinkProcessorBase {
 		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
 
 		if ( !empty( $this->spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey );
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey ) ?? 0;
+			// TODO: Log if spaceId is null,
+			// but we should be able to resolve the filename without spaceId as well,
+			// so we can continue processing
 		}
 
 		return $spaceId;
@@ -86,20 +87,20 @@ class PageLink extends LinkProcessorBase {
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
 		if ( !empty( $rawPageTitle ) ) {
 			$genericTitleBuilder = new GenericTitleBuilder( [] );
-			$rawPageTitle = $genericTitleBuilder
-				->appendTitleSegment( $rawPageTitle )->build();
-			$rawPageTitle = str_replace( ' ', '_', $rawPageTitle );
+			$rawPageTitle = $genericTitleBuilder->appendTitleSegment( $rawPageTitle )->build();
 		}
 
 		$confluenceKey = "Confluence---$spaceId---$rawPageTitle";
 		if ( $this->spaceKey !== '' ) {
 			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
 		}
-		return $confluenceKey;
+
+		return str_replace( ' ', '_', $confluenceKey );
 	}
 
 	/**
 	 * @param array $linkParts
+	 *
 	 * @return string
 	 */
 	public function makeLink( array $linkParts ): string {
