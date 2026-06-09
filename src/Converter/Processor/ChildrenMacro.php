@@ -130,7 +130,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 							return $resolved;
 						}
 
-						return $this->createBrokenTitle(
+						return $this->createConfluenceKey(
 							$pageLink->getAttribute( 'ri:content-title' ),
 							$pageLink->getAttribute( 'ri:space-key' )
 						);
@@ -191,7 +191,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 *
 	 * @return string
 	 */
-	private function createBrokenTitle( string $confluenceTitle, ?string $spaceKey = null ): string {
+	private function createConfluenceKey( string $confluenceTitle, ?string $spaceKey = null ): string {
 		if ( empty( $spaceKey ) ) {
 			return "Confluence---------$confluenceTitle";
 		}
