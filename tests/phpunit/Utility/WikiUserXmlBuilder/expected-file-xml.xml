@@ -1,37 +1,37 @@
 <?xml version="1.0"?>
 <mediawiki>
   <user>
-    <username>Testuser_1</username>
+    <name>Testuser_1</name>
     <email>testuser1@example.com</email>
     <confluence-name>tu1</confluence-name>
     <confluence-key>23413500cjvoierl08450</confluence-key>
   </user>
   <user>
-    <username>Testuser_2</username>
+    <name>Testuser_2</name>
     <email>testuser2@example.com</email>
     <confluence-name>tu2</confluence-name>
     <confluence-key>413500cjvoafdjo</confluence-key>
   </user>
   <user>
-    <username>Testuser_3</username>
+    <name>Testuser_3</name>
     <email>testuser3@example.com</email>
     <confluence-name>tu3</confluence-name>
     <confluence-key>adf3245dlfjv09</confluence-key>
   </user>
   <user>
-    <username>Testuser_4</username>
+    <name>Testuser_4</name>
     <email>testuser4@example.com</email>
     <confluence-name>tu4</confluence-name>
     <confluence-key>08vjiaf452fdfg</confluence-key>
   </user>
   <user>
-    <username>Testuser_5</username>
+    <name>Testuser_5</name>
     <email>testuser5@example.com</email>
     <confluence-name>tu5</confluence-name>
     <confluence-key>870090855354gjo</confluence-key>
   </user>
   <user>
-    <username>Testuser_6</username>
+    <name>Testuser_6</name>
     <email>testuser6@example.com</email>
     <confluence-name>tu6</confluence-name>
     <confluence-key>435ujvouij4ou4556f09g</confluence-key>
