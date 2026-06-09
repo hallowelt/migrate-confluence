@@ -6,7 +6,6 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use PHPUnit\Framework\TestCase;
@@ -14,9 +13,6 @@ use PHPUnit\Framework\TestCase;
 class GliffyMacroTest extends TestCase {
 	/** @var DBConversionDataLookup */
 	private $dataLookup;
-
-	/** @var ConversionDataWriter */
-	private $conversionDataWriter;
 
 	/** @var WorkspaceDB */
 	private $workspaceDB;
@@ -29,8 +25,6 @@ class GliffyMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-test-' . uniqid();
-		$this->conversionDataWriter = new ConversionDataWriter( $tempDir );
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat();
 		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
 		$pipe = fopen( 'php://temp', 'r+' );
@@ -59,7 +53,6 @@ class GliffyMacroTest extends TestCase {
 
 		$processor = new GliffyMacro(
 			$this->dataLookup,
-			$this->conversionDataWriter,
 			$spaceId,
 			'SomePage',
 			$this->pipeToDB

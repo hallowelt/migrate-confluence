@@ -11,20 +11,17 @@ use HalloWelt\MigrateConfluence\Utility\DBLog;
  */
 class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 
-	/** @var Workspace */
-	protected Workspace $workspace;
-
-	/** @var DBLog */
-	protected DBLog $dbLog;
-
 	/**
 	 * @param WorkspaceDB $workspaceDB
+	 * @param Workspace $workspace
+	 * @param DBLog $dbLog
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB, Workspace $workspace, DBLog $dbLog ) {
-		$this->workspaceDB = $workspaceDB;
-		$this->workspace = $workspace;
-		$this->dbLog = $dbLog;
+		protected WorkspaceDB $workspaceDB,
+		protected Workspace $workspace,
+		protected DBLog $dbLog
+	) {
+		parent::__construct( $workspaceDB, $dbLog );
 	}
 
 	/**

@@ -33,6 +33,7 @@ class SpaceDescription extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
+	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
 		private WorkspaceDB $workspaceDB,

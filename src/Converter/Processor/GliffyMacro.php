@@ -3,51 +3,23 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
-use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 
 class GliffyMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var ConversionDataWriter
-	 */
-	protected ConversionDataWriter $conversionDataWriter;
-
-	/**
-	 * @var int
-	 */
-	protected int $currentSpaceId;
-
-	/**
-	 * @var string
-	 */
-	protected string $rawPageTitle;
-
-	/**
-	 * @var PipeToDB
-	 */
-	private PipeToDB $pipeToDB;
-
-	/**
 	 * @param DBConversionDataLookup $dataLookup
-	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param PipeToDB $pipeToDB
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
-		int $currentSpaceId, string $rawPageTitle, PipeToDB $pipeToDB ) {
-		$this->dataLookup = $dataLookup;
-		$this->conversionDataWriter = $conversionDataWriter;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
-		$this->pipeToDB = $pipeToDB;
+	public function __construct(
+		private DBConversionDataLookup $dataLookup,
+		private int $currentSpaceId,
+		private string $rawPageTitle,
+		private PipeToDB $pipeToDB
+	) {
 	}
 
 	/**

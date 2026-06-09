@@ -3567,13 +3567,6 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
-	 */
-	public function getGliffy(): array {
-		return $this->getAllData( 'gliffy' );
-	}
-
-	/**
 	 * Returns target file titles with their full metadata for all attachments on a page.
 	 * The returned array is keyed by confluence file key. Each value contains 'targetTitle'
 	 * plus any additional metadata fields (e.g. 'labels', 'mediaType', etc.).
