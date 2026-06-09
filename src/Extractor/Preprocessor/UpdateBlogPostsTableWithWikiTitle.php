@@ -43,7 +43,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 	}
 
 	private function updateWikiTitles(): void {
-		$spaceIdToSpaceKeyMap = $this->workspaceDB->getMapSpaceIdToKey();
+		$spaceIdToPrefixMap = $this->workspaceDB->getMapSpaceIdToPrefix();
 		$blogPosts = $this->workspaceDB->getBlogPosts();
 		$pageIdToWikiTitleMap = [];
 
@@ -67,7 +67,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			$spaceId = (int)$blogPost['space_id'];
 			$confluenceTitle = (string)$blogPost['confluence_title'];
 
-			if ( !isset( $spaceIdToSpaceKeyMap[$spaceId] ) ) {
+			if ( !isset( $spaceIdToPrefixMap[$spaceId] ) ) {
 				continue;
 			}
 
@@ -75,12 +75,14 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				"Creating wiki title for blog post ID $pageId with confluence title '$confluenceTitle'"
 			);
 
-			$spaceKey = '';
-			if ( isset( $spaceIdToSpaceKeyMap[$spaceId] ) ) {
-				$spaceKey = $spaceIdToSpaceKeyMap[$spaceId] . '/';
+			$namespace = '';
+			if ( isset( $spaceIdToPrefixMap[$spaceId] ) ) {
+				$prefix = $spaceIdToPrefixMap[$spaceId];
+				$namespace = substr( $prefix, 0, strpos( $prefix, ':' ) );
+				$namespace .= '/';
 			}
 			$blogName = self::NS_BLOG_NAME;
-			$titleBuilder = new TitleBuilder( [ $spaceId => "$blogName:$spaceKey" ], [], [], [] );
+			$titleBuilder = new TitleBuilder( [ $spaceId => "$blogName:$namespace" ], [], [], [] );
 
 			try {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
