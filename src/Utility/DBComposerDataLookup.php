@@ -22,8 +22,8 @@ class DBComposerDataLookup {
 	/**
 	 * @return array
 	 */
-	public function getBlogPostIdBlogPostTitleMap(): array {
-		return $this->workspaceDB->getBlogPostIdBlogPostTitleMap();
+	public function getBlogPostIdWikiBlogPostTitleMap(): array {
+		return $this->workspaceDB->getBlogPostIdWikiBlogPostTitleMap();
 	}
 
 	/**

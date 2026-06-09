@@ -2320,7 +2320,7 @@ class WorkspaceDB {
 	/**
 	 * @return array
 	 */
-	public function getBlogPostIdBlogPostTitleMap(): array {
+	public function getBlogPostIdWikiBlogPostTitleMap(): array {
 		$transaction = $this->cachedPrepare(
 			'SELECT page_id, wiki_title FROM blog_posts WHERE content_status = "current"'
 		);

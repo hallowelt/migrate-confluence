@@ -172,7 +172,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			return null;
 		}
 
-		return str_replace( ' ', '_', $wikiTitle );
+		return $wikiTitle;
 	}
 
 	/**
