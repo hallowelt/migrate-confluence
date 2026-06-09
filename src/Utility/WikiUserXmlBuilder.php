@@ -64,7 +64,7 @@ class WikiUserXmlBuilder {
 		foreach ( $this->users as $wikiUsername => $properties ) {
 			$userEl = $this->dom->createElement( 'user' );
 
-			$titleEl = $this->dom->createElement( 'username', $wikiUsername );
+			$titleEl = $this->dom->createElement( 'name', $wikiUsername );
 			$userEl->append( $titleEl );
 
 			foreach ( $properties as $name => $value ) {
@@ -82,7 +82,13 @@ class WikiUserXmlBuilder {
 	 * @return void
 	 */
 	private function appendUserData( string $name, mixed $value, DOMElement $propertyEl ): void {
-		if ( $name === 'name' || $name === 'key' ) {
+		if ( $name === 'email' ) {
+			$dataEl = $this->dom->createElement( $name, $value );
+			$propertyEl->append( $dataEl );
+			return;
+		}
+
+		if ( in_array( $name, [ 'key', 'name', 'lowerName', 'atlassianAccountId' ] ) ) {
 			$name = "confluence-$name";
 		}
 		$dataEl = $this->dom->createElement( $name, $value );
