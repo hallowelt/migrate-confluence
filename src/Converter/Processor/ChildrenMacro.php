@@ -32,6 +32,8 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @throws Exception
 	 */
 	protected function doProcessMacro( DOMNode $node ): void {
+		$isBroken = false;
+
 		$params = $this->processParams( $node );
 
 		// if no page param was set resolve current page's wiki title as subpage root
@@ -39,8 +41,17 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			$params['page'] = $this->wikiPageTitle;
 		}
 
-		// page must not contain underscores
-		$params['page'] = str_replace( '_', ' ', $params['page'] );
+		if ( str_starts_with( $params['page'], 'Confluence---' ) ) {
+			$isBroken = true;
+		}
+
+		if ( !$isBroken ) {
+			// page must not contain underscores
+			$params['page'] = str_replace( '_', ' ', $params['page'] );
+		} else {
+			// unless its broken then confluence title must contain underscores for better regex searching
+			$params['page'] = str_replace( ' ', '_', $params['page'] );
+		}
 
 		$templateParams = '';
 		foreach ( $params as $key => $value ) {
@@ -49,8 +60,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		$wikiText = '{{SubpageList' . $templateParams . '}}';
 
-		// Check for broken and handle
-		if ( str_starts_with( $params['page'], 'Confluence---' ) ) {
+		if ( $isBroken ) {
 			$wikiText .= $this->getBrokenMacroCategory();
 		}
 
