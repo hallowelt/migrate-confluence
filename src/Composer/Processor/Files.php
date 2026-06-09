@@ -43,15 +43,13 @@ class Files extends FileProcessorBase {
 				$pageAttachment['page_id']
 			);
 
-			if ( $this->skipTitleByConfig( $assocPageTitle )
-				|| $this->skipTitleByConfig( $attachmentPageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
+			if ( $this->skipPageHelper->skipWikiTitle( $assocPageTitle ) ) {
+				$this->output->writeln( "Skip attachments for page title $assocPageTitle." );
 				continue;
-			} elseif ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
-				continue;
-			} elseif ( $this->skipPageId( $pageAttachment['page_id'], $assocPageTitle )
-				|| $this->skipBlogPostId( $pageAttachment['page_id'], $assocPageTitle ) ) {
+			}
+			$this->output->writeln( "Processing attachments for page title $assocPageTitle ..." );
+
+			if ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
 				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
 				continue;
 			}

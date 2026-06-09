@@ -16,6 +16,7 @@ use HalloWelt\MigrateConfluence\Composer\Processor\Users;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipPageHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -73,39 +74,36 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	public function buildXML( Builder $builder ): void {
 		$workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
 		$dbLog = new DBLog( $workspaceDB );
-		$dbLog->addLogEntry(
-			'info',
-			'compose',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
+		$this->logMigrateConfluenceToolVersion( $dbLog );
+		
 		$this->dataLookup = new DBComposerDataLookup( $workspaceDB );
 		$deploymentInfo = new ComposerDeploymentInfo();
+		$skipPageHelper = new ComposerSkipPageHelper( $this->dataLookup, $this->migrationConfig );
 		$processors = [
 			new Files(
 				$this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo
+				$deploymentInfo, $skipPageHelper
 			),
 			new Pages(
 				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo
+				$deploymentInfo, $skipPageHelper
 			),
 			new BlogPosts(
 				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo
+				$deploymentInfo, $skipPageHelper
 			),
 			new Templates(
 				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo
+				$deploymentInfo, $skipPageHelper
 			),
 			new Comments(
 				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo
+				$deploymentInfo, $skipPageHelper
 			),
 			new Users(
 				$this->dataLookup, $this->output, $this->dest
@@ -119,10 +117,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$this->writeDeploymentLog( $deploymentInfo );
 		$this->writeSkippedPagesLog( $deploymentInfo );
 		$this->writeUserReadableDBLog( $dbLog );
-		$this->writeInvalidPagesLog( $dbLog );
-		$this->writeInvalidBlogPostsLog( $dbLog );
-		$this->writeInvalidAttachmentsLog( $dbLog );
-		$this->writeInvalidPageTemplatesLog( $dbLog );
+		$this->writeInvalidPagesLog();
+		$this->writeInvalidBlogPostsLog();
+		$this->writeInvalidAttachmentsLog();
+		$this->writeInvalidPageTemplatesLog();
 	}
 
 	/**
@@ -253,5 +251,20 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$content .= $line . "\n";
 		}
 		file_put_contents( $this->dest . "/invalid_attachments.log", $content );
+	}
+
+	/**
+	 * Add version information of the migrate confluece tool to the database
+	 *
+	 * @param DBLog $dbLog
+	 * @return void
+	 */
+	private function logMigrateConfluenceToolVersion( DBLog $dbLog ): void {
+		$dbLog->addLogEntry(
+			'info',
+			'compose',
+			__CLASS__,
+			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
+		);
 	}
 }

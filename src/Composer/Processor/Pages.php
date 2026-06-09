@@ -25,15 +25,12 @@ class Pages extends ProcessorBase {
 		$wikiTitles = $this->dataLookup->getPageIdWikiPageTitleMap();
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
-			$this->output->writeln( "Processing page '$pageTitle'..." );
-
-			if ( $this->skipTitleByConfig( $pageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $pageTitle );
-				continue;
-			} elseif ( $this->skipPageId( $pageId, $pageTitle ) ) {
+			if ( $this->skipPageHelper->skipPageById( $pageId ) ) {
+				$this->output->writeln( "Skip page $pageTitle." );
 				$this->deploymentInfo->addSkippedPage( $pageTitle );
 				continue;
 			}
+			$this->output->writeln( "Processing page '$pageTitle' ..." );
 
 			$namespace = $this->getNamespace( $pageTitle );
 
