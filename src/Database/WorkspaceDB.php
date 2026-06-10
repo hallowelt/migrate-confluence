@@ -3298,11 +3298,11 @@ class WorkspaceDB {
 	 */
 	public function getCommentsForPages(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT c.*, p.wiki_title FROM comments c
-			LEFT JOIN pages p ON p.page_id = c.container_id
-			WHERE c.content_class = :content_class'
+			'SELECT c.*, COALESCE(p.wiki_title, bp.wiki_title) AS wiki_title FROM comments c
+			LEFT JOIN pages p ON p.page_id = c.container_id AND c.content_class = \'Page\'
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id AND c.content_class = \'BlogPost\'
+			WHERE c.content_class IN (\'Page\', \'BlogPost\')'
 		);
-		$transaction->bindValue( ':content_class', 'Page', SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
