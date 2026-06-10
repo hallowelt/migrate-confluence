@@ -6,6 +6,7 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
@@ -33,6 +34,9 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	/** @var ComposerDeploymentInfo */
 	protected ComposerDeploymentInfo $deploymentInfo;
 
+	/** @var ComposerSkipHelper */
+	protected ComposerSkipHelper $skipHelper;
+
 	/** @var bool */
 	protected bool $multiXmlOutputEnabled = false;
 
@@ -53,11 +57,12 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 * @param string $dest
 	 * @param MigrationConfig $migrationConfig
 	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param ComposerSkipHelper $skipHelper
 	 */
 	public function __construct(
 		Builder $builder, DBComposerDataLookup $dataLookup, Workspace $workspace,
 		Output $output, string $dest, MigrationConfig $migrationConfig,
-		ComposerDeploymentInfo $deploymentInfo
+		ComposerDeploymentInfo $deploymentInfo, ComposerSkipHelper $skipHelper
 	) {
 		$this->builder = $builder;
 		$this->dataLookup = $dataLookup;
@@ -66,6 +71,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		$this->dest = $dest;
 		$this->migrationConfig = $migrationConfig;
 		$this->deploymentInfo = $deploymentInfo;
+		$this->skipHelper = $skipHelper;
 
 		$this->limit = $this->migrationConfig->getComposerPagePerXmlLimit();
 		if ( $this->limit > 0 ) {
@@ -153,66 +159,6 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 */
 	protected function includeHistory(): bool {
 		return $this->migrationConfig->getIncludeHistory();
-	}
-
-	/**
-	 * Sometimes it is neccessary to skip certain pages or namespace.
-	 * This can be because e.g. the content length is to long or the namespace
-	 * should simply not be part of the migration result.
-	 *
-	 * To skip this namespaces use this option.
-	 *
-	 * @param string $title
-	 * @return bool
-	 */
-	protected function skipTitleByConfig( string $title ): bool {
-		$namespace = $this->getNamespace( $title );
-
-		// Skip namespaces by configuration
-		$skipNamespaces = $this->migrationConfig->getComposerSkipNamespaces();
-		if ( in_array( $namespace, $skipNamespaces )
-		) {
-			$this->output->writeln( "Namespace $namespace skipped by configuration" );
-			return true;
-		}
-
-		// Skip titles by configuration
-		$skipTitles = $this->migrationConfig->getComposerSkipTitles();
-		if ( in_array( $title, $skipTitles ) ) {
-			$this->output->writeln( "Page $title skipped by configuration" );
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Skip pages automatically that have to long titles or contents.
-	 *
-	 * @param int $pageId
-	 * @param string $title
-	 * @return bool
-	 */
-	protected function skipPageId( int $pageId, string $title ): bool {
-		if ( $this->dataLookup->isPageInvalid( $pageId ) ) {
-			$this->output->writeln( "Page $title skipped due to invalid title or content" );
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Skip pages automatically that have to long titles or contents.
-	 *
-	 * @param int $pageId
-	 * @param string $title
-	 * @return bool
-	 */
-	protected function skipBlogPostId( int $pageId, string $title ): bool {
-		if ( $this->dataLookup->isBlogPostInvalid( $pageId ) ) {
-			$this->output->writeln( "BlogPost $title skipped due to invalid title or content" );
-			return true;
-		}
-		return false;
 	}
 
 	/**

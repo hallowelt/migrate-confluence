@@ -42,11 +42,11 @@ class Comments extends ProcessorBase {
 			$contentStatus = $comment['content_status'];
 			$wikiTitle = $comment['wiki_title'];
 
-			if ( $this->skipTitleByConfig( $wikiTitle ) ) {
-				continue;
-			} elseif ( $this->dataLookup->isPageInvalid( $containerContentId ) ) {
+			if ( $this->skipHelper->skipWikiTitle( $wikiTitle ) ) {
+				$this->output->writeln( "Skip comments for page titel $wikiTitle." );
 				continue;
 			}
+			$this->output->writeln( "Processing comments for page title $wikiTitle ..." );
 
 			// Only handle page-level comments with content status 'current'
 			if ( $containerContentId === null || $contentStatus !== 'current' ) {

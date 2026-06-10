@@ -6,6 +6,7 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
@@ -47,6 +48,7 @@ class PagesTest extends TestCase {
 			->willReturn( 'Valid description revision' );
 
 		$composerDeploymentInfo = new ComposerDeploymentInfo();
+		$skipHelper = new ComposerSkipHelper( $dataLookup, $migrationConfig );
 
 		$processor = new Pages(
 			$builder,
@@ -55,7 +57,8 @@ class PagesTest extends TestCase {
 			$this->makeOutput(),
 			$this->tmpDir,
 			$migrationConfig,
-			$composerDeploymentInfo
+			$composerDeploymentInfo,
+			$skipHelper
 		);
 
 		$spaceDescriptionRevisions = [

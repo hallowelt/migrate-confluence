@@ -43,15 +43,13 @@ class Files extends FileProcessorBase {
 				$pageAttachment['page_id']
 			);
 
-			if ( $this->skipTitleByConfig( $assocPageTitle )
-				|| $this->skipTitleByConfig( $attachmentPageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
+			if ( $this->skipHelper->skipWikiTitle( $assocPageTitle ) ) {
+				$this->output->writeln( "Skip attachments for page title $assocPageTitle." );
 				continue;
-			} elseif ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
-				continue;
-			} elseif ( $this->skipPageId( $pageAttachment['page_id'], $assocPageTitle )
-				|| $this->skipBlogPostId( $pageAttachment['page_id'], $assocPageTitle ) ) {
+			}
+			$this->output->writeln( "Processing attachments for page title $assocPageTitle ..." );
+
+			if ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
 				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
 				continue;
 			}
@@ -123,15 +121,18 @@ class Files extends FileProcessorBase {
 			$attachmentId = $additionalAttachment['attachment_id'];
 
 			$attachmentPageTitle = $additionalAttachment['target_attachment_filename'];
-			$filename = $this->gereralizeFilename( $attachmentPageTitle );
 
-			if ( $this->skipTitleByConfig( $attachmentPageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
+			if ( $this->skipHelper->skipWikiTitle( $attachmentPageTitle ) ) {
+				$this->output->writeln( "Skip additional attachment $attachmentPageTitle." );
 				continue;
-			} elseif ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
+			}
+
+			if ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
 				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
 				continue;
 			}
+
+			$filename = $this->gereralizeFilename( $attachmentPageTitle );
 
 			$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 			foreach ( $attachments as $attachment ) {
