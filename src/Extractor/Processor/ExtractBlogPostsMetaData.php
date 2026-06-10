@@ -13,8 +13,8 @@ class ExtractBlogPostsMetaData extends ExtractPagesMetaData {
 		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
 			$categories = [];
 
-			if ( isset( $blogPost['page_id'] ) && isset( $blogPost['content_status'] )
-				&& strtolower( (string)$blogPost['content_status'] ) === 'current'
+			if ( isset( $blogPost['page_id'] ) && isset( $blogPost['original_version_id'] )
+				&& (int)$blogPost['original_version_id'] === -1
 			) {
 				if ( !isset( $blogPost['collection']['labellings'] ) ) {
 					continue;

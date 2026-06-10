@@ -59,21 +59,14 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				!isset( $page['page_id'] )
 				|| !isset( $page['space_id'] )
 				|| !isset( $page['confluence_title'] )
-				|| !isset( $page['content_status'] )
 				// historical versions
-				|| $page['original_version_id'] !== -1
+				|| (int)$page['original_version_id'] !== -1
 			) {
 				continue;
 			}
 
 			// Skip pages that already have a wiki_title set (e.g. templates).
 			if ( isset( $page['wiki_title'] ) && $page['wiki_title'] !== '' ) {
-				continue;
-			}
-
-			// Create a wiki page title only for current page versions.
-			// This is needed to avoid creating wiki titles for deleted pages or old page versions.
-			if ( $page['content_status'] !== 'current' ) {
 				continue;
 			}
 
