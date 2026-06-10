@@ -348,7 +348,6 @@ class WorkspaceDB {
 			'CREATE TABLE IF NOT EXISTS spaces_descriptions (
 				space_description_id INT PRIMARY KEY,
 				revision_timestamp CHAR,
-				content_status CHAR,
 				version CHAR,
 				original_version_id INT,
 				body_content_ids BLOB,
@@ -371,7 +370,6 @@ class WorkspaceDB {
 				wiki_title CHAR,
 				revision_timestamp CHAR,
 				last_modifier CHAR,
-				content_status CHAR,
 				original_version_id INT,
 				version CHAR,
 				parent_page_id INT,		
@@ -395,7 +393,6 @@ class WorkspaceDB {
 				wiki_title CHAR,
 				revision_timestamp CHAR,
 				last_modifier CHAR,
-				content_status CHAR,
 				version CHAR,
 				original_version_id INT,
 				body_content_ids BLOB,
@@ -443,7 +440,6 @@ class WorkspaceDB {
 				filename CHAR,
 				file_extension CHAR,
 				container_id INT,
-				content_status CHAR,
 				version CHAR,
 				revision_timestamp CHAR,
 				last_modifier CHAR,
@@ -522,7 +518,6 @@ class WorkspaceDB {
 				comment_id INT PRIMARY KEY,
 				container_id INT,
 				content_class CHAR,
-				content_status CHAR,
 				user_key CHAR,
 				body_content_ids BLOB,
 				created CHAR,
@@ -1610,7 +1605,6 @@ class WorkspaceDB {
 	/**
 	 * @param int $spaceDescriptionId
 	 * @param string $revisionTimestamp
-	 * @param string $contentStatus
 	 * @param string $version
 	 * @param int $originalVersionId
 	 * @param array $bodyContentIds
@@ -1620,7 +1614,7 @@ class WorkspaceDB {
 	 * @return bool
 	 */
 	public function addSpaceDescription(
-		int $spaceDescriptionId, string $revisionTimestamp, string $contentStatus, string $version,
+		int $spaceDescriptionId, string $revisionTimestamp, string $version,
 		int $originalVersionId, array $bodyContentIds, array $lagellingIds, array $properties, array $collection
 	): bool {
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
@@ -1631,7 +1625,6 @@ class WorkspaceDB {
 			'INSERT INTO spaces_descriptions (
 				space_description_id,
 				revision_timestamp,
-				content_status,
 				version,
 				original_version_id,
 				body_content_ids,
@@ -1641,7 +1634,6 @@ class WorkspaceDB {
 			) VALUES (
 				:space_description_id,
 				:revision_timestamp,
-				:content_status,
 				:version,
 				:original_version_id,
 				:body_content_ids,
@@ -1653,7 +1645,6 @@ class WorkspaceDB {
 
 		$transaction->bindValue( ':space_description_id', $spaceDescriptionId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
-		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
@@ -1817,7 +1808,6 @@ class WorkspaceDB {
 	 * @param string $wikiTitle
 	 * @param string $revisionTimestamp
 	 * @param string $lastModifier
-	 * @param string $contentStatus
 	 * @param string $version
 	 * @param int $originalVersionId
 	 * @param int $parentPageId
@@ -1834,7 +1824,6 @@ class WorkspaceDB {
 		string $wikiTitle,
 		string $revisionTimestamp,
 		string $lastModifier,
-		string $contentStatus,
 		string $version,
 		int $originalVersionId,
 		int $parentPageId,
@@ -1855,7 +1844,6 @@ class WorkspaceDB {
 				wiki_title,
 				revision_timestamp,
 				last_modifier,
-				content_status,
 				version,
 				original_version_id,
 				parent_page_id,
@@ -1870,7 +1858,6 @@ class WorkspaceDB {
 				:wiki_title,
 				:revision_timestamp,
 				:last_modifier,
-				:content_status,
 				:version,
 				:original_version_id,
 				:parent_page_id,
@@ -1891,7 +1878,6 @@ class WorkspaceDB {
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
 		$transaction->bindValue( ':last_modifier', $lastModifier, SQLITE3_TEXT );
-		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':parent_page_id', $parentPageId, SQLITE3_INTEGER );
@@ -1990,7 +1976,7 @@ class WorkspaceDB {
 	 */
 	public function getPageIdWikiPageTitleMap(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT page_id, wiki_title FROM pages WHERE content_status = "current"'
+			'SELECT page_id, wiki_title FROM pages WHERE original_version_id = -1'
 		);
 
 		$result = $transaction->execute();
@@ -2182,7 +2168,6 @@ class WorkspaceDB {
 	 * @param string $wikiTitle
 	 * @param string $revisionTimestamp
 	 * @param string $lastModifier
-	 * @param string $contentStatus
 	 * @param string $version
 	 * @param int $originalVersionId
 	 * @param array $bodyContentIds
@@ -2198,7 +2183,6 @@ class WorkspaceDB {
 		string $wikiTitle,
 		string $revisionTimestamp,
 		string $lastModifier,
-		string $contentStatus,
 		string $version,
 		int $originalVersionId,
 		array $bodyContentIds,
@@ -2218,7 +2202,6 @@ class WorkspaceDB {
 				wiki_title,
 				revision_timestamp,
 				last_modifier,
-				content_status,
 				version,
 				original_version_id,
 				body_content_ids,
@@ -2232,7 +2215,6 @@ class WorkspaceDB {
 				:wiki_title,
 				:revision_timestamp,
 				:last_modifier,
-				:content_status,
 				:version,
 				:original_version_id,
 				:body_content_ids,
@@ -2252,7 +2234,6 @@ class WorkspaceDB {
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
 		$transaction->bindValue( ':last_modifier', $lastModifier, SQLITE3_TEXT );
-		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
@@ -2322,7 +2303,7 @@ class WorkspaceDB {
 	 */
 	public function getBlogPostIdWikiBlogPostTitleMap(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT page_id, wiki_title FROM blog_posts WHERE content_status = "current"'
+			'SELECT page_id, wiki_title FROM blog_posts WHERE original_version_id = -1'
 		);
 
 		$result = $transaction->execute();
@@ -2344,7 +2325,7 @@ class WorkspaceDB {
 	 */
 	public function getBlogPostRevisionsForBlogPostId( int $blogPostId ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT revision_timestamp, version, content_status, body_content_ids FROM blog_posts
+			'SELECT revision_timestamp, version, body_content_ids FROM blog_posts
 			WHERE page_id = :page_id OR original_version_id = :page_id
 			ORDER BY revision_timestamp DESC'
 		);
@@ -2625,7 +2606,6 @@ class WorkspaceDB {
 	 * @param string $filename
 	 * @param string $fileExtension
 	 * @param int $containerContentId
-	 * @param string $contentStatus
 	 * @param string $version
 	 * @param string $revisionTimestamp
 	 * @param string $lastModifier
@@ -2642,7 +2622,6 @@ class WorkspaceDB {
 		string $filename,
 		string $fileExtension,
 		int $containerContentId,
-		string $contentStatus,
 		string $version,
 		string $revisionTimestamp,
 		string $lastModifier,
@@ -2663,7 +2642,6 @@ class WorkspaceDB {
 				filename,
 				file_extension,
 				container_id,
-				content_status,
 				version,
 				revision_timestamp,
 				last_modifier,
@@ -2678,7 +2656,6 @@ class WorkspaceDB {
 				:filename,
 				:file_extension,
 				:container_id,
-				:content_status,
 				:version,
 				:revision_timestamp,
 				:last_modifier,
@@ -2698,7 +2675,6 @@ class WorkspaceDB {
 		}
 		$transaction->bindValue( ':filename', $filename, SQLITE3_TEXT );
 		$transaction->bindValue( ':container_id', $containerContentId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':file_extension', $fileExtension, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
@@ -2927,7 +2903,7 @@ class WorkspaceDB {
 			'SELECT a.attachment_reference FROM attachments a
 			JOIN page_attachments pa ON pa.attachment_id = a.attachment_id
 			WHERE pa.target_attachment_filename = :target_attachment_filename
-			ORDER BY CASE WHEN lower( a.content_status ) = "current" THEN 0 ELSE 1 END, a.attachment_id DESC
+			ORDER BY a.revision_timestamp DESC
 			LIMIT 1'
 		);
 		$transaction->bindValue( ':target_attachment_filename', $attachmentTargetFileTitle, SQLITE3_TEXT );
@@ -2960,8 +2936,8 @@ class WorkspaceDB {
 			JOIN pages p ON a.container_id = p.page_id
 			JOIN page_attachments pa ON pa.attachment_id = a.attachment_id AND pa.page_id = p.page_id
 			WHERE p.space_id = :space_id
-				AND p.confluence_title = :confluence_title
-				AND lower( a.content_status ) = "current"'
+			AND p.confluence_title = :confluence_title
+			ORDER BY pa.target_attachment_filename ASC'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':confluence_title', $rawPageTitle, SQLITE3_TEXT );
@@ -3234,17 +3210,16 @@ class WorkspaceDB {
 	 * @param int $commentId
 	 * @param int $containerContentId
 	 * @param string $class
-	 * @param string $contentStatus
 	 * @param string $userKey
 	 * @param array $bodyContentIds
 	 * @param string $created
-	 * @param string $modiefied
+	 * @param string $modified
 	 * @param array $properties
 	 * @return bool
 	 */
 	public function addComment(
-		int $commentId, int $containerContentId, string $class, string $contentStatus,
-		string $userKey, array $bodyContentIds, string $created, string $modiefied, array $properties
+		int $commentId, int $containerContentId, string $class,
+		string $userKey, array $bodyContentIds, string $created, string $modified, array $properties
 	): bool {
 		$propertiesJson = json_encode( $properties );
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
@@ -3255,7 +3230,6 @@ class WorkspaceDB {
 				content_class,
 				user_key,
 				body_content_ids,
-				content_status,
 				created,
 				modified,
 				properties
@@ -3265,7 +3239,6 @@ class WorkspaceDB {
 				:content_class,
 				:user_key,
 				:body_content_ids,
-				:content_status,
 				:created,
 				:modified,
 				:properties
@@ -3277,9 +3250,8 @@ class WorkspaceDB {
 		$transaction->bindValue( ':content_class', $class, SQLITE3_TEXT );
 		$transaction->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
 		$transaction->bindValue( ':body_content_ids', $bodyContentIdsJson, SQLITE3_TEXT );
-		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':created', $created, SQLITE3_TEXT );
-		$transaction->bindValue( ':modified', $modiefied, SQLITE3_TEXT );
+		$transaction->bindValue( ':modified', $modified, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
 	}

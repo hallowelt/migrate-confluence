@@ -52,14 +52,9 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				!isset( $blogPost['page_id'] )
 				|| !isset( $blogPost['space_id'] )
 				|| !isset( $blogPost['confluence_title'] )
-				|| !isset( $blogPost['content_status'] )
 				// historical versions
-				|| $blogPost['original_version_id'] !== -1
+				|| (int)$blogPost['original_version_id'] !== -1
 			) {
-				continue;
-			}
-
-			if ( $blogPost['content_status'] !== 'current' ) {
 				continue;
 			}
 

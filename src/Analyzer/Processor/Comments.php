@@ -89,7 +89,6 @@ class Comments extends ProcessorBase {
 			$commentId,
 			$containerContentId,
 			$containerContentClass,
-			strtolower( $contentStatus ),
 			$creatorKey,
 			$bodyContentIds,
 			$this->buildTimestamp( $created ),

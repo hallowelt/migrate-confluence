@@ -62,13 +62,7 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 				|| !isset( $attachment['container_id'] )
 				|| !isset( $attachment['space_id'] )
 				|| !isset( $attachment['filename'] )
-				|| !isset( $attachment['content_status'] )
-				|| !isset( $attachment['original_version_id'] )
 			) {
-				continue;
-			}
-
-			if ( $attachment['original_version_id'] !== -1 ) {
 				continue;
 			}
 

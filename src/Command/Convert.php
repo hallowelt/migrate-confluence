@@ -355,8 +355,8 @@ class Convert extends CommandConvert {
 	 */
 	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
-		if ( is_string( $filename ) && is_file( $filename ) ) {
-			$content = file_get_contents( $filename );
+		if ( is_string( $filename ) && is_file( realpath( $filename ) ) ) {
+			$content = file_get_contents( realpath( $filename ) );
 			if ( $content ) {
 				try {
 					$yaml = Yaml::parse( $content );
