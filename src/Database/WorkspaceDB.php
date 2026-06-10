@@ -917,7 +917,6 @@ class WorkspaceDB {
 		}
 
 		// Check if any body_content_id is listed as invalid
-
 		foreach ( $bodyContentIds as $bodyContentId ) {
 			$stmt = $this->cachedPrepare(
 				'SELECT body_content_id FROM body_content_invalids

@@ -5,7 +5,7 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
-use HalloWelt\MigrateConfluence\Utility\ComposerSkipPageHelper;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -35,8 +35,8 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 	/** @var ComposerDeploymentInfo */
 	protected ComposerDeploymentInfo $deploymentInfo;
 
-	/** @var ComposerSkipPageHelper */
-	protected ComposerSkipPageHelper $skipPageHelper;
+	/** @var ComposerSkipHelper */
+	protected ComposerSkipHelper $skipHelper;
 
 	/** @var bool */
 	protected bool $multiXmlOutputEnabled = false;
@@ -57,12 +57,12 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 	 * @param string $dest
 	 * @param MigrationConfig $migrationConfig
 	 * @param ComposerDeploymentInfo $deploymentInfo
-	 * @param ComposerSkipPageHelper $skipPageHelper
+	 * @param ComposerSkipHelper $skipHelper
 	 */
 	public function __construct(
 		DBComposerDataLookup $dataLookup, Workspace $workspace,
 		Output $output, string $dest, MigrationConfig $migrationConfig,
-		ComposerDeploymentInfo $deploymentInfo, ComposerSkipPageHelper $skipPageHelper
+		ComposerDeploymentInfo $deploymentInfo, ComposerSkipHelper $skipHelper
 	) {
 		$this->dataLookup = $dataLookup;
 		$this->workspace = $workspace;
@@ -70,7 +70,7 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 		$this->dest = $dest;
 		$this->migrationConfig = $migrationConfig;
 		$this->deploymentInfo = $deploymentInfo;
-		$this->skipPageHelper = $skipPageHelper;
+		$this->skipHelper = $skipHelper;
 
 		$this->builder = new WikiFileXmlBuilder();
 

@@ -16,7 +16,7 @@ use HalloWelt\MigrateConfluence\Composer\Processor\Users;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
-use HalloWelt\MigrateConfluence\Utility\ComposerSkipPageHelper;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -75,10 +75,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
 		$dbLog = new DBLog( $workspaceDB );
 		$this->logMigrateConfluenceToolVersion( $dbLog );
-		
+
 		$this->dataLookup = new DBComposerDataLookup( $workspaceDB );
 		$deploymentInfo = new ComposerDeploymentInfo();
-		$skipPageHelper = new ComposerSkipPageHelper( $this->dataLookup, $this->migrationConfig );
+		$skipPageHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
 		$processors = [
 			new Files(
 				$this->dataLookup, $this->workspace,

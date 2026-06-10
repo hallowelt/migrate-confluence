@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-class ComposerSkipPageHelper {
+class ComposerSkipHelper {
 
 	/** @var array */
 	private array $pageWikiTitleToPageIdMap = [];
@@ -38,7 +38,6 @@ class ComposerSkipPageHelper {
 		if ( !$wikiTitle ) {
 			return true;
 		}
-
 		return $this->skipWikiTitleByConfiguration( $wikiTitle );
 	}
 
@@ -71,7 +70,7 @@ class ComposerSkipPageHelper {
 			}
 			$blogPostId = $this->blogPostWikiTitleToBlogPostIdMap[$wikiTitle];
 			return $this->skipBlogPostById( $blogPostId );
-		} else if ( str_starts_with( $wikiTitle, 'Template:' ) ) {
+		} elseif ( str_starts_with( $wikiTitle, 'Template:' ) ) {
 			// Template page title
 			return $this->skipWikiTitleByConfiguration( $wikiTitle );
 		} else {
@@ -100,7 +99,7 @@ class ComposerSkipPageHelper {
 			return true;
 		}
 
-		if ( !in_array(	$wikiTitle,	$this->migrationConfig->getComposerSkipTitles() ) ) {
+		if ( in_array( $wikiTitle, $this->migrationConfig->getComposerSkipTitles() ) ) {
 			return true;
 		}
 
@@ -115,7 +114,7 @@ class ComposerSkipPageHelper {
 	 * @return bool
 	 */
 	private function skipNamespaceByConfiguration( string $namespace ): bool {
-		if ( !in_array( $namespace, $this->migrationConfig->getComposerSkipNamespaces() ) ) {
+		if ( in_array( $namespace, $this->migrationConfig->getComposerSkipNamespaces() ) ) {
 			return true;
 		}
 		return false;

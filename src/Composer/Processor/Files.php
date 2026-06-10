@@ -43,7 +43,7 @@ class Files extends FileProcessorBase {
 				$pageAttachment['page_id']
 			);
 
-			if ( $this->skipPageHelper->skipWikiTitle( $assocPageTitle ) ) {
+			if ( $this->skipHelper->skipWikiTitle( $assocPageTitle ) ) {
 				$this->output->writeln( "Skip attachments for page title $assocPageTitle." );
 				continue;
 			}
@@ -121,15 +121,18 @@ class Files extends FileProcessorBase {
 			$attachmentId = $additionalAttachment['attachment_id'];
 
 			$attachmentPageTitle = $additionalAttachment['target_attachment_filename'];
-			$filename = $this->gereralizeFilename( $attachmentPageTitle );
 
-			if ( $this->skipTitleByConfig( $attachmentPageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
+			if ( $this->skipHelper->skipWikiTitle( $attachmentPageTitle ) ) {
+				$this->output->writeln( "Skip additional attachment $attachmentPageTitle." );
 				continue;
-			} elseif ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
+			}
+
+			if ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
 				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
 				continue;
 			}
+
+			$filename = $this->gereralizeFilename( $attachmentPageTitle );
 
 			$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 			foreach ( $attachments as $attachment ) {

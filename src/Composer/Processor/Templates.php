@@ -20,7 +20,7 @@ class Templates extends ProcessorBase {
 		$wikiTitles = $this->dataLookup->getPageTemplateIdWikiTitleMap();
 
 		foreach ( $wikiTitles as $templateId => $pageTitle ) {
-			if ( $this->skipPageHelper->skipWikiTitle( $pageTitle ) ) {
+			if ( $this->skipHelper->skipWikiTitle( $pageTitle ) ) {
 				$this->output->writeln( "Skip template '$pageTitle'" );
 				$this->deploymentInfo->addSkippedPage( $pageTitle );
 				continue;

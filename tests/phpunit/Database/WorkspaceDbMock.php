@@ -7,6 +7,10 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 class WorkspaceDbMock {
 	private int $nextTestPageId = 10000;
 
+	private int $nextTestBlogPostId = 3000;
+
+	private int $nextTestBodyContentId = 80000;
+
 	private int $nextTestAttachmentId = 20000;
 
 	/** @var array<string,int> */
@@ -50,10 +54,12 @@ class WorkspaceDbMock {
 		$this->seedDefaultSpaces( $workspaceDB );
 		$this->seedUsers( $workspaceDB );
 		$this->seedPageMappings( $workspaceDB );
+		$this->seedBlogPostMappings( $workspaceDB );
 		$this->seedSpaceHomepages( $workspaceDB );
 		$this->seedTableComplexMappings( $workspaceDB );
 		$this->seedAttachmentMappings( $workspaceDB, $keepAttachmentNamespaceColon );
 		$this->seedPageTemplateMappings( $workspaceDB );
+		$this->seedInvalidTitlesAndContents( $workspaceDB );
 
 		return $workspaceDB;
 	}
@@ -131,6 +137,39 @@ class WorkspaceDbMock {
 			'Sed do eiusmod tempor incididunt',
 			'INF:Sed_do_eiusmod_tempor_incididunt'
 		);
+	}
+
+	private function seedBlogPostMappings( WorkspaceDB $workspaceDB ): void {
+		$this->addBlogPostMapping( $workspaceDB, 42, 'Some Blog Post', 'Blog:ABC/Some_Blog_Post' );
+	}
+
+	private function seedInvalidTitlesAndContents( WorkspaceDB $workspaceDB ): void {
+		// Add pages to page_invalid_titles table
+		$pageId = $this->addPageMapping(
+			$workspaceDB, 23, 'Page with invalid title', 'DEVOPS:Page_with_invalid_title'
+		);
+		$workspaceDB->addInvalidPageWikiTitle(
+			$pageId, 'DEVOPS:Page_with_invalid_title', 'Page has invalid title length'
+		);
+		$pageId = $this->addBlogPostMapping(
+			$workspaceDB, 42, 'Some Blog Post with invalid title', 'Blog:ABC/Some_Blog_Post_with_invalid_title'
+		);
+		$workspaceDB->addInvalidBlogPostWikiTitle(
+			$pageId, 'Blog:ABC/Some_Blog_Post_with_invalid_title', 'BlogPost has invalid title length'
+		);
+
+		// Add pages to body_content_invalids table
+		$pageId = $this->addPageMapping(
+			$workspaceDB, 23, 'Page with invalid content length', 'DEVOPS:Page_with_invalid_content_length'
+		);
+		$bodyContentIds = $workspaceDB->getBodyContentIdsForContentId( $pageId );
+		$workspaceDB->addInvalidBodyContent( $bodyContentIds[0], 'Content length exeeded 512 ...' );
+
+		$pageId = $this->addBlogPostMapping(
+			$workspaceDB, 23, 'BlogPost with invalid content length', 'Blog:DEVOPS/BlogPost_with_invalid_content_length'
+		);
+		$bodyContentIds = $workspaceDB->getBodyContentIdsForContentId( $pageId );
+		$workspaceDB->addInvalidBodyContent( $bodyContentIds[0], 'Content length exeeded 512 ...' );
 	}
 
 	private function seedTableComplexMappings( WorkspaceDB $workspaceDB ): void {
@@ -335,6 +374,8 @@ class WorkspaceDbMock {
 		$pageKey = $spaceId . '|' . $confluenceTitle . '|' . $wikiTitle;
 		$this->pageIds[$pageKey] = $pageId;
 
+		$bodyContentId = $this->addBodyContent( $workspaceDB, $pageId, 'Page' );
+
 		$workspaceDB->addPage(
 			$pageId,
 			$spaceId,
@@ -346,13 +387,64 @@ class WorkspaceDbMock {
 			'1',
 			-1,
 			-1,
-			[],
+			[ $bodyContentId ],
 			[],
 			[],
 			[]
 		);
 
 		return $pageId;
+	}
+
+	private function addBlogPostMapping(
+		WorkspaceDB $workspaceDB,
+		int $spaceId,
+		string $confluenceTitle,
+		string $wikiTitle
+	): int {
+		$pageId = $this->nextTestBlogPostId++;
+		$pageKey = $spaceId . '|' . $confluenceTitle . '|' . $wikiTitle;
+		$this->pageIds[$pageKey] = $pageId;
+
+		$bodyContentId = $this->addBodyContent( $workspaceDB, $pageId, 'BlogPost' );
+
+		$workspaceDB->addBlogPost(
+			$pageId,
+			$spaceId,
+			$confluenceTitle,
+			$wikiTitle,
+			'20240101000000',
+			'',
+			'current',
+			'1',
+			-1,
+			[ $bodyContentId ],
+			[],
+			[],
+			[]
+		);
+
+		return $pageId;
+	}
+
+	/**
+	 * @param WorkspaceDB $workspaceDB
+	 * @param int $contentId
+	 * @param string $class
+	 * @return int
+	 */
+	private function addBodyContent(
+		WorkspaceDB $workspaceDB, int $contentId, string $class
+	): int {
+		$this->nextTestBodyContentId++;
+		$status = $workspaceDB->addBodyContent(
+			$this->nextTestBodyContentId,
+			$contentId,
+			$class,
+			[]
+		);
+
+		return $this->nextTestBodyContentId;
 	}
 
 	private function addAttachmentMapping(
