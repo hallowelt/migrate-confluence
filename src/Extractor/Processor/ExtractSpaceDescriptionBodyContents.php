@@ -30,9 +30,7 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 	public function execute(): void {
 		$currentContentIds = [];
 		foreach ( $this->workspaceDB->getSpaceDescriptions() as $spaceDescription ) {
-			if ( isset( $spaceDescription['space_description_id'] ) && isset( $spaceDescription['content_status'] )
-				&& strtolower( (string)$spaceDescription['content_status'] ) === 'current'
-			) {
+			if ( isset( $spaceDescription['space_description_id'] )) {
 				$currentContentIds[] = (int)$spaceDescription['space_description_id'];
 			}
 		}

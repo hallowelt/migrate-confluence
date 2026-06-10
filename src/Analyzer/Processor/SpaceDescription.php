@@ -108,7 +108,6 @@ class SpaceDescription extends ProcessorBase {
 		$status = $this->workspaceDB->addSpaceDescription(
 			(int)$descriptionId,
 			$revisionTimestamp,
-			strtolower( $contentStatus ),
 			$version,
 			$originalVersionId,
 			$bodyContentIds,

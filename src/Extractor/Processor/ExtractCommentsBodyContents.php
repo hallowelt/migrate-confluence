@@ -13,16 +13,13 @@ class ExtractCommentsBodyContents extends ExtractSpaceDescriptionBodyContents {
 		$currentContentIds = [];
 		foreach ( $this->workspaceDB->getComments() as $comment ) {
 			if ( !isset( $comment['comment_id'] )
-				|| !isset( $comment['content_status'] )
 				|| !isset( $comment['content_class'] )
 			) {
 				continue;
 			}
 
 			// Comments composer currently handles page-level comments only.
-			if ( strtolower( (string)$comment['content_status'] ) !== 'current'
-				|| (string)$comment['content_class'] !== 'Page'
-			) {
+			if ( (string)$comment['content_class'] !== 'Page' ) {
 				continue;
 			}
 

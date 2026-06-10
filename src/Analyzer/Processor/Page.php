@@ -136,7 +136,6 @@ class Page extends ProcessorBase {
 			'',
 			$revisionTimestamp,
 			$lastModifier,
-			strtolower( $contentStatus ),
 			$version,
 			$originalVersionId,
 			$parentPageId,

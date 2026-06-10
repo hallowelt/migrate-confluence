@@ -36,8 +36,8 @@ class ExtractPagesMetaData extends ProcessorBase {
 		foreach ( $this->workspaceDB->getPages() as $page ) {
 			$categories = $this->migrationConfig->getCategories();
 
-			if ( isset( $page['page_id'] ) && isset( $page['content_status'] )
-				&& strtolower( (string)$page['content_status'] ) === 'current'
+			if ( isset( $page['page_id'] ) && isset( $page['original_version_id'] )
+				&& (int)$page['original_version_id'] === -1
 			) {
 				if ( !isset( $page['collection']['labellings'] ) ) {
 					continue;

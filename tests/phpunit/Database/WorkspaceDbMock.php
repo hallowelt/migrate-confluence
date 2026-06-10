@@ -342,7 +342,6 @@ class WorkspaceDbMock {
 			$wikiTitle,
 			'20240101000000',
 			'',
-			'current',
 			'1',
 			-1,
 			-1,
@@ -362,7 +361,6 @@ class WorkspaceDbMock {
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename,
 		array $meta = [],
-		string $contentStatus = 'current',
 		string $attachmentReference = ''
 	): int {
 		$attachmentId = $this->nextTestAttachmentId++;
@@ -374,7 +372,6 @@ class WorkspaceDbMock {
 			$originalAttachmentFilename,
 			$fileExtension,
 			$pageId,
-			$contentStatus,
 			'1',
 			'20240101000000',
 			'',

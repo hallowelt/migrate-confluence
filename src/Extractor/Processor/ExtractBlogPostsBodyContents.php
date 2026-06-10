@@ -12,9 +12,7 @@ class ExtractBlogPostsBodyContents extends ExtractSpaceDescriptionBodyContents {
 	public function execute(): void {
 		$currentContentIds = [];
 		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
-			if ( isset( $blogPost['page_id'] ) && isset( $blogPost['content_status'] )
-				&& strtolower( (string)$blogPost['content_status'] ) === 'current'
-			) {
+			if ( isset( $blogPost['page_id'] ) ) {
 				$currentContentIds[] = (int)$blogPost['page_id'];
 			}
 		}
