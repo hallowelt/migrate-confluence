@@ -88,7 +88,9 @@ class Files extends FileProcessorBase {
 					}
 
 					$attachmentContent = file_get_contents( $filePath );
-					$uploadFilePath = $this->workspace->saveUploadFile( "$timestamp-$filename", $attachmentContent, "result/images/$filename" );
+					$uploadFilePath = $this->workspace->saveUploadFile(
+						"$timestamp-$filename", $attachmentContent, "result/images/$filename"
+					);
 
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					$this->builder->addFileRevision(
@@ -215,7 +217,7 @@ class Files extends FileProcessorBase {
 				$attachmentPageTitle,
 				$this->getRelativeFilePath( $uploadFilePath ),
 				'',
-				''
+				'Confluence-migration-tool'
 			);
 		}
 	}
