@@ -18,6 +18,7 @@ COPY ./src /app/src
 COPY ./composer.json /app/composer.json
 COPY ./LICENSE /app/LICENSE
 COPY ./README.md /app/README.md
+COPY ./VERSION /app/VERSION
 RUN chmod -R 755 /app
 
 WORKDIR /app
