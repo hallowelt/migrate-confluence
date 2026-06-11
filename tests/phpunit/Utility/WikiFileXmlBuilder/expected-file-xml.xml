@@ -5,7 +5,7 @@
     <revision>
       <timestamp>20260524123708</timestamp>
       <contributor>
-        <user>SomeOtherUser</user>
+        <username>SomeOtherUser</username>
       </contributor>
       <data>./images/dummy_1.png</data>
     </revision>
@@ -15,7 +15,7 @@
     <revision>
       <timestamp>20260524133708</timestamp>
       <contributor>
-        <user>TestUser</user>
+        <username>TestUser</username>
       </contributor>
       <data>./images/dummy_2.jpg</data>
     </revision>

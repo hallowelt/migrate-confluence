@@ -43,7 +43,7 @@ class WikiFileXmlBuilder {
 			$data['timestamp'] = $timestamp;
 		}
 
-		if ( $timestamp !== '' ) {
+		if ( $contributor !== '' ) {
 			$data['contributor'] = $contributor;
 		}
 
@@ -117,7 +117,7 @@ class WikiFileXmlBuilder {
 	 */
 	private function appendRevisionDataUserItem( string $value, DOMElement $revisionEl ): void {
 		$dataEl = $this->dom->createElement( 'contributor' );
-		$userEl = $this->dom->createElement( 'user', $value );
+		$userEl = $this->dom->createElement( 'username', $value );
 
 		$dataEl->append( $userEl );
 		$revisionEl->append( $dataEl );
