@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<table class="relative-table wrapped" style="width: 780.0px;">
+	<table class="relative-table wrapped" style="width: 780.0px;" id="1000">
 		<thead>
 			<tr id="0001">
 				<th colspan="13" style="text-align: center;vertical-align: top;" id="0002">

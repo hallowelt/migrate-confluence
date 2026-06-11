@@ -57,7 +57,7 @@ class Table implements IDomPreprocessor {
 	 * @return void
 	 */
 	private function translateId( DOMElement $table ): void {
-		$nonLiveList = [];
+		$nonLiveList = [ $table ];
 
 		// Table rows (tr)
 		$trEls = $table->getElementsByTagName( 'tr' );

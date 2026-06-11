@@ -1,4 +1,4 @@
-{| class="wikitable relative-table wrapped" style="width: 780.0px;"
+{| id="1000" class="wikitable relative-table wrapped" style="width: 780.0px;"
 |- id="0001"
 ! id="0002" colspan="13" style="text-align: center; vertical-align: top;"| <div class="content-wrapper">
 

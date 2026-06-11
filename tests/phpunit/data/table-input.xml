@@ -1,5 +1,5 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<table class="relative-table wrapped" style="width: 780.0px;">
+	<table class="relative-table wrapped" style="width: 780.0px;" ac:local-id="1000">
 		<thead>
 			<tr ac:local-id="0001">
 				<th colspan="13" style="text-align: center;vertical-align: top;" ac:local-id="0002">
