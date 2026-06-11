@@ -66,7 +66,8 @@ class Files extends FileProcessorBase {
 				if ( isset( $attachment['attachment_reference'] ) ) {
 					$timestamp = $attachment['revision_timestamp'];
 					$userKey = $attachment['last_modifier'];
-					$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
+					// File import crashes if the user is unknown
+					#$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
 					$filePath = $attachment['attachment_reference'];
 
 					if ( file_exists( $filePath ) ) {
@@ -97,7 +98,7 @@ class Files extends FileProcessorBase {
 						$attachmentPageTitle,
 						$this->getRelativeFilePath( $uploadFilePath ),
 						$timestamp,
-						$username
+						''
 					);
 
 					// Log file extension
@@ -172,6 +173,7 @@ class Files extends FileProcessorBase {
 
 					$timestamp = $attachment['revision_timestamp'];
 					$userKey = $attachment['last_modifier'];
+					// File import crashes if the user is unknown
 					$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
 
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
@@ -179,7 +181,7 @@ class Files extends FileProcessorBase {
 						$attachmentPageTitle,
 						$this->getRelativeFilePath( $uploadFilePath ),
 						$timestamp,
-						$username
+						''
 					);
 
 					// Log file extension
@@ -207,7 +209,7 @@ class Files extends FileProcessorBase {
 			}
 			$file = $fileObj->getPathname();
 			$filename = basename( $file );
-			$attachmentPageTitle = "File:$filename";
+			$attachmentPageTitle = $filename;
 			$data = file_get_contents( $file );
 
 			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $data, "result/images/$filename" );
@@ -217,7 +219,7 @@ class Files extends FileProcessorBase {
 				$attachmentPageTitle,
 				$this->getRelativeFilePath( $uploadFilePath ),
 				'',
-				'Confluence-migration-tool'
+				''
 			);
 		}
 	}
