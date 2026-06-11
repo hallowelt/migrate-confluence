@@ -8,7 +8,8 @@ use HalloWelt\MigrateConfluence\Converter\IDomPreprocessor;
 
 /**
  * Pandoc is removing whole table structure if a colgroup
- * section is part of the table
+ * section is part of the.
+ * And we want to translate "ac:local-id" to "id"
  */
 class Table implements IDomPreprocessor {
 
@@ -30,6 +31,7 @@ class Table implements IDomPreprocessor {
 			}
 
 			$this->removeColgroup( $table );
+			$this->translateId( $table );
 		}
 	}
 
@@ -45,6 +47,44 @@ class Table implements IDomPreprocessor {
 			if ( $childNode->nodeName === 'colgroup' ) {
 				$table->removeChild( $childNode );
 			}
+		}
+	}
+
+	/**
+	 * Translate "ac:local-id" to "id" to "id"
+	 *
+	 * @param DOMElement $table
+	 * @return void
+	 */
+	private function translateId( DOMElement $table ): void {
+		$nonLiveList = [];
+
+		// Table rows (tr)
+		$trEls = $table->getElementsByTagName( 'tr' );
+		foreach( $trEls as $trEl ) {
+			$nonLiveList[] = $trEl;
+		}
+
+		// Table heads (th)
+		$thEls = $table->getElementsByTagName( 'th' );
+		foreach( $thEls as $thEl ) {
+			$nonLiveList[] = $thEl;
+		}
+
+		// Table cells (td)
+		$tdEls = $table->getElementsByTagName( 'td' );
+		foreach( $tdEls as $tdEl ) {
+			$nonLiveList[] = $tdEl;
+		}
+
+		foreach ( $nonLiveList as $element ) {
+			if ( !$element->hasAttribute( 'ac:local-id' ) ) {
+				continue;
+			}
+			$id = $element->getAttribute( 'ac:local-id' );
+
+			$element->setAttribute( 'id', $id );
+			$element->removeAttribute( 'ac:local-id' );
 		}
 	}
 }

@@ -1,8 +1,8 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 	<table class="relative-table wrapped" style="width: 780.0px;">
 		<thead>
-			<tr>
-				<th colspan="13" style="text-align: center;vertical-align: top;">
+			<tr ac:local-id="0001">
+				<th colspan="13" style="text-align: center;vertical-align: top;" ac:local-id="0002">
 					<div class="content-wrapper">
 						<p>
 							<span style="color: rgb(23,43,77);">
@@ -30,7 +30,7 @@
 		</colgroup>
 		<tbody>
 			<tr>
-				<td style="text-align: left;vertical-align: top;">
+				<td style="text-align: left;vertical-align: top;" ac:local-id="0003">
 					<br/>
 				</td>
 				<td colspan="4" style="text-align: left;vertical-align: top;">
