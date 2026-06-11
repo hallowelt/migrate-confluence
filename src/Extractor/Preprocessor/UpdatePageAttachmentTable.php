@@ -44,11 +44,7 @@ class UpdatePageAttachmentTable extends ProcessorBase {
 		foreach ( $this->workspaceDB->getPages() as $page ) {
 			if ( !isset( $page['page_id'] )
 				|| !isset( $page['wiki_title'] )
-				|| !isset( $page['content_status'] )
 			) {
-				continue;
-			}
-			if ( $page['content_status'] !== 'current' ) {
 				continue;
 			}
 			$pageIdToWikiTitleMap[(int)$page['page_id']] = (string)$page['wiki_title'];
@@ -69,14 +65,7 @@ class UpdatePageAttachmentTable extends ProcessorBase {
 				|| !isset( $attachment['space_id'] )
 				|| !isset( $attachment['filename'] )
 				|| !isset( $attachment['container_id'] )
-				|| !isset( $attachment['content_status'] )
-				// historical versions
-				|| $attachment['original_version_id'] !== -1
 			) {
-				continue;
-			}
-
-			if ( $attachment['content_status'] !== 'current' ) {
 				continue;
 			}
 

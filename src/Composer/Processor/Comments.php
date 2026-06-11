@@ -42,7 +42,6 @@ class Comments extends ProcessorBase {
 		foreach ( $comments as $comment ) {
 			$commentId = $comment['comment_id'];
 			$containerContentId = $comment['container_id'];
-			$contentStatus = $comment['content_status'];
 			$wikiTitle = $comment['wiki_title'];
 
 			if ( $this->skipHelper->skipWikiTitle( $wikiTitle ) ) {
@@ -52,7 +51,7 @@ class Comments extends ProcessorBase {
 			$this->output->writeln( "Processing comments for page title $wikiTitle ..." );
 
 			// Only handle page-level comments with content status 'current'
-			if ( $containerContentId === null || $contentStatus !== 'current' ) {
+			if ( $containerContentId === null ) {
 				continue;
 			}
 

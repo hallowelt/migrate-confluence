@@ -13,8 +13,8 @@ class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
 		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
 			$categories = [];
 
-			if ( isset( $attachment['page_id'] ) && isset( $attachment['content_status'] )
-				&& strtolower( (string)$attachment['content_status'] ) === 'current'
+			if ( isset( $attachment['page_id'] ) && isset( $attachment['original_version_id'] )
+				&& (int)$attachment['original_version_id'] === -1
 			) {
 				if ( !isset( $attachment['collection']['labellings'] ) ) {
 					continue;

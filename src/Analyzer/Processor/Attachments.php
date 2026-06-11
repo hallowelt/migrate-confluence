@@ -131,7 +131,6 @@ class Attachments extends ProcessorBase {
 			$confluenceFilename,
 			$this->guessFileExtension( $attachmentReference, $confluenceFilename ),
 			$containerContentId,
-			strtolower( $contentStatus ),
 			$version,
 			$revisionTimestamp,
 			$lastModifier,

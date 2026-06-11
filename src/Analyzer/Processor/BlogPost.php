@@ -131,7 +131,6 @@ class BlogPost extends ProcessorBase {
 			'1',
 			$revisionTimestamp,
 			$lastModifier,
-			strtolower( $contentStatus ),
 			$version,
 			$originalVersionId,
 			$bodyContentIds,
