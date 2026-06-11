@@ -3272,9 +3272,9 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
 			LEFT JOIN pages p ON p.page_id = c.container_id
-			WHERE c.content_class = :class_page'
+			WHERE c.content_class = :content_class'
 		);
-		$transaction->bindValue( ':class_page', 'Page', SQLITE3_TEXT );
+		$transaction->bindValue( ':content_class', 'Page', SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
@@ -3293,9 +3293,9 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
 			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
-			WHERE c.content_class = :class_blogpost'
+			WHERE c.content_class = :content_class'
 		);
-		$transaction->bindValue( ':class_blogpost', 'BlogPost', SQLITE3_TEXT );
+		$transaction->bindValue( ':content_class', 'BlogPost', SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
