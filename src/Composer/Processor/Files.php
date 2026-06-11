@@ -210,7 +210,7 @@ class Files extends FileProcessorBase {
 			$attachmentPageTitle = "File:$filename";
 			$data = file_get_contents( $file );
 
-			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $data );
+			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $data, "result/images/$filename" );
 
 			// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 			$this->builder->addFileRevision(

@@ -43,7 +43,7 @@ class WikiFileXmlBuilder {
 			$data['timestamp'] = $timestamp;
 		}
 
-		if ( $timestamp !== '' ) {
+		if ( $contributor !== '' ) {
 			$data['contributor'] = $contributor;
 		}
 
