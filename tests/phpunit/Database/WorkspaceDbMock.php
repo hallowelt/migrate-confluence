@@ -414,7 +414,6 @@ class WorkspaceDbMock {
 			$wikiTitle,
 			'20240101000000',
 			'',
-			'current',
 			'1',
 			-1,
 			[ $bodyContentId ],
