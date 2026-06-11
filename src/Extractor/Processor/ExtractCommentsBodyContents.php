@@ -18,8 +18,9 @@ class ExtractCommentsBodyContents extends ExtractSpaceDescriptionBodyContents {
 				continue;
 			}
 
-			// Comments composer currently handles page-level comments only.
-			if ( (string)$comment['content_class'] !== 'Page' ) {
+			// Comments composer handles both page-level and blog post comments.
+			if ( !in_array( (string)$comment['content_class'], [ 'Page', 'BlogPost' ], true )
+			) {
 				continue;
 			}
 

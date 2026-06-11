@@ -137,6 +137,15 @@
         <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
     </object>
 
+    <object class="Comment" package="com.atlassian.confluence.pages">
+        <id name="id">30000003</id>
+        <property name="contentStatus">current</property>
+        <property name="creationDate">2020-06-15 09:00:00.000</property>
+        <property name="lastModificationDate">2020-06-15 09:00:00.000</property>
+        <property name="containerContent" class="BlogPost" package="com.atlassian.confluence.pages"><id name="id">10000002</id></property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+    </object>
+
     <object class="BodyContent" package="com.atlassian.confluence.core">
         <id name="id">20000001</id>
         <property name="body"><![CDATA[<h3>Image URL</h3><p><span class="confluence-embedded-file-wrapper"><ac:image ac:border="true"><ri:url ri:value="https://example.com/download/attachments/12345678/test-image.png?version=1&amp;modificationDate=1000000000000&amp;api=v2" /></ac:image></span></p>]]></property>
@@ -184,6 +193,13 @@
         <property name="body"><![CDATA[<p>This is a test comment.</p>]]></property>
         <property name="bodyType">2</property>
         <property name="content" class="Comment" package="com.atlassian.confluence.pages"><id name="id">30000001</id></property>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000043</id>
+        <property name="body"><![CDATA[<p>This is a comment on the blog post.</p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Comment" package="com.atlassian.confluence.pages"><id name="id">30000003</id></property>
     </object>
 
     <object class="ConfluenceUserImpl" package="com.atlassian.confluence.user">

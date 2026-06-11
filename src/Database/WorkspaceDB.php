@@ -3270,11 +3270,32 @@ class WorkspaceDB {
 	 */
 	public function getCommentsForPages(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT c.*, p.wiki_title FROM comments c
+			'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
 			LEFT JOIN pages p ON p.page_id = c.container_id
 			WHERE c.content_class = :content_class'
 		);
 		$transaction->bindValue( ':content_class', 'Page', SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * Returns all blog-post-level comments and the corresponding blog post wiki title.
+	 *
+	 * @return array
+	 */
+	public function getCommentsForBlogPosts(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE c.content_class = :content_class'
+		);
+		$transaction->bindValue( ':content_class', 'BlogPost', SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {

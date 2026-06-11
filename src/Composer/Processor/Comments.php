@@ -28,7 +28,10 @@ class Comments extends ProcessorBase {
 	 * @return void
 	 */
 	private function addBlogPages(): void {
-		$comments = $this->dataLookup->getCommentsForPages();
+		$comments = array_merge(
+			$this->dataLookup->getCommentsForPages(),
+			$this->dataLookup->getCommentsForBlogPosts()
+		);
 		if ( empty( $comments ) ) {
 			$this->output->writeln( "No comments found, skipping comment processing." );
 			return;

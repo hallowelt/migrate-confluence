@@ -77,6 +77,13 @@ class DBComposerDataLookup {
 	/**
 	 * @return array
 	 */
+	public function getCommentsForBlogPosts(): array {
+		return $this->workspaceDB->getCommentsForBlogPosts();
+	}
+
+	/**
+	 * @return array
+	 */
 	public function getUsers(): array {
 		return $this->workspaceDB->getUsers();
 	}
