@@ -1,4 +1,69 @@
-<includeonly><div class="panel">{{#if:{{{title|}}}|
-<span class="panel__heading">'''{{{title|}}}'''</span><br />
-|}}<div class="panel__content">
-</includeonly>
+<includeonly><div class="panel">{{#if:{{{title|}}}|<div class="panel__heading" style="margin-top:2em">'''{{{title|}}}'''</div>|}}<div class="panel__content"  style="background:{{#switch: {{{bgColor|}}}
+| blue      = #E7F9FF
+| green     = #DCFFF1
+| yellow    = #FEF7C8
+| orange    = #FFE8CC
+| purple    = #F8EEFE
+| grey      = #F2F3F9
+| {{{bgColor|#F2F3F9}}}
+}}"><span style="display:table-cell; vertical-align:top; padding-top:0.1em">{{#if:{{{panelIconText|}}}|{{{panelIconText|}}}}}</span><span style="display:table-cell; vertical-align:top"></includeonly><noinclude>
+<templatedata>
+{
+	"params": {
+		"title": {
+			"label": {
+				"en": "Title",
+				"de": "Titel"
+			},
+			"description": {
+				"en": "Label above the textbox",
+				"de": "Titel über der Textbox"
+			}
+		},
+		"bgColor": {
+			"suggestedvalues": [
+				"blue",
+				"green",
+				"yellow",
+				"orange",
+				"purple",
+				"grey"
+			],
+			"label": {
+				"en": "Background color",
+				"de": "Hintergrundfarbe"
+			}
+		},
+		"panelIconText": {
+			"suggestedvalues": [
+				"🖥️",
+				"⭐",
+				"✅",
+				"❌",
+				"🌐",
+				"💡",
+				"🔐",
+				"🔔",
+				"📁",
+				"⛔",
+				"⏰"
+			],
+			"label": "Icon"
+		},
+		"panelIconId": {
+			"deprecated": true,
+			"description": {
+				"en": "Migrated ID, not considered in template output",
+				"de": "Migrierte ID, wird nicht in der Vorlagenausgabe verwendet"
+			}
+		},
+		"panelIcon": {
+			"deprecated": true,
+			"description": {
+				"en": "Migrated emoji shortcut, not considered in template output",
+				"de": "Migrierter Emoji-Shortcut, wird nicht in der Vorlagenausgabe verwendet"
+			}
+		}
+	}
+}
+</templatedata></noinclude>
