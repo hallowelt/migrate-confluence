@@ -32,13 +32,12 @@ class LocalTabGroupMacro extends MacroProcessorBase {
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 		$macroReplacement->setAttribute( 'class', "ac-localtabgroup" );
 
+		$this->macroParams( $node, $macroReplacement );
+		$this->macroBody( $node, $macroReplacement );
 		// Append the "<headertabs />" tag
 		$macroReplacement->appendChild(
 			$node->ownerDocument->createTextNode( '<headertabs />' )
 		);
-
-		$this->macroParams( $node, $macroReplacement );
-		$this->macroBody( $node, $macroReplacement );
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
