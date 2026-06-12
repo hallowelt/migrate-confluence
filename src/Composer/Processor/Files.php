@@ -34,80 +34,11 @@ class Files extends FileProcessorBase {
 	private function addPageAttachments(): void {
 		$this->output->writeln( "\nAdding page attachments...\n" );
 
-		$pageAttachments = $this->dataLookup->getPageAttachments();
-
-		foreach ( $pageAttachments as $pageAttachment ) {
-			$attachmentId = $pageAttachment['attachment_id'];
-			$attachmentPageTitle = $pageAttachment['target_attachment_filename'];
-
+		foreach ( $this->dataLookup->getPageAttachments() as $pageAttachment ) {
 			$assocPageTitle = $this->dataLookup->getWikiPageTitleFromPageId(
 				$pageAttachment['page_id']
 			);
-
-			if ( $this->skipHelper->skipWikiTitle( $assocPageTitle ) ) {
-				$this->output->writeln( "Skip attachments for page title $assocPageTitle." );
-				continue;
-			}
-			$this->output->writeln( "Processing attachments for page title $assocPageTitle ..." );
-
-			if ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
-				continue;
-			}
-
-			$filename = $this->gereralizeFilename( $attachmentPageTitle );
-
-			// We do not need DrawIO data files in our wiki, just PNG image
-			if ( $this->isDrawioDataFile( $filename ) ) {
-				continue;
-			}
-
-			$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
-			foreach ( $attachments as $attachment ) {
-				if ( isset( $attachment['attachment_reference'] ) ) {
-					$timestamp = $attachment['revision_timestamp'];
-					$userKey = $attachment['last_modifier'];
-					// File import crashes if the user is unknown
-					#$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
-					$filePath = $attachment['attachment_reference'];
-
-					if ( file_exists( $filePath ) ) {
-						$this->output->writeln( "Attachment: $filename in version from $timestamp" );
-					} else {
-						$this->output->writeln( "Attachment $filename in version from $timestamp was not found!" );
-						continue;
-					}
-
-					$testFilePath = $this->dest . '/images/' . $filename;
-					if ( file_exists( $testFilePath ) ) {
-						$this->output->writeln( "Attachment file override detected. Using override!" );
-						$filePath = $testFilePath;
-					} elseif ( file_exists( $filePath ) ) {
-						$this->output->writeln( "Upload attachment file." );
-					} else {
-						$this->output->writeln( "Attachment file not found (ID: $attachmentId)!" );
-						continue;
-					}
-
-					$attachmentContent = file_get_contents( $filePath );
-					$uploadFilePath = $this->workspace->saveUploadFile(
-						"$timestamp-$filename", $attachmentContent, "result/images/$filename"
-					);
-
-					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
-					$this->builder->addFileRevision(
-						$attachmentPageTitle,
-						$this->getRelativeFilePath( $uploadFilePath ),
-						$timestamp,
-						''
-					);
-
-					// Log file extension
-					$this->deploymentInfo->addFileExtension( $attachment['file_extension'] );
-				} else {
-					$this->output->writeln( "Attachment file was not found!" );
-				}
-			}
+			$this->processAttachment( $pageAttachment, $assocPageTitle );
 		}
 	}
 
@@ -119,79 +50,89 @@ class Files extends FileProcessorBase {
 	private function addBlogPostAttachments(): void {
 		$this->output->writeln( "\nAdding blog post attachments...\n" );
 
-		$blogPostAttachments = $this->dataLookup->getBlogPostAttachments();
-
-		foreach ( $blogPostAttachments as $blogPostAttachment ) {
-			$attachmentId = $blogPostAttachment['attachment_id'];
-			$attachmentPageTitle = $blogPostAttachment['target_attachment_filename'];
-
+		foreach ( $this->dataLookup->getBlogPostAttachments() as $blogPostAttachment ) {
 			$assocPageTitle = $this->dataLookup->getWikiBlogPostTitleFromBlogPostId(
 				$blogPostAttachment['blog_post_id']
 			);
+			$this->processAttachment( $blogPostAttachment, $assocPageTitle );
+		}
+	}
 
-			if ( $this->skipHelper->skipWikiTitle( $assocPageTitle ) ) {
-				$this->output->writeln( "Skip attachments for page title $assocPageTitle." );
-				continue;
-			}
-			$this->output->writeln( "Processing attachments for page title $assocPageTitle ..." );
+	/**
+	 * Process a single attachment entry (from either page_attachments or blog_post_attachments)
+	 * and write all its file revisions into the output XML.
+	 *
+	 * @param array $attachmentRecord Row from page_attachments or blog_post_attachments,
+	 *   must contain 'attachment_id' and 'target_attachment_filename'.
+	 * @param string|null $assocPageTitle Wiki title of the owning page or blog post.
+	 * @return void
+	 */
+	private function processAttachment( array $attachmentRecord, ?string $assocPageTitle ): void {
+		$attachmentId = $attachmentRecord['attachment_id'];
+		$attachmentPageTitle = $attachmentRecord['target_attachment_filename'];
 
-			if ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
-				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
-				continue;
-			}
+		if ( $this->skipHelper->skipWikiTitle( $assocPageTitle ) ) {
+			$this->output->writeln( "Skip attachments for page title $assocPageTitle." );
+			return;
+		}
+		$this->output->writeln( "Processing attachments for page title $assocPageTitle ..." );
 
-			$filename = $this->gereralizeFilename( $attachmentPageTitle );
+		if ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
+			$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
+			return;
+		}
 
-			// We do not need DrawIO data files in our wiki, just PNG image
-			if ( $this->isDrawioDataFile( $filename ) ) {
-				continue;
-			}
+		$filename = $this->gereralizeFilename( $attachmentPageTitle );
 
-			$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
-			foreach ( $attachments as $attachment ) {
-				if ( isset( $attachment['attachment_reference'] ) ) {
-					$timestamp = $attachment['revision_timestamp'];
-					$userKey = $attachment['last_modifier'];
-					// File import crashes if the user is unknown
-					#$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
-					$filePath = $attachment['attachment_reference'];
+		// We do not need DrawIO data files in our wiki, just PNG image
+		if ( $this->isDrawioDataFile( $filename ) ) {
+			return;
+		}
 
-					if ( file_exists( $filePath ) ) {
-						$this->output->writeln( "Attachment: $filename in version from $timestamp" );
-					} else {
-						$this->output->writeln( "Attachment $filename in version from $timestamp was not found!" );
-						continue;
-					}
+		$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
+		foreach ( $attachments as $attachment ) {
+			if ( isset( $attachment['attachment_reference'] ) ) {
+				$timestamp = $attachment['revision_timestamp'];
+				$userKey = $attachment['last_modifier'];
+				// File import crashes if the user is unknown
+				#$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
+				$filePath = $attachment['attachment_reference'];
 
-					$testFilePath = $this->dest . '/images/' . $filename;
-					if ( file_exists( $testFilePath ) ) {
-						$this->output->writeln( "Attachment file override detected. Using override!" );
-						$filePath = $testFilePath;
-					} elseif ( file_exists( $filePath ) ) {
-						$this->output->writeln( "Upload attachment file." );
-					} else {
-						$this->output->writeln( "Attachment file not found (ID: $attachmentId)!" );
-						continue;
-					}
-
-					$attachmentContent = file_get_contents( $filePath );
-					$uploadFilePath = $this->workspace->saveUploadFile(
-						"$timestamp-$filename", $attachmentContent, "result/images/$filename"
-					);
-
-					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
-					$this->builder->addFileRevision(
-						$attachmentPageTitle,
-						$this->getRelativeFilePath( $uploadFilePath ),
-						$timestamp,
-						''
-					);
-
-					// Log file extension
-					$this->deploymentInfo->addFileExtension( $attachment['file_extension'] );
+				if ( file_exists( $filePath ) ) {
+					$this->output->writeln( "Attachment: $filename in version from $timestamp" );
 				} else {
-					$this->output->writeln( "Attachment file was not found!" );
+					$this->output->writeln( "Attachment $filename in version from $timestamp was not found!" );
+					continue;
 				}
+
+				$testFilePath = $this->dest . '/images/' . $filename;
+				if ( file_exists( $testFilePath ) ) {
+					$this->output->writeln( "Attachment file override detected. Using override!" );
+					$filePath = $testFilePath;
+				} elseif ( file_exists( $filePath ) ) {
+					$this->output->writeln( "Upload attachment file." );
+				} else {
+					$this->output->writeln( "Attachment file not found (ID: $attachmentId)!" );
+					continue;
+				}
+
+				$attachmentContent = file_get_contents( $filePath );
+				$uploadFilePath = $this->workspace->saveUploadFile(
+					"$timestamp-$filename", $attachmentContent, "result/images/$filename"
+				);
+
+				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
+				$this->builder->addFileRevision(
+					$attachmentPageTitle,
+					$this->getRelativeFilePath( $uploadFilePath ),
+					$timestamp,
+					''
+				);
+
+				// Log file extension
+				$this->deploymentInfo->addFileExtension( $attachment['file_extension'] );
+			} else {
+				$this->output->writeln( "Attachment file was not found!" );
 			}
 		}
 	}
