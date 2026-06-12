@@ -1,6 +1,9 @@
-<includeonly>
-{{#ask:[[{{NAMESPACE}}:+]][[Modification date::+]]
-|format=ul
-|limit=10
-}}
-</includeonly>
+<includeonly>{{#ask:[[{{NAMESPACE}}:+]]{{#if:{{{labels|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}[[Modification date::+]]
+|?Page creator
+|?Modification date
+|format=plainlist
+|limit={{{max|8}}}
+|template=DemoRecentlyUpdatedRow
+|link=none
+|searchlabel=
+}}</includeonly>
