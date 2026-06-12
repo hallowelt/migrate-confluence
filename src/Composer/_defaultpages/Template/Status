@@ -1,1 +1,35 @@
-<includeonly><span style="display:inline-block;padding:0.2em;font-variant-caps:all-small-caps;background-color:{{{colour|none}}}">{{{title|N/A}}}</span></includeonly>
+<includeonly><span class="statusbadge" style="padding:0 0.5em; border-radius:4px; letter-spacing: .5px; text-transform: uppercase; font-weight:750; line-height:1pc; font-size:11px;display:inline-block; background-color:#{{#switch:{{{colour|none}}}|Blue=99b8f6|Green=b8de6f|Neutral=dddee1|Red=f19a92|Yellow=f1c84d|Purple=d3a2f8|dddee1}}">{{{title|N/A}}}</span></includeonly>
+<noinclude>
+<templatedata>
+{
+	"params": {
+		"colour": {
+			"label": {
+				"en": "Color",
+				"de": "Farbe"
+			},
+			"suggestedvalues": [
+				"Blue",
+				"Green",
+                "Neutral",
+				"Red",
+	            "Yellow",
+				"Purple"
+			],
+			"suggested": true
+		},
+		"title": {
+			"label": {
+				"en": "Status",
+				"de": "Status"
+			},
+			"suggested": true
+		}
+	},
+	"paramOrder": [
+		"title",
+		"colour"
+	]
+}
+</templatedata>
+</noinclude>
