@@ -31,8 +31,7 @@
 [[User:UserA|UserA]] [[User:UserB|UserB]]
 
 </div>
-|
-<div class="content-wrapper">
+| <div class="content-wrapper">
 * Magna aliqua ut enim ad minim veniam
 ** Quis nostrud exercitation ullamco laboris nisi ut aliquip
 *** **** Commodo consequat duis aute irure

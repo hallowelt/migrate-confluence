@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 class NestedHeadingsTest extends TestCase {
 
 	/**
-	 * @var array
+	 * @var string
 	 */
 	private $original = <<<TEXT
 Lorem ipsum.
@@ -24,7 +24,7 @@ dolor
 TEXT;
 
 	/**
-	 * @var array
+	 * @var string
 	 */
 	private $expected = <<<TEXT
 Lorem ipsum.

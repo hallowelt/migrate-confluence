@@ -8,136 +8,70 @@ class FixMultilineTable implements IPostprocessor {
 
 	/** @var string[] */
 	private const BLOCK_CHARS = [ '*', '#', ':', ';', '=' ];
+	private const TABLE_REGEX = '/\{\|(?:(?!\{\||\|\}).|(?R))*\|\}/s';
 
 	/**
 	 * @inheritDoc
 	 */
 	public function postprocess( string $wikiText ): string {
-		$blockChars = self::BLOCK_CHARS;
-		$blockCharsRegex = '[' . preg_quote( implode( '', $blockChars ), '/' ) . ']';
-		$wikiText = preg_replace_callback(
-			'/\{\|(.*?)\|\}/s',
-			static function ( $match ) use ( $blockChars, $blockCharsRegex ) {
-				$tableText = $match[0];
+		$processedWikiText = $wikiText;
 
-				// Pandoc splits a styled cell that contains block-level content (e.g. <h5>)
-				// into a bare cell marker on its own line followed by the attributes+content:
-				//   |
-				//   style="text-align: left;"| ===== heading =====
-				// MediaWiki requires both on one line:
-				//   | style="text-align: left;"| ===== heading =====
-				$tableText = preg_replace(
-					'/^([|!])[ \t]*\n([\w][\w-]*[ \t]*=)/m',
-					'$1 $2',
-					$tableText
-				);
+		do {
+			$previousWikiText = $processedWikiText;
+			$processedWikiText = preg_replace_callback(
+				self::TABLE_REGEX,
+				function ( array $match ): string {
+					return $this->normalizeTable( $match[0] );
+				},
+				$previousWikiText
+			);
 
-				// Ensure nested tables ({|) always start on their own line.
-				// Case 1: styled cell "| attr| {| ..." → "| attr|\n{| ..."
-				$tableText = preg_replace(
-					'/^([|!][^\n]*)\| (\{\|)/m',
-					"$1|\n$2",
-					$tableText
-				);
-				// Case 2: bare cell "| {| ..." → "|\n{| ..."
-				$tableText = preg_replace(
-					'/^([|!]) (\{\|)/m',
-					"$1\n$2",
-					$tableText
-				);
+			if ( $processedWikiText === null ) {
+				return $previousWikiText;
+			}
+		} while ( $processedWikiText !== $previousWikiText );
 
-				$lines = explode( "\n", $tableText );
+		return $processedWikiText;
+	}
 
-				$problematicLines = [];
-				// Starting with index = 1 and ending with index < count()
-				// will cut off table start ({|) and table end (|}).
-				for ( $index = 1; $index < count( $lines ); $index++ ) {
-					$line = $lines[$index];
+	private function normalizeTable( string $tableText ): string {
+		$blockCharsRegex = '[' . preg_quote( implode( '', self::BLOCK_CHARS ), '/' ) . ']';
 
-					// Fix cell/header lines where the content starts with a wikitext
-					// block construct (e.g. "| * list item" -> "|\n* list item")
-					if ( preg_match( '/^[|!] ' . $blockCharsRegex . '/', $line ) ) {
-						$problematicLines[] = $index;
-						continue;
-					}
+		// Remove blank lines between table rows and cells
+		$tableText = preg_replace( '#(^\|-[^\n]*\R)(?:[\s\t]*\R)+(?=^\|-[^\n]*$)#m', '$1', $tableText );
+		$tableText = preg_replace( '#(^![^\n]*\R)(?:[\s\t]*\R)+(?=^![^\n]*$)#m', '$1', $tableText );
+		$tableText = preg_replace( '#(^\|[^\n]*\R)(?:[\s\t]*\R)+(?=^\|[^\n]*$)#m', '$1', $tableText );
 
-					// Fix styled cell/header lines where the content after the attribute
-					// separator starts with a block construct
-					// (e.g. '| style="..."| = Heading' -> '| style="..."|' + "\n= Heading")
-					if ( preg_match( '/^[|!] .+\| ' . $blockCharsRegex . '/', $line ) ) {
-						$problematicLines[] = $index;
-						continue;
-					}
+		// Force nested tables to start on a new line
+		$tableText = preg_replace( '/^(\h*[|!][^\n]*?)\h+(\{\|)/m', "$1\n$2", $tableText );
 
-					// Only fix continuation lines that start with a wikitext
-					// block construct that must be at the start of a line
-					$firstChar = $line[0] ?? '';
-					if ( !in_array( $firstChar, $blockChars ) ) {
-						continue;
-					}
-
-					// Search backwards past blank lines to find the nearest cell start
-					$cellLineIndex = $index - 1;
-					while ( $cellLineIndex > 0 && trim( $lines[$cellLineIndex] ) === '' ) {
-						$cellLineIndex--;
-					}
-
-					$cellLine = $lines[$cellLineIndex];
-					if ( strpos( $cellLine, '|-' ) === 0 ) {
-						continue;
-					}
-					if ( strpos( $cellLine, '|' ) !== 0
-						&& strpos( $cellLine, '!' ) !== 0
-					) {
-						continue;
-					}
-
-					$problematicLines[] = $cellLineIndex;
-				}
-
-				$problematicLines = array_unique( $problematicLines );
-
-				foreach ( $problematicLines as $problematicLine ) {
-					$line = $lines[$problematicLine];
-
-					// Pattern: "| attr| * content" or "! attr| * content" — split just
-					// before the block content, preserving the attribute separator.
-					if ( strpos( $line, '! ' ) === 0 ) {
-						if ( preg_match( '/^(! .+?\| )(' . $blockCharsRegex . '.*)$/', $line, $m ) ) {
-							$newLine = rtrim( $m[1] ) . "\n" . $m[2];
-						} elseif ( preg_match( '/^(! .+?\| )(.+)$/', $line, $m ) ) {
-							// Cell has attributes but content doesn't start with a block char;
-							// keep the attribute on the cell line, move content to the next line.
-							$newLine = rtrim( $m[1] ) . "\n" . $m[2];
-						} else {
-							$newLine = "!\n" . substr( $line, 2 );
-						}
-					} elseif ( strpos( $line, '!' ) === 0 ) {
-						$newLine = "!\n" . substr( $line, 1 );
-					} elseif ( strpos( $line, '| ' ) === 0 ) {
-						if ( preg_match( '/^(\| .+?\| )(' . $blockCharsRegex . '.*)$/', $line, $m ) ) {
-							$newLine = rtrim( $m[1] ) . "\n" . $m[2];
-						} elseif ( preg_match( '/^(\| .+?\| )(.+)$/', $line, $m ) ) {
-							// Cell has attributes but content doesn't start with a block char;
-							// keep the attribute on the cell line, move content to the next line.
-							$newLine = rtrim( $m[1] ) . "\n" . $m[2];
-						} else {
-							$newLine = "|\n" . substr( $line, 2 );
-						}
-					} elseif ( strpos( $line, '|' ) === 0 ) {
-						$newLine = "|\n" . substr( $line, 1 );
-					} else {
-						continue;
-					}
-
-					$lines[$problematicLine] = $newLine;
-				}
-				return implode( "\n", $lines );
-			},
-			$wikiText
+		// Force cell content starting with block chars to a new line
+		$tableText = preg_replace(
+			'/^([|!])\h+(' . $blockCharsRegex . '.*)$/m',
+			"$1\n$2",
+			$tableText
+		);
+		$tableText = preg_replace(
+			'/^([|!]\h*[^\n]*?[|!])\h+(' . $blockCharsRegex . '.*)$/m',
+			"$1\n$2",
+			$tableText
 		);
 
-		return $wikiText;
+		// Pandoc splits a styled cell that contains block-level content (e.g. <h5>)
+		// into a bare cell marker on its own line followed by the attributes+content:
+		//   |
+		//   style="text-align: left;"|
+		//===== heading =====
+		// MediaWiki requires both on one line but not the cell content:
+		//   | style="text-align: left;"|
+		//   ===== heading =====
+		$tableText = preg_replace(
+			'/^([|!])[\s\t]*\n([\w][\w-]*[\s\t]*=)/m',
+			'$1 $2',
+			$tableText
+		);
+
+		return $tableText;
 	}
 
 }
