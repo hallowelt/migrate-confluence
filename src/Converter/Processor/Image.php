@@ -284,10 +284,11 @@ class Image implements IProcessor {
 		$pageEl = $node->getElementsByTagName( 'page' )->item( 0 );
 
 		$rawPageTitle = $this->rawPageTitle;
+		$linkPageTitle = $rawPageTitle;
 		$spaceId = $this->currentSpaceId;
 		if ( $pageEl instanceof DOMElement ) {
 			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
-				$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
+				$linkPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			}
 			$spaceKey = '';
 			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
@@ -310,7 +311,7 @@ class Image implements IProcessor {
 		$imagePageLinkHelper = new ImagePageLinkHelper(
 			$this->dataLookup,
 			$this->currentSpaceId,
-			$rawPageTitle
+			$linkPageTitle
 		);
 		$target = $imagePageLinkHelper->getLinkTarget( $link );
 		if ( !empty( $target ) ) {
