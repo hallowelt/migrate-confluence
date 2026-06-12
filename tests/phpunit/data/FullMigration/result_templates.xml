@@ -27,14 +27,6 @@
     </revision>
   </page>
   <page>
-    <title>Template:Info</title>
-    <revision>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>{{Textbox|boxtype=info|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
-    </revision>
-  </page>
-  <page>
     <title>Template:Layout.css</title>
     <revision>
       <model>sanitized-css</model>
@@ -74,14 +66,6 @@
 .ac-layout-section.two_left_sidebar .ac-layout-cell:nth-child(2) {
 	flex: 66%;
 }</text>
-    </revision>
-  </page>
-  <page>
-    <title>Template:Tip</title>
-    <revision>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>{{Textbox|boxtype=tip|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
     </revision>
   </page>
   <page>
