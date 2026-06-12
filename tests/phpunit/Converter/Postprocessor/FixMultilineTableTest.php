@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Postprocessor;
 

@@ -61,19 +61,19 @@ class Table implements IDomPreprocessor {
 
 		// Table rows (tr)
 		$trEls = $table->getElementsByTagName( 'tr' );
-		foreach( $trEls as $trEl ) {
+		foreach ( $trEls as $trEl ) {
 			$nonLiveList[] = $trEl;
 		}
 
 		// Table heads (th)
 		$thEls = $table->getElementsByTagName( 'th' );
-		foreach( $thEls as $thEl ) {
+		foreach ( $thEls as $thEl ) {
 			$nonLiveList[] = $thEl;
 		}
 
 		// Table cells (td)
 		$tdEls = $table->getElementsByTagName( 'td' );
-		foreach( $tdEls as $tdEl ) {
+		foreach ( $tdEls as $tdEl ) {
 			$nonLiveList[] = $tdEl;
 		}
 
