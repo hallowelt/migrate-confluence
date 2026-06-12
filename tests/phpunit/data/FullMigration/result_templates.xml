@@ -337,7 +337,19 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>{{:{{{target|}}}}}</text>
+      <text>&lt;includeonly&gt;
+{{#dpl:
+|title   = {{{target|}}}
+|include = {{{name|}}}
+}}
+
+Target:{{{target|}}}
+
+Name:{{{name|}}}
+
+
+&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>

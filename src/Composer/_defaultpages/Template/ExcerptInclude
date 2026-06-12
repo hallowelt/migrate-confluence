@@ -1,1 +1,12 @@
-{{:{{{target|}}}}}
+<includeonly>
+{{#dpl:
+|title   = {{{target|}}}
+|include = {{{name|}}}
+}}
+
+Target:{{{target|}}}
+
+Name:{{{name|}}}
+
+
+</includeonly>
