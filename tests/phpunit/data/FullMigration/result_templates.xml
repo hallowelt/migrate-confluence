@@ -11,7 +11,7 @@
     </revision>
   </page>
   <page>
-    <title>Template:Info</title>
+    <title>Template:Important</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
@@ -19,7 +19,7 @@
     </revision>
   </page>
   <page>
-    <title>Template:Tip</title>
+    <title>Template:Warning</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
