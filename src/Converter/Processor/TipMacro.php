@@ -24,6 +24,6 @@ class TipMacro extends ConvertMacroToTemplateBase {
 	 * @inheritDoc
 	 */
 	protected function getWikiTextTemplateName(): string {
-		return 'Tip';
+		return 'Success';
 	}
 }

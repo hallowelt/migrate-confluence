@@ -24,6 +24,6 @@ class WarningMacro extends ConvertMacroToTemplateBase {
 	 * @inheritDoc
 	 */
 	protected function getWikiTextTemplateName(): string {
-		return 'Warning';
+		return 'Important';
 	}
 }
