@@ -134,11 +134,48 @@
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;This template is used to convert the structured macro "contentbylabel".&lt;/noinclude&gt;
 &lt;includeonly&gt;
-{{#ask:{{#if:{{{conditions|}}}|{{{conditions|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
+{{#ask:{{#if:{{{conditions|}}}|[[Category:{{#arraymap:{{{conditions|}}}|,|@@|@@|{{!}}{{!}}}}]]|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
 |format=ul
-|limit=999
+|template=DemoContentByLabel/{{{path|pagename}}}
+|limit={{{max|999}}}
+|link=none
+|searchlabel=
 }}
-&lt;/includeonly&gt;</text>
+&lt;/includeonly&gt;
+&lt;noinclude&gt;
+&lt;templatedata&gt;
+{
+	"params": {
+		"conditions": {},
+		"labels": {},
+		"path": {
+			"label": {
+				"en": "Display path",
+				"de": "Anzeigepfad"
+			},
+			"description": {
+				"en": "What path level to show",
+				"de": "Welche Seitenpfadebenen angezeigt werden soll"
+			},
+			"suggestedvalues": [
+				"fullpagename",
+	            "pagename",
+				"basepagename",
+				"subpagename"
+			],
+			"default": "pagename",
+			"suggested": true
+		}
+	},
+	"paramOrder": [
+		"path",
+		"conditions",
+		"labels"
+	]
+}
+&lt;/templatedata&gt;
+&lt;/noinclude&gt;
+</text>
     </revision>
   </page>
   <page>
