@@ -1,7 +1,43 @@
 <noinclude>This template is used to convert the structured macro "contentbylabel".</noinclude>
 <includeonly>
-{{#ask:{{#if:{{{conditions|}}}|{{{conditions|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
+{{#ask:{{#if:{{{conditions|}}}|[[Category:{{#arraymap:{{{conditions|}}}|,|@@|@@|{{!}}{{!}}}}]]|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
 |format=ul
-|limit=999
+|template=DemoContentByLabel/{{{path|pagename}}}
+|limit={{{max|999}}}
+|link=none
+|searchlabel=
 }}
 </includeonly>
+<noinclude>
+<templatedata>
+{
+	"params": {
+		"conditions": {},
+		"labels": {},
+		"path": {
+			"label": {
+				"en": "Display path",
+				"de": "Anzeigepfad"
+			},
+			"description": {
+				"en": "What path level to show",
+				"de": "Welche Seitenpfadebenen angezeigt werden soll"
+			},
+			"suggestedvalues": [
+				"fullpagename",
+	            "pagename",
+				"basepagename",
+				"subpagename"
+			],
+			"default": "pagename",
+			"suggested": true
+		}
+	},
+	"paramOrder": [
+		"path",
+		"conditions",
+		"labels"
+	]
+}
+</templatedata>
+</noinclude>
