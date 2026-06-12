@@ -11,15 +11,7 @@
     </revision>
   </page>
   <page>
-    <title>Template:LayoutStart</title>
-    <revision>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;&lt;templatestyles src="Template:Layout.css" /&gt;&lt;div class="ac-layout"&gt;&lt;/includeonly&gt;</text>
-    </revision>
-  </page>
-  <page>
-    <title>Template:Important</title>
+    <title>Template:Info</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
@@ -27,45 +19,11 @@
     </revision>
   </page>
   <page>
-    <title>Template:Layout.css</title>
+    <title>Template:Tip</title>
     <revision>
-      <model>sanitized-css</model>
-      <format>text/css</format>
-      <text>.ac-layout-section {
-	display: flex;
-}
-
-.ac-layout-section.three_equal .ac-layout-cell {
-	flex: 33%;
-}
-
-.ac-layout-section.two_equal .ac-layout-cell {
-	flex: 50%;
-}
-
-.ac-layout-section.three_with_sidebars .ac-layout-cell:nth-child(1) {
-	flex: 25%;
-}
-.ac-layout-section.three_with_sidebars .ac-layout-cell:nth-child(2) {
-	flex: 50%;
-}
-.ac-layout-section.three_with_sidebars .ac-layout-cell:nth-child(3) {
-	flex: 25%;
-}
-
-.ac-layout-section.two_right_sidebar .ac-layout-cell:nth-child(1) {
-	flex: 66%;
-}
-.ac-layout-section.two_right_sidebar .ac-layout-cell:nth-child(2) {
-	flex: 33%;
-}
-
-.ac-layout-section.two_left_sidebar .ac-layout-cell:nth-child(1) {
-	flex: 33%;
-}
-.ac-layout-section.two_left_sidebar .ac-layout-cell:nth-child(2) {
-	flex: 66%;
-}</text>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{Textbox|boxtype=tip|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
     </revision>
   </page>
   <page>
@@ -111,12 +69,16 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;
-{{#ask:[[{{NAMESPACE}}:+]][[Modification date::+]]
-|format=ul
-|limit=10
-}}
-&lt;/includeonly&gt;</text>
+      <text>&lt;includeonly&gt;{{#ask:[[{{NAMESPACE}}:+]]{{#if:{{{labels|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}[[Modification date::+]]
+|?Page creator
+|?Modification date
+|format=plainlist
+|limit={{{max|8}}}
+|template=DemoRecentlyUpdatedRow
+|link=none
+|searchlabel=
+}}&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -126,11 +88,48 @@
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;This template is used to convert the structured macro "contentbylabel".&lt;/noinclude&gt;
 &lt;includeonly&gt;
-{{#ask:{{#if:{{{conditions|}}}|{{{conditions|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
+{{#ask:{{#if:{{{conditions|}}}|[[Category:{{#arraymap:{{{conditions|}}}|,|@@|@@|{{!}}{{!}}}}]]|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
 |format=ul
-|limit=999
+|template=DemoContentByLabel/{{{path|pagename}}}
+|limit={{{max|999}}}
+|link=none
+|searchlabel=
 }}
-&lt;/includeonly&gt;</text>
+&lt;/includeonly&gt;
+&lt;noinclude&gt;
+&lt;templatedata&gt;
+{
+	"params": {
+		"conditions": {},
+		"labels": {},
+		"path": {
+			"label": {
+				"en": "Display path",
+				"de": "Anzeigepfad"
+			},
+			"description": {
+				"en": "What path level to show",
+				"de": "Welche Seitenpfadebenen angezeigt werden soll"
+			},
+			"suggestedvalues": [
+				"fullpagename",
+	            "pagename",
+				"basepagename",
+				"subpagename"
+			],
+			"default": "pagename",
+			"suggested": true
+		}
+	},
+	"paramOrder": [
+		"path",
+		"conditions",
+		"labels"
+	]
+}
+&lt;/templatedata&gt;
+&lt;/noinclude&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -167,13 +166,18 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;{{#ask:[[-Subpage::{{{page|{{FULLPAGENAME}}}}}]]
-|format=template
-|template=SubpageListRow
-|userparam={{{page|{{FULLPAGENAME}}}}}
-|limit=9999
+      <text>&lt;includeonly&gt;{{#ask: [[~{{{page|{{FULLPAGENAME}}}}}/*]] [[Modification date::+]]
+|?=title
+|format=ul
+|template=DemoSubpageListRow 
+&lt;!-- |userparam={{{page|{{FULLPAGENAME}}}}} --&gt;
+|limit={{#switch:{{{first|10}}}|0=100|{{{first|10}}}}}
 |link=none
-}}&lt;/includeonly&gt;</text>
+|searchlabel=
+|sort={{#switch:{{{sort|}}}|title=|creation=creation date}}
+|order={{#switch:{{{sort|}}}|title=asc|creation=creation date=desc}}
+}}&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -209,10 +213,76 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;&lt;div class="panel"&gt;{{#if:{{{title|}}}|
-&lt;span class="panel__heading"&gt;'''{{{title|}}}'''&lt;/span&gt;&lt;br /&gt;
-|}}&lt;div class="panel__content"&gt;
-&lt;/includeonly&gt;</text>
+      <text>&lt;includeonly&gt;&lt;div class="panel"&gt;{{#if:{{{title|}}}|&lt;div class="panel__heading" style="margin-top:2em"&gt;'''{{{title|}}}'''&lt;/div&gt;|}}&lt;div class="panel__content"  style="background:{{#switch: {{{bgColor|}}}
+| blue      = #E7F9FF
+| green     = #DCFFF1
+| yellow    = #FEF7C8
+| orange    = #FFE8CC
+| purple    = #F8EEFE
+| grey      = #F2F3F9
+| {{{bgColor|#F2F3F9}}}
+}}"&gt;&lt;span style="display:table-cell; vertical-align:top; padding-top:0.1em"&gt;{{#if:{{{panelIconText|}}}|{{{panelIconText|}}}}}&lt;/span&gt;&lt;span style="display:table-cell; vertical-align:top"&gt;&lt;/includeonly&gt;&lt;noinclude&gt;
+&lt;templatedata&gt;
+{
+	"params": {
+		"title": {
+			"label": {
+				"en": "Title",
+				"de": "Titel"
+			},
+			"description": {
+				"en": "Label above the textbox",
+				"de": "Titel über der Textbox"
+			}
+		},
+		"bgColor": {
+			"suggestedvalues": [
+				"blue",
+				"green",
+				"yellow",
+				"orange",
+				"purple",
+				"grey"
+			],
+			"label": {
+				"en": "Background color",
+				"de": "Hintergrundfarbe"
+			}
+		},
+		"panelIconText": {
+			"suggestedvalues": [
+				"🖥️",
+				"⭐",
+				"✅",
+				"❌",
+				"🌐",
+				"💡",
+				"🔐",
+				"🔔",
+				"📁",
+				"⛔",
+				"⏰"
+			],
+			"label": "Icon"
+		},
+		"panelIconId": {
+			"deprecated": true,
+			"description": {
+				"en": "Migrated ID, not considered in template output",
+				"de": "Migrierte ID, wird nicht in der Vorlagenausgabe verwendet"
+			}
+		},
+		"panelIcon": {
+			"deprecated": true,
+			"description": {
+				"en": "Migrated emoji shortcut, not considered in template output",
+				"de": "Migrierter Emoji-Shortcut, wird nicht in der Vorlagenausgabe verwendet"
+			}
+		}
+	}
+}
+&lt;/templatedata&gt;&lt;/noinclude&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -230,7 +300,10 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;{{#ifeq:{{#titleparts: {{{1}}} | -1 }}|{{{#userparam}}}|*[[{{{1}}}|{{#titleparts: {{{1}}} | | -1 }}]]}}&lt;/includeonly&gt;</text>
+      <text>&lt;includeonly&gt;
+[[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]]
+&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -254,7 +327,42 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;&lt;span style="display:inline-block;padding:0.2em;font-variant-caps:all-small-caps;background-color:{{{colour|none}}}"&gt;{{{title|N/A}}}&lt;/span&gt;&lt;/includeonly&gt;</text>
+      <text>&lt;includeonly&gt;&lt;span class="statusbadge" style="padding:0 0.5em; border-radius:4px; letter-spacing: .5px; text-transform: uppercase; font-weight:750; line-height:1pc; font-size:11px;display:inline-block; background-color:#{{#switch:{{{colour|none}}}|Blue=99b8f6|Green=b8de6f|Neutral=dddee1|Red=f19a92|Yellow=f1c84d|Purple=d3a2f8|dddee1}}"&gt;{{{title|N/A}}}&lt;/span&gt;&lt;/includeonly&gt;
+&lt;noinclude&gt;
+&lt;templatedata&gt;
+{
+	"params": {
+		"colour": {
+			"label": {
+				"en": "Color",
+				"de": "Farbe"
+			},
+			"suggestedvalues": [
+				"Blue",
+				"Green",
+                "Neutral",
+				"Red",
+	            "Yellow",
+				"Purple"
+			],
+			"suggested": true
+		},
+		"title": {
+			"label": {
+				"en": "Status",
+				"de": "Status"
+			},
+			"suggested": true
+		}
+	},
+	"paramOrder": [
+		"title",
+		"colour"
+	]
+}
+&lt;/templatedata&gt;
+&lt;/noinclude&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -272,7 +380,19 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>{{:{{{target|}}}}}</text>
+      <text>&lt;includeonly&gt;
+{{#dpl:
+|title   = {{{target|}}}
+|include = {{{name|}}}
+}}
+
+Target:{{{target|}}}
+
+Name:{{{name|}}}
+
+
+&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -288,9 +408,10 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;&lt;/div&gt;
+      <text>&lt;includeonly&gt;&lt;/span&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;/includeonly&gt;</text>
+&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -362,6 +483,16 @@
       <text>&lt;includeonly&gt;
 |}
 &lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:RecentlyUpdatedRow</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;[[{{{1}}}|&lt;i class="bi bi-card-text prefix"&gt;&lt;/i&gt;]] [[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]]
+&lt;div class="byline prefixicon"&gt;&lt;small&gt;{{#switch:{{CONTENTLANG}}|en={{#time:M d, Y|{{{3}}}}}|de={{#time:d.M Y|{{{3}}}}}|{{#time:M/d/YY|{{{3}}}}} }} {{#if:{{{2|}}}|· contributed by [[{{{2}}}|{{PAGENAME:{{{2}}} }}]]|}}&lt;/small&gt;&lt;/div&gt;&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>

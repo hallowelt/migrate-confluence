@@ -1,7 +1,11 @@
-<includeonly>{{#ask:[[-Subpage::{{{page|{{FULLPAGENAME}}}}}]]
-|format=template
-|template=SubpageListRow
-|userparam={{{page|{{FULLPAGENAME}}}}}
-|limit=9999
+<includeonly>{{#ask: [[~{{{page|{{FULLPAGENAME}}}}}/*]] [[Modification date::+]]
+|?=title
+|format=ul
+|template=DemoSubpageListRow 
+<!-- |userparam={{{page|{{FULLPAGENAME}}}}} -->
+|limit={{#switch:{{{first|10}}}|0=100|{{{first|10}}}}}
 |link=none
+|searchlabel=
+|sort={{#switch:{{{sort|}}}|title=|creation=creation date}}
+|order={{#switch:{{{sort|}}}|title=asc|creation=creation date=desc}}
 }}</includeonly>

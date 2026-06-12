@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<div class="ac-localtabgroup">&lt;headertabs /&gt;
+	<div class="ac-localtabgroup">
 			<ac:macro xmlns:ac="sample_namespace" ac:name="localtab">
 				<ac:parameter ac:name="title">Test</ac:parameter>
 				<ac:rich-text-body>
@@ -9,5 +9,5 @@
 					</p>
 				</ac:rich-text-body>
 			</ac:macro>
-		</div>
+		&lt;headertabs /&gt;</div>
 </xml>

@@ -82,12 +82,6 @@ class TitleBuilder {
 		$titleParts = $this->addParentTitles( $pageId, $title );
 
 		foreach ( $titleParts as $titlePart ) {
-			$titlePart = str_replace(
-				[ ':', '%', '?', '#', '<', '>', '+', '[', ']', '{', '}', '|' ],
-				'_',
-				$titlePart
-			);
-			$titleParts = preg_replace( '/_+/', '_', $titlePart );
 			$builder->appendTitleSegment( $titlePart );
 		}
 
