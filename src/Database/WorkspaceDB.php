@@ -98,6 +98,7 @@ class WorkspaceDB {
 			'attachment_invalid_titles',
 			'attachments_meta',
 			'page_attachments',
+			'blog_post_attachments',
 			'additional_attachments',
 			'users',
 			'content_properties',
@@ -164,6 +165,9 @@ class WorkspaceDB {
 			'idx_page_attachments_target', 'page_attachments', 'target_attachment_filename'
 		);
 		$this->doCreateIndex(
+			'idx_blog_post_attachments_target', 'blog_post_attachments', 'target_attachment_filename'
+		);
+		$this->doCreateIndex(
 			'idx_additional_attachments_target', 'additional_attachments', 'target_attachment_filename'
 		);
 		$this->doCreateIndex(
@@ -217,6 +221,7 @@ class WorkspaceDB {
 		$this->createTableBodyContentBodies();
 		$this->createTableAttachments();
 		$this->createTablePageAttachments();
+		$this->createTableBlogPostAttachments();
 		$this->createTableAdditionalAttachments();
 		$this->createTableUsers();
 		$this->createTableContentProperties();
@@ -372,7 +377,7 @@ class WorkspaceDB {
 				last_modifier CHAR,
 				original_version_id INT,
 				version CHAR,
-				parent_page_id INT,		
+				parent_page_id INT,
 				body_content_ids BLOB,
 				historical_ids BLOB,
 				properties BLOB,
@@ -462,6 +467,17 @@ class WorkspaceDB {
 			'CREATE TABLE IF NOT EXISTS page_attachments (
 				attachment_id INT PRIMARY KEY,
 				page_id INT,
+				original_attachment_filename CHAR,
+				target_attachment_filename CHAR
+			);'
+		);
+	}
+
+	private function createTableBlogPostAttachments(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS blog_post_attachments (
+				attachment_id INT PRIMARY KEY,
+				blog_post_id INT,
 				original_attachment_filename CHAR,
 				target_attachment_filename CHAR
 			);'
@@ -1950,6 +1966,33 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 *
+	 * @return string|null
+	 */
+	public function getWikiBlogPostTitleFromSpaceId( int $spaceId, string $confluenceTitle ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_title FROM blog_posts
+			WHERE space_id = :space_id
+			AND confluence_title = :confluence_title
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['wiki_title'] ) ? $data['wiki_title'] : null;
+	}
+
+	/**
 	 * @param int $pageId
 	 *
 	 * @return string|null
@@ -2782,6 +2825,40 @@ class WorkspaceDB {
 
 	/**
 	 * @param int $attachmentId
+	 * @param int $blogPostId
+	 * @param string $originalAttachmentFilename
+	 * @param string $targetAttachmentFilename
+	 * @return bool
+	 */
+	public function addBlogPostAttachment(
+		int $attachmentId,
+		int $blogPostId,
+		string $originalAttachmentFilename,
+		string $targetAttachmentFilename
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO blog_post_attachments (
+				attachment_id,
+				blog_post_id,
+				original_attachment_filename,
+				target_attachment_filename
+			) VALUES (
+				:attachment_id,
+				:blog_post_id,
+				:original_attachment_filename,
+				:target_attachment_filename
+			)'
+		);
+
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':blog_post_id', $blogPostId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
+		$transaction->bindValue( ':target_attachment_filename', $targetAttachmentFilename, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $attachmentId
 	 * @param string $originalAttachmentFilename
 	 * @param string $targetAttachmentFilename
 	 * @return bool
@@ -2810,55 +2887,7 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * Get the wikit file title for a given space key, confluence title and original attachment filename.
-	 * If no entry is found, return the original attachment filename as title
-	 * and mark it as broken link (isBroken = true) in the returned array.
-	 *
-	 * @param string $spaceKey
-	 * @param string $confluenceTitle
-	 * @param string $originalAttachmentFilename
-	 * @return array
-	 */
-	public function getWikiFileTitleFromSpaceKey(
-		string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename
-	): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT pa.target_attachment_filename FROM page_attachments pa
-			JOIN pages p ON pa.page_id = p.page_id
-			WHERE p.space_key = :space_key AND p.confluence_title = :confluence_title
-			AND pa.original_attachment_filename = :original_attachment_filename
-			LIMIT 1'
-		);
-		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
-		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
-
-		$result = $transaction->execute();
-		if ( $result === false ) {
-			return [
-				'title' => $originalAttachmentFilename,
-				'isBroken' => true
-			];
-		}
-
-		$data = $result->fetchArray( SQLITE3_ASSOC );
-		$result->finalize();
-
-		if ( $data === false || !isset( $data['target_attachment_filename'] ) ) {
-			return [
-				'title' => $originalAttachmentFilename,
-				'isBroken' => true
-			];
-		}
-
-		return [
-			'title' => $data['target_attachment_filename'],
-			'isBroken' => false
-		];
-	}
-
-	/**
-	 * Get the wikit file title for a given space id, confluence title and original attachment filename.
+	 * Get the wiki file title for a given space id, confluence title and original attachment filename.
 	 *
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
@@ -2866,6 +2895,25 @@ class WorkspaceDB {
 	 * @return string|null
 	 */
 	public function getWikiFileTitleFromSpaceId(
+		int $spaceId, string $confluenceTitle, string $originalAttachmentFilename
+	): ?string {
+		$result = $this->getPageWikiFileTitleFromSpaceId( $spaceId, $confluenceTitle, $originalAttachmentFilename );
+		if ( $result === null ) {
+			$result = $this->getBlogPostWikiFileTitleFromSpaceId(
+				$spaceId, $confluenceTitle, $originalAttachmentFilename );
+		}
+		return $result;
+	}
+
+	/**
+	 * Get the wiki file title for a given space id, confluence title and original attachment filename.
+	 *
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $originalAttachmentFilename
+	 * @return string|null
+	 */
+	private function getPageWikiFileTitleFromSpaceId(
 		int $spaceId, string $confluenceTitle, string $originalAttachmentFilename
 	): ?string {
 		$transaction = $this->cachedPrepare(
@@ -2895,14 +2943,55 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Get the wiki file title for a given space id, confluence title and original attachment filename.
+	 *
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $originalAttachmentFilename
+	 * @return string|null
+	 */
+	private function getBlogPostWikiFileTitleFromSpaceId(
+		int $spaceId, string $confluenceTitle, string $originalAttachmentFilename
+	): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT bpa.target_attachment_filename FROM blog_post_attachments bpa
+			JOIN blog_posts bp ON bpa.blog_post_id = bp.page_id
+			WHERE bp.space_id = :space_id AND bp.confluence_title = :confluence_title
+			AND bpa.original_attachment_filename = :original_attachment_filename
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['target_attachment_filename'] ) ) {
+			return null;
+		}
+
+		return $data['target_attachment_filename'];
+	}
+
+	/**
+	 * get an attachment reference either from a page or a blog post
+	 *
 	 * @param string $attachmentTargetFileTitle
 	 * @return string|null
 	 */
 	public function getAttachmentReference( string $attachmentTargetFileTitle ): ?string {
 		$transaction = $this->cachedPrepare(
 			'SELECT a.attachment_reference FROM attachments a
-			JOIN page_attachments pa ON pa.attachment_id = a.attachment_id
+			LEFT JOIN page_attachments pa ON pa.attachment_id = a.attachment_id
+			LEFT JOIN blog_post_attachments bpa ON bpa.attachment_id = a.attachment_id
 			WHERE pa.target_attachment_filename = :target_attachment_filename
+			OR bpa.target_attachment_filename = :target_attachment_filename
 			ORDER BY a.revision_timestamp DESC
 			LIMIT 1'
 		);
@@ -2961,20 +3050,23 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * Get all target file titles for a given space key and confluence title.
+	 * Returns all target file titles attached to a given blog post.
 	 *
-	 * @param string $spaceKey
-	 * @param string $confluenceTitle
-	 * @return array
+	 * @param int $spaceId
+	 * @param string $rawBlogPostTitle
+	 * @return string[]
 	 */
-	public function getAllTargetFileTitlesBySpaceKey( string $spaceKey, string $confluenceTitle ): array {
+	public function getWikiFileTitlesForBlogPost( int $spaceId, string $rawBlogPostTitle ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT pa.original_attachment_filename, pa.target_attachment_filename FROM page_attachments pa
-			JOIN pages p ON pa.page_id = p.page_id
-			WHERE p.space_key = :space_key AND p.confluence_title = :confluence_title'
+			'SELECT bpa.target_attachment_filename FROM attachments a
+			JOIN blog_posts b ON a.container_id = b.page_id
+			JOIN blog_post_attachments bpa ON bpa.attachment_id = a.attachment_id AND bpa.blog_post_id = b.page_id
+			WHERE b.space_id = :space_id
+			AND b.confluence_title = :confluence_title
+			ORDER BY bpa.target_attachment_filename ASC'
 		);
-		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $rawBlogPostTitle, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
@@ -2984,17 +3076,14 @@ class WorkspaceDB {
 		$fileTitles = [];
 		$row = $result->fetchArray( SQLITE3_ASSOC );
 		while ( $row ) {
-			if ( isset( $row['original_attachment_filename'] ) && isset( $row['target_attachment_filename'] ) ) {
-				$fileTitles[] = [
-					'original' => $row['original_attachment_filename'],
-					'target' => $row['target_attachment_filename']
-				];
+			if ( isset( $row['target_attachment_filename'] ) && $row['target_attachment_filename'] !== '' ) {
+				$fileTitles[] = $row['target_attachment_filename'];
 			}
 			$row = $result->fetchArray( SQLITE3_ASSOC );
 		}
 		$result->finalize();
 
-		return $fileTitles;
+		return array_values( array_unique( $fileTitles ) );
 	}
 
 	/**
@@ -3004,6 +3093,23 @@ class WorkspaceDB {
 	public function checkPageAttachmentWikiTitleExists( string $wikiTitle ): bool {
 		$transaction = $this->cachedPrepare(
 			'SELECT 1 FROM page_attachments WHERE target_attachment_filename = :wiki_title LIMIT 1'
+		);
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result->fetchArray() !== false ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @param string $wikiTitle
+	 * @return bool
+	 */
+	public function checkBlogPostAttachmentWikiTitleExists( string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'SELECT 1 FROM blog_post_attachments WHERE target_attachment_filename = :wiki_title LIMIT 1'
 		);
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 
@@ -3041,6 +3147,13 @@ class WorkspaceDB {
 	/**
 	 * @return array
 	 */
+	public function getBlogPostAttachments(): array {
+		return $this->getAllData( 'blog_post_attachments' );
+	}
+
+	/**
+	 * @return array
+	 */
 	public function getAdditionalAttachments(): array {
 		return $this->getAllData( 'additional_attachments' );
 	}
@@ -3054,6 +3167,24 @@ class WorkspaceDB {
 			'SELECT * FROM page_attachments WHERE page_id = :page_id'
 		);
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * @param int $blogPostId
+	 * @return array
+	 */
+	public function getBlogPostAttachmentsForBlogPostId( int $blogPostId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM blog_post_attachments WHERE blog_post_id = :blog_post_id'
+		);
+		$transaction->bindValue( ':blog_post_id', $blogPostId, SQLITE3_INTEGER );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
@@ -3629,6 +3760,53 @@ class WorkspaceDB {
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':confluence_title', $rawPageTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		$metadataMap = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			if ( isset( $row['original_attachment_filename'] ) && isset( $row['target_attachment_filename'] ) ) {
+				$confluenceFileKey = $row['original_attachment_filename'];
+				$meta = json_decode( $row['meta'] ?? '[]', true );
+				if ( !is_array( $meta ) ) {
+					$meta = [];
+				}
+
+				$metadataMap[$confluenceFileKey] = array_merge(
+					$meta,
+					[ 'targetTitle' => $row['target_attachment_filename'] ]
+				);
+			}
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $metadataMap;
+	}
+
+	/**
+	 * Returns target file titles with their full metadata for all attachments on a blog post.
+	 * The returned array is keyed by confluence file key. Each value contains 'targetTitle'
+	 * plus any additional metadata fields (e.g. 'labels', 'mediaType', etc.).
+	 *
+	 * @param int $spaceId
+	 * @param string $rawBlogPostTitle
+	 * @return string[] Map of confluenceFileKey => metadata (including 'targetTitle')
+	 */
+	public function getAttachmentMetadataForBlogPost( int $spaceId, string $rawBlogPostTitle ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT bpa.original_attachment_filename, bpa.target_attachment_filename, am.meta
+			FROM blog_post_attachments bpa
+			JOIN blog_posts bp ON bpa.blog_post_id = bp.page_id
+			LEFT JOIN attachments_meta am ON bpa.attachment_id = am.attachment_id
+			WHERE bp.space_id = :space_id AND bp.confluence_title = :confluence_title'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $rawBlogPostTitle, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {

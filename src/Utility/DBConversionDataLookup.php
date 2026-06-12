@@ -106,25 +106,22 @@ class DBConversionDataLookup {
 	}
 
 	/**
-	 * Get the wikit file title for a given space key, confluence title and original attachment filename.
-	 * If no entry is found, return the original attachment filename as title
-	 * and mark it as broken link (isBroken = true) in the returned array.
+	 * Get the wiki blog post title for a given space key.
 	 *
-	 * @param string $spaceKey
+	 * @param int $spaceId
 	 * @param string $confluenceTitle
-	 * @param string $originalAttachmentFilename
-	 * @return array
+	 *
+	 * @return string|null
+	 * @throws Exception
 	 */
-	public function getWikiFileTitleFromSpaceKey(
-		string $spaceKey, string $confluenceTitle, string $originalAttachmentFilename
-	): array {
-		return $this->workspaceDB->getWikiFileTitleFromSpaceKey(
-			$spaceKey, $confluenceTitle, $originalAttachmentFilename
-		);
+	public function getWikiBlogPostTitleFromSpaceId(
+		int $spaceId, string $confluenceTitle
+	): ?string {
+		return $this->workspaceDB->getWikiBlogPostTitleFromSpaceId( $spaceId, $confluenceTitle );
 	}
 
 	/**
-	 * Get the wikit file title for a given space key, confluence title and original attachment filename.
+	 * Get the wiki file title for a given space key, confluence title and original attachment filename.
 	 * If no entry is found, return the original attachment filename as title
 	 * and mark it as broken link (isBroken = true) in the returned array.
 	 *
@@ -157,6 +154,21 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * Returns target file titles with their full metadata for all attachments on a blog post.
+	 * The returned array is keyed by confluence file key. Each value contains 'targetTitle'
+	 * plus any additional metadata fields (e.g. 'labels', 'mediaType', etc.).
+	 *
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return array
+	 */
+	public function getAttachmentMetadataForBlogPost(
+		int $spaceId, string $rawPageTitle
+	): array {
+		return $this->workspaceDB->getAttachmentMetadataForBlogPost( $spaceId, $rawPageTitle );
+	}
+
+	/**
 	 * @param string $attachmentTargetFileTitle
 	 * @return string|null
 	 */
@@ -185,10 +197,26 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $spaceId
+	 * @param string $rawPageTitle
+	 * @return array
+	 */
+	public function getWikiFileTitlesForBlogPost( int $spaceId, string $rawPageTitle ): array {
+		return $this->workspaceDB->getWikiFileTitlesForBlogPost( $spaceId, $rawPageTitle );
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getPageAttachmentsForPageId( int $pageId ): array {
 		return $this->workspaceDB->getPageAttachmentsForPageId( $pageId );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getBlogPostAttachmentsForBlogPostId( int $blogPostId ): array {
+		return $this->workspaceDB->getBlogPostAttachmentsForBlogPostId( $blogPostId );
 	}
 
 	/**

@@ -9,13 +9,11 @@ use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
+use SplFileInfo;
 
 /**
- * Populate additional_attachments with attachments that are not part of page_attachments.
- *
- * The target filename is built from space prefix and original filename only.
  */
-class PopulateAdditionalAttachmentsTable extends ProcessorBase {
+class UpdateBlogPostAttachmentTable extends ProcessorBase {
 
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
@@ -37,25 +35,23 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$this->addAdditionalAttachments();
+		$this->addBlogPostAttachments();
 		$this->checkWikiTitles();
 	}
 
-	private function addAdditionalAttachments(): void {
-		$attachmentIdsInPageAttachments = [];
-		foreach ( $this->workspaceDB->getPageAttachments() as $pageAttachment ) {
-			if ( !isset( $pageAttachment['attachment_id'] ) ) {
+	private function addBlogPostAttachments(): void {
+		$pageIdToWikiTitleMap = [];
+		foreach ( $this->workspaceDB->getBlogPosts() as $page ) {
+			if ( !isset( $page['page_id'] )
+				|| !isset( $page['wiki_title'] )
+			) {
 				continue;
 			}
-
-			$attachmentIdsInPageAttachments[(int)$pageAttachment['attachment_id']] = true;
+			$pageIdToWikiTitleMap[(int)$page['page_id']] = (string)$page['wiki_title'];
 		}
-		foreach ( $this->workspaceDB->getBlogPostAttachments() as $blogPostAttachment ) {
-			if ( !isset( $blogPostAttachment['attachment_id'] ) ) {
-				continue;
-			}
 
-			$attachmentIdsInPageAttachments[(int)$blogPostAttachment['attachment_id']] = true;
+		if ( $pageIdToWikiTitleMap === [] ) {
+			return;
 		}
 
 		$filenameBuilder = new FilenameBuilder(
@@ -66,47 +62,49 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
 			if (
 				!isset( $attachment['attachment_id'] )
-				|| !isset( $attachment['container_id'] )
 				|| !isset( $attachment['space_id'] )
 				|| !isset( $attachment['filename'] )
+				|| !isset( $attachment['container_id'] )
 			) {
 				continue;
 			}
 
-			$attachmentId = (int)$attachment['attachment_id'];
-			if ( isset( $attachmentIdsInPageAttachments[$attachmentId] ) ) {
+			$pageId = (int)$attachment['container_id'];
+			if ( !isset( $pageIdToWikiTitleMap[$pageId] ) ) {
 				continue;
 			}
 
+			$attachmentId = (int)$attachment['attachment_id'];
 			$attachmentSpaceId = (int)$attachment['space_id'];
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
 			$this->writeln(
-				"Create wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
+				"Creating wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
 			);
 
+			$pageWikiTitle = $pageIdToWikiTitleMap[$pageId];
+			$pageWikiTitle = substr( $pageWikiTitle, strrpos( $pageWikiTitle, ':' ) );
+			$pageWikiTitleParts = explode( '/', $pageWikiTitle );
+			$shortPageWikiTitle = end( $pageWikiTitleParts );
 			try {
 				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId,
 					$attachmentOrigFilename,
-					''
+					$shortPageWikiTitle,
 				);
-			} catch ( Exception $ex ) {
+			} catch ( Exception $fallbackEx ) {
 				$this->dbLog->addLogEntry(
 					'warning',
 					'analyze',
 					__CLASS__,
 					"Could not build target filename for attachment $attachmentId: "
-					. $ex->getMessage()
+					. $fallbackEx->getMessage()
 				);
 				continue;
 			}
 
 			// Uncollide file title
-			$exists = ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle )
-				|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $attatchmentWikiTitle )
-			);
-
+			$exists = $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $attatchmentWikiTitle );
 			$counter = 1;
 			$maxUncollideAttempts = 10000;
 			while ( $exists ) {
@@ -115,7 +113,7 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 						'warning',
 						'analyze',
 						__CLASS__,
-						"Could not find unique additional attachment title for attachment $attachmentId after "
+						"Could not find unique page attachment title for attachment $attachmentId after "
 						. (string)$maxUncollideAttempts . ' attempts'
 					);
 					continue 2;
@@ -124,23 +122,27 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId,
 					$attachmentOrigFilename,
-					'',
+					$shortPageWikiTitle,
 					"-(" . (string)$counter . ")"
 				);
 
-				$exists = ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle )
-					|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $attatchmentWikiTitle )
-				);
+				$exists = $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $attatchmentWikiTitle );
 				$counter++;
 			}
 
+			$file = new SplFileInfo( $attatchmentWikiTitle );
+			if ( $file->getExtension() === '' || strlen( $file->getExtension() ) > 10 ) {
+				$attatchmentWikiTitle .= '.unknown';
+			}
+
 			$this->writeln(
-				"Add additional attachment for attachment ID $attachmentId with title: $attatchmentWikiTitle"
+				"Add blog post attachment for attachment ID $attachmentId with title: $attatchmentWikiTitle"
 			);
 
-			$this->workspaceDB->addAdditionalAttachment(
+			$this->workspaceDB->addBlogPostAttachment(
 				$attachmentId,
-				(string)$attachment['filename'],
+				$pageId,
+				$attachment['filename'],
 				$attatchmentWikiTitle
 			);
 		}
@@ -150,9 +152,9 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 	 * @return void
 	 */
 	private function checkWikiTitles(): void {
-		$additionalAttachments = $this->workspaceDB->getAdditionalAttachments();
+		$blogPostAttachments = $this->workspaceDB->getBlogPostAttachments();
 		$validityChecker = new TitleValidityChecker();
-		foreach ( $additionalAttachments as $attachment ) {
+		foreach ( $blogPostAttachments as $attachment ) {
 			$attachmentId = $attachment['attachment_id'];
 			$wikiTitle = $attachment['target_attachment_filename'];
 			if ( !$validityChecker->hasValidLength( $wikiTitle ) ) {
