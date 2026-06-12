@@ -175,13 +175,18 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;{{#ask:[[-Subpage::{{{page|{{FULLPAGENAME}}}}}]]
-|format=template
-|template=SubpageListRow
-|userparam={{{page|{{FULLPAGENAME}}}}}
-|limit=9999
+      <text>&lt;includeonly&gt;{{#ask: [[~{{{page|{{FULLPAGENAME}}}}}/*]] [[Modification date::+]]
+|?=title
+|format=ul
+|template=DemoSubpageListRow 
+&lt;!-- |userparam={{{page|{{FULLPAGENAME}}}}} --&gt;
+|limit={{#switch:{{{first|10}}}|0=100|{{{first|10}}}}}
 |link=none
-}}&lt;/includeonly&gt;</text>
+|searchlabel=
+|sort={{#switch:{{{sort|}}}|title=|creation=creation date}}
+|order={{#switch:{{{sort|}}}|title=asc|creation=creation date=desc}}
+}}&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
@@ -238,7 +243,10 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;{{#ifeq:{{#titleparts: {{{1}}} | -1 }}|{{{#userparam}}}|*[[{{{1}}}|{{#titleparts: {{{1}}} | | -1 }}]]}}&lt;/includeonly&gt;</text>
+      <text>&lt;includeonly&gt;
+[[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]]
+&lt;/includeonly&gt;
+</text>
     </revision>
   </page>
   <page>
