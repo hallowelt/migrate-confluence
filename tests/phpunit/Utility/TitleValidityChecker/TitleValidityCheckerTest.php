@@ -34,6 +34,10 @@ class TitleValidityCheckerTest extends TestCase {
 		$this->assertFalse( $this->checker->validate( 'Some_Page_' ) );
 		$this->assertFalse( $this->checker->validate( 'Documentation:Some_Page_' ) );
 
+		// Contains invalid char
+		$this->assertFalse( $this->checker->validate( 'Some~Page' ) );
+		$this->assertFalse( $this->checker->validate( 'Documentation:Some~Page' ) );
+
 		// Double colon
 		$this->assertFalse( $this->checker->validate( 'NS:Sub:Page' ) );
 

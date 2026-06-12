@@ -13,6 +13,10 @@ class TitleValidityChecker {
 			return false;
 		}
 
+		if ( $this->containsInvalidChar( $title ) ) {
+			return false;
+		}
+
 		if ( str_contains( $title, ':' ) ) {
 			if ( $this->hasDoubleColon( $title ) ) {
 				return false;
@@ -35,6 +39,17 @@ class TitleValidityChecker {
 		}
 
 		return true;
+	}
+
+	/**
+	 * @param string $title
+	 * @return bool
+	 */
+	public function containsInvalidChar( string $title ): bool {
+		if ( str_contains( $title, '~' ) ) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
