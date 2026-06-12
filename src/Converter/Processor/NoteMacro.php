@@ -24,6 +24,6 @@ class NoteMacro extends ConvertMacroToTemplateBase {
 	 * @inheritDoc
 	 */
 	protected function getWikiTextTemplateName(): string {
-		return 'Note';
+		return 'Warning';
 	}
 }

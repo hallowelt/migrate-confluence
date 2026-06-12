@@ -24,6 +24,6 @@ class InfoMacro extends ConvertMacroToTemplateBase {
 	 * @inheritDoc
 	 */
 	protected function getWikiTextTemplateName(): string {
-		return 'Info';
+		return 'Note';
 	}
 }
