@@ -2,7 +2,7 @@
 <includeonly>
 {{#ask:{{#if:{{{conditions|}}}|[[Category:{{#arraymap:{{{conditions|}}}|,|@@|@@|{{!}}{{!}}}}]]|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
 |format=ul
-|template=DemoContentByLabel/{{{path|pagename}}}
+|template=ContentByLabel/{{{path|pagename}}}
 |limit={{{max|999}}}
 |link=none
 |searchlabel=
