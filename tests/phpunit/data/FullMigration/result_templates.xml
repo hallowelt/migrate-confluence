@@ -221,7 +221,7 @@
 | purple    = #F8EEFE
 | grey      = #F2F3F9
 | {{{bgColor|#F2F3F9}}}
-}}"&gt;&lt;span style="display:table-cell; vertical-align:top; padding-top:0.1em"&gt;{{#if:{{{panelIconText|}}}|{{{panelIconText|}}}}}&lt;/span&gt;&lt;span style="display:table-cell; vertical-align:top"&gt;&lt;/includeonly&gt;&lt;noinclude&gt;
+}}; padding-inline: 0.75em"&gt;&lt;span style="display:table-cell; vertical-align:top; padding-top:0.1em"&gt;{{#if:{{{panelIconText|}}}|{{{panelIconText|}}}}}&lt;/span&gt;&lt;span style="display:table-cell; vertical-align:top"&gt;&lt;/includeonly&gt;&lt;noinclude&gt;
 &lt;templatedata&gt;
 {
 	"params": {
