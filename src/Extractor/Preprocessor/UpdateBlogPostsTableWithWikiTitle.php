@@ -119,8 +119,6 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			$pageId = $blogPost['page_id'];
 			if ( isset( $blogPost['wiki_title'] ) && $blogPost['wiki_title'] !== '' ) {
 				$title = (string)$blogPost['wiki_title'];
-			} elseif ( isset( $blogPost['confluence_title'] ) ) {
-				$title = (string)$blogPost['confluence_title'];
 			}
 
 			if ( $title !== '' ) {

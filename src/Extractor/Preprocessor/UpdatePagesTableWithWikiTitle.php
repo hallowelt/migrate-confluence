@@ -118,8 +118,6 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			$pageId = $page['page_id'];
 			if ( isset( $page['wiki_title'] ) && $page['wiki_title'] !== '' ) {
 				$title = (string)$page['wiki_title'];
-			} elseif ( isset( $page['confluence_title'] ) ) {
-				$title = (string)$page['confluence_title'];
 			}
 
 			if ( $title !== '' ) {
@@ -132,7 +130,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		foreach ( $titles as $pageId => $title ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
 				$this->workspaceDB->addInvalidPageWikiTitle(
-					$pageId, $title, 'Title ens with invalid character'
+					$pageId, $title, 'Title ends with invalid character'
 				);
 			}
 

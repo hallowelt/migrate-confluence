@@ -57,7 +57,7 @@ class TitleValidityChecker {
 	 * @return bool
 	 */
 	public function hasValidEnding( string $title ): bool {
-		if ( str_ends_with( $title, '_' ) ) {
+		if ( str_ends_with( $title, '_' ) ||  str_ends_with( $title, '~' ) ) {
 			return false;
 		}
 		return true;
