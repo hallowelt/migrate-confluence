@@ -60,6 +60,9 @@ class FilenameResolver {
 	 */
 	private function buildFileTitle( int $spaceId, string $confluencePageTitle, string $filename ): string {
 		$assocTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluencePageTitle ) ?? '';
+		if ( $assocTitle === '' ) {
+			$assocTitle = $this->dataLookup->getWikiBlogPostTitleFromSpaceId( $spaceId, $confluencePageTitle ) ?? '';
+		}
 
 		if ( $assocTitle !== '' ) {
 			$pageWikiTitleParts = substr( $assocTitle, strrpos( $assocTitle, ':' ) );

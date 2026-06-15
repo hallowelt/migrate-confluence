@@ -50,6 +50,13 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 
 			$attachmentIdsInPageAttachments[(int)$pageAttachment['attachment_id']] = true;
 		}
+		foreach ( $this->workspaceDB->getBlogPostAttachments() as $blogPostAttachment ) {
+			if ( !isset( $blogPostAttachment['attachment_id'] ) ) {
+				continue;
+			}
+
+			$attachmentIdsInPageAttachments[(int)$blogPostAttachment['attachment_id']] = true;
+		}
 
 		$filenameBuilder = new FilenameBuilder(
 			$this->workspaceDB->getMapSpaceIdToPrefix(),

@@ -3,36 +3,36 @@
 namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
 /**
- * Populates the page_attachments table with wiki titles for all page attachments.
+ * Populates the blog_post_attachments table with wiki titles for all blog post attachments.
  */
-class UpdatePageAttachmentTable extends AttachmentTableUpdaterBase {
+class UpdateBlogPostAttachmentTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function getContentItems(): array {
-		return $this->workspaceDB->getPages();
+		return $this->workspaceDB->getBlogPosts();
 	}
 
 	/** @inheritDoc */
 	protected function getContentLabel(): string {
-		return 'page';
+		return 'blog post';
 	}
 
 	/** @inheritDoc */
 	protected function checkWikiTitleExists( string $wikiTitle ): bool {
-		return $this->workspaceDB->checkPageAttachmentWikiTitleExists( $wikiTitle );
+		return $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $wikiTitle );
 	}
 
 	/** @inheritDoc */
 	protected function storeAttachment(
 		int $attachmentId, int $containerId, string $originalFilename, string $targetFilename
 	): void {
-		$this->workspaceDB->addPageAttachment(
+		$this->workspaceDB->addBlogPostAttachment(
 			$attachmentId, $containerId, $originalFilename, $targetFilename
 		);
 	}
 
 	/** @inheritDoc */
 	protected function getStoredAttachments(): array {
-		return $this->workspaceDB->getPageAttachments();
+		return $this->workspaceDB->getBlogPostAttachments();
 	}
 }

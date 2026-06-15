@@ -106,6 +106,13 @@ class DBComposerDataLookup {
 	/**
 	 * @return array
 	 */
+	public function getBlogPostAttachments(): array {
+		return $this->workspaceDB->getBlogPostAttachments();
+	}
+
+	/**
+	 * @return array
+	 */
 	public function getAdditionalAttachments(): array {
 		return $this->workspaceDB->getAdditionalAttachments();
 	}

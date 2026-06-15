@@ -137,9 +137,15 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			);
 			$allFiles = $this->filterAttachmentsByLabel( $allAttachments, $includeLabels, $excludeLabels );
 		} else {
-			$allFiles = $this->dataLookup->getWikiFileTitlesForPage(
-				$this->currentSpaceId,
-				$this->rawPageTitle
+			$allFiles = array_merge(
+				$this->dataLookup->getWikiFileTitlesForPage(
+					$this->currentSpaceId,
+					$this->rawPageTitle
+				),
+				$this->dataLookup->getWikiFileTitlesForBlogPost(
+					$this->currentSpaceId,
+					$this->rawPageTitle
+				)
 			);
 		}
 
@@ -190,10 +196,16 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			}
 
 			if ( !empty( $includeLabels ) || !empty( $excludeLabels ) ) {
-				$pageAttachments = $this->dataLookup->getAttachmentMetadataForPage( $spaceId, $pageTitle );
+				$pageAttachments = array_merge(
+					$this->dataLookup->getAttachmentMetadataForPage( $spaceId, $pageTitle ),
+					$this->dataLookup->getAttachmentMetadataForBlogPost( $spaceId, $pageTitle )
+				);
 				$pageFiles = $this->filterAttachmentsByLabel( $pageAttachments, $includeLabels, $excludeLabels );
 			} else {
-				$pageFiles = $this->dataLookup->getWikiFileTitlesForPage( $spaceId, $pageTitle );
+				$pageFiles = array_merge(
+					$this->dataLookup->getWikiFileTitlesForPage( $spaceId, $pageTitle ),
+					$this->dataLookup->getWikiFileTitlesForBlogPost( $spaceId, $pageTitle )
+				);
 			}
 			foreach ( $pageFiles as $file ) {
 				$files[] = $file;
