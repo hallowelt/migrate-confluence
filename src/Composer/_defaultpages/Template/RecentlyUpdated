@@ -1,5 +1,5 @@
 <includeonly>{{#ask:[[{{NAMESPACE}}:+]]{{#if:{{{labels|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}[[Modification date::+]]
-|?Page creator
+|?Last editor is
 |?Modification date
 |format=plainlist
 |limit={{{max|8}}}
