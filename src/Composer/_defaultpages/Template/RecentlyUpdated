@@ -3,7 +3,7 @@
 |?Modification date
 |format=plainlist
 |limit={{{max|8}}}
-|template=DemoRecentlyUpdatedRow
+|template=RecentlyUpdatedRow
 |link=none
 |searchlabel=
 }}</includeonly>

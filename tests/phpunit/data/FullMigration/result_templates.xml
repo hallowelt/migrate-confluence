@@ -74,7 +74,7 @@
 |?Modification date
 |format=plainlist
 |limit={{{max|8}}}
-|template=DemoRecentlyUpdatedRow
+|template=RecentlyUpdatedRow
 |link=none
 |searchlabel=
 }}&lt;/includeonly&gt;
@@ -90,7 +90,7 @@
 &lt;includeonly&gt;
 {{#ask:{{#if:{{{conditions|}}}|[[Category:{{#arraymap:{{{conditions|}}}|,|@@|@@|{{!}}{{!}}}}]]|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
 |format=ul
-|template=DemoContentByLabel/{{{path|pagename}}}
+|template=ContentByLabel/{{{path|pagename}}}
 |limit={{{max|999}}}
 |link=none
 |searchlabel=
@@ -169,7 +169,7 @@
       <text>&lt;includeonly&gt;{{#ask: [[~{{{page|{{FULLPAGENAME}}}}}/*]] [[Modification date::+]]
 |?=title
 |format=ul
-|template=DemoSubpageListRow 
+|template=SubpageListRow 
 &lt;!-- |userparam={{{page|{{FULLPAGENAME}}}}} --&gt;
 |limit={{#switch:{{{first|10}}}|0=100|{{{first|10}}}}}
 |link=none
