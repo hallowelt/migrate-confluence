@@ -8,7 +8,7 @@ This is a command line tool to convert the contents of a Confluence space into a
 ## Workflow
 
 ### Export "space" from Confluence
-1. Create an export of your confluence space. Create one export xml for each space.
+1. Create an export of your confluence space (one export xml for each space).
 
 Step 1:
 
