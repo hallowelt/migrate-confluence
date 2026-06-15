@@ -8,7 +8,7 @@ This is a command line tool to convert the contents of a Confluence space into a
 ## Workflow
 
 ### Export "space" from Confluence
-1. Create an export of your confluence space
+1. Create an export of your confluence space (one export xml for each space).
 
 Step 1:
 
@@ -23,7 +23,8 @@ Step 3:
 <kbd>![Export 3][c003]</kbd>
 
 2. Save it to a location that is accessbile by this tool (e.g. `/tmp/confluence/input/Confluence-export.zip`)
-3. Extract the ZIP file (e.g. `/tmp/confluence/input/Confluence-export`)
+3. Create the input directory (e.g. `/tmp/confluence/input`)
+4. Extract the ZIP file (e.g. `/tmp/confluence/input/Confluence-export`)
 	1. The folder should contain the files `entities.xml` and `exportDescriptor.properties`, as well as the folder `attachments`
 
 [c001]: doc/images/Confluence_export_space_001.png
@@ -35,23 +36,26 @@ Step 3:
 2. From the parent directory (e.g. `/tmp/` ), run the migration commands
 	1. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest analyze --src=/data/input --dest=/data/workspace` to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
 	2. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest extract --src=/data/input --dest=/data/workspace` to extract all contents, like wikipage contents, attachments and images into the workspace
-	3. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest convert --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText. For large spaces, see [Parallel convert](#parallel-convert) below.
-	4. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest compose --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to create importable data
+	3. Check database tables `logging`, `page_invalid_titles`, `blog_post_invalid_titles`, `page_template_invalid_titles` and `attachment_invalid_titles`. Modifiy titles if necessary.
+	4. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest convert --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText. For large spaces, see [Parallel convert](#parallel-convert) below.
+	5. Check database tables `logging`, `body_contents`, `page_template_contents`
+	5. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest compose --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to create importable data
+	6. Check the log files in workspace directory for errors, especially the `skipped_pages.log`. Pages logged in this file are not part of the mediawiki import data.
 
-If you re-run the scripts you will need to clean up the "workspace" directory!
+Important: If you re-run the scripts you will need to clean up the "workspace" directory!
 
 ### Import into MediaWiki
 1. Copy the diretory "workspace/result" directory (e.g. `/tmp/confluence/workspace/result/`) to your target wiki server (e.g. `/tmp/result`)
 2. Go to your MediaWiki installation directory
 3. Make sure you have the target namespaces set up properly. See `workspace/space-id-to-prefix-map.php` for reference.
-4. Make sure [$wgFileExtensions](https://www.mediawiki.org/wiki/Manual:$wgFileExtensions) is setup properly. See `workspace/attachment-file-extensions.php` for reference.
-5. Use `php maintenance/importImages.php /tmp/result/images/` to first import all attachment files and images
-6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages
+4. Make sure [$wgFileExtensions](https://www.mediawiki.org/wiki/Manual:$wgFileExtensions) is setup properly. See `workspace/deployment.log` for reference.
+5. Use `php extensions/BlueSpiceDistribution/maintenance/importFiles.php --src=/tmp/result/files.xml` to first import all attachment files and images
+6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages. Use the same command to import `blog.xml`, `comments.xml` and `templates.xml`, but not `user.xml`. This file can not be imported and is just for making user data available.
 
-You may need to update your MediaWiki search index afterwards.
+You may need to run `php maintenance/rebuildAll.php` and update your MediaWiki search index afterwards.
 
 #### Config file
-It is possible to use a yaml file to configure the commands analyze, extract and convert. As an example see `/doc/config.sample.yaml`.
+It is possible to use a yaml file to configure the commands. As an example see `/doc/config.sample.yaml`.
 The configuration file can be applied by adding the option `--config /data/config.yaml`.
 
 Not all parameters of `config.sample.yaml` have to be used in the config file. If something is not part of it the default will be used.
@@ -73,11 +77,7 @@ Choose `--workers` based on the number of available CPU cores. A value between 2
 > **Note:** `--workers=1` (the default) behaves identically to running without the option — no child processes are spawned.
 
 #### Extension:NSFileRepo compatibility
-There is now a compatibility for the mediawiki extension https://www.mediawiki.org/wiki/Extension:NSFileRepo which restricts access files and images to a given set of user groups associated with protected namespaces.
-
-If NSFileRepo is used the upload of the images can not be done with the script `maintenance/importImages.php` but with `extensions/NSFileRepo/maintenance/importFiles.php`.
-
-Example: `php extensions/NSFileRepo/maintenance/importFiles.php /tmp/result/images/`
+The migrate-confluence tool supports compatibility for the mediawiki extension https://www.mediawiki.org/wiki/Extension:NSFileRepo which restricts access files and images to a given set of user groups associated with protected namespaces.
 
 #### User spaces
 In confluence user spaces are protected. In MediaWiki this is not possible for namespace `User`. Therefore user spaces are migrated to a namespace `User<username>` which can be protected in `BlueSpice for MediaWiki`.
@@ -91,8 +91,6 @@ In confluence user spaces are protected. In MediaWiki this is not possible for n
 - `ExcerptInclude`
 - `Info`
 - `InlineComment`
-- `Layout`
-- `Layouts.css`
 - `Note`
 - `Panel`
 - `RecentlyUpdated`
@@ -103,6 +101,7 @@ In confluence user spaces are protected. In MediaWiki this is not possible for n
 - `PageTree`
 - `SpaceDetails`
 - `ViewFile`
+- (and more)
 
 Be aware that those pages may be overwritten by the import if they already exist in the target wiki.
 
@@ -160,22 +159,14 @@ In the case that the tool can not migrate content or functionality it will creat
 
 ## Not migrated
 - User identities
-- Comments
 - Various macros
 - Various layouts
-- Blog posts
 - Files of a space which can not be assigned to a page
-
-## Creating a build
-1. Clone this repo
-2. Run `composer update --no-dev`
-3. Run `box compile` to actually create the PHAR file  in `dist/`. See also https://github.com/humbug/box
 
 # TODO
 * Reduce multiple linebreaks (`<br />`) to one
 * Remove line breaks and arbitrary fromatting (e.g. `<b>`) from headings
 * Mask external images (`<img />`)
-* Preserve filename of "Broken_attachment"
 * Merge multiple `<code>` lines into `<pre>`
 * Remove bold/italic formatting from wikitext headings (e.g. `=== '''Some heading''' ===`)
 * Fix unconverted HTML lists in wikitext (e.g. `<ul><li>==== Lorem ipsum ====</li><li>'''<span class="confluence-link"> </span>[[Media:Some_file.pdf]]'''</li></ul><ul>`)
