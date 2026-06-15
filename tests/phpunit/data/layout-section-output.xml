@@ -1,6 +1,6 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 <ac:layout>
-	<div class="pl-col" data-ac-layout="layout-section" data-type="fixed-width" data-breakout-mode="default">
+	<div class="pl-container" data-ac-layout="layout-section" data-type="fixed-width" data-breakout-mode="default">
 		<ac:layout-cell xmlns:ac="sample_namespace">
 			<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:local-id="dba68efd22c5" ac:macro-id="6c24eab6-a197-46e3-aab4-a4f62f35647f">
 				<ac:parameter ac:name="panelIcon">:rocket:</ac:parameter>
@@ -13,7 +13,7 @@
 				</ac:structured-macro>
 			</ac:layout-cell>
 		</div>
-		<div class="pl-col" data-ac-layout="layout-section" data-type="two_equal" data-breakout-mode="wide" data-breakout-width="760" data-local-id="a8af08eb717d">
+		<div class="pl-container" data-ac-layout="layout-section" data-type="two_equal" data-breakout-mode="wide" data-breakout-width="760" data-local-id="a8af08eb717d">
 			<ac:layout-cell xmlns:ac="sample_namespace" ac:local-id="6c8260238b47">
 				<h2 local-id="89885367e48e">FlowChat</h2>
 				<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:local-id="1ddf853eeb98" ac:macro-id="c95c47f9-2721-4cd0-923a-9243c7dcf12a">
@@ -33,7 +33,7 @@
 					</ac:structured-macro>
 				</ac:layout-cell>
 			</div>
-			<div class="pl-col" data-ac-layout="layout-section" data-type="two_equal" data-breakout-mode="wide" data-breakout-width="760" data-local-id="32a7dcdaaa19">
+			<div class="pl-container" data-ac-layout="layout-section" data-type="two_equal" data-breakout-mode="wide" data-breakout-width="760" data-local-id="32a7dcdaaa19">
 				<ac:layout-cell xmlns:ac="sample_namespace" ac:local-id="f1336427497e">
 					<h2 local-id="3d785de1e071">PowerKnow</h2>
 					<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:local-id="00a693b5c6e5" ac:macro-id="c0a56ba3-7bf3-446d-b029-5b83f2eced55">
