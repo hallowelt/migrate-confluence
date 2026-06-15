@@ -93,9 +93,10 @@ class Files extends FileProcessorBase {
 		foreach ( $attachments as $attachment ) {
 			if ( isset( $attachment['attachment_reference'] ) ) {
 				$timestamp = $attachment['revision_timestamp'];
-				$userKey = $attachment['last_modifier'];
-				// File import crashes if the user is unknown
-				#$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
+				/* the file's author is in $attachment['last_modifier'] . To use this information,
+				 * though, we need to make sure somehow that the user exists in the wiki,
+				 * otherwise the file import will crash.
+				 */
 				$filePath = $attachment['attachment_reference'];
 
 				if ( file_exists( $filePath ) ) {
@@ -199,9 +200,9 @@ class Files extends FileProcessorBase {
 					$uploadFilePath = $this->workspace->saveUploadFile( $filename, $attachmentContent );
 
 					$timestamp = $attachment['revision_timestamp'];
-					$userKey = $attachment['last_modifier'];
-					// File import crashes if the user is unknown
-					$username = $this->dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
+					/* same as above: to use the author info in $attachment['last_modifier'],
+					 * we need target wiki user info (or be sure that we import the user ourselfs).
+					 */
 
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					$this->builder->addFileRevision(
