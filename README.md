@@ -36,8 +36,9 @@ Step 3:
 2. From the parent directory (e.g. `/tmp/` ), run the migration commands
 	1. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest analyze --src=/data/input --dest=/data/workspace` to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
 	2. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest extract --src=/data/input --dest=/data/workspace` to extract all contents, like wikipage contents, attachments and images into the workspace
-	3. Check database tables log, `page_invalid_titles`, `blog_post_invalid_titles`, `page_template_invalid_titles` and `attachment_invalid_titles`. Modifiy titles if necessary.
+	3. Check database tables `logging`, `page_invalid_titles`, `blog_post_invalid_titles`, `page_template_invalid_titles` and `attachment_invalid_titles`. Modifiy titles if necessary.
 	4. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest convert --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText. For large spaces, see [Parallel convert](#parallel-convert) below.
+	5. Check database tables `logging`, `body_contents`, `page_template_contents`
 	5. Run `docker run -v $(pwd)/confluence:/data bluespice/migrate-confluence:latest compose --src=/data/workspace --dest=/data/workspace` (yes, `--src /data/workspace/` ) to create importable data
 	6. Check the log files in workspace directory for errors, especially the `skipped_pages.log`. Pages logged in this file are not part of the mediawiki import data.
 
@@ -49,7 +50,7 @@ Important: If you re-run the scripts you will need to clean up the "workspace" d
 3. Make sure you have the target namespaces set up properly. See `workspace/space-id-to-prefix-map.php` for reference.
 4. Make sure [$wgFileExtensions](https://www.mediawiki.org/wiki/Manual:$wgFileExtensions) is setup properly. See `workspace/deployment.log` for reference.
 5. Use `php extensions/BlueSpiceDistribution/maintenance/importFiles.php --src=/tmp/result/files.xml` to first import all attachment files and images
-6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages
+6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages. Use the same command to import `blog.xml`, `comments.xml` and `templates.xml`, but not `user.xml`. This file can not be imported and is just for making user data available.
 
 You may need to run `php maintenance/rebuildAll.php` and update your MediaWiki search index afterwards.
 
@@ -166,6 +167,7 @@ In the case that the tool can not migrate content or functionality it will creat
 * Reduce multiple linebreaks (`<br />`) to one
 * Remove line breaks and arbitrary fromatting (e.g. `<b>`) from headings
 * Mask external images (`<img />`)
+* Merge multiple `<code>` lines into `<pre>`
 * Remove bold/italic formatting from wikitext headings (e.g. `=== '''Some heading''' ===`)
 * Fix unconverted HTML lists in wikitext (e.g. `<ul><li>==== Lorem ipsum ====</li><li>'''<span class="confluence-link"> </span>[[Media:Some_file.pdf]]'''</li></ul><ul>`)
 * Remove empty confluence storage format fragments (e.g. `<span class="confluence-link"> </span>`, `<span class="no-children icon">`)
