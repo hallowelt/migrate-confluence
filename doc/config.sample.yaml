@@ -12,6 +12,5 @@ config:
                 - My Category 1
                 - My Category 2
         ext-ns-file-repo-compat: true
-        include-history: false,
         composer-page-per-xml-limit: 100,
         ns-talk-prefix: Talk
