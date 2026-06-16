@@ -1,0 +1,18 @@
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+
+[**.php]
+indent_style = tab
+indent_size = tab
+tab_width = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[src/Composer/{_defaultfiles,_defaultpages},tests/phpunit/**]
+# explicitly allow trailing whitespaces and potentially missing final newlines
+# in templates and tests
+trim_trailing_whitespace = false
+insert_final_newline = unset
