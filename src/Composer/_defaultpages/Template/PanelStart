@@ -6,7 +6,7 @@
 | purple    = #F8EEFE
 | grey      = #F2F3F9
 | {{{bgColor|#F2F3F9}}}
-}}"><span style="display:table-cell; vertical-align:top; padding-top:0.1em">{{#if:{{{panelIconText|}}}|{{{panelIconText|}}}}}</span><span style="display:table-cell; vertical-align:top"></includeonly><noinclude>
+}}; padding-inline: 0.75em"><span style="display:table-cell; vertical-align:top; padding-top:0.1em">{{#if:{{{panelIconText|}}}|{{{panelIconText|}}}}}</span><span style="display:table-cell; vertical-align:top"></includeonly><noinclude>
 <templatedata>
 {
 	"params": {

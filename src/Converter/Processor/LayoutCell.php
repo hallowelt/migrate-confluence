@@ -15,6 +15,6 @@ class LayoutCell extends Layout {
 	 * @return string
 	 */
 	protected function getClassName(): string {
-		return 'pl-cell';
+		return 'pl-col';
 	}
 }

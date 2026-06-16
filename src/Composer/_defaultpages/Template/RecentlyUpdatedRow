@@ -1,2 +1,3 @@
 <includeonly>[[{{{1}}}|<i class="bi bi-card-text prefix"></i>]] [[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]]
-<div class="byline prefixicon"><small>{{#switch:{{CONTENTLANG}}|en={{#time:M d, Y|{{{3}}}}}|de={{#time:d.M Y|{{{3}}}}}|{{#time:M/d/YY|{{{3}}}}} }} {{#if:{{{2|}}}|· contributed by [[{{{2}}}|{{PAGENAME:{{{2}}} }}]]|}}</small></div></includeonly>
+<div class="byline prefixicon"><small>{{#switch:{{CONTENTLANG}}|en={{#time:M d, Y|{{{3}}}}}|de={{#time:d.M Y|{{{3}}}}}|{{#time:M/d/YY|{{{3}}}}} }}
+{{#ifeq:{{#show:{{{1}}}|?Last editor is|link=none}}|User:imported>Unknown user||· contributed by [[{{{2}}}|{{PAGENAME:{{{2}}} }}]]}}</small></div></includeonly>

@@ -18,7 +18,7 @@ class Layout implements IProcessor {
 	 * @return string
 	 */
 	protected function getClassName(): string {
-		return 'pl-container';
+		return 'pl-layout';
 	}
 
 	/**

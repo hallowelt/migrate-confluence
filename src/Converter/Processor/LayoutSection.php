@@ -15,6 +15,6 @@ class LayoutSection extends Layout {
 	 * @return string
 	 */
 	protected function getClassName(): string {
-		return 'pl-col';
+		return 'pl-container';
 	}
 }
