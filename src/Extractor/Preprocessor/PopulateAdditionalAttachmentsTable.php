@@ -17,6 +17,8 @@ use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
  */
 class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 
+	private const MAX_UNCOLLIDE_ATTEMPTS = 10000;
+
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
 
@@ -86,7 +88,7 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 			);
 
 			try {
-				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+				$attachmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId,
 					$attachmentOrigFilename,
 					''
@@ -103,45 +105,44 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 			}
 
 			// Uncollide file title
-			$exists = ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle )
-				|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $attatchmentWikiTitle )
+			$exists = ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attachmentWikiTitle )
+				|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $attachmentWikiTitle )
 			);
 
 			$counter = 1;
-			$maxUncollideAttempts = 10000;
 			while ( $exists ) {
-				if ( $counter > $maxUncollideAttempts ) {
+				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
 					$this->dbLog->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
 						"Could not find unique additional attachment title for attachment $attachmentId after "
-						. (string)$maxUncollideAttempts . ' attempts'
+						. (string)self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
 					);
 					continue 2;
 				}
 
-				$attatchmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+				$attachmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 					$attachmentSpaceId,
 					$attachmentOrigFilename,
 					'',
 					"-(" . (string)$counter . ")"
 				);
 
-				$exists = ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attatchmentWikiTitle )
-					|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $attatchmentWikiTitle )
+				$exists = ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $attachmentWikiTitle )
+					|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $attachmentWikiTitle )
 				);
 				$counter++;
 			}
 
 			$this->writeln(
-				"Add additional attachment for attachment ID $attachmentId with title: $attatchmentWikiTitle"
+				"Add additional attachment for attachment ID $attachmentId with title: $attachmentWikiTitle"
 			);
 
 			$this->workspaceDB->addAdditionalAttachment(
 				$attachmentId,
 				(string)$attachment['filename'],
-				$attatchmentWikiTitle
+				$attachmentWikiTitle
 			);
 		}
 	}
@@ -159,7 +160,7 @@ class PopulateAdditionalAttachmentsTable extends ProcessorBase {
 				$this->workspaceDB->addInvalidAttachmentTitle(
 					$attachmentId,
 					$wikiTitle,
-					'Attachment title contains to many characters (>256)'
+					'Attachment title contains too many characters (>255)'
 				);
 			}
 		}

@@ -20,6 +20,9 @@ use SplFileInfo;
  */
 abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 
+	private const MAX_UNCOLLIDE_ATTEMPTS = 10000;
+	private const UNKNOWN_EXTENSION = '.unknown';
+
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
 
@@ -154,15 +157,14 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			// Uncollide file title
 			$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
 			$counter = 1;
-			$maxUncollideAttempts = 10000;
 			while ( $exists ) {
-				if ( $counter > $maxUncollideAttempts ) {
+				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
 					$this->dbLog->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
 						"Could not find unique {$this->getContentLabel()} attachment title for attachment "
-						. "$attachmentId after " . (string)$maxUncollideAttempts . ' attempts'
+						. "$attachmentId after " . (string)self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
 					);
 					continue 2;
 				}
@@ -180,7 +182,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 
 			$file = new SplFileInfo( $attachmentWikiTitle );
 			if ( $file->getExtension() === '' || strlen( $file->getExtension() ) > 10 ) {
-				$attachmentWikiTitle .= '.unknown';
+				$attachmentWikiTitle .= self::UNKNOWN_EXTENSION;
 			}
 
 			$this->writeln(
@@ -206,7 +208,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				$this->workspaceDB->addInvalidAttachmentTitle(
 					$attachmentId,
 					$wikiTitle,
-					'Attachment title contains to many characters (>256)'
+					'Attachment title contains too many characters (>255)'
 				);
 			}
 		}

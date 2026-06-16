@@ -70,12 +70,8 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				"Creating wiki title for blog post ID $pageId with confluence title '$confluenceTitle'"
 			);
 
-			$namespace = '';
-			if ( isset( $spaceIdToPrefixMap[$spaceId] ) ) {
-				$prefix = $spaceIdToPrefixMap[$spaceId];
-				$namespace = substr( $prefix, 0, strpos( $prefix, ':' ) );
-				$namespace .= '/';
-			}
+			$prefix = $spaceIdToPrefixMap[$spaceId];
+			$namespace = substr( $prefix, 0, strpos( $prefix, ':' ) ) . '/';
 			$blogName = self::NS_BLOG_NAME;
 			$titleBuilder = new TitleBuilder( [ $spaceId => "$blogName:$namespace" ], [], [], [] );
 
@@ -131,14 +127,14 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		foreach ( $titles as $pageId => $title ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
 				$this->workspaceDB->addInvalidBlogPostWikiTitle(
-					$pageId, $title, 'Title ens with invalid character'
+					$pageId, $title, 'Title ends with invalid character'
 				);
 			}
 
 			if ( str_contains( $title, ':' ) ) {
 				if ( $validityChecker->hasDoubleColon( $title ) ) {
 					$this->workspaceDB->addInvalidBlogPostWikiTitle(
-						$pageId, $title, 'Title contains multiple collons'
+						$pageId, $title, 'Title contains multiple colons'
 					);
 				}
 				$namespace = substr( $title, 0, strpos( $title, ':' ) );
@@ -152,13 +148,13 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 
 				if ( !$validityChecker->hasValidLength( $text ) ) {
 					$this->workspaceDB->addInvalidBlogPostWikiTitle(
-						$pageId, $title, 'Title contains to many characters (>256)'
+						$pageId, $title, 'Title contains too many characters (>255)'
 					);
 				}
 			} else {
 				if ( !$validityChecker->hasValidLength( $title ) ) {
 					$this->workspaceDB->addInvalidBlogPostWikiTitle(
-						$pageId, $title, 'Title contains to many characters (>256)'
+						$pageId, $title, 'Title contains too many characters (>255)'
 					);
 				}
 			}

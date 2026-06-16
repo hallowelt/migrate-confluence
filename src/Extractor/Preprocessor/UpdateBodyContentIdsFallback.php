@@ -14,126 +14,69 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		// Update pages table
-		$this->updatePagesTable();
+		$this->updateBodyContentIdsForRows(
+			$this->workspaceDB->getPages(),
+			'page_id',
+			'page',
+			fn ( int $id, array $ids ) => $this->workspaceDB->updatePageBodyContentIds( $id, $ids )
+		);
 
-		// Update blog_posts table
-		$this->updateBlogPostsTable();
+		$this->updateBodyContentIdsForRows(
+			$this->workspaceDB->getBlogPosts(),
+			'page_id',
+			'blog post',
+			fn ( int $id, array $ids ) => $this->workspaceDB->updateBlogPostBodyContentIds( $id, $ids )
+		);
 
-		// Update comments table
-		$this->updateCommentsTable();
+		$this->updateBodyContentIdsForRows(
+			$this->workspaceDB->getComments(),
+			'comment_id',
+			'comment',
+			fn ( int $id, array $ids ) => $this->workspaceDB->updateCommentBodyContentIds( $id, $ids )
+		);
 
-		// Update spaces_descriptions table
-		$this->updateSpaceDescriptionsTable();
+		$this->updateBodyContentIdsForRows(
+			$this->workspaceDB->getSpaceDescriptions(),
+			'space_description_id',
+			'space description',
+			fn ( int $id, array $ids ) => $this->workspaceDB->updateSpaceDescriptionBodyContentIds( $id, $ids )
+		);
 	}
 
 	/**
+	 * For each row whose body_content_ids is empty, look up the IDs from the body_contents
+	 * table and persist them via the provided update callback.
+	 *
+	 * @param array $rows
+	 * @param string $idField Name of the primary-key field in each row.
+	 * @param string $contentLabel Human-readable label for log messages (e.g. "page").
+	 * @param callable $updateFn Callback: fn(int $id, array $ids): void
 	 * @return void
 	 */
-	private function updatePagesTable(): void {
-		$pages = $this->workspaceDB->getPages();
-		foreach ( $pages as $page ) {
-			if ( !isset( $page['page_id'] ) || !isset( $page['body_content_ids'] ) ) {
+	private function updateBodyContentIdsForRows(
+		array $rows, string $idField, string $contentLabel, callable $updateFn
+	): void {
+		foreach ( $rows as $row ) {
+			if ( !isset( $row[$idField] ) || !isset( $row['body_content_ids'] ) ) {
 				continue;
 			}
 
-			$pageId = (int)$page['page_id'];
-			$bodyContentIds = json_decode( $page['body_content_ids'], true );
+			$id = (int)$row[$idField];
+			$bodyContentIds = json_decode( $row['body_content_ids'], true );
 
-			// Check if body_content_ids is empty
-			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
-				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
-				if ( !empty( $foundIds ) ) {
-					$this->writeln(
-						"Updated body_content_ids for page ID $pageId with IDs: "
-						. implode( ', ', $foundIds )
-					);
-					$this->workspaceDB->updatePageBodyContentIds( $pageId, $foundIds );
-				}
-
-			}
-		}
-		$this->writeln( "... done" );
-	}
-
-	/**
-	 * @return void
-	 */
-	private function updateBlogPostsTable(): void {
-		$blogPosts = $this->workspaceDB->getBlogPosts();
-		foreach ( $blogPosts as $blogPost ) {
-			if ( !isset( $blogPost['page_id'] ) || !isset( $blogPost['body_content_ids'] ) ) {
+			if ( !empty( $bodyContentIds ) ) {
 				continue;
 			}
 
-			$pageId = (int)$blogPost['page_id'];
-			$bodyContentIds = json_decode( $blogPost['body_content_ids'], true );
-
-			// Check if body_content_ids is empty
-			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
-				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
-				if ( !empty( $foundIds ) ) {
-					$this->writeln(
-						"Updated body_content_ids for blog post ID $pageId with IDs: "
-						. implode( ', ', $foundIds )
-					);
-					$this->workspaceDB->updateBlogPostBodyContentIds( $pageId, $foundIds );
-				}
+			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $id );
+			if ( !empty( $foundIds ) ) {
+				$this->writeln(
+					"Updated body_content_ids for $contentLabel ID $id with IDs: "
+					. implode( ', ', $foundIds )
+				);
+				$updateFn( $id, $foundIds );
 			}
 		}
-	}
-
-	/**
-	 * @return void
-	 */
-	private function updateCommentsTable(): void {
-		$comments = $this->workspaceDB->getComments();
-		foreach ( $comments as $comment ) {
-			if ( !isset( $comment['comment_id'] ) || !isset( $comment['body_content_ids'] ) ) {
-				continue;
-			}
-
-			$commentId = (int)$comment['comment_id'];
-			$bodyContentIds = json_decode( $comment['body_content_ids'], true );
-
-			// Check if body_content_ids is empty
-			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
-				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $commentId );
-				if ( !empty( $foundIds ) ) {
-					$this->writeln(
-						"Updated body_content_ids for comment ID $commentId with IDs: "
-						. implode( ', ', $foundIds )
-					);
-					$this->workspaceDB->updateCommentBodyContentIds( $commentId, $foundIds );
-				}
-			}
-		}
-	}
-
-	/**
-	 * @return void
-	 */
-	private function updateSpaceDescriptionsTable(): void {
-		$spaceDescriptions = $this->workspaceDB->getSpaceDescriptions();
-		foreach ( $spaceDescriptions as $spaceDesc ) {
-			if ( !isset( $spaceDesc['space_description_id'] ) || !isset( $spaceDesc['body_content_ids'] ) ) {
-				continue;
-			}
-
-			$spaceDescriptionId = (int)$spaceDesc['space_description_id'];
-			$bodyContentIds = json_decode( $spaceDesc['body_content_ids'], true );
-
-			// Check if body_content_ids is empty
-			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
-				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $spaceDescriptionId );
-				if ( !empty( $foundIds ) ) {
-					$this->writeln(
-						"Updated body_content_ids for space description ID $spaceDescriptionId with IDs: "
-						. implode( ', ', $foundIds )
-					);
-					$this->workspaceDB->updateSpaceDescriptionBodyContentIds( $spaceDescriptionId, $foundIds );
-				}
-			}
-		}
+		$this->writeln( '... done' );
 	}
 }

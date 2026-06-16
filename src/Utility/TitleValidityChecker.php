@@ -4,6 +4,8 @@ namespace HalloWelt\MigrateConfluence\Utility;
 
 class TitleValidityChecker {
 
+	private const MAX_TITLE_LENGTH = 255;
+
 	/**
 	 * @param string $title
 	 * @return bool
@@ -46,10 +48,7 @@ class TitleValidityChecker {
 	 * @return bool
 	 */
 	public function containsInvalidChar( string $title ): bool {
-		if ( str_contains( $title, '~' ) ) {
-			return true;
-		}
-		return false;
+		return str_contains( $title, '~' );
 	}
 
 	/**
@@ -57,10 +56,7 @@ class TitleValidityChecker {
 	 * @return bool
 	 */
 	public function hasValidEnding( string $title ): bool {
-		if ( str_ends_with( $title, '_' ) || str_ends_with( $title, '~' ) ) {
-			return false;
-		}
-		return true;
+		return !str_ends_with( $title, '_' ) && !str_ends_with( $title, '~' );
 	}
 
 	/**
@@ -68,10 +64,7 @@ class TitleValidityChecker {
 	 * @return bool
 	 */
 	public function hasDoubleColon( string $title ): bool {
-		if ( strpos( $title, ':' ) !== strrpos( $title, ':' ) ) {
-			return true;
-		}
-		return false;
+		return strpos( $title, ':' ) !== strrpos( $title, ':' );
 	}
 
 	/**
@@ -85,10 +78,7 @@ class TitleValidityChecker {
 
 		$matches = [];
 		preg_match( '#^(\d*)([a-zA-Z0-9_]*)$#', $namespace, $matches );
-		if ( empty( $matches ) || $matches[1] !== '' ) {
-			return false;
-		}
-		return true;
+		return !empty( $matches ) && $matches[1] === '';
 	}
 
 	/**
@@ -96,10 +86,7 @@ class TitleValidityChecker {
 	 * @return bool
 	 */
 	public function hasValidLength( string $title ): bool {
-		if ( strlen( $title ) > 255 ) {
-			return false;
-		}
-		return true;
+		return strlen( $title ) <= self::MAX_TITLE_LENGTH;
 	}
 
 }

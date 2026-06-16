@@ -160,7 +160,7 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 	 * @param string $pageTitle
 	 * @return string
 	 */
-	protected function gereralizeFilename( string $pageTitle ): string {
+	protected function generalizeFilename( string $pageTitle ): string {
 		return str_replace( ':', '_', $pageTitle );
 	}
 

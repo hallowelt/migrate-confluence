@@ -26,7 +26,7 @@ class TitleBuilder {
 	/**
 	 * @var array
 	 */
-	private array $pageIConfluenceTitledMap;
+	private array $pageIdConfluenceTitleMap;
 
 	/**
 	 *
@@ -43,17 +43,17 @@ class TitleBuilder {
 	 * @param array $spaceIdPrefixMap
 	 * @param array $spaceIdHomepages
 	 * @param array $pageIdParentPageIdMap
-	 * @param array $pageIConfluenceTitledMap
+	 * @param array $pageIdConfluenceTitleMap
 	 * @param string $mainpage
 	 */
 	public function __construct(
 		array $spaceIdPrefixMap, array $spaceIdHomepages, array $pageIdParentPageIdMap,
-		array $pageIConfluenceTitledMap, string $mainpage = 'Main_Page'
+		array $pageIdConfluenceTitleMap, string $mainpage = 'Main_Page'
 	) {
 		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
 		$this->spaceIdHomepages = $spaceIdHomepages;
 		$this->pageIdParentPageIdMap = $pageIdParentPageIdMap;
-		$this->pageIConfluenceTitledMap = $pageIConfluenceTitledMap;
+		$this->pageIdConfluenceTitleMap = $pageIdConfluenceTitleMap;
 		$this->mainpage = $mainpage;
 	}
 
@@ -110,8 +110,8 @@ class TitleBuilder {
 		while ( $parentPageId !== null ) {
 			if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
 				break;
-			} elseif ( isset( $this->pageIConfluenceTitledMap[$parentPageId] ) ) {
-				$parentTitle = $this->pageIConfluenceTitledMap[$parentPageId];
+			} elseif ( isset( $this->pageIdConfluenceTitleMap[$parentPageId] ) ) {
+				$parentTitle = $this->pageIdConfluenceTitleMap[$parentPageId];
 			} else {
 				break;
 			}
