@@ -241,7 +241,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
 				$this->contentType = 'spaceDescription';
 				$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
-				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace )?? 0;
+				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace ) ?? 0;
 
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId )
 					?? '';
@@ -249,7 +249,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 					?? 'not_current_revision_' . $this->pageId;
 			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
 				$this->contentType = 'page';
-				$this->currentSpace = $this->getSpaceIdFromPageId( $contentId )?? 0;
+				$this->currentSpace = $this->getSpaceIdFromPageId( $contentId ) ?? 0;
 				$this->pageId = $contentId;
 
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId )
@@ -258,7 +258,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 					?? 'not_current_revision_' . $this->pageId;
 			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
 				$this->contentType = 'blogPost';
-				$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId )?? 0;
+				$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId ) ?? 0;
 				$this->pageId = $contentId;
 
 				$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId(
