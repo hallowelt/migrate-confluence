@@ -6,6 +6,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\ConfluenceKey;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
@@ -15,6 +16,11 @@ abstract class LinkProcessorBase implements IProcessor {
 	 * @var DBConversionDataLookup
 	 */
 	protected DBConversionDataLookup $dataLookup;
+
+	/**
+	 * @var ConfluenceKey
+	 */
+	protected ConfluenceKey $confluenceKey;
 
 	/**
 	 * @var int
@@ -48,6 +54,7 @@ abstract class LinkProcessorBase implements IProcessor {
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
 		$this->migrationConfig = $migrationConfig;
+		$this->confluenceKey = new ConfluenceKey();
 	}
 
 	/**

@@ -4,9 +4,12 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMNode;
 use Exception;
+use HalloWelt\MigrateConfluence\Utility\ConfluenceKey;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ChildrenMacro extends StructuredMacroProcessorBase {
+
+	private ConfluenceKey $confluenceKey;
 
 	/**
 	 * @param int $spaceId
@@ -18,6 +21,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 		private string $wikiPageTitle,
 		private DBConversionDataLookup $dataLookup
 	) {
+		$confluenceKey = new ConfluenceKey();
 	}
 
 	/**
@@ -41,7 +45,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			$params['page'] = $this->wikiPageTitle;
 		}
 
-		if ( str_starts_with( $params['page'], 'Confluence---' ) ) {
+		if ( str_starts_with( $params['page'], 'Confluence_page---' ) ) {
 			$isBroken = true;
 		}
 
@@ -130,6 +134,12 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 							return $resolved;
 						}
 
+						if ( !empty( $pageLink->getAttribute( 'ri:space-key' ) ) ) {
+							$spaceKey = $pageLink->getAttribute( 'ri:space-key' );
+						} else {
+							$spaceKey = $this->dataLookup->getSpaceKeyFromSpaceId( $this->spaceId );
+						}
+
 						return $this->createConfluenceKey(
 							$pageLink->getAttribute( 'ri:content-title' ),
 							$pageLink->getAttribute( 'ri:space-key' )
@@ -192,10 +202,6 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @return string
 	 */
 	private function createConfluenceKey( string $confluenceTitle, ?string $spaceKey = null ): string {
-		if ( empty( $spaceKey ) ) {
-			return "Confluence---------$confluenceTitle";
-		}
-
-		return "Confluence---$spaceKey---$confluenceTitle";
+		return $this->confluenceKey->newPageKeyFromSpaceKey( $spaceKey, $confluenceTitle );
 	}
 }

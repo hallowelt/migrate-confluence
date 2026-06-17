@@ -2057,6 +2057,8 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Unused function. Marked for deletion.
+	 *
 	 * @return array
 	 */
 	public function getMapPagesTitles(): array {

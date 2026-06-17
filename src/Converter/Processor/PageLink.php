@@ -90,12 +90,10 @@ class PageLink extends LinkProcessorBase {
 			$rawPageTitle = $genericTitleBuilder->appendTitleSegment( $rawPageTitle )->build();
 		}
 
-		$confluenceKey = "Confluence---$spaceId---$rawPageTitle";
-		if ( $this->spaceKey !== '' ) {
-			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
+		if ( !empty( $this->spaceKey ) ) {
+			return $this->confluenceKey->newPageKeyFromSpaceKey( $this->spaceKey, $rawPageTitle );
 		}
-
-		return str_replace( ' ', '_', $confluenceKey );
+		return $this->confluenceKey->newPageKeyFromSpaceId( $spaceId, $rawPageTitle );
 	}
 
 	/**

@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
+use HalloWelt\MigrateConfluence\Utility\ConfluenceKey;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ImagePageLinkHelper {
@@ -12,6 +13,11 @@ class ImagePageLinkHelper {
 	 * @var DBConversionDataLookup
 	 */
 	protected DBConversionDataLookup $dataLookup;
+
+	/**
+	 * @var ConfluenceKey
+	 */
+	protected ConfluenceKey $confluenceKey;
 
 	/**
 	 * @var int
@@ -41,6 +47,7 @@ class ImagePageLinkHelper {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
+		$this->confluenceKey = new ConfluenceKey();
 	}
 
 	/**
@@ -65,7 +72,7 @@ class ImagePageLinkHelper {
 			}
 			$this->isBrokenLink = true;
 			// If not in migration data, save some info for manual post migration work
-			return $this->generateConfluenceKey( $this->currentSpaceId, $this->rawPageTitle );
+			return $this->generateConfluenceKey( $this->rawPageTitle );
 		}
 
 		return '';
@@ -95,15 +102,13 @@ class ImagePageLinkHelper {
 	}
 
 	/**
-	 * @param int $spaceId
 	 * @param string $rawPageTitle
 	 * @return string
 	 */
-	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		$confluenceKey = "Confluence---$spaceId---$rawPageTitle";
-		if ( $this->spaceKey !== '' ) {
-			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
+	private function generateConfluenceKey( string $rawPageTitle ): string {
+		if ( !empty( $this->spaceKey ) ) {
+			return $this->confluenceKey->newPageKeyFromSpaceKey( $this->spaceKey, $rawPageTitle );
 		}
-		return str_replace( ' ', '_', $confluenceKey );
+		return $this->confluenceKey->newPageKeyFromSpaceId( $this->currentSpaceId, $rawPageTitle );
 	}
 }

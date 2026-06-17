@@ -7,6 +7,7 @@ use DOMElement;
 use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\ConfluenceKey;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -17,6 +18,11 @@ class Image implements IProcessor {
 	 * @var FilenameResolver
 	 */
 	protected FilenameResolver $filenameResolver;
+
+	/**
+	 * @var ConfluenceKey
+	 */
+	protected ConfluenceKey $confluenceKey;
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
@@ -31,6 +37,7 @@ class Image implements IProcessor {
 		MigrationConfig $migrationConfig
 	) {
 		$this->filenameResolver = new FilenameResolver( $dataLookup, $migrationConfig );
+		$this->confluenceKey = new ConfluenceKey();
 	}
 
 	/**
@@ -259,7 +266,7 @@ class Image implements IProcessor {
 		array_unshift( $params, $targetFilename );
 		$brokenFileInfo = $isBrokenFile ? '[[Category:Broken_image]]' : '';
 
-		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
+		$confluenceFileKey = $this->confluenceKey->newFileKeyFromSpaceId( $spaceId, $rawPageTitle, $filename );
 
 		return $this->makeImageLinkWithDebugInfo(
 			$node->ownerDocument,
@@ -310,7 +317,7 @@ class Image implements IProcessor {
 
 		$imagePageLinkHelper = new ImagePageLinkHelper(
 			$this->dataLookup,
-			$this->currentSpaceId,
+			$spaceId,
 			$linkPageTitle
 		);
 		$target = $imagePageLinkHelper->getLinkTarget( $link );
@@ -327,7 +334,7 @@ class Image implements IProcessor {
 			$brokenPageLinkInfo .= '[[Category:Broken_image]]';
 		}
 
-		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
+		$confluenceKey = $this->confluenceKey->newFileKeyFromSpaceId( $spaceId, $rawPageTitle, $filename );
 
 		$replacementNode = $this->makeImageLinkWithDebugInfo(
 			$node->ownerDocument,
@@ -392,7 +399,7 @@ class Image implements IProcessor {
 			$params[] = "link=$target";
 		}
 
-		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
+		$confluenceFileKey = $this->confluenceKey->newFileKeyFromSpaceId( $spaceId, $rawPageTitle, $filename );
 
 		$replacementNode = $this->makeImageLinkWithDebugInfo(
 			$node->ownerDocument,
