@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 
 class AttachmentLink extends LinkProcessorBase {
@@ -17,49 +16,47 @@ class AttachmentLink extends LinkProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return void
 	 */
-	protected function doProcessLink( DOMNode $node ): void {
-		if ( $node instanceof DOMElement ) {
-			$riFilename = $node->getAttribute( 'ri:filename' );
-			$spaceId = $this->ensureSpaceId( $node ) ?? 0;
-			// TODO: Log if spaceId is null, but we should be able to
-			// resolve the filename without spaceId as well, so we can continue processing
+	protected function doProcessLink( DOMElement $node ): void {
+		$riFilename = $node->getAttribute( 'ri:filename' );
+		$spaceId = $this->ensureSpaceId( $node ) ?? 0;
+		// TODO: Log if spaceId is null, but we should be able to
+		// resolve the filename without spaceId as well, so we can continue processing
 
-			$nestedPageEl = $node->getElementsByTagName( 'page' )->item( 0 );
+		$nestedPageEl = $node->getElementsByTagName( 'page' )->item( 0 );
 
-			$rawPageTitle = $this->rawPageTitle;
-			if ( $nestedPageEl instanceof DOMElement ) {
-				$rawPageTitle = $nestedPageEl->getAttribute( 'ri:content-title' );
-			}
-
-			$filenameResolver = new FilenameResolver( $this->dataLookup, $this->migrationConfig );
-			[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =
-				$filenameResolver->resolve( $spaceId, $rawPageTitle, $riFilename );
-
-			$linkParts = [ $targetFilename ];
-			$this->getLinkBody( $node, $linkParts );
-
-			$replacement = $this->getBrokenLinkReplacement();
-
-			if ( !empty( $linkParts ) ) {
-				$replacement = $this->makeLink( $linkParts );
-			}
-
-			if ( $isBrokenLink ) {
-				$replacement .= '[[Category:Broken_attachment_link]]';
-			}
-
-			$this->replaceLink( $node, $replacement );
+		$rawPageTitle = $this->rawPageTitle;
+		if ( $nestedPageEl instanceof DOMElement ) {
+			$rawPageTitle = $nestedPageEl->getAttribute( 'ri:content-title' );
 		}
+
+		$filenameResolver = new FilenameResolver( $this->dataLookup, $this->migrationConfig );
+		[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =
+			$filenameResolver->resolve( $spaceId, $rawPageTitle, $riFilename );
+
+		$linkParts = [ $targetFilename ];
+		$this->getLinkBody( $node, $linkParts );
+
+		$replacement = $this->getBrokenLinkReplacement();
+
+		if ( !empty( $linkParts ) ) {
+			$replacement = $this->makeLink( $linkParts );
+		}
+
+		if ( $isBrokenLink ) {
+			$replacement .= '[[Category:Broken_attachment_link]]';
+		}
+
+		$this->replaceLink( $node, $replacement );
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return int|null
 	 */
-	private function ensureSpaceId( DOMNode $node ): ?int {
+	private function ensureSpaceId( DOMElement $node ): ?int {
 		$spaceId = $this->currentSpaceId;
 		$pageNode = $node->getElementsByTagName( 'page' )->item( 0 );
 

@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
@@ -24,9 +24,9 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	protected string $mediaWikiPageName = '';
 
 	/**
-	 * @var DOMNode|null
+	 * @var DOMElement|null
 	 */
-	protected ?DOMNode $currentNode = null;
+	protected ?DOMElement $currentNode = null;
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
@@ -47,8 +47,10 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @param DOMElement $node
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$this->currentNode = $node;
 		$this->setMediaWikiPageName();
 
@@ -76,7 +78,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	 */
 	private function setMediaWikiPageName(): void {
 		$pageEl = $this->currentNode->getElementsByTagName( 'page' )->item( 0 );
-		if ( $pageEl === null ) {
+		if ( !( $pageEl instanceof DOMElement ) ) {
 			return;
 		}
 		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );

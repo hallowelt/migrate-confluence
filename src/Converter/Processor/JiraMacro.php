@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 
 class JiraMacro extends StructuredMacroProcessorBase {
@@ -17,7 +17,7 @@ class JiraMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->readParams( $node );
 
 		$hasKey = isset( $params['key'] ) && $params['key'] !== '';
@@ -54,13 +54,13 @@ class JiraMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return array
 	 */
-	protected function readParams( DOMNode $node ): array {
+	protected function readParams( DOMElement $node ): array {
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter' ) {
+			if ( $childNode instanceof DOMElement && $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
 				$paramValue = $childNode->nodeValue;
 				$params[$paramName] = $paramValue;

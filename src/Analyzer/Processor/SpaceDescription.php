@@ -96,9 +96,8 @@ class SpaceDescription extends ProcessorBase {
 			$originalVersionId = (int)$properties['originalVersion'];
 		}
 
-		$contentStatus = null;
 		if ( isset( $properties['contentStatus'] ) ) {
-			$contentStatus = $properties['contentStatus'];
+			$properties['contentStatus'];
 		}
 
 		if ( !$this->migrationConfig->getIncludeHistory() && $originalVersionId > 0 ) {

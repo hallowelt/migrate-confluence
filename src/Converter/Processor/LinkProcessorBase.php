@@ -56,10 +56,11 @@ abstract class LinkProcessorBase implements IProcessor {
 	abstract protected function getProcessableNodeName(): string;
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
+	 *
 	 * @return void
 	 */
-	abstract protected function doProcessLink( DOMNode $node ): void;
+	abstract protected function doProcessLink( DOMElement $node ): void;
 
 	/**
 	 * @inheritDoc
@@ -118,20 +119,24 @@ abstract class LinkProcessorBase implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @param array &$linkParts
 	 *
 	 * @return void
 	 */
-	protected function getLinkBody( DOMNode $node, array &$linkParts ): void {
+	protected function getLinkBody( DOMElement $node, array &$linkParts ): void {
 		// Let's see if there is a description Text
+		$parent = $node->parentNode;
+		if ( !( $parent instanceof DOMElement ) ) {
+			return;
+		}
 		// HTML Content
-		$linkBodys = $node->parentNode->getElementsByTagName( 'link-body' );
+		$linkBodys = $parent->getElementsByTagName( 'link-body' );
 		$linkBody = $linkBodys->item( 0 );
 
 		if ( $linkBody instanceof DOMElement === false ) {
 			// CDATA Content
-			$linkBodys = $node->parentNode->getElementsByTagName( 'plain-text-link-body' );
+			$linkBodys = $parent->getElementsByTagName( 'plain-text-link-body' );
 			$linkBody = $linkBodys->item( 0 );
 		}
 

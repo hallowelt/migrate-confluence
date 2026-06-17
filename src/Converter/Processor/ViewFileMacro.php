@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
@@ -54,7 +54,7 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->readParams( $node );
 
 		// No ri:filename attribute at all — macro is genuinely broken.
@@ -97,30 +97,32 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return array
 	 */
-	protected function readParams( DOMNode $node ): array {
+	protected function readParams( DOMElement $node ): array {
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter' ) {
-				$paramName = $childNode->getAttribute( 'ac:name' );
-				if ( $paramName === 'name' ) {
-					foreach ( $childNode->childNodes as $attachmentNode ) {
-						if ( $attachmentNode->nodeName === 'ri:attachment' ) {
-							if ( $attachmentNode->hasAttribute( 'ri:filename' ) ) {
-								$params['_riFilename'] = $attachmentNode->getAttribute( 'ri:filename' );
-							}
-							if ( $attachmentNode->hasAttribute( 'ri:version-at-save' ) ) {
-								$params['version-at-save'] = $attachmentNode
-									->getAttribute( 'ri:version-at-save' );
-							}
-						}
+			if ( !( $childNode instanceof DOMElement ) || $childNode->nodeName !== 'ac:parameter' ) {
+				continue;
+			}
+			$paramName = $childNode->getAttribute( 'ac:name' );
+			if ( $paramName === 'name' ) {
+				foreach ( $childNode->childNodes as $attachmentNode ) {
+					if ( !( $attachmentNode instanceof DOMElement ) || $attachmentNode->nodeName !== 'ri:attachment' ) {
+						continue;
 					}
-				} else {
-					$paramValue = $childNode->nodeValue;
-					$params[$paramName] = $paramValue;
+					if ( $attachmentNode->hasAttribute( 'ri:filename' ) ) {
+						$params['_riFilename'] = $attachmentNode->getAttribute( 'ri:filename' );
+					}
+					if ( $attachmentNode->hasAttribute( 'ri:version-at-save' ) ) {
+						$params['version-at-save'] = $attachmentNode
+							->getAttribute( 'ri:version-at-save' );
+					}
 				}
+			} else {
+				$paramValue = $childNode->nodeValue;
+				$params[$paramName] = $paramValue;
 			}
 		}
 		return $params;

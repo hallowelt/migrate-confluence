@@ -48,7 +48,7 @@ class Attachments extends ProcessorBase {
 		if ( $attachmentId === null ) {
 			return;
 		}
-		$referenceAttachmentId = (int)$attachmentId;
+		$referenceAttachmentId = $attachmentId;
 
 		$confluenceFilename = '';
 		if ( isset( $properties['fileName'] ) ) {
@@ -68,9 +68,8 @@ class Attachments extends ProcessorBase {
 			$containerContentId = (int)$properties['containerContent'];
 		}
 
-		$contentStatus = '';
 		if ( isset( $properties['contentStatus'] ) ) {
-			$contentStatus = $properties['contentStatus'];
+			$properties['contentStatus'];
 		}
 
 		$contentStatus = '';
@@ -174,7 +173,6 @@ class Attachments extends ProcessorBase {
 	 * @return string
 	 */
 	private function guessFileExtension( string $attachmentReference, string $confluenceFilename ): string {
-		$fileExtension = '';
 		$file = new SplFileInfo( $attachmentReference );
 		$fileExtension = $file->getExtension();
 

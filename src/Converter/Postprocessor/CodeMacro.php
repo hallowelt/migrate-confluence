@@ -8,8 +8,10 @@ class CodeMacro implements IPostprocessor {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return null|string
 	 */
-	public function postprocess( string $wikiText ): string {
+	public function postprocess( string $wikiText ): string|null {
 		$wikiText = preg_replace_callback(
 			'#<div class="PRESERVESYNTAXHIGHLIGHT"(.*?)>(.*?)</div>#si', function ( $matches ) {
 				$attribs = $this->getAttributes( $matches[1] );

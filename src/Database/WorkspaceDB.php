@@ -3749,7 +3749,10 @@ class WorkspaceDB {
 	 *
 	 * @param int $spaceId
 	 * @param string $rawPageTitle
-	 * @return string[] Map of confluenceFileKey => metadata (including 'targetTitle')
+	 *
+	 * @return array[] Map of confluenceFileKey => metadata (including 'targetTitle')
+	 *
+	 * @psalm-return array<array{targetTitle: mixed,...}>
 	 */
 	public function getAttachmentMetadataForPage( int $spaceId, string $rawPageTitle ): array {
 		$transaction = $this->cachedPrepare(
@@ -3795,7 +3798,10 @@ class WorkspaceDB {
 	 *
 	 * @param int $spaceId
 	 * @param string $rawBlogPostTitle
-	 * @return string[] Map of confluenceFileKey => metadata (including 'targetTitle')
+	 *
+	 * @return array[] Map of confluenceFileKey => metadata (including 'targetTitle')
+	 *
+	 * @psalm-return array<array{targetTitle: mixed,...}>
 	 */
 	public function getAttachmentMetadataForBlogPost( int $spaceId, string $rawBlogPostTitle ): array {
 		$transaction = $this->cachedPrepare(

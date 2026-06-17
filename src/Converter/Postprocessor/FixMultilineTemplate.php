@@ -8,8 +8,10 @@ class FixMultilineTemplate implements IPostprocessor {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return null|string
 	 */
-	public function postprocess( string $wikiText ): string {
+	public function postprocess( string $wikiText ): string|null {
 		$wikiText = preg_replace_callback(
 			'/\{\{(.*?)\}\}/s',
 			static function ( $match ) {

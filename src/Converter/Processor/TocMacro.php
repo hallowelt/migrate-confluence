@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 
 class TocMacro extends StructuredMacroProcessorBase {
@@ -24,8 +24,10 @@ class TocMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @param DOMElement $node
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$this->usage->tocIsUsed();
 
 		$node->parentNode->replaceChild(

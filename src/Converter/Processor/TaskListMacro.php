@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use DOMException;
-use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 /**
@@ -44,12 +43,13 @@ class TaskListMacro implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return void
+	 *
 	 * @throws DOMException
 	 */
-	protected function doProcessTask( DOMNode $node ): void {
+	protected function doProcessTask( DOMElement $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'task-replacement' );
 
 		foreach ( $node->childNodes as $childNode ) {
@@ -69,13 +69,11 @@ class TaskListMacro implements IProcessor {
 			}
 		}
 
-		if ( $node instanceof DOMElement ) {
-			$txt = $macroReplacement->ownerDocument->createTextNode( "\n[x] " );
-			if ( $macroReplacement->getAttribute( 'data-task-status' ) === 'incomplete' ) {
-				$txt = $macroReplacement->ownerDocument->createTextNode( "\n[] " );
-			}
-			$macroReplacement->prepend( $txt );
+		$txt = $macroReplacement->ownerDocument->createTextNode( "\n[x] " );
+		if ( $macroReplacement->getAttribute( 'data-task-status' ) === 'incomplete' ) {
+			$txt = $macroReplacement->ownerDocument->createTextNode( "\n[] " );
 		}
+		$macroReplacement->prepend( $txt );
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
@@ -102,12 +100,13 @@ class TaskListMacro implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return void
+	 *
 	 * @throws DOMException
 	 */
-	protected function doProcessTaskBody( DOMNode $node ): void {
+	protected function doProcessTaskBody( DOMElement $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'task-body-replacement' );
 
 		foreach ( $node->childNodes as $childNode ) {
@@ -124,17 +123,15 @@ class TaskListMacro implements IProcessor {
 			$macroReplacement->appendChild( $newNode );
 		}
 
-		if ( $node instanceof DOMElement ) {
-			$ol = $node->getElementsByTagName( 'ol' );
-			$ul = $node->getElementsByTagName( 'ul' );
-			$div = $node->getElementsByTagName( 'div' );
+		$ol = $node->getElementsByTagName( 'ol' );
+		$ul = $node->getElementsByTagName( 'ul' );
+		$div = $node->getElementsByTagName( 'div' );
 
-			if ( count( $ol ) > 0 || count( $ul ) > 0 || count( $div ) > 0 ) {
-				$brokenNode = $node->ownerDocument->createTextNode(
-					'[[Category:Broken_macro/task]]'
-				);
-				$macroReplacement->appendChild( $brokenNode );
-			}
+		if ( count( $ol ) > 0 || count( $ul ) > 0 || count( $div ) > 0 ) {
+			$brokenNode = $node->ownerDocument->createTextNode(
+				'[[Category:Broken_macro/task]]'
+			);
+			$macroReplacement->appendChild( $brokenNode );
 		}
 		$brokenNode = $node->ownerDocument->createElement( 'br' );
 		$macroReplacement->appendChild( $brokenNode );
@@ -164,12 +161,13 @@ class TaskListMacro implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return void
+	 *
 	 * @throws DOMException
 	 */
-	protected function doProcessTaskList( DOMNode $node ): void {
+	protected function doProcessTaskList( DOMElement $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 		$macroReplacement->setAttribute( 'class', 'ac-task-list' );
 

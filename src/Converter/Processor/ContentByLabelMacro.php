@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MigrateConfluence\Utility\CQLParser;
 
 class ContentByLabelMacro extends StructuredMacroProcessorBase {
@@ -22,11 +22,13 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @param DOMElement $node
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$paramNodes = [];
 		foreach ( $node->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter' ) {
+			if ( $childNode instanceof DOMElement && $childNode->nodeName === 'ac:parameter' ) {
 				$paramNodes[] = $childNode;
 			}
 		}

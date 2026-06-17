@@ -8,8 +8,10 @@ class FixImagesWithExternalUrl implements IPostprocessor {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return null|string
 	 */
-	public function postprocess( string $wikiText ): string {
+	public function postprocess( string $wikiText ): string|null {
 		$wikiText = preg_replace_callback(
 			"/\[\[File:(http[s]?:\/\/.*)]]/",
 			static function ( $matches ) {

@@ -63,7 +63,7 @@ class Analyze extends CommandAnalyze {
 			if ( $analyzer instanceof IDestinationPathAware ) {
 				$analyzer->setDestinationPath( $this->dest );
 			}
-			$result = $analyzer->analyze( $this->currentFile );
+			$analyzer->analyze( $this->currentFile );
 			// TODO: Evaluate result
 		}
 		return true;
@@ -84,7 +84,7 @@ class Analyze extends CommandAnalyze {
 					$config = array_merge( $config, $yaml );
 				} catch ( ParseException $e ) {
 					$this->output->writeln( 'Invalid config file provided' );
-					exit( true );
+					exit( 1 );
 				}
 			}
 		}

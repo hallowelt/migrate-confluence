@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
-use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
@@ -88,16 +87,13 @@ class CreateFromTemplateMacro implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return void
 	 */
-	private function doProcessMacro( DOMNode $node ): void {
+	private function doProcessMacro( DOMElement $node ): void {
 		$params = $this->getParams( $node );
-		$macroId = '';
-		if ( $node instanceof DOMElement ) {
-			$macroId = $node->getAttribute( 'ac:macro-id' );
-		}
+		$macroId = $node->getAttribute( 'ac:macro-id' );
 		$templateTitle = $this->findTemplateTitle( $params );
 		$errorMessage = $this->getResolutionError( $params, $templateTitle );
 
@@ -173,11 +169,11 @@ class CreateFromTemplateMacro implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return array
 	 */
-	private function getParams( DOMNode $node ): array {
+	private function getParams( DOMElement $node ): array {
 		$params = [];
 
 		// Extract scalar parameters — only direct children, not those inside nested macros.

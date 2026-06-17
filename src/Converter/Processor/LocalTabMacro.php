@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 	/**
 	 *
@@ -27,8 +27,10 @@ class LocalTabMacro extends MacroProcessorBase {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @param DOMElement $node
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->getMacroParams( $node );
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );

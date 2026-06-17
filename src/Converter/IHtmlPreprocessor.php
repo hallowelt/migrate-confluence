@@ -8,5 +8,5 @@ interface IHtmlPreprocessor {
 	 * @param string $confluenceHTML
 	 * @return string
 	 */
-	public function preprocess( string $confluenceHTML ): string;
+	public function preprocess( string $confluenceHTML ): ?string;
 }

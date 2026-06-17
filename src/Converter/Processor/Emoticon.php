@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
-use DOMNode;
+use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 class Emoticon implements IProcessor {
@@ -46,11 +46,11 @@ class Emoticon implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return string
 	 */
-	private function getReplacement( DOMNode $node ): string {
+	private function getReplacement( DOMElement $node ): string {
 		$name = $node->getAttribute( 'ac:name' );
 
 		if ( $name === 'blue-star' ) {
@@ -65,11 +65,11 @@ class Emoticon implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @param string $replacement
 	 * @return void
 	 */
-	protected function replaceEmoticon( DOMNode $node, string $replacement ): void {
+	protected function replaceEmoticon( DOMElement $node, string $replacement ): void {
 		if ( !empty( $replacement ) ) {
 			$node->parentNode->replaceChild(
 				$node->ownerDocument->createTextNode( $replacement ),

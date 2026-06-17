@@ -21,7 +21,7 @@ class FixMultilineTable implements IPostprocessor {
 			$processedWikiText = preg_replace_callback(
 				self::TABLE_REGEX,
 				function ( array $match ): string {
-					return $this->normalizeTable( $match[0] );
+					return $this->normalizeTable( $match[0] ) ?? $match[0];
 				},
 				$previousWikiText
 			);
@@ -34,7 +34,7 @@ class FixMultilineTable implements IPostprocessor {
 		return $processedWikiText;
 	}
 
-	private function normalizeTable( string $tableText ): string {
+	private function normalizeTable( string $tableText ): string|null {
 		$blockCharsRegex = '[' . preg_quote( implode( '', self::BLOCK_CHARS ), '/' ) . ']';
 
 		// Remove blank lines between table rows and cells

@@ -8,8 +8,10 @@ class RestorePStyleTag implements IPostprocessor {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return null|string
 	 */
-	public function postprocess( string $wikiText ): string {
+	public function postprocess( string $wikiText ): string|null {
 		$newWikiText = preg_replace_callback(
 			'/\\\\?#####PRESERVEPSTYLEOPEN (.*?)#####(.*?)#####PRESERVEPSTYLECLOSE#####/si',
 			static function ( $matches ) {

@@ -8,9 +8,11 @@ class FixLineBreakInHeadings implements IPostprocessor {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return null|string
 	 */
-	public function postprocess( string $wikiText ): string {
-		$callback = static function ( $matches ) {
+	public function postprocess( string $wikiText ): string|null {
+		$callback = static function ( $matches ): string {
 			$openTag = $matches[1];
 			$content = $matches[2];
 			$closeTag = $matches[3];

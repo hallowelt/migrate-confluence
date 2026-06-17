@@ -139,7 +139,7 @@ class Pages extends ProcessorBase {
 	 * @return string
 	 */
 	private function wrapSpaceDescription( string $description ): string {
-		$strippedDescription = trim( preg_replace( '/<!-- From bodyContent .*?-->/s', '', (string)$description ) );
+		$strippedDescription = trim( preg_replace( '/<!-- From bodyContent .*?-->/s', '', $description ) );
 		if ( $strippedDescription === '' ) {
 			return '';
 		}

@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use DOMNode;
 use Exception;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
@@ -40,7 +39,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	 * @inheritDoc
 	 * @throws Exception
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$this->macroParams( $node );
 		$brokenMacro = false;
 		if ( isset( $this->params['broken-macro'] ) ) {
@@ -66,15 +65,15 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 *
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 *
 	 * @return void
 	 * @throws Exception
 	 */
-	private function macroParams( DOMNode $macro ): void {
+	private function macroParams( DOMElement $macro ): void {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter' ) {
+			if ( $childNode instanceof DOMElement && $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
 				if ( $paramName === 'root' ) {
 					// page link
@@ -161,20 +160,12 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				$params['content-title'] = '';
 				// current WikiTitle
 				$targetTitle = $this->wikiTitle;
-				if ( $targetTitle === null ) {
-					$params['broken-macro'] = true;
-					break;
-				}
 				$params['content-title'] = $targetTitle;
 				break;
 			case '@parent':
 				$params['content-title'] = '';
 				// parent of current PageTitle
 				$targetTitle = $this->wikiTitle;
-				if ( $targetTitle === null ) {
-					$params['broken-macro'] = true;
-					break;
-				}
 				$currentPageParts = explode( '/', $targetTitle );
 				if ( count( $currentPageParts ) > 1 ) {
 					array_pop( $currentPageParts );

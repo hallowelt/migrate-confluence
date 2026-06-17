@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use DOMNode;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 
@@ -21,12 +20,12 @@ class PageLink extends LinkProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return void
 	 * @throws InvalidTitleException
 	 */
-	protected function doProcessLink( DOMNode $node ): void {
+	protected function doProcessLink( DOMElement $node ): void {
 		if ( !( $node instanceof DOMElement ) ) {
 			return;
 		}
@@ -59,11 +58,11 @@ class PageLink extends LinkProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return int
 	 */
-	private function ensureSpaceId( DOMNode $node ): int {
+	private function ensureSpaceId( DOMElement $node ): int {
 		$spaceId = $this->currentSpaceId;
 		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
 

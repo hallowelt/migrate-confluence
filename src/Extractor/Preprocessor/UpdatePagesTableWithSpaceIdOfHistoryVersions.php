@@ -51,7 +51,7 @@ class UpdatePagesTableWithSpaceIdOfHistoryVersions extends ProcessorBase {
 			if ( !isset( $pageIdToSpaceIdMap[$originalVersionId] ) ) {
 				continue;
 			}
-			$originalSpaceId = (int)$pageIdToSpaceIdMap[$originalVersionId];
+			$originalSpaceId = $pageIdToSpaceIdMap[$originalVersionId];
 
 			$this->workspaceDB->updatePageSpaceId( $pageId, $originalSpaceId );
 			$this->writeln(

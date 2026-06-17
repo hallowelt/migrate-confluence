@@ -109,7 +109,9 @@ class Convert extends CommandConvert {
 				$this->storeWorkerResponse( $line );
 				$line = fgets( $this->pipe );
 			}
-			fclose( $this->pipe );
+			$pipe = $this->pipe;
+			$this->pipe = false;
+			fclose( $pipe );
 		}
 
 		return $returnValue;
@@ -326,6 +328,8 @@ class Convert extends CommandConvert {
 
 	/**
 	 * Filter the file list to only the slice belonging to this worker.
+	 *
+	 * @return void
 	 */
 	protected function makeFileList() {
 		parent::makeFileList();
@@ -363,13 +367,13 @@ class Convert extends CommandConvert {
 					$config = array_merge( $config, $yaml );
 				} catch ( ParseException $e ) {
 					$this->output->writeln( 'Invalid config file provided' );
-					exit( true );
+					exit( 1 );
 				}
 			}
 		}
 	}
 
-	private function makeTargetPathname() {
+	private function makeTargetPathname(): void {
 		$this->targetPathname = str_replace(
 			$this->src,
 			$this->wikiTextBasePath,
@@ -378,7 +382,7 @@ class Convert extends CommandConvert {
 		$this->targetPathname = preg_replace( '#\.mraw$#', '.wiki', $this->targetPathname );
 	}
 
-	private function ensureTargetPath() {
+	private function ensureTargetPath(): void {
 		$baseTargetPath = dirname( $this->targetPathname );
 		if ( !file_exists( $baseTargetPath ) ) {
 			mkdir( $baseTargetPath, 0755, true );

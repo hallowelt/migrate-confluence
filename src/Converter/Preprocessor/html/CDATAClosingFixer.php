@@ -14,8 +14,10 @@ class CDATAClosingFixer implements IHtmlPreprocessor {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return null|string
 	 */
-	public function preprocess( string $confluenceHTML ): string {
+	public function preprocess( string $confluenceHTML ): string|null {
 		$confluenceHTML = preg_replace_callback(
 			$this->pattern,
 			function ( $matches ) {

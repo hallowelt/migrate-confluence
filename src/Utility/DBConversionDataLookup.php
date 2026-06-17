@@ -177,7 +177,7 @@ class DBConversionDataLookup {
 		if ( !$reference ) {
 			return null;
 		}
-		if ( $reference === null || !file_exists( $reference ) ) {
+		if ( !file_exists( $reference ) ) {
 			return null;
 		}
 		$content = file_get_contents( $reference );

@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use DOMNode;
 use DOMText;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
@@ -29,10 +28,10 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$paramNodes = [];
 		foreach ( $node->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter' ) {
+			if ( $childNode instanceof DOMElement && $childNode->nodeName === 'ac:parameter' ) {
 				$paramNodes[] = $childNode;
 			}
 		}
@@ -101,7 +100,7 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 	 * @param DOMElement $user
 	 * @return string
 	 */
-	private function findUserName( DOMNode $user ): string {
+	private function findUserName( DOMElement $user ): string {
 		if ( $user->nodeName !== 'ri:user' ) {
 			return '';
 		}

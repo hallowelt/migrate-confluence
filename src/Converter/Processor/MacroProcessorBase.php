@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use DOMException;
-use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 abstract class MacroProcessorBase implements IProcessor {
@@ -37,12 +36,12 @@ abstract class MacroProcessorBase implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return void
 	 * @throws DOMException
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$macroName = $node->getAttribute( 'ac:name' );
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
@@ -53,14 +52,14 @@ abstract class MacroProcessorBase implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 *
 	 * @return array
 	 */
-	protected function getMacroParams( DOMNode $macro ): array {
+	protected function getMacroParams( DOMElement $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter' ) {
+			if ( $childNode instanceof DOMElement && $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
 				if ( $paramName === '' ) {
 					continue;
@@ -73,12 +72,12 @@ abstract class MacroProcessorBase implements IProcessor {
 
 	/**
 	 *
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 * @param DOMElement $macroReplacement
 	 *
 	 * @return void
 	 */
-	protected function macroParams( DOMNode $macro, DOMElement $macroReplacement ): void {
+	protected function macroParams( DOMElement $macro, DOMElement $macroReplacement ): void {
 		$params = $this->getMacroParams( $macro );
 
 		if ( !empty( $params ) ) {
@@ -87,12 +86,12 @@ abstract class MacroProcessorBase implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 * @param DOMElement $macroReplacement
 	 *
 	 * @return void
 	 */
-	protected function macroBody( DOMNode $macro, DOMElement $macroReplacement ): void {
+	protected function macroBody( DOMElement $macro, DOMElement $macroReplacement ): void {
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:rich-text-body' ) {
 				foreach ( $childNode->childNodes as $node ) {

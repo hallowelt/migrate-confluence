@@ -8,8 +8,10 @@ class RestoreExcerptMacro implements IPostprocessor {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return null|string
 	 */
-	public function postprocess( string $wikiText ): string {
+	public function postprocess( string $wikiText ): string|null {
 		return preg_replace_callback(
 			'/#####EXCERPTBLOCKOPEN\|(.*?)\|(.*?)#####(.*?)#####EXCERPTBLOCKCLOSE#####/si',
 			static function ( $matches ) {

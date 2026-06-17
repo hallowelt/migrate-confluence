@@ -55,7 +55,7 @@ class Comments extends ProcessorBase {
 				continue;
 			}
 
-			if ( $wikiTitle === null || $wikiTitle === '' ) {
+			if ( $wikiTitle === '' ) {
 				continue;
 			}
 

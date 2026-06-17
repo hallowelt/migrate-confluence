@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 
 class SpaceDetailsMacro extends StructuredMacroProcessorBase {
@@ -18,7 +18,7 @@ class SpaceDetailsMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->readParams( $node );
 		$wikitextTemplate = new Template( $this->getWikiTextTemplateName(), $params );
 		$wikitextTemplate->setRenderFormatted( false );
@@ -35,15 +35,15 @@ class SpaceDetailsMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return array
 	 */
-	protected function readParams( DOMNode $node ): array {
+	protected function readParams( DOMElement $node ): array {
 		$params = [];
 		$params['width'] = '100%';
 
 		foreach ( $node->childNodes as $paramNode ) {
-			if ( $paramNode->nodeName === 'ac:parameter' ) {
+			if ( $paramNode instanceof DOMElement && $paramNode->nodeName === 'ac:parameter' ) {
 				$paramName = $paramNode->getAttribute( 'ac:name' );
 				if ( $paramName === 'width' ) {
 					if ( trim( $paramNode->nodeValue ) !== '' ) {

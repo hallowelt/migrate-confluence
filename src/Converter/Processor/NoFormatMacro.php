@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 /**
  * Unfortunately `pandoc` eats <syntaxhighlight> tags.
@@ -23,7 +23,7 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'pre' );
 		$macroReplacement->setAttribute( 'class', 'noformat' );
 
@@ -34,12 +34,12 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @param DOMNode $replacementNode
+	 * @param DOMElement $node
+	 * @param DOMElement $replacementNode
 	 *
 	 * @return void
 	 */
-	private function processParamElements( DOMNode $node, DOMNode $replacementNode ): void {
+	private function processParamElements( DOMElement $node, DOMElement $replacementNode ): void {
 		$paramEls = $node->getElementsByTagName( 'parameter' );
 		foreach ( $paramEls as $paramEl ) {
 			$paramName = $paramEl->getAttribute( 'ac:name' );
@@ -51,12 +51,12 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
-	 * @param DOMNode $replacementNode
+	 * @param DOMElement $node
+	 * @param DOMElement $replacementNode
 	 *
 	 * @return void
 	 */
-	private function processPlainTextBody( DOMNode $node, DOMNode $replacementNode ): void {
+	private function processPlainTextBody( DOMElement $node, DOMElement $replacementNode ): void {
 		$hasPlaintextEls = false;
 		$plaintextEls = $node->getElementsByTagName( 'plain-text-body' );
 		foreach ( $plaintextEls as $plaintextEl ) {

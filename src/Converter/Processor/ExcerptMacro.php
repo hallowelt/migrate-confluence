@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 /**
  * Converts the Confluence excerpt macro to a BlueSpice <excerpt-block> element.
@@ -26,20 +26,21 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 	 * format. To preserve the tag, we insert text placeholders around the content here and
 	 * restore the actual <excerpt-block> tag in the RestoreExcerptBlock postprocessor.
 	 * Placeholders use pipe-separated values to avoid HTML attribute quote encoding issues.
+	 *
+	 * @param DOMElement $node
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$macroId = $node->getAttribute( 'ac:macro-id' );
 		$hidden = 'false';
 
 		// TODO: Set to false as soon as the excerpt extension is available
-		$isBroken = true;
 
 		if ( empty( $macroId ) ) {
-			$isBroken = true;
 		}
 
 		foreach ( $node->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter'
+			if ( $childNode instanceof DOMElement
+				&& $childNode->nodeName === 'ac:parameter'
 				&& $childNode->getAttribute( 'ac:name' ) === 'hidden' ) {
 				$hidden = trim( $childNode->nodeValue );
 				break;
@@ -64,12 +65,10 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 		$closeTag = $node->ownerDocument->createTextNode( '#####EXCERPTBLOCKCLOSE#####' );
 		$parent->insertBefore( $closeTag, $node );
 
-		if ( $isBroken ) {
-			$brokenCategory = $node->ownerDocument->createTextNode(
+		$brokenCategory = $node->ownerDocument->createTextNode(
 				$this->getBrokenMacroCategory()
 			);
 			$parent->insertBefore( $brokenCategory, $node );
-		}
 
 		$parent->removeChild( $node );
 	}

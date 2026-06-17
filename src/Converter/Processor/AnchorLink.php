@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
-use DOMNode;
 
 class AnchorLink extends LinkProcessorBase {
 
@@ -41,10 +40,11 @@ class AnchorLink extends LinkProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node The ac:link element carrying the ac:anchor attribute.
+	 * @param DOMElement $node The ac:link element carrying the ac:anchor attribute.
+	 *
 	 * @return void
 	 */
-	protected function doProcessLink( DOMNode $node ): void {
+	protected function doProcessLink( DOMElement $node ): void {
 		if ( !$node instanceof DOMElement ) {
 			return;
 		}

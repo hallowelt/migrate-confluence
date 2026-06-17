@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use Exception;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
@@ -31,7 +31,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @inheritDoc
 	 * @throws Exception
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$isBroken = false;
 
 		$params = $this->processParams( $node );
@@ -71,16 +71,16 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return array
 	 * @throws Exception
 	 */
-	private function processParams( DOMNode $node ): array {
+	private function processParams( DOMElement $node ): array {
 		$params = [];
 
 		foreach ( $node->childNodes as $paramNode ) {
-			if ( $paramNode->nodeName !== 'ac:parameter' ) {
+			if ( !( $paramNode instanceof DOMElement ) || $paramNode->nodeName !== 'ac:parameter' ) {
 				continue;
 			}
 
@@ -112,18 +112,21 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $paramNode
+	 * @param DOMElement $paramNode
 	 *
 	 * @return string|null
 	 * @throws Exception
 	 */
-	private function processPageParam( DOMNode $paramNode ): ?string {
+	private function processPageParam( DOMElement $paramNode ): ?string {
 		if ( $paramNode->hasChildnodes() ) {
 			foreach ( $paramNode->childNodes as $childNode ) {
-				if ( $childNode->nodeName === 'ac:link' ) {
+				if ( $childNode instanceof DOMElement && $childNode->nodeName === 'ac:link' ) {
 					$pageLinks = $childNode->getElementsByTagname( 'page' );
 					if ( count( $pageLinks ) > 0 ) {
 						$pageLink = $pageLinks->item( 0 );
+						if ( !( $pageLink instanceof DOMElement ) ) {
+							continue;
+						}
 						$resolved = $this->findChildWikiTitle( $pageLink );
 
 						if ( $resolved !== null ) {
@@ -143,12 +146,12 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $pageLink
+	 * @param DOMElement $pageLink
 	 *
 	 * @return string|null
 	 * @throws Exception
 	 */
-	private function findChildWikiTitle( DOMNode $pageLink ): ?string {
+	private function findChildWikiTitle( DOMElement $pageLink ): ?string {
 		if ( !$pageLink->hasAttribute( 'ri:content-title' ) ) {
 			return null;
 		}

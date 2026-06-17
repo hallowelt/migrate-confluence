@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 class AttachmentsMacro extends StructuredMacroProcessorBase {
 
@@ -15,8 +15,10 @@ class AttachmentsMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @param DOMElement $node
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$attachmentsEl = $node->ownerDocument->createElement( 'attachments' );
 		$attachmentsEl->appendChild( $node->ownerDocument->createTextNode( '' ) );
 		$node->parentNode->replaceChild( $attachmentsEl, $node );

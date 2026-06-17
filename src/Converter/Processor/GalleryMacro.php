@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMElement;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
@@ -56,7 +57,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$this->filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
 
 		$macroName = $node->getAttribute( 'ac:name' );
@@ -263,10 +264,10 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 * @return DOMNode[]
 	 */
-	private function getBodyImages( DOMNode $macro ): array {
+	private function getBodyImages( DOMElement $macro ): array {
 		$images = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:image' ) {
@@ -287,9 +288,9 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			$isUrl = false;
 
 			foreach ( $imageNode->childNodes as $child ) {
-				if ( $child->nodeName === 'ri:attachment' ) {
+				if ( $child instanceof DOMElement && $child->nodeName === 'ri:attachment' ) {
 					$attachment = $child;
-				} elseif ( $child->nodeName === 'ri:url' ) {
+				} elseif ( $child instanceof DOMElement && $child->nodeName === 'ri:url' ) {
 					$isUrl = true;
 				}
 			}
@@ -309,7 +310,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 			$page = null;
 			foreach ( $attachment->childNodes as $child ) {
-				if ( $child->nodeName === 'ri:page' ) {
+				if ( $child instanceof DOMElement && $child->nodeName === 'ri:page' ) {
 					$page = $child;
 					break;
 				}
@@ -352,14 +353,14 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 *
 	 * @return array
 	 */
-	private function getMacroParams( DOMNode $macro ): array {
+	private function getMacroParams( DOMElement $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter' ) {
+			if ( $childNode instanceof DOMElement && $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
 				if ( $paramName === '' ) {
 					continue;

@@ -246,7 +246,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId )
 					?? '';
 				$this->wikiPageTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $this->pageId )
-					?? 'not_current_revision_' . $this->pageId;
+					?? 'not_current_revision_' . (string)$this->pageId;
 			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
 				$this->contentType = 'page';
 				$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
@@ -255,7 +255,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId )
 					?? '';
 				$this->wikiPageTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $this->pageId )
-					?? 'not_current_revision_' . $this->pageId;
+					?? 'not_current_revision_' . (string)$this->pageId;
 			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
 				$this->contentType = 'blogPost';
 				$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId );
@@ -265,7 +265,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 					$this->pageId
 				) ?? '';
 				$this->wikiPageTitle = $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $this->pageId )
-					?? 'not_current_revision_' . $this->pageId;
+					?? 'not_current_revision_' . (string)$this->pageId;
 			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
 				$this->contentType = 'comment';
 				$this->pageId = $contentId;
@@ -839,7 +839,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 		if ( $exceed !== '' ) {
 			$method = 'addInvalidBodyContent';
-			if ( strpos( $this->rawFile->getFileInfo(), 0, 3 ) === 'pt_' ) {
+			if ( substr( $this->rawFile->getFilename(), 0, 3 ) === 'pt_' ) {
 				$method = 'addInvalidPageTemplateContent';
 			}
 			if ( $exceed >= 512 ) {

@@ -110,7 +110,7 @@ class Image implements IProcessor {
 	 *
 	 * @return array
 	 */
-	private function getImageAttributes( DOMNode $node ): array {
+	private function getImageAttributes( DOMElement $node ): array {
 		$attributes = [];
 		$width = '';
 		$height = '';
@@ -436,11 +436,11 @@ class Image implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return bool
 	 */
-	private function isImageWithPageLink( DOMNode $node ): bool {
+	private function isImageWithPageLink( DOMElement $node ): bool {
 		if ( $node->parentNode->nodeName === 'ac:link-body' ) {
 			return true;
 		}
@@ -468,11 +468,11 @@ class Image implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return bool
 	 */
-	private function isImageWithExternalLink( DOMNode $node ): bool {
+	private function isImageWithExternalLink( DOMElement $node ): bool {
 		if ( $node->parentNode->nodeName !== 'a' ) {
 			return false;
 		}

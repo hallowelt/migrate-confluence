@@ -9,5 +9,5 @@ interface IPostprocessor {
 	 * @param string $wikiText
 	 * @return string
 	 */
-	public function postprocess( string $wikiText ): string;
+	public function postprocess( string $wikiText ): ?string;
 }

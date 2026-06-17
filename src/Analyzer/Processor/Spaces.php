@@ -100,7 +100,7 @@ class Spaces extends ProcessorBase {
 	 * @return string
 	 */
 	private function sanitizeUserSpaceKey( $spaceKey, $spaceName ) {
-		$spaceKey = substr( $spaceKey, 1, strlen( $spaceKey ) - 1 );
+		$spaceKey = substr( (string)$spaceKey, 1, strlen( (string)$spaceKey ) - 1 );
 		if ( is_numeric( $spaceKey ) ) {
 			$spaceKey = $spaceName;
 		}

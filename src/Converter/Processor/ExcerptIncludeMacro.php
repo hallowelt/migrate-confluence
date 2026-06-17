@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 class ExcerptIncludeMacro extends IncludeMacro {
 
@@ -21,16 +21,18 @@ class ExcerptIncludeMacro extends IncludeMacro {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @param DOMElement $node
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$this->parameters = [];
 		$parameterEls = $node->getElementsByTagName( 'parameter' );
 		foreach ( $parameterEls as $parameterEl ) {
-			$paramName = trim( $parameterEl->getAttribute( 'ac:name' ) ?? '' );
+			$paramName = trim( $parameterEl->getAttribute( 'ac:name' ) );
 			if ( empty( $paramName ) ) {
 				continue;
 			}
-			$paramValue = trim( $parameterEl->textContent ?? '' );
+			$paramValue = trim( $parameterEl->textContent );
 			$this->parameters[$paramName] = $paramValue;
 		}
 		parent::doProcessMacro( $node );
