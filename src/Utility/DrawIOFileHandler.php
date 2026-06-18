@@ -48,7 +48,7 @@ class DrawIOFileHandler {
 	 * @return bool
 	 */
 	public function isDrawIODataContent( string $fileContent ): bool {
-		return preg_match( '#<mxfile.*?>\s*.*\s*<diagram.*?>#', $fileContent );
+		return (bool)preg_match( '#<mxfile.*?>\s*.*\s*<diagram.*?>#s', $fileContent );
 	}
 
 	/**

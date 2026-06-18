@@ -130,7 +130,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			);
 
 			$contentWikiTitle = $contentIdToWikiTitleMap[$containerId];
-			$contentWikiTitle = substr( $contentWikiTitle, strrpos( $contentWikiTitle, ':' ) );
+			$contentWikiTitle = substr( $contentWikiTitle, strrpos( $contentWikiTitle, ':' ) + 1 );
 			$contentWikiTitleParts = explode( '/', $contentWikiTitle );
 			$shortContentWikiTitle = end( $contentWikiTitleParts );
 
