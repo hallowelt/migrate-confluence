@@ -86,8 +86,11 @@ class FilenameResolver {
 			return "";
 		}
 
-		$pageWikiTitleParts = substr( $assocTitle, strrpos( $assocTitle, ':' ) + 1 );
-		$pageWikiTitleParts = explode( '/', $pageWikiTitleParts );
+		if ( str_contains( $assocTitle, ':' ) ) {
+			$assocTitle = substr( $assocTitle, strrpos( $assocTitle, ':' ) + 1 );
+		}
+
+		$pageWikiTitleParts = explode( '/', $assocTitle );
 
 		return end( $pageWikiTitleParts );
 	}

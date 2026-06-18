@@ -11,66 +11,39 @@ use PHPUnit\Framework\TestCase;
 
 class ComposerSkipHelperTest extends TestCase {
 	/**
-	 * @covers \HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper::skipPageById()
+	 * @covers \HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper::skipPage()
 	 */
 	public function testSkipPageById() {
 		$skipHelper = $this->getSkipHelper(
 			$this->getEmptyMigrationConfig()
 		);
-		$workspaceDB = $this->getWorkspaceDB();
-		$map = $workspaceDB->getPageIdWikiPageTitleMap();
-		$map = array_flip( $map );
 
 		// Test a page that is set in the page_invalid_titles database table
-		$pageId = null;
-		if ( isset( $map['DEVOPS:Page_with_invalid_title'] ) ) {
-			$pageId = $map['DEVOPS:Page_with_invalid_title'];
-		}
-		$this->assertNotNull( $pageId, 'Page id should not be null' );
-		$skip = $skipHelper->skipPageById( $pageId );
+		$skip = $skipHelper->skipPage( 'DEVOPS:Page_with_invalid_title' );
 		$this->assertTrue( $skip, 'Page should be skipped (invalid title)' );
 
 		// Test a page that is set in the body_content_invalids database table
-		$pageId = null;
-		if ( isset( $map['DEVOPS:Page_with_invalid_content_length'] ) ) {
-			$pageId = $map['DEVOPS:Page_with_invalid_content_length'];
-		}
-		$this->assertNotNull( $pageId, 'Page id should not be null' );
-		$skip = $skipHelper->skipPageById( $pageId );
+		$skip = $skipHelper->skipPage( 'DEVOPS:Page_with_invalid_content_length' );
 		$this->assertTrue( $skip, 'Page should be skipped (invalid content length)' );
 
 		// Test a page that is not set in the page_invalid_titles database table
-		$pageId = null;
-		if ( isset( $map['ABC:SomePage'] ) ) {
-			$pageId = $map['ABC:SomePage'];
-		}
-		$this->assertNotNull( $pageId, 'Page id should not be null' );
-		$skip = $skipHelper->skipPageById( $pageId );
+		$skip = $skipHelper->skipPage( 'ABC:SomePage' );
 		$this->assertFalse( $skip, 'Page should not be skipped' );
 
-		// Test a page that is not set in one of the "invaild" tables but skip by configuration
 		$skipHelper = $this->getSkipHelper(
 			$this->getMigrationConfig()
 		);
-		$pageId = null;
-		if ( isset( $map['ABC:Some_MediaWiki_page_name'] ) ) {
-			$pageId = $map['ABC:Some_MediaWiki_page_name'];
-		}
-		$this->assertNotNull( $pageId, 'Page id should not be null' );
-		$skip = $skipHelper->skipPageById( $pageId );
+
+		// Test a page that is not set in one of the "invaild" tables but skip by configuration
+		$skip = $skipHelper->skipPage( 'ABC:Some_MediaWiki_page_name' );
 		$this->assertTrue( $skip, 'Page should be skipped (by configuration)' );
 
-		$pageId = null;
-		if ( isset( $map['DEVOPS:Page_Title3'] ) ) {
-			$pageId = $map['DEVOPS:Page_Title3'];
-		}
-		$this->assertNotNull( $pageId, 'Page id should not be null' );
-		$skip = $skipHelper->skipPageById( $pageId );
+		$skip = $skipHelper->skipPage( 'DEVOPS:Page_Title3' );
 		$this->assertTrue( $skip, 'Page should be skipped (by configuration)' );
 	}
 
 	/**
-	 * @covers \HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper::skipPageById()
+	 * @covers \HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper::skipPage()
 	 */
 	public function testSkipBlogPostById() {
 		$skipHelper = $this->getSkipHelper(
@@ -86,7 +59,7 @@ class ComposerSkipHelperTest extends TestCase {
 			$pageId = $map['Blog:ABC/Some_Blog_Post_with_invalid_title'];
 		}
 		$this->assertNotNull( $pageId, 'BlogPost id should not be null' );
-		$skip = $skipHelper->skipPageById( $pageId );
+		$skip = $skipHelper->skipPage( $pageId );
 		$this->assertTrue( $skip, 'BlogPost should be skipped (invalid title)' );
 
 		// Test a page that is set in the body_content_invalids database table
@@ -95,7 +68,7 @@ class ComposerSkipHelperTest extends TestCase {
 			$pageId = $map['Blog:DEVOPS/BlogPost_with_invalid_content_length'];
 		}
 		$this->assertNotNull( $pageId, 'BlogPost id should not be null' );
-		$skip = $skipHelper->skipPageById( $pageId );
+		$skip = $skipHelper->skipPage( $pageId );
 		$this->assertTrue( $skip, 'BlogPost should be skipped (invalid content length)' );
 	}
 

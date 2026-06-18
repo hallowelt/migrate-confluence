@@ -28,7 +28,7 @@ class AttachmentLinkTest extends TestCase {
 	 * @param bool $extNSFileRepo
 	 * @return void
 	 */
-	private function doTestAttachments( $input, $output, $extNSFileRepo = false ): void {
+	private function doTestAttachments( string $input, string $output ): void {
 		$dir = dirname( dirname( __DIR__ ) ) . '/data';
 		$input = file_get_contents( "$dir/$input" );
 
