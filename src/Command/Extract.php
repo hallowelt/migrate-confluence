@@ -99,7 +99,7 @@ class Extract extends CommandExtract {
 					$config = array_merge( $config, $yaml );
 				} catch ( ParseException $e ) {
 					$this->output->writeln( 'Invalid config file provided' );
-					exit( true );
+					exit( 1 );
 				}
 			}
 		}

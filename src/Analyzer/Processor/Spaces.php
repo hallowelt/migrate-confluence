@@ -95,7 +95,7 @@ class Spaces extends ProcessorBase {
 	}
 
 	/**
-	 * @param int|string $spaceKey
+	 * @param string $spaceKey
 	 * @param string $spaceName
 	 * @return string
 	 */

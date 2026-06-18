@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Command;
 
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -30,7 +31,11 @@ class GetVersion extends Command {
 			return Command::FAILURE;
 		}
 
-		$output->writeln( sprintf( $output->isVerbose() ? "tool: %s\nphp:  %s" : '%s', $version, PHP_VERSION ) );
+		if ( $output instanceof ConsoleOutputInterface ) {
+			$output->writeln( sprintf( $output->isVerbose() ? "tool: %s\nphp:  %s" : '%s', $version, PHP_VERSION ) );
+		} else {
+			$output->write( $version );
+		}
 
 		return Command::SUCCESS;
 	}
