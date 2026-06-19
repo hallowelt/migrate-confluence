@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 	/**
 	 *
@@ -28,14 +28,14 @@ class LocalTabMacro extends MacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->getMacroParams( $node );
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 		$macroReplacement->setAttribute( 'class', "ac-localtab" );
 
 		if ( isset( $params['title'] ) ) {
-			$titleText = $node->ownerDocument->createTextNode( $params['title'] );
+			$titleText = $this->createTextNode( $node->ownerDocument, $params['title'], __METHOD__ );
 			$h1 = $node->ownerDocument->createElement( 'h1' );
 			$h1->appendChild( $titleText );
 			$macroReplacement->appendChild( $h1 );

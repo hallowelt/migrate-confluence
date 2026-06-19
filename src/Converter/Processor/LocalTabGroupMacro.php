@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 	/**
 	 *
@@ -28,7 +28,7 @@ class LocalTabGroupMacro extends MacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 		$macroReplacement->setAttribute( 'class', "ac-localtabgroup" );
 
@@ -36,7 +36,7 @@ class LocalTabGroupMacro extends MacroProcessorBase {
 		$this->macroBody( $node, $macroReplacement );
 		// Append the "<headertabs />" tag
 		$macroReplacement->appendChild(
-			$node->ownerDocument->createTextNode( '<headertabs />' )
+			$this->createTextNode( $node->ownerDocument, '<headertabs />', __METHOD__ )
 		);
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );

@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 
 class JiraMacro extends StructuredMacroProcessorBase {
@@ -17,7 +17,7 @@ class JiraMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->readParams( $node );
 
 		$hasKey = isset( $params['key'] ) && $params['key'] !== '';
@@ -25,7 +25,11 @@ class JiraMacro extends StructuredMacroProcessorBase {
 
 		if ( !$hasKey && !$hasJql ) {
 			$node->parentNode->replaceChild(
-				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategory() ),
+				$this->createTextNode(
+				$node->ownerDocument,
+					$this->getBrokenMacroCategory(),
+					__METHOD__
+				),
 				$node
 			);
 			return;
@@ -42,8 +46,10 @@ class JiraMacro extends StructuredMacroProcessorBase {
 		$wikitextTemplate = new Template( $this->getWikiTextTemplateName(), $params );
 		$wikitextTemplate->setRenderFormatted( false );
 		$node->parentNode->replaceChild(
-			$node->ownerDocument->createTextNode(
-				$wikitextTemplate->render()
+			$this->createTextNode(
+				$node->ownerDocument,
+				$wikitextTemplate->render(),
+				__METHOD__
 			),
 			$node
 		);
@@ -54,12 +60,15 @@ class JiraMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return array
 	 */
-	protected function readParams( DOMNode $node ): array {
+	protected function readParams( DOMElement $node ): array {
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
 			if ( $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
 				$paramValue = $childNode->nodeValue;

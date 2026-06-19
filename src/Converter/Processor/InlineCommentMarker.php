@@ -4,11 +4,12 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
 /**
  *
  */
-class InlineCommentMarker implements IProcessor {
+class InlineCommentMarker extends ConversionHelper implements IProcessor {
 	/**
 	 * @inheritDoc
 	 */
@@ -22,8 +23,10 @@ class InlineCommentMarker implements IProcessor {
 
 		foreach ( $macroNodes as $macroNode ) {
 			$macroNode->parentNode->replaceChild(
-				$macroNode->ownerDocument->createTextNode(
-					"{{InlineComment|$macroNode->nodeValue}}"
+				$this->createTextNode(
+					$macroNode->ownerDocument,
+					"{{InlineComment|$macroNode->nodeValue}}",
+					__METHOD__
 				),
 				$macroNode
 			);

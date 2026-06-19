@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
@@ -54,14 +54,14 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->getMacroParams( $node );
 
 		if ( isset( $params['diagramName'] ) ) {
 			$paramsString = $this->makeParamsString( $params );
 
 			$node->parentNode->replaceChild(
-				$node->ownerDocument->createTextNode( "{{Drawio$paramsString}}" ),
+				$this->createTextNode( $node->ownerDocument, "{{Drawio$paramsString}}", __METHOD__ ),
 				$node
 			);
 		}
@@ -89,13 +89,17 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 *
 	 * @return array
 	 */
-	private function getMacroParams( DOMNode $macro ): array {
+	private function getMacroParams( DOMElement $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
+
 			if ( $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
 

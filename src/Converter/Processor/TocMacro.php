@@ -29,7 +29,7 @@ class TocMacro extends StructuredMacroProcessorBase {
 		$this->usage->tocIsUsed();
 
 		$node->parentNode->replaceChild(
-			$node->ownerDocument->createTextNode( "\n__TOC__\n###BREAK###" ),
+			$this->createTextNode( $node->ownerDocument, "\n__TOC__\n###BREAK###", __METHOD__ ),
 			$node
 		);
 	}

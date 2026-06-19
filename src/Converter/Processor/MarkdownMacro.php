@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 class MarkdownMacro extends StructuredMacroProcessorBase {
 
@@ -16,7 +16,7 @@ class MarkdownMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$brokenMacro = false;
 
 		$markdownContent = '';
@@ -35,15 +35,17 @@ class MarkdownMacro extends StructuredMacroProcessorBase {
 		if ( !$brokenMacro ) {
 			$wrapper = $node->ownerDocument->createElement( 'markdown' );
 			$wrapper->appendChild(
-				$node->ownerDocument->createTextNode( $markdownContent )
+				$this->createTextNode( $node->ownerDocument, $markdownContent, __METHOD__ )
 			);
 
 			$replacement = $wrapper;
 		}
 
 		if ( $brokenMacro ) {
-			$replacement = $node->ownerDocument->createTextNode(
-				$this->getBrokenMacroCategory()
+			$replacement = $this->createTextNode(
+				$node->ownerDocument,
+				$this->getBrokenMacroCategory(),
+				__METHOD__
 			);
 		}
 

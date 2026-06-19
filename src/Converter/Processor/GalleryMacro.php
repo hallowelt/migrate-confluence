@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMElement;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
@@ -56,7 +57,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$this->filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
 
 		$macroName = $node->getAttribute( 'ac:name' );
@@ -76,7 +77,11 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 		if ( empty( $files ) ) {
 			$node->parentNode->replaceChild(
-				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategory() ),
+				$this->createTextNode(
+					$node->ownerDocument,
+					$this->getBrokenMacroCategory(),
+					__METHOD__
+				),
 				$node
 			);
 
@@ -99,7 +104,11 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			$galleryTag .= '[[Category:Broken_attachment_link]]';
 		}
 
-		$galleryTagNode = $node->ownerDocument->createTextNode( $galleryTag );
+		$galleryTagNode = $this->createTextNode(
+			$node->ownerDocument,
+			$galleryTag,
+			__METHOD__
+		);
 		$macroReplacement->appendChild( $galleryTagNode );
 
 		if ( !empty( $params ) ) {
@@ -299,6 +308,10 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 				continue;
 			}
 
+			if ( $attachment instanceof DOMElement === false ) {
+				continue;
+			}
+
 			$filename = $attachment->getAttribute( 'ri:filename' );
 			if ( $filename === '' ) {
 				continue;
@@ -315,7 +328,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 				}
 			}
 
-			if ( $page !== null ) {
+			if ( $page instanceof DOMElement ) {
 				$contentTitle = $page->getAttribute( 'ri:content-title' );
 				if ( $contentTitle !== '' ) {
 					$pageTitle = $contentTitle;
@@ -352,13 +365,16 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 *
 	 * @return array
 	 */
-	private function getMacroParams( DOMNode $macro ): array {
+	private function getMacroParams( DOMElement $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
 			if ( $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
 				if ( $paramName === '' ) {

@@ -2,8 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
-use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
+use DOMElement;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class IncludeMacro extends StructuredMacroProcessorBase {
@@ -24,9 +23,9 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	protected string $mediaWikiPageName = '';
 
 	/**
-	 * @var DOMNode|null
+	 * @var DOMElement|null
 	 */
-	protected ?DOMNode $currentNode = null;
+	protected ?DOMElement $currentNode = null;
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
@@ -48,7 +47,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$this->currentNode = $node;
 		$this->setMediaWikiPageName();
 
@@ -59,7 +58,11 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 			$wikiTextTemplateCall .= $category;
 		}
 
-		$wikiTextTemplateCallNode = $node->ownerDocument->createTextNode( $wikiTextTemplateCall );
+		$wikiTextTemplateCallNode = $this->createTextNode(
+			$node->ownerDocument,
+			$wikiTextTemplateCall,
+			__METHOD__
+		);
 		$node->parentNode->replaceChild( $wikiTextTemplateCallNode, $node );
 	}
 
@@ -72,9 +75,11 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @return void
-	 * @throws InvalidTitleException
 	 */
 	private function setMediaWikiPageName(): void {
+		if ( $this->currentNode instanceof DOMElement === false ) {
+			return;
+		}
 		$pageEl = $this->currentNode->getElementsByTagName( 'page' )->item( 0 );
 		if ( $pageEl === null ) {
 			return;

@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 class ExcerptIncludeMacro extends IncludeMacro {
 
@@ -22,7 +22,7 @@ class ExcerptIncludeMacro extends IncludeMacro {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$this->parameters = [];
 		$parameterEls = $node->getElementsByTagName( 'parameter' );
 		foreach ( $parameterEls as $parameterEl ) {

@@ -7,11 +7,12 @@ use DOMElement;
 use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
-class Image implements IProcessor {
+class Image extends ConversionHelper implements IProcessor {
 
 	/**
 	 * @var FilenameResolver
@@ -75,7 +76,7 @@ class Image implements IProcessor {
 				// [href imageUrl] instead of dropping the link entirely.
 				$urlText = $this->getImageUrlText( $node );
 				$node->parentNode->replaceChild(
-					$node->ownerDocument->createTextNode( $urlText ),
+					$this->createTextNode( $node->ownerDocument, $urlText, __METHOD__ ),
 					$node
 				);
 			} else {
@@ -85,7 +86,11 @@ class Image implements IProcessor {
 				);
 			}
 		} else {
-			$replacementNode = $node->ownerDocument->createTextNode( '[[Category:Broken_image]]' );
+			$replacementNode = $this->createTextNode(
+				$node->ownerDocument,
+				$this->getCategoryBroken( 'image' ),
+				__METHOD__
+			);
 
 			foreach ( $node->childNodes as $childNode ) {
 				if ( $childNode instanceof DOMElement === false ) {
@@ -110,7 +115,7 @@ class Image implements IProcessor {
 	 *
 	 * @return array
 	 */
-	private function getImageAttributes( DOMNode $node ): array {
+	private function getImageAttributes( DOMElement $node ): array {
 		$attributes = [];
 		$width = '';
 		$height = '';
@@ -189,10 +194,10 @@ class Image implements IProcessor {
 	 *
 	 * @param DOMElement $node
 	 *
-	 * @return DOMNode
+	 * @return DOMElement
 	 * @throws DOMException
 	 */
-	private function makeImageUrlReplacement( DOMElement $node ): DOMNode {
+	private function makeImageUrlReplacement( DOMElement $node ): DOMElement {
 		$attributes = $this->getImageAttributes( $node->parentNode );
 
 		$originalUrl = $node->getAttribute( 'ri:value' );
@@ -216,7 +221,7 @@ class Image implements IProcessor {
 		}
 
 		$replacementNode->appendChild(
-			$node->ownerDocument->createTextNode( $src )
+			$this->createTextNode( $node->ownerDocument, $src, __METHOD__ )
 		);
 
 		return $replacementNode;
@@ -270,10 +275,10 @@ class Image implements IProcessor {
 	}
 
 	/**
-	 * @param DomElement $node
+	 * @param DOMElement $node
 	 * @return DOMNode
 	 */
-	private function makeImagePageLinkReplacement( DomElement $node ): DOMNode {
+	private function makeImagePageLinkReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node );
 
 		$attachmentNode = $node->getElementsByTagName( 'attachment' )->item( 0 );
@@ -340,10 +345,10 @@ class Image implements IProcessor {
 	}
 
 	/**
-	 * @param DomElement $node
+	 * @param DOMElement $node
 	 * @return DOMNode
 	 */
-	private function makeImageExternalLinkReplacement( DomElement $node ): DOMNode {
+	private function makeImageExternalLinkReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node );
 
 		$attachmentNode = $node->getElementsByTagName( 'attachment' )->item( 0 );
@@ -423,7 +428,7 @@ class Image implements IProcessor {
 		$replacementText = $this->getImageReplacement( $params );
 		$replacementText .= $debug;
 
-		return $dom->createTextNode( $replacementText );
+		return $this->createTextNode( $dom, $replacementText, __METHOD__ );
 	}
 
 	/**
@@ -436,11 +441,11 @@ class Image implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return bool
 	 */
-	private function isImageWithPageLink( DOMNode $node ): bool {
+	private function isImageWithPageLink( DOMElement $node ): bool {
 		if ( $node->parentNode->nodeName === 'ac:link-body' ) {
 			return true;
 		}
@@ -468,11 +473,11 @@ class Image implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return bool
 	 */
-	private function isImageWithExternalLink( DOMNode $node ): bool {
+	private function isImageWithExternalLink( DOMElement $node ): bool {
 		if ( $node->parentNode->nodeName !== 'a' ) {
 			return false;
 		}
