@@ -169,7 +169,7 @@
       <text>&lt;includeonly&gt;{{#ask: [[~{{{page|{{FULLPAGENAME}}}}}/*]] [[Modification date::+]]
 |?=title
 |format=ul
-|template=SubpageListRow 
+|template=SubpageListRow
 &lt;!-- |userparam={{{page|{{FULLPAGENAME}}}}} --&gt;
 |limit={{#switch:{{{first|10}}}|0=100|{{{first|10}}}}}
 |link=none
@@ -510,11 +510,11 @@ Name:{{{name|}}}
 |-
 | Pages in namespace || {{#ask:[[{{NAMESPACE}}:+]]|format=count}}
 |-
-| Last page edit || {{#ask:[[{{NAMESPACE}}:+]]|limit=1|sort=Modification date|order=desc|searchlabel=}} 
+| Last page edit || {{#ask:[[{{NAMESPACE}}:+]]|limit=1|sort=Modification date|order=desc|searchlabel=}}
 |-
-| Last modification date || {{#ask:[[{{NAMESPACE}}:+]]|?Modification date=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}} 
+| Last modification date || {{#ask:[[{{NAMESPACE}}:+]]|?Modification date=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}}
 |-
-| Last modifier || {{#ask:[[{{NAMESPACE}}:+]]|?Last editor is=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}} 
+| Last modifier || {{#ask:[[{{NAMESPACE}}:+]]|?Last editor is=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}}
 |}&lt;/includeonly&gt;
 </text>
     </revision>

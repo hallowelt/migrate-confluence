@@ -1,7 +1,7 @@
 <includeonly>{{#ask: [[~{{{page|{{FULLPAGENAME}}}}}/*]] [[Modification date::+]]
 |?=title
 |format=ul
-|template=SubpageListRow 
+|template=SubpageListRow
 <!-- |userparam={{{page|{{FULLPAGENAME}}}}} -->
 |limit={{#switch:{{{first|10}}}|0=100|{{{first|10}}}}}
 |link=none
