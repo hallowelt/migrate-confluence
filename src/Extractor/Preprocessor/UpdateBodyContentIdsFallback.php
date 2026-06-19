@@ -37,7 +37,6 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 				continue;
 			}
 
-
 			$bodyContentIds = json_decode( $page['body_content_ids'], true );
 			if ( !empty( $bodyContentIds ) ) {
 				continue;
@@ -126,7 +125,6 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 			if ( !isset( $spaceDesc['space_description_id'] ) || !isset( $spaceDesc['body_content_ids'] ) ) {
 				continue;
 			}
-
 
 			$bodyContentIds = json_decode( $spaceDesc['body_content_ids'], true );
 			if ( !empty( $bodyContentIds ) ) {

@@ -25,7 +25,6 @@ class AttachmentLinkTest extends TestCase {
 	/**
 	 * @param string $input
 	 * @param string $output
-	 * @param bool $extNSFileRepo
 	 * @return void
 	 */
 	private function doTestAttachments( string $input, string $output ): void {
