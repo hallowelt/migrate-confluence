@@ -4,11 +4,12 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
 /**
  *
  */
-class Placeholder implements IProcessor {
+class Placeholder extends ConversionHelper implements IProcessor {
 	/**
 	 * @inheritDoc
 	 */
@@ -22,8 +23,10 @@ class Placeholder implements IProcessor {
 
 		foreach ( $macroNodes as $macroNode ) {
 			$macroNode->parentNode->replaceChild(
-				$macroNode->ownerDocument->createTextNode(
-					"<!-- $macroNode->textContent -->"
+				$this->createTextNode(
+					$macroNode->ownerDocument,
+					"<!-- $macroNode->textContent -->",
+					__METHOD__
 				),
 				$macroNode
 			);

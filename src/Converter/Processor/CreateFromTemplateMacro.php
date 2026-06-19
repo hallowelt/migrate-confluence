@@ -7,6 +7,7 @@ use DOMElement;
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 // phpcs:disable Generic.Files.LineLength.TooLong
@@ -36,7 +37,7 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
  *    <ac:parameter ac:name="buttonLabel">Create File List</ac:parameter>
  * </ac:structured-macro>
  */
-class CreateFromTemplateMacro implements IProcessor {
+class CreateFromTemplateMacro extends ConversionHelper implements IProcessor {
 
 	/** @var string */
 	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
@@ -88,11 +89,11 @@ class CreateFromTemplateMacro implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return void
 	 */
-	private function doProcessMacro( DOMNode $node ): void {
+	private function doProcessMacro( DOMElement $node ): void {
 		$params = $this->getParams( $node );
 		$macroId = '';
 		if ( $node instanceof DOMElement ) {
@@ -120,7 +121,7 @@ class CreateFromTemplateMacro implements IProcessor {
 		}
 
 		$node->parentNode->replaceChild(
-			$node->ownerDocument->createTextNode( $wikiText ),
+			$this->createTextNode( $node->ownerDocument, $wikiText, __METHOD__ ),
 			$node
 		);
 	}

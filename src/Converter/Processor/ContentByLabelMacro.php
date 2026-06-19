@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MigrateConfluence\Utility\CQLParser;
 
 class ContentByLabelMacro extends StructuredMacroProcessorBase {
@@ -23,7 +23,7 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$paramNodes = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -33,6 +33,10 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 
 		$params = [];
 		foreach ( $paramNodes as $paramNode ) {
+			if ( $paramNode instanceof DOMElement === false ) {
+				continue;
+			}
+
 			if ( !$paramNode->hasAttributes() ) {
 				continue;
 			}
@@ -78,10 +82,18 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 		}
 
 		if ( empty( $params ) || $cqlError === true ) {
-			$textNode = $node->ownerDocument->createTextNode( $this->getBrokenMacroCategory() );
+			$textNode = $this->createTextNode(
+				$node->ownerDocument,
+				$this->getBrokenMacroCategory(),
+				__METHOD__
+			);
 		} else {
 			// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
-			$textNode = $node->ownerDocument->createTextNode( "{{ContentByLabel\n$templateParams}}" );
+			$textNode = $this->createTextNode(
+				$node->ownerDocument,
+				"{{ContentByLabel\n$templateParams}}",
+				__METHOD__
+			);
 		}
 
 		$node->parentNode->replaceChild( $textNode, $node );

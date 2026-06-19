@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
 /**
  * <ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="448329ba-06ad-4845-b3bf-2fd9a75c0d51">
@@ -15,7 +16,7 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
  *	</ac:rich-text-body>
  * </ac:structured-macro>
  */
-abstract class ConvertMacroToTemplateWithBodyBase implements IProcessor {
+abstract class ConvertMacroToTemplateWithBodyBase extends ConversionHelper implements IProcessor {
 
 	/**
 	 * @inheritDoc
@@ -51,8 +52,10 @@ abstract class ConvertMacroToTemplateWithBodyBase implements IProcessor {
 			if ( $this->addLinebreakInsideTemplate() && count( $parameterEls ) > 0 ) {
 				$openTemplate .= "###BREAK###\n";
 			}
-			$wikitextTemplateStartTextNode = $dom->createTextNode(
-				$openTemplate
+			$wikitextTemplateStartTextNode = $this->createTextNode(
+				$dom,
+				$openTemplate,
+				__METHOD__
 			);
 			$parentNode->insertBefore( $wikitextTemplateStartTextNode, $actualMacro );
 
@@ -69,18 +72,22 @@ abstract class ConvertMacroToTemplateWithBodyBase implements IProcessor {
 				if ( $this->addLinebreakInsideTemplate() ) {
 					$paramString .= "###BREAK###\n";
 				}
-				$paramTextNode = $dom->createTextNode( $paramString );
+				$paramTextNode = $this->createTextNode( $dom, $paramString, __METHOD__ );
 				$parentNode->insertBefore( $paramTextNode, $actualMacro );
 			}
 
 			// close opening template
-			$paramTextNode = $dom->createTextNode( "}}" );
+			$paramTextNode = $this->createTextNode( $dom, "}}", __METHOD__ );
 			$parentNode->insertBefore( $paramTextNode, $actualMacro );
 
 			$this->extractBodyElements( $actualMacro, $parentNode );
 
 			// add closing template
-			$wikitextTemplateEndTextNode = $dom->createTextNode( "{{" . $templateEndName . "}}" );
+			$wikitextTemplateEndTextNode = $this->createTextNode(
+				$dom,
+				"{{" . $templateEndName . "}}",
+				__METHOD__
+			);
 			$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
 
 			$parentNode->removeChild( $actualMacro );
@@ -106,7 +113,11 @@ abstract class ConvertMacroToTemplateWithBodyBase implements IProcessor {
 		if ( !empty( $richTextBodyEls ) ) {
 			$bodyString = "";
 
-			$wikitextTemplateEndTextNode = $actualMacro->ownerDocument->createTextNode( $bodyString );
+			$wikitextTemplateEndTextNode = $this->createTextNode(
+				$actualMacro->ownerDocument,
+				$bodyString,
+				__METHOD__
+			);
 			$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
 
 			foreach ( $richTextBodyEls as $richTextBodyEl ) {

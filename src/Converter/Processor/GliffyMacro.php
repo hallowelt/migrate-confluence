@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 
@@ -33,7 +33,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->getMacroParams( $node );
 
 		if ( isset( $params['name'] ) ) {
@@ -46,7 +46,11 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 
 			// Gliffy will be used as Drawio image
 			$node->parentNode->replaceChild(
-				$node->ownerDocument->createTextNode( "{{Gliffy$paramsString}}$brokenMacro" ),
+				$this->createTextNode(
+					$node->ownerDocument,
+					"{{Gliffy$paramsString}}$brokenMacro",
+					__METHOD__
+				),
 				$node
 			);
 		}
@@ -118,13 +122,16 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 *
 	 * @return array
 	 */
-	private function getMacroParams( DOMNode $macro ): array {
+	private function getMacroParams( DOMElement $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
 			if ( $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
 				if ( $paramName === '' ) {

@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
@@ -54,13 +54,17 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->readParams( $node );
 
 		// No ri:filename attribute at all — macro is genuinely broken.
 		if ( !isset( $params['_riFilename'] ) ) {
 			$node->parentNode->replaceChild(
-				$node->ownerDocument->createTextNode( $this->getBrokenMacroCategory() ),
+				$this->createTextNode(
+					$node->ownerDocument,
+					$this->getBrokenMacroCategory(),
+					__METHOD__
+				),
 				$node
 			);
 			return;
@@ -84,7 +88,7 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		}
 
 		$node->parentNode->replaceChild(
-			$node->ownerDocument->createTextNode( $text ),
+			$this->createTextNode( $node->ownerDocument, $text, __METHOD__ ),
 			$node
 		);
 	}
@@ -97,16 +101,22 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return array
 	 */
-	protected function readParams( DOMNode $node ): array {
+	protected function readParams( DOMElement $node ): array {
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
+				if ( $childNode instanceof DOMElement === false ) {
+					continue;
+				}
 				$paramName = $childNode->getAttribute( 'ac:name' );
 				if ( $paramName === 'name' ) {
 					foreach ( $childNode->childNodes as $attachmentNode ) {
+						if ( $attachmentNode instanceof DOMElement === false ) {
+							continue;
+						}
 						if ( $attachmentNode->nodeName === 'ri:attachment' ) {
 							if ( $attachmentNode->hasAttribute( 'ri:filename' ) ) {
 								$params['_riFilename'] = $attachmentNode->getAttribute( 'ri:filename' );

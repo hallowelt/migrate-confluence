@@ -4,12 +4,13 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
-use DOMNode;
+use Exception;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
-abstract class LinkProcessorBase implements IProcessor {
+abstract class LinkProcessorBase extends ConversionHelper implements IProcessor {
 
 	/**
 	 * @var DBConversionDataLookup
@@ -32,9 +33,9 @@ abstract class LinkProcessorBase implements IProcessor {
 	protected MigrationConfig $migrationConfig;
 
 	/**
-	 * @var DOMNode
+	 * @var DOMElement
 	 */
-	private DOMNode $linkNode;
+	private DOMElement $linkNode;
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
@@ -56,10 +57,10 @@ abstract class LinkProcessorBase implements IProcessor {
 	abstract protected function getProcessableNodeName(): string;
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return void
 	 */
-	abstract protected function doProcessLink( DOMNode $node ): void;
+	abstract protected function doProcessLink( DOMElement $node ): void;
 
 	/**
 	 * @inheritDoc
@@ -95,18 +96,18 @@ abstract class LinkProcessorBase implements IProcessor {
 	abstract public function makeLink( array $linkParts ): string;
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return void
 	 */
-	private function setLinkNode( DOMNode $node ): void {
+	private function setLinkNode( DOMElement $node ): void {
 		$this->linkNode = $node->parentNode;
 	}
 
 	/**
-	 * @return DOMNode
+	 * @return DOMElement
 	 */
-	protected function getLinkNode(): DOMNode {
+	protected function getLinkNode(): DOMElement {
 		return $this->linkNode;
 	}
 
@@ -118,12 +119,16 @@ abstract class LinkProcessorBase implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @param array &$linkParts
 	 *
 	 * @return void
 	 */
-	protected function getLinkBody( DOMNode $node, array &$linkParts ): void {
+	protected function getLinkBody( DOMElement $node, array &$linkParts ): void {
+		if ( $node->parentNode instanceof DOMElement === false ) {
+			return;
+		}
+
 		// Let's see if there is a description Text
 		// HTML Content
 		$linkBodys = $node->parentNode->getElementsByTagName( 'link-body' );
@@ -141,15 +146,17 @@ abstract class LinkProcessorBase implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @param string $replacement
 	 * @return void
+	 *
+	 * @throws Exception
 	 */
-	protected function replaceLink( DOMNode $node, string $replacement ): void {
+	protected function replaceLink( DOMElement $node, string $replacement ): void {
 		$linkNode = $this->getLinkNode();
 
 		$linkNode->parentNode->replaceChild(
-			$node->ownerDocument->createTextNode( $replacement ),
+			$this->createTextNode( $node->ownerDocument, $replacement, __METHOD__ ),
 			$linkNode
 		);
 	}
