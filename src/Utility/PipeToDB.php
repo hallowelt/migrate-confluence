@@ -10,10 +10,10 @@ class PipeToDB {
 	public const int FILE_DESCRIPTOR = 3;
 
 	/** @var resource|false */
-	private $pipe = false;
+	private $pipe;
 
 	/** @var bool */
-	private $closePipe = false;
+	private bool $closePipe = false;
 
 	/**
 	 * @param resource|false $pipe

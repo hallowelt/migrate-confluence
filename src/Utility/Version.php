@@ -10,7 +10,7 @@ class Version {
 	/**
 	 * @var string|null deduced version
 	 */
-	private static $version = null;
+	private static string|null $version = null;
 
 	public static function getVersion(): string {
 		if ( static::$version === null ) {

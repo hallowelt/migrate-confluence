@@ -43,14 +43,6 @@ class DBConversionDataLookup {
 	}
 
 	/**
-	 * @param int $spaceId
-	 * @return string|null
-	 */
-	public function getSpaceKeyFromSpaceId( int $spaceId ): ?string {
-		return $this->workspaceDB->getSpaceKeyFromSpaceId( $spaceId );
-	}
-
-	/**
 	 * Get the mediawiki namespace for a given space key.
 	 * If key is not found return the space key itself as namespace prefix.
 	 *

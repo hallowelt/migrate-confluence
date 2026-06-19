@@ -20,20 +20,15 @@ use SplFileInfo;
  */
 abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 
-	/** @var MigrationConfig */
-	private MigrationConfig $migrationConfig;
-
 	/**
 	 * @param WorkspaceDB $workspaceDB
 	 * @param DBLog $dbLog
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB, DBLog $dbLog, MigrationConfig $migrationConfig
+		WorkspaceDB $workspaceDB, DBLog $dbLog, protected MigrationConfig $migrationConfig
 	) {
 		parent::__construct( $workspaceDB, $dbLog );
-
-		$this->migrationConfig = $migrationConfig;
 	}
 
 	/**
@@ -47,10 +42,13 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	/**
 	 * Returns all content items (pages or blog posts) as arrays with at least
 	 * 'page_id' and 'wiki_title' keys.
+	 * Subclasses that rely on the default addAttachments() implementation must override this.
 	 *
 	 * @return array
 	 */
-	abstract protected function getContentItems(): array;
+	protected function getContentItems(): array {
+		return [];
+	}
 
 	/**
 	 * Returns a human-readable label for the content type, used in log messages.
@@ -88,7 +86,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 */
 	abstract protected function getStoredAttachments(): array;
 
-	private function addAttachments(): void {
+	protected function addAttachments(): void {
 		$contentIdToWikiTitleMap = [];
 		foreach ( $this->getContentItems() as $item ) {
 			if ( !isset( $item['page_id'] ) || !isset( $item['wiki_title'] ) ) {

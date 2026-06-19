@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Utility;
 
 use DOMDocument;
 use DOMElement;
+use DOMException;
 
 class WikiFileXmlBuilder {
 
@@ -113,7 +114,9 @@ class WikiFileXmlBuilder {
 	/**
 	 * @param string $value
 	 * @param DOMElement $revisionEl
+	 *
 	 * @return void
+	 * @throws DOMException
 	 */
 	private function appendRevisionDataUserItem( string $value, DOMElement $revisionEl ): void {
 		$dataEl = $this->dom->createElement( 'contributor' );
@@ -127,7 +130,9 @@ class WikiFileXmlBuilder {
 	 * @param string $name
 	 * @param string $value
 	 * @param DOMElement $revisionEl
+	 *
 	 * @return void
+	 * @throws DOMException
 	 */
 	private function appendRevisionDataItem( string $name, string $value, DOMElement $revisionEl ): void {
 		$dataEl = $this->dom->createElement( $name, $value );

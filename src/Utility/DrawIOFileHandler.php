@@ -80,8 +80,6 @@ class DrawIOFileHandler {
 		}
 
 		// Add the tEXt chunk to the image content
-		$imageContent = substr_replace( $imageContent, $tEXtChunk, $IDATChunkPos - 4, 0 );
-
-		return $imageContent;
+		return substr_replace( $imageContent, $tEXtChunk, $IDATChunkPos - 4, 0 );
 	}
 }

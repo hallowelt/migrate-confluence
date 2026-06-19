@@ -9,28 +9,17 @@ use HalloWelt\MediaWiki\Lib\Migration\WindowsFilename;
 class FilenameBuilder {
 
 	/**
-	 * @var MigrationConfig
-	 */
-	private MigrationConfig $migrationConfig;
-
-	/**
-	 * @var array
-	 */
-	private array $spaceIdPrefixMap;
-
-	/**
 	 * @param array $spaceIdPrefixMap
 	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( array $spaceIdPrefixMap, MigrationConfig $migrationConfig ) {
-		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
-		$this->migrationConfig = $migrationConfig;
+	public function __construct( private array $spaceIdPrefixMap, private MigrationConfig $migrationConfig ) {
 	}
 
 	/**
 	 * @param int $spaceId
 	 * @param string $originalFilename
 	 * @param string $assocTitle
+	 * @param string $suffix
 	 *
 	 * @return string
 	 * @throws InvalidTitleException

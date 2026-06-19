@@ -89,14 +89,6 @@ class DBComposerDataLookup {
 	}
 
 	/**
-	 * @param string $userKey
-	 * @return string|null
-	 */
-	public function getUsernameFromUserKey( string $userKey ): ?string {
-		return $this->workspaceDB->getUsernameFromUserKey( $userKey );
-	}
-
-	/**
 	 * @return array
 	 */
 	public function getPageAttachments(): array {
@@ -130,22 +122,6 @@ class DBComposerDataLookup {
 	 */
 	public function getPageTemplateRevisionsForTemplateId( int $templateId ): array {
 		return $this->workspaceDB->getPageTemplateRevisionsForTemplateId( $templateId );
-	}
-
-	/**
-	 * @param int $templateId
-	 * @return int
-	 */
-	public function getSpaceIdForTemplateId( int $templateId ): int {
-		return $this->workspaceDB->getSpaceIdFromTemplateId( $templateId ) ?? 0;
-	}
-
-	/**
-	 * @param int $attachmentId
-	 * @return array
-	 */
-	public function getAttachment( int $attachmentId ): array {
-		return $this->workspaceDB->getAttachment( $attachmentId );
 	}
 
 	/**
@@ -190,7 +166,8 @@ class DBComposerDataLookup {
 	}
 
 	/**
-	 * @param int $blogPostId
+	 * @param string $wikiTitle
+	 *
 	 * @return bool
 	 */
 	public function isBlogPostInvalid( string $wikiTitle ): bool {

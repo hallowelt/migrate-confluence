@@ -92,6 +92,9 @@ class MigrationConfig {
 		return $this->get( 'composer-skip-titles', [] );
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getNsTalkPrefix(): string {
 		return $this->get( 'ns-talk-prefix', 'Talk' );
 	}

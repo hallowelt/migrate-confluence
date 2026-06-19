@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Utility;
 
 use DOMDocument;
 use DOMElement;
+use DOMException;
 
 class WikiUserXmlBuilder {
 
@@ -57,6 +58,7 @@ class WikiUserXmlBuilder {
 
 	/**
 	 * @return void
+	 * @throws DOMException
 	 */
 	private function build(): void {
 		$mediaWikiEl = $this->dom->getElementsByTagName( 'mediawiki' )->item( 0 );
@@ -79,7 +81,9 @@ class WikiUserXmlBuilder {
 	 * @param string $name
 	 * @param mixed $value
 	 * @param DOMElement $propertyEl
+	 *
 	 * @return void
+	 * @throws DOMException
 	 */
 	private function appendUserData( string $name, mixed $value, DOMElement $propertyEl ): void {
 		if ( $name === 'email' ) {

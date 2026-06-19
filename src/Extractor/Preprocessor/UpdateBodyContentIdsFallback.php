@@ -37,21 +37,23 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 				continue;
 			}
 
-			$pageId = (int)$page['page_id'];
+
 			$bodyContentIds = json_decode( $page['body_content_ids'], true );
-
-			// Check if body_content_ids is empty
-			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
-				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
-				if ( !empty( $foundIds ) ) {
-					$this->writeln(
-						"Updated body_content_ids for page ID $pageId with IDs: "
-						. implode( ', ', $foundIds )
-					);
-					$this->workspaceDB->updatePageBodyContentIds( $pageId, $foundIds );
-				}
-
+			if ( !empty( $bodyContentIds ) ) {
+				continue;
 			}
+
+			$pageId = (int)$page['page_id'];
+			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
+			if ( empty( $foundIds ) ) {
+				continue;
+			}
+
+			$this->workspaceDB->updatePageBodyContentIds( $pageId, $foundIds );
+
+			$this->writeln(
+				"Updated body_content_ids for page ID $pageId with IDs: " . implode( ', ', $foundIds )
+			);
 		}
 		$this->writeln( "... done" );
 	}
@@ -66,20 +68,22 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 				continue;
 			}
 
-			$pageId = (int)$blogPost['page_id'];
 			$bodyContentIds = json_decode( $blogPost['body_content_ids'], true );
-
-			// Check if body_content_ids is empty
-			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
-				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
-				if ( !empty( $foundIds ) ) {
-					$this->writeln(
-						"Updated body_content_ids for blog post ID $pageId with IDs: "
-						. implode( ', ', $foundIds )
-					);
-					$this->workspaceDB->updateBlogPostBodyContentIds( $pageId, $foundIds );
-				}
+			if ( !empty( $bodyContentIds ) ) {
+				continue;
 			}
+
+			$pageId = (int)$blogPost['page_id'];
+			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
+			if ( empty( $foundIds ) ) {
+				continue;
+			}
+
+			$this->workspaceDB->updateBlogPostBodyContentIds( $pageId, $foundIds );
+
+			$this->writeln(
+				"Updated body_content_ids for blog post ID $pageId with IDs: " . implode( ', ', $foundIds )
+			);
 		}
 	}
 
@@ -93,20 +97,23 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 				continue;
 			}
 
-			$commentId = (int)$comment['comment_id'];
 			$bodyContentIds = json_decode( $comment['body_content_ids'], true );
-
-			// Check if body_content_ids is empty
-			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
-				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $commentId );
-				if ( !empty( $foundIds ) ) {
-					$this->writeln(
-						"Updated body_content_ids for comment ID $commentId with IDs: "
-						. implode( ', ', $foundIds )
-					);
-					$this->workspaceDB->updateCommentBodyContentIds( $commentId, $foundIds );
-				}
+			if ( !empty( $bodyContentIds ) ) {
+				continue;
 			}
+
+			$commentId = (int)$comment['comment_id'];
+			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $commentId );
+
+			if ( empty( $foundIds ) ) {
+				continue;
+			}
+
+			$this->workspaceDB->updateCommentBodyContentIds( $commentId, $foundIds );
+
+			$this->writeln(
+				"Updated body_content_ids for comment ID $commentId with IDs: " . implode( ', ', $foundIds )
+			);
 		}
 	}
 
@@ -120,20 +127,24 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 				continue;
 			}
 
-			$spaceDescriptionId = (int)$spaceDesc['space_description_id'];
-			$bodyContentIds = json_decode( $spaceDesc['body_content_ids'], true );
 
-			// Check if body_content_ids is empty
-			if ( empty( $bodyContentIds ) || $bodyContentIds === null ) {
-				$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $spaceDescriptionId );
-				if ( !empty( $foundIds ) ) {
-					$this->writeln(
-						"Updated body_content_ids for space description ID $spaceDescriptionId with IDs: "
-						. implode( ', ', $foundIds )
-					);
-					$this->workspaceDB->updateSpaceDescriptionBodyContentIds( $spaceDescriptionId, $foundIds );
-				}
+			$bodyContentIds = json_decode( $spaceDesc['body_content_ids'], true );
+			if ( !empty( $bodyContentIds ) ) {
+				continue;
 			}
+
+			$spaceDescriptionId = (int)$spaceDesc['space_description_id'];
+			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $spaceDescriptionId );
+			if ( empty( $foundIds ) ) {
+				continue;
+			}
+
+			$this->workspaceDB->updateSpaceDescriptionBodyContentIds( $spaceDescriptionId, $foundIds );
+
+			$this->writeln(
+				"Updated body_content_ids for space description ID $spaceDescriptionId with IDs: " .
+				implode( ', ', $foundIds )
+			);
 		}
 	}
 }
