@@ -41,7 +41,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 
 			$brokenMacro = '';
 			if ( $paramsString === '' ) {
-				$brokenMacro = "[[Category:Broken_macro/gliffy]]";
+				$brokenMacro = $this->getCategoryBrokenMacro( "gliffy" );
 			}
 
 			// Gliffy will be used as Drawio image

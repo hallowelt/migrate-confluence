@@ -115,7 +115,7 @@ abstract class LinkProcessorBase extends ConversionHelper implements IProcessor 
 	 * @return string
 	 */
 	protected function getBrokenLinkReplacement(): string {
-		return '[[Category:Broken_link]]';
+		return $this->getCategoryBroken( 'link' );
 	}
 
 	/**

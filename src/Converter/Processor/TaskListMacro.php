@@ -133,7 +133,7 @@ class TaskListMacro extends ConversionHelper implements IProcessor {
 			if ( count( $ol ) > 0 || count( $ul ) > 0 || count( $div ) > 0 ) {
 				$brokenNode = $this->createTextNode(
 					$node->ownerDocument,
-					'[[Category:Broken_macro/task]]',
+					$this->getCategoryBrokenMacro( 'task' ),
 					__METHOD__
 				);
 				$macroReplacement->appendChild( $brokenNode );

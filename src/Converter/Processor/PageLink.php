@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
-use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 
 class PageLink extends LinkProcessorBase {
 
@@ -47,7 +46,7 @@ class PageLink extends LinkProcessorBase {
 		}
 
 		if ( $isBrokenLink ) {
-			$replacement .= '[[Category:Broken_page_link]]';
+			$replacement .= $this->getCategoryBroken( 'page_link' );
 		}
 
 		$this->replaceLink( $node, $replacement );
@@ -80,17 +79,18 @@ class PageLink extends LinkProcessorBase {
 	 * @throws InvalidTitleException
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		if ( !empty( $rawPageTitle ) ) {
-			$genericTitleBuilder = new GenericTitleBuilder( [] );
-			$rawPageTitle = $genericTitleBuilder->appendTitleSegment( $rawPageTitle )->build();
+		$spaceKey = $this->spaceKey;
+		if ( empty( $spaceKey ) ) {
+			$spaceKey = $this->dataLookup->getSpaceKeyFromSpaceId( $spaceId );
 		}
 
-		$confluenceKey = "Confluence---$spaceId---$rawPageTitle";
-		if ( $this->spaceKey !== '' ) {
-			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
+		if ( empty( $spaceKey ) ) {
+			$confluenceKey = $this->getConfluencePageKeyFromSpaceId( $spaceId, $rawPageTitle );
+		} else {
+			$confluenceKey = $this->getConfluencePageKeyFromSpaceKey( $spaceKey, $rawPageTitle );
 		}
 
-		return str_replace( ' ', '_', $confluenceKey );
+		return $confluenceKey;
 	}
 
 	/**
@@ -109,7 +109,9 @@ class PageLink extends LinkProcessorBase {
 			$label = array_pop( $titleParts );
 			$labelParts = explode( '/', $label );
 			$label = array_pop( $labelParts );
-			$label = str_replace( '_', ' ', $label );
+			if ( !str_starts_with( $label, 'Confluence_page---' ) ) {
+				$label = str_replace( '_', ' ', $label );
+			}
 
 			$replacement = '[[' . $linkParts[0] . '|' . $label . ']]';
 		}

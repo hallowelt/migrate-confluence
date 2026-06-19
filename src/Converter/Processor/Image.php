@@ -262,7 +262,7 @@ class Image extends ConversionHelper implements IProcessor {
 			$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 
 		array_unshift( $params, $targetFilename );
-		$brokenFileInfo = $isBrokenFile ? '[[Category:Broken_image]]' : '';
+		$brokenFileInfo = $isBrokenFile ? $this->getCategoryBroken( 'image' ) : '';
 
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 
@@ -326,10 +326,10 @@ class Image extends ConversionHelper implements IProcessor {
 		$isBrokenPageLink = $imagePageLinkHelper->isBrokenLink();
 		$brokenPageLinkInfo = '';
 		if ( $isBrokenPageLink ) {
-			$brokenPageLinkInfo = '[[Category:Broken_image_page_link]]';
+			$brokenPageLinkInfo = $this->getCategoryBroken( 'image_page_link' );
 		}
 		if ( $isBrokenFile ) {
-			$brokenPageLinkInfo .= '[[Category:Broken_image]]';
+			$brokenPageLinkInfo .= $this->getCategoryBroken( 'image' );
 		}
 
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
@@ -384,13 +384,13 @@ class Image extends ConversionHelper implements IProcessor {
 
 		$link = $node->parentNode;
 		if ( $link instanceof DOMElement === false ) {
-			$brokenLinkInfo = '[[Category:Broken_image_external_link]]';
+			$brokenLinkInfo = $this->getCategoryBroken( 'image_external_link' );
 		} else {
 			$target = $link->getAttribute( 'href' );
 		}
 
 		if ( $isBrokenFile ) {
-			$brokenLinkInfo .= '[[Category:Broken_image]]';
+			$brokenLinkInfo .= $this->getCategoryBroken( 'image' );
 		}
 
 		if ( !empty( $target ) ) {

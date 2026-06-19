@@ -54,7 +54,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 		$wikiTextTemplateCall = $this->makeTemplateCall();
 
 		if ( $this->mediaWikiPageName === '' ) {
-			$category = "[[Category:Broken_macro/Include]]";
+			$category = $this->getCategoryBrokenMacro( 'Include' );
 			$wikiTextTemplateCall .= $category;
 		}
 
