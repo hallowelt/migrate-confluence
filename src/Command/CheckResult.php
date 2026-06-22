@@ -63,8 +63,9 @@ class CheckResult extends Command {
 		foreach ( $textEls as $textEl ) {
 			$wikiText = $textEl->nodeValue;
 
-			preg_replace_callback( '#\[\[(.*?)\]\]#', function ( $matches ) {
+			preg_replace_callback( '#\[\[(.*?)\]\]#', function ( $matches ): string {
 				$this->checkLink( $matches[1] );
+				return $matches[0];
 			}, $wikiText );
 		}
 
