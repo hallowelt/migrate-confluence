@@ -65,7 +65,11 @@ class TableFilterMacro extends ConvertMacroToTemplateWithBodyBase {
 			if ( $this->addLinebreakInsideTemplate() ) {
 				$bodyString .= "###BREAK###\n";
 			}
-			$wikitextTemplateEndTextNode = $actualMacro->ownerDocument->createTextNode( $bodyString );
+			$wikitextTemplateEndTextNode = $this->createTextNode(
+				$actualMacro->ownerDocument,
+				$bodyString,
+				__METHOD__
+			);
 			$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
 
 			for ( $index = 0; $index < $richTextBodies->length; $index++ ) {

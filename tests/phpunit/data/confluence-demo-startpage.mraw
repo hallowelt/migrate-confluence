@@ -196,11 +196,11 @@
 											<ac:task-id>56</ac:task-id>
 											<ac:task-status>incomplete</ac:task-status>
 											<ac:task-body>
-												<span class="placeholder-inline-tasks">Decide who can see and edit this space or a specific page by clicking the 
+												<span class="placeholder-inline-tasks">Decide who can see and edit this space or a specific page by clicking the
 													<ac:image>
 														<ri:attachment ri:filename="lock-icon.png" ri:version-at-save="1" />
-													</ac:image> icon. Learn more about 
-													<a href="https://confluence.atlassian.com/x/liAC">Page Restrictions</a> and 
+													</ac:image> icon. Learn more about
+													<a href="https://confluence.atlassian.com/x/liAC">Page Restrictions</a> and
 													<a href="https://confluence.atlassian.com/x/ASEC">Space Permissions</a>.
 												</span>
 											</ac:task-body>
@@ -209,7 +209,7 @@
 											<ac:task-id>57</ac:task-id>
 											<ac:task-status>incomplete</ac:task-status>
 											<ac:task-body>
-												<span class="placeholder-inline-tasks">Try adding an 
+												<span class="placeholder-inline-tasks">Try adding an
 													<a href="https://confluence.atlassian.com/x/2yAC">inline comment</a> by highlighting some text and click the comment icon.
 												</span>
 											</ac:task-body>
@@ -218,7 +218,7 @@
 											<ac:task-id>58</ac:task-id>
 											<ac:task-status>incomplete</ac:task-status>
 											<ac:task-body>
-												<span class="placeholder-inline-tasks">Learn more about 
+												<span class="placeholder-inline-tasks">Learn more about
 													<a href="https://confluence.atlassian.com/x/SRwC">inviting your team to Confluence</a>.
 												</span>
 											</ac:task-body>

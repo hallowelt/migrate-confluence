@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 class AnchorMacro extends StructuredMacroProcessorBase {
 
@@ -16,9 +16,12 @@ class AnchorMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$anchorName = '';
 		foreach ( $node->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
 			if ( $childNode->nodeName === 'ac:parameter'
 				&& $childNode->getAttribute( 'ac:name' ) === '' ) {
 				$anchorName = trim( $childNode->nodeValue );
@@ -27,8 +30,10 @@ class AnchorMacro extends StructuredMacroProcessorBase {
 		}
 
 		if ( $anchorName === '' ) {
-			$replacement = $node->ownerDocument->createTextNode(
-				$this->getBrokenMacroCategory()
+			$replacement = $this->createTextNode(
+				$node->ownerDocument,
+				$this->getBrokenMacroCategory(),
+				__METHOD__
 			);
 		} else {
 			$replacement = $node->ownerDocument->createElement( 'span' );

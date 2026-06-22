@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ImagePageLinkHelper {
@@ -44,11 +43,11 @@ class ImagePageLinkHelper {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return string
 	 */
-	public function getLinkTarget( DOMNode $node ): string {
-		if ( $node instanceof DOMElement && $node->nodeName === 'ac:link' ) {
+	public function getLinkTarget( DOMElement $node ): string {
+		if ( $node->nodeName === 'ac:link' ) {
 			$page = $node->getElementsByTagName( 'page' )->item( 0 );
 
 			if ( $page instanceof DOMElement ) {
@@ -79,10 +78,10 @@ class ImagePageLinkHelper {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 * @return int
 	 */
-	private function ensureSpaceId( DOMNode $node ): int {
+	private function ensureSpaceId( DOMElement $node ): int {
 		$spaceId = $this->currentSpaceId;
 		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
 		if ( !empty( $this->spaceKey ) ) {

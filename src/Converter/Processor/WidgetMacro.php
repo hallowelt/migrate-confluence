@@ -20,7 +20,7 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
 		$macroReplacement->setAttribute( 'class', "ac-widget" );
 
@@ -35,12 +35,12 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 *
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 * @param DOMElement $macroReplacement
 	 *
 	 * @return array
 	 */
-	private function macroParams( DOMNode $macro, DOMElement $macroReplacement ): array {
+	private function macroParams( DOMElement $macro, DOMElement $macroReplacement ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode->nodeName !== 'ac:parameter' ) {
@@ -77,6 +77,10 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 			for ( $index = 0; $index < $attributes->count(); $index++ ) {
 				$attribute = $attributes->item( $index );
 
+				if ( $attribute instanceof DOMNode === false ) {
+					continue;
+				}
+
 				if ( $attribute->nodeName !== $name ) {
 					continue;
 				}
@@ -89,11 +93,11 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return string|null
 	 */
-	private function getParamValue( DOMNode $node ): ?string {
+	private function getParamValue( DOMElement $node ): ?string {
 		$value = '';
 		$childNodes = $node->childNodes;
 

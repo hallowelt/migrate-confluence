@@ -48,9 +48,13 @@ class Comments extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 
-		$contentStatus = $properties['contentStatus'] ?? null;
-
 		if ( $commentId === -1 ) {
+			return;
+		}
+
+		$contentStatus = $properties['contentStatus'] ?? null;
+		if ( strtolower( $contentStatus ) !== 'current' ) {
+			// Ignore comments that are not explicitly visible
 			return;
 		}
 
@@ -61,8 +65,8 @@ class Comments extends ProcessorBase {
 		}
 
 		$bodyContentIds = [];
-		if ( isset( $collection['bodyContents'] ) ) {
-			$bodyContentIds = $collection['bodyContents'];
+		if ( isset( $properties['bodyContents'] ) ) {
+			$bodyContentIds = $properties['bodyContents'];
 		}
 		// A fallback mechanism for body content IDs in case they are not found in the collection
 		// is placed in the ConfluenceAnalyzer, which will attempt to retrieve them from the

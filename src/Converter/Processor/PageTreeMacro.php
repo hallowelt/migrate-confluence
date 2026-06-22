@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use DOMNode;
 use Exception;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
@@ -40,7 +39,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	 * @inheritDoc
 	 * @throws Exception
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$this->macroParams( $node );
 		$brokenMacro = false;
 		if ( isset( $this->params['broken-macro'] ) ) {
@@ -60,20 +59,23 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 			$template .= ' ' . $this->getBrokenMacroCategory();
 		}
 
-		$macroReplacement = $node->ownerDocument->createTextNode( $template );
+		$macroReplacement = $this->createTextNode( $node->ownerDocument, $template, __METHOD__ );
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
 
 	/**
 	 *
-	 * @param DOMNode $macro
+	 * @param DOMElement $macro
 	 *
 	 * @return void
 	 * @throws Exception
 	 */
-	private function macroParams( DOMNode $macro ): void {
+	private function macroParams( DOMElement $macro ): void {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
 			if ( $childNode->nodeName === 'ac:parameter' ) {
 				$paramName = $childNode->getAttribute( 'ac:name' );
 				if ( $paramName === 'root' ) {

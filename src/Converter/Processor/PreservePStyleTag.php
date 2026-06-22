@@ -5,8 +5,9 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
-class PreservePStyleTag implements IProcessor {
+class PreservePStyleTag extends ConversionHelper implements IProcessor {
 
 	/**
 	 * Pandoc removes p tags with style
@@ -39,12 +40,16 @@ class PreservePStyleTag implements IProcessor {
 
 			$attributesString = implode( ' ', $attributes );
 
-			$openingTagReplacement = $tag->ownerDocument->createTextNode(
-				"#####PRESERVEPSTYLEOPEN $attributesString#####"
+			$openingTagReplacement = $this->createTextNode(
+				$tag->ownerDocument,
+				"#####PRESERVEPSTYLEOPEN $attributesString#####",
+				__METHOD__
 			);
 
-			$closingTagReplacement = $tag->ownerDocument->createTextNode(
-				"#####PRESERVEPSTYLECLOSE#####"
+			$closingTagReplacement = $this->createTextNode(
+				$tag->ownerDocument,
+				"#####PRESERVEPSTYLECLOSE#####",
+				__METHOD__
 			);
 
 			$tag->prepend( $openingTagReplacement );

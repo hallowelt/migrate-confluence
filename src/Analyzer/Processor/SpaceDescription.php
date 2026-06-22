@@ -100,6 +100,10 @@ class SpaceDescription extends ProcessorBase {
 		if ( isset( $properties['contentStatus'] ) ) {
 			$contentStatus = $properties['contentStatus'];
 		}
+		if ( strtolower( $contentStatus ) !== 'current' ) {
+			// Ignore space descriptions that are not explicitly set to "current"
+			return;
+		}
 
 		if ( !$this->migrationConfig->getIncludeHistory() && $originalVersionId > 0 ) {
 			return;

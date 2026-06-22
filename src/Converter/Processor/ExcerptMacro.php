@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 /**
  * Converts the Confluence excerpt macro to a BlueSpice <excerpt-block> element.
@@ -27,7 +27,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 	 * restore the actual <excerpt-block> tag in the RestoreExcerptBlock postprocessor.
 	 * Placeholders use pipe-separated values to avoid HTML attribute quote encoding issues.
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$macroId = $node->getAttribute( 'ac:macro-id' );
 		$hidden = 'false';
 
@@ -39,6 +39,9 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 		}
 
 		foreach ( $node->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
 			if ( $childNode->nodeName === 'ac:parameter'
 				&& $childNode->getAttribute( 'ac:name' ) === 'hidden' ) {
 				$hidden = trim( $childNode->nodeValue );
@@ -48,8 +51,10 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 
 		$parent = $node->parentNode;
 
-		$openTag = $node->ownerDocument->createTextNode(
-			"#####EXCERPTBLOCKOPEN|$macroId|$hidden#####"
+		$openTag = $this->createTextNode(
+			$node->ownerDocument,
+			"#####EXCERPTBLOCKOPEN|$macroId|$hidden#####",
+			__METHOD__
 		);
 		$parent->insertBefore( $openTag, $node );
 
@@ -61,12 +66,18 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 			}
 		}
 
-		$closeTag = $node->ownerDocument->createTextNode( '#####EXCERPTBLOCKCLOSE#####' );
+		$closeTag = $this->createTextNode(
+			$node->ownerDocument,
+			'#####EXCERPTBLOCKCLOSE#####',
+			__METHOD__
+		);
 		$parent->insertBefore( $closeTag, $node );
 
 		if ( $isBroken ) {
-			$brokenCategory = $node->ownerDocument->createTextNode(
-				$this->getBrokenMacroCategory()
+			$brokenCategory = $this->createTextNode(
+				$node->ownerDocument,
+				$this->getBrokenMacroCategory(),
+				__METHOD__
 			);
 			$parent->insertBefore( $brokenCategory, $node );
 		}

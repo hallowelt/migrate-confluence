@@ -7,11 +7,12 @@ use DOMElement;
 use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
 /**
  *
  */
-class TaskListMacro implements IProcessor {
+class TaskListMacro extends ConversionHelper implements IProcessor {
 	/**
 	 * @inheritDoc
 	 */
@@ -44,12 +45,12 @@ class TaskListMacro implements IProcessor {
 	}
 
 	/**
-	 * @param DOMNode $node
+	 * @param DOMElement $node
 	 *
 	 * @return void
 	 * @throws DOMException
 	 */
-	protected function doProcessTask( DOMNode $node ): void {
+	protected function doProcessTask( DOMElement $node ): void {
 		$macroReplacement = $node->ownerDocument->createElement( 'task-replacement' );
 
 		foreach ( $node->childNodes as $childNode ) {
@@ -70,9 +71,9 @@ class TaskListMacro implements IProcessor {
 		}
 
 		if ( $node instanceof DOMElement ) {
-			$txt = $macroReplacement->ownerDocument->createTextNode( "\n[x] " );
+			$txt = $this->createTextNode( $macroReplacement->ownerDocument, "\n[x] ", __METHOD__ );
 			if ( $macroReplacement->getAttribute( 'data-task-status' ) === 'incomplete' ) {
-				$txt = $macroReplacement->ownerDocument->createTextNode( "\n[] " );
+				$txt = $this->createTextNode( $macroReplacement->ownerDocument, "\n[] ", __METHOD__ );
 			}
 			$macroReplacement->prepend( $txt );
 		}
@@ -130,8 +131,10 @@ class TaskListMacro implements IProcessor {
 			$div = $node->getElementsByTagName( 'div' );
 
 			if ( count( $ol ) > 0 || count( $ul ) > 0 || count( $div ) > 0 ) {
-				$brokenNode = $node->ownerDocument->createTextNode(
-					'[[Category:Broken_macro/task]]'
+				$brokenNode = $this->createTextNode(
+					$node->ownerDocument,
+					'[[Category:Broken_macro/task]]',
+					__METHOD__
 				);
 				$macroReplacement->appendChild( $brokenNode );
 			}
@@ -186,8 +189,10 @@ class TaskListMacro implements IProcessor {
 		}
 
 		if ( $broken === true ) {
-			$brokenNode = $node->ownerDocument->createTextNode(
-				'[[Category:Broken_macro/task-list]]'
+			$brokenNode = $this->createTextNode(
+				$node->ownerDocument,
+				$this->getCategoryBrokenMacro( 'task-list' ),
+				__METHOD__
 			);
 			$macroReplacement->appendChild( $brokenNode );
 		}

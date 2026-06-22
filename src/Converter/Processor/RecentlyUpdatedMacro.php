@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
-use DOMNode;
+use DOMElement;
 
 class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 
@@ -23,7 +23,7 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function doProcessMacro( DOMNode $node ): void {
+	protected function doProcessMacro( DOMElement $node ): void {
 		$namespace = '';
 		$titleParts = explode( ':', $this->wikiTitle, 2 );
 		if ( count( $titleParts ) === 2 ) {
@@ -31,8 +31,10 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 		}
 
 		$node->parentNode->replaceChild(
-			$node->ownerDocument->createTextNode(
+			$this->createTextNode(
+				$node->ownerDocument,
 				"{{RecentlyUpdated|namespace=$namespace}}",
+				__METHOD__
 			),
 			$node
 		);
