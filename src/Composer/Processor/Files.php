@@ -106,6 +106,8 @@ class Files extends FileProcessorBase {
 			return;
 		}
 
+		$uploadPath = $this->getUploadPath();
+
 		$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 		foreach ( $attachments as $attachment ) {
 			if ( isset( $attachment['attachment_reference'] ) ) {
@@ -136,7 +138,7 @@ class Files extends FileProcessorBase {
 
 				$attachmentContent = file_get_contents( $filePath );
 				$uploadFilePath = $this->workspace->saveUploadFile(
-					"$timestamp-$filename", $attachmentContent, $this->getUploadPath()
+					"$timestamp-$filename", $attachmentContent, $uploadPath
 				);
 
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
@@ -164,6 +166,8 @@ class Files extends FileProcessorBase {
 		$this->output->writeln( "\nAdding additional attachments...\n" );
 
 		$additionalAttachments = $this->dataLookup->getAdditionalAttachments();
+
+		$uploadPath = $this->getUploadPath();
 
 		foreach ( $additionalAttachments as $additionalAttachment ) {
 			$attachmentId = $additionalAttachment['attachment_id'];
@@ -216,7 +220,7 @@ class Files extends FileProcessorBase {
 
 					$attachmentContent = file_get_contents( $filePath );
 					$uploadFilePath = $this->workspace->saveUploadFile(
-						$filename, $attachmentContent, $this->getUploadPath()
+						$filename, $attachmentContent, $uploadPath
 					);
 
 					$timestamp = $attachment['revision_timestamp'];

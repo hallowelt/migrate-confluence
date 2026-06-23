@@ -31,6 +31,8 @@ class DefaultFiles extends FileProcessorBase {
 			RecursiveIteratorIterator::LEAVES_ONLY
 		);
 
+		$uploadPath = $this->getUploadPath();
+
 		foreach ( $files as $fileObj ) {
 			if ( $fileObj->isDir() ) {
 				continue;
@@ -42,7 +44,7 @@ class DefaultFiles extends FileProcessorBase {
 			$data = file_get_contents( $file );
 
 			$uploadFilePath = $this->workspace->saveUploadFile(
-				$filename, $data, $this->getUploadPath()
+				$filename, $data, $uploadPath
 			);
 
 			// XML containing files is supported by MediaWiki dumpBackup but can not be imported
