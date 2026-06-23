@@ -9,6 +9,8 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\Processor\BlogPosts;
 use HalloWelt\MigrateConfluence\Composer\Processor\Comments;
+use HalloWelt\MigrateConfluence\Composer\Processor\DefaultFiles;
+use HalloWelt\MigrateConfluence\Composer\Processor\DefaultPages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Files;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Templates;
@@ -80,6 +82,16 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$deploymentInfo = new ComposerDeploymentInfo();
 		$skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
 		$processors = [
+			new DefaultFiles(
+				$this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo, $skipHelper
+			),
+			new DefaultPages(
+				$builder, $this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo, $skipHelper
+			),
 			new Files(
 				$this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
