@@ -108,24 +108,27 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getPageAttachments(): array {
-		return $this->workspaceDB->getPageAttachments();
+	public function getPageAttachments( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getPageAttachments( $spaceId );
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getBlogPostAttachments(): array {
-		return $this->workspaceDB->getBlogPostAttachments();
+	public function getBlogPostAttachments( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getBlogPostAttachments( $spaceId );
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getAdditionalAttachments(): array {
-		return $this->workspaceDB->getAdditionalAttachments();
+	public function getAdditionalAttachments( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getAdditionalAttachments( $spaceId );
 	}
 
 	/**

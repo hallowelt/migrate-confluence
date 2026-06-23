@@ -3155,24 +3155,72 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getPageAttachments(): array {
-		return $this->getAllData( 'page_attachments' );
+	public function getPageAttachments( ?int $spaceId = null ): array {
+		if ( empty( $spaceId ) ) {
+			return $this->getAllData( 'page_attachments' );
+		}
+		$transaction = $this->cachedPrepare(
+			'SELECT pa.* FROM page_attachments pa
+			JOIN attachments a ON pa.attachment_id = a.attachment_id
+			WHERE a.space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getBlogPostAttachments(): array {
-		return $this->getAllData( 'blog_post_attachments' );
+	public function getBlogPostAttachments( ?int $spaceId = null ): array {
+		if ( empty( $spaceId ) ) {
+			return $this->getAllData( 'blog_post_attachments' );
+		}
+		$transaction = $this->cachedPrepare(
+			'SELECT bpa.* FROM blog_post_attachments bpa
+			JOIN attachments a ON bpa.attachment_id = a.attachment_id
+			WHERE a.space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getAdditionalAttachments(): array {
-		return $this->getAllData( 'additional_attachments' );
+	public function getAdditionalAttachments( ?int $spaceId = null ): array {
+		if ( empty( $spaceId ) ) {
+			return $this->getAllData( 'additional_attachments' );
+		}
+		$transaction = $this->cachedPrepare(
+			'SELECT aa.* FROM additional_attachments aa
+			JOIN attachments a ON aa.attachment_id = a.attachment_id
+			WHERE a.space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**

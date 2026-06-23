@@ -3,12 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
+
 class Files extends FileProcessorBase {
 
 	/**
@@ -51,7 +52,7 @@ class Files extends FileProcessorBase {
 	private function addPageAttachments(): void {
 		$this->output->writeln( "\nAdding page attachments...\n" );
 
-		foreach ( $this->dataLookup->getPageAttachments() as $pageAttachment ) {
+		foreach ( $this->dataLookup->getPageAttachments( $this->currentSpaceId ) as $pageAttachment ) {
 			$assocPageTitle = $this->dataLookup->getWikiPageTitleFromPageId(
 				$pageAttachment['page_id']
 			);
@@ -67,7 +68,7 @@ class Files extends FileProcessorBase {
 	private function addBlogPostAttachments(): void {
 		$this->output->writeln( "\nAdding blog post attachments...\n" );
 
-		foreach ( $this->dataLookup->getBlogPostAttachments() as $blogPostAttachment ) {
+		foreach ( $this->dataLookup->getBlogPostAttachments( $this->currentSpaceId ) as $blogPostAttachment ) {
 			$assocPageTitle = $this->dataLookup->getWikiBlogPostTitleFromBlogPostId(
 				$blogPostAttachment['blog_post_id']
 			);
@@ -165,7 +166,7 @@ class Files extends FileProcessorBase {
 	private function addAdditionalAttachments(): void {
 		$this->output->writeln( "\nAdding additional attachments...\n" );
 
-		$additionalAttachments = $this->dataLookup->getAdditionalAttachments();
+		$additionalAttachments = $this->dataLookup->getAdditionalAttachments( $this->currentSpaceId );
 
 		$uploadPath = $this->getUploadPath();
 
