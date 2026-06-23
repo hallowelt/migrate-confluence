@@ -22,6 +22,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\FlattenListItemWithNoStyle;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\Table;
@@ -674,7 +675,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$preprocessors = [
 			new SanitizeLinkContent(),
 			new HoistMacroFromHeading(),
-			new Table()
+			new Table(),
+			new FlattenListItemWithNoStyle()
 		];
 
 		/** @var IDomPreprocessor $preprocessor */
