@@ -14,30 +14,6 @@ use Symfony\Component\Console\Output\Output;
 
 abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceDependentProcessor {
 
-	/** @var Builder */
-	protected Builder $builder;
-
-	/** @var DBComposerDataLookup */
-	protected DBComposerDataLookup $dataLookup;
-
-	/** @var Workspace */
-	protected Workspace $workspace;
-
-	/** @var Output */
-	protected Output $output;
-
-	/** @var string */
-	protected string $dest = '';
-
-	/** @var MigrationConfig */
-	protected MigrationConfig $migrationConfig;
-
-	/** @var ComposerDeploymentInfo */
-	protected ComposerDeploymentInfo $deploymentInfo;
-
-	/** @var ComposerSkipHelper */
-	protected ComposerSkipHelper $skipHelper;
-
 	/** @var bool */
 	protected bool $multiXmlOutputEnabled = false;
 
@@ -58,27 +34,20 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceDepe
 
 	/**
 	 * @param Builder $builder
-	 * @param DBComposerDataLookup $dataLookup
-	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
 	 * @param MigrationConfig $migrationConfig
-	 * @param ComposerDeploymentInfo $deploymentInfo
-	 * @param ComposerSkipHelper $skipHelper
 	 */
 	public function __construct(
-		Builder $builder, DBComposerDataLookup $dataLookup, Workspace $workspace,
-		Output $output, string $dest, MigrationConfig $migrationConfig,
-		ComposerDeploymentInfo $deploymentInfo, ComposerSkipHelper $skipHelper
+		protected Builder $builder,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig,
 	) {
 		$this->builder = $builder;
-		$this->dataLookup = $dataLookup;
-		$this->workspace = $workspace;
 		$this->output = $output;
 		$this->dest = $dest;
 		$this->migrationConfig = $migrationConfig;
-		$this->deploymentInfo = $deploymentInfo;
-		$this->skipHelper = $skipHelper;
 
 		$this->limit = $this->migrationConfig->getComposerPagePerXmlLimit();
 		if ( $this->limit > 0 ) {

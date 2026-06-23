@@ -18,27 +18,6 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	/** @var WikiFileXmlBuilder */
 	protected WikiFileXmlBuilder $builder;
 
-	/** @var DBComposerDataLookup */
-	protected DBComposerDataLookup $dataLookup;
-
-	/** @var Workspace */
-	protected Workspace $workspace;
-
-	/** @var Output */
-	protected Output $output;
-
-	/** @var string */
-	protected string $dest = '';
-
-	/** @var MigrationConfig */
-	protected MigrationConfig $migrationConfig;
-
-	/** @var ComposerDeploymentInfo */
-	protected ComposerDeploymentInfo $deploymentInfo;
-
-	/** @var ComposerSkipHelper */
-	protected ComposerSkipHelper $skipHelper;
-
 	/** @var bool */
 	protected bool $multiXmlOutputEnabled = false;
 
@@ -59,26 +38,17 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 
 	/**
 	 * @param DBComposerDataLookup $dataLookup
-	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
 	 * @param MigrationConfig $migrationConfig
-	 * @param ComposerDeploymentInfo $deploymentInfo
-	 * @param ComposerSkipHelper $skipHelper
 	 */
 	public function __construct(
-		DBComposerDataLookup $dataLookup, Workspace $workspace,
-		Output $output, string $dest, MigrationConfig $migrationConfig,
-		ComposerDeploymentInfo $deploymentInfo, ComposerSkipHelper $skipHelper
-	) {
-		$this->dataLookup = $dataLookup;
-		$this->workspace = $workspace;
-		$this->output = $output;
-		$this->dest = $dest;
-		$this->migrationConfig = $migrationConfig;
-		$this->deploymentInfo = $deploymentInfo;
-		$this->skipHelper = $skipHelper;
-
+		protected DBComposerDataLookup $dataLookup,
+		protected Workspace $workspace,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig
+	 ) {
 		$this->builder = new WikiFileXmlBuilder();
 
 		$this->limit = $this->migrationConfig->getComposerPagePerXmlLimit();

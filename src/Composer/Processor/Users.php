@@ -3,11 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
-use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikiUserXmlBuilder;
-use Phan\LanguageServer\Server\Workspace;
 use Symfony\Component\Console\Output\Output;
 
 class Users implements IConfluenceComposerProcessor {
@@ -18,20 +15,11 @@ class Users implements IConfluenceComposerProcessor {
 	/** @var DBComposerDataLookup */
 	private DBComposerDataLookup $dataLookup;
 
-	/** @var Workspace */
-	private Workspace $workspace;
-
 	/** @var Output */
 	private Output $output;
 
 	/** @var string */
 	private string $dest = '';
-
-	/** @var MigrationConfig */
-	private MigrationConfig $migrationConfig;
-
-	/** @var ComposerDeploymentInfo */
-	private ComposerDeploymentInfo $deploymentInfo;
 
 	/**
 	 * @var string

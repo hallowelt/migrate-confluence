@@ -83,14 +83,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
 		$processors = [
 			new DefaultFiles(
-				$this->dataLookup, $this->workspace,
-				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $skipHelper
+				$this->dataLookup, $this->workspace, $this->output, $this->dest, $this->migrationConfig
 			),
 			new DefaultPages(
-				$builder, $this->dataLookup, $this->workspace,
-				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $skipHelper
+				$builder, $this->output, $this->dest, $this->migrationConfig
 			),
 			new Files(
 				$this->dataLookup, $this->workspace,

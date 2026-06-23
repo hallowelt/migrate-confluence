@@ -2,7 +2,38 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use Symfony\Component\Console\Output\Output;
+
 class BlogPosts extends ProcessorBase {
+
+	/**
+	 * @param Builder $builder
+	 * @param DBComposerDataLookup $dataLookup
+	 * @param Workspace $workspace
+	 * @param Output $output
+	 * @param string $dest
+	 * @param MigrationConfig $migrationConfig
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param ComposerSkipHelper $skipHelper
+	 */
+	public function __construct(
+		protected Builder $builder,
+		protected DBComposerDataLookup $dataLookup,
+		protected Workspace $workspace,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig,
+		protected ComposerDeploymentInfo $deploymentInfo,
+		protected ComposerSkipHelper $skipHelper
+	) {
+		parent::__construct( $builder, $output, $dest, $migrationConfig );
+	}
 
 	/**
 	 * @return string
