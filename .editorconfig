@@ -11,8 +11,12 @@ tab_width = 4
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[src/Composer/{_defaultfiles,_defaultpages},tests/phpunit/**]
+[src/Composer/{_defaultfiles,_defaultpages}/**,tests/phpunit/**]
 # explicitly allow trailing whitespaces and potentially missing final newlines
 # in templates and tests
 trim_trailing_whitespace = false
 insert_final_newline = unset
+
+[src/Composer/_defaultpages/**]
+# force stripping of final newlines in templates
+insert_final_newline = false
