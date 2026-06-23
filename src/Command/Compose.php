@@ -93,20 +93,7 @@ class Compose extends CommandCompose {
 	 * @inheritDoc
 	 */
 	protected function getBucketKeys(): array {
-		return [
-			'global-space-id-homepages',
-			'global-space-id-to-description-id-map',
-			'global-body-content-id-to-space-description-id-map',
-			'global-body-content-id-to-page-id-map',
-			'global-title-attachments',
-			'global-title-revisions',
-			'global-files',
-			'global-additional-files',
-			'global-page-id-to-comment-ids-map',
-			'global-comment-id-to-metadata-map',
-			'global-page-id-to-title-map',
-			'global-userkey-to-username-map',
-		];
+		return [];
 	}
 
 	/**
@@ -115,7 +102,7 @@ class Compose extends CommandCompose {
 	 * @return void
 	 */
 	private function ensureTargetDirs(): void {
-		$path = "$this->dest/result/images";
+		$path = "$this->dest/result";
 		if ( !file_exists( $path ) ) {
 			mkdir( $path, 0755, true );
 		}
