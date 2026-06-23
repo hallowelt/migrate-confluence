@@ -152,6 +152,20 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			);
 		}
 
+		// Verify default-pages.xml
+		$expectedTemplatesFile = $this->dataDir . '/expected/result_default-pages.xml';
+		$expectedTemplates = $this->extractPages( $expectedTemplatesFile );
+
+		$actualTemplatesFile = $this->tempDir . '/single-source/workspace/result/CON/default-pages.xml';
+		$this->assertFileExists( $actualTemplatesFile );
+		$actualTemplates = $this->extractPages( $actualTemplatesFile );
+
+		$this->assertSame(
+			array_keys( $expectedTemplates ),
+			array_keys( $actualTemplates ),
+			'Template titles do not match'
+		);
+
 		// Verify templates.xml
 		$expectedTemplatesFile = $this->dataDir . '/expected/result_templates.xml';
 		$expectedTemplates = $this->extractPages( $expectedTemplatesFile );

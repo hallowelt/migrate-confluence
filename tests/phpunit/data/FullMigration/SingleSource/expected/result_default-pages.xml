@@ -1,0 +1,596 @@
+<?xml version="1.0"?>
+<mediawiki>
+  <page>
+    <title>Template:ViewPpt</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewppt"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Important</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{Textbox|boxtype=important|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Warning</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{Textbox|boxtype=tip|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:DetailsSummaryEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+|}
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Drawio</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{#tag:drawio
+|
+|filename={{{diagramName}}}
+}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Jira</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Links to Jira issues and queries via interwiki links.
+* Use &lt;code&gt;{{Jira|key=PROJECT-123}}&lt;/code&gt; to link to a specific issue (uses the &lt;code&gt;jira-task&lt;/code&gt; interwiki prefix).
+* Use &lt;code&gt;{{Jira|jql=...}}&lt;/code&gt; to link to a Jira filter. When the value is a Jira URL, the view type is detected from the path:
+** &lt;code&gt;/timeline&lt;/code&gt; &#x2192; &lt;code&gt;jira-timeline&lt;/code&gt;
+** &lt;code&gt;/calendar&lt;/code&gt; &#x2192; &lt;code&gt;jira-calendar&lt;/code&gt;
+** &lt;code&gt;/summary&lt;/code&gt; &#x2192; &lt;code&gt;jira-summary&lt;/code&gt;
+** &lt;code&gt;/boards&lt;/code&gt; &#x2192; &lt;code&gt;jira-board&lt;/code&gt;
+** otherwise &#x2192; &lt;code&gt;jira-jql&lt;/code&gt; (plain JQL query)
+&lt;/noinclude&gt;&lt;includeonly&gt;{{#if:{{{key|}}}|[[jira-task:{{{key}}}]]|{{#if:{{#pos:{{{jql|}}}|/timeline}}|[[jira-timeline:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/calendar}}|[[jira-calendar:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/summary}}|[[jira-summary:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/boards}}|[[jira-board:{{{jql}}}]]|[[jira-jql:{{{jql}}}]]}}}}}}}}}}&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:RecentlyUpdated</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{{#ask:[[{{NAMESPACE}}:+]]{{#if:{{{labels|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}[[Modification date::+]]
+|?Last editor is
+|?Modification date
+|format=plainlist
+|limit={{{max|8}}}
+|template=RecentlyUpdatedRow
+|link=none
+|searchlabel=
+}}&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ContentByLabel</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;This template is used to convert the structured macro "contentbylabel".&lt;/noinclude&gt;
+&lt;includeonly&gt;
+{{#ask:{{#if:{{{conditions|}}}|[[Category:{{#arraymap:{{{conditions|}}}|,|@@|@@|{{!}}{{!}}}}]]|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
+|format=ul
+|template=ContentByLabel/{{{path|pagename}}}
+|limit={{{max|999}}}
+|link=none
+|searchlabel=
+}}
+&lt;/includeonly&gt;
+&lt;noinclude&gt;
+&lt;templatedata&gt;
+{
+	"params": {
+		"conditions": {},
+		"labels": {},
+		"path": {
+			"label": {
+				"en": "Display path",
+				"de": "Anzeigepfad"
+			},
+			"description": {
+				"en": "What path level to show",
+				"de": "Welche Seitenpfadebenen angezeigt werden soll"
+			},
+			"suggestedvalues": [
+				"fullpagename",
+	            "pagename",
+				"basepagename",
+				"subpagename"
+			],
+			"default": "pagename",
+			"suggested": true
+		}
+	},
+	"paramOrder": [
+		"path",
+		"conditions",
+		"labels"
+	]
+}
+&lt;/templatedata&gt;
+&lt;/noinclude&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ColumnStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="ac-column"&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:DetailsSummaryStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{| class="mw-collapsible mw-collapsed wikitable"
+! {{{title|}}}
+|-
+|
+&lt;includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:TableFilterEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+&lt;/div&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:SubpageList</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{{#ask: [[~{{{page|{{FULLPAGENAME}}}}}/*]] [[Modification date::+]]
+|?=title
+|format=ul
+|template=SubpageListRow
+&lt;!-- |userparam={{{page|{{FULLPAGENAME}}}}} --&gt;
+|limit={{#switch:{{{first|10}}}|0=100|{{{first|10}}}}}
+|link=none
+|searchlabel=
+|sort={{#switch:{{{sort|}}}|title=|creation=creation date}}
+|order={{#switch:{{{sort|}}}|title=asc|creation=creation date=desc}}
+}}&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:DetailsStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="macro-details" {{#if:{{{id|}}}|data-id="{{{id|}}}"}} {{#if:{{{hidden|}}}|style="display:none;"}}&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Note</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{Textbox|boxtype=note|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ExpandStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{| class="mw-collapsible mw-collapsed wikitable"
+! {{{title|}}}
+|-
+|
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:PanelStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="panel"&gt;{{#if:{{{title|}}}|&lt;div class="panel__heading" style="margin-top:2em"&gt;'''{{{title|}}}'''&lt;/div&gt;|}}&lt;div class="panel__content"  style="background:{{#switch: {{{bgColor|}}}
+| blue      = #E7F9FF
+| green     = #DCFFF1
+| yellow    = #FEF7C8
+| orange    = #FFE8CC
+| purple    = #F8EEFE
+| grey      = #F2F3F9
+| {{{bgColor|#F2F3F9}}}
+}}; padding-inline: 0.75em"&gt;&lt;span style="display:table-cell; vertical-align:top; padding-top:0.1em"&gt;{{#if:{{{panelIconText|}}}|{{{panelIconText|}}}}}&lt;/span&gt;&lt;span style="display:table-cell; vertical-align:top"&gt;&lt;/includeonly&gt;&lt;noinclude&gt;
+&lt;templatedata&gt;
+{
+	"params": {
+		"title": {
+			"label": {
+				"en": "Title",
+				"de": "Titel"
+			},
+			"description": {
+				"en": "Label above the textbox",
+				"de": "Titel über der Textbox"
+			}
+		},
+		"bgColor": {
+			"suggestedvalues": [
+				"blue",
+				"green",
+				"yellow",
+				"orange",
+				"purple",
+				"grey"
+			],
+			"label": {
+				"en": "Background color",
+				"de": "Hintergrundfarbe"
+			}
+		},
+		"panelIconText": {
+			"suggestedvalues": [
+				"🖥️",
+				"⭐",
+				"✅",
+				"❌",
+				"🌐",
+				"💡",
+				"🔐",
+				"🔔",
+				"📁",
+				"⛔",
+				"⏰"
+			],
+			"label": "Icon"
+		},
+		"panelIconId": {
+			"deprecated": true,
+			"description": {
+				"en": "Migrated ID, not considered in template output",
+				"de": "Migrierte ID, wird nicht in der Vorlagenausgabe verwendet"
+			}
+		},
+		"panelIcon": {
+			"deprecated": true,
+			"description": {
+				"en": "Migrated emoji shortcut, not considered in template output",
+				"de": "Migrierter Emoji-Shortcut, wird nicht in der Vorlagenausgabe verwendet"
+			}
+		}
+	}
+}
+&lt;/templatedata&gt;&lt;/noinclude&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ViewDoc</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewdoc"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[Media:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:SubpageListRow</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+[[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]]
+&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:InlineComment</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;span style="display:inline-block;padding:0.2em;background-color:yellow"&gt;{{{1|N/A}}}&lt;/span&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:DetailsEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;/div&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Status</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;span class="statusbadge" style="padding:0 0.5em; border-radius:4px; letter-spacing: .5px; text-transform: uppercase; font-weight:750; line-height:1pc; font-size:11px;display:inline-block; background-color:#{{#switch:{{{colour|none}}}|Blue=99b8f6|Green=b8de6f|Neutral=dddee1|Red=f19a92|Yellow=f1c84d|Purple=d3a2f8|dddee1}}"&gt;{{{title|N/A}}}&lt;/span&gt;&lt;/includeonly&gt;
+&lt;noinclude&gt;
+&lt;templatedata&gt;
+{
+	"params": {
+		"colour": {
+			"label": {
+				"en": "Color",
+				"de": "Farbe"
+			},
+			"suggestedvalues": [
+				"Blue",
+				"Green",
+                "Neutral",
+				"Red",
+	            "Yellow",
+				"Purple"
+			],
+			"suggested": true
+		},
+		"title": {
+			"label": {
+				"en": "Status",
+				"de": "Status"
+			},
+			"suggested": true
+		}
+	},
+	"paramOrder": [
+		"title",
+		"colour"
+	]
+}
+&lt;/templatedata&gt;
+&lt;/noinclude&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ViewFile</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "view-file"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ExcerptInclude</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+{{#dpl:
+|title   = {{{target|}}}
+|include = {{{name|}}}
+}}
+
+Target:{{{target|}}}
+
+Name:{{{name|}}}
+
+
+&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ColumnEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;/div&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:PanelEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;/span&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Success</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{Textbox|boxtype=success|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Warning</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{Textbox|boxtype=warning|header={{{title|}}}|text={{{body|}}}|icon=yes}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:AttachmentsSectionStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+== Attachments ==
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:LoremIpsum</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{{{body|}}}&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:TableFilterStart</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;&lt;div class="macro-table-filter"&gt;
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:PageTree</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;{{#subpages:{{{content-title}}}}}&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ViewXls</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewxls"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[Media:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ExpandEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;
+|}
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:RecentlyUpdatedRow</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;includeonly&gt;[[{{{1}}}|&lt;i class="bi bi-card-text prefix"&gt;&lt;/i&gt;]] [[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]]
+&lt;div class="byline prefixicon"&gt;&lt;small&gt;{{#switch:{{CONTENTLANG}}|en={{#time:M d, Y|{{{3}}}}}|de={{#time:d.M Y|{{{3}}}}}|{{#time:M/d/YY|{{{3}}}}} }}
+{{#ifeq:{{#show:{{{1}}}|?Last editor is|link=none}}|User:imported>Unknown user||· contributed by [[{{{2}}}|{{PAGENAME:{{{2}}} }}]]}}&lt;/small&gt;&lt;/div&gt;&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:SpaceDetails</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for macro "space-details"
+&lt;/noinclude&gt;&lt;includeonly&gt;{| class="wikitable" style="width:{{{width}}}"
+|-
+| Name || {{NAMESPACE}}
+|-
+| Description || {{#ask:[[{{NAMESPACE}}:+]][[Space description::+]]|?Space description=|mainlabel=-|link=none}}
+|-
+| Pages in namespace || {{#ask:[[{{NAMESPACE}}:+]]|format=count}}
+|-
+| Last page edit || {{#ask:[[{{NAMESPACE}}:+]]|limit=1|sort=Modification date|order=desc|searchlabel=}}
+|-
+| Last modification date || {{#ask:[[{{NAMESPACE}}:+]]|?Modification date=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}}
+|-
+| Last modifier || {{#ask:[[{{NAMESPACE}}:+]]|?Last editor is=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}}
+|}&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:FallbackCreateFromTemplate</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;
+Fallback template preloaded into pages created via CreateFromTemplate when the original Confluence template could not be resolved. Sets the "Created by macro" property so the page appears in the correct macro instance's listing.
+
+Parameters:
+* $1 - The macro-id of the CreateFromTemplate instance that created this page
+&lt;/noinclude&gt;&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Gliffy</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{#tag:drawio
+|
+|filename={{{name}}}
+}}</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ViewPdf</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "viewpdf"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:AttachmentsSectionEnd</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;!-- Nothing to do here --&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:CreateFromTemplate</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;
+Renders an inputbox for creating new pages from a template and lists pages previously created by this macro instance.
+
+Parameters:
+* preload - The template page to preload when creating a new page
+* buttonlabel - Label for the create button
+* macroid - Unique identifier for this macro instance (used to scope created pages)
+&lt;/noinclude&gt;&lt;includeonly&gt;
+{{#tag:inputbox|
+type=create
+preload={{{preload|preload}}}
+preloadparams[]={{{macroid|}}}
+buttonlabel={{{buttonlabel|Create from template}}}
+width=28
+break=no
+useve=true
+}}
+{{#ask: [[Created by macro::{{{macroid|}}}]]
+| format=embedded
+| sort=Creation date
+| order=asc
+}}
+&lt;/includeonly&gt;
+</text>
+    </revision>
+  </page>
+</mediawiki>
