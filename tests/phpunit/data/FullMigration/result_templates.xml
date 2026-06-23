@@ -6,8 +6,7 @@
       <model>wikitext</model>
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;Template for confluence macro "viewppt"
-&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
-</text>
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -60,8 +59,7 @@
 ** &lt;code&gt;/summary&lt;/code&gt; &#x2192; &lt;code&gt;jira-summary&lt;/code&gt;
 ** &lt;code&gt;/boards&lt;/code&gt; &#x2192; &lt;code&gt;jira-board&lt;/code&gt;
 ** otherwise &#x2192; &lt;code&gt;jira-jql&lt;/code&gt; (plain JQL query)
-&lt;/noinclude&gt;&lt;includeonly&gt;{{#if:{{{key|}}}|[[jira-task:{{{key}}}]]|{{#if:{{#pos:{{{jql|}}}|/timeline}}|[[jira-timeline:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/calendar}}|[[jira-calendar:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/summary}}|[[jira-summary:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/boards}}|[[jira-board:{{{jql}}}]]|[[jira-jql:{{{jql}}}]]}}}}}}}}}}&lt;/includeonly&gt;
-</text>
+&lt;/noinclude&gt;&lt;includeonly&gt;{{#if:{{{key|}}}|[[jira-task:{{{key}}}]]|{{#if:{{#pos:{{{jql|}}}|/timeline}}|[[jira-timeline:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/calendar}}|[[jira-calendar:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/summary}}|[[jira-summary:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/boards}}|[[jira-board:{{{jql}}}]]|[[jira-jql:{{{jql}}}]]}}}}}}}}}}&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -77,8 +75,7 @@
 |template=RecentlyUpdatedRow
 |link=none
 |searchlabel=
-}}&lt;/includeonly&gt;
-</text>
+}}&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -128,8 +125,7 @@
 	]
 }
 &lt;/templatedata&gt;
-&lt;/noinclude&gt;
-</text>
+&lt;/noinclude&gt;</text>
     </revision>
   </page>
   <page>
@@ -176,8 +172,7 @@
 |searchlabel=
 |sort={{#switch:{{{sort|}}}|title=|creation=creation date}}
 |order={{#switch:{{{sort|}}}|title=asc|creation=creation date=desc}}
-}}&lt;/includeonly&gt;
-</text>
+}}&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -281,8 +276,7 @@
 		}
 	}
 }
-&lt;/templatedata&gt;&lt;/noinclude&gt;
-</text>
+&lt;/templatedata&gt;&lt;/noinclude&gt;</text>
     </revision>
   </page>
   <page>
@@ -291,8 +285,7 @@
       <model>wikitext</model>
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;Template for confluence macro "viewdoc"
-&lt;/noinclude&gt;&lt;includeonly&gt;[[Media:{{{filename}}}]]&lt;/includeonly&gt;
-</text>
+&lt;/noinclude&gt;&lt;includeonly&gt;[[Media:{{{filename}}}]]&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -302,8 +295,7 @@
       <format>text/x-wiki</format>
       <text>&lt;includeonly&gt;
 [[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]]
-&lt;/includeonly&gt;
-</text>
+&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -361,8 +353,7 @@
 	]
 }
 &lt;/templatedata&gt;
-&lt;/noinclude&gt;
-</text>
+&lt;/noinclude&gt;</text>
     </revision>
   </page>
   <page>
@@ -371,8 +362,7 @@
       <model>wikitext</model>
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;Template for confluence macro "view-file"
-&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
-</text>
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -390,9 +380,7 @@ Target:{{{target|}}}
 
 Name:{{{name|}}}
 
-
-&lt;/includeonly&gt;
-</text>
+&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -410,8 +398,7 @@ Name:{{{name|}}}
       <format>text/x-wiki</format>
       <text>&lt;includeonly&gt;&lt;/span&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;/includeonly&gt;
-</text>
+&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -471,8 +458,7 @@ Name:{{{name|}}}
       <model>wikitext</model>
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;Template for confluence macro "viewxls"
-&lt;/noinclude&gt;&lt;includeonly&gt;[[Media:{{{filename}}}]]&lt;/includeonly&gt;
-</text>
+&lt;/noinclude&gt;&lt;includeonly&gt;[[Media:{{{filename}}}]]&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -492,8 +478,7 @@ Name:{{{name|}}}
       <format>text/x-wiki</format>
       <text>&lt;includeonly&gt;[[{{{1}}}|&lt;i class="bi bi-card-text prefix"&gt;&lt;/i&gt;]] [[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]]
 &lt;div class="byline prefixicon"&gt;&lt;small&gt;{{#switch:{{CONTENTLANG}}|en={{#time:M d, Y|{{{3}}}}}|de={{#time:d.M Y|{{{3}}}}}|{{#time:M/d/YY|{{{3}}}}} }}
-{{#ifeq:{{#show:{{{1}}}|?Last editor is|link=none}}|User:imported>Unknown user||· contributed by [[{{{2}}}|{{PAGENAME:{{{2}}} }}]]}}&lt;/small&gt;&lt;/div&gt;&lt;/includeonly&gt;
-</text>
+{{#ifeq:{{#show:{{{1}}}|?Last editor is|link=none}}|User:imported>Unknown user||· contributed by [[{{{2}}}|{{PAGENAME:{{{2}}} }}]]}}&lt;/small&gt;&lt;/div&gt;&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -515,8 +500,7 @@ Name:{{{name|}}}
 | Last modification date || {{#ask:[[{{NAMESPACE}}:+]]|?Modification date=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}}
 |-
 | Last modifier || {{#ask:[[{{NAMESPACE}}:+]]|?Last editor is=|limit=1|sort=Modification date|order=desc|searchlabel=|mainlabel=-}}
-|}&lt;/includeonly&gt;
-</text>
+|}&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -529,8 +513,7 @@ Fallback template preloaded into pages created via CreateFromTemplate when the o
 
 Parameters:
 * $1 - The macro-id of the CreateFromTemplate instance that created this page
-&lt;/noinclude&gt;&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;
-</text>
+&lt;/noinclude&gt;&lt;includeonly&gt;{{#set: Created by macro=$1 }}&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -550,8 +533,7 @@ Parameters:
       <model>wikitext</model>
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;Template for confluence macro "viewpdf"
-&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;
-</text>
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
@@ -589,8 +571,7 @@ useve=true
 | sort=Creation date
 | order=asc
 }}
-&lt;/includeonly&gt;
-</text>
+&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
