@@ -14,18 +14,4 @@
       </content>
     </revision>
   </page>
-  <page>
-    <title>Blog_Talk:CON/My_Blog_Post</title>
-    <revision>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text/>
-      <content>
-        <role>cs-comments</role>
-        <model>json</model>
-        <format>application/json</format>
-        <text>{"1":{"type":"comment","author":"Testuser","created":"20200615090000","modified":"20200615090000","title":"","block":null,"wikitext":"This is a comment on the blog post.\n__NOTOC__\n\n \u003C!-- From bodyContent 20000043.mraw --\u003E"}}</text>
-      </content>
-    </revision>
-  </page>
 </mediawiki>

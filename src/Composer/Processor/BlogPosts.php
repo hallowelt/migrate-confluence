@@ -21,9 +21,8 @@ class BlogPosts extends ProcessorBase {
 	}
 
 	private function addBlogPages(): void {
-		// Get all page titles from DB and add them as pages to the workspace
-		// Key is blogPostId, value is blogPostTitle - do not use array_merge at this point to avoid renumbering of keys
-		$wikiTitles = $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap();
+		// Get all blog post titles for a certain spacce id from DB and add them as pages to the workspace
+		$wikiTitles = $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap( $this->currentSpaceId );
 
 		foreach ( $wikiTitles as $blogPostId => $blogPostTitle ) {
 			if ( $this->skipHelper->skipBlogPostById( $blogPostId ) ) {

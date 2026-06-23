@@ -2017,10 +2017,18 @@ class WorkspaceDB {
 	/**
 	 * @return array
 	 */
-	public function getPageIdWikiPageTitleMap(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT page_id, wiki_title FROM pages WHERE original_version_id = -1'
-		);
+	public function getPageIdWikiPageTitleMap( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title FROM pages WHERE original_version_id = -1'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title FROM pages WHERE original_version_id = -1
+				 AND space_id = :space_id'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		}
 
 		$result = $transaction->execute();
 		$data = $this->fetchDbArray( $result );
@@ -2342,12 +2350,21 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getBlogPostIdWikiBlogPostTitleMap(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT page_id, wiki_title FROM blog_posts WHERE original_version_id = -1'
-		);
+	public function getBlogPostIdWikiBlogPostTitleMap( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title FROM blog_posts WHERE original_version_id = -1'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title FROM blog_posts WHERE original_version_id = -1
+				 AND space_id = :space_id'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		}
 
 		$result = $transaction->execute();
 		$data = $this->fetchDbArray( $result );
@@ -3397,15 +3414,26 @@ class WorkspaceDB {
 	/**
 	 * Returns all page-level comments and the corresponding page wiki title.
 	 *
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getCommentsForPages(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
-			LEFT JOIN pages p ON p.page_id = c.container_id
-			WHERE c.content_class = :content_class'
-		);
-		$transaction->bindValue( ':content_class', 'Page', SQLITE3_TEXT );
+	public function getCommentsForPages( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
+				LEFT JOIN pages p ON p.page_id = c.container_id
+				WHERE c.content_class = :content_class'
+			);
+			$transaction->bindValue( ':content_class', 'Page', SQLITE3_TEXT );
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
+				LEFT JOIN pages p ON p.page_id = c.container_id
+				WHERE c.content_class = :content_class AND p.space_id = :space_id'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+			$transaction->bindValue( ':content_class', 'Page', SQLITE3_TEXT );
+		}
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
@@ -3418,15 +3446,26 @@ class WorkspaceDB {
 	/**
 	 * Returns all blog-post-level comments and the corresponding blog post wiki title.
 	 *
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getCommentsForBlogPosts(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
-			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
-			WHERE c.content_class = :content_class'
-		);
-		$transaction->bindValue( ':content_class', 'BlogPost', SQLITE3_TEXT );
+	public function getCommentsForBlogPosts( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
+				LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+				WHERE c.content_class = :content_class'
+			);
+			$transaction->bindValue( ':content_class', 'BlogPost', SQLITE3_TEXT );
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
+				LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+				WHERE c.content_class = :content_class AND bp.space_id = :space_id'
+			);
+			$transaction->bindValue( ':content_class', 'BlogPost', SQLITE3_TEXT );
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_TEXT );
+		}
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
@@ -3987,12 +4026,21 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getPageTemplateIdWikiTitleMap(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT template_id, wiki_title FROM page_templates'
-		);
+	public function getPageTemplateIdWikiTitleMap( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT template_id, wiki_title FROM page_templates'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT template_id, wiki_title FROM page_templates
+				 WHERE space_id = :space_id'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		}
 
 		$result = $transaction->execute();
 		$data = $this->fetchDbArray( $result );

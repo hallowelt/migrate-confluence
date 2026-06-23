@@ -21,8 +21,8 @@ class Pages extends ProcessorBase {
 	}
 
 	private function addContentPages(): void {
-		// Get all page titles from DB and add them as pages to the workspace
-		$wikiTitles = $this->dataLookup->getPageIdWikiPageTitleMap();
+		// Get all page titles for a certain space id from DB and add them as pages to the workspace
+		$wikiTitles = $this->dataLookup->getPageIdWikiPageTitleMap( $this->currentSpaceId );
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
 			if ( $this->skipHelper->skipPageById( $pageId ) ) {

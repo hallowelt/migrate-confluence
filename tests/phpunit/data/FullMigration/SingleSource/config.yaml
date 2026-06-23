@@ -1,0 +1,4 @@
+config:
+  space-prefix:
+    THRD: ""
+    SEC: "SECOND:"

@@ -12,12 +12,6 @@ class Files extends FileProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		/**
-		 * base64 hash of files may exceed php memory limit.
-		 * Make sure enought memory is available or set
-		 * ini_set( "memory_limit", "-1" );
-		 */
-
 		$this->addDefaultFiles();
 		$this->addPageAttachments();
 		$this->addBlogPostAttachments();
@@ -119,7 +113,7 @@ class Files extends FileProcessorBase {
 
 				$attachmentContent = file_get_contents( $filePath );
 				$uploadFilePath = $this->workspace->saveUploadFile(
-					"$timestamp-$filename", $attachmentContent, "result/images/$filename"
+					"$timestamp-$filename", $attachmentContent, $this->getUploadPath()
 				);
 
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
@@ -185,6 +179,7 @@ class Files extends FileProcessorBase {
 						continue;
 					}
 
+					// Check for temporary files created by converter (e.g. a drawio file)
 					$testFilePath = $this->dest . '/images/' . $filename;
 					if ( file_exists( $testFilePath ) ) {
 						$this->output->writeln( "Attachment file override detected. Using override!" );
@@ -197,7 +192,9 @@ class Files extends FileProcessorBase {
 					}
 
 					$attachmentContent = file_get_contents( $filePath );
-					$uploadFilePath = $this->workspace->saveUploadFile( $filename, $attachmentContent );
+					$uploadFilePath = $this->workspace->saveUploadFile(
+						$filename, $attachmentContent, $this->getUploadPath()
+					);
 
 					$timestamp = $attachment['revision_timestamp'];
 					/* same as above: to use the author info in $attachment['last_modifier'],
@@ -240,7 +237,9 @@ class Files extends FileProcessorBase {
 			$attachmentPageTitle = $filename;
 			$data = file_get_contents( $file );
 
-			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $data, "result/images/$filename" );
+			$uploadFilePath = $this->workspace->saveUploadFile(
+				$filename, $data, $this->getUploadPath()
+			);
 
 			// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 			$this->builder->addFileRevision(

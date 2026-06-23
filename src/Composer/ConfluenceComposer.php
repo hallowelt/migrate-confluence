@@ -78,40 +78,61 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 		$this->dataLookup = new DBComposerDataLookup( $workspaceDB );
 		$deploymentInfo = new ComposerDeploymentInfo();
-		$skipPageHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
+		$skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
 		$processors = [
 			new Files(
 				$this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $skipPageHelper
+				$deploymentInfo, $skipHelper
 			),
 			new Pages(
 				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $skipPageHelper
+				$deploymentInfo, $skipHelper
 			),
 			new BlogPosts(
 				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $skipPageHelper
+				$deploymentInfo, $skipHelper
 			),
 			new Templates(
 				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $skipPageHelper
+				$deploymentInfo, $skipHelper
 			),
 			new Comments(
 				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $skipPageHelper
+				$deploymentInfo, $skipHelper
 			),
 			new Users(
 				$this->dataLookup, $this->output, $this->dest
 			),
 		];
 
-		foreach ( $processors as $processor ) {
-			$processor->execute();
+		// Run space dependent processors for each space
+		$spaces = $this->dataLookup->getSpaces();
+		foreach ( $spaces as $space ) {
+			$spaceId = $space['space_id'];
+			$spaceKey = $space['space_key'];
+			$namespace = 'NS_MAIN';
+			if ( str_contains( $space['space_prefix'], ':' ) ) {
+				$namespace = substr( $space['space_prefix'], 0, strpos( $space['space_prefix'], ':' ) );
+			}
+
+			if ( $skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
+				$this->output->writeln( "Skip space '$spaceKey' by configuration." );
+				continue;
+			}
+			$deploymentInfo->addNamespace( $namespace );
+
+			foreach ( $processors as $processor ) {
+				if ( $processor instanceof ISpaceDependentProcessor ) {
+					$processor->setCurrentSpaceId( $spaceId );
+				}
+				$processor->setSubDir( $namespace );
+				$processor->execute();
+			}
 		}
 
 		$this->writeDeploymentLog( $deploymentInfo );

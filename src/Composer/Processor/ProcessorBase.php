@@ -5,13 +5,14 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
+use HalloWelt\MigrateConfluence\Composer\ISpaceDependentProcessor;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
-abstract class ProcessorBase implements IConfluenceComposerProcessor {
+abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceDependentProcessor {
 
 	/** @var Builder */
 	protected Builder $builder;
@@ -49,6 +50,12 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	/** @var int */
 	protected int $outputXmlFile = 0;
 
+	/** @var string */
+	protected string $subDir = '';
+
+	/** @var int|null */
+	protected ?int $currentSpaceId = null;
+
 	/**
 	 * @param Builder $builder
 	 * @param DBComposerDataLookup $dataLookup
@@ -77,6 +84,22 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 		if ( $this->limit > 0 ) {
 			$this->multiXmlOutputEnabled = true;
 		}
+	}
+
+	/**
+	 * @param string $name
+	 * @return void
+	 */
+	public function setSubDir( string $name ): void {
+		$this->subDir = $name;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @return void
+	 */
+	public function setCurrentSpaceId( int $spaceId ): void {
+		$this->currentSpaceId = $spaceId;
 	}
 
 	/**
@@ -150,7 +173,9 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 
 		$name .= '.xml';
 
-		$this->builder->buildAndSave( $this->dest . "/result/$name" );
+		$basePath = $this->getBasePath();
+
+		$this->builder->buildAndSave( $basePath . $name );
 		$this->builder->reset();
 	}
 
@@ -178,5 +203,19 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 */
 	protected function getOutputName(): string {
 		return 'output';
+	}
+
+	/**
+	 * @return string
+	 */
+	private function getBasePath(): string {
+		$basePath = $this->dest . "/result/";
+		if ( $this->subDir !== '' ) {
+			$basePath .= $this->subDir . '/';
+		}
+		if ( !file_exists( $basePath ) ) {
+			mkdir( $basePath, 755 );
+		}
+		return $basePath;
 	}
 }

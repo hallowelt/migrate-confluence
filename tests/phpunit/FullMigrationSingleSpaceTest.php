@@ -33,7 +33,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	protected MigrationConfig $migrationConfig;
 
 	protected function setUp(): void {
-		$this->dataDir = __DIR__ . '/data/FullMigration';
+		$this->dataDir = __DIR__ . '/data/FullMigration/SingleSource';
 
 		$this->tempDir = sys_get_temp_dir() . '/confluence-migration-test-' . uniqid();
 
@@ -48,7 +48,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		mkdir( $this->tempDir . '/single-source/workspace/content/result', 0755, true );
 		mkdir( $this->tempDir . '/single-source/workspace/content/result/images', 0755, true );
 
-		$sourceFile = $this->dataDir . '/SingleSource/input/entities.xml';
+		$sourceFile = $this->dataDir . '/input/entities.xml';
 		copy( $sourceFile, $this->tempDir . '/single-source/input/entities.xml' );
 	}
 
@@ -130,10 +130,10 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		);
 
 		// Step 5: Verify
-		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
+		$expectedPagesFile = $this->dataDir . '/expected/result_pages.xml';
 		$expectedPages = $this->extractPages( $expectedPagesFile );
 
-		$actualFile = $this->tempDir . '/single-source/workspace/result/pages.xml';
+		$actualFile = $this->tempDir . '/single-source/workspace/result/CON/pages.xml';
 		$this->assertFileExists( $actualFile );
 		$actualPages = $this->extractPages( $actualFile );
 
@@ -153,10 +153,10 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		}
 
 		// Verify templates.xml
-		$expectedTemplatesFile = $this->dataDir . '/result_templates.xml';
+		$expectedTemplatesFile = $this->dataDir . '/expected/result_templates.xml';
 		$expectedTemplates = $this->extractPages( $expectedTemplatesFile );
 
-		$actualTemplatesFile = $this->tempDir . '/single-source/workspace/result/templates.xml';
+		$actualTemplatesFile = $this->tempDir . '/single-source/workspace/result/CON/templates.xml';
 		$this->assertFileExists( $actualTemplatesFile );
 		$actualTemplates = $this->extractPages( $actualTemplatesFile );
 
@@ -176,8 +176,8 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		}
 
 		// Verify comments.xml
-		$expectedCommentsFile = $this->dataDir . '/result_comments.xml';
-		$actualCommentsFile = $this->tempDir . '/single-source/workspace/result/comments.xml';
+		$expectedCommentsFile = $this->dataDir . '/expected/result_comments.xml';
+		$actualCommentsFile = $this->tempDir . '/single-source/workspace/result/CON/comments.xml';
 		$this->assertFileExists( $actualCommentsFile );
 		$this->assertXmlFileEqualsXmlFile( $expectedCommentsFile, $actualCommentsFile );
 	}

@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
+use HalloWelt\MigrateConfluence\Composer\ISpaceDependentProcessor;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
@@ -12,7 +13,7 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikiFileXmlBuilder;
 use Symfony\Component\Console\Output\Output;
 
-abstract class FileProcessorBase implements IConfluenceComposerProcessor {
+abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpaceDependentProcessor {
 
 	/** @var WikiFileXmlBuilder */
 	protected WikiFileXmlBuilder $builder;
@@ -50,6 +51,12 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 	/** @var int */
 	protected int $outputXmlFile = 0;
 
+	/** @var string */
+	protected string $subDir = '';
+
+	/** @var int|null */
+	protected ?int $currentSpaceId = null;
+
 	/**
 	 * @param DBComposerDataLookup $dataLookup
 	 * @param Workspace $workspace
@@ -78,6 +85,22 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 		if ( $this->limit > 0 ) {
 			$this->multiXmlOutputEnabled = true;
 		}
+	}
+
+	/**
+	 * @param string $name
+	 * @return void
+	 */
+	public function setSubDir( string $name ): void {
+		$this->subDir = $name;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @return void
+	 */
+	public function setCurrentSpaceId( int $spaceId ): void {
+		$this->currentSpaceId = $spaceId;
 	}
 
 	/**
@@ -117,7 +140,9 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 
 		$name .= '.xml';
 
-		$this->builder->buildAndSave( $this->dest . "/result/$name" );
+		$basePath = $this->getBasePath();
+
+		$this->builder->buildAndSave( "$basePath/$name" );
 		$this->builder->reset();
 	}
 
@@ -189,6 +214,27 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 	 */
 	protected function getRelativeFilePath( string $filePath ): string {
 		// strip /result form $uploadPath to get the reference path for the file
-		return str_replace( '/result/', './', $filePath );
+		return str_replace( '/result/' . $this->subDir, '.', $filePath );
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getUploadPath(): string {
+		return 'result/' . $this->subDir . '/images';
+	}
+
+	/**
+	 * @return string
+	 */
+	private function getBasePath(): string {
+		$basePath = $this->dest . "/result/";
+		if ( $this->subDir !== '' ) {
+			$basePath .= $this->subDir . '/';
+		}
+		if ( !file_exists( $basePath ) ) {
+			mkdir( $basePath, 755 );
+		}
+		return $basePath;
 	}
 }

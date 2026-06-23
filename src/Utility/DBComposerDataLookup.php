@@ -15,15 +15,24 @@ class DBComposerDataLookup {
 	/**
 	 * @return array
 	 */
-	public function getPageIdWikiPageTitleMap(): array {
-		return $this->workspaceDB->getPageIdWikiPageTitleMap();
+	public function getSpaces(): array {
+		return $this->workspaceDB->getSpaces();
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getBlogPostIdWikiBlogPostTitleMap(): array {
-		return $this->workspaceDB->getBlogPostIdWikiBlogPostTitleMap();
+	public function getPageIdWikiPageTitleMap( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getPageIdWikiPageTitleMap( $spaceId );
+	}
+
+	/**
+	 * @param int|null $spaceId
+	 * @return array
+	 */
+	public function getBlogPostIdWikiBlogPostTitleMap( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getBlogPostIdWikiBlogPostTitleMap( $spaceId );
 	}
 
 	/**
@@ -68,17 +77,19 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getCommentsForPages(): array {
-		return $this->workspaceDB->getCommentsForPages();
+	public function getCommentsForPages( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getCommentsForPages( $spaceId );
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getCommentsForBlogPosts(): array {
-		return $this->workspaceDB->getCommentsForBlogPosts();
+	public function getCommentsForBlogPosts( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getCommentsForBlogPosts( $spaceId );
 	}
 
 	/**
@@ -118,10 +129,11 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getPageTemplateIdWikiTitleMap(): array {
-		return $this->workspaceDB->getPageTemplateIdWikiTitleMap();
+	public function getPageTemplateIdWikiTitleMap( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getPageTemplateIdWikiTitleMap( $spaceId );
 	}
 
 	/**

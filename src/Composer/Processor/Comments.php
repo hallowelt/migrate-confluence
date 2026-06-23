@@ -19,7 +19,7 @@ class Comments extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$this->addBlogPages();
+		$this->addCommentPages();
 
 		$this->writeOutputFile();
 	}
@@ -27,10 +27,10 @@ class Comments extends ProcessorBase {
 	/**
 	 * @return void
 	 */
-	private function addBlogPages(): void {
+	private function addCommentPages(): void {
 		$comments = array_merge(
-			$this->dataLookup->getCommentsForPages(),
-			$this->dataLookup->getCommentsForBlogPosts()
+			$this->dataLookup->getCommentsForPages( $this->currentSpaceId ),
+			$this->dataLookup->getCommentsForBlogPosts( $this->currentSpaceId )
 		);
 		if ( empty( $comments ) ) {
 			$this->output->writeln( "No comments found, skipping comment processing." );
@@ -108,6 +108,11 @@ class Comments extends ProcessorBase {
 			}
 			$pageTitle = $pageIdToTitleMap[$pageId];
 			$talkTitle = $this->buildTalkTitle( $pageTitle );
+			if ( $this->skipHelper->skipPageById( $pageId ) ) {
+				$this->output->writeln( "Skip page $talkTitle." );
+				$this->deploymentInfo->addSkippedPage( $talkTitle );
+				continue;
+			}
 
 			$commentsData = $this->buildCommentsData(
 				$commentIds, $commentIdToMetadata, $userkeyToUsernameMap
