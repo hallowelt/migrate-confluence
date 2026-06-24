@@ -56,7 +56,7 @@ class Pages extends ProcessorBase {
 		$wikiTitles = $this->dataLookup->getPageIdWikiPageTitleMap( $this->currentSpaceId );
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
-			if ( $this->skipHelper->skipPageById( $pageId ) ) {
+			if ( $this->skipHelper->skipPage( $pageTitle ) ) {
 				$this->output->writeln( "Skip page $pageTitle." );
 				$this->deploymentInfo->addSkippedPage( $pageTitle );
 				continue;

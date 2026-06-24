@@ -4,12 +4,6 @@ namespace HalloWelt\MigrateConfluence\Utility;
 
 class ComposerSkipHelper {
 
-	/** @var array */
-	private array $pageWikiTitleToPageIdMap = [];
-
-	/** @var array */
-	private array $blogPostWikiTitleToBlogPostIdMap = [];
-
 	/**
 	 * @param DBComposerDataLookup $dataLookup
 	 * @param MigrationConfig $migrationConfig
@@ -18,40 +12,41 @@ class ComposerSkipHelper {
 		private DBComposerDataLookup $dataLookup,
 		private MigrationConfig $migrationConfig
 	) {
-		$pageIdToTitleMap = $this->dataLookup->getPageIdWikiPageTitleMap();
-		$this->pageWikiTitleToPageIdMap = array_flip( $pageIdToTitleMap );
-
-		$blogPostIdToTitleMap = $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap();
-		$this->blogPostWikiTitleToBlogPostIdMap = array_flip( $blogPostIdToTitleMap );
 	}
 
 	/**
-	 * @param int $pageId
+	 * @param string $wikiTitle
+	 *
 	 * @return bool
 	 */
-	public function skipPageById( int $pageId ): bool {
-		if ( $this->dataLookup->isPageInvalid( $pageId ) ) {
+	public function skipPage( string $wikiTitle ): bool {
+		if ( $this->dataLookup->isPageInvalid( $wikiTitle ) ) {
 			return true;
 		}
 
-		$wikiTitle = $this->dataLookup->getWikiPageTitleFromPageId( $pageId );
-		if ( !$wikiTitle ) {
-			return true;
-		}
 		return $this->skipWikiTitleByConfiguration( $wikiTitle );
 	}
 
 	/**
-	 * @param int $blogPostId
+	 * @param string $wikiTitle
+	 *
 	 * @return bool
 	 */
-	public function skipBlogPostById( int $blogPostId ): bool {
-		if ( $this->dataLookup->isBlogPostInvalid( $blogPostId ) ) {
+	public function skipBlogPost( string $wikiTitle ): bool {
+		if ( $this->dataLookup->isBlogPostInvalid( $wikiTitle ) ) {
 			return true;
 		}
 
-		$wikiTitle = $this->dataLookup->getWikiBlogPostTitleFromBlogPostId( $blogPostId );
-		if ( !$wikiTitle ) {
+		return $this->skipWikiTitleByConfiguration( $wikiTitle );
+	}
+
+	/**
+	 * @param string $wikiTitle
+	 *
+	 * @return bool
+	 */
+	public function skipTemplate( string $wikiTitle ): bool {
+		if ( $this->dataLookup->isPageTemplateInvalid( $wikiTitle ) ) {
 			return true;
 		}
 
@@ -63,24 +58,18 @@ class ComposerSkipHelper {
 	 * @return bool
 	 */
 	public function skipWikiTitle( string $wikiTitle ): bool {
+		// Blog page title
 		if ( str_starts_with( $wikiTitle, 'Blog:' ) ) {
-			// Blog page title
-			if ( !isset( $this->blogPostWikiTitleToBlogPostIdMap[$wikiTitle] ) ) {
-				return true;
-			}
-			$blogPostId = $this->blogPostWikiTitleToBlogPostIdMap[$wikiTitle];
-			return $this->skipBlogPostById( $blogPostId );
-		} elseif ( str_starts_with( $wikiTitle, 'Template:' ) ) {
-			// Template page title
-			return $this->skipWikiTitleByConfiguration( $wikiTitle );
-		} else {
-			// Content page title
-			if ( !isset( $this->pageWikiTitleToPageIdMap[$wikiTitle] ) ) {
-				return true;
-			}
-			$pageId = $this->pageWikiTitleToPageIdMap[$wikiTitle];
-			return $this->skipPageById( $pageId );
+			return $this->skipBlogPost( $wikiTitle );
 		}
+
+		// Template page title
+		if ( str_starts_with( $wikiTitle, 'Template:' ) ) {
+			return $this->skipTemplate( $wikiTitle );
+		}
+
+		// Content page title
+		return $this->skipPage( $wikiTitle );
 	}
 
 	/**

@@ -148,22 +148,6 @@ class DBComposerDataLookup {
 	}
 
 	/**
-	 * @param int $templateId
-	 * @return int
-	 */
-	public function getSpaceIdForTemplateId( int $templateId ): int {
-		return $this->workspaceDB->getSpaceIdFromTemplateId( $templateId ) ?? 0;
-	}
-
-	/**
-	 * @param int $attachmentId
-	 * @return array
-	 */
-	public function getAttachment( int $attachmentId ): array {
-		return $this->workspaceDB->getAttachment( $attachmentId );
-	}
-
-	/**
 	 * Get the wiki page title for a given page ID.
 	 * If the page has an original version, recursively look up the original version
 	 * until the original version is reached and return its wiki title.
@@ -196,19 +180,21 @@ class DBComposerDataLookup {
 	}
 
 	/**
-	 * @param int $pageId
+	 * @param string $wikiTitle
+	 *
 	 * @return bool
 	 */
-	public function isPageInvalid( int $pageId ): bool {
-		return $this->workspaceDB->isPageInvalid( $pageId );
+	public function isPageInvalid( string $wikiTitle ): bool {
+		return $this->workspaceDB->isPageInvalid( $wikiTitle );
 	}
 
 	/**
-	 * @param int $blogPostId
+	 * @param string $wikiTitle
+	 *
 	 * @return bool
 	 */
-	public function isBlogPostInvalid( int $blogPostId ): bool {
-		return $this->workspaceDB->isBlogPostInvalid( $blogPostId );
+	public function isBlogPostInvalid( string $wikiTitle ): bool {
+		return $this->workspaceDB->isBlogPostInvalid( $wikiTitle );
 	}
 
 	/**
@@ -220,11 +206,12 @@ class DBComposerDataLookup {
 	}
 
 	/**
-	 * @param int $templateId
+	 * @param string $wikiTitle
+	 *
 	 * @return bool
 	 */
-	public function isPageTemplateInvalid( int $templateId ): bool {
-		return $this->workspaceDB->isPageTemplateInvalid( $templateId );
+	public function isPageTemplateInvalid( string $wikiTitle ): bool {
+		return $this->workspaceDB->isPageTemplateInvalid( $wikiTitle );
 	}
 
 	public function getInvalidPages(): array {

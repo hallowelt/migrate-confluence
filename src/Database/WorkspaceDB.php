@@ -848,10 +848,22 @@ class WorkspaceDB {
 	 * A page template is invalid if its wiki_title appears in page_template_invalid_titles,
 	 * or if its content appears in page_template_invalid_contents.
 	 *
-	 * @param int $templateId
+	 * @param string $wikiTitle
+	 *
 	 * @return bool
 	 */
-	public function isPageTemplateInvalid( int $templateId ): bool {
+	public function isPageTemplateInvalid( string $wikiTitle ): bool {
+		// Check if the wiki title is in page templates
+		$stmt = $this->cachedPrepare( 'SELECT template_id FROM page_templates WHERE wiki_title = :wiki_title LIMIT 1' );
+		$stmt->bindValue( ':wiki_title', $wikiTitle );
+		$result = $stmt->execute();
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		if ( $row === false || !isset( $row['template_id'] ) ) {
+			return true;
+		}
+
+		$templateId = $row['template_id'];
+
 		// Check if the wiki_title of the template is in page_template_invalid_titles
 		$stmt = $this->cachedPrepare(
 			'SELECT template_id FROM page_template_invalid_titles
@@ -884,10 +896,22 @@ class WorkspaceDB {
 	 * A page is invalid if its wiki_title appears in page_invalid_titles,
 	 * or if any of its body_content_ids are listed in body_content_invalids.
 	 *
-	 * @param int $pageId
+	 * @param string $wikiTitle
+	 *
 	 * @return bool
 	 */
-	public function isPageInvalid( int $pageId ): bool {
+	public function isPageInvalid( string $wikiTitle ): bool {
+		// Check if the wiki title is in page
+		$stmt = $this->cachedPrepare( 'SELECT page_id FROM pages WHERE wiki_title = :wiki_title LIMIT 1' );
+		$stmt->bindValue( ':wiki_title', $wikiTitle );
+		$result = $stmt->execute();
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		if ( $row === false || !isset( $row['page_id'] ) ) {
+			return true;
+		}
+
+		$pageId = $row['page_id'];
+
 		// Check if the wiki_title of the page is in page_invalid_titles
 		$stmt = $this->cachedPrepare(
 			'SELECT page_id FROM page_invalid_titles
@@ -928,7 +952,6 @@ class WorkspaceDB {
 		}
 
 		// Check if any body_content_id is listed as invalid
-
 		foreach ( $bodyContentIds as $bodyContentId ) {
 			$stmt = $this->cachedPrepare(
 				'SELECT body_content_id FROM body_content_invalids
@@ -1280,10 +1303,22 @@ class WorkspaceDB {
 	 * A blog post is invalid if its wiki_title appears in blog_post_invalid_titles,
 	 * or if any of its body_content_ids are listed in body_content_invalids.
 	 *
-	 * @param int $blogPostId
+	 * @param string $wikiTitle
+	 *
 	 * @return bool
 	 */
-	public function isBlogPostInvalid( int $blogPostId ): bool {
+	public function isBlogPostInvalid( string $wikiTitle ): bool {
+		// Check if the wiki title is in page
+		$stmt = $this->cachedPrepare( 'SELECT page_id FROM blog_posts WHERE wiki_title = :wiki_title LIMIT 1' );
+		$stmt->bindValue( ':wiki_title', $wikiTitle );
+		$result = $stmt->execute();
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		if ( $row === false || !isset( $row['page_id'] ) ) {
+			return true;
+		}
+
+		$blogPostId = $row['page_id'];
+
 		// Check if the wiki_title of the blog post is in blog_post_invalid_titles
 		$stmt = $this->cachedPrepare(
 			'SELECT page_id FROM blog_post_invalid_titles

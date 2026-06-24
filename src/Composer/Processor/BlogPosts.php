@@ -56,7 +56,7 @@ class BlogPosts extends ProcessorBase {
 		$wikiTitles = $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap( $this->currentSpaceId );
 
 		foreach ( $wikiTitles as $blogPostId => $blogPostTitle ) {
-			if ( $this->skipHelper->skipBlogPostById( $blogPostId ) ) {
+			if ( $this->skipHelper->skipBlogPost( $blogPostId ) ) {
 				$this->output->writeln( "Skip page $blogPostTitle." );
 				$this->deploymentInfo->addSkippedPage( $blogPostTitle );
 				continue;

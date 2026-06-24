@@ -48,7 +48,7 @@ class DrawIOFileHandler {
 	 * @return bool
 	 */
 	public function isDrawIODataContent( string $fileContent ): bool {
-		return preg_match( '#<mxfile.*?>\s*.*\s*<diagram.*?>#', $fileContent );
+		return (bool)preg_match( '#<mxfile.*?>\s*.*\s*<diagram.*?>#s', $fileContent );
 	}
 
 	/**
@@ -80,8 +80,6 @@ class DrawIOFileHandler {
 		}
 
 		// Add the tEXt chunk to the image content
-		$imageContent = substr_replace( $imageContent, $tEXtChunk, $IDATChunkPos - 4, 0 );
-
-		return $imageContent;
+		return substr_replace( $imageContent, $tEXtChunk, $IDATChunkPos - 4, 0 );
 	}
 }
