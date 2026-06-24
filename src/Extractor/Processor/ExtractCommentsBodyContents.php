@@ -11,7 +11,7 @@ class ExtractCommentsBodyContents extends ExtractSpaceDescriptionBodyContents {
 	 */
 	public function execute(): void {
 		$currentContentIds = [];
-		foreach ( $this->workspaceDB->getComments() as $comment ) {
+		foreach ( $this->workspaceDB->getCurrentComments() as $comment ) {
 			if ( !isset( $comment['comment_id'] )
 				|| !isset( $comment['content_class'] )
 			) {

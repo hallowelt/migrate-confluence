@@ -110,7 +110,12 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				|| !isset( $attachment['space_id'] )
 				|| !isset( $attachment['filename'] )
 				|| !isset( $attachment['container_id'] )
+				|| !isset( $attachment['content_status'] )
 			) {
+				continue;
+			}
+
+			if ( $attachment['content_status'] !== 'current' ) {
 				continue;
 			}
 

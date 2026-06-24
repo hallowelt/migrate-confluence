@@ -21,6 +21,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 	/** @inheritDoc */
 	protected function checkWikiTitleExists( string $wikiTitle ): bool {
 		return ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $wikiTitle )
+			|| $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $wikiTitle )
 			|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $wikiTitle )
 		);
 	}
@@ -64,7 +65,12 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 				|| !isset( $attachment['container_id'] )
 				|| !isset( $attachment['space_id'] )
 				|| !isset( $attachment['filename'] )
+				|| !isset( $attachment['content_status'] )
 			) {
+				continue;
+			}
+
+			if ( $attachment['content_status'] !== 'current' ) {
 				continue;
 			}
 
