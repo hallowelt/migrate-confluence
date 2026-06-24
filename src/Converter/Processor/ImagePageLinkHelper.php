@@ -3,9 +3,10 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
-class ImagePageLinkHelper {
+class ImagePageLinkHelper extends ConversionHelper {
 
 	/**
 	 * @var DBConversionDataLookup
@@ -88,6 +89,9 @@ class ImagePageLinkHelper {
 			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey ) ?? 0;
 			// TODO: Log if spaceId is null, but we should be able to
 			// resolve the filename without spaceId as well, so we can continue processing
+		} else {
+			$spaceId = $this->currentSpaceId;
+			$this->spaceKey = $this->dataLookup->getSpaceKeyFromSpaceId( $spaceId );
 		}
 
 		return $spaceId;
@@ -99,10 +103,9 @@ class ImagePageLinkHelper {
 	 * @return string
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
-		$confluenceKey = "Confluence---$spaceId---$rawPageTitle";
-		if ( $this->spaceKey !== '' ) {
-			$confluenceKey = "Confluence---$this->spaceKey---$rawPageTitle";
+		if ( !empty( $this->spaceKey ) ) {
+			return $this->getConfluencePageKeyFromSpaceKey( $this->spaceKey, $rawPageTitle );
 		}
-		return str_replace( ' ', '_', $confluenceKey );
+		return $this->getConfluencePageKeyFromSpaceId( $spaceId, $rawPageTitle );
 	}
 }

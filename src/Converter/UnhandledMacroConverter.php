@@ -3,8 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Converter;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
-class UnhandledMacroConverter {
+class UnhandledMacroConverter extends ConversionHelper {
 
 	/**
 	 * @param DOMDocument $dom
@@ -30,14 +31,18 @@ class UnhandledMacroConverter {
 			$replacement->setAttribute( 'class', 'ac-' . $macroName );
 
 			$replacement->appendChild(
-				$replacement->ownerDocument->createTextNode(
-					'###HTMLCOMMENTOPEN###' . $macro->ownerDocument->saveXML( $macro ) . '###HTMLCOMMENTCLOSE###'
+				$this->createTextNode(
+					$replacement->ownerDocument,
+					'###HTMLCOMMENTOPEN###' . $macro->ownerDocument->saveXML( $macro ) . '###HTMLCOMMENTCLOSE###',
+					__METHOD__
 				)
 			);
 
 			$replacement->appendChild(
-				$replacement->ownerDocument->createTextNode(
-					"[[Category:Broken_macro/$macroName]]"
+				$this->createTextNode(
+					$replacement->ownerDocument,
+					$this->getCategoryBrokenMacro( $macroName ),
+					__METHOD__
 				)
 			);
 
