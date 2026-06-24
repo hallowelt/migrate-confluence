@@ -4,6 +4,8 @@ namespace HalloWelt\MigrateConfluence\Utility;
 
 class TitleValidityChecker {
 
+	private const MAX_TITLE_LENGTH = 255;
+
 	/**
 	 * @param string $title
 	 * @return bool
@@ -96,10 +98,7 @@ class TitleValidityChecker {
 	 * @return bool
 	 */
 	public function hasValidLength( string $title ): bool {
-		if ( strlen( $title ) > 255 ) {
-			return false;
-		}
-		return true;
+		return strlen( $title ) <= self::MAX_TITLE_LENGTH;
 	}
 
 }

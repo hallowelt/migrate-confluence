@@ -16,14 +16,14 @@ class TitleBuilder {
 	 * @param array $spaceIdPrefixMap
 	 * @param array $spaceIdHomepages
 	 * @param array $pageIdParentPageIdMap
-	 * @param array $pageIConfluenceTitledMap
+	 * @param array $pageIdConfluenceTitleMap
 	 * @param string $mainpage
 	 */
 	public function __construct(
 		private array $spaceIdPrefixMap,
 		private array $spaceIdHomepages,
 		private array $pageIdParentPageIdMap,
-		private array $pageIConfluenceTitledMap,
+		private array $pageIdConfluenceTitleMap,
 		private string $mainpage = 'Main_Page'
 	) {
 	}
@@ -81,8 +81,8 @@ class TitleBuilder {
 		while ( $parentPageId !== null ) {
 			if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
 				break;
-			} elseif ( isset( $this->pageIConfluenceTitledMap[$parentPageId] ) ) {
-				$parentTitle = $this->pageIConfluenceTitledMap[$parentPageId];
+			} elseif ( isset( $this->pageIdConfluenceTitleMap[$parentPageId] ) ) {
+				$parentTitle = $this->pageIdConfluenceTitleMap[$parentPageId];
 			} else {
 				break;
 			}

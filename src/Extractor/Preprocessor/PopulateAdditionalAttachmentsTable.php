@@ -100,15 +100,14 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 			// Uncollide file title
 			$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
 			$counter = 1;
-			$maxUncollideAttempts = 10000;
 			while ( $exists ) {
-				if ( $counter > $maxUncollideAttempts ) {
+				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
 					$this->dbLog->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
 						"Could not find unique {$this->getContentLabel()} attachment title for attachment "
-						. "$attachmentId after " . (string)$maxUncollideAttempts . ' attempts'
+						. "$attachmentId after " . (string)self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
 					);
 					continue 2;
 				}
