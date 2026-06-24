@@ -12,6 +12,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
@@ -505,6 +506,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new FixImagesWithExternalUrl(),
 			new RestoreCodeMacro(),
 			new NestedHeadings(),
+			new FixEmptyListItemWrapper(),
 			new RestoreTasksReportMacro(),
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),

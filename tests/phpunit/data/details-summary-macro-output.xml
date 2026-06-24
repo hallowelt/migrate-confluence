@@ -1,8 +1,3 @@
 <xml xmlns:ac="sample_namespace">
-    {{DetailsSummaryStart###BREAK###
-|firstcolumn = Col 1###BREAK###
-|headings = Heading 1, Heading 2, Heading 3, Heading 4###BREAK###
-|sortBy = Title###BREAK###
-|cql = label = "Label 1" and parent = currentContent ( )###BREAK###
-}}{{DetailsSummaryEnd}}
+    <table class="wikitable"><tr><th>Col 1</th><th>Heading 1</th><th>Heading 2</th><th>Heading 3</th><th>Heading 4</th></tr></table><p><em>Details Summary - CQL: label = "Label 1" and parent = currentContent ( )</em></p>
 </xml>
