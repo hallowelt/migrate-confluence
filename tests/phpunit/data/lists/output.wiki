@@ -25,26 +25,26 @@
 #* Unordered Nested Item 1
 #* Unordered Nested Item 2
 
-* ** Nested List Item 1
-** Nested List Item 2
+:* Nested List Item 1
+:* Nested List Item 2
 
-* ** Nested List Item 1
-** Nested List Item 2
+:* Nested List Item 1
+:* Nested List Item 2
 
-* ** Nested List Item 1
-** Nested List Item 2
+:* Nested List Item 1
+:* Nested List Item 2
 
-* ** *** Deep Nested Item 1
-*** Deep Nested Item 2
+::* Deep Nested Item 1
+::* Deep Nested Item 2
 
 * List Item 1
-* ** Nested List Item 1
-** Nested List Item 2
+:* Nested List Item 1
+:* Nested List Item 2
 * List Item 2
 
-* *# Ordered Nested Item 1
-*# Ordered Nested Item 2
+:# Ordered Nested Item 1
+:# Ordered Nested Item 2
 
 * Nested List Parent
-** *** Nested List Item 1
-*** Nested List Item 2
+*:* Nested List Item 1
+*:* Nested List Item 2

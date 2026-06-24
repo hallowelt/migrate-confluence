@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter;
 
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
 use PHPUnit\Framework\TestCase;
 use SplFileInfo;
 
@@ -21,8 +22,11 @@ class ListConversionTest extends TestCase {
 
 		$workspace = new Workspace( new SplFileInfo( sys_get_temp_dir() ) );
 		$converter = new PandocHTML( [], $workspace );
+		$postprocessor = new FixEmptyListItemWrapper();
 
-		$result = $converter->convert( new SplFileInfo( $dataDir . 'input.html' ) );
+		$result = $postprocessor->postprocess(
+			$converter->convert( new SplFileInfo( $dataDir . 'input.html' ) )
+		);
 		$expected = file_get_contents( $dataDir . 'output.wiki' );
 
 		$this->assertSame( $expected, $result );

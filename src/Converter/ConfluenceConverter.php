@@ -12,6 +12,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
@@ -22,7 +23,6 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\FlattenListItemWithNoStyle;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\Table;
@@ -510,6 +510,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new FixImagesWithExternalUrl(),
 			new RestoreCodeMacro(),
 			new NestedHeadings(),
+			new FixEmptyListItemWrapper(),
 			new RestoreTasksReportMacro(),
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
@@ -679,8 +680,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$preprocessors = [
 			new SanitizeLinkContent(),
 			new HoistMacroFromHeading(),
-			new Table(),
-			new FlattenListItemWithNoStyle()
+			new Table()
 		];
 
 		/** @var IDomPreprocessor $preprocessor */
