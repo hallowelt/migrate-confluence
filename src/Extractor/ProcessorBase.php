@@ -11,18 +11,11 @@ abstract class ProcessorBase implements IExtractorProcessor {
 	/** @var Output|null */
 	protected ?Output $output = null;
 
-	/** @var WorkspaceDB */
-	protected WorkspaceDB $workspaceDB;
-
-	/** @var DBLog */
-	protected DBLog $dbLog;
-
 	/**
 	 * @param WorkspaceDB $workspaceDB
+	 * @param DBLog $dbLog
 	 */
-	public function __construct( WorkspaceDB $workspaceDB, DBLog $dbLog ) {
-		$this->workspaceDB = $workspaceDB;
-		$this->dbLog = $dbLog;
+	public function __construct( protected WorkspaceDB $workspaceDB, protected DBLog $dbLog ) {
 	}
 
 	/**

@@ -16,20 +16,15 @@ use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
  */
 class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
-	/** @var MigrationConfig */
-	private MigrationConfig $migrationConfig;
-
 	/**
 	 * @param WorkspaceDB $workspaceDB
 	 * @param DBLog $dbLog
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB, DBLog $dbLog, MigrationConfig $migrationConfig
+		WorkspaceDB $workspaceDB, DBLog $dbLog, private MigrationConfig $migrationConfig
 	) {
 		parent::__construct( $workspaceDB, $dbLog );
-
-		$this->migrationConfig = $migrationConfig;
 	}
 
 	/**

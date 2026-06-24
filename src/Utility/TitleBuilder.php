@@ -8,36 +8,9 @@ use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 class TitleBuilder {
 
 	/**
-	 * @var array
-	 */
-	private array $spaceIdPrefixMap;
-
-	/**
-	 *
-	 * @var array
-	 */
-	private array $spaceIdHomepages;
-
-	/**
-	 * @var array
-	 */
-	private array $pageIdParentPageIdMap;
-
-	/**
-	 * @var array
-	 */
-	private array $pageIConfluenceTitledMap;
-
-	/**
-	 *
 	 * @var int
 	 */
 	private int $currentTitlesSpaceHomePageId = -1;
-
-	/**
-	 * @var string
-	 */
-	private string $mainpage;
 
 	/**
 	 * @param array $spaceIdPrefixMap
@@ -47,14 +20,12 @@ class TitleBuilder {
 	 * @param string $mainpage
 	 */
 	public function __construct(
-		array $spaceIdPrefixMap, array $spaceIdHomepages, array $pageIdParentPageIdMap,
-		array $pageIConfluenceTitledMap, string $mainpage = 'Main_Page'
+		private array $spaceIdPrefixMap,
+		private array $spaceIdHomepages,
+		private array $pageIdParentPageIdMap,
+		private array $pageIConfluenceTitledMap,
+		private string $mainpage = 'Main_Page'
 	) {
-		$this->spaceIdPrefixMap = $spaceIdPrefixMap;
-		$this->spaceIdHomepages = $spaceIdHomepages;
-		$this->pageIdParentPageIdMap = $pageIdParentPageIdMap;
-		$this->pageIConfluenceTitledMap = $pageIConfluenceTitledMap;
-		$this->mainpage = $mainpage;
 	}
 
 	/**

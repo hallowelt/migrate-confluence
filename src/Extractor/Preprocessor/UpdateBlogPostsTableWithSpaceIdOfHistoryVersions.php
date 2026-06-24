@@ -15,44 +15,30 @@ class UpdateBlogPostsTableWithSpaceIdOfHistoryVersions extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$pageIdToSpaceIdMap = [];
-		$blogPosts = $this->workspaceDB->getBlogPosts();
+		$pendingUpdates = [];
 
-		foreach ( $blogPosts as $blogPost ) {
+		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
 			if ( !isset( $blogPost['page_id'] ) || !array_key_exists( 'space_id', $blogPost ) ) {
 				continue;
 			}
 
-			if ( $blogPost['space_id'] === null ) {
-				continue;
-			}
-
-			$pageIdToSpaceIdMap[(int)$blogPost['page_id']] = (int)$blogPost['space_id'];
-		}
-
-		foreach ( $blogPosts as $blogPost ) {
-			if ( !isset( $blogPost['page_id'] )
-				|| !array_key_exists( 'space_id', $blogPost )
-				|| !isset( $blogPost['original_version_id'] )
-			) {
-				continue;
-			}
-
-			$originalVersionId = (int)$blogPost['original_version_id'];
-			if ( $originalVersionId === -1 ) {
-				continue;
-			}
-
-			if ( $blogPost['space_id'] !== null ) {
-				continue;
-			}
 			$pageId = (int)$blogPost['page_id'];
 
+			if ( $blogPost['space_id'] !== null ) {
+				$pageIdToSpaceIdMap[$pageId] = (int)$blogPost['space_id'];
+			} elseif ( isset( $blogPost['original_version_id'] )
+				&& (int)$blogPost['original_version_id'] !== -1
+			) {
+				$pendingUpdates[$pageId] = (int)$blogPost['original_version_id'];
+			}
+		}
+
+		foreach ( $pendingUpdates as $pageId => $originalVersionId ) {
 			if ( !isset( $pageIdToSpaceIdMap[$originalVersionId] ) ) {
 				continue;
 			}
 
-			$originalSpaceId = (int)$pageIdToSpaceIdMap[$originalVersionId];
-
+			$originalSpaceId = $pageIdToSpaceIdMap[$originalVersionId];
 			$this->workspaceDB->updateBlogPostSpaceId( $pageId, $originalSpaceId );
 			$this->writeln(
 				"Updated space_id for historical blog post ID $pageId with space_id: $originalSpaceId"

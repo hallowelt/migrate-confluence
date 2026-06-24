@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 
 /**
@@ -12,29 +13,21 @@ use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 class FilenameResolver {
 
 	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var MigrationConfig
-	 */
-	private MigrationConfig $migrationConfig;
-
-	/**
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup, MigrationConfig $migrationConfig ) {
-		$this->dataLookup = $dataLookup;
-		$this->migrationConfig = $migrationConfig;
+	public function __construct(
+		protected DBConversionDataLookup $dataLookup,
+		protected MigrationConfig $migrationConfig ) {
 	}
 
 	/**
 	 * @param int $spaceId
 	 * @param string $confluencePageTitle
 	 * @param string $filename
+	 *
 	 * @return array
+	 * @throws Exception
 	 */
 	public function resolve( int $spaceId, string $confluencePageTitle, string $filename ): array {
 		$fileTitle = $this->dataLookup->getWikiFileTitleFromSpaceId(
@@ -57,39 +50,49 @@ class FilenameResolver {
 	 * @param string $filename
 	 *
 	 * @return string
+	 * @throws Exception
 	 */
 	private function buildFileTitle( int $spaceId, string $confluencePageTitle, string $filename ): string {
-		$assocTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluencePageTitle ) ?? '';
-		if ( $assocTitle === '' ) {
-			$assocTitle = $this->dataLookup->getWikiBlogPostTitleFromSpaceId( $spaceId, $confluencePageTitle ) ?? '';
-		}
-
-		if ( $assocTitle !== '' ) {
-			$pageWikiTitleParts = substr( $assocTitle, strrpos( $assocTitle, ':' ) );
-			$pageWikiTitleParts = explode( '/', $pageWikiTitleParts );
-			$shortPageWikiTitle = end( $pageWikiTitleParts );
-		} else {
-			$shortPageWikiTitle = '';
-		}
-
 		$filenameBuilder = new FilenameBuilder(
 			$this->dataLookup->getSpaceIdToPrefixMap(),
 			$this->migrationConfig
 		);
 
+		$shortPageWikiTitle = $this->createShortPageWikiTitle( $spaceId, $confluencePageTitle );
+
 		try {
 			$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortPageWikiTitle );
 		} catch ( InvalidTitleException $ex ) {
-			try {
-				// Probably it is just too long. Let's try to use a shortened variant
-				// This is not ideal, but should be okay as a fallback in most cases.
-
-				$fileTitle = $filenameBuilder->buildFromAttachmentData( $spaceId, $filename, $shortPageWikiTitle );
-			} catch ( InvalidTitleException $ex ) {
-				$fileTitle = $ex->getInvalidTitle();
-			}
+			$fileTitle = $ex->getInvalidTitle();
 		}
+
 		return $fileTitle;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluencePageTitle
+	 *
+	 * @return string
+	 * @throws Exception
+	 */
+	private function createShortPageWikiTitle( int $spaceId, string $confluencePageTitle ): string {
+		$assocTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluencePageTitle );
+		if ( !$assocTitle ) {
+			$assocTitle = $this->dataLookup->getWikiBlogPostTitleFromSpaceId( $spaceId, $confluencePageTitle );
+		}
+
+		if ( !$assocTitle ) {
+			return "";
+		}
+
+		if ( str_contains( $assocTitle, ':' ) ) {
+			$assocTitle = substr( $assocTitle, strrpos( $assocTitle, ':' ) + 1 );
+		}
+
+		$pageWikiTitleParts = explode( '/', $assocTitle );
+
+		return end( $pageWikiTitleParts );
 	}
 
 	/**
