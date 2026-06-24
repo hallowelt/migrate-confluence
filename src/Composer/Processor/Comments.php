@@ -139,7 +139,7 @@ class Comments extends ProcessorBase {
 			}
 			$pageTitle = $pageIdToTitleMap[$pageId];
 			$talkTitle = $this->buildTalkTitle( $pageTitle );
-			if ( $this->skipHelper->skipPageById( $pageId ) ) {
+			if ( $this->skipHelper->skipPage( $pageTitle ) ) {
 				$this->output->writeln( "Skip page $talkTitle." );
 				$this->deploymentInfo->addSkippedPage( $talkTitle );
 				continue;
