@@ -11,8 +11,6 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use SplFileInfo;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Yaml\Exception\ParseException;
-use Symfony\Component\Yaml\Yaml;
 
 class Compose extends CommandCompose {
 

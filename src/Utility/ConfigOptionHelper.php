@@ -10,7 +10,8 @@ class ConfigOptionHelper {
 	/** @var array */
 	private array $advancedConfig = [];
 
-	public function __construct( private string $configFilePath = '' ) {}
+	public function __construct( private string $configFilePath = '' ) {
+	}
 
 	public function validateFile(): ?string {
 		$filename = $this->configFilePath;
@@ -35,7 +36,8 @@ class ConfigOptionHelper {
 
 		$this->advancedConfig = $config['config'];
 
-		return null; // No validation errors
+		// No validation errors
+		return null;
 	}
 
 	/**
