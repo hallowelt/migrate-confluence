@@ -101,7 +101,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		}
 		$galleryTag .= '</gallery>';
 		if ( $hasBroken ) {
-			$galleryTag .= '[[Category:Broken_attachment_link]]';
+			$galleryTag .= $this->getCategoryBroken( 'attachment_link' );
 		}
 
 		$galleryTagNode = $this->createTextNode(

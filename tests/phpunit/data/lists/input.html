@@ -1,0 +1,166 @@
+<html>
+<body>
+
+<!-- Simple unordered list -->
+<ul>
+    <li>List Item 1</li>
+    <li>List Item 2</li>
+</ul>
+
+<!-- Simple ordered list -->
+<ol>
+    <li>List Item 1</li>
+    <li>List Item 2</li>
+</ol>
+
+<!-- Nested unordered list -->
+<ul>
+    <li>Nested List Parent
+        <ul>
+            <li>Nested List Item 1</li>
+            <li>Nested List Item 2</li>
+        </ul>
+    </li>
+</ul>
+
+<!-- Nested ordered list -->
+<ol>
+    <li>Nested List Parent
+        <ol>
+            <li>Nested List Item 1</li>
+            <li>Nested List Item 2</li>
+        </ol>
+    </li>
+</ol>
+
+<!-- Three levels of nesting -->
+<ul>
+    <li>Level 1 Item
+        <ul>
+            <li>Level 2 Item
+                <ul>
+                    <li>Level 3 Item 1</li>
+                    <li>Level 3 Item 2</li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<!-- Mixed: ol inside ul -->
+<ul>
+    <li>Unordered Parent
+        <ol>
+            <li>Ordered Nested Item 1</li>
+            <li>Ordered Nested Item 2</li>
+        </ol>
+    </li>
+</ul>
+
+<!-- Mixed: ul inside ol -->
+<ol>
+    <li>Ordered Parent
+        <ul>
+            <li>Unordered Nested Item 1</li>
+            <li>Unordered Nested Item 2</li>
+        </ul>
+    </li>
+</ol>
+
+<!-- no parent value -->
+<ul>
+    <li>
+        <ul>
+            <li>Nested List Item 1</li>
+            <li>Nested List Item 2</li>
+        </ul>
+    </li>
+</ul>
+
+<!-- list-style-type: none wrapper (invisible outer bullet) -->
+<ul>
+    <li style="list-style-type: none;">
+        <ul>
+            <li>Nested List Item 1</li>
+            <li>Nested List Item 2</li>
+        </ul>
+    </li>
+</ul>
+
+<!-- list-style shorthand: none wrapper -->
+<ul>
+    <li style="list-style: none;">
+        <ul>
+            <li>Nested List Item 1</li>
+            <li>Nested List Item 2</li>
+        </ul>
+    </li>
+</ul>
+
+<!-- Multiple levels of list-style-type: none nesting -->
+<ul>
+    <li style="list-style-type: none;">
+        <ul>
+            <li style="list-style-type: none;">
+                <ul>
+                    <li>Deep Nested Item 1</li>
+                    <li>Deep Nested Item 2</li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<!-- Mixed: regular items alongside list-style-type: none item -->
+<ul>
+    <li>List Item 1</li>
+    <li style="list-style-type: none;">
+        <ul>
+            <li>Nested List Item 1</li>
+            <li>Nested List Item 2</li>
+        </ul>
+    </li>
+    <li>List Item 2</li>
+</ul>
+
+<!-- list-style-type: none wrapping an ol -->
+<ul>
+    <li style="list-style-type: none;">
+        <ol>
+            <li>Ordered Nested Item 1</li>
+            <li>Ordered Nested Item 2</li>
+        </ol>
+    </li>
+</ul>
+
+<!-- list-style-type: none mid-nesting (not at top level) -->
+<ul>
+    <li>Nested List Parent
+        <ul>
+            <li style="list-style-type: none;">
+                <ul>
+                    <li>Nested List Item 1</li>
+                    <li>Nested List Item 2</li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<!-- list-style-type: none mid-nesting (not at top level) -->
+<ul>
+    <li>Nested List Parent
+        <ul>
+            <li style="list-style-type: none;">
+                <ul>
+                    <li>Nested List Item 1</li>
+                    <li>Nested List Item 2</li>
+                </ul>
+            </li>
+            <li>Nested List Item 3</li>
+        </ul>
+    </li>
+</ul>
+
+</body>
+</html>

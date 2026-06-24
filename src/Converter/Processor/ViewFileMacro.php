@@ -84,7 +84,7 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		$wikitextTemplate->setRenderFormatted( false );
 		$text = $wikitextTemplate->render();
 		if ( $isBrokenLink ) {
-			$text .= '[[Category:Broken_attachment_link]]';
+			$text .= $this->getCategoryBroken( 'attachment_link' );
 		}
 
 		$node->parentNode->replaceChild(

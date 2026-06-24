@@ -117,7 +117,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			if ( str_contains( $title, ':' ) ) {
 				if ( $validityChecker->hasDoubleColon( $title ) ) {
 					$this->workspaceDB->addInvalidBlogPostWikiTitle(
-						$pageId, $title, 'Title contains multiple collons'
+						$pageId, $title, 'Title contains multiple colons'
 					);
 				}
 				$namespace = substr( $title, 0, strpos( $title, ':' ) );
@@ -131,13 +131,13 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 
 				if ( !$validityChecker->hasValidLength( $text ) ) {
 					$this->workspaceDB->addInvalidBlogPostWikiTitle(
-						$pageId, $title, 'Title contains to many characters (>256)'
+						$pageId, $title, 'Title contains too many characters (>255)'
 					);
 				}
 			} else {
 				if ( !$validityChecker->hasValidLength( $title ) ) {
 					$this->workspaceDB->addInvalidBlogPostWikiTitle(
-						$pageId, $title, 'Title contains to many characters (>256)'
+						$pageId, $title, 'Title contains too many characters (>255)'
 					);
 				}
 			}
