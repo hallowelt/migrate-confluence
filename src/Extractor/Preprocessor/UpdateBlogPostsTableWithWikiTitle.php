@@ -5,10 +5,7 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 
@@ -17,22 +14,6 @@ use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 
 	private const NS_BLOG_NAME = 'Blog';
-
-	/** @var MigrationConfig */
-	private MigrationConfig $migrationConfig;
-
-	/**
-	 * @param WorkspaceDB $workspaceDB
-	 * @param DBLog $dbLog
-	 * @param MigrationConfig $migrationConfig
-	 */
-	public function __construct(
-		WorkspaceDB $workspaceDB, DBLog $dbLog, MigrationConfig $migrationConfig
-	) {
-		parent::__construct( $workspaceDB, $dbLog );
-
-		$this->migrationConfig = $migrationConfig;
-	}
 
 	/**
 	 * @return void
@@ -70,12 +51,10 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				"Creating wiki title for blog post ID $pageId with confluence title '$confluenceTitle'"
 			);
 
-			$namespace = '';
-			if ( isset( $spaceIdToPrefixMap[$spaceId] ) ) {
-				$prefix = $spaceIdToPrefixMap[$spaceId];
-				$namespace = substr( $prefix, 0, strpos( $prefix, ':' ) );
-				$namespace .= '/';
-			}
+			$prefix = $spaceIdToPrefixMap[$spaceId];
+			$namespace = substr( $prefix, 0, strpos( $prefix, ':' ) );
+			$namespace .= '/';
+
 			$blogName = self::NS_BLOG_NAME;
 			$titleBuilder = new TitleBuilder( [ $spaceId => "$blogName:$namespace" ], [], [], [] );
 

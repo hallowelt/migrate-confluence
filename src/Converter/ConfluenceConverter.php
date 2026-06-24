@@ -795,6 +795,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$attachmentList[] = $mediaLink;
 			}
 
+			// Avoid duplicates in attachment list
+			$attachmentList = array_unique( $attachmentList );
+
 			if ( !empty( $attachmentList ) ) {
 				$wikiText .= "\n{{AttachmentsSectionStart}}\n";
 				foreach ( $attachmentList as $attachment ) {

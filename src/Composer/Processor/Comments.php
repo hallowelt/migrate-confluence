@@ -45,7 +45,7 @@ class Comments extends ProcessorBase {
 			$wikiTitle = $comment['wiki_title'];
 
 			if ( $this->skipHelper->skipWikiTitle( $wikiTitle ) ) {
-				$this->output->writeln( "Skip comments for page titel $wikiTitle." );
+				$this->output->writeln( "Skip comments for page title $wikiTitle." );
 				continue;
 			}
 			$this->output->writeln( "Processing comments for page title $wikiTitle ..." );

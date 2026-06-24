@@ -12,14 +12,13 @@ class ExtractPageTemplateContents extends ExtractSpaceDescriptionBodyContents {
 	 */
 	public function execute(): void {
 		foreach ( $this->workspaceDB->getPageTemplateContents() as $templateContent ) {
-			$templateId = (int)$templateContent['template_id'];
 			$content = $templateContent['content'] ?? '';
 			if ( $content === '' ) {
 				continue;
 			}
 
 			$bodyContentHTML = $this->normalizeBodyContentHTML( $content );
-			$rawName = 'pt_' . (string)$templateId;
+			$rawName = 'pt_' . $templateContent['template_id'];
 			$this->workspace->saveRawContent( $rawName, $bodyContentHTML );
 		}
 	}

@@ -174,14 +174,11 @@ class DBConversionDataLookup {
 	 */
 	public function getAttachmentContent( string $attachmentTargetFileTitle ): ?string {
 		$reference = $this->workspaceDB->getAttachmentReference( $attachmentTargetFileTitle );
-		if ( !$reference ) {
-			return null;
-		}
 		if ( $reference === null || !file_exists( $reference ) ) {
 			return null;
 		}
 		$content = file_get_contents( $reference );
-		if ( !$content ) {
+		if ( $content === false ) {
 			return null;
 		}
 		return $content;
