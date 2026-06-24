@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\Converter;
+namespace HalloWelt\MigrateConfluence\Tests\Converter\Postprocessor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
@@ -18,7 +18,7 @@ class ListConversionTest extends TestCase {
 	 * @covers \HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML::doConvert
 	 */
 	public function testListConversion(): void {
-		$dataDir = __DIR__ . '/../data/lists/';
+		$dataDir = __DIR__ . '/../../data/lists/';
 
 		$workspace = new Workspace( new SplFileInfo( sys_get_temp_dir() ) );
 		$converter = new PandocHTML( [], $workspace );
