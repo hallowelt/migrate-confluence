@@ -61,8 +61,6 @@ use HalloWelt\MigrateConfluence\Converter\Processor\MarkdownMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
-use HalloWelt\MigrateConfluence\Converter\Processor\PagePropertiesMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\PagePropertiesReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PanelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
@@ -446,8 +444,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new ExpandMacro(),
 			new DetailsMacro(),
 			new DetailsSummaryMacro(),
-			new PagePropertiesMacro(),
-			new PagePropertiesReportMacro(),
 			new AlignMacro(),
 			new JiraMacro(),
 			new MarkdownMacro(),
