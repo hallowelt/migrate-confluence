@@ -318,10 +318,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			throw new Exception( "No wiki title found for bodyContentId $bodyContentId" );
 		}
 
-		if ($this->wikiPageTitle === 'CSS:Overview_Customer_Sample/CUSTOMER_1/CUSTOMER_1_Meeting_Minutes/YYYY-MM-DD_CUSTOMER_1_Example-Meeting') {
-			$foo = 'bar';
-		}
-
 		$this->runProcessors( $dom );
 
 		$unhandledMacroProcessor = new UnhandledMacroConverter();
