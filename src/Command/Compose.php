@@ -8,7 +8,9 @@ use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use SplFileInfo;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -89,7 +91,8 @@ class Compose extends CommandCompose {
 				}
 			}
 		}
-		$this->installCustomerHooks( $config, $filename );
+		$dbLog = new DBLog( new WorkspaceDB( $this->dest . '/workspace.sqlite' ) );
+		$this->installCustomerHooks( $config, $filename, $dbLog );
 	}
 
 	/**

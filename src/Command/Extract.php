@@ -9,7 +9,9 @@ use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -106,7 +108,8 @@ class Extract extends CommandExtract {
 				}
 			}
 		}
-		$this->installCustomerHooks( $config, $filename );
+		$dbLog = new DBLog( new WorkspaceDB( $this->dest . '/workspace.sqlite' ) );
+		$this->installCustomerHooks( $config, $filename, $dbLog );
 	}
 
 	/**

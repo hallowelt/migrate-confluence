@@ -375,7 +375,9 @@ class Convert extends CommandConvert {
 				}
 			}
 		}
-		$this->installCustomerHooks( $config, $filename );
+		$isWorker = $this->input->hasParameterOption( '--worker' );
+		$logger = $isWorker ? new PipeToDB() : $this->dbLog;
+		$this->installCustomerHooks( $config, $filename, $logger );
 	}
 
 	private function makeTargetPathname(): void {
