@@ -8,12 +8,15 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
 class Extract extends CommandExtract {
+
+	use SetupHooks;
 
 	/**
 	 * @var IExtractor[]
@@ -103,6 +106,7 @@ class Extract extends CommandExtract {
 				}
 			}
 		}
+		$this->installCustomerHooks( $config, $filename );
 	}
 
 	/**

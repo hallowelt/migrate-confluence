@@ -6,6 +6,7 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\Converter\IPipeSender;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
@@ -20,6 +21,8 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
 class Convert extends CommandConvert {
+
+	use SetupHooks;
 
 	/** @var string */
 	private string $wikiTextBasePath = '';
@@ -144,14 +147,17 @@ class Convert extends CommandConvert {
 		}
 	}
 
+	protected function beforeProcessFiles() {
+		parent::beforeProcessFiles();
+		$this->readConfigFile( $this->config );
+	}
+
 	protected function doProcessFile(): bool {
 		$converterFactoryCallbacks = $this->config['converters'];
 
 		$this->wikiTextBasePath = $this->dest . '/content/wikitext';
 		$this->makeTargetPathname();
 		$this->ensureTargetPath();
-
-		$this->readConfigFile( $this->config );
 
 		foreach ( $converterFactoryCallbacks as $key => $callback ) {
 			$converter = call_user_func_array(
@@ -369,6 +375,7 @@ class Convert extends CommandConvert {
 				}
 			}
 		}
+		$this->installCustomerHooks( $config, $filename );
 	}
 
 	private function makeTargetPathname(): void {

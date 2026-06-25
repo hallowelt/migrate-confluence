@@ -21,6 +21,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
+use HalloWelt\MigrateConfluence\Utility\HookHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Psr\Log\LoggerAwareInterface;
@@ -126,6 +127,19 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	public function analyze( SplFileInfo $file ): bool {
 		$this->file = $file;
 		if ( $this->file->getFilename() !== 'entities.xml' ) {
+			return true;
+		}
+
+		/**
+		 * Control whether the current entities.xml file should be considered.
+		 *
+		 * @since 5.0.0
+		 * @param bool $value whether to include the file. Defaults to true.
+		 * @param SplFileInfo $file the file being currently processed
+		 */
+		$includeFile = HookHandler::filter( 'analyze/include_file', true, $this->file );
+		if ( !$includeFile ) {
+			$this->output->writeln( "Skipping file due to config: " . $this->file->getPathname() );
 			return true;
 		}
 
