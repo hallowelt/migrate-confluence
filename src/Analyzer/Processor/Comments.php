@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\AnalyzeWorkerDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
@@ -13,10 +14,10 @@ use XMLReader;
 class Comments extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param WorkspaceDB|AnalyzeWorkerDB $workspaceDB
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB
+		private WorkspaceDB|AnalyzeWorkerDB $workspaceDB
 	) {
 	}
 

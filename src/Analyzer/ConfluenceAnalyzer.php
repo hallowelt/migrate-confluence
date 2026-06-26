@@ -18,10 +18,12 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\PageTemplates;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
+use HalloWelt\MigrateConfluence\Database\AnalyzeWorkerDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -31,7 +33,7 @@ use Symfony\Component\Console\Output\Output;
 use XMLReader;
 
 class ConfluenceAnalyzer extends AnalyzerBase
-	implements LoggerAwareInterface, IOutputAwareInterface, IDestinationPathAware
+	implements LoggerAwareInterface, IOutputAwareInterface, IDestinationPathAware, IPipeSender
 {
 	/** @var string */
 	private string $dest = '';
@@ -48,11 +50,14 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
 
-	/** @var WorkspaceDB */
-	private WorkspaceDB $workspaceDB;
+	/** @var WorkspaceDB|AnalyzeWorkerDB */
+	private WorkspaceDB|AnalyzeWorkerDB $workspaceDB;
 
 	/** @var DBLog */
 	private DBLog $dbLog;
+
+	/** @var resource|false */
+	private $pipe = false;
 
 	/**
 	 *
@@ -75,10 +80,21 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	}
 
 	/**
+	 * @param resource|false $pipe
+	 */
+	public function setPipe( $pipe ): void {
+		$this->pipe = $pipe;
+	}
+
+	/**
 	 * @return void
 	 */
 	private function initWorkspaceDB(): void {
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		if ( $this->pipe !== false ) {
+			$this->workspaceDB = new AnalyzeWorkerDB( new PipeToDB( $this->pipe ) );
+		} else {
+			$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		}
 	}
 
 	/**
@@ -131,7 +147,9 @@ class ConfluenceAnalyzer extends AnalyzerBase
 
 		$this->initMigrationConfig();
 		$this->initWorkspaceDB();
-		$this->initDBLog();
+		if ( $this->pipe === false ) {
+			$this->initDBLog();
+		}
 
 		$result = parent::analyze( $file );
 

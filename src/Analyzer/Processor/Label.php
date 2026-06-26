@@ -2,16 +2,17 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MigrateConfluence\Database\AnalyzeWorkerDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 class Label extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param WorkspaceDB|AnalyzeWorkerDB $workspaceDB
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB
+		private WorkspaceDB|AnalyzeWorkerDB $workspaceDB
 	) {
 	}
 
