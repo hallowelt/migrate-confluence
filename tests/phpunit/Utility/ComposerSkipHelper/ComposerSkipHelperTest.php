@@ -97,6 +97,78 @@ class ComposerSkipHelperTest extends TestCase {
 		// Test a page that is not set in the page_invalid_titles database table
 		$skip = $skipHelper->skipWikiTitle( 'ABC:SomePage' );
 		$this->assertFalse( $skip, 'Page should not be skipped' );
+
+		$skipHelper = $this->getSkipHelper(
+			$this->getMigrationConfig()
+		);
+
+		// Test skip by configured namespace
+		$skip = $skipHelper->skipWikiTitle( 'DEVOPS:Page_Title3' );
+		$this->assertTrue( $skip, 'Page should be skipped (namespace in skip list)' );
+
+		$skip = $skipHelper->skipWikiTitle( 'Blog:DEVOPS/Some_Blog_Post' );
+		$this->assertTrue( $skip, 'BlogPost should be skipped (namespace in skip list)' );
+
+		// Test skip by configured title
+		$skip = $skipHelper->skipWikiTitle( 'ABC:Some_MediaWiki_page_name' );
+		$this->assertTrue( $skip, 'Page should be skipped (title in skip list)' );
+
+		// Test a page not matching any skip rule
+		$skip = $skipHelper->skipWikiTitle( 'ABC:SomePage' );
+		$this->assertFalse( $skip, 'Page should not be skipped' );
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper::skipTemplate()
+	 */
+	public function testSkipTemplate() {
+		$skipHelper = $this->getSkipHelper(
+			$this->getEmptyMigrationConfig()
+		);
+
+		// Template exists in DB and is not invalid
+		$skip = $skipHelper->skipTemplate( 'Template:ABC/SomePage' );
+		$this->assertFalse( $skip, 'Template should not be skipped' );
+
+		// Template does not exist in DB at all → treated as invalid
+		$skip = $skipHelper->skipTemplate( 'Template:Nonexistent/Page' );
+		$this->assertTrue( $skip, 'Template should be skipped (not found in DB)' );
+
+		$skipHelper = $this->getSkipHelper(
+			$this->getMigrationConfig()
+		);
+
+		// Template title matches configured skip titles
+		$skip = $skipHelper->skipTemplate( 'Template:ABC/SomePage' );
+		$this->assertTrue( $skip, 'Template should be skipped (title in skip list)' );
+
+		// Template exists and matches no skip rule
+		$skip = $skipHelper->skipTemplate( 'Template:DEVOPS/SomeOtherPage' );
+		$this->assertFalse( $skip, 'Template should not be skipped' );
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper::skipWikiTitle()
+	 * @covers \HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper::skipPage()
+	 * @covers \HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper::skipBlogPost()
+	 * @covers \HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper::skipTemplate()
+	 */
+	public function testSkipNullAndEmpty() {
+		$skipHelper = $this->getSkipHelper(
+			$this->getEmptyMigrationConfig()
+		);
+
+		$this->assertTrue( $skipHelper->skipWikiTitle( null ), 'skipWikiTitle(null) should return true' );
+		$this->assertTrue( $skipHelper->skipWikiTitle( '' ), 'skipWikiTitle("") should return true' );
+
+		$this->assertTrue( $skipHelper->skipPage( null ), 'skipPage(null) should return true' );
+		$this->assertTrue( $skipHelper->skipPage( '' ), 'skipPage("") should return true' );
+
+		$this->assertTrue( $skipHelper->skipBlogPost( null ), 'skipBlogPost(null) should return true' );
+		$this->assertTrue( $skipHelper->skipBlogPost( '' ), 'skipBlogPost("") should return true' );
+
+		$this->assertTrue( $skipHelper->skipTemplate( null ), 'skipTemplate(null) should return true' );
+		$this->assertTrue( $skipHelper->skipTemplate( '' ), 'skipTemplate("") should return true' );
 	}
 
 	/**
@@ -128,7 +200,8 @@ class ComposerSkipHelperTest extends TestCase {
 				'DEVOPS'
 			],
 			'composer-skip-titles' => [
-				'ABC:Some_MediaWiki_page_name'
+				'ABC:Some_MediaWiki_page_name',
+				'Template:ABC/SomePage'
 			]
 		] );
 	}
