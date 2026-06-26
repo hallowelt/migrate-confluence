@@ -87,6 +87,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\HookHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
@@ -337,6 +338,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->runPostProcessors();
 
 		$this->postprocessWikiText();
+
+		/**
+		 * @migrate-filter convert-content-post
+		 *
+		 * Allow modification of the final wiki text.
+		 *
+		 * @since 5.0.0
+		 * @param string $wikiText the already converted wiki text
+		 * @param SplFileInfo $file the file currently processed
+		 */
+		$this->wikiText = HookHandler::filter( "convert-content-post", $this->wikiText, $file );
 
 		$this->checkContentLength( $bodyContentId );
 
@@ -618,6 +630,17 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 */
 	protected function preprocessHTMLSource( SplFileInfo $oHTMLSourceFile ): string {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
+
+		/**
+		 * @migrate-filter convert-content-pre
+		 *
+		 * Allow modification of the raw input before processing it.
+		 *
+		 * @since 5.0.0
+		 * @param string $sContent the content before any processing
+		 * @param SplFileInfo $file the file currently processed
+		 */
+		$sContent = HookHandler::filter( "convert-content-pre", $sContent, $oHTMLSourceFile );
 
 		$preprocessors = [
 			new CDATAClosingFixer()

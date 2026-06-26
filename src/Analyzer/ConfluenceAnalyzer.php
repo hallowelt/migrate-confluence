@@ -131,13 +131,15 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		}
 
 		/**
+		 * @migrate-filter include-import-file
+		 *
 		 * Control whether the current entities.xml file should be considered.
 		 *
 		 * @since 5.0.0
 		 * @param bool $value whether to include the file. Defaults to true.
-		 * @param SplFileInfo $file the file being currently processed
+		 * @param SplFileInfo $file the import XML file currently processed
 		 */
-		$includeFile = HookHandler::filter( 'analyze/include_file', true, $this->file );
+		$includeFile = HookHandler::filter( 'include-import-file', true, $this->file );
 		if ( !$includeFile ) {
 			$this->output->writeln( "Skipping file due to config: " . $this->file->getPathname() );
 			return true;
