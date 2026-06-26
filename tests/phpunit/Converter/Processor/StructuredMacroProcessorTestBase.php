@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
-use PHPUnit\Framework\TestCase;
 
-abstract class StructuredMacroProcessorTestBase extends TestCase {
+abstract class StructuredMacroProcessorTestBase extends ProcessorTestCase {
 
 	/**
 	 *
@@ -42,12 +41,6 @@ abstract class StructuredMacroProcessorTestBase extends TestCase {
 
 		$actualOutput = $dom->saveXML();
 
-		/* Issue with xml namespaces ac, ri, bs
-		$this->assertXmlStringEqualsXmlString(
-			$expectedOutput,
-			$actualOutput
-		);
-		*/
 		$this->assertEquals( $expectedOutput, $actualOutput );
 	}
 }

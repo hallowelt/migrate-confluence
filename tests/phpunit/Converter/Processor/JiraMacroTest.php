@@ -3,9 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
-use PHPUnit\Framework\TestCase;
 
-class JiraMacroTest extends TestCase {
+class JiraMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro::process
@@ -24,10 +23,7 @@ class JiraMacroTest extends TestCase {
 
 		$jiraMacroProcessor->process( $dom );
 
-		$this->assertEqualXMLStructure(
-			$expectedDOM->documentElement,
-			$dom->documentElement
-		);
+		$this->assertDomXmlEquals( $expectedDOM, $dom );
 	}
 
 	/**
@@ -94,8 +90,9 @@ class JiraMacroTest extends TestCase {
 		$processor = new JiraMacro();
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $inputFile );
-		$expected = file_get_contents( __DIR__ . '/../../data/' . $outputFile );
+		$expectedDom = new \DOMDocument();
+		$expectedDom->load( __DIR__ . '/../../data/' . $outputFile );
 		$processor->process( $dom );
-		$this->assertEquals( $expected, $dom->saveXML() );
+		$this->assertDomXmlEquals( $expectedDom, $dom );
 	}
 }
