@@ -1,0 +1,239 @@
+#!/usr/bin/env php
+<?php
+
+declare( strict_types=1 );
+
+/**
+ * Scans src/ for HookHandler::filter() and HookHandler::run() calls,
+ * extracts their PHPDoc metadata (@migrate-filter / @migrate-action), warns
+ * about undocumented calls, and writes doc/hooks.md.
+ */
+
+$srcDir  = realpath( __DIR__ . '/../src' );
+$docFile = realpath( __DIR__ . '/../doc' ) . '/hooks.md';
+
+/**
+ * File discoverer
+ * 
+ * @param string $dir
+ * @return list<string> List of PHP file paths
+ **/
+function findPhpFiles( string $dir ): array {
+	$files = [];
+	$it = new RecursiveIteratorIterator(
+		new RecursiveDirectoryIterator( $dir, RecursiveDirectoryIterator::SKIP_DOTS )
+	);
+	foreach ( $it as $file ) {
+		if ( $file->getExtension() === 'php' ) {
+			$files[] = $file->getPathname();
+		}
+	}
+	sort( $files );
+	return $files;
+}
+
+
+/**
+ * Docblock parser
+ * 
+ * @return array{hookName:string|null,hookType:string|null,description:string,since:string|null,params:list<array{type:string,name:string,description:string}>}
+ */
+function parseDocblock( string $docblock ): array {
+	$info = [
+		'hookName'    => null,
+		'hookType'    => null,
+		'description' => '',
+		'since'       => null,
+		'params'      => [],
+	];
+
+	$descLines = [];
+
+	foreach ( preg_split( '/\r?\n/', $docblock ) as $line ) {
+		// Strip /** ... */ framing characters
+		$line = preg_replace( '/^\s*\/\*+\s*/', '', $line );
+		$line = preg_replace( '/\s*\*+\/\s*$/', '', $line );
+		$line = preg_replace( '/^\s*\*\s?/', '', $line );
+		$line = trim( $line );
+
+		if ( $line === '' ) {
+			continue;
+		}
+
+		if ( preg_match( '/^@migrate-filter\s+(\S+)/', $line, $m ) ) {
+			$info['hookType'] = 'filter';
+			$info['hookName'] = $m[1];
+		} elseif ( preg_match( '/^@migrate-action\s+(\S+)/', $line, $m ) ) {
+			$info['hookType'] = 'action';
+			$info['hookName'] = $m[1];
+		} elseif ( preg_match( '/^@since\s+(.+)/', $line, $m ) ) {
+			$info['since'] = trim( $m[1] );
+		} elseif ( preg_match( '/^@param\s+(\S+)\s+(\$\S+)\s*(.*)/', $line, $m ) ) {
+			$info['params'][] = [
+				'type'        => $m[1],
+				'name'        => $m[2],
+				'description' => trim( $m[3] ),
+			];
+		} elseif ( !str_starts_with( $line, '@' ) ) {
+			$descLines[] = $line;
+		}
+	}
+
+	$info['description'] = implode( ' ', $descLines );
+	return $info;
+}
+
+// ---------------------------------------------------------------------------
+// Main scan
+// ---------------------------------------------------------------------------
+
+/** Tokens that mark a statement or block boundary – stop looking backwards. */
+const BOUNDARIES = [ ';', '{', '}' ];
+
+$hooks    = [];   // keyed by hookName, last write wins (same name = same hook)
+$warnings = [];
+
+foreach ( findPhpFiles( $srcDir ) as $filepath ) {
+	$relPath = ltrim( str_replace( $srcDir, '', $filepath ), DIRECTORY_SEPARATOR );
+	$raw = token_get_all( file_get_contents( $filepath ) );
+	$tokens = [];
+	foreach ( $raw as $tok ) {
+		if ( is_array( $tok ) ) {
+			if ( $tok[0] === T_WHITESPACE ) {
+				continue;
+			}
+			$tokens[] = [ 'type' => $tok[0], 'value' => $tok[1], 'line' => $tok[2] ];
+		} else {
+			$tokens[] = [ 'type' => null, 'value' => $tok, 'line' => null ];
+		}
+	}
+	$count   = count( $tokens );
+
+	for ( $i = 0; $i < $count; $i++ ) {
+		$tok = $tokens[$i];
+
+		// Match the start of HookHandler::filter( or HookHandler::run(
+		if ( $tok['type'] !== T_STRING || $tok['value'] !== 'HookHandler' ) {
+			continue;
+		}
+		if ( ( $tokens[$i + 1]['value'] ?? '' ) !== '::' ) {
+			continue;
+		}
+		$methodToken = $tokens[$i + 2] ?? null;
+		if ( $methodToken === null
+			|| $methodToken['type'] !== T_STRING
+			|| !in_array( $methodToken['value'], [ 'filter', 'run' ], true ) ) {
+			continue;
+		}
+		if ( ( $tokens[$i + 3]['value'] ?? '' ) !== '(' ) {
+			continue;
+		}
+
+		$callMethod = $methodToken['value'];
+		$callLine   = $tok['line'];
+
+		// ------------------------------------------------------------------
+		// Walk backwards to find the nearest PHPDoc comment.
+		// A statement boundary (;  {  }) means the docblock is too far away.
+		// ------------------------------------------------------------------
+		$docblock = null;
+		for ( $j = $i - 1; $j >= 0; $j-- ) {
+			$prev = $tokens[$j];
+			if ( $prev['type'] === T_DOC_COMMENT ) {
+				$docblock = $prev['value'];
+				break;
+			}
+			if ( in_array( $prev['value'], BOUNDARIES, true ) ) {
+				break;
+			}
+		}
+
+		if ( $docblock === null ) {
+			$warnings[] = "WARNING: HookHandler::{$callMethod}() at {$relPath}:{$callLine}"
+				. " has no preceding PHPDoc block.";
+			continue;
+		}
+
+		$info = parseDocblock( $docblock );
+
+		if ( $info['hookName'] === null ) {
+			$warnings[] = "WARNING: PHPDoc block before HookHandler::{$callMethod}()"
+				. " at {$relPath}:{$callLine} has no @migrate-filter / @migrate-action tag.";
+			continue;
+		}
+
+		$hooks[$info['hookName']] = array_merge( $info, [
+			'file' => $relPath,
+			'line' => $callLine,
+		] );
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Write warnings to STDERR
+// ---------------------------------------------------------------------------
+
+foreach ( $warnings as $warning ) {
+	fwrite( STDERR, $warning . PHP_EOL );
+}
+
+// ---------------------------------------------------------------------------
+// Render Markdown
+// ---------------------------------------------------------------------------
+
+$filters = array_filter( $hooks, static fn( $h ) => $h['hookType'] === 'filter' );
+$actions = array_filter( $hooks, static fn( $h ) => $h['hookType'] === 'action' );
+ksort( $filters );
+ksort( $actions );
+
+$md  = "# Available Hooks\n\n";
+$md .= "> This file is auto-generated by `bin/document-hooks`. Do not edit manually.\n\n";
+$md .= "Hooks are code snippets in a PHP file, referenced from your configuration file, that can intercept the normal run of the tool.\n\n";
+
+function renderHooks( array $hooks ): string {
+	$out = '';
+	foreach ( $hooks as $hook ) {
+		$out .= "### `{$hook['hookName']}`\n\n";
+
+		if ( $hook['description'] !== '' ) {
+			$out .= "{$hook['description']}\n\n";
+		}
+
+		if ( $hook['since'] !== null ) {
+			$out .= "**Since:** [{$hook['since']}](https://github.com/hallowelt/migrate-confluence/releases/tag/{$hook['since']})\n\n";
+		}
+
+		if ( !empty( $hook['params'] ) ) {
+			$out .= "**Parameters:**\n\n";
+			foreach ( $hook['params'] as $param ) {
+				$desc = $param['description'] !== '' ? " — {$param['description']}" : '';
+				$out .= "- `{$param['name']}` _{$param['type']}_{$desc}\n";
+			}
+			$out .= "\n";
+		}
+
+		$out .= "_Defined in [`{$hook['file']}`](../src/{$hook['file']}) at line {$hook['line']}._\n\n";
+	}
+	return $out;
+}
+
+if ( !empty( $filters ) ) {
+	$md .= "## Filters\n\n";
+	$md .= "Filters allow modifying a concrete value.\n\n";
+	$md .= renderHooks( $filters );
+}
+
+if ( !empty( $actions ) ) {
+	$md .= "## Actions\n\n";
+	$md .= "Actions allow executing side-effect code at a specific point.\n\n";
+	$md .= renderHooks( $actions );
+}
+
+if ( empty( $filters ) && empty( $actions ) ) {
+	$md .= "_No hooks found._\n";
+}
+
+file_put_contents( $docFile, $md );
+fwrite( STDOUT, "Generated {$docFile}\n" );
+
+exit( empty( $warnings ) ? 0 : 1 );
