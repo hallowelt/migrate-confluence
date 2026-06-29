@@ -28,7 +28,7 @@ class ExtractPagesMetaData extends ProcessorBase {
 	public function execute(): void {
 		$categories = $this->migrationConfig->getCategories();
 
-		foreach ( $this->workspaceDB->getPages() as $page ) {
+		foreach ( $this->workspaceDB->getCurrentPages() as $page ) {
 			if ( !isset( $page['page_id'] ) || !isset( $page['original_version_id'] ) ) {
 				continue;
 			}

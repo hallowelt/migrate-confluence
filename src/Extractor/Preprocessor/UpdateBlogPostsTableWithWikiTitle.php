@@ -23,6 +23,11 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		$this->checkWikiTitles();
 	}
 
+	/**
+	 * @return void
+	 *
+	 * @throws Exception
+	 */
 	private function updateWikiTitles(): void {
 		$spaceIdToPrefixMap = $this->workspaceDB->getMapSpaceIdToPrefix();
 		$blogPosts = $this->workspaceDB->getBlogPosts();
@@ -63,15 +68,36 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 			} catch ( Exception $ex ) {
 				$this->dbLog->addLogEntry(
-					'warning',
+					'error',
 					'extract',
 					__CLASS__,
 					'Could not build wiki title for blog post ' . $pageId . ': ' . $ex->getMessage()
 				);
 			}
+
+			if ( empty( $wikiTitle ) ) {
+				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
+
+				$this->dbLog->addLogEntry(
+					'error',
+					'extract',
+					__CLASS__,
+					$message
+				);
+
+				throw new Exception(
+					$message
+				);
+			}
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
+			$this->dbLog->addLogEntry(
+				'warning',
+				'extract',
+				__CLASS__,
+				"Could not find blog post with wiki title"
+			);
 			return;
 		}
 
@@ -81,6 +107,19 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
 
 		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
+			if ( empty( $wikiTitle ) ) {
+				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
+
+				$this->dbLog->addLogEntry(
+					'error',
+					'extract',
+					__CLASS__,
+					$message
+				);
+				throw new Exception(
+					$message
+				);
+			}
 			$this->writeln(
 				"Updated wiki title for blog post ID $pageId with title: $wikiTitle"
 			);
@@ -110,7 +149,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		foreach ( $titles as $pageId => $title ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
 				$this->workspaceDB->addInvalidBlogPostWikiTitle(
-					$pageId, $title, 'Title ens with invalid character'
+					$pageId, $title, 'Title ends with invalid character'
 				);
 			}
 

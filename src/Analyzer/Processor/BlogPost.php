@@ -48,11 +48,6 @@ class BlogPost extends ProcessorBase {
 			$contentStatus = $properties['contentStatus'];
 		}
 
-		if ( strtolower( $contentStatus ) !== 'current' ) {
-			// Ignore draft and deleted versions of pages, as they are not relevant for the migration.
-			return;
-		}
-
 		$spaceId = null;
 		if ( isset( $properties['space'] ) ) {
 			$spaceId = (int)$properties['space'];
@@ -129,7 +124,8 @@ class BlogPost extends ProcessorBase {
 			$pageId,
 			$spaceId,
 			$confluenceTitle,
-			'1',
+			'',
+			$contentStatus,
 			$revisionTimestamp,
 			$lastModifier,
 			$version,

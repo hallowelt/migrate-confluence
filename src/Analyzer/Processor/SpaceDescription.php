@@ -101,10 +101,6 @@ class SpaceDescription extends ProcessorBase {
 		if ( isset( $properties['contentStatus'] ) ) {
 			$contentStatus = $properties['contentStatus'];
 		}
-		if ( strtolower( $contentStatus ) !== 'current' ) {
-			// Ignore space descriptions that are not explicitly set to "current"
-			return;
-		}
 
 		if ( !$this->migrationConfig->getIncludeHistory() && $originalVersionId > 0 ) {
 			return;
@@ -112,9 +108,10 @@ class SpaceDescription extends ProcessorBase {
 
 		$status = $this->workspaceDB->addSpaceDescription(
 			(int)$descriptionId,
-			$revisionTimestamp,
+			$contentStatus,
 			$version,
 			$originalVersionId,
+			$revisionTimestamp,
 			$bodyContentIds,
 			$labellingsIds,
 			$properties,
