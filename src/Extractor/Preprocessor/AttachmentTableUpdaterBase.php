@@ -194,7 +194,8 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				);
 
 				if ( empty( $attachmentWikiTitle ) ) {
-					$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId while uncolliding";
+					$message = "TitleCompressor delivers empty wiki title for "
+					 . "attachment id $attachmentId while uncolliding";
 
 					$this->dbLog->addLogEntry(
 						'error',
