@@ -38,7 +38,6 @@ class DefaultFiles extends FileProcessorBase {
 				continue;
 			}
 			$file = $fileObj->getPathname();
-			var_dump( $file );
 			$filename = basename( $file );
 			$attachmentPageTitle = $filename;
 			$data = file_get_contents( $file );
