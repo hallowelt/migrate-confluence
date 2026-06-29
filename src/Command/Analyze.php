@@ -85,7 +85,13 @@ class Analyze extends CommandAnalyze {
 		$workers = (int)$input->getOption( 'workers' );
 		$isWorker = $input->hasParameterOption( '--worker' );
 
-		$this->setupDB( $input, !$isWorker );
+		if ( !$isWorker ) {
+			$this->setupDB( $input );
+		} else {
+			$dest = realpath( $input->getOption( 'dest' ) );
+			$this->workspaceDB = new WorkspaceDB( $dest . '/workspace.sqlite', true );
+			$this->dbLog = new DBLog( $this->workspaceDB );
+		}
 
 		if ( $workers > 1 && !$isWorker ) {
 			return $this->spawnWorkers( $input, $output, $workers );
@@ -110,28 +116,27 @@ class Analyze extends CommandAnalyze {
 	}
 
 	/**
-	 * Set up the shared DB connection.
-	 *
-	 * Only the orchestrator (or single-process run) holds a write connection;
-	 * workers send all writes through the pipe.
+	 * Delete any existing database, create a fresh one, and log the run.
 	 *
 	 * @param InputInterface $input
-	 * @param bool $logUsage log the run in the DB when true
 	 */
-	private function setupDB( InputInterface $input, bool $logUsage ): void {
+	private function setupDB( InputInterface $input ): void {
 		$dest = realpath( $input->getOption( 'dest' ) );
+		$dbPath = $dest . '/workspace.sqlite';
 
-		$this->workspaceDB = new WorkspaceDB( $dest . '/workspace.sqlite' );
+		if ( file_exists( $dbPath ) ) {
+			unlink( $dbPath );
+		}
+
+		$this->workspaceDB = new WorkspaceDB( $dbPath );
 		$this->dbLog = new DBLog( $this->workspaceDB );
 
-		if ( $logUsage ) {
-			$this->dbLog->addLogEntry(
-				'info',
-				'analyze',
-				__CLASS__,
-				sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-			);
-		}
+		$this->dbLog->addLogEntry(
+			'info',
+			'analyze',
+			__CLASS__,
+			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
+		);
 	}
 
 	/**
@@ -202,6 +207,7 @@ class Analyze extends CommandAnalyze {
 			}
 			stream_set_blocking( $workerPipes[1], false );
 			stream_set_blocking( $workerPipes[2], false );
+			stream_set_blocking( $workerPipes[PipeToDB::FILE_DESCRIPTOR], false );
 			fclose( $workerPipes[0] );
 			$processes[$i] = $proc;
 			$pipes[$i] = [ $workerPipes[1], $workerPipes[2] ];

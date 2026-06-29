@@ -140,7 +140,10 @@ class PageTemplates extends ProcessorBase {
 	 * @throws InvalidTitleException
 	 */
 	private function buildTemplateTitle( string $name, ?int $spaceId ): string {
-		$builder = new GenericTitleBuilder( $this->workspaceDB->getMapSpaceIdToPrefix() );
+		$map = $this->workspaceDB->getMapSpaceIdToPrefix();
+		$this->output->writeln( "DEBUG:" . json_encode($map) );
+
+		$builder = new GenericTitleBuilder( $map );
 		$builder->setNamespace( GenericTitleBuilder::NS_TEMPLATE );
 
 		$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();

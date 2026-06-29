@@ -91,7 +91,10 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	 */
 	private function initWorkspaceDB(): void {
 		if ( $this->pipe !== false ) {
-			$this->workspaceDB = new AnalyzeWorkerDB( new PipeToDB( $this->pipe ) );
+			$this->workspaceDB = new AnalyzeWorkerDB(
+				new PipeToDB( $this->pipe ),
+				new WorkspaceDB( $this->dest . '/workspace.sqlite', true )
+			);
 		} else {
 			$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
 		}

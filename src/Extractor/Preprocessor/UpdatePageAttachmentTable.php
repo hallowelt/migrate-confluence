@@ -26,6 +26,9 @@ class UpdatePageAttachmentTable extends AttachmentTableUpdaterBase {
 	protected function storeAttachment(
 		int $attachmentId, int $containerId, string $originalFilename, string $targetFilename
 	): void {
+		if ($attachmentId === 83012159) {
+			$foo = 'bar';
+		}
 		$this->workspaceDB->addPageAttachment(
 			$attachmentId, $containerId, $originalFilename, $targetFilename
 		);

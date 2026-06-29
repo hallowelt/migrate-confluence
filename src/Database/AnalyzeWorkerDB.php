@@ -11,20 +11,32 @@ use HalloWelt\MigrateConfluence\Utility\PipeToDB;
  * sends it through a pipe to the orchestrator process, which holds the single
  * authoritative DB connection.
  *
- * Read methods are not forwarded because worker processes only write during
- * the Analyze step.  Transaction control is suppressed so that the
- * orchestrator can manage commit boundaries across all workers.
+ * Read methods delegate to a read-only WorkspaceDB connection.
+ * Transaction control is suppressed so that the orchestrator can manage
+ * commit boundaries across all workers.
  */
 class AnalyzeWorkerDB {
 
 	/** @var PipeToDB */
 	private PipeToDB $pipe;
 
+	/** @var WorkspaceDB */
+	private WorkspaceDB $readDb;
+
 	/**
 	 * @param PipeToDB $pipe
+	 * @param WorkspaceDB $readDb Read-only connection for read operations
 	 */
-	public function __construct( PipeToDB $pipe ) {
+	public function __construct( PipeToDB $pipe, WorkspaceDB $readDb ) {
 		$this->pipe = $pipe;
+		$this->readDb = $readDb;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getMapSpaceIdToPrefix(): array {
+		return $this->readDb->getMapSpaceIdToPrefix();
 	}
 
 	/**
