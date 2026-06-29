@@ -9,6 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -111,5 +112,29 @@ class Extract extends CommandExtract {
 	 */
 	protected function getBucketKeys(): array {
 		return [];
+	}
+
+	/**
+	 * Override this method because we do not work with files anymore
+	 * but with a database. So it doesn't matter which file we inject into
+	 * the processFile method.
+	 * Only injecting one file will force the extractor to run only once.
+	 * More runs are not necessary because everything we want to extract
+	 * is already part of the database.
+	 */
+	protected function processFiles(): int {
+		$overallReturn = Command::SUCCESS;
+		if ( count( $this->files ) > 1 ) {
+			$this->currentFile = array_pop( $this->files );
+			$result = $this->processFile( $this->currentFile );
+			if ( $result === false ) {
+				$this->output->writeln( "<error>Failed to process data</error>" );
+				$overallReturn = Command::FAILURE;
+			}
+		} else {
+			throw new Exception( 'Faild to exract data' );
+		}
+
+		return $overallReturn;
 	}
 }
