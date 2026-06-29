@@ -88,6 +88,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				continue;
 			}
 
+			$pageId = (int)$page['page_id'];
 			$spaceId = (int)$page['space_id'];
 			$confluenceTitle = (string)$page['confluence_title'];
 
@@ -106,9 +107,30 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 					"Could not build wiki title for page $pageId: " . $ex->getMessage()
 				);
 			}
+
+			if ( empty( $wikiTitle ) ) {
+				$message = "TitleCompressor delivers empty wiki title for page id $pageId";
+
+				$this->dbLog->addLogEntry(
+					'error',
+					'extract',
+					__CLASS__,
+					$message
+				);
+
+				throw new Exception(
+					$message
+				);
+			}
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
+			$this->dbLog->addLogEntry(
+				'warning',
+				'extract',
+				__CLASS__,
+				"Could not find page with wiki title"
+			);
 			return;
 		}
 
@@ -118,27 +140,23 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
 
 		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
-			if ( $wikiTitle === '' ) {
+			if ( empty( $wikiTitle ) ) {
+				$message = "TitleCompressor delivers empty wiki title for page id $pageId";
+
 				$this->dbLog->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
-					"Refusing to persist empty wiki title for page $pageId after compression"
+					$message
 				);
-				continue;
+				throw new Exception(
+					$message
+				);
 			}
-
 			$this->writeln(
 				"Updated wiki title for page ID $pageId with title: $wikiTitle"
 			);
-			if ( !$this->workspaceDB->updatePageWikiTitle( (int)$pageId, $wikiTitle ) ) {
-				$this->dbLog->addLogEntry(
-					'error',
-					'extract',
-					__CLASS__,
-					"Failed to persist wiki title for page $pageId: '$wikiTitle'"
-				);
-			}
+			$this->workspaceDB->updatePageWikiTitle( (int)$pageId, $wikiTitle );
 		}
 	}
 

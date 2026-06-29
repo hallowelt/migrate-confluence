@@ -94,13 +94,27 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 				);
 			} catch ( Exception $ex ) {
 				$this->dbLog->addLogEntry(
-					'warning',
+					'error',
 					'analyze',
 					__CLASS__,
 					"Could not build target filename for attachment $attachmentId: "
 					. $ex->getMessage()
 				);
-				continue;
+			}
+
+			if ( empty( $attachmentWikiTitle ) ) {
+				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
+
+				$this->dbLog->addLogEntry(
+					'error',
+					'extract',
+					__CLASS__,
+					$message
+				);
+
+				throw new Exception(
+					$message
+				);
 			}
 
 			// Uncollide file title
@@ -124,6 +138,21 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 					'',
 					"-(" . (string)$counter . ")"
 				);
+
+				if ( empty( $attachmentWikiTitle ) ) {
+					$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
+
+					$this->dbLog->addLogEntry(
+						'error',
+						'extract',
+						__CLASS__,
+						$message
+					);
+
+					throw new Exception(
+						$message
+					);
+				}
 
 				$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
 				$counter++;
