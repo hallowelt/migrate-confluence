@@ -60,6 +60,10 @@ class Extract extends CommandExtract {
 		// Explicitly reset the persisted data
 		$this->buckets = new DataBuckets( $this->getBucketKeys() );
 
+		if ( !isset( $this->config['extractors'] ) ) {
+			throw new Exception( "No 'extractors' key in config" );
+		}
+
 		$extractorFactoryCallbacks = $this->config['extractors'];
 		foreach ( $extractorFactoryCallbacks as $key => $callback ) {
 			$extractor = call_user_func_array(
@@ -123,8 +127,11 @@ class Extract extends CommandExtract {
 	 * is already part of the database.
 	 */
 	protected function processFiles(): int {
+		$this->beforeProcessFiles();
+		$this->runBeforeProcessFilesEventHandlers();
+
 		$overallReturn = Command::SUCCESS;
-		if ( count( $this->files ) > 1 ) {
+		if ( count( $this->files ) > 0 ) {
 			$this->currentFile = array_pop( $this->files );
 			$result = $this->processFile( $this->currentFile );
 			if ( $result === false ) {
@@ -132,8 +139,11 @@ class Extract extends CommandExtract {
 				$overallReturn = Command::FAILURE;
 			}
 		} else {
-			throw new Exception( 'Faild to exract data' );
+			throw new Exception( 'Failed to extract data' );
 		}
+
+		$this->runAfterProcessFilesEventHandlers();
+		$this->afterProcessFiles();
 
 		return $overallReturn;
 	}
