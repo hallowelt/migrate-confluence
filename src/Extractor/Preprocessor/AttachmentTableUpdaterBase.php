@@ -113,7 +113,12 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				|| !isset( $attachment['space_id'] )
 				|| !isset( $attachment['filename'] )
 				|| !isset( $attachment['container_id'] )
+				|| !isset( $attachment['content_status'] )
 			) {
+				continue;
+			}
+
+			if ( $attachment['content_status'] !== 'current' ) {
 				continue;
 			}
 
@@ -149,7 +154,21 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					"Could not build target filename for attachment $attachmentId: "
 					. $fallbackEx->getMessage()
 				);
-				continue;
+			}
+
+			if ( empty( $attachmentWikiTitle ) ) {
+				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
+
+				$this->dbLog->addLogEntry(
+					'error',
+					'extract',
+					__CLASS__,
+					$message
+				);
+
+				throw new Exception(
+					$message
+				);
 			}
 
 			// Uncollide file title
@@ -173,6 +192,22 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					$shortContentWikiTitle,
 					"-(" . (string)$counter . ")"
 				);
+
+				if ( empty( $attachmentWikiTitle ) ) {
+					$message = "TitleCompressor delivers empty wiki title for "
+					 . "attachment id $attachmentId while uncolliding";
+
+					$this->dbLog->addLogEntry(
+						'error',
+						'extract',
+						__CLASS__,
+						$message
+					);
+
+					throw new Exception(
+						$message
+					);
+				}
 
 				$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
 				$counter++;
