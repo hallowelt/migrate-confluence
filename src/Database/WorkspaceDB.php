@@ -1910,7 +1910,7 @@ class WorkspaceDB {
 			'SELECT * FROM spaces_descriptions
 			WHERE space_description_id = :description_id
 				OR original_version_id = :description_id
-			ORDER BY revision_timestamp DESC'
+			ORDER BY revision_timestamp ASC'
 		);
 		$transaction->bindValue( ':description_id', $descriptionId, SQLITE3_INTEGER );
 
@@ -2290,7 +2290,7 @@ class WorkspaceDB {
 			'SELECT revision_timestamp, version, body_content_ids FROM pages
 			WHERE ( page_id = :page_id OR original_version_id = :page_id )
 			AND content_status = :content_status
-			ORDER BY revision_timestamp DESC'
+			ORDER BY revision_timestamp ASC'
 		);
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':content_status', 'current', SQLITE3_TEXT );
@@ -2571,7 +2571,7 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT revision_timestamp, version, body_content_ids FROM blog_posts
 			WHERE page_id = :page_id OR original_version_id = :page_id
-			ORDER BY revision_timestamp DESC'
+			ORDER BY revision_timestamp ASC'
 		);
 		$transaction->bindValue( ':page_id', $blogPostId, SQLITE3_INTEGER );
 
@@ -3009,7 +3009,7 @@ class WorkspaceDB {
 			'SELECT * FROM attachments
 			WHERE attachment_id = :attachment_id
 				OR original_version_id = :attachment_id
-			ORDER BY revision_timestamp DESC'
+			ORDER BY revision_timestamp ASC'
 		);
 		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
 
@@ -4348,7 +4348,7 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT template_id, revision_timestamp, version FROM page_templates
 			WHERE template_id = :template_id
-			ORDER BY revision_timestamp DESC'
+			ORDER BY revision_timestamp ASC'
 		);
 		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
 
