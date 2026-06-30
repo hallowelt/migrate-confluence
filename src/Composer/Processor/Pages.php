@@ -52,8 +52,21 @@ class Pages extends ProcessorBase {
 	}
 
 	private function addContentPages(): void {
-		// Get all page titles for a certain space id from DB and add them as pages to the workspace
-		$wikiTitles = $this->dataLookup->getPageIdWikiPageTitleMap( $this->currentSpaceId );
+		// Get all page titles for the configured space IDs and merge them.
+		$wikiTitles = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				// Merge blog post titles for each space ID into the $wikiTitles array
+				// Use array_replace to ensure that if there are duplicate blog post IDs,
+				// the last one will overwrite the previous ones.
+				$wikiTitles = array_replace(
+					$wikiTitles,
+					$this->dataLookup->getPageIdWikiPageTitleMap( (int)$spaceId )
+				);
+			}
+		} else {
+			$wikiTitles = $this->dataLookup->getPageIdWikiPageTitleMap();
+		}
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
 			if ( $this->skipHelper->skipPage( $pageTitle ) ) {

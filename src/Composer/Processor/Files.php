@@ -52,7 +52,19 @@ class Files extends FileProcessorBase {
 	private function addPageAttachments(): void {
 		$this->output->writeln( "\nAdding page attachments...\n" );
 
-		foreach ( $this->dataLookup->getPageAttachments( $this->currentSpaceId ) as $pageAttachment ) {
+		$pageAttachments = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$pageAttachments = array_merge(
+					$pageAttachments,
+					$this->dataLookup->getPageAttachments( (int)$spaceId )
+				);
+			}
+		} else {
+			$pageAttachments = $this->dataLookup->getPageAttachments();
+		}
+
+		foreach ( $pageAttachments as $pageAttachment ) {
 			$assocPageTitle = $this->dataLookup->getWikiPageTitleFromPageId(
 				$pageAttachment['page_id']
 			);
@@ -68,7 +80,19 @@ class Files extends FileProcessorBase {
 	private function addBlogPostAttachments(): void {
 		$this->output->writeln( "\nAdding blog post attachments...\n" );
 
-		foreach ( $this->dataLookup->getBlogPostAttachments( $this->currentSpaceId ) as $blogPostAttachment ) {
+		$blogPostAttachments = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$blogPostAttachments = array_merge(
+					$blogPostAttachments,
+					$this->dataLookup->getBlogPostAttachments( (int)$spaceId )
+				);
+			}
+		} else {
+			$blogPostAttachments = $this->dataLookup->getBlogPostAttachments();
+		}
+
+		foreach ( $blogPostAttachments as $blogPostAttachment ) {
 			$assocPageTitle = $this->dataLookup->getWikiBlogPostTitleFromBlogPostId(
 				$blogPostAttachment['blog_post_id']
 			);
@@ -166,7 +190,17 @@ class Files extends FileProcessorBase {
 	private function addAdditionalAttachments(): void {
 		$this->output->writeln( "\nAdding additional attachments...\n" );
 
-		$additionalAttachments = $this->dataLookup->getAdditionalAttachments( $this->currentSpaceId );
+		$additionalAttachments = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$additionalAttachments = array_merge(
+					$additionalAttachments,
+					$this->dataLookup->getAdditionalAttachments( (int)$spaceId )
+				);
+			}
+		} else {
+			$additionalAttachments = $this->dataLookup->getAdditionalAttachments();
+		}
 
 		$uploadPath = $this->getUploadPath();
 

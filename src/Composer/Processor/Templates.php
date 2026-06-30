@@ -46,7 +46,20 @@ class Templates extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$wikiTitles = $this->dataLookup->getPageTemplateIdWikiTitleMap( $this->currentSpaceId );
+		$wikiTitles = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				// Merge blog post titles for each space ID into the $wikiTitles array
+				// Use array_replace to ensure that if there are duplicate blog post IDs,
+				// the last one will overwrite the previous ones.
+				$wikiTitles = array_replace(
+					$wikiTitles,
+					$this->dataLookup->getPageTemplateIdWikiTitleMap( (int)$spaceId )
+				);
+			}
+		} else {
+			$wikiTitles = $this->dataLookup->getPageTemplateIdWikiTitleMap();
+		}
 
 		foreach ( $wikiTitles as $templateId => $pageTitle ) {
 			if ( $this->skipHelper->skipTemplate( $pageTitle ) ) {

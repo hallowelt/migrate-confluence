@@ -5,7 +5,7 @@ namespace HalloWelt\MigrateConfluence\Composer;
 interface ISpaceDependentProcessor {
 
 	/**
-	 * @param int $spaceId
+	 * @param int[] $spaceIds
 	 */
-	public function setCurrentSpaceId( int $spaceId ): void;
+	public function setCurrentSpaceIds( array $spaceIds ): void;
 }

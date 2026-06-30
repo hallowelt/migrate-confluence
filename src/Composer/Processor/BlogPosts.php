@@ -52,8 +52,21 @@ class BlogPosts extends ProcessorBase {
 	}
 
 	private function addBlogPages(): void {
-		// Get all blog post titles for a certain spacce id from DB and add them as pages to the workspace
-		$wikiTitles = $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap( $this->currentSpaceId );
+		// Get all blog post titles for the configured space IDs and merge them.
+		$wikiTitles = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				// Merge blog post titles for each space ID into the $wikiTitles array
+				// Use array_replace to ensure that if there are duplicate blog post IDs,
+				// the last one will overwrite the previous ones.
+				$wikiTitles = array_replace(
+					$wikiTitles,
+					$this->dataLookup->getBlogPostIdWikiBlogPostTitleMap( (int)$spaceId )
+				);
+			}
+		} else {
+			$wikiTitles = $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap();
+		}
 
 		foreach ( $wikiTitles as $blogPostId => $blogPostTitle ) {
 			if ( $this->skipHelper->skipBlogPost( $blogPostTitle ) ) {

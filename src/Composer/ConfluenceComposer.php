@@ -96,20 +96,15 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			}
 
 			if ( !isset( $namespaceMap[$namespace] ) ) {
-				$namespaceMap[$namespace] = [
-					'spaceId' => $spaceId,
-					'spaceKey' => $spaceKey,
-				];
+				$namespaceMap[$namespace] = [];
 			}
+			$namespaceMap[$namespace][] = $spaceId;
 		}
 
 		// Run processors for each namespace
-		foreach ( $namespaceMap as $namespace => $namespaceData ) {
-			$spaceId = $namespaceData['spaceId'];
-			$spaceKey = $namespaceData['spaceKey'];
-
+		foreach ( $namespaceMap as $namespace => $spaceIds ) {
 			if ( $skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
-				$this->output->writeln( "Skip space '$spaceKey' by configuration." );
+				$this->output->writeln( "Skip namespace '$namespace' by configuration." );
 				continue;
 			}
 			$deploymentInfo = new ComposerDeploymentInfo();
@@ -119,7 +114,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 			foreach ( $processors as $processor ) {
 				if ( $processor instanceof ISpaceDependentProcessor ) {
-					$processor->setCurrentSpaceId( $spaceId );
+					$processor->setCurrentSpaceIds( $spaceIds );
 				}
 				$processor->setSubDir( $namespace );
 				$processor->execute();
@@ -128,10 +123,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$this->writeDeploymentLog( $namespace, $deploymentInfo );
 			$this->writeSkippedPagesLog( $namespace, $deploymentInfo );
 
-			$this->writeInvalidPagesLog( $spaceId, $namespace );
-			$this->writeInvalidBlogPostsLog( $spaceId, $namespace );
-			$this->writeInvalidAttachmentsLog( $spaceId, $namespace );
-			$this->writeInvalidPageTemplatesLog( $spaceId, $namespace );
+			$this->writeInvalidPagesLog( $spaceIds, $namespace );
+			$this->writeInvalidBlogPostsLog( $spaceIds, $namespace );
+			$this->writeInvalidAttachmentsLog( $spaceIds, $namespace );
+			$this->writeInvalidPageTemplatesLog( $spaceIds, $namespace );
 
 			$this->addImportHelper( $namespace );
 		}
@@ -255,8 +250,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/**
 	 * @return void
 	 */
-	private function writeInvalidPagesLog( ?int $spaceId = null, string $namespace = '' ): void {
-		$data = $this->dataLookup->getInvalidPages( $spaceId );
+	private function writeInvalidPagesLog( array $spaceIds, string $namespace = '' ): void {
+		$data = [];
+		foreach ( $spaceIds as $spaceId ) {
+			$data = array_merge( $data, $this->dataLookup->getInvalidPages( (int)$spaceId ) );
+		}
 		$content = "page_id;space_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
 			$line = $item['page_id'] . ';';
@@ -273,8 +271,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/**
 	 * @return void
 	 */
-	private function writeInvalidBlogPostsLog( ?int $spaceId = null, string $namespace = '' ): void {
-		$data = $this->dataLookup->getInvalidBlogPosts( $spaceId );
+	private function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '' ): void {
+		$data = [];
+		foreach ( $spaceIds as $spaceId ) {
+			$data = array_merge( $data, $this->dataLookup->getInvalidBlogPosts( (int)$spaceId ) );
+		}
 		$content = "blog_post_id;space_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
 			$line = $item['blog_post_id'] . ';';
@@ -291,8 +292,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/**
 	 * @return void
 	 */
-	private function writeInvalidPageTemplatesLog( ?int $spaceId = null, string $namespace = '' ): void {
-		$data = $this->dataLookup->getInvalidPageTemplates( $spaceId );
+	private function writeInvalidPageTemplatesLog( array $spaceIds, string $namespace = '' ): void {
+		$data = [];
+		foreach ( $spaceIds as $spaceId ) {
+			$data = array_merge( $data, $this->dataLookup->getInvalidPageTemplates( (int)$spaceId ) );
+		}
 		$content = "template_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
 			$line = $item['template_id'] . ';';
@@ -308,8 +312,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/**
 	 * @return void
 	 */
-	private function writeInvalidAttachmentsLog( ?int $spaceId = null, string $namespace = '' ): void {
-		$data = $this->dataLookup->getInvalidAttachments( $spaceId );
+	private function writeInvalidAttachmentsLog( array $spaceIds, string $namespace = '' ): void {
+		$data = [];
+		foreach ( $spaceIds as $spaceId ) {
+			$data = array_merge( $data, $this->dataLookup->getInvalidAttachments( (int)$spaceId ) );
+		}
 		$content = "attachment_id;page_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
 			$line = $item['attachment_id'] . ';';

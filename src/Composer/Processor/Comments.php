@@ -59,10 +59,22 @@ class Comments extends ProcessorBase {
 	 * @return void
 	 */
 	private function addCommentPages(): void {
-		$comments = array_merge(
-			$this->dataLookup->getCommentsForPages( $this->currentSpaceId ),
-			$this->dataLookup->getCommentsForBlogPosts( $this->currentSpaceId )
-		);
+		$comments = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$comments = array_merge(
+					$comments,
+					$this->dataLookup->getCommentsForPages( (int)$spaceId ),
+					$this->dataLookup->getCommentsForBlogPosts( (int)$spaceId )
+				);
+			}
+		} else {
+			$comments = array_merge(
+				$this->dataLookup->getCommentsForPages(),
+				$this->dataLookup->getCommentsForBlogPosts()
+			);
+		}
+
 		if ( empty( $comments ) ) {
 			$this->output->writeln( "No comments found, skipping comment processing." );
 			return;

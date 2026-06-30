@@ -31,8 +31,8 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	/** @var string */
 	protected string $subDir = '';
 
-	/** @var int|null */
-	protected ?int $currentSpaceId = null;
+	/** @var int[]|null */
+	protected ?array $currentSpaceIds = null;
 
 	/**
 	 * @param DBComposerDataLookup $dataLookup
@@ -65,11 +65,11 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	}
 
 	/**
-	 * @param int $spaceId
+	 * @param int[] $spaceIds
 	 * @return void
 	 */
-	public function setCurrentSpaceId( int $spaceId ): void {
-		$this->currentSpaceId = $spaceId;
+	public function setCurrentSpaceIds( array $spaceIds ): void {
+		$this->currentSpaceIds = $spaceIds;
 	}
 
 	/**
