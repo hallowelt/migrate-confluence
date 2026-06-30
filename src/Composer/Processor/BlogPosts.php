@@ -39,7 +39,7 @@ class BlogPosts extends ProcessorBase {
 	 * @return string
 	 */
 	protected function getOutputName(): string {
-		return 'blog';
+		return 'blogs';
 	}
 
 	/**
