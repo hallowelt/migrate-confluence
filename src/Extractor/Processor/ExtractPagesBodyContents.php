@@ -11,7 +11,7 @@ class ExtractPagesBodyContents extends ExtractSpaceDescriptionBodyContents {
 	 */
 	public function execute(): void {
 		$currentContentIds = [];
-		foreach ( $this->workspaceDB->getPages() as $page ) {
+		foreach ( $this->workspaceDB->getCurrentPages() as $page ) {
 			if ( isset( $page['page_id'] ) ) {
 				$currentContentIds[] = (int)$page['page_id'];
 			}

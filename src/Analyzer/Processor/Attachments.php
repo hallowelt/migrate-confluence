@@ -73,11 +73,6 @@ class Attachments extends ProcessorBase {
 			$contentStatus = $properties['contentStatus'];
 		}
 
-		if ( strtolower( $contentStatus ) !== 'current' ) {
-			// Ignore draft and deleted versions of pages, as they are not relevant for the migration.
-			return;
-		}
-
 		$version = '';
 		if ( isset( $properties['version'] ) ) {
 			$version = $properties['version'];
@@ -126,6 +121,7 @@ class Attachments extends ProcessorBase {
 			$confluenceFilename,
 			$this->guessFileExtension( $attachmentReference, $confluenceFilename ),
 			$containerContentId,
+			$contentStatus,
 			$version,
 			$revisionTimestamp,
 			$lastModifier,

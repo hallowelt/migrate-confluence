@@ -100,7 +100,7 @@ class Files extends FileProcessorBase {
 			return;
 		}
 
-		$filename = $this->gereralizeFilename( $attachmentPageTitle );
+		$filename = $this->generalizeFilename( $attachmentPageTitle );
 
 		// We do not need DrawIO data files in our wiki, just PNG image
 		if ( $this->isDrawioDataFile( $filename ) ) {
@@ -185,7 +185,7 @@ class Files extends FileProcessorBase {
 				continue;
 			}
 
-			$filename = $this->gereralizeFilename( $attachmentPageTitle );
+			$filename = $this->generalizeFilename( $attachmentPageTitle );
 
 			$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 			foreach ( $attachments as $attachment ) {

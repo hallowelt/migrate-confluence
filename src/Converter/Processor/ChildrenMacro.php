@@ -41,16 +41,13 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			$params['page'] = $this->wikiPageTitle;
 		}
 
-		if ( str_starts_with( $params['page'], 'Confluence---' ) ) {
+		if ( str_starts_with( $params['page'], 'Confluence_page---' ) ) {
 			$isBroken = true;
 		}
 
 		if ( !$isBroken ) {
 			// page must not contain underscores
 			$params['page'] = str_replace( '_', ' ', $params['page'] );
-		} else {
-			// unless its broken then confluence title must contain underscores for better regex searching
-			$params['page'] = str_replace( ' ', '_', $params['page'] );
 		}
 
 		$templateParams = '';
@@ -199,10 +196,6 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @return string
 	 */
 	private function createConfluenceKey( string $confluenceTitle, ?string $spaceKey = null ): string {
-		if ( empty( $spaceKey ) ) {
-			return "Confluence---------$confluenceTitle";
-		}
-
-		return "Confluence---$spaceKey---$confluenceTitle";
+		return $this->getConfluencePageKeyFromSpaceKey( $spaceKey, $confluenceTitle );
 	}
 }

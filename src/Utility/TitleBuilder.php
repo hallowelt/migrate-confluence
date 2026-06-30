@@ -16,14 +16,14 @@ class TitleBuilder {
 	 * @param array $spaceIdPrefixMap
 	 * @param array $spaceIdHomepages
 	 * @param array $pageIdParentPageIdMap
-	 * @param array $pageIConfluenceTitledMap
+	 * @param array $pageIdConfluenceTitleMap
 	 * @param string $mainpage
 	 */
 	public function __construct(
 		private array $spaceIdPrefixMap,
 		private array $spaceIdHomepages,
 		private array $pageIdParentPageIdMap,
-		private array $pageIConfluenceTitledMap,
+		private array $pageIdConfluenceTitleMap,
 		private string $mainpage = 'Main_Page'
 	) {
 	}
@@ -37,16 +37,37 @@ class TitleBuilder {
 	 * @throws InvalidTitleException
 	 */
 	public function buildTitle( int $spaceId, int $pageId, string $title ): string {
-		$builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
+		$simpleSpaceIdPrefixMap = $this->simplifySpaceIdPrefixMap( $this->spaceIdPrefixMap );
+		$builder = new GenericTitleBuilder( $simpleSpaceIdPrefixMap );
 		$builder->setNamespace( $spaceId );
+
+		$prefixRoot = '';
+		if ( !str_ends_with( $this->spaceIdPrefixMap[$spaceId], ':' ) ) {
+			$prefixRoot = substr(
+				$this->spaceIdPrefixMap[$spaceId],
+				strpos( $this->spaceIdPrefixMap[$spaceId], ':' ) + 1
+			);
+		}
 
 		$this->currentTitlesSpaceHomePageId = -1;
 		if ( isset( $this->spaceIdHomepages[$spaceId] ) ) {
 			$this->currentTitlesSpaceHomePageId = $this->spaceIdHomepages[$spaceId];
 		}
 
-		if ( $pageId === $this->currentTitlesSpaceHomePageId ) {
+		// If the prefix has a root page configured this root page should be the main page of
+		// the space. This way we can move two or more spaces in one namespace.
+		//
+		// If two or more spaces are moved into one namespace withot a root page the main page will
+		// be created but only one of the spaces main page content will be the main page content in the wiki.
+		if ( $pageId === $this->currentTitlesSpaceHomePageId && empty( $prefixRoot ) ) {
 			$builder->appendTitleSegment( $this->mainpage );
+			return $builder->build();
+		} elseif ( $pageId === $this->currentTitlesSpaceHomePageId ) {
+			$prefixRootParts = explode( '/', $prefixRoot );
+			$PrefixRootPartsReverse = array_reverse( $prefixRootParts );
+			foreach ( $PrefixRootPartsReverse as $prefixRootPart ) {
+				$builder->appendTitleSegment( $prefixRootPart );
+			}
 			return $builder->build();
 		}
 
@@ -56,7 +77,30 @@ class TitleBuilder {
 			$builder->appendTitleSegment( $titlePart );
 		}
 
+		if ( !empty( $prefixRoot ) ) {
+			$prefixRootParts = explode( '/', $prefixRoot );
+			$PrefixRootPartsReverse = array_reverse( $prefixRootParts );
+			foreach ( $PrefixRootPartsReverse as $prefixRootPart ) {
+				$builder->appendTitleSegment( $prefixRootPart );
+			}
+		}
+
 		return $builder->invertTitleSegments()->build();
+	}
+
+	/**
+	 * @param array $spaceIdPrefixMap
+	 * @return array
+	 */
+	private function simplifySpaceIdPrefixMap( array $spaceIdPrefixMap ): array {
+		$simpleMap = [];
+		foreach ( $spaceIdPrefixMap as $spaceId => $prefix ) {
+			if ( !str_ends_with( $prefix, ':' ) ) {
+				$prefix = substr( $prefix, 0, strpos( $prefix, ':' ) + 1 );
+			}
+			$simpleMap[$spaceId] = $prefix;
+		}
+		return $simpleMap;
 	}
 
 	/**
@@ -81,8 +125,8 @@ class TitleBuilder {
 		while ( $parentPageId !== null ) {
 			if ( $parentPageId === $this->currentTitlesSpaceHomePageId ) {
 				break;
-			} elseif ( isset( $this->pageIConfluenceTitledMap[$parentPageId] ) ) {
-				$parentTitle = $this->pageIConfluenceTitledMap[$parentPageId];
+			} elseif ( isset( $this->pageIdConfluenceTitleMap[$parentPageId] ) ) {
+				$parentTitle = $this->pageIdConfluenceTitleMap[$parentPageId];
 			} else {
 				break;
 			}

@@ -169,8 +169,7 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor {
 	 */
 	private function getBrokenMacroCategory(): string {
 		$macroName = $this->getMacroName();
-
-		return "[[Category:Broken_macro/$macroName]]";
+		return $this->getCategoryBrokenMacro( $macroName );
 	}
 
 	/**

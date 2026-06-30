@@ -21,6 +21,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 	/** @inheritDoc */
 	protected function checkWikiTitleExists( string $wikiTitle ): bool {
 		return ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $wikiTitle )
+			|| $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $wikiTitle )
 			|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $wikiTitle )
 		);
 	}
@@ -64,7 +65,12 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 				|| !isset( $attachment['container_id'] )
 				|| !isset( $attachment['space_id'] )
 				|| !isset( $attachment['filename'] )
+				|| !isset( $attachment['content_status'] )
 			) {
+				continue;
+			}
+
+			if ( $attachment['content_status'] !== 'current' ) {
 				continue;
 			}
 
@@ -88,27 +94,40 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 				);
 			} catch ( Exception $ex ) {
 				$this->dbLog->addLogEntry(
-					'warning',
+					'error',
 					'analyze',
 					__CLASS__,
 					"Could not build target filename for attachment $attachmentId: "
 					. $ex->getMessage()
 				);
-				continue;
+			}
+
+			if ( empty( $attachmentWikiTitle ) ) {
+				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
+
+				$this->dbLog->addLogEntry(
+					'error',
+					'extract',
+					__CLASS__,
+					$message
+				);
+
+				throw new Exception(
+					$message
+				);
 			}
 
 			// Uncollide file title
 			$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
 			$counter = 1;
-			$maxUncollideAttempts = 10000;
 			while ( $exists ) {
-				if ( $counter > $maxUncollideAttempts ) {
+				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
 					$this->dbLog->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
 						"Could not find unique {$this->getContentLabel()} attachment title for attachment "
-						. "$attachmentId after " . (string)$maxUncollideAttempts . ' attempts'
+						. "$attachmentId after " . (string)self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
 					);
 					continue 2;
 				}
@@ -119,6 +138,22 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 					'',
 					"-(" . (string)$counter . ")"
 				);
+
+				if ( empty( $attachmentWikiTitle ) ) {
+					$message = "TitleCompressor delivers empty wiki title for "
+					. "attachment id $attachmentId while uncolliding";
+
+					$this->dbLog->addLogEntry(
+						'error',
+						'extract',
+						__CLASS__,
+						$message
+					);
+
+					throw new Exception(
+						$message
+					);
+				}
 
 				$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
 				$counter++;

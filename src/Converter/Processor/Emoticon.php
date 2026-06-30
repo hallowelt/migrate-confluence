@@ -57,7 +57,7 @@ class Emoticon extends ConversionHelper implements IProcessor {
 		if ( $name === 'blue-star' ) {
 			$replacement = $node->getAttribute( 'ac:emoji-fallback' );
 		} elseif ( !isset( $this->emoticonMapping[ $name ] ) ) {
-			$replacement = '[[Category:Broken_emoticon]]';
+			$replacement = $this->getCategoryBroken( 'emoticon' );
 		} else {
 			$replacement = $this->emoticonMapping[ $name ];
 		}

@@ -43,7 +43,7 @@ class UserLink extends LinkProcessorBase {
 		}
 
 		if ( $isBrokenLink ) {
-			$replacement .= '[[Category:Broken_user_link]]';
+			$replacement .= $this->getCategoryBroken( 'user_link' );
 		}
 
 		$this->replaceLink( $node, $replacement );
