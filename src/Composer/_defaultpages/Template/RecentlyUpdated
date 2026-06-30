@@ -1,6 +1,6 @@
 <includeonly>{{#ask:[[{{NAMESPACE}}:+]]{{#if:{{{labels|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}[[Modification date::+]]
 |?Last editor is
-|?Modification date
+|?Modification date#ISO
 |format=plainlist
 |limit={{{max|8}}}
 |template=RecentlyUpdatedRow
