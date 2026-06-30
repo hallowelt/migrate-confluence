@@ -80,7 +80,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 		$this->dataLookup = new DBComposerDataLookup( $workspaceDB );
 		$skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
-		
 
 		// Run space dependent processors for each space
 
@@ -132,7 +131,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		}
 
 		$this->writeUserReadableDBLog( $dbLog );
-		
 	}
 
 	/**
@@ -183,6 +181,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
+	 * @param string $namespace
 	 * @param ComposerDeploymentInfo $deploymentInfo
 	 * @return void
 	 */
