@@ -13,7 +13,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY ./docker/php/php.ini /usr/local/etc/php/php.ini
 
 RUN mkdir app
-COPY ./bin /app/bin
+COPY ./bin/migrate-confluence /app/bin/migrate-confluence
 COPY ./src /app/src
 COPY ./composer.json /app/composer.json
 COPY ./LICENSE /app/LICENSE
