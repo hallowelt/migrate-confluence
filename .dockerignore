@@ -1,0 +1,9 @@
+# Docker builds: ignore everything in this folder except the files from the allow-list below
+*
+!docker
+!bin/migrate-confluence
+!src
+!composer.json
+!LICENSE
+!README.md
+!VERSION

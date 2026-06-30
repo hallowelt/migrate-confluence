@@ -59,7 +59,7 @@
       <format>text/x-wiki</format>
       <text>&lt;includeonly&gt;{{#ask:[[{{NAMESPACE}}:+]]{{#if:{{{labels|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}[[Modification date::+]]
 |?Last editor is
-|?Modification date
+|?Modification date#ISO
 |format=plainlist
 |limit={{{max|8}}}
 |template=RecentlyUpdatedRow
@@ -456,7 +456,7 @@ Name:{{{name|}}}
       <format>text/x-wiki</format>
       <text>&lt;includeonly&gt;[[{{{1}}}|&lt;i class="bi bi-card-text prefix"&gt;&lt;/i&gt;]] [[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]]
 &lt;div class="byline prefixicon"&gt;&lt;small&gt;{{#switch:{{CONTENTLANG}}|en={{#time:M d, Y|{{{3}}}}}|de={{#time:d.M Y|{{{3}}}}}|{{#time:M/d/YY|{{{3}}}}} }}
-{{#ifeq:{{#show:{{{1}}}|?Last editor is|link=none}}|User:imported>Unknown user||· contributed by [[{{{2}}}|{{PAGENAME:{{{2}}} }}]]}}&lt;/small&gt;&lt;/div&gt;&lt;/includeonly&gt;</text>
+{{#ifeq:{{#show:{{{1}}}|?Last editor is|link=none}}|User:imported>Unknown user||· [[{{{2}}}|{{PAGENAME:{{{2}}} }}]]}}&lt;/small&gt;&lt;/div&gt;&lt;/includeonly&gt;</text>
     </revision>
   </page>
   <page>
