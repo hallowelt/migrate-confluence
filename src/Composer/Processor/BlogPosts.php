@@ -26,12 +26,12 @@ class BlogPosts extends ProcessorBase {
 		$wikiTitles = $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap();
 
 		foreach ( $wikiTitles as $blogPostId => $blogPostTitle ) {
-			if ( $this->skipHelper->skipBlogPost( $blogPostId ) ) {
-				$this->output->writeln( "Skip page $blogPostTitle." );
+			if ( $this->skipHelper->skipBlogPost( $blogPostTitle ) ) {
+				$this->output->writeln( "Skip blog post $blogPostTitle." );
 				$this->deploymentInfo->addSkippedPage( $blogPostTitle );
 				continue;
 			}
-			$this->output->writeln( "Processing page '$blogPostTitle' ..." );
+			$this->output->writeln( "Processing blog post '$blogPostTitle' ..." );
 
 			$namespace = $this->getNamespace( $blogPostTitle );
 
