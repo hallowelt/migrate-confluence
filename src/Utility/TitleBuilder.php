@@ -37,16 +37,32 @@ class TitleBuilder {
 	 * @throws InvalidTitleException
 	 */
 	public function buildTitle( int $spaceId, int $pageId, string $title ): string {
-		$builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
+		$simpleSpaceIdPrefixMap = $this->simplifySpaceIdPrefixMap( $this->spaceIdPrefixMap );
+		$builder = new GenericTitleBuilder( $simpleSpaceIdPrefixMap );
 		$builder->setNamespace( $spaceId );
+
+		$prefixRoot = '';
+		if ( !str_ends_with( $this->spaceIdPrefixMap[$spaceId], ':' ) ) {
+			$prefixRoot = substr(
+				$this->spaceIdPrefixMap[$spaceId],
+				strpos( $this->spaceIdPrefixMap[$spaceId], ':' ) + 1
+			);
+		}
 
 		$this->currentTitlesSpaceHomePageId = -1;
 		if ( isset( $this->spaceIdHomepages[$spaceId] ) ) {
 			$this->currentTitlesSpaceHomePageId = $this->spaceIdHomepages[$spaceId];
 		}
 
-		if ( $pageId === $this->currentTitlesSpaceHomePageId ) {
+		if ( $pageId === $this->currentTitlesSpaceHomePageId && empty( $prefixRoot ) ) {
 			$builder->appendTitleSegment( $this->mainpage );
+			return $builder->build();
+		} elseif ( $pageId === $this->currentTitlesSpaceHomePageId ) {
+			$prefixRootParts = explode( '/', $prefixRoot );
+			$PrefixRootPartsReverse = array_reverse( $prefixRootParts );
+			foreach ( $PrefixRootPartsReverse as $prefixRootPart ) {
+				$builder->appendTitleSegment( $prefixRootPart );
+			}
 			return $builder->build();
 		}
 
@@ -56,7 +72,30 @@ class TitleBuilder {
 			$builder->appendTitleSegment( $titlePart );
 		}
 
+		if ( !empty( $prefixRoot ) ) {
+			$prefixRootParts = explode( '/', $prefixRoot );
+			$PrefixRootPartsReverse = array_reverse( $prefixRootParts );
+			foreach ( $PrefixRootPartsReverse as $prefixRootPart ) {
+				$builder->appendTitleSegment( $prefixRootPart );
+			}
+		}
+
 		return $builder->invertTitleSegments()->build();
+	}
+
+	/**
+	 * @param array $spaceIdPrefixMap
+	 * @return array
+	 */
+	private function simplifySpaceIdPrefixMap( array $spaceIdPrefixMap ): array {
+		$simpleMap = [];
+		foreach ( $spaceIdPrefixMap as $spaceId => $prefix ) {
+			if ( !str_ends_with( $prefix, ':' ) ) {
+				$prefix = substr( $prefix, 0, strpos( $prefix, ':' ) + 1 );
+			}
+			$simpleMap[$spaceId] = $prefix;
+		}
+		return $simpleMap;
 	}
 
 	/**
