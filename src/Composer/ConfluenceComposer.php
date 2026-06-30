@@ -200,8 +200,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$fileExtensions = $deploymentInfo->getFileExtensions();
 		$content .= $this->makeListContent( $fileExtensions );
 
-		$logDir = $this->ensurePath( $namespace );
-		file_put_contents( $logDir . "/deployment.log", $content );
+		file_put_contents( $this->dest . "/result/$namespace/deployment.txt", $content );
 	}
 
 	/**
@@ -213,7 +212,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$skippedPages = $deploymentInfo->getSkippedPages();
 		$content = $this->makeListContent( $skippedPages );
 
-		$logDir = $this->ensurePath( $namespace );
+		$logDir = $this->ensureNamespacePath( $namespace );
 		file_put_contents( $logDir . "/skipped_pages.log", $content );
 	}
 
@@ -267,7 +266,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		$logDir = $this->ensurePath( $namespace );
+		$logDir = $this->ensureNamespacePath( $namespace );
 		file_put_contents( $logDir . "/invalid_pages.log", $content );
 	}
 
@@ -285,7 +284,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		$logDir = $this->ensurePath( $namespace );
+		$logDir = $this->ensureNamespacePath( $namespace );
 		file_put_contents( $logDir . "/invalid_blog_posts.log", $content );
 	}
 
@@ -302,7 +301,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		$logDir = $this->ensurePath( $namespace );
+		$logDir = $this->ensureNamespacePath( $namespace );
 		file_put_contents( $logDir . "/invalid_page_templates.log", $content );
 	}
 
@@ -320,7 +319,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		$logDir = $this->ensurePath( $namespace );
+		$logDir = $this->ensureNamespacePath( $namespace );
 		file_put_contents( $logDir . "/invalid_attachments.log", $content );
 	}
 
@@ -328,7 +327,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @param string $namespace
 	 * @return string
 	 */
-	private function ensurePath( string $namespace ): string {
+	private function ensureNamespacePath( string $namespace ): string {
 		$path = $this->dest . "/result/$namespace/log";
 		if ( !is_dir( $path ) ) {
 			mkdir( $path, 0755, true );
