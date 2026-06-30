@@ -79,9 +79,77 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$this->logMigrateConfluenceToolVersion( $dbLog );
 
 		$this->dataLookup = new DBComposerDataLookup( $workspaceDB );
-		$deploymentInfo = new ComposerDeploymentInfo();
 		$skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
-		$processors = [
+		
+
+		// Run space dependent processors for each space
+
+		// Fetching namespaces
+		$namespaceMap = [];
+		$spaces = $this->dataLookup->getSpaces();
+		foreach ( $spaces as $space ) {
+			$spaceId = (int)$space['space_id'];
+			$spaceKey = (string)$space['space_key'];
+			$namespace = 'NS_MAIN';
+			if ( str_contains( $space['space_prefix'], ':' ) ) {
+				$namespace = substr( $space['space_prefix'], 0, strpos( $space['space_prefix'], ':' ) );
+			}
+
+			if ( !isset( $namespaceMap[$namespace] ) ) {
+				$namespaceMap[$namespace] = [
+					'spaceId' => $spaceId,
+					'spaceKey' => $spaceKey,
+				];
+			}
+		}
+
+		// Run processors for each namespace
+		foreach ( $namespaceMap as $namespace => $namespaceData ) {
+			$spaceId = $namespaceData['spaceId'];
+			$spaceKey = $namespaceData['spaceKey'];
+
+			if ( $skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
+				$this->output->writeln( "Skip space '$spaceKey' by configuration." );
+				continue;
+			}
+			$deploymentInfo = new ComposerDeploymentInfo();
+			$deploymentInfo->addNamespace( $namespace );
+
+			$processors = $this->initProcessorsForSpace( $builder, $skipHelper, $deploymentInfo );
+
+			foreach ( $processors as $processor ) {
+				if ( $processor instanceof ISpaceDependentProcessor ) {
+					$processor->setCurrentSpaceId( $spaceId );
+				}
+				$processor->setSubDir( $namespace );
+				$processor->execute();
+			}
+
+			$this->writeDeploymentLog( $namespace, $deploymentInfo );
+			$this->writeSkippedPagesLog( $namespace, $deploymentInfo );
+
+			$this->writeInvalidPagesLog( $spaceId, $namespace );
+			$this->writeInvalidBlogPostsLog( $spaceId, $namespace );
+			$this->writeInvalidAttachmentsLog( $spaceId, $namespace );
+			$this->writeInvalidPageTemplatesLog( $spaceId, $namespace );
+
+			$this->addImportHelper( $namespace );
+		}
+
+		$this->writeUserReadableDBLog( $dbLog );
+		
+	}
+
+	/**
+	 * @param Builder $builder
+	 * @param ComposerSkipHelper $skipHelper
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @return array
+	 */
+	private function initProcessorsForSpace(
+		Builder $builder, ComposerSkipHelper $skipHelper, ComposerDeploymentInfo $deploymentInfo
+	): array {
+		return [
 			new DefaultFiles(
 				$this->dataLookup, $this->workspace, $this->output, $this->dest, $this->migrationConfig
 			),
@@ -117,46 +185,13 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 				$this->dataLookup, $this->output, $this->dest
 			),
 		];
-
-		// Run space dependent processors for each space
-		$spaces = $this->dataLookup->getSpaces();
-		foreach ( $spaces as $space ) {
-			$spaceId = $space['space_id'];
-			$spaceKey = $space['space_key'];
-			$namespace = 'NS_MAIN';
-			if ( str_contains( $space['space_prefix'], ':' ) ) {
-				$namespace = substr( $space['space_prefix'], 0, strpos( $space['space_prefix'], ':' ) );
-			}
-
-			if ( $skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
-				$this->output->writeln( "Skip space '$spaceKey' by configuration." );
-				continue;
-			}
-			$deploymentInfo->addNamespace( $namespace );
-
-			foreach ( $processors as $processor ) {
-				if ( $processor instanceof ISpaceDependentProcessor ) {
-					$processor->setCurrentSpaceId( $spaceId );
-				}
-				$processor->setSubDir( $namespace );
-				$processor->execute();
-			}
-		}
-
-		$this->writeDeploymentLog( $deploymentInfo );
-		$this->writeSkippedPagesLog( $deploymentInfo );
-		$this->writeUserReadableDBLog( $dbLog );
-		$this->writeInvalidPagesLog();
-		$this->writeInvalidBlogPostsLog();
-		$this->writeInvalidAttachmentsLog();
-		$this->writeInvalidPageTemplatesLog();
 	}
 
 	/**
 	 * @param ComposerDeploymentInfo $deploymentInfo
 	 * @return void
 	 */
-	private function writeDeploymentLog( ComposerDeploymentInfo $deploymentInfo ): void {
+	private function writeDeploymentLog( string $namespace, ComposerDeploymentInfo $deploymentInfo ): void {
 		$content = "# Namespaces\n\n";
 		$namespaces = $deploymentInfo->getNamespaces();
 		$content .= $this->makeListContent( $namespaces );
@@ -165,18 +200,21 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$fileExtensions = $deploymentInfo->getFileExtensions();
 		$content .= $this->makeListContent( $fileExtensions );
 
-		file_put_contents( $this->dest . '/deployment.log', $content );
+		$logDir = $this->ensurePath( $namespace );
+		file_put_contents( $logDir . "/deployment.log", $content );
 	}
 
 	/**
+	 * @param string $namespace
 	 * @param ComposerDeploymentInfo $deploymentInfo
 	 * @return void
 	 */
-	private function writeSkippedPagesLog( ComposerDeploymentInfo $deploymentInfo ): void {
+	private function writeSkippedPagesLog( string $namespace, ComposerDeploymentInfo $deploymentInfo ): void {
 		$skippedPages = $deploymentInfo->getSkippedPages();
 		$content = $this->makeListContent( $skippedPages );
 
-		file_put_contents( $this->dest . '/skipped_pages.log', $content );
+		$logDir = $this->ensurePath( $namespace );
+		file_put_contents( $logDir . "/skipped_pages.log", $content );
 	}
 
 	/**
@@ -218,8 +256,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/**
 	 * @return void
 	 */
-	private function writeInvalidPagesLog(): void {
-		$data = $this->dataLookup->getInvalidPages();
+	private function writeInvalidPagesLog( ?int $spaceId = null, string $namespace = '' ): void {
+		$data = $this->dataLookup->getInvalidPages( $spaceId );
 		$content = "page_id;space_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
 			$line = $item['page_id'] . ';';
@@ -229,14 +267,15 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		file_put_contents( $this->dest . "/invalid_pages.log", $content );
+		$logDir = $this->ensurePath( $namespace );
+		file_put_contents( $logDir . "/invalid_pages.log", $content );
 	}
 
 	/**
 	 * @return void
 	 */
-	private function writeInvalidBlogPostsLog(): void {
-		$data = $this->dataLookup->getInvalidBlogPosts();
+	private function writeInvalidBlogPostsLog( ?int $spaceId = null, string $namespace = '' ): void {
+		$data = $this->dataLookup->getInvalidBlogPosts( $spaceId );
 		$content = "blog_post_id;space_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
 			$line = $item['blog_post_id'] . ';';
@@ -246,14 +285,15 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		file_put_contents( $this->dest . "/invalid_blog_posts.log", $content );
+		$logDir = $this->ensurePath( $namespace );
+		file_put_contents( $logDir . "/invalid_blog_posts.log", $content );
 	}
 
 	/**
 	 * @return void
 	 */
-	private function writeInvalidPageTemplatesLog(): void {
-		$data = $this->dataLookup->getInvalidPageTemplates();
+	private function writeInvalidPageTemplatesLog( ?int $spaceId = null, string $namespace = '' ): void {
+		$data = $this->dataLookup->getInvalidPageTemplates( $spaceId );
 		$content = "template_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
 			$line = $item['template_id'] . ';';
@@ -262,14 +302,15 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		file_put_contents( $this->dest . "/invalid_page_templates.log", $content );
+		$logDir = $this->ensurePath( $namespace );
+		file_put_contents( $logDir . "/invalid_page_templates.log", $content );
 	}
 
 	/**
 	 * @return void
 	 */
-	private function writeInvalidAttachmentsLog(): void {
-		$data = $this->dataLookup->getInvalidAttachments();
+	private function writeInvalidAttachmentsLog( ?int $spaceId = null, string $namespace = '' ): void {
+		$data = $this->dataLookup->getInvalidAttachments( $spaceId );
 		$content = "attachment_id;page_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
 			$line = $item['attachment_id'] . ';';
@@ -279,7 +320,21 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		file_put_contents( $this->dest . "/invalid_attachments.log", $content );
+		$logDir = $this->ensurePath( $namespace );
+		file_put_contents( $logDir . "/invalid_attachments.log", $content );
+	}
+
+	/**
+	 * @param string $namespace
+	 * @return string
+	 */
+	private function ensurePath( string $namespace ): string {
+		$path = $this->dest . "/result/$namespace/log";
+		if ( !is_dir( $path ) ) {
+			mkdir( $path, 0755, true );
+		}
+
+		return $path;
 	}
 
 	/**
@@ -295,5 +350,37 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			__CLASS__,
 			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 		);
+	}
+
+	/**
+	 * @param string $namespace
+	 * @return void
+	 */
+	private function addImportHelper( string $namespace ): void {
+		$sourcePaths = glob( __DIR__ . '/_shell/*' );
+		if ( $sourcePaths === false || $sourcePaths === [] ) {
+			return;
+		}
+
+		$targetDir = $this->dest . "/result/$namespace";
+		if ( !is_dir( $targetDir ) && !mkdir( $targetDir, 0755, true ) && !is_dir( $targetDir ) ) {
+			throw new \RuntimeException( 'Failed to create import helper target directory: ' . $targetDir );
+		}
+
+		foreach ( $sourcePaths as $sourcePath ) {
+			if ( !is_file( $sourcePath ) ) {
+				continue;
+			}
+
+			$targetPath = $targetDir . '/' . basename( $sourcePath );
+			if ( !copy( $sourcePath, $targetPath ) ) {
+				throw new \RuntimeException( 'Failed to copy import helper file: ' . $sourcePath );
+			}
+
+			$sourcePerms = fileperms( $sourcePath );
+			if ( $sourcePerms !== false ) {
+				chmod( $targetPath, $sourcePerms & 0777 );
+			}
+		}
 	}
 }

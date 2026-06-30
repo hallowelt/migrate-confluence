@@ -984,15 +984,26 @@ class WorkspaceDB {
 	 *
 	 * @return array
 	 */
-	public function getInvalidPages(): array {
+	public function getInvalidPages( ?int $spaceId = null ): array {
 		$result = [];
 
 		// 1. Collect pages with invalid titles
-		$stmt = $this->cachedPrepare(
-			'SELECT p.page_id, p.space_id, p.confluence_title, p.wiki_title, pit.text
-			FROM pages p
-			INNER JOIN page_invalid_titles pit ON p.page_id = pit.page_id'
-		);
+		if ( $spaceId !== null ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT p.page_id, p.space_id, p.confluence_title, p.wiki_title, pit.text
+				FROM pages p
+				INNER JOIN page_invalid_titles pit ON p.page_id = pit.page_id
+				WHERE p.space_id = :space_id'
+			);
+			$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$stmt = $this->cachedPrepare(
+				'SELECT p.page_id, p.space_id, p.confluence_title, p.wiki_title, pit.text
+				FROM pages p
+				INNER JOIN page_invalid_titles pit ON p.page_id = pit.page_id'
+			);
+		}
+
 		$queryResult = $stmt->execute();
 		$row = $queryResult->fetchArray( SQLITE3_ASSOC );
 		while ( $row !== false ) {
@@ -1021,11 +1032,22 @@ class WorkspaceDB {
 
 		if ( !empty( $invalidBodyContents ) ) {
 			// 3. Load all pages (root and historical) to check their body_content_ids
-			$stmt = $this->cachedPrepare(
-				'SELECT page_id, space_id, confluence_title, wiki_title,
-				        body_content_ids, original_version_id
-				FROM pages'
-			);
+			if ( $spaceId !== null ) {
+				$stmt = $this->cachedPrepare(
+					'SELECT page_id, space_id, confluence_title, wiki_title,
+					        body_content_ids, original_version_id
+					FROM pages
+					WHERE space_id = :space_id'
+				);
+				$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+			} else {
+				$stmt = $this->cachedPrepare(
+					'SELECT page_id, space_id, confluence_title, wiki_title,
+					        body_content_ids, original_version_id
+					FROM pages'
+				);
+			}
+
 			$queryResult = $stmt->execute();
 			$allPages = [];
 			$row = $queryResult->fetchArray( SQLITE3_ASSOC );
@@ -1100,15 +1122,26 @@ class WorkspaceDB {
 	 *
 	 * @return array
 	 */
-	public function getInvalidBlogPosts(): array {
+	public function getInvalidBlogPosts( ?int $spaceId = null ): array {
 		$result = [];
 
 		// 1. Collect blog posts with invalid titles
-		$stmt = $this->cachedPrepare(
-			'SELECT bp.page_id, bp.space_id, bp.confluence_title, bp.wiki_title, bpit.text
-			FROM blog_posts bp
-			INNER JOIN blog_post_invalid_titles bpit ON bp.page_id = bpit.page_id'
-		);
+		if ( $spaceId !== null ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT bp.page_id, bp.space_id, bp.confluence_title, bp.wiki_title, bpit.text
+				FROM blog_posts bp
+				INNER JOIN blog_post_invalid_titles bpit ON bp.page_id = bpit.page_id
+				WHERE bp.space_id = :space_id'
+			);
+			$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$stmt = $this->cachedPrepare(
+				'SELECT bp.page_id, bp.space_id, bp.confluence_title, bp.wiki_title, bpit.text
+				FROM blog_posts bp
+				INNER JOIN blog_post_invalid_titles bpit ON bp.page_id = bpit.page_id'
+			);
+		}
+
 		$queryResult = $stmt->execute();
 		$row = $queryResult->fetchArray( SQLITE3_ASSOC );
 		while ( $row !== false ) {
@@ -1137,11 +1170,22 @@ class WorkspaceDB {
 
 		if ( !empty( $invalidBodyContents ) ) {
 			// 3. Load all blog posts (root and historical) to check their body_content_ids
-			$stmt = $this->cachedPrepare(
-				'SELECT page_id, space_id, confluence_title, wiki_title,
-				        body_content_ids, original_version_id
-				FROM blog_posts'
-			);
+			if ( $spaceId !== null ) {
+				$stmt = $this->cachedPrepare(
+					'SELECT page_id, space_id, confluence_title, wiki_title,
+					        body_content_ids, original_version_id
+					FROM blog_posts
+					WHERE space_id = :space_id'
+				);
+				$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+			} else {
+				$stmt = $this->cachedPrepare(
+					'SELECT page_id, space_id, confluence_title, wiki_title,
+					        body_content_ids, original_version_id
+					FROM blog_posts'
+				);
+			}
+
 			$queryResult = $stmt->execute();
 			$allBlogPosts = [];
 			$row = $queryResult->fetchArray( SQLITE3_ASSOC );
@@ -1213,12 +1257,23 @@ class WorkspaceDB {
 	 *
 	 * @return array
 	 */
-	public function getInvalidAttachments(): array {
-		$stmt = $this->cachedPrepare(
-			'SELECT a.attachment_id, a.space_id, a.filename, ait.wiki_title, ait.text
-			FROM attachments a
-			INNER JOIN attachment_invalid_titles ait ON a.attachment_id = ait.attachment_id'
-		);
+	public function getInvalidAttachments( ?int $spaceId = null ): array {
+		if ( $spaceId !== null ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT a.attachment_id, a.space_id, a.filename, ait.wiki_title, ait.text
+				FROM attachments a
+				INNER JOIN attachment_invalid_titles ait ON a.attachment_id = ait.attachment_id
+				WHERE a.space_id = :space_id'
+			);
+			$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$stmt = $this->cachedPrepare(
+				'SELECT a.attachment_id, a.space_id, a.filename, ait.wiki_title, ait.text
+				FROM attachments a
+				INNER JOIN attachment_invalid_titles ait ON a.attachment_id = ait.attachment_id'
+			);
+		}
+
 		$queryResult = $stmt->execute();
 		$attachments = [];
 		$row = $queryResult->fetchArray( SQLITE3_ASSOC );
@@ -1243,15 +1298,26 @@ class WorkspaceDB {
 	 *
 	 * @return array
 	 */
-	public function getInvalidPageTemplates(): array {
+	public function getInvalidPageTemplates( ?int $spaceId = null ): array {
 		$result = [];
 
 		// 1. Collect templates with invalid titles
-		$stmt = $this->cachedPrepare(
-			'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptit.text
-			FROM page_templates pt
-			INNER JOIN page_template_invalid_titles ptit ON pt.template_id = ptit.template_id'
-		);
+		if ( $spaceId !== null ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptit.text
+				FROM page_templates pt
+				INNER JOIN page_template_invalid_titles ptit ON pt.template_id = ptit.template_id
+				WHERE pt.space_id = :space_id'
+			);
+			$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$stmt = $this->cachedPrepare(
+				'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptit.text
+				FROM page_templates pt
+				INNER JOIN page_template_invalid_titles ptit ON pt.template_id = ptit.template_id'
+			);
+		}
+
 		$queryResult = $stmt->execute();
 		$row = $queryResult->fetchArray( SQLITE3_ASSOC );
 		while ( $row !== false ) {
@@ -1267,11 +1333,22 @@ class WorkspaceDB {
 		}
 
 		// 2. Collect templates with invalid contents
-		$stmt = $this->cachedPrepare(
-			'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptic.text
-			FROM page_templates pt
-			INNER JOIN page_template_invalid_contents ptic ON pt.template_id = ptic.template_id'
-		);
+		if ( $spaceId !== null ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptic.text
+				FROM page_templates pt
+				INNER JOIN page_template_invalid_contents ptic ON pt.template_id = ptic.template_id
+				WHERE pt.space_id = :space_id'
+			);
+			$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$stmt = $this->cachedPrepare(
+				'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptic.text
+				FROM page_templates pt
+				INNER JOIN page_template_invalid_contents ptic ON pt.template_id = ptic.template_id'
+			);
+		}
+
 		$queryResult = $stmt->execute();
 		$row = $queryResult->fetchArray( SQLITE3_ASSOC );
 		while ( $row !== false ) {

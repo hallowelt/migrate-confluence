@@ -214,19 +214,35 @@ class DBComposerDataLookup {
 		return $this->workspaceDB->isPageTemplateInvalid( $wikiTitle );
 	}
 
-	public function getInvalidPages(): array {
-		return $this->workspaceDB->getInvalidPages();
+	/**
+	 * @param int|null $spaceId
+	 * @return array
+	 */
+	public function getInvalidPages( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getInvalidPages( $spaceId );
 	}
 
-	public function getInvalidBlogPosts(): array {
-		return $this->workspaceDB->getInvalidBlogPosts();
+	/**
+	 * @param int|null $spaceId
+	 * @return array
+	 */
+	public function getInvalidBlogPosts( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getInvalidBlogPosts( $spaceId );
 	}
 
-	public function getInvalidAttachments(): array {
-		return $this->workspaceDB->getInvalidAttachments();
+	/**
+	 * @param int|null $spaceId
+	 * @return array
+	 */
+	public function getInvalidAttachments( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getInvalidAttachments( $spaceId );
 	}
 
-	public function getInvalidPageTemplates(): array {
-		return $this->workspaceDB->getInvalidPageTemplates();
+	/**
+	 * @param int|null $spaceId
+	 * @return array
+	 */
+	public function getInvalidPageTemplates( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getInvalidPageTemplates( $spaceId );
 	}
 }
