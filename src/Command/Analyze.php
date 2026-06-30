@@ -93,7 +93,7 @@ class Analyze extends CommandAnalyze {
 			$this->dbLog = new DBLog( $this->workspaceDB );
 		}
 
-		if ( $workers > 1 && !$isWorker ) {
+		if ( !$isWorker ) {
 			return $this->spawnWorkers( $input, $output, $workers );
 		}
 

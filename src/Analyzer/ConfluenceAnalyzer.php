@@ -18,7 +18,6 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\PageTemplates;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
-use HalloWelt\MigrateConfluence\Database\AnalyzeWorkerDB;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -50,8 +49,8 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
 
-	/** @var WorkspaceDB|AnalyzeWorkerDB */
-	private WorkspaceDB|AnalyzeWorkerDB $workspaceDB;
+	/** @var WorkspaceDB */
+	private WorkspaceDB $workspaceDB;
 
 	/** @var DBLog */
 	private DBLog $dbLog;
@@ -90,14 +89,8 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	 * @return void
 	 */
 	private function initWorkspaceDB(): void {
-		if ( $this->pipe !== false ) {
-			$this->workspaceDB = new AnalyzeWorkerDB(
-				new PipeToDB( $this->pipe ),
-				new WorkspaceDB( $this->dest . '/workspace.sqlite', true )
-			);
-		} else {
-			$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
-		}
+		$pipe = $this->pipe !== false ? new PipeToDB( $this->pipe ) : null;
+		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite', false, $pipe );
 	}
 
 	/**

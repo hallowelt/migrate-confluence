@@ -2,17 +2,17 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\AnalyzeWorkerDB;
+
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 class Labelling extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB|AnalyzeWorkerDB $workspaceDB
+	 * @param WorkspaceDB $workspaceDB
 	 */
 	public function __construct(
-		private WorkspaceDB|AnalyzeWorkerDB $workspaceDB
+		private WorkspaceDB $workspaceDB
 	) {
 	}
 

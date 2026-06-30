@@ -15,65 +15,49 @@ class ComposerSkipHelper {
 	}
 
 	/**
-	 * @param ?string $wikiTitle
+	 * @param string $wikiTitle
 	 *
 	 * @return bool
 	 */
-	public function skipPage( ?string $wikiTitle ): bool {
-		if ( !$wikiTitle ) {
+	public function skipPage( string $wikiTitle ): bool {
+		if ( $this->dataLookup->isPageInvalid( $wikiTitle ) ) {
 			return true;
 		}
 
-		if ( $this->skipWikiTitleByConfiguration( $wikiTitle ) ) {
-			return true;
-		}
-
-		return $this->dataLookup->isPageInvalid( $wikiTitle );
+		return $this->skipWikiTitleByConfiguration( $wikiTitle );
 	}
 
 	/**
-	 * @param ?string $wikiTitle
+	 * @param string $wikiTitle
 	 *
 	 * @return bool
 	 */
-	public function skipBlogPost( ?string $wikiTitle ): bool {
-		if ( !$wikiTitle ) {
+	public function skipBlogPost( string $wikiTitle ): bool {
+		if ( $this->dataLookup->isBlogPostInvalid( $wikiTitle ) ) {
 			return true;
 		}
 
-		if ( $this->skipWikiTitleByConfiguration( $wikiTitle ) ) {
-			return true;
-		}
-
-		return $this->dataLookup->isBlogPostInvalid( $wikiTitle );
+		return $this->skipWikiTitleByConfiguration( $wikiTitle );
 	}
 
 	/**
-	 * @param ?string $wikiTitle
+	 * @param string $wikiTitle
 	 *
 	 * @return bool
 	 */
-	public function skipTemplate( ?string $wikiTitle ): bool {
-		if ( !$wikiTitle ) {
+	public function skipTemplate( string $wikiTitle ): bool {
+		if ( $this->dataLookup->isPageTemplateInvalid( $wikiTitle ) ) {
 			return true;
 		}
 
-		if ( $this->skipWikiTitleByConfiguration( $wikiTitle ) ) {
-			return true;
-		}
-
-		return $this->dataLookup->isPageTemplateInvalid( $wikiTitle );
+		return $this->skipWikiTitleByConfiguration( $wikiTitle );
 	}
 
 	/**
-	 * @param ?string $wikiTitle
+	 * @param string $wikiTitle
 	 * @return bool
 	 */
-	public function skipWikiTitle( ?string $wikiTitle ): bool {
-		if ( !$wikiTitle ) {
-			return true;
-		}
-
+	public function skipWikiTitle( string $wikiTitle ): bool {
 		// Blog page title
 		if ( str_starts_with( $wikiTitle, 'Blog:' ) ) {
 			return $this->skipBlogPost( $wikiTitle );
