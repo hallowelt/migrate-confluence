@@ -57,6 +57,9 @@ class Users implements IConfluenceComposerProcessor {
 			$wikiUsername = $user['wiki_user_name'];
 			$propertiesJson = $user['properties'];
 			$properties = json_decode( $propertiesJson, true );
+			if ( !is_array( $properties ) ) {
+				$properties = [];
+			}
 
 			$this->builder->addUser( $wikiUsername, $properties );
 		}
