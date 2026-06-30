@@ -54,6 +54,11 @@ class TitleBuilder {
 			$this->currentTitlesSpaceHomePageId = $this->spaceIdHomepages[$spaceId];
 		}
 
+		// If the prefix has a root page configured this root page should be the main page of
+		// the space. This way we can move two or more spaces in one namespace.
+		//
+		// If two or more spaces are moved into one namespace withot a root page the main page will
+		// be created but only one of the spaces main page content will be the main page content in the wiki.
 		if ( $pageId === $this->currentTitlesSpaceHomePageId && empty( $prefixRoot ) ) {
 			$builder->appendTitleSegment( $this->mainpage );
 			return $builder->build();
