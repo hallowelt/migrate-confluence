@@ -36,7 +36,6 @@ class BlogPosts extends ProcessorBase {
 			$namespace = $this->getNamespace( $blogPostTitle );
 
 			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $blogPostId );
-
 			foreach ( $revisions as $revision ) {
 				$timestamp = $revision['revision_timestamp'];
 				$bodyContentIds = json_decode( $revision['body_content_ids'], true );
