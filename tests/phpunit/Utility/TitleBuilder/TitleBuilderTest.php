@@ -146,7 +146,7 @@ class TitleBuilderTest extends TestCase {
 	 */
 	public function testRootPagePrefixHomepageDefaultMainPage(): void {
 		$this->assertSame(
-			'TestNS:32973/Main_Page',
+			'TestNS:32973',
 			$this->makeRootPagePrefixBuilder()->buildTitle( 32973, 32974567, 'Dokumentation' )
 		);
 	}
@@ -156,7 +156,7 @@ class TitleBuilderTest extends TestCase {
 	 */
 	public function testRootPagePrefixHomepageCustomMainPage(): void {
 		$this->assertSame(
-			'TestNS:32973/CustomMainpage',
+			'TestNS:32973',
 			$this->makeRootPagePrefixBuilder( 'CustomMainpage' )->buildTitle( 32973, 32974567, 'Dokumentation' )
 		);
 	}
