@@ -115,6 +115,9 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		// preparation
 		$preprocessors = $this->getPreprocessors();
 		foreach ( $preprocessors as $processor ) {
+			if ( $this->output ) {
+				$processor->setOutput( $this->output );
+			}
 			$processor->execute();
 		}
 

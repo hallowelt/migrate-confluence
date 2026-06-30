@@ -9,7 +9,7 @@ class UpdateBlogPostAttachmentTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function getContentItems(): array {
-		return $this->workspaceDB->getBlogPosts();
+		return $this->workspaceDB->getCurrentBlogPosts();
 	}
 
 	/** @inheritDoc */

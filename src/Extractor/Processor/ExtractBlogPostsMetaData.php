@@ -10,7 +10,7 @@ class ExtractBlogPostsMetaData extends ExtractPagesMetaData {
 	 * @return void
 	 */
 	public function execute(): void {
-		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
+		foreach ( $this->workspaceDB->getCurrentBlogPosts() as $blogPost ) {
 			if ( !isset( $blogPost['page_id'] ) || !isset( $blogPost['original_version_id'] ) ) {
 				continue;
 			}

@@ -9,7 +9,7 @@ class UpdatePageAttachmentTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function getContentItems(): array {
-		return $this->workspaceDB->getPages();
+		return $this->workspaceDB->getCurrentPages();
 	}
 
 	/** @inheritDoc */
