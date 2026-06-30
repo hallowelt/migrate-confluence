@@ -29,9 +29,7 @@ class WorkspaceDB {
 	/**
 	 * @param string $name
 	 * @param bool $readonly
-	 * @param PipeToDB|null $pipe When provided, write calls are serialised and
-	 *   sent through the pipe to the orchestrator process. The local DB is
-	 *   opened read-only. This replaces the former AnalyzeWorkerDB proxy.
+	 * @param PipeToDB|null $pipe
 	 */
 	public function __construct( string $name, bool $readonly = false, ?PipeToDB $pipe = null ) {
 		$this->pipe = $pipe;

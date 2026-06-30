@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
-
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
@@ -142,10 +141,7 @@ class PageTemplates extends ProcessorBase {
 	 * @throws InvalidTitleException
 	 */
 	private function buildTemplateTitle( string $name, ?int $spaceId ): string {
-		$map = $this->workspaceDB->getMapSpaceIdToPrefix();
-		$this->output->writeln( "DEBUG:" . json_encode($map) );
-
-		$builder = new GenericTitleBuilder( $map );
+		$builder = new GenericTitleBuilder( $this->workspaceDB->getMapSpaceIdToPrefix() );
 		$builder->setNamespace( GenericTitleBuilder::NS_TEMPLATE );
 
 		$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();

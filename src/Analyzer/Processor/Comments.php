@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 

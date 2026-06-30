@@ -143,9 +143,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 
 		$this->initMigrationConfig();
 		$this->initWorkspaceDB();
-		if ( $this->pipe === false ) {
-			$this->initDBLog();
-		}
+		$this->initDBLog();
 
 		$result = parent::analyze( $file );
 

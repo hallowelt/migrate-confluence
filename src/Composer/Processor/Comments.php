@@ -55,6 +55,10 @@ class Comments extends ProcessorBase {
 				continue;
 			}
 
+			if ( $wikiTitle === null || $wikiTitle === '' ) {
+				continue;
+			}
+
 			if ( !isset( $pageIdToCommentIds[$containerContentId] ) ) {
 				$pageIdToCommentIds[$containerContentId] = [];
 			}

@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
-
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
