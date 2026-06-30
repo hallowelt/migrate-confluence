@@ -109,7 +109,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			}
 
 			if ( empty( $wikiTitle ) ) {
-				$message = "TitleCompressor delivers empty wiki title for page id $pageId";
+				$message = "TitleBuilder delivers empty wiki title for page $confluenceTitle (page id $pageId)";
 
 				$this->dbLog->addLogEntry(
 					'error',
