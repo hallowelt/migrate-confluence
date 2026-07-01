@@ -179,7 +179,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return string
 	 */
 	public function convert( SplFileInfo $file ): string {
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite', true );
+		$this->workspaceDB = WorkspaceDB::openExisting( $this->dest . '/workspace.sqlite', true );
 
 		if ( isset( $this->config['config'] ) ) {
 			$this->migrationConfig = new MigrationConfig( $this->config['config'] );

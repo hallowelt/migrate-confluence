@@ -2,10 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
-use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
-use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
@@ -19,159 +17,89 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
-use HalloWelt\MigrateConfluence\IDestinationPathAware;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use HalloWelt\MigrateConfluence\Utility\PipeToDB;
-use HalloWelt\MigrateConfluence\Utility\Version;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use SplFileInfo;
-use Symfony\Component\Console\Output\Output;
+use Symfony\Component\Console\Output\OutputInterface;
 use XMLReader;
 
-class ConfluenceAnalyzer extends AnalyzerBase
-	implements LoggerAwareInterface, IOutputAwareInterface, IDestinationPathAware, IPipeSender
-{
-	/** @var string */
-	private string $dest = '';
+class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 
 	/** @var LoggerInterface|NullLogger */
 	private LoggerInterface|NullLogger $logger;
 
-	/** @var Output|null */
-	private ?Output $output = null;
-
-	/** @var SplFileInfo */
-	private SplFileInfo $file;
-
-	/** @var MigrationConfig */
-	private MigrationConfig $migrationConfig;
-
-	/** @var WorkspaceDB */
-	private WorkspaceDB $workspaceDB;
-
-	/** @var DBLog */
-	private DBLog $dbLog;
-
-	/** @var resource|false */
-	private $pipe = false;
-
 	/**
-	 *
-	 * @param array $config
-	 * @param Workspace $workspace
-	 * @param DataBuckets $buckets
+	 * @param IAnalysisDataWriter $writer
+	 * @param WorkspaceDB $workspaceDB
+	 * @param OutputInterface $output
+	 * @param MigrationConfig $config
 	 */
-	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
-		parent::__construct( $config, $workspace, $buckets );
-
+	public function __construct(
+		private readonly IAnalysisDataWriter $writer,
+		private readonly WorkspaceDB $workspaceDB,
+		private readonly OutputInterface $output,
+		private readonly MigrationConfig $config,
+	) {
 		$this->logger = new NullLogger();
 	}
 
 	/**
-	 * @param string $dest
-	 * @return void
-	 */
-	public function setDestinationPath( string $dest ): void {
-		$this->dest = $dest;
-	}
-
-	/**
-	 * @param resource|false $pipe
-	 */
-	public function setPipe( $pipe ): void {
-		$this->pipe = $pipe;
-	}
-
-	/**
-	 * @return void
-	 */
-	private function initWorkspaceDB(): void {
-		$pipe = $this->pipe !== false ? new PipeToDB( $this->pipe ) : null;
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite', false, $pipe );
-	}
-
-	/**
-	 * @return void
-	 */
-	private function initDBLog(): void {
-		$this->dbLog = new DBLog( $this->workspaceDB );
-		$this->dbLog->addLogEntry(
-			'info',
-			'analyze',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
-	}
-
-	/**
-	 * @return void
-	 */
-	private function initMigrationConfig(): void {
-		$advancedConfig = [];
-		if ( isset( $this->config['config'] ) ) {
-			$advancedConfig = $this->config['config'];
-		}
-		$this->migrationConfig = new MigrationConfig( $advancedConfig );
-	}
-
-	/**
 	 * @param LoggerInterface $logger
+	 *
+	 * @return void
 	 */
 	public function setLogger( LoggerInterface $logger ): void {
 		$this->logger = $logger;
 	}
 
 	/**
-	 * @param Output $output
-	 */
-	public function setOutput( Output $output ): void {
-		$this->output = $output;
-	}
-
-	/**
 	 * @param SplFileInfo $file
+	 *
 	 * @return bool
 	 */
 	public function analyze( SplFileInfo $file ): bool {
-		$this->file = $file;
-		if ( $this->file->getFilename() !== 'entities.xml' ) {
+		if ( $file->getFilename() !== 'entities.xml' ) {
 			return true;
 		}
 
-		$this->initMigrationConfig();
-		$this->initWorkspaceDB();
-		$this->initDBLog();
+		$this->output->writeln( "\nAnalyze data:" );
 
-		$result = parent::analyze( $file );
+		$processors = $this->getProcessors( $file->getPath() );
 
-		return $result;
+		$this->workspaceDB->beginTransaction();
+		$this->processFile( $file->getPathname(), $processors );
+		$this->workspaceDB->commitTransaction();
+
+		return true;
 	}
 
 	/**
+	 * @param string $xmlPath
+	 *
 	 * @return array
 	 */
-	private function getProcessors(): array {
+	private function getProcessors( string $xmlPath ): array {
 		return [
-			'BodyContent' => new BodyContents( $this->workspaceDB ),
-			'Space' => new Spaces( $this->workspaceDB, $this->migrationConfig ),
-			'SpaceDescription' => new SpaceDescription( $this->workspaceDB, $this->migrationConfig ),
-			'Page' => new Page( $this->workspaceDB, $this->migrationConfig ),
-			'BlogPost' => new BlogPost( $this->workspaceDB, $this->migrationConfig ),
-			'Attachment' => new Attachments( $this->workspaceDB, $this->migrationConfig, $this->file->getPath() ),
-			'Comment' => new Comments( $this->workspaceDB ),
-			'Label' => new Label( $this->workspaceDB ),
-			'Labelling' => new Labelling( $this->workspaceDB ),
-			'ContentProperty' => new ContentProperty( $this->workspaceDB ),
-			'ConfluenceUserImpl' => new Users( $this->workspaceDB ),
-			'PageTemplate' => new PageTemplates( $this->workspaceDB ),
+			'BodyContent' => new BodyContents( $this->writer ),
+			'Space' => new Spaces( $this->writer, $this->config ),
+			'SpaceDescription' => new SpaceDescription( $this->writer, $this->config ),
+			'Page' => new Page( $this->writer, $this->config ),
+			'BlogPost' => new BlogPost( $this->writer, $this->config ),
+			'Attachment' => new Attachments( $this->writer, $this->config, $xmlPath ),
+			'Comment' => new Comments( $this->writer ),
+			'Label' => new Label( $this->writer ),
+			'Labelling' => new Labelling( $this->writer ),
+			'ContentProperty' => new ContentProperty( $this->writer ),
+			'ConfluenceUserImpl' => new Users( $this->writer ),
+			'PageTemplate' => new PageTemplates( $this->writer, $this->workspaceDB ),
 		];
 	}
 
 	/**
 	 * @param array $processors
+	 *
 	 * @return void
 	 */
 	private function initProcessors( array $processors ): void {
@@ -184,19 +112,20 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	}
 
 	/**
+	 * @param string $filepath
 	 * @param array $processors
+	 *
 	 * @return void
 	 */
-	private function processFile( array $processors ): void {
+	private function processFile( string $filepath, array $processors ): void {
 		$this->initProcessors( $processors );
 
 		$xmlReader = new XMLReader();
-		$xmlReader->open( $this->file->getPathname() );
+		$xmlReader->open( $filepath );
 
 		$read = $xmlReader->read();
 		while ( $read ) {
 			if ( $xmlReader->name !== 'object' ) {
-				// Usually all root nodes should be objects.
 				$read = $xmlReader->read();
 				continue;
 			}
@@ -214,21 +143,5 @@ class ConfluenceAnalyzer extends AnalyzerBase
 			$read = $xmlReader->next();
 		}
 		$xmlReader->close();
-	}
-
-	/**
-	 *
-	 * @param SplFileInfo $file
-	 * @return bool
-	 */
-	protected function doAnalyze( SplFileInfo $file ): bool {
-		$this->output->writeln( "\nAnalyze data:" );
-		$processors = $this->getProcessors();
-
-		$this->workspaceDB->beginTransaction();
-		$this->processFile( $processors );
-
-		$this->workspaceDB->commitTransaction();
-		return true;
 	}
 }

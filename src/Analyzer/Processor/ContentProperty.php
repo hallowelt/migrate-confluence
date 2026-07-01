@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
 use XMLReader;
 
 /**
@@ -13,10 +13,10 @@ use XMLReader;
 class ContentProperty extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IAnalysisDataWriter $writer
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB
+		private IAnalysisDataWriter $writer
 	) {
 	}
 
@@ -50,7 +50,7 @@ class ContentProperty extends ProcessorBase {
 			return;
 		}
 
-		$status = $this->workspaceDB->addContentProperty(
+		$status = $this->writer->addContentProperty(
 			$propertyId,
 			$propName,
 			$contentClass,
@@ -58,7 +58,7 @@ class ContentProperty extends ProcessorBase {
 		);
 
 		if ( !$status ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'error',
 				'analyze',
 				__CLASS__,

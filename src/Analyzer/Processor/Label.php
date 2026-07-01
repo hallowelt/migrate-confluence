@@ -2,16 +2,16 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
 use XMLReader;
 
 class Label extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IAnalysisDataWriter $writer
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB
+		private IAnalysisDataWriter $writer
 	) {
 	}
 
@@ -41,7 +41,7 @@ class Label extends ProcessorBase {
 			return;
 		}
 
-		$status = $this->workspaceDB->addLabel(
+		$status = $this->writer->addLabel(
 			$labelId,
 			$properties['name'],
 			$properties['namespace'],
@@ -49,7 +49,7 @@ class Label extends ProcessorBase {
 		);
 
 		if ( !$status ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'error',
 				'analyze',
 				__CLASS__,

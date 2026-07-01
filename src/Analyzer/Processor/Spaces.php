@@ -2,18 +2,18 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 class Spaces extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IAnalysisDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB,
+		private IAnalysisDataWriter $writer,
 		private MigrationConfig $migrationConfig
 	) {
 	}
@@ -75,7 +75,7 @@ class Spaces extends ProcessorBase {
 			$customSpacePrefix = '';
 		}
 
-		$status = $this->workspaceDB->addSpace(
+		$status = $this->writer->addSpace(
 			$spaceId,
 			$spaceKey,
 			isset( $properties['name'] ) ? $properties['name'] : '',
@@ -85,7 +85,7 @@ class Spaces extends ProcessorBase {
 		);
 
 		if ( !$status ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'error',
 				'analyze',
 				__CLASS__,

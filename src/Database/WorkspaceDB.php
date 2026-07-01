@@ -3,13 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Database;
 
 use Exception;
-use HalloWelt\MigrateConfluence\Utility\PipeToDB;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
 use InvalidArgumentException;
 use SQLite3;
 use SQLite3Result;
 use SQLite3Stmt;
 
-class WorkspaceDB {
+class WorkspaceDB implements IAnalysisDataWriter {
 
 	/** @var SQLite3 */
 	private SQLite3 $db;
@@ -21,23 +21,45 @@ class WorkspaceDB {
 	private bool $readonly = false;
 
 	/**
-	 * When set, all write calls are forwarded to the orchestrator via this pipe
-	 * instead of being executed locally. Transaction methods become no-ops.
+	 * @param string $path
+	 * @return self
+	 * @throws \RuntimeException if the file already exists
 	 */
-	private ?PipeToDB $pipe = null;
+	public static function createNew( string $path ): self {
+		if ( file_exists( $path ) ) {
+			throw new \RuntimeException( "Workspace DB already exists at '$path'" );
+		}
+		return new self( $path, false, true );
+	}
+
+	/**
+	 * @param string $path
+	 * @param bool $readonly
+	 * @return self
+	 * @throws \RuntimeException if the file does not exist
+	 */
+	public static function openExisting( string $path, bool $readonly = false ): self {
+		if ( !file_exists( $path ) ) {
+			throw new \RuntimeException(
+				"Workspace DB not found at '$path' — did you run the analyze step first?"
+			);
+		}
+		return new self( $path, $readonly, false );
+	}
 
 	/**
 	 * @param string $name
 	 * @param bool $readonly
-	 * @param PipeToDB|null $pipe
+	 * @param bool $create
 	 */
-	public function __construct( string $name, bool $readonly = false, ?PipeToDB $pipe = null ) {
-		$this->pipe = $pipe;
-		$this->readonly = $readonly || $pipe !== null;
-		$this->db = new SQLite3(
-			$name,
-			$this->readonly ? SQLITE3_OPEN_READONLY : ( SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE )
-		);
+	private function __construct( string $name, bool $readonly = false, bool $create = false ) {
+		$this->readonly = $readonly;
+		if ( $create ) {
+			$flags = SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE;
+		} else {
+			$flags = $this->readonly ? SQLITE3_OPEN_READONLY : SQLITE3_OPEN_READWRITE;
+		}
+		$this->db = new SQLite3( $name, $flags );
 		$this->db->enableExceptions( true );
 
 		$this->db->busyTimeout( 5000 );
@@ -49,24 +71,10 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * Forward a write call through the pipe to the orchestrator.
-	 *
-	 * @return bool true when the call was forwarded (caller should return immediately),
-	 *              false when local execution should proceed normally.
-	 */
-	private function sendViaPipe( string $method, mixed ...$args ): bool {
-		if ( $this->pipe === null ) {
-			return false;
-		}
-		$this->pipe->send( $method, ...$args );
-		return true;
-	}
-
-	/**
 	 * @return void
 	 */
 	public function beginTransaction(): void {
-		if ( $this->pipe !== null ) {
+		if ( $this->readonly ) {
 			return;
 		}
 		$this->db->exec( 'BEGIN TRANSACTION' );
@@ -76,7 +84,7 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function commitTransaction(): void {
-		if ( $this->pipe !== null ) {
+		if ( $this->readonly ) {
 			return;
 		}
 		$this->db->exec( 'COMMIT' );
@@ -695,9 +703,6 @@ class WorkspaceDB {
 	public function addLogEntry(
 		string $type, string $step, string $caller, string $text
 	): void {
-		if ( $this->sendViaPipe( __FUNCTION__, $type, $step, $caller, $text ) ) {
-			return;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO logging (
 				type,
@@ -749,9 +754,6 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function addInvalidPageWikiTitle( int $pageId, string $wikiTitle, string $text ): void {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $wikiTitle, $text ) ) {
-			return;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT OR IGNORE INTO page_invalid_titles (
 				page_id,
@@ -784,9 +786,6 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function addInvalidBlogPostWikiTitle( int $blogPostId, string $wikiTitle, string $text ): void {
-		if ( $this->sendViaPipe( __FUNCTION__, $blogPostId, $wikiTitle, $text ) ) {
-			return;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT OR IGNORE INTO blog_post_invalid_titles (
 				page_id,
@@ -818,9 +817,6 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function addInvalidBodyContent( int $bodyContentId, string $text ): void {
-		if ( $this->sendViaPipe( __FUNCTION__, $bodyContentId, $text ) ) {
-			return;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT OR IGNORE INTO body_content_invalids (
 				body_content_id,
@@ -850,9 +846,6 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function addInvalidPageTemplateTitle( int $templateId, string $wikiTitle, string $text ): void {
-		if ( $this->sendViaPipe( __FUNCTION__, $templateId, $wikiTitle, $text ) ) {
-			return;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT OR IGNORE INTO page_template_invalid_titles (
 				template_id,
@@ -877,9 +870,6 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function addInvalidPageTemplateContent( int $templateId, string $text ): void {
-		if ( $this->sendViaPipe( __FUNCTION__, $templateId, $text ) ) {
-			return;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT OR IGNORE INTO page_template_invalid_contents (
 				template_id,
@@ -1436,9 +1426,6 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function addInvalidAttachmentTitle( int $attachmentId, string $wikiTitle, string $text ): void {
-		if ( $this->sendViaPipe( __FUNCTION__, $attachmentId, $wikiTitle, $text ) ) {
-			return;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT OR IGNORE INTO attachment_invalid_titles (
 				attachment_id,
@@ -1501,9 +1488,6 @@ class WorkspaceDB {
 		int $spaceId, string $spaceKey, string $spaceName,
 		string $prefix, int $homepageId, int $descriptionId
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $spaceId, $spaceKey, $spaceName, $prefix, $homepageId, $descriptionId ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO spaces (
 				space_id,
@@ -1607,9 +1591,6 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updateSpaceHomepageId( int $spaceId, int $homepageId ): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $spaceId, $homepageId ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'UPDATE spaces SET homepage_id = :homepage_id WHERE space_id = :space_id'
 		);
@@ -1732,9 +1713,6 @@ class WorkspaceDB {
 		int $originalVersionId, string $revisionTimestamp, array $bodyContentIds,
 		array $labellingIds, array $properties, array $collection
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $spaceDescriptionId, $contentStatus, $version, $originalVersionId, $revisionTimestamp, $bodyContentIds, $labellingIds, $properties, $collection ) ) {
-			return true;
-		}
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$labellingIdsJson = json_encode( $labellingIds );
 		$propertiesJson = json_encode( $properties );
@@ -1928,9 +1906,6 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updateSpaceDescriptionBodyContentIds( int $spaceDescriptionId, array $bodyContentIds ): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $spaceDescriptionId, $bodyContentIds ) ) {
-			return true;
-		}
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$transaction = $this->cachedPrepare(
 			'UPDATE spaces_descriptions SET body_content_ids = :body_content_ids
@@ -1975,9 +1950,6 @@ class WorkspaceDB {
 		array $properties,
 		array $collection
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $spaceId, $confluenceTitle, $wikiTitle, $contentStatus, $revisionTimestamp, $lastModifier, $version, $originalVersionId, $parentPageId, $bodyContentIds, $historicalIds, $properties, $collection ) ) {
-			return true;
-		}
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$historicalIdsJson = json_encode( $historicalIds );
 		$propertiesJson = json_encode( $properties );
@@ -2043,9 +2015,6 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updatePageWikiTitle( int $pageId, string $wikiTitle ): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $wikiTitle ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'UPDATE pages SET wiki_title = :wiki_title WHERE page_id = :page_id'
 		);
@@ -2061,9 +2030,6 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updatePageSpaceId( int $pageId, int $spaceId ): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $spaceId ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'UPDATE pages SET space_id = :space_id WHERE page_id = :page_id'
 		);
@@ -2266,9 +2232,6 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updatePageBodyContentIds( int $pageId, array $bodyContentIds ): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $bodyContentIds ) ) {
-			return true;
-		}
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$transaction = $this->cachedPrepare(
 			'UPDATE pages SET body_content_ids = :body_content_ids WHERE page_id = :page_id'
@@ -2398,9 +2361,6 @@ class WorkspaceDB {
 		array $properties,
 		array $collection
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $spaceId, $confluenceTitle, $wikiTitle, $contentStatus, $revisionTimestamp, $lastModifier, $version, $originalVersionId, $bodyContentIds, $historicalIds, $properties, $collection ) ) {
-			return true;
-		}
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$historicalIdsJson = json_encode( $historicalIds );
 		$propertiesJson = json_encode( $properties );
@@ -2487,9 +2447,6 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updateBlogPostWikiTitle( int $pageId, string $wikiTitle ): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $wikiTitle ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'UPDATE blog_posts SET wiki_title = :wiki_title WHERE page_id = :page_id'
 		);
@@ -2505,9 +2462,6 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updateBlogPostSpaceId( int $pageId, int $spaceId ): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $spaceId ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'UPDATE blog_posts SET space_id = :space_id WHERE page_id = :page_id'
 		);
@@ -2525,9 +2479,6 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updateBlogPostBodyContentIds( int $pageId, array $bodyContentIds ): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $bodyContentIds ) ) {
-			return true;
-		}
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$transaction = $this->cachedPrepare(
 			'UPDATE blog_posts SET body_content_ids = :body_content_ids WHERE page_id = :page_id'
@@ -2684,9 +2635,6 @@ class WorkspaceDB {
 		string $class,
 		array $properties
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $bodyContentId, $contentId, $class, $properties ) ) {
-			return true;
-		}
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO body_contents (
@@ -2774,9 +2722,6 @@ class WorkspaceDB {
 		int $bodyContentId,
 		string $body
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $bodyContentId, $body ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO body_content_bodies (
 				body_content_id,
@@ -2881,9 +2826,6 @@ class WorkspaceDB {
 		array $properties,
 		array $collection
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $attachmentId, $spaceId, $filename, $fileExtension, $containerContentId, $contentStatus, $version, $revisionTimestamp, $lastModifier, $originalVersionId, $attachmentReference, $historicalIds, $properties, $collection ) ) {
-			return true;
-		}
 		$propertiesJson = json_encode( $properties );
 		$collectionJson = json_encode( $collection );
 		$historicalIdsJson = json_encode( $historicalIds );
@@ -3032,9 +2974,6 @@ class WorkspaceDB {
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $attachmentId, $pageId, $originalAttachmentFilename, $targetAttachmentFilename ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO page_attachments (
 				attachment_id,
@@ -3069,9 +3008,6 @@ class WorkspaceDB {
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $attachmentId, $blogPostId, $originalAttachmentFilename, $targetAttachmentFilename ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO blog_post_attachments (
 				attachment_id,
@@ -3104,9 +3040,6 @@ class WorkspaceDB {
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $attachmentId, $originalAttachmentFilename, $targetAttachmentFilename ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO additional_attachments (
 				attachment_id,
@@ -3477,9 +3410,6 @@ class WorkspaceDB {
 		string $email,
 		array $properties
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $userKey, $wikiUsername, $email, $properties ) ) {
-			return true;
-		}
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->cachedPrepare(
 			'INSERT OR IGNORE INTO users (
@@ -3550,9 +3480,6 @@ class WorkspaceDB {
 		string $class,
 		array $properties
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $propertyId, $propertyName, $class, $properties ) ) {
-			return true;
-		}
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO content_properties (
@@ -3598,9 +3525,6 @@ class WorkspaceDB {
 		int $commentId, int $containerContentId, string $class, string $contentStatus,
 		string $userKey, array $bodyContentIds, string $created, string $modified, array $properties
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $commentId, $containerContentId, $class, $contentStatus, $userKey, $bodyContentIds, $created, $modified, $properties ) ) {
-			return true;
-		}
 		$propertiesJson = json_encode( $properties );
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$transaction = $this->cachedPrepare(
@@ -3742,9 +3666,6 @@ class WorkspaceDB {
 	 * @return bool True on success, false on error.
 	 */
 	public function updateCommentBodyContentIds( int $commentId, array $bodyContentIds ): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $commentId, $bodyContentIds ) ) {
-			return true;
-		}
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$transaction = $this->cachedPrepare(
 			'UPDATE comments SET body_content_ids = :body_content_ids WHERE comment_id = :comment_id'
@@ -3764,9 +3685,6 @@ class WorkspaceDB {
 	public function addLabelling(
 		int $labellingId, int $labelId, array $properties
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $labellingId, $labelId, $properties ) ) {
-			return true;
-		}
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO labellings (
@@ -3844,9 +3762,6 @@ class WorkspaceDB {
 	public function addLabel(
 		int $labelId, string $name, string $namespace, array $properties
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $labelId, $name, $namespace, $properties ) ) {
-			return true;
-		}
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO labels (
@@ -3904,9 +3819,6 @@ class WorkspaceDB {
 	public function addPageMeta(
 		int $pageId, array $meta
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $meta ) ) {
-			return true;
-		}
 		$metaJson = json_encode( $meta );
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO pages_meta (
@@ -3938,9 +3850,6 @@ class WorkspaceDB {
 	public function addBlogPostMeta(
 		int $pageId, array $meta
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $pageId, $meta ) ) {
-			return true;
-		}
 		$metaJson = json_encode( $meta );
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO blog_posts_meta (
@@ -3972,9 +3881,6 @@ class WorkspaceDB {
 	public function addAttachmentMeta(
 		int $attachmentId, array $meta
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $attachmentId, $meta ) ) {
-			return true;
-		}
 		$metaJson = json_encode( $meta );
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO attachments_meta (
@@ -4011,9 +3917,6 @@ class WorkspaceDB {
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $spaceId, $confluenceTitle, $originalAttachmentFilename, $targetAttachmentFilename ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO gliffy (
 				space_id,
@@ -4155,9 +4058,6 @@ class WorkspaceDB {
 		array $collection = [],
 		string $contentStatus = 'current'
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $templateId, $confluenceTitle, $spaceId, $wikiTitle, $revisionTimestamp, $version, $properties, $collection, $contentStatus ) ) {
-			return true;
-		}
 		$propertiesJson = json_encode( $properties );
 		$collectionJson = json_encode( $collection );
 		$transaction = $this->cachedPrepare(
@@ -4257,9 +4157,6 @@ class WorkspaceDB {
 		int $templateId,
 		string $content,
 	): bool {
-		if ( $this->sendViaPipe( __FUNCTION__, $templateId, $content ) ) {
-			return true;
-		}
 		$transaction = $this->cachedPrepare(
 			'INSERT OR REPLACE INTO page_template_contents (
 				template_id,

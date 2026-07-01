@@ -2,18 +2,18 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 class BlogPost extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IAnalysisDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB,
+		private IAnalysisDataWriter $writer,
 		private MigrationConfig $migrationConfig
 	) {
 	}
@@ -63,7 +63,7 @@ class BlogPost extends ProcessorBase {
 
 		$confluenceTitle = $properties['title'] ?? "";
 		if ( empty( $confluenceTitle ) ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'analyze',
 				__CLASS__,
@@ -106,7 +106,7 @@ class BlogPost extends ProcessorBase {
 		if ( empty( $bodyContentIds ) ) {
 			$warning = "Warning: No body content IDs found for page '$confluenceTitle' (ID:$pageId)";
 			$this->output->writeln( $warning );
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'analyze',
 				__CLASS__,
@@ -119,7 +119,7 @@ class BlogPost extends ProcessorBase {
 			$historicalIds = $collection['historicalVersions'];
 		}
 
-		$status = $this->workspaceDB->addBlogPost(
+		$status = $this->writer->addBlogPost(
 			$pageId,
 			$spaceId,
 			$confluenceTitle,
@@ -136,7 +136,7 @@ class BlogPost extends ProcessorBase {
 		);
 
 		if ( !$status ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'error',
 				'analyze',
 				__CLASS__,

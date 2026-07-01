@@ -4,22 +4,18 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 class PageTemplates extends ProcessorBase {
 
-	/**
-	 * @param WorkspaceDB $workspaceDB
-	 */
 	public function __construct(
+		private IAnalysisDataWriter $writer,
 		private WorkspaceDB $workspaceDB
 	) {
 	}
 
-	/**
-	 * @inheritDoc
-	 */
 	public function doExecute(): void {
 		$templateId = null;
 		$properties = [];
@@ -42,11 +38,11 @@ class PageTemplates extends ProcessorBase {
 		}
 
 		if ( $templateId === null ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'analyze',
 				__CLASS__,
-				"Page Template has no ID."
+				'Page Template has no ID.'
 			);
 
 			return;
@@ -54,7 +50,7 @@ class PageTemplates extends ProcessorBase {
 
 		$name = $properties['name'] ?? '';
 		if ( $name === '' ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'analyze',
 				__CLASS__,
@@ -66,11 +62,6 @@ class PageTemplates extends ProcessorBase {
 
 		$spaceId = isset( $properties['space'] ) ? (int)$properties['space'] : null;
 		if ( $spaceId === null ) {
-			// History version of a template is missing space, original_version_id
-			// or history_version_ids.
-			// It is not possible to link a template revision to its original template_id
-			// or other revisions, especially if more than.
-			// Therefore we skip the template if space is missing for now.
 			return;
 		}
 
@@ -85,14 +76,14 @@ class PageTemplates extends ProcessorBase {
 		try {
 			$wikiTitle = $this->buildTemplateTitle( $name, $spaceId );
 		} catch ( InvalidTitleException $e ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'analyze',
 				__CLASS__,
 				"Page Template with ID $templateId has invalid title '$name': " . $e->getMessage()
 			);
 
-			$this->workspaceDB->addInvalidPageTemplateTitle(
+			$this->writer->addInvalidPageTemplateTitle(
 				$templateId,
 				$wikiTitle,
 				"Page Template with ID $templateId has invalid title '$name': " . $e->getMessage()
@@ -101,11 +92,11 @@ class PageTemplates extends ProcessorBase {
 			return;
 		}
 
-		$this->workspaceDB->addPageTemplateContents( $templateId, $content );
+		$this->writer->addPageTemplateContents( $templateId, $content );
 
 		unset( $properties['content'] );
 
-		$status = $this->workspaceDB->addPageTemplate(
+		$status = $this->writer->addPageTemplate(
 			$templateId,
 			$name,
 			$spaceId,
@@ -118,28 +109,18 @@ class PageTemplates extends ProcessorBase {
 		);
 
 		if ( !$status ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'error',
 				'analyze',
 				__CLASS__,
 				"Failed to add page '$name' (ID: $templateId) to the database."
-				. " This may indicate a problem with the page id. Maybe it does exist twice."
+				. ' This may indicate a problem with the page id. Maybe it does exist twice.'
 			);
 		}
 
 		$this->output->writeln( "Add page template '$name' (ID:$templateId)" );
 	}
 
-	/**
-	 * Build the wiki title for the template page upfront.
-	 * This avoids relying on updatePageTableWithWikiTitle() which doesn't handle templates.
-	 *
-	 * @param string $name
-	 * @param int|null $spaceId
-	 *
-	 * @return string
-	 * @throws InvalidTitleException
-	 */
 	private function buildTemplateTitle( string $name, ?int $spaceId ): string {
 		$builder = new GenericTitleBuilder( $this->workspaceDB->getMapSpaceIdToPrefix() );
 		$builder->setNamespace( GenericTitleBuilder::NS_TEMPLATE );
@@ -147,7 +128,6 @@ class PageTemplates extends ProcessorBase {
 		$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();
 		if ( isset( $spaces[$spaceId] ) ) {
 			$spacePrefix = $spaces[$spaceId];
-			// Remove colon from space prefix
 			$spacePrefix = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) );
 			$builder->appendTitleSegment( $spacePrefix );
 		}

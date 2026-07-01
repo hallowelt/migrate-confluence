@@ -9,9 +9,6 @@ use HalloWelt\MigrateConfluence\Command\GetVersion;
 
 $config = [
 	'file-extension-whitelist' => [ 'xml' ],
-	'analyzers' => [
-		'HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer::factory'
-	],
 	'extractors' => [
 		'HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor::factory'
 	],

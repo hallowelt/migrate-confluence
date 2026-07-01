@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 use XMLReader;
@@ -10,12 +10,12 @@ use XMLReader;
 class Attachments extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IAnalysisDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 * @param string $xmlPath
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB,
+		private IAnalysisDataWriter $writer,
 		private MigrationConfig $migrationConfig,
 		private string $xmlPath
 	) {
@@ -115,7 +115,7 @@ class Attachments extends ProcessorBase {
 			$properties
 		);
 
-		$this->workspaceDB->addAttachment(
+		$this->writer->addAttachment(
 			$attachmentId,
 			$spaceId,
 			$confluenceFilename,
