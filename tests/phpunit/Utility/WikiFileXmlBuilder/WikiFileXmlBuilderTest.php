@@ -54,7 +54,7 @@ class WikiFileXmlBuilderTest extends TestCase {
 		$builder->buildAndSave( $tmpPath );
 
 		$actual = file_get_contents( $tmpPath );
-		$expected = file_get_contents( __DIR__ . '/expected-file-xml-with-comment.xml' );
+		$expected = file_get_contents( __DIR__ . '/expected-file-xml-with-text.xml' );
 
 		$this->assertEquals( $expected, $actual );
 	}
