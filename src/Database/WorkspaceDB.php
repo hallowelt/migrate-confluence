@@ -4338,10 +4338,24 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
+	 * @param int $attachmentId
+	 * @return array Decoded meta array, or empty array if not found.
 	 */
-	public function getAttachmentMeta(): array {
-		return $this->getAllData( 'attachments_meta' );
+	public function getAttachmentMetaById( int $attachmentId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT meta FROM attachments_meta WHERE attachment_id = :attachment_id LIMIT 1'
+		);
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+		if ( $row === false || !isset( $row['meta'] ) ) {
+			return [];
+		}
+		return json_decode( $row['meta'], true ) ?? [];
 	}
 
 	/**

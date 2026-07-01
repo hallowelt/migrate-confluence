@@ -24,7 +24,7 @@ class ExtractAttachmentsMetaDataTest extends TestCase {
 				'attachment_id' => 50,
 				'wiki_title' => 'File:Sample.png',
 				'original_version_id' => -1,
-				'collection' => [ 'labellings' => [ 202 ] ],
+				'collection' => json_encode( [ 'labellings' => [ 202 ] ] ),
 			],
 		] );
 		$workspaceDB->method( 'getLabellingById' )->with( 202 )->willReturn( [ 'label_id' => 302 ] );

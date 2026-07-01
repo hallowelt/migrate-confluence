@@ -272,7 +272,6 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				$data['origFilename'],
 				$data['wikiTitle']
 			);
-			$this->addAttachmentDescription( $attachmentId, $data['wikiTitle'], $data['origFilename'] );
 		}
 	}
 
@@ -301,33 +300,6 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		}
 
 		return $spaceIdToPrefixMap;
-	}
-
-	/**
-	 * If the original filename is not preserved in the wiki title (e.g. due to abbreviation),
-	 * generate a file description wikitext and store it in the database.
-	 */
-	protected function addAttachmentDescription(
-		int $attachmentId, string $targetTitle, string $originalFilename
-	): void {
-		if ( $originalFilename === '' ) {
-			return;
-		}
-		$normalized = str_replace( [ ' ', '/' ], '_', $originalFilename );
-		$normalized = preg_replace( '/_+/', '_', $normalized ) ?? $normalized;
-
-		$colonPos = strpos( $targetTitle, ':' );
-		$localTarget = $colonPos !== false ? substr( $targetTitle, $colonPos + 1 ) : $targetTitle;
-
-		// Case-insensitive: WindowsFilename applies ucfirst() which must not cause false positives.
-		if ( stripos( $localTarget, $normalized ) !== false ) {
-			return;
-		}
-
-		$quotedFileName = htmlspecialchars( $originalFilename, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
-		$description = "Original file name: <nowiki>$quotedFileName</nowiki>\n"
-			. "{{DISPLAYTITLE:$quotedFileName|noerror}}";
-		$this->workspaceDB->addAttachmentDescription( $attachmentId, $description );
 	}
 
 	/**
