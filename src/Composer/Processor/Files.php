@@ -90,7 +90,7 @@ class Files extends FileProcessorBase {
 		}
 
 		$originalFilename = $attachmentRecord['original_attachment_filename'] ?? '';
-		$comment = $this->buildShorteningComment( $attachmentPageTitle, $originalFilename );
+		$pageText = $this->buildFileDescription( $attachmentPageTitle, $originalFilename );
 
 		$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 		foreach ( $attachments as $attachment ) {
@@ -131,7 +131,7 @@ class Files extends FileProcessorBase {
 					$this->getRelativeFilePath( $uploadFilePath ),
 					$timestamp,
 					'',
-					$comment
+					$pageText
 				);
 
 				// Log file extension
@@ -209,7 +209,7 @@ class Files extends FileProcessorBase {
 					 */
 
 					$originalFilename = $additionalAttachment['original_attachment_filename'] ?? '';
-					$comment = $this->buildShorteningComment( $attachmentPageTitle, $originalFilename );
+					$pageText = $this->buildFileDescription( $attachmentPageTitle, $originalFilename );
 
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					$this->builder->addFileRevision(
@@ -217,7 +217,7 @@ class Files extends FileProcessorBase {
 						$this->getRelativeFilePath( $uploadFilePath ),
 						$timestamp,
 						'',
-						$comment
+						$pageText
 					);
 
 					// Log file extension
@@ -232,7 +232,7 @@ class Files extends FileProcessorBase {
 	/**
 	 * Return a comment noting the original file name when we altered it (e.g. through abbreviation)
 	 */
-	private function buildShorteningComment( string $targetTitle, string $originalFilename ): string {
+	private function buildFileDescription( string $targetTitle, string $originalFilename ): string {
 		if ( $originalFilename === '' ) {
 			return '';
 		}
