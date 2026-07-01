@@ -85,13 +85,14 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 	 * @param string $path
 	 * @param string $timestamp
 	 * @param string $contributor
+	 * @param string $comment
 	 * @return void
 	 */
 	protected function addFileRevision(
 		string $fileTitle, string $path,
-		string $timestamp = '', string $contributor = '' ): void {
+		string $timestamp = '', string $contributor = '', string $comment = '' ): void {
 		$this->builder->addFileRevision(
-			$fileTitle, $path, $timestamp, $contributor
+			$fileTitle, $path, $timestamp, $contributor, $comment
 		);
 		$this->numOfRevisions++;
 

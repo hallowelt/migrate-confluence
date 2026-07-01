@@ -36,6 +36,29 @@ class WikiFileXmlBuilderTest extends TestCase {
 		$this->assertEquals( $expected, $actual );
 	}
 
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Utility\WikiFileXmlBuilder::addFileRevision
+	 */
+	public function testBuildAndSaveWithComment(): void {
+		$builder = new WikiFileXmlBuilder();
+
+		$builder->addFileRevision(
+			'NS:Page~1-Long_File~1.pdf',
+			'./images/NS_Page~1-Long_File~1.pdf',
+			'20260524123159',
+			'SomeUser',
+			"Original file name: <nowiki>Long File Name.pdf</nowiki>\n{{DISPLAYTITLE:Long File Name.pdf|noerror}}"
+		);
+
+		$tmpPath = tempnam( sys_get_temp_dir(), 'wiki-file-xmlbuilder-' ) . '.xml';
+		$builder->buildAndSave( $tmpPath );
+
+		$actual = file_get_contents( $tmpPath );
+		$expected = file_get_contents( __DIR__ . '/expected-file-xml-with-comment.xml' );
+
+		$this->assertEquals( $expected, $actual );
+	}
+
 	private function getFileData(): array {
 		return [
 			'dummy_1.png' => [
