@@ -179,7 +179,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceDepe
 			$basePath .= $this->subDir . '/';
 		}
 		if ( !file_exists( $basePath ) ) {
-			mkdir( $basePath, 755 );
+			mkdir( $basePath, 0755 );
 		}
 		return $basePath;
 	}

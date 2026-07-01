@@ -111,7 +111,7 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 
 		$basePath = $this->getBasePath();
 
-		$this->builder->buildAndSave( "$basePath/$name" );
+		$this->builder->buildAndSave( $basePath . $name );
 		$this->builder->reset();
 	}
 
@@ -202,7 +202,7 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 			$basePath .= $this->subDir . '/';
 		}
 		if ( !file_exists( $basePath ) ) {
-			mkdir( $basePath, 755 );
+			mkdir( $basePath, 0755 );
 		}
 		return $basePath;
 	}
