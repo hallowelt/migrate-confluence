@@ -243,6 +243,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
 				$this->contentType = 'spaceDescription';
 				$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
+				if ( !$this->currentSpace ) {
+					$this->addNonBlockingLogEntry(
+						"No matching space id found for bodyContentId $bodyContentId",
+						'error'
+					);
+
+					return "<-- No space id found for space description $contentId -->";
+				}
 				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
 
 				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId )
