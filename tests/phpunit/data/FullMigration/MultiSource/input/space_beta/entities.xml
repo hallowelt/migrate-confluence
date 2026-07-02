@@ -1,4 +1,16 @@
 <hibernate-generic datetime="2020-01-01 00:00:00">
+    <object class="Space" package="com.atlassian.confluence.spaces">
+        <id name="id">50000000</id>
+        <property name="name">Beta Primary Space</property>
+        <property name="key">BETA</property>
+        <property name="lowerKey">beta</property>
+        <property name="creationDate">2020-01-01 00:00:00.000</property>
+        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
+        <property name="spaceType">global</property>
+        <property name="spaceStatus" enum-class="SpaceStatus" package="com.atlassian.confluence.spaces">CURRENT
+        </property>
+    </object>
+
     <object class="Page" package="com.atlassian.confluence.pages">
         <id name="id">50000011</id>
         <property name="hibernateVersion">1</property>

@@ -50,13 +50,36 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$pages = $this->workspaceDB->getPages();
 		$pageIdToWikiTitleMap = [];
 		foreach ( $pages as $page ) {
-			if (
-				!isset( $page['page_id'] )
-				|| !isset( $page['space_id'] )
-				|| !isset( $page['confluence_title'] )
-				// historical versions
-				|| (int)$page['original_version_id'] !== -1
-			) {
+			if ( !isset( $page['page_id'] ) ) {
+				$this->dbLog->addLogEntry(
+					'warning',
+					'extract',
+					__CLASS__,
+					'Skipping page without page_id while updating wiki titles'
+				);
+				continue;
+			}
+
+			$pageId = (int)$page['page_id'];
+
+			if ( !isset( $page['space_id'] ) || !isset( $page['confluence_title'] ) ) {
+				$this->dbLog->addLogEntry(
+					'warning',
+					'extract',
+					__CLASS__,
+					"Skipping page $pageId while updating wiki titles: missing space_id or confluence_title"
+				);
+				continue;
+			}
+
+			// historical versions
+			if ( (int)$page['original_version_id'] !== -1 ) {
+				$this->dbLog->addLogEntry(
+					'info',
+					'extract',
+					__CLASS__,
+					"Skipping historical page $pageId while updating wiki titles"
+				);
 				continue;
 			}
 
@@ -84,9 +107,30 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 					"Could not build wiki title for page $pageId: " . $ex->getMessage()
 				);
 			}
+
+			if ( empty( $wikiTitle ) ) {
+				$message = "TitleBuilder delivers empty wiki title for page $confluenceTitle (page id $pageId)";
+
+				$this->dbLog->addLogEntry(
+					'error',
+					'extract',
+					__CLASS__,
+					$message
+				);
+
+				throw new Exception(
+					$message
+				);
+			}
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
+			$this->dbLog->addLogEntry(
+				'warning',
+				'extract',
+				__CLASS__,
+				"Could not find page with wiki title"
+			);
 			return;
 		}
 
@@ -96,6 +140,19 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
 
 		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
+			if ( empty( $wikiTitle ) ) {
+				$message = "TitleCompressor delivers empty wiki title for page id $pageId";
+
+				$this->dbLog->addLogEntry(
+					'error',
+					'extract',
+					__CLASS__,
+					$message
+				);
+				throw new Exception(
+					$message
+				);
+			}
 			$this->writeln(
 				"Updated wiki title for page ID $pageId with title: $wikiTitle"
 			);

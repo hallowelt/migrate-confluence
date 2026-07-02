@@ -53,10 +53,6 @@ class Comments extends ProcessorBase {
 		}
 
 		$contentStatus = $properties['contentStatus'] ?? null;
-		if ( strtolower( $contentStatus ) !== 'current' ) {
-			// Ignore comments that are not explicitly visible
-			return;
-		}
 
 		// Only handle page-level comments (containerContent must be a Page)
 		$containerContentId = isset( $properties['containerContent'] ) ? (int)$properties['containerContent'] : null;
@@ -93,6 +89,7 @@ class Comments extends ProcessorBase {
 			$commentId,
 			$containerContentId,
 			$containerContentClass,
+			$contentStatus,
 			$creatorKey,
 			$bodyContentIds,
 			$this->buildTimestamp( $created ),

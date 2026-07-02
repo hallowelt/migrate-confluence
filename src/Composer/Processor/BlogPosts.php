@@ -26,12 +26,12 @@ class BlogPosts extends ProcessorBase {
 		$wikiTitles = $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap();
 
 		foreach ( $wikiTitles as $blogPostId => $blogPostTitle ) {
-			if ( $this->skipHelper->skipBlogPost( $blogPostId ) ) {
-				$this->output->writeln( "Skip page $blogPostTitle." );
+			if ( $this->skipHelper->skipBlogPost( $blogPostTitle ) ) {
+				$this->output->writeln( "Skip blog post $blogPostTitle." );
 				$this->deploymentInfo->addSkippedPage( $blogPostTitle );
 				continue;
 			}
-			$this->output->writeln( "Processing page '$blogPostTitle' ..." );
+			$this->output->writeln( "Processing blog post '$blogPostTitle' ..." );
 
 			$namespace = $this->getNamespace( $blogPostTitle );
 
@@ -39,14 +39,16 @@ class BlogPosts extends ProcessorBase {
 			foreach ( $revisions as $revision ) {
 				$timestamp = $revision['revision_timestamp'];
 				$bodyContentIds = json_decode( $revision['body_content_ids'], true );
+				if ( !is_array( $bodyContentIds ) ) {
+					continue;
+				}
 
 				$pageContent = '';
 				foreach ( $bodyContentIds as $bodyContentId ) {
-					if ( $bodyContentId === '' ) {
+					if ( empty( $bodyContentId ) ) {
 						// Skip if no reference to a body content is not set
 						continue;
 					}
-
 					$this->output->writeln( "Getting '$bodyContentId' body content..." );
 					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
 				}

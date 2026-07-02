@@ -34,10 +34,14 @@ class Templates extends ProcessorBase {
 			foreach ( $revisions as $revision ) {
 				$timestamp = $revision['revision_timestamp'];
 				$templateContentIds = json_decode( $revision['template_content_ids'], true );
+				if ( !is_array( $templateContentIds ) ) {
+					continue;
+				}
 
 				$pageContent = '';
 				foreach ( $templateContentIds as $templateContentId ) {
-					if ( $templateContentId === '' ) {
+					if ( empty( $templateContentId ) ) {
+						// Skip if no reference to a body content is not set
 						continue;
 					}
 

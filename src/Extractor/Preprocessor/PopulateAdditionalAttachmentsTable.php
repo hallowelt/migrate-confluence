@@ -21,6 +21,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 	/** @inheritDoc */
 	protected function checkWikiTitleExists( string $wikiTitle ): bool {
 		return ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $wikiTitle )
+			|| $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $wikiTitle )
 			|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $wikiTitle )
 		);
 	}
@@ -64,7 +65,12 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 				|| !isset( $attachment['container_id'] )
 				|| !isset( $attachment['space_id'] )
 				|| !isset( $attachment['filename'] )
+				|| !isset( $attachment['content_status'] )
 			) {
+				continue;
+			}
+
+			if ( $attachment['content_status'] !== 'current' ) {
 				continue;
 			}
 
@@ -88,13 +94,27 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 				);
 			} catch ( Exception $ex ) {
 				$this->dbLog->addLogEntry(
-					'warning',
+					'error',
 					'analyze',
 					__CLASS__,
 					"Could not build target filename for attachment $attachmentId: "
 					. $ex->getMessage()
 				);
-				continue;
+			}
+
+			if ( empty( $attachmentWikiTitle ) ) {
+				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
+
+				$this->dbLog->addLogEntry(
+					'error',
+					'extract',
+					__CLASS__,
+					$message
+				);
+
+				throw new Exception(
+					$message
+				);
 			}
 
 			// Uncollide file title
@@ -118,6 +138,22 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 					'',
 					"-(" . (string)$counter . ")"
 				);
+
+				if ( empty( $attachmentWikiTitle ) ) {
+					$message = "TitleCompressor delivers empty wiki title for "
+					. "attachment id $attachmentId while uncolliding";
+
+					$this->dbLog->addLogEntry(
+						'error',
+						'extract',
+						__CLASS__,
+						$message
+					);
+
+					throw new Exception(
+						$message
+					);
+				}
 
 				$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
 				$counter++;

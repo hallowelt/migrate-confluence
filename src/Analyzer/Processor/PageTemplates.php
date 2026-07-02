@@ -79,6 +79,7 @@ class PageTemplates extends ProcessorBase {
 		$lastModificationDate = $properties['lastModificationDate'] ?? '';
 		$revisionTimestamp = $this->buildTimestamp( $lastModificationDate );
 		$version = $properties['version'] ?? '1';
+		$contentStatus = $properties['contentStatus'] ?? 'current';
 
 		$wikiTitle = '';
 		try {
@@ -112,7 +113,8 @@ class PageTemplates extends ProcessorBase {
 			$revisionTimestamp,
 			$version,
 			$properties,
-			$collection
+			$collection,
+			$contentStatus
 		);
 
 		if ( !$status ) {
