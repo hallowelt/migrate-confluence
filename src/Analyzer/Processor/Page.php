@@ -129,6 +129,7 @@ class Page extends ProcessorBase {
 			$spaceId,
 			$confluenceTitle,
 			'',
+			'',
 			$contentStatus,
 			$revisionTimestamp,
 			$lastModifier,

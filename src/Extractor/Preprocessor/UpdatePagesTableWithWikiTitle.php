@@ -255,7 +255,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			return '';
 		}
 
-		$namespace = $this->wikiConfig->getWikiConfigNamespaceForSpaceKey( $spaceKey );
+		$namespace = $this->wikiConfig->getNamespaceForSpaceKey( $spaceKey );
 		if ( !empty( $namespace ) ) {
 			// Ensure that the namespace ends with a colon
 			$namespace = trim( $namespace, ':' ) . ':';
@@ -274,7 +274,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			return '';
 		}
 
-		$rootpage = $this->wikiConfig->getWikiConfigRootPageForSpaceKey( $spaceKey );
+		$rootpage = $this->wikiConfig->getRootPageForSpaceKey( $spaceKey );
 		if ( !empty( $rootpage ) ) {
 			// Ensure that the root page ends with a slash
 			$rootpage = trim( $rootpage, '/' ) . '/';
@@ -292,12 +292,13 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 	 */
 	private function getInterwikiTitle( int $pageId,string $wikiTitle ): string {
 		$spaceId = $this->workspaceDB->getSpaceIdForPageId( $pageId );
-		$namespace = $this->getNamespaceForSpaceKey( $spaceId );
-		$interwikiPrefix = $this->wikiConfig->getWikiConfigWikiNameForSpaceId( $spaceId );
+		$spaceKey = $this->workspaceDB->getSpaceKeyFromSpaceId( $spaceId );
+		$namespace = $this->getNamespaceForSpaceKey( $spaceKey );
+		$interwikiPrefix = $this->wikiConfig->getInterwikiPrefixForSpaceKey( $spaceKey );
 
 		$pageTitle = $wikiTitle;
 		if ( !empty( $namespace ) ) {
-			$pageTitle = substr( $wikiTitle, 0, strlen( $namespace ) );
+			$pageTitle = substr( $wikiTitle, strlen( $namespace ) );
 		}
 
 		return $interwikiPrefix . ':' . $pageTitle;

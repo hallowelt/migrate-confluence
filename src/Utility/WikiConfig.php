@@ -19,7 +19,7 @@ class WikiConfig {
 	/**
 	 * @return string
 	 */
-	public function getWikiConfigWikiNameForSpaceKey( string $spaceKey ): string {
+	public function getWikiNameForSpaceKey( string $spaceKey ): string {
 		$name = $this->workspaceDB->getWikiConfigWikiNameForSpaceKey( $spaceKey );
 		if ( $name === null ) {
 			return strtolower( "wiki-$spaceKey" );
@@ -30,7 +30,7 @@ class WikiConfig {
 	/**
 	 * @return string
 	 */
-	public function getWikiConfigNamespaceForSpaceKey( string $spaceKey ): string {
+	public function getNamespaceForSpaceKey( string $spaceKey ): string {
 		$namespace = $this->workspaceDB->getWikiConfigNamespaceForSpaceKey( $spaceKey );
 		if ( $namespace === null ) {
 			return $spaceKey;
@@ -41,7 +41,7 @@ class WikiConfig {
 	/**
 	 * @return string
 	 */
-	public function getWikiConfigRootPageForSpaceKey( string $spaceKey ): string {
+	public function getRootPageForSpaceKey( string $spaceKey ): string {
 		$root = $this->workspaceDB->getWikiConfigRootPageForSpaceKey( $spaceKey );
 		if ( $root === null ) {
 			return '';
@@ -50,35 +50,18 @@ class WikiConfig {
 	}
 
 	/**
+	 * @param string $spaceKey
 	 * @return string
 	 */
-	public function getWikiConfigWikiNameForSpaceId( int $spaceId ): string {
-		$name = $this->workspaceDB->getWikiConfigWikiNameForSpaceId( $spaceId );
-		if ( $name === null ) {
-			return strtolower( "wiki-$spaceId" );
+	public function getInterwikiPrefixForSpaceKey( string $spaceKey ): string {
+		$prefix = $this->getNamespaceForSpaceKey( $spaceKey );
+		if ( empty( $prefix ) ) {
+			$prefix = $this->getWikiNameForSpaceKey( $spaceKey );
 		}
-		return $name;
-	}
+		if ( empty( $prefix ) ) {
+			$prefix = $spaceKey;
+		}
 
-	/**
-	 * @return string
-	 */
-	public function getWikiConfigNamespaceForSpaceId( int $spaceId ): string {
-		$namespace = $this->workspaceDB->getWikiConfigNamespaceForSpaceId( $spaceId );
-		if ( $namespace === null ) {
-			return (string)$spaceId;
-		}
-		return $namespace;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getWikiConfigRootPageForSpaceId( int $spaceId ): string {
-		$root = $this->workspaceDB->getWikiConfigRootPageForSpaceId( $spaceId );
-		if ( $root === null ) {
-			return '';
-		}
-		return $root;
+		return strtolower( "wiki-$prefix" );
 	}
 }

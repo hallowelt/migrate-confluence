@@ -9,6 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\WikiConfigCSVParser;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -117,41 +118,8 @@ class Extract extends CommandExtract {
 			}
 		}
 
-		$wikiConfig = [];
 		$filename = $this->input->getOption( 'wikiconf' );
-		if ( is_string( $filename ) && is_file( realpath( $filename ) ) ) {
-			$resolvedFilename = realpath( $filename );
-			$handle = $resolvedFilename ? fopen( $resolvedFilename, 'r' ) : false;
-			if ( $handle !== false ) {
-				while ( ( $data = fgetcsv( $handle, 0, ';' ) ) !== false ) {
-					if ( $data === [ null ] ) {
-						continue;
-					}
-					$data = array_map( 'trim', $data );
-
-					// Skip header row: confluence-space-key;wiki-name;wiki-namespace;wiki-root-page-prefix
-					if ( isset( $data[0] ) && $data[0] === 'confluence-space-key' ) {
-						continue;
-					}
-
-					if ( !isset( $data[0] ) || !isset( $data[1] )
-						|| !isset( $data[2] ) || !isset( $data[3] )
-						|| $data[0] === ''
-					) {
-						continue;
-					}
-
-					$wikiConfig[] = [
-						'space-key' => $data[0],
-						'wiki-name' => $data[1],
-						'wiki-namespace' => $data[2],
-						'wiki-root-page' => $data[3],
-					];
-				}
-				fclose( $handle );
-			}
-		}
-		$config['wiki-config'] = $wikiConfig;
+		$config['wiki-config'] = WikiConfigCSVParser::parseWikiConfigCSV( $filename );
 	}
 
 	/**

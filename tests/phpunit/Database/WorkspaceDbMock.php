@@ -381,6 +381,7 @@ class WorkspaceDbMock {
 			$spaceId,
 			$confluenceTitle,
 			$wikiTitle,
+			'',
 			'current',
 			'20240101000000',
 			'',
