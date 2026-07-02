@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Console\Output\Output;
+use Symfony\Component\Console\Output\OutputInterface;
 use XMLReader;
 
 interface IAnalyzerProcessor {
@@ -15,9 +15,9 @@ interface IAnalyzerProcessor {
 	public function execute( XMLReader $xmlReader ): void;
 
 	/**
-	 * @param Output $output
+	 * @param OutputInterface $output
 	 */
-	public function setOutput( Output $output ): void;
+	public function setOutput( OutputInterface $output ): void;
 
 	/**
 	 * @param LoggerInterface $logger

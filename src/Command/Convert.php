@@ -86,17 +86,17 @@ class Convert extends CommandConvert {
 	 */
 	protected function execute( InputInterface $input, OutputInterface $output ): int {
 		$workers = (int)$input->getOption( 'workers' );
-		$isWorker = $input->hasParameterOption( '--worker' );
+		$isChildProcess = $input->hasParameterOption( '--worker' );
 
-		$this->setupDB( $input, !$isWorker );
+		$this->setupDB( $input, !$isChildProcess );
 
-		if ( $workers > 1 && !$isWorker ) {
+		if ( $workers > 1 && !$isChildProcess ) {
 			return $this->spawnWorkers( $input, $output, $workers );
 		}
 
 		/* this is the "single worker" case. Here we define our own pipe for the converter to
 		 * send data to. */
-		if ( !$isWorker ) {
+		if ( !$isChildProcess ) {
 			$this->pipe = fopen( 'php://temp', 'r+' );
 		}
 
@@ -131,7 +131,7 @@ class Convert extends CommandConvert {
 		 * the case in the host/worker situation */
 		$this->dest = realpath( $input->getOption( 'dest' ) );
 
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$this->workspaceDB = WorkspaceDB::openExisting( $this->dest . '/workspace.sqlite' );
 		$this->dbLog = new DBLog( $this->workspaceDB );
 
 		if ( $logUsage ) {

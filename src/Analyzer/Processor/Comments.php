@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
 /**
@@ -13,10 +13,10 @@ use XMLReader;
 class Comments extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IAnalyzeDataWriter $writer
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB
+		private IAnalyzeDataWriter $writer
 	) {
 	}
 
@@ -73,7 +73,7 @@ class Comments extends ProcessorBase {
 		if ( empty( $bodyContentIds ) ) {
 			$warning = "Warning: No body content IDs found for comment (ID:$commentId)";
 			$this->output->writeln( $warning );
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'analyze',
 				__CLASS__,
@@ -85,7 +85,7 @@ class Comments extends ProcessorBase {
 		$created = $properties['creationDate'] ?? '';
 		$modified = $properties['lastModificationDate'] ?? '';
 
-		$status = $this->workspaceDB->addComment(
+		$status = $this->writer->addComment(
 			$commentId,
 			$containerContentId,
 			$containerContentClass,
@@ -98,7 +98,7 @@ class Comments extends ProcessorBase {
 		);
 
 		if ( !$status ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'error',
 				'analyze',
 				__CLASS__,

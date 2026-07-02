@@ -72,7 +72,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @return void
 	 */
 	public function buildXML( Builder $builder ): void {
-		$workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$workspaceDB = WorkspaceDB::openExisting( $this->dest . '/workspace.sqlite' );
 		$dbLog = new DBLog( $workspaceDB );
 		$this->logMigrateConfluenceToolVersion( $dbLog );
 

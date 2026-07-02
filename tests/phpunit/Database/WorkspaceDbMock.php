@@ -82,7 +82,7 @@ class WorkspaceDbMock {
 			unlink( $databasePath );
 		}
 
-		return new WorkspaceDB( $databasePath );
+		return WorkspaceDB::createNew( $databasePath );
 	}
 
 	private function seedDefaultSpaces( WorkspaceDB $workspaceDB ): void {

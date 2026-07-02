@@ -3,12 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Database;
 
 use Exception;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use InvalidArgumentException;
 use SQLite3;
 use SQLite3Result;
 use SQLite3Stmt;
 
-class WorkspaceDB {
+class WorkspaceDB implements IAnalyzeDataWriter {
 
 	/** @var SQLite3 */
 	private SQLite3 $db;
@@ -20,15 +21,45 @@ class WorkspaceDB {
 	private bool $readonly = false;
 
 	/**
+	 * @param string $path
+	 * @return self
+	 * @throws \RuntimeException if the file already exists
+	 */
+	public static function createNew( string $path ): self {
+		if ( file_exists( $path ) ) {
+			throw new \RuntimeException( "Workspace DB already exists at '$path'" );
+		}
+		return new self( $path, false, true );
+	}
+
+	/**
+	 * @param string $path
+	 * @param bool $readonly
+	 * @return self
+	 * @throws \RuntimeException if the file does not exist
+	 */
+	public static function openExisting( string $path, bool $readonly = false ): self {
+		if ( !file_exists( $path ) ) {
+			throw new \RuntimeException(
+				"Workspace DB not found at '$path' — did you run the analyze step first?"
+			);
+		}
+		return new self( $path, $readonly, false );
+	}
+
+	/**
 	 * @param string $name
 	 * @param bool $readonly
+	 * @param bool $create
 	 */
-	public function __construct( string $name, bool $readonly = false ) {
+	private function __construct( string $name, bool $readonly = false, bool $create = false ) {
 		$this->readonly = $readonly;
-		$this->db = new SQLite3(
-			$name,
-			$this->readonly ? SQLITE3_OPEN_READONLY : ( SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE )
-		);
+		if ( $create ) {
+			$flags = SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE;
+		} else {
+			$flags = $this->readonly ? SQLITE3_OPEN_READONLY : SQLITE3_OPEN_READWRITE;
+		}
+		$this->db = new SQLite3( $name, $flags );
 		$this->db->enableExceptions( true );
 
 		$this->db->busyTimeout( 5000 );
@@ -43,6 +74,9 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function beginTransaction(): void {
+		if ( $this->readonly ) {
+			return;
+		}
 		$this->db->exec( 'BEGIN TRANSACTION' );
 	}
 
@@ -50,6 +84,9 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function commitTransaction(): void {
+		if ( $this->readonly ) {
+			return;
+		}
 		$this->db->exec( 'COMMIT' );
 	}
 
