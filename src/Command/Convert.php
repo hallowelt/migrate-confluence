@@ -9,6 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\Converter\IPipeSender;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\Version;
@@ -16,8 +17,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Yaml\Exception\ParseException;
-use Symfony\Component\Yaml\Yaml;
 
 class Convert extends CommandConvert {
 
@@ -357,17 +356,17 @@ class Convert extends CommandConvert {
 	 */
 	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
-		if ( is_string( $filename ) && is_file( realpath( $filename ) ) ) {
-			$content = file_get_contents( realpath( $filename ) );
-			if ( $content ) {
-				try {
-					$yaml = Yaml::parse( $content );
-					$config = array_merge( $config, $yaml );
-				} catch ( ParseException $e ) {
-					$this->output->writeln( 'Invalid config file provided' );
-					exit( 1 );
-				}
-			}
+
+		$configOptionHelper = new ConfigOptionHelper( $filename );
+		$validationError = $configOptionHelper->validateFile();
+
+		if ( $validationError !== null ) {
+			$this->output->writeln( $validationError );
+			exit( 1 );
+		} else {
+			$advancedConfig = $configOptionHelper->getConfig();
+			$config = array_merge( $config, $advancedConfig );
+			$this->output->writeln( 'Config file loaded successfully' );
 		}
 	}
 

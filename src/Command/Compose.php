@@ -8,10 +8,9 @@ use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use SplFileInfo;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Yaml\Exception\ParseException;
-use Symfony\Component\Yaml\Yaml;
 
 class Compose extends CommandCompose {
 
@@ -74,17 +73,17 @@ class Compose extends CommandCompose {
 	 */
 	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
-		if ( is_string( $filename ) && is_file( realpath( $filename ) ) ) {
-			$content = file_get_contents( realpath( $filename ) );
-			if ( $content ) {
-				try {
-					$yaml = Yaml::parse( $content );
-					$config = array_merge( $config, $yaml );
-				} catch ( ParseException $e ) {
-					$this->output->writeln( 'Invalid config file provided' );
-					exit( 1 );
-				}
-			}
+
+		$configOptionHelper = new ConfigOptionHelper( $filename );
+		$validationError = $configOptionHelper->validateFile();
+
+		if ( $validationError !== null ) {
+			$this->output->writeln( $validationError );
+			exit( 1 );
+		} else {
+			$advancedConfig = $configOptionHelper->getConfig();
+			$config = array_merge( $config, $advancedConfig );
+			$this->output->writeln( 'Config file loaded successfully' );
 		}
 	}
 
@@ -93,20 +92,7 @@ class Compose extends CommandCompose {
 	 * @inheritDoc
 	 */
 	protected function getBucketKeys(): array {
-		return [
-			'global-space-id-homepages',
-			'global-space-id-to-description-id-map',
-			'global-body-content-id-to-space-description-id-map',
-			'global-body-content-id-to-page-id-map',
-			'global-title-attachments',
-			'global-title-revisions',
-			'global-files',
-			'global-additional-files',
-			'global-page-id-to-comment-ids-map',
-			'global-comment-id-to-metadata-map',
-			'global-page-id-to-title-map',
-			'global-userkey-to-username-map',
-		];
+		return [];
 	}
 
 	/**
