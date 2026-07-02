@@ -15,6 +15,7 @@ use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBodyContentIdsFallb
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithSpaceIdOfHistoryVersions;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithWikiTitle;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageTemplatesWithWikiTitle;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractAttachmentsMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsMetaData;
@@ -163,14 +164,15 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	private function getPreprocessors(): array {
 		return [
-			#new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog ),
-			#new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
+			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog ),
+			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
 			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->migrationConfig, $this->wikiConfig ),
-			#new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
-			#new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog ),
-			#new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			#new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			#new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
+			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->wikiConfig ),
+			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->wikiConfig ),
+			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 		];
 	}
 

@@ -416,6 +416,7 @@ class WorkspaceDB {
 				space_id INT,
 				confluence_title CHAR,
 				wiki_title CHAR,
+				interwiki_title CHAR,
 				content_status CHAR,
 				version CHAR,
 				original_version_id INT,
@@ -2518,6 +2519,7 @@ class WorkspaceDB {
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
+	 * @param string $interwikiTitle
 	 * @param string $contentStatus
 	 * @param string $revisionTimestamp
 	 * @param string $lastModifier
@@ -2534,6 +2536,7 @@ class WorkspaceDB {
 		?int $spaceId,
 		string $confluenceTitle,
 		string $wikiTitle,
+		string $interwikiTitle,
 		string $contentStatus,
 		string $revisionTimestamp,
 		string $lastModifier,
@@ -2554,6 +2557,7 @@ class WorkspaceDB {
 				space_id,
 				confluence_title,
 				wiki_title,
+				interwiki_title,
 				content_status,
 				version,
 				original_version_id,
@@ -2568,6 +2572,7 @@ class WorkspaceDB {
 				:space_id,
 				:confluence_title,
 				:wiki_title,
+				:interwiki_title,
 				:content_status,
 				:version,
 				:original_version_id,
@@ -2588,6 +2593,7 @@ class WorkspaceDB {
 		}
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':interwiki_title', $interwikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
@@ -2635,6 +2641,21 @@ class WorkspaceDB {
 		);
 
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @param string $interwikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updateBlogPostInterwikiTitle( int $pageId, string $interwikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE blog_posts SET interwiki_title = :interwiki_title WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':interwiki_title', $interwikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
@@ -4366,6 +4387,21 @@ class WorkspaceDB {
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $templateId
+	 * @param string $wikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageTemplateWikiTitle( int $templateId, string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE page_templates SET wiki_title = :wiki_title WHERE template_id = :template_id'
+		);
+
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
 
