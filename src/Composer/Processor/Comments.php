@@ -2,11 +2,42 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use Symfony\Component\Console\Output\Output;
+
 /**
  * Generates Talk pages with cs-comments JSON slot for pages that have
  * Confluence page-level comments.
  */
 class Comments extends ProcessorBase {
+
+	/**
+	 * @param Builder $builder
+	 * @param DBComposerDataLookup $dataLookup
+	 * @param Workspace $workspace
+	 * @param Output $output
+	 * @param string $dest
+	 * @param MigrationConfig $migrationConfig
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param ComposerSkipHelper $skipHelper
+	 */
+	public function __construct(
+		protected Builder $builder,
+		protected DBComposerDataLookup $dataLookup,
+		protected Workspace $workspace,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig,
+		protected ComposerDeploymentInfo $deploymentInfo,
+		protected ComposerSkipHelper $skipHelper
+	) {
+		parent::__construct( $builder, $output, $dest, $migrationConfig );
+	}
 
 	/**
 	 * @return string
@@ -19,7 +50,7 @@ class Comments extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$this->addBlogPages();
+		$this->addCommentPages();
 
 		$this->writeOutputFile();
 	}
@@ -27,11 +58,23 @@ class Comments extends ProcessorBase {
 	/**
 	 * @return void
 	 */
-	private function addBlogPages(): void {
-		$comments = array_merge(
-			$this->dataLookup->getCommentsForPages(),
-			$this->dataLookup->getCommentsForBlogPosts()
-		);
+	private function addCommentPages(): void {
+		$comments = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$comments = array_merge(
+					$comments,
+					$this->dataLookup->getCommentsForPages( (int)$spaceId ),
+					$this->dataLookup->getCommentsForBlogPosts( (int)$spaceId )
+				);
+			}
+		} else {
+			$comments = array_merge(
+				$this->dataLookup->getCommentsForPages(),
+				$this->dataLookup->getCommentsForBlogPosts()
+			);
+		}
+
 		if ( empty( $comments ) ) {
 			$this->output->writeln( "No comments found, skipping comment processing." );
 			return;
@@ -108,6 +151,11 @@ class Comments extends ProcessorBase {
 			}
 			$pageTitle = $pageIdToTitleMap[$pageId];
 			$talkTitle = $this->buildTalkTitle( $pageTitle );
+			if ( $this->skipHelper->skipPage( $pageTitle ) ) {
+				$this->output->writeln( "Skip page $talkTitle." );
+				$this->deploymentInfo->addSkippedPage( $talkTitle );
+				continue;
+			}
 
 			$commentsData = $this->buildCommentsData(
 				$commentIds, $commentIdToMetadata, $userkeyToUsernameMap

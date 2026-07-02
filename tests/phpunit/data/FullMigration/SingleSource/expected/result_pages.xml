@@ -77,30 +77,4 @@ __NOTOC__
 </text>
     </revision>
   </page>
-  <page>
-    <title>SECOND:Second_Space_Page</title>
-    <revision>
-      <timestamp>20200101000000</timestamp>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>Hello from the second space.
-__NOTOC__
-
- &lt;!-- From bodyContent 20000011.mraw --&gt;
-</text>
-    </revision>
-  </page>
-  <page>
-    <title>Third_Space_Page</title>
-    <revision>
-      <timestamp>20200101000000</timestamp>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>Link to second space: [[SECOND:Second_Space_Page|Second Space Page]]
-__NOTOC__
-
- &lt;!-- From bodyContent 20000021.mraw --&gt;
-</text>
-    </revision>
-  </page>
 </mediawiki>

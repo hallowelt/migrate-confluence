@@ -50,7 +50,26 @@ Important: If you re-run the scripts you will need to clean up the "workspace" d
 3. Make sure you have the target namespaces set up properly. See `workspace/space-id-to-prefix-map.php` for reference.
 4. Make sure [$wgFileExtensions](https://www.mediawiki.org/wiki/Manual:$wgFileExtensions) is setup properly. See `workspace/deployment.log` for reference.
 5. Use `php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php --src=/tmp/result/files.xml` to first import all attachment files and images
-6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages. Use the same command to import `blog.xml`, `comments.xml` and `templates.xml`, but not `user.xml`. This file can not be imported and is just for making user data available.
+6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages. Use the same command to import `blogs.xml`, `comments.xml` and `templates.xml`, but not `user.xml`. This file can not be imported and is just for making user data available.
+
+#### Import helper script
+To simplify imports there is a helper script at `src/Composer/_shell/import.sh`.
+
+Run it from your MediaWiki root directory and pass the result namespace directory with `--src`:
+
+```bash
+./src/Composer/_shell/import.sh --src=/tmp/result/ABC
+```
+
+The script imports files in this order:
+
+1. `files.xml`
+2. `blogs.xml`
+3. `comments.xml`
+4. `templates.xml`
+5. `pages.xml`
+
+`user.xml` is intentionally ignored.
 
 You may need to run `php maintenance/rebuildAll.php` and update your MediaWiki search index afterwards.
 

@@ -102,7 +102,7 @@ class ComposerSkipHelper {
 	 * @param string $namespace
 	 * @return bool
 	 */
-	private function skipNamespaceByConfiguration( string $namespace ): bool {
+	public function skipNamespaceByConfiguration( string $namespace ): bool {
 		if ( in_array( $namespace, $this->migrationConfig->getComposerSkipNamespaces() ) ) {
 			return true;
 		}

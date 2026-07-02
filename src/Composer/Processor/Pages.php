@@ -2,7 +2,38 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use Symfony\Component\Console\Output\Output;
+
 class Pages extends ProcessorBase {
+
+	/**
+	 * @param Builder $builder
+	 * @param DBComposerDataLookup $dataLookup
+	 * @param Workspace $workspace
+	 * @param Output $output
+	 * @param string $dest
+	 * @param MigrationConfig $migrationConfig
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param ComposerSkipHelper $skipHelper
+	 */
+	public function __construct(
+		protected Builder $builder,
+		protected DBComposerDataLookup $dataLookup,
+		protected Workspace $workspace,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig,
+		protected ComposerDeploymentInfo $deploymentInfo,
+		protected ComposerSkipHelper $skipHelper
+	) {
+		parent::__construct( $builder, $output, $dest, $migrationConfig );
+	}
 
 	/**
 	 * @return string
@@ -21,8 +52,21 @@ class Pages extends ProcessorBase {
 	}
 
 	private function addContentPages(): void {
-		// Get all page titles from DB and add them as pages to the workspace
-		$wikiTitles = $this->dataLookup->getPageIdWikiPageTitleMap();
+		// Get all page titles for the configured space IDs and merge them.
+		$wikiTitles = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				// Merge blog post titles for each space ID into the $wikiTitles array
+				// Use array_replace to ensure that if there are duplicate blog post IDs,
+				// the last one will overwrite the previous ones.
+				$wikiTitles = array_replace(
+					$wikiTitles,
+					$this->dataLookup->getPageIdWikiPageTitleMap( (int)$spaceId )
+				);
+			}
+		} else {
+			$wikiTitles = $this->dataLookup->getPageIdWikiPageTitleMap();
+		}
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
 			if ( $this->skipHelper->skipPage( $pageTitle ) ) {

@@ -21,7 +21,6 @@ class FullMigrationMultiSpaceTest extends FullMigrationSingleSpaceTest {
 		mkdir( $this->tempDir . '/multi-source/workspace/content/raw', 0755, true );
 		mkdir( $this->tempDir . '/multi-source/workspace/content/wikitext', 0755, true );
 		mkdir( $this->tempDir . '/multi-source/workspace/content/result', 0755, true );
-		mkdir( $this->tempDir . '/multi-source/workspace/content/result/images', 0755, true );
 
 		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];
 		foreach ( $spaces as $space ) {
@@ -42,7 +41,7 @@ class FullMigrationMultiSpaceTest extends FullMigrationSingleSpaceTest {
 	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
 	 */
 	public function testMigration(): void {
-		$expectedPagesFile = $this->dataDir . '/result_pages.xml';
+		$expectedPagesFile = $this->dataDir . '/MulitSource/expected/result_pages.xml';
 
 		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];
 
@@ -236,7 +235,7 @@ class FullMigrationMultiSpaceTest extends FullMigrationSingleSpaceTest {
 		// Step 5: Verify that the unique pages from each export appear in the output.
 		// "Shared Page" intentionally excluded: it has two body-content revisions
 		// and its exact output format is verified separately.
-		$actualFile = $dest . '/result/pages.xml';
+		$actualFile = $dest . '/result/ALPHA/pages.xml';
 		$this->assertFileExists( $actualFile );
 
 		$actualPages = $this->extractPages( $actualFile );
