@@ -14,11 +14,11 @@ class JiraMacroTest extends ProcessorTestCase {
 		$jiraMacroProcessor = new JiraMacro();
 		$dom = new \DOMDocument();
 		$dom->load(
-			__DIR__ . '/../../data/jira-macro-input.xml'
+			dirname( __DIR__, 2 ) . '/data/jira-macro-input.xml'
 		);
 		$expectedDOM = new \DOMDocument();
 		$expectedDOM->load(
-			__DIR__ . '/../../data/jira-macro-output.xml'
+			dirname( __DIR__, 2 ) . '/data/jira-macro-output.xml'
 		);
 
 		$jiraMacroProcessor->process( $dom );
@@ -89,9 +89,9 @@ class JiraMacroTest extends ProcessorTestCase {
 	private function doTest( string $inputFile, string $outputFile ): void {
 		$processor = new JiraMacro();
 		$dom = new \DOMDocument();
-		$dom->load( __DIR__ . '/../../data/' . $inputFile );
+		$dom->load( dirname( __DIR__, 2 ) . '/data/' . $inputFile );
 		$expectedDom = new \DOMDocument();
-		$expectedDom->load( __DIR__ . '/../../data/' . $outputFile );
+		$expectedDom->load( dirname( __DIR__, 2 ) . '/data/' . $outputFile );
 		$processor->process( $dom );
 		$this->assertDomXmlEquals( $expectedDom, $dom );
 	}
