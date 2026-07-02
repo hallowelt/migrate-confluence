@@ -88,7 +88,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$spaces = $this->dataLookup->getSpaces();
 		foreach ( $spaces as $space ) {
 			$spaceId = (int)$space['space_id'];
-			$spaceKey = (string)$space['space_key'];
 			$namespace = 'NS_MAIN';
 			if ( str_contains( $space['space_prefix'], ':' ) ) {
 				$namespace = substr( $space['space_prefix'], 0, strpos( $space['space_prefix'], ':' ) );
