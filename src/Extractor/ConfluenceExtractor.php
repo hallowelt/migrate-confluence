@@ -27,6 +27,7 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
+use HalloWelt\MigrateConfluence\Utility\WikiConfig;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
@@ -46,6 +47,9 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 
 	/** @var DBLog */
 	private DBLog $dbLog;
+
+	/** @var WikiConfig */
+	private WikiConfig $wikiConfig;
 
 	/**
 	 * @param array $config
@@ -102,12 +106,33 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	}
 
 	/**
+	 * @return void
+	 */
+	private function initWikiConfig(): void {
+		$wikiConfig = [];
+		if ( isset( $this->config['wiki-config'] ) ) {
+			$wikiConfig = $this->config['wiki-config'];
+		}
+		foreach ( $wikiConfig as $config ) {
+			$this->workspaceDB->addWikiConfig(
+				$config['space-key'],
+				$config['wiki-name'],
+				$config['wiki-namespace'],
+				$config['wiki-root-page']
+			);
+		}
+
+		$this->wikiConfig = new WikiConfig( $this->workspaceDB );
+	}
+
+	/**
 	 * @param SplFileInfo $file
 	 * @return bool
 	 */
 	protected function doExtract( SplFileInfo $file ): bool {
 		$this->initMigrationConfig();
 		$this->initWorkspaceDB();
+		$this->initWikiConfig();
 		$this->initDBLog();
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
@@ -138,14 +163,14 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	private function getPreprocessors(): array {
 		return [
-			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog ),
-			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
-			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
-			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog ),
-			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			#new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog ),
+			#new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
+			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->migrationConfig, $this->wikiConfig ),
+			#new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
+			#new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog ),
+			#new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			#new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			#new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 		];
 	}
 
@@ -153,6 +178,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return array
 	 */
 	private function getProcessors(): array {
+		return [];
 		return [
 			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
 			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),

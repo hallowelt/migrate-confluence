@@ -201,6 +201,9 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	private function createTables(): void {
+		// Wiki configu tables
+		$this->createTableWikiConfig();
+
 		// General logging
 		$this->createTableLogging();
 
@@ -237,6 +240,20 @@ class WorkspaceDB {
 
 		// Indexing tables
 		$this->createIndexes();
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableWikiConfig(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS wiki_config (
+				space_key CHAR PRIMARY KEY,
+				wiki_name CHAR,
+				wiki_namespace CHAR,
+				wiki_root_page CHAR
+			);'
+		);
 	}
 
 	/**
@@ -654,6 +671,178 @@ class WorkspaceDB {
 				content TEXT
 			);'
 		);
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @param string $wikiName
+	 * @param string $wikiNamespace
+	 * @param string $wikiRootPage
+	 * @return void
+	 */
+	public function addWikiConfig(
+		string $spaceKey,
+		string $wikiName,
+		string $wikiNamespace,
+		string $wikiRootPage
+	): void {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR REPLACE INTO wiki_config (
+				space_key,
+				wiki_name,
+				wiki_namespace,
+				wiki_root_page
+			) VALUES (
+				:space_key,
+				:wiki_name,
+				:wiki_namespace,
+				:wiki_root_page
+			)'
+		);
+
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_name', $wikiName, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_namespace', $wikiNamespace, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_root_page', $wikiRootPage, SQLITE3_TEXT );
+		$transaction->execute();
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @return string|null
+	 */
+	public function getWikiConfigWikiNameForSpaceKey( string $spaceKey ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_name FROM wiki_config WHERE space_key = :space_key LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['wiki_name'] ) ? $data['wiki_name'] : null;
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @return string|null
+	 */
+	public function getWikiConfigNamespaceForSpaceKey( string $spaceKey ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_namespace FROM wiki_config WHERE space_key = :space_key LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['wiki_namespace'] ) ? $data['wiki_namespace'] : null;
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @return string|null
+	 */
+	public function getWikiConfigRootPageForSpaceKey( string $spaceKey ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_root_page FROM wiki_config WHERE space_key = :space_key LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['wiki_root_page'] ) ? $data['wiki_root_page'] : null;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @return string|null
+	 */
+	public function getWikiConfigWikiNameForSpaceId( int $spaceId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wc.wiki_name
+			FROM wiki_config wc
+			INNER JOIN spaces s ON s.space_key = wc.space_key
+			WHERE s.space_id = :space_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['wiki_name'] ) ? $data['wiki_name'] : null;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @return string|null
+	 */
+	public function getWikiConfigNamespaceForSpaceId( int $spaceId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wc.wiki_namespace
+			FROM wiki_config wc
+			INNER JOIN spaces s ON s.space_key = wc.space_key
+			WHERE s.space_id = :space_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['wiki_namespace'] ) ? $data['wiki_namespace'] : null;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @return string|null
+	 */
+	public function getWikiConfigRootPageForSpaceId( int $spaceId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wc.wiki_root_page
+			FROM wiki_config wc
+			INNER JOIN spaces s ON s.space_key = wc.space_key
+			WHERE s.space_id = :space_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['wiki_root_page'] ) ? $data['wiki_root_page'] : null;
 	}
 
 	/**

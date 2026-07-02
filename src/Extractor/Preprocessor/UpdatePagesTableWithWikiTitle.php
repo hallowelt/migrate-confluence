@@ -11,6 +11,7 @@ use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
+use HalloWelt\MigrateConfluence\Utility\WikiConfig;
 
 /**
  */
@@ -22,7 +23,10 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB, DBLog $dbLog, private MigrationConfig $migrationConfig
+		WorkspaceDB $workspaceDB,
+		DBLog $dbLog,
+		private MigrationConfig $migrationConfig,
+		private WikiConfig $wikiConfig
 	) {
 		parent::__construct( $workspaceDB, $dbLog );
 	}
@@ -39,8 +43,9 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 	 * @return void
 	 */
 	private function updateWikiTitles(): void {
+		$spaceIdPrefixMap = $this->getSpaceIdPrefixMap();
 		$titleBuilder = new TitleBuilder(
-			$this->workspaceDB->getMapSpaceIdToPrefix(),
+			$spaceIdPrefixMap,
 			$this->workspaceDB->getMapSpaceIdToHomepageId(),
 			$this->workspaceDB->getMapPageIdtoParentPageId(),
 			$this->workspaceDB->getMapPageIdToConfluenceTitle(),
@@ -157,6 +162,9 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				"Updated wiki title for page ID $pageId with title: $wikiTitle"
 			);
 			$this->workspaceDB->updatePageWikiTitle( (int)$pageId, $wikiTitle );
+
+			$interwikiTitle = $this->getInterwikiTitle( (int)$pageId, $wikiTitle );
+			$this->workspaceDB->updatePageInterwikiTitle( (int)$pageId, $interwikiTitle );
 		}
 	}
 
@@ -214,5 +222,84 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				}
 			}
 		}
+	}
+
+	private function getSpaceIdPrefixMap(): array {
+		$spaceIdPrefixMap = [];
+		foreach ( $this->workspaceDB->getSpaces() as $space ) {
+			if ( !isset( $space['space_id'] ) || !isset( $space['space_key'] ) ) {
+				$this->dbLog->addLogEntry(
+					'warning',
+					'extract',
+					__CLASS__,
+					"Skipping space without space_id or space_key while building spaceIdPrefixMap"
+				);
+				continue;
+			}
+			$spaceId = (int)$space['space_id'];
+			$spaceKey = (string)$space['space_key'];
+
+			$prefix = $this->getNamespaceForSpaceKey( $spaceKey );
+			$prefix .= $this->getRootPage( $spaceKey );
+			$spaceIdPrefixMap[$spaceId] = $prefix;
+		}
+		return $spaceIdPrefixMap;
+	}
+
+	/**
+	 * @param string|null $spaceKey
+	 * @return string
+	 */
+	private function getNamespaceForSpaceKey( ?string $spaceKey ): string {
+		if ( empty( $spaceKey ) ) {
+			return '';
+		}
+
+		$namespace = $this->wikiConfig->getWikiConfigNamespaceForSpaceKey( $spaceKey );
+		if ( !empty( $namespace ) ) {
+			// Ensure that the namespace ends with a colon
+			$namespace = trim( $namespace, ':' ) . ':';
+			return $namespace;
+		}
+
+		return '';
+	}
+
+	/**
+	 * @param string|null $spaceKey
+	 * @return string
+	 */
+	private function getRootPage( ?string $spaceKey ): string {
+		if ( empty( $spaceKey ) ) {
+			return '';
+		}
+
+		$rootpage = $this->wikiConfig->getWikiConfigRootPageForSpaceKey( $spaceKey );
+		if ( !empty( $rootpage ) ) {
+			// Ensure that the root page ends with a slash
+			$rootpage = trim( $rootpage, '/' ) . '/';
+
+			return $rootpage;
+		}
+
+		return '';
+	}
+
+	/**
+	 * @param integer $pageId
+	 * @param string $wikiTitle
+	 * @return string
+	 */
+	private function getInterwikiTitle( int $pageId,string $wikiTitle ): string {
+		$spaceId = $this->workspaceDB->getSpaceIdForPageId( $pageId );
+		$namespace = $this->getNamespaceForSpaceKey( $spaceId );
+		$interwikiPrefix = $this->wikiConfig->getWikiConfigWikiNameForSpaceId( $spaceId );
+
+		$pageTitle = $wikiTitle;
+		if ( !empty( $namespace ) ) {
+			$pageTitle = substr( $wikiTitle, 0, strlen( $namespace ) );
+		}
+
+		return $interwikiPrefix . ':' . $pageTitle;
 	}
 }

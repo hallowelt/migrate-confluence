@@ -9,9 +9,10 @@ use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
-use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Yaml;
 
 class Extract extends CommandExtract {
 
@@ -37,6 +38,14 @@ class Extract extends CommandExtract {
 				null,
 				InputOption::VALUE_REQUIRED,
 				'Specifies the path to the config yaml file'
+			)
+		);
+		$definition->addOption(
+			new InputOption(
+				'wikiconf',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'Specifies the path to the csv file containing interwiki configuration'
 			)
 		);
 	}
@@ -95,18 +104,54 @@ class Extract extends CommandExtract {
 	 */
 	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
-
-		$configOptionHelper = new ConfigOptionHelper( $filename );
-		$validationError = $configOptionHelper->validateFile();
-
-		if ( $validationError !== null ) {
-			$this->output->writeln( $validationError );
-			exit( 1 );
-		} else {
-			$advancedConfig = $configOptionHelper->getConfig();
-			$config = array_merge( $config, $advancedConfig );
-			$this->output->writeln( 'Config file loaded successfully' );
+		if ( is_string( $filename ) && is_file( realpath( $filename ) ) ) {
+			$content = file_get_contents( realpath( $filename ) );
+			if ( $content ) {
+				try {
+					$yaml = Yaml::parse( $content );
+					$config = array_merge( $config, $yaml );
+				} catch ( ParseException $e ) {
+					$this->output->writeln( 'Invalid config file provided' );
+					exit( 1 );
+				}
+			}
 		}
+
+		$wikiConfig = [];
+		$filename = $this->input->getOption( 'wikiconf' );
+		if ( is_string( $filename ) && is_file( realpath( $filename ) ) ) {
+			$resolvedFilename = realpath( $filename );
+			$handle = $resolvedFilename ? fopen( $resolvedFilename, 'r' ) : false;
+			if ( $handle !== false ) {
+				while ( ( $data = fgetcsv( $handle, 0, ';' ) ) !== false ) {
+					if ( $data === [ null ] ) {
+						continue;
+					}
+					$data = array_map( 'trim', $data );
+
+					// Skip header row: confluence-space-key;wiki-name;wiki-namespace;wiki-root-page-prefix
+					if ( isset( $data[0] ) && $data[0] === 'confluence-space-key' ) {
+						continue;
+					}
+
+					if ( !isset( $data[0] ) || !isset( $data[1] )
+						|| !isset( $data[2] ) || !isset( $data[3] )
+						|| $data[0] === ''
+					) {
+						continue;
+					}
+
+					$wikiConfig[] = [
+						'space-key' => $data[0],
+						'wiki-name' => $data[1],
+						'wiki-namespace' => $data[2],
+						'wiki-root-page' => $data[3],
+					];
+				}
+				fclose( $handle );
+			}
+		}
+		$config['wiki-config'] = $wikiConfig;
 	}
 
 	/**
