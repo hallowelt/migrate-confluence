@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\Output;
  * Generates Talk pages with cs-comments JSON slot for pages that have
  * Confluence page-level comments.
  */
-class Comments extends ProcessorBase {
+class Comments extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
@@ -59,21 +59,16 @@ class Comments extends ProcessorBase {
 	 * @return void
 	 */
 	private function addCommentPages(): void {
-		$comments = [];
-		if ( is_array( $this->currentSpaceIds ) ) {
-			foreach ( $this->currentSpaceIds as $spaceId ) {
-				$comments = array_merge(
-					$comments,
-					$this->dataLookup->getCommentsForPages( (int)$spaceId ),
-					$this->dataLookup->getCommentsForBlogPosts( (int)$spaceId )
-				);
-			}
-		} else {
-			$comments = array_merge(
+		$comments = $this->collectBySpaceIdsAppend(
+			fn ( int $spaceId ): array => array_merge(
+				$this->dataLookup->getCommentsForPages( $spaceId ),
+				$this->dataLookup->getCommentsForBlogPosts( $spaceId )
+			),
+			fn (): array => array_merge(
 				$this->dataLookup->getCommentsForPages(),
 				$this->dataLookup->getCommentsForBlogPosts()
-			);
-		}
+			)
+		);
 
 		if ( empty( $comments ) ) {
 			$this->output->writeln( "No comments found, skipping comment processing." );
@@ -132,13 +127,7 @@ class Comments extends ProcessorBase {
 			];
 		}
 
-		$userkeyToUsernameMap = [];
-		$users = $this->dataLookup->getUsers();
-		foreach ( $users as $user ) {
-			$userKey = $user['user_key'];
-			$username = $user['wiki_user_name'];
-			$userkeyToUsernameMap[$userKey] = $username;
-		}
+		$userkeyToUsernameMap = $this->buildUserkeyToUsernameMap( $this->dataLookup );
 
 		if ( empty( $pageIdToCommentIds ) ) {
 			return;
@@ -168,22 +157,6 @@ class Comments extends ProcessorBase {
 			$this->output->writeln( "Adding comments for Talk page '$talkTitle'..." );
 			$this->appendTalkPageWithComments( $talkTitle, $commentsData );
 		}
-	}
-
-	/**
-	 * Build the correct Talk page title respecting namespaces:
-	 * "NS:Page" → "NS_Talk:Page", plain "Page" → "Talk:Page"
-	 *
-	 * @param string $pageTitle
-	 * @return string
-	 */
-	private function buildTalkTitle( string $pageTitle ): string {
-		$prefix = $this->migrationConfig->getNsTalkPrefix();
-		if ( strpos( $pageTitle, ':' ) !== false ) {
-			[ $ns, $titlePart ] = explode( ':', $pageTitle, 2 );
-			return $ns . '_' . "$prefix:$titlePart";
-		}
-		return $prefix . ':' . $pageTitle;
 	}
 
 	/**

@@ -10,7 +10,7 @@ use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
-class Templates extends ProcessorBase {
+class Templates extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
@@ -46,20 +46,10 @@ class Templates extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$wikiTitles = [];
-		if ( is_array( $this->currentSpaceIds ) ) {
-			foreach ( $this->currentSpaceIds as $spaceId ) {
-				// Merge blog post titles for each space ID into the $wikiTitles array
-				// Use array_replace to ensure that if there are duplicate blog post IDs,
-				// the last one will overwrite the previous ones.
-				$wikiTitles = array_replace(
-					$wikiTitles,
-					$this->dataLookup->getPageTemplateIdWikiTitleMap( (int)$spaceId )
-				);
-			}
-		} else {
-			$wikiTitles = $this->dataLookup->getPageTemplateIdWikiTitleMap();
-		}
+		$wikiTitles = $this->collectBySpaceIdsReplaceByKey(
+			fn ( int $spaceId ): array => $this->dataLookup->getPageTemplateIdWikiTitleMap( $spaceId ),
+			fn (): array => $this->dataLookup->getPageTemplateIdWikiTitleMap()
+		);
 
 		foreach ( $wikiTitles as $templateId => $pageTitle ) {
 			if ( $this->skipHelper->skipTemplate( $pageTitle ) ) {
@@ -74,22 +64,17 @@ class Templates extends ProcessorBase {
 			$revisions = $this->dataLookup->getPageTemplateRevisionsForTemplateId( $templateId );
 
 			foreach ( $revisions as $revision ) {
-				$timestamp = $revision['revision_timestamp'];
-				$templateContentIds = json_decode( $revision['template_content_ids'], true );
-				if ( !is_array( $templateContentIds ) ) {
+				$timestamp = (string)$revision['revision_timestamp'];
+				if ( !$this->hasValidContentIdsJson( (string)( $revision['template_content_ids'] ?? '' ) ) ) {
 					continue;
 				}
-
-				$pageContent = '';
-				foreach ( $templateContentIds as $templateContentId ) {
-					if ( empty( $templateContentId ) ) {
-						// Skip if no reference to a body content is not set
-						continue;
-					}
-
-					$this->output->writeln( "Getting '$templateContentId' template content..." );
-					$pageContent .= $this->workspace->getConvertedContent( 'pt_' . $templateContentId ) . "\n";
-				}
+				$pageContent = $this->buildConvertedContentFromIdsJson(
+					$this->workspace,
+					(string)( $revision['template_content_ids'] ?? '' ),
+					'template content',
+					'pt_',
+					true
+				);
 
 				$this->addRevision(
 					$pageTitle,
