@@ -10,6 +10,7 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
@@ -522,6 +523,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new FixMultilineTable(),
 			new TemplateContentPostProcessor( $this->wikiPageTitle ),
 			new RemoveMultipleLinebreaks(),
+			new AddDisplayTitle( $this->confluencePageTitle, $this->wikiPageTitle ),
 		];
 
 		/** @var IPostprocessor $postProcessor */
