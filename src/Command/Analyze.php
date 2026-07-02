@@ -14,6 +14,7 @@ use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\Version;
+use HalloWelt\MigrateConfluence\Utility\WorkerPool;
 use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -206,104 +207,14 @@ class Analyze extends BatchFileProcessorBase {
 			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 		);
 
-		$baseCmd = $this->buildBaseCommand();
-		$descriptors = [
-			0 => [
-				'pipe',
-				'r'
-			],
-			1 => [
-				'pipe',
-				'w'
-			],
-			2 => [
-				'pipe',
-				'w'
-			],
-		];
-		$descriptors[PipeToDB::FILE_DESCRIPTOR] = [
-			'pipe',
-			'w'
-		];
-
-		$processes = [];
-		$pipes = [];
-		$DBWritePipes = [];
-
-		for ( $i = 0; $i < $workers; $i++ ) {
-			$cmd = array_merge( $baseCmd, [ '--worker=' . $i ] );
-			$cmdString = implode( ' ', array_map( 'escapeshellarg', $cmd ) );
-			$output->writeln( "Starting worker {$i}: <comment>{$cmdString}</comment>" );
-			// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.proc_open
-			$proc = proc_open( $cmdString, $descriptors, $workerPipes );
-			if ( $proc === false ) {
-				$output->writeln( "<error>Failed to start worker {$i}.</error>" );
-
-				return Command::FAILURE;
+		$pool = new WorkerPool(
+			$output,
+			function ( string $line ) use ( $dbLog ): void {
+				$this->storeWorkerResponse( $line, $dbLog );
 			}
-			stream_set_blocking( $workerPipes[1], false );
-			stream_set_blocking( $workerPipes[2], false );
-			stream_set_blocking( $workerPipes[PipeToDB::FILE_DESCRIPTOR], false );
-			fclose( $workerPipes[0] );
-			$processes[$i] = $proc;
-			$pipes[$i] = [
-				$workerPipes[1],
-				$workerPipes[2]
-			];
-			$DBWritePipes[$i] = $workerPipes[3];
-		}
+		);
 
-		$exitCodes = array_fill( 0, $workers, null );
-		while ( count( array_filter( $processes ) ) > 0 ) {
-			foreach ( $processes as $i => $proc ) {
-				if ( $proc === null ) {
-					continue;
-				}
-				foreach ( $pipes[$i] as $pipe ) {
-					$line = fgets( $pipe );
-					while ( $line !== false ) {
-						$output->write( "[Worker {$i}] " . $line );
-						$line = fgets( $pipe );
-					}
-				}
-				$line = fgets( $DBWritePipes[$i] );
-				while ( $line !== false ) {
-					$this->storeWorkerResponse( $line, $dbLog );
-					$line = fgets( $DBWritePipes[$i] );
-				}
-				$status = proc_get_status( $proc );
-				if ( !$status['running'] ) {
-					foreach ( $pipes[$i] as $pipe ) {
-						// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition
-						while ( ( $line = fgets( $pipe ) ) !== false ) {
-							$output->write( "[Worker {$i}] " . $line );
-						}
-						fclose( $pipe );
-					}
-					$line = fgets( $DBWritePipes[$i] );
-					while ( $line !== false ) {
-						$this->storeWorkerResponse( $line, $dbLog );
-						$line = fgets( $DBWritePipes[$i] );
-					}
-					fclose( $DBWritePipes[$i] );
-					$exitCodes[$i] = proc_close( $proc );
-					$processes[$i] = null;
-				}
-			}
-			usleep( 100000 );
-		}
-
-		foreach ( $exitCodes as $i => $exitCode ) {
-			if ( $exitCode !== 0 ) {
-				$output->writeln( "<error>Worker {$i} failed with exit code {$exitCode}.</error>" );
-
-				return Command::FAILURE;
-			}
-		}
-
-		$output->writeln( '<info>All workers completed successfully.</info>' );
-
-		return Command::SUCCESS;
+		return $pool->run( WorkerPool::buildBaseCommand(), $workers );
 	}
 
 	/**
@@ -335,30 +246,6 @@ class Analyze extends BatchFileProcessorBase {
 				$line
 			);
 		}
-	}
-
-	/**
-	 * @return array
-	 */
-	private function buildBaseCommand(): array {
-		$argv = $_SERVER['argv'];
-		$cmd = [
-			PHP_BINARY,
-			$argv[0]
-		];
-
-		for ( $i = 1; $i < count( $argv ); $i++ ) {
-			$arg = $argv[$i];
-			if ( preg_match( '#^--worker(=.*)?$#', $arg ) ) {
-				if ( $arg === '--worker' ) {
-					$i++;
-				}
-				continue;
-			}
-			$cmd[] = $arg;
-		}
-
-		return $cmd;
 	}
 
 	/**
