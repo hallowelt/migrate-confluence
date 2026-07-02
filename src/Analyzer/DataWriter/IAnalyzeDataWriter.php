@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\DataWriter;
 
-interface IAnalysisDataWriter {
+interface IAnalyzeDataWriter {
 
 	public function addLogEntry(
 		string $type, string $step, string $caller, string $text

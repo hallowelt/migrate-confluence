@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Analyzer\DataWriter;
 
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 
-class PipeAnalysisDataWriter implements IAnalysisDataWriter {
+class AnalyzePipeDataWriter implements IAnalyzeDataWriter {
 
 	public function __construct( private PipeToDB $pipe ) {
 	}

@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
 use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
@@ -31,13 +31,13 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	private LoggerInterface|NullLogger $logger;
 
 	/**
-	 * @param IAnalysisDataWriter $writer
+	 * @param IAnalyzeDataWriter $writer
 	 * @param WorkspaceDB $workspaceDB
 	 * @param OutputInterface $output
 	 * @param MigrationConfig $config
 	 */
 	public function __construct(
-		private readonly IAnalysisDataWriter $writer,
+		private readonly IAnalyzeDataWriter $writer,
 		private readonly WorkspaceDB $workspaceDB,
 		private readonly OutputInterface $output,
 		private readonly MigrationConfig $config,
@@ -64,9 +64,12 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			return true;
 		}
 
+		$sourceBasePath = $file->getRealPath();
+
+		$this->output->writeln( "\nProcessing: $sourceBasePath" );
 		$this->output->writeln( "\nAnalyze data:" );
 
-		$processors = $this->getProcessors( $file->getPath() );
+		$processors = $this->getProcessors( $sourceBasePath );
 
 		$this->workspaceDB->beginTransaction();
 		$this->processFile( $file->getPathname(), $processors );
@@ -76,18 +79,18 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	}
 
 	/**
-	 * @param string $xmlPath
+	 * @param string $sourceBasePath
 	 *
 	 * @return array
 	 */
-	private function getProcessors( string $xmlPath ): array {
+	private function getProcessors( string $sourceBasePath ): array {
 		return [
 			'BodyContent' => new BodyContents( $this->writer ),
 			'Space' => new Spaces( $this->writer, $this->config ),
 			'SpaceDescription' => new SpaceDescription( $this->writer, $this->config ),
 			'Page' => new Page( $this->writer, $this->config ),
 			'BlogPost' => new BlogPost( $this->writer, $this->config ),
-			'Attachment' => new Attachments( $this->writer, $this->config, $xmlPath ),
+			'Attachment' => new Attachments( $this->writer, $this->config, $sourceBasePath ),
 			'Comment' => new Comments( $this->writer ),
 			'Label' => new Label( $this->writer ),
 			'Labelling' => new Labelling( $this->writer ),
