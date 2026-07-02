@@ -28,12 +28,14 @@ class WikiFileXmlBuilderTest extends TestCase {
 		}
 
 		$tmpPath = tempnam( sys_get_temp_dir(), 'wiki-file-xmlbuilder-' ) . '.xml';
-		$builder->buildAndSave( $tmpPath );
-
-		$actual = file_get_contents( $tmpPath );
-		$expected = file_get_contents( __DIR__ . '/expected-file-xml.xml' );
-
-		$this->assertEquals( $expected, $actual );
+		try {
+			$builder->buildAndSave( $tmpPath );
+			$actual = file_get_contents( $tmpPath );
+			$expected = file_get_contents( __DIR__ . '/expected-file-xml.xml' );
+			$this->assertEquals( $expected, $actual );
+		} finally {
+			unlink( $tmpPath );
+		}
 	}
 
 	private function getFileData(): array {

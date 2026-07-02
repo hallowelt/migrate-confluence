@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
-use PHPUnit\Framework\TestCase;
 
-class DetailsMacroTest extends TestCase {
+class DetailsMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @var string
@@ -28,13 +27,9 @@ class DetailsMacroTest extends TestCase {
 		$processor = new DetailsMacro();
 		$processor->process( $dom );
 
-		$expectedDOM = new DOMDocument();
-		$expectedDOM->load( "$this->dir/details-macro-output.xml" );
-
-		$this->assertEqualXMLStructure(
-			$expectedDOM->documentElement,
-			$dom->documentElement
-		);
+		$expectedDom = new DOMDocument();
+		$expectedDom->load( "$this->dir/details-macro-output.xml" );
+		$this->assertDomXmlEquals( $expectedDom, $dom );
 	}
 
 }

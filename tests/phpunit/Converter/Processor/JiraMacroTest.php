@@ -3,9 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
-use PHPUnit\Framework\TestCase;
 
-class JiraMacroTest extends TestCase {
+class JiraMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro::process
@@ -15,19 +14,16 @@ class JiraMacroTest extends TestCase {
 		$jiraMacroProcessor = new JiraMacro();
 		$dom = new \DOMDocument();
 		$dom->load(
-			__DIR__ . '/../../data/jira-macro-input.xml'
+			dirname( __DIR__, 2 ) . '/data/jira-macro-input.xml'
 		);
 		$expectedDOM = new \DOMDocument();
 		$expectedDOM->load(
-			__DIR__ . '/../../data/jira-macro-output.xml'
+			dirname( __DIR__, 2 ) . '/data/jira-macro-output.xml'
 		);
 
 		$jiraMacroProcessor->process( $dom );
 
-		$this->assertEqualXMLStructure(
-			$expectedDOM->documentElement,
-			$dom->documentElement
-		);
+		$this->assertDomXmlEquals( $expectedDOM, $dom );
 	}
 
 	/**
@@ -93,9 +89,10 @@ class JiraMacroTest extends TestCase {
 	private function doTest( string $inputFile, string $outputFile ): void {
 		$processor = new JiraMacro();
 		$dom = new \DOMDocument();
-		$dom->load( __DIR__ . '/../../data/' . $inputFile );
-		$expected = file_get_contents( __DIR__ . '/../../data/' . $outputFile );
+		$dom->load( dirname( __DIR__, 2 ) . '/data/' . $inputFile );
+		$expectedDom = new \DOMDocument();
+		$expectedDom->load( dirname( __DIR__, 2 ) . '/data/' . $outputFile );
 		$processor->process( $dom );
-		$this->assertEquals( $expected, $dom->saveXML() );
+		$this->assertDomXmlEquals( $expectedDom, $dom );
 	}
 }

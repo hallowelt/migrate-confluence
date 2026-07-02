@@ -65,24 +65,7 @@ class WorkspaceDbMock {
 	}
 
 	private function createWorkspaceDB( string $pathSuffix ): WorkspaceDB {
-		$databasePath = sys_get_temp_dir() . '/' . $pathSuffix;
-		$databaseDir = dirname( $databasePath );
-
-		if (
-			!is_dir( $databaseDir )
-			&& !mkdir( $databaseDir, 0777, true )
-			&& !is_dir( $databaseDir )
-		) {
-			throw new \RuntimeException(
-				'Could not create temporary database directory: ' . $databaseDir
-			);
-		}
-
-		if ( file_exists( $databasePath ) ) {
-			unlink( $databasePath );
-		}
-
-		return new WorkspaceDB( $databasePath );
+		return new WorkspaceDB( ':memory:' );
 	}
 
 	private function seedDefaultSpaces( WorkspaceDB $workspaceDB ): void {

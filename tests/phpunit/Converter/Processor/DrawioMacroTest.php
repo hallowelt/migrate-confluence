@@ -16,13 +16,31 @@ class DrawioMacroTest extends TestCase {
 	/** @var ConversionDataWriter */
 	private $conversionDataWriter;
 
+	/** @var string */
+	private string $tempDir = '';
+
+	protected function tearDown(): void {
+		if ( $this->tempDir !== '' && is_dir( $this->tempDir ) ) {
+			// Remove files inside the directory tree, then the directories
+			$iterator = new \RecursiveIteratorIterator(
+				new \RecursiveDirectoryIterator( $this->tempDir, \FilesystemIterator::SKIP_DOTS ),
+				\RecursiveIteratorIterator::CHILD_FIRST
+			);
+			foreach ( $iterator as $entry ) {
+				$entry->isDir() ? rmdir( $entry->getPathname() ) : unlink( $entry->getPathname() );
+			}
+			rmdir( $this->tempDir );
+			$this->tempDir = '';
+		}
+	}
+
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro::process
 	 * @return void
 	 */
 	public function testPreprocess() {
-		$tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-test-' . uniqid();
-		$this->conversionDataWriter = new ConversionDataWriter( $tempDir );
+		$this->tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-test-' . uniqid();
+		$this->conversionDataWriter = new ConversionDataWriter( $this->tempDir );
 		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		$this->doTest( 0, 'drawio-macro-input.xml', 'drawio-macro-output-1.xml' );

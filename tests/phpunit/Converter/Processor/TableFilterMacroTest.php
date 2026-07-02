@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
-use PHPUnit\Framework\TestCase;
 
-class TableFilterMacroTest extends TestCase {
+class TableFilterMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @var string
@@ -28,13 +27,9 @@ class TableFilterMacroTest extends TestCase {
 		$processor = new TableFilterMacro();
 		$processor->process( $dom );
 
-		$expectedDOM = new DOMDocument();
-		$expectedDOM->load( "$this->dir/table-filter-macro-output.xml" );
-
-		$this->assertEqualXMLStructure(
-			$expectedDOM->documentElement,
-			$dom->documentElement
-		);
+		$expectedDom = new DOMDocument();
+		$expectedDom->load( "$this->dir/table-filter-macro-output.xml" );
+		$this->assertDomXmlEquals( $expectedDom, $dom );
 	}
 
 }
