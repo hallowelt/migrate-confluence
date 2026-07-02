@@ -124,6 +124,7 @@ class BlogPost extends ProcessorBase {
 			$spaceId,
 			$confluenceTitle,
 			'',
+			'',
 			$contentStatus,
 			$revisionTimestamp,
 			$lastModifier,

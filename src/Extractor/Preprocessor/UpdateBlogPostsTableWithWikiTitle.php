@@ -5,15 +5,30 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
+use HalloWelt\MigrateConfluence\Utility\WikiConfig;
 
 /**
  */
 class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 
 	private const NS_BLOG_NAME = 'Blog';
+
+	/**
+	 * @param WorkspaceDB $workspaceDB
+	 * @param DBLog $dbLog
+	 */
+	public function __construct(
+		WorkspaceDB $workspaceDB,
+		DBLog $dbLog,
+		private WikiConfig $wikiConfig
+	) {
+		parent::__construct( $workspaceDB, $dbLog );
+	}
 
 	/**
 	 * @return void
@@ -56,12 +71,8 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				"Creating wiki title for blog post ID $pageId with confluence title '$confluenceTitle'"
 			);
 
-			$prefix = $spaceIdToPrefixMap[$spaceId];
-			$namespace = substr( $prefix, 0, strpos( $prefix, ':' ) );
-			$namespace .= '/';
-
-			$blogName = self::NS_BLOG_NAME;
-			$titleBuilder = new TitleBuilder( [ $spaceId => "$blogName:$namespace" ], [], [], [] );
+			$blogTitlePrefix = $this->getBlogTitlePrefixFromSpacePrefix( $spaceIdToPrefixMap[$spaceId] );
+			$titleBuilder = new TitleBuilder( [ $spaceId => $blogTitlePrefix ], [], [], [] );
 
 			try {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
@@ -124,6 +135,9 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				"Updated wiki title for blog post ID $pageId with title: $wikiTitle"
 			);
 			$this->workspaceDB->updateBlogPostWikiTitle( (int)$pageId, $wikiTitle );
+
+			$interwikiTitle = $this->getInterwikiTitle( (int)$pageId, $wikiTitle );
+			$this->workspaceDB->updateBlogPostInterwikiTitle( (int)$pageId, $interwikiTitle );
 		}
 	}
 
@@ -181,5 +195,55 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				}
 			}
 		}
+	}
+
+	/**
+	 * @param int $pageId
+	 * @param string $wikiTitle
+	 * @return string
+	 */
+	private function getInterwikiTitle( int $pageId, string $wikiTitle ): string {
+		$spaceId = $this->workspaceDB->getSpaceIdForBlogPostId( $pageId );
+		if ( $spaceId === null ) {
+			return $wikiTitle;
+		}
+
+		$spaceKey = $this->workspaceDB->getSpaceKeyFromSpaceId( $spaceId );
+		if ( $spaceKey === null || $spaceKey === '' ) {
+			return $wikiTitle;
+		}
+
+		$interwikiPrefix = $this->wikiConfig->getInterwikiPrefixForSpaceKey( $spaceKey );
+		$pageTitle = $wikiTitle;
+		$blogTitlePrefix = $this->getBlogTitlePrefixForSpaceKey( $spaceKey );
+		if ( !str_starts_with( $pageTitle, $blogTitlePrefix ) ) {
+			return $wikiTitle;
+		}
+
+		$pageTitle = substr( $pageTitle, strlen( self::NS_BLOG_NAME . ':' ) );
+
+		return "$interwikiPrefix-blog:$pageTitle";
+	}
+
+	/**
+	 * @param string $spacePrefix
+	 * @return string
+	 */
+	private function getBlogTitlePrefixFromSpacePrefix( string $spacePrefix ): string {
+		$prefixRoot = '';
+		if ( $spacePrefix !== '' && str_contains( $spacePrefix, ':' ) ) {
+			$prefixRoot = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) ) . '/';
+		}
+
+		return self::NS_BLOG_NAME . ':' . $prefixRoot;
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @return string
+	 */
+	private function getBlogTitlePrefixForSpaceKey( string $spaceKey ): string {
+		$spacePrefix = $this->workspaceDB->getSpacePrefixFromSpaceKey( $spaceKey );
+		return $this->getBlogTitlePrefixFromSpacePrefix( $spacePrefix );
 	}
 }
