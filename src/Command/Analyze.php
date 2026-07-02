@@ -7,8 +7,8 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\DirectAnalysisDataWriter;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\PipeAnalysisDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzePipeDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -131,8 +131,8 @@ class Analyze extends BatchFileProcessorBase {
 	protected function processFile( SplFileInfo $file ): bool {
 		$this->output->writeln( "Analyzing file '{$this->currentFile->getFilename()}'" );
 
-		$dataWriter = $this->workerPipe ? new PipeAnalysisDataWriter( new PipeToDB( $this->workerPipe ) )
-			: new DirectAnalysisDataWriter( $this->workspaceDB );
+		$dataWriter = $this->workerPipe ? new AnalyzePipeDataWriter( new PipeToDB( $this->workerPipe ) )
+			: new AnalyzeDirectDataWriter( $this->workspaceDB );
 
 		$analyzer = new ConfluenceAnalyzer(
 			$dataWriter,

@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
 /**
@@ -18,10 +18,10 @@ use XMLReader;
 class Users extends ProcessorBase {
 
 	/**
-	 * @param IAnalysisDataWriter $writer
+	 * @param IAnalyzeDataWriter $writer
 	 */
 	public function __construct(
-		private IAnalysisDataWriter $writer
+		private IAnalyzeDataWriter $writer
 	) {
 	}
 

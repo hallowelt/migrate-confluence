@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Analyzer\DataWriter;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
-class DirectAnalysisDataWriter implements IAnalysisDataWriter {
+class AnalyzeDirectDataWriter implements IAnalyzeDataWriter {
 
 	public function __construct( private WorkspaceDB $db ) {
 	}

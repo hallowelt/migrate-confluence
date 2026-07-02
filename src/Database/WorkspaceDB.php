@@ -3,13 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Database;
 
 use Exception;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use InvalidArgumentException;
 use SQLite3;
 use SQLite3Result;
 use SQLite3Stmt;
 
-class WorkspaceDB implements IAnalysisDataWriter {
+class WorkspaceDB implements IAnalyzeDataWriter {
 
 	/** @var SQLite3 */
 	private SQLite3 $db;

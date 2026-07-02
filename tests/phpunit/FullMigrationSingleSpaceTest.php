@@ -8,7 +8,7 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\DirectAnalysisDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
 use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
@@ -200,7 +200,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			: WorkspaceDB::createNew(
 				$dbPath
 			);
-		$writer = new DirectAnalysisDataWriter( $workspaceDB );
+		$writer = new AnalyzeDirectDataWriter( $workspaceDB );
 
 		if ( isset( $config['config'] ) ) {
 			$migrationConfig = new MigrationConfig( $config['config'] );

@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 use XMLReader;
@@ -10,14 +10,14 @@ use XMLReader;
 class Attachments extends ProcessorBase {
 
 	/**
-	 * @param IAnalysisDataWriter $writer
+	 * @param IAnalyzeDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
-	 * @param string $xmlPath
+	 * @param string $sourceBasePath
 	 */
 	public function __construct(
-		private IAnalysisDataWriter $writer,
+		private IAnalyzeDataWriter $writer,
 		private MigrationConfig $migrationConfig,
-		private string $xmlPath
+		private string $sourceBasePath
 	) {
 	}
 
@@ -140,7 +140,7 @@ class Attachments extends ProcessorBase {
 	 * @return string
 	 */
 	private function makeAttachmentReference( int $attachmentId, int $containerContentId, array $properties ): string {
-		$basePath = $this->xmlPath . '/attachments';
+		$attachmentsPath = $this->sourceBasePath . '/attachments';
 
 		$attachmentVersion = '';
 		if ( isset( $properties['attachmentVersion'] ) ) {
@@ -157,7 +157,7 @@ class Attachments extends ProcessorBase {
 			$attachmentVersion = '__LATEST__';
 		}
 
-		return $basePath . "/" . $containerContentId . '/' . $attachmentId . '/' . $attachmentVersion;
+		return $attachmentsPath . "/" . $containerContentId . '/' . $attachmentId . '/' . $attachmentVersion;
 	}
 
 	/**

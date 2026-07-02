@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
@@ -32,11 +32,11 @@ use XMLReader;
 class SpaceDescription extends ProcessorBase {
 
 	/**
-	 * @param IAnalysisDataWriter $writer
+	 * @param IAnalyzeDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private IAnalysisDataWriter $writer,
+		private IAnalyzeDataWriter $writer,
 		private MigrationConfig $migrationConfig
 	) {
 	}

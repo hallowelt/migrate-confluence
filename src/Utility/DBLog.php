@@ -2,13 +2,13 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use LogicException;
 
 class DBLog {
 
-	public function __construct( private WorkspaceDB|IAnalysisDataWriter $dataTarget ) {
+	public function __construct( private WorkspaceDB|IAnalyzeDataWriter $dataTarget ) {
 	}
 
 	public function addLogEntry(

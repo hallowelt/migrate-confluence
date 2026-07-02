@@ -4,14 +4,14 @@ namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalysisDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 class PageTemplates extends ProcessorBase {
 
 	public function __construct(
-		private IAnalysisDataWriter $writer,
+		private IAnalyzeDataWriter $writer,
 		private WorkspaceDB $workspaceDB
 	) {
 	}
