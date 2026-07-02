@@ -10,7 +10,7 @@ use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
-class BlogPosts extends ProcessorBase {
+class BlogPosts extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
@@ -52,21 +52,10 @@ class BlogPosts extends ProcessorBase {
 	}
 
 	private function addBlogPages(): void {
-		// Get all blog post titles for the configured space IDs and merge them.
-		$wikiTitles = [];
-		if ( is_array( $this->currentSpaceIds ) ) {
-			foreach ( $this->currentSpaceIds as $spaceId ) {
-				// Merge blog post titles for each space ID into the $wikiTitles array
-				// Use array_replace to ensure that if there are duplicate blog post IDs,
-				// the last one will overwrite the previous ones.
-				$wikiTitles = array_replace(
-					$wikiTitles,
-					$this->dataLookup->getBlogPostIdWikiBlogPostTitleMap( (int)$spaceId )
-				);
-			}
-		} else {
-			$wikiTitles = $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap();
-		}
+		$wikiTitles = $this->collectBySpaceIdsReplaceByKey(
+			fn ( int $spaceId ): array => $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap( $spaceId ),
+			fn (): array => $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap()
+		);
 
 		foreach ( $wikiTitles as $blogPostId => $blogPostTitle ) {
 			if ( $this->skipHelper->skipBlogPost( $blogPostTitle ) ) {
@@ -80,21 +69,17 @@ class BlogPosts extends ProcessorBase {
 
 			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $blogPostId );
 			foreach ( $revisions as $revision ) {
-				$timestamp = $revision['revision_timestamp'];
-				$bodyContentIds = json_decode( $revision['body_content_ids'], true );
-				if ( !is_array( $bodyContentIds ) ) {
+				$timestamp = (string)$revision['revision_timestamp'];
+				if ( !$this->hasValidContentIdsJson( (string)( $revision['body_content_ids'] ?? '' ) ) ) {
 					continue;
 				}
-
-				$pageContent = '';
-				foreach ( $bodyContentIds as $bodyContentId ) {
-					if ( empty( $bodyContentId ) ) {
-						// Skip if no reference to a body content is not set
-						continue;
-					}
-					$this->output->writeln( "Getting '$bodyContentId' body content..." );
-					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
-				}
+				$pageContent = $this->buildConvertedContentFromIdsJson(
+					$this->workspace,
+					(string)( $revision['body_content_ids'] ?? '' ),
+					'body content',
+					'',
+					true
+				);
 
 				$this->addRevision(
 					$blogPostTitle,
