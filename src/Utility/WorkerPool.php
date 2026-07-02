@@ -2,23 +2,26 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Spawns and monitors a pool of worker sub-processes, forwarding their stdout/stderr
- * to the console and dispatching DB-pipe lines via a caller-supplied callback.
+ * to the console and dispatching DB-pipe lines to the workspace DB.
  */
 class WorkerPool {
 
 	/**
 	 * @param OutputInterface $output
-	 * @param callable(string):void $onDbLine Called for every line received on the DB pipe
-	 * @param int $pollInterval usleep() microseconds between poll iterations
+	 * @param WorkspaceDB $workspaceDB
+	 * @param DBLog $dbLog
+	 * @param int $pollInterval
 	 */
 	public function __construct(
 		private OutputInterface $output,
-		private $onDbLine,
+		private WorkspaceDB $workspaceDB,
+		private DBLog $dbLog,
 		private int $pollInterval = 100000
 	) {
 	}
@@ -100,7 +103,7 @@ class WorkerPool {
 				}
 				$line = fgets( $DBWritePipes[$i] );
 				while ( $line !== false ) {
-					( $this->onDbLine )( $line );
+					$this->storeResponse( $line );
 					$line = fgets( $DBWritePipes[$i] );
 				}
 				$status = proc_get_status( $proc );
@@ -114,7 +117,7 @@ class WorkerPool {
 					}
 					$line = fgets( $DBWritePipes[$i] );
 					while ( $line !== false ) {
-						( $this->onDbLine )( $line );
+						$this->storeResponse( $line );
 						$line = fgets( $DBWritePipes[$i] );
 					}
 					fclose( $DBWritePipes[$i] );
@@ -138,5 +141,24 @@ class WorkerPool {
 
 		$this->output->writeln( '<info>All workers completed successfully.</info>' );
 		return Command::SUCCESS;
+	}
+
+	public function storeResponse( string $line ): void {
+		$data = json_decode( $line, true );
+		if ( is_array( $data ) && count( $data ) > 1 ) {
+			$method = array_shift( $data );
+			if ( $method === 'log' ) {
+				$this->dbLog->addLogEntry( ...$data );
+			} else {
+				call_user_func_array( [ $this->workspaceDB, $method ], $data );
+			}
+		} else {
+			$this->dbLog->addLogEntry(
+				'error',
+				'worker.invalid-output',
+				self::class,
+				$line
+			);
+		}
 	}
 }

@@ -89,8 +89,13 @@ class Convert extends CommandConvert {
 
 		$this->setupDB( $input, !$isChildProcess );
 
+		/**
+		 *  Spawn $workers child processes, each handling a disjoint slice of the file list,
+		 *  and stream their combined output until all are done.
+		 */
 		if ( $workers > 1 && !$isChildProcess ) {
-			return $this->spawnWorkers( $input, $output, $workers );
+			$pool = new WorkerPool( $output, $this->workspaceDB, $this->dbLog, 50000 );
+			return $pool->run( WorkerPool::buildBaseCommand(), $workers );
 		}
 
 		/* this is the "single worker" case. Here we define our own pipe for the converter to
@@ -102,10 +107,11 @@ class Convert extends CommandConvert {
 		$returnValue = parent::execute( $input, $output );
 
 		if ( $this->pipe !== false ) {
+			$pool = new WorkerPool( $output, $this->workspaceDB, $this->dbLog );
 			rewind( $this->pipe );
 			$line = fgets( $this->pipe );
 			while ( $line !== false ) {
-				$this->storeWorkerResponse( $line );
+				$pool->storeResponse( $line );
 				$line = fgets( $this->pipe );
 			}
 			$pipe = $this->pipe;
@@ -178,49 +184,6 @@ class Convert extends CommandConvert {
 			file_put_contents( $this->targetPathname, $result );
 		}
 		return true;
-	}
-
-	/**
-	 * Spawn $workers child processes, each handling a disjoint slice of the file list,
-	 * and stream their combined output until all are done.
-	 *
-	 * @param InputInterface $input
-	 * @param OutputInterface $output
-	 * @param int $workers
-	 * @return int
-	 */
-	private function spawnWorkers( InputInterface $input, OutputInterface $output, int $workers ): int {
-		$pool = new WorkerPool(
-			$output,
-			function ( string $line ): void {
-				$this->storeWorkerResponse( $line );
-			},
-			50000
-		);
-
-		return $pool->run( WorkerPool::buildBaseCommand(), $workers );
-	}
-
-	/**
-	 *
-	 */
-	private function storeWorkerResponse( string $line ): void {
-		$data = json_decode( $line, true );
-		if ( is_array( $data ) && count( $data ) > 1 ) {
-			$method = array_shift( $data );
-			if ( $method === 'log' ) {
-				$this->dbLog->addLogEntry( ...$data );
-			} else {
-				call_user_func_array( [ $this->workspaceDB, $method ], $data );
-			}
-		} else {
-			$this->dbLog->addLogEntry(
-				'error',
-				'convert.invalid-worker-output',
-				__CLASS__,
-				$line
-			);
-		}
 	}
 
 	/**

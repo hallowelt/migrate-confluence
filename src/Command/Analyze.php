@@ -104,9 +104,24 @@ class Analyze extends BatchFileProcessorBase {
 
 		$this->workspaceDB = WorkspaceDB::createNew( $dbPath );
 
+		/**
+		 *  Spawn $workers child processes, each handling a disjoint slice of the file list,
+		 *  and stream their combined output until all are done.
+		 */
 		if ( $workers > 1 ) {
 			$this->executionTime = new ExecutionTime();
-			$result = $this->spawnWorkers( $output, $workers );
+
+			$dbLog = new DBLog( $this->workspaceDB );
+			$dbLog->addLogEntry(
+				'info',
+				'analyze',
+				__CLASS__,
+				sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
+			);
+
+			$pool = new WorkerPool( $output, $this->workspaceDB, $dbLog );
+			$result = $pool->run( WorkerPool::buildBaseCommand(), $workers );
+
 			$this->logExecutionTime( $output, $dest );
 			return $result;
 		}
@@ -190,62 +205,6 @@ class Analyze extends BatchFileProcessorBase {
 		$buckets->loadFromWorkspace( $workspace );
 		$buckets->addData( 'execution-time', $this->getName(), $time, false, true );
 		$buckets->saveToWorkspace( $workspace );
-	}
-
-	/**
-	 * @param OutputInterface $output
-	 * @param int $workers
-	 *
-	 * @return int
-	 */
-	private function spawnWorkers( OutputInterface $output, int $workers ): int {
-		$dbLog = new DBLog( $this->workspaceDB );
-		$dbLog->addLogEntry(
-			'info',
-			'analyze',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
-
-		$pool = new WorkerPool(
-			$output,
-			function ( string $line ) use ( $dbLog ): void {
-				$this->storeWorkerResponse( $line, $dbLog );
-			}
-		);
-
-		return $pool->run( WorkerPool::buildBaseCommand(), $workers );
-	}
-
-	/**
-	 * @param string $line
-	 * @param DBLog $dbLog
-	 *
-	 * @return void
-	 */
-	private function storeWorkerResponse( string $line, DBLog $dbLog ): void {
-		$data = json_decode( $line, true );
-		if ( is_array( $data ) && count( $data ) > 1 ) {
-			$method = array_shift( $data );
-			if ( $method === 'log' ) {
-				$dbLog->addLogEntry( ...$data );
-			} else {
-				call_user_func_array(
-					[
-						$this->workspaceDB,
-						$method
-					],
-					$data
-				);
-			}
-		} else {
-			$dbLog->addLogEntry(
-				'error',
-				'analyze.invalid-worker-output',
-				__CLASS__,
-				$line
-			);
-		}
 	}
 
 	/**
