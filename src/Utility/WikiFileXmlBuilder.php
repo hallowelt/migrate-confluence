@@ -31,10 +31,12 @@ class WikiFileXmlBuilder {
 	 * @param string $path
 	 * @param string $timestamp
 	 * @param string $contributor
+	 * @param string $pageText
 	 * @return void
 	 */
 	public function addFileRevision(
-		string $fileTitle, string $path, string $timestamp = '', string $contributor = ''
+		string $fileTitle, string $path, string $timestamp = '',
+		string $contributor = '', string $pageText = ''
 	): void {
 		if ( !isset( $this->files[$fileTitle] ) ) {
 			$this->files[$fileTitle] = [];
@@ -46,6 +48,10 @@ class WikiFileXmlBuilder {
 
 		if ( $contributor !== '' ) {
 			$data['contributor'] = $contributor;
+		}
+
+		if ( $pageText !== '' ) {
+			$data['text'] = $pageText;
 		}
 
 		$data['data'] = $path;
