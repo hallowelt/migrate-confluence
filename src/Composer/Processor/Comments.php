@@ -2,11 +2,42 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use Symfony\Component\Console\Output\Output;
+
 /**
  * Generates Talk pages with cs-comments JSON slot for pages that have
  * Confluence page-level comments.
  */
-class Comments extends ProcessorBase {
+class Comments extends ContentProcessorBase {
+
+	/**
+	 * @param Builder $builder
+	 * @param DBComposerDataLookup $dataLookup
+	 * @param Workspace $workspace
+	 * @param Output $output
+	 * @param string $dest
+	 * @param MigrationConfig $migrationConfig
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param ComposerSkipHelper $skipHelper
+	 */
+	public function __construct(
+		protected Builder $builder,
+		protected DBComposerDataLookup $dataLookup,
+		protected Workspace $workspace,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig,
+		protected ComposerDeploymentInfo $deploymentInfo,
+		protected ComposerSkipHelper $skipHelper
+	) {
+		parent::__construct( $builder, $output, $dest, $migrationConfig );
+	}
 
 	/**
 	 * @return string
@@ -19,7 +50,7 @@ class Comments extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$this->addBlogPages();
+		$this->addCommentPages();
 
 		$this->writeOutputFile();
 	}
@@ -27,11 +58,18 @@ class Comments extends ProcessorBase {
 	/**
 	 * @return void
 	 */
-	private function addBlogPages(): void {
-		$comments = array_merge(
-			$this->dataLookup->getCommentsForPages(),
-			$this->dataLookup->getCommentsForBlogPosts()
+	private function addCommentPages(): void {
+		$comments = $this->collectBySpaceIdsAppend(
+			fn ( int $spaceId ): array => array_merge(
+				$this->dataLookup->getCommentsForPages( $spaceId ),
+				$this->dataLookup->getCommentsForBlogPosts( $spaceId )
+			),
+			fn (): array => array_merge(
+				$this->dataLookup->getCommentsForPages(),
+				$this->dataLookup->getCommentsForBlogPosts()
+			)
 		);
+
 		if ( empty( $comments ) ) {
 			$this->output->writeln( "No comments found, skipping comment processing." );
 			return;
@@ -89,13 +127,7 @@ class Comments extends ProcessorBase {
 			];
 		}
 
-		$userkeyToUsernameMap = [];
-		$users = $this->dataLookup->getUsers();
-		foreach ( $users as $user ) {
-			$userKey = $user['user_key'];
-			$username = $user['wiki_user_name'];
-			$userkeyToUsernameMap[$userKey] = $username;
-		}
+		$userkeyToUsernameMap = $this->buildUserkeyToUsernameMap( $this->dataLookup );
 
 		if ( empty( $pageIdToCommentIds ) ) {
 			return;
@@ -108,6 +140,11 @@ class Comments extends ProcessorBase {
 			}
 			$pageTitle = $pageIdToTitleMap[$pageId];
 			$talkTitle = $this->buildTalkTitle( $pageTitle );
+			if ( $this->skipHelper->skipPage( $pageTitle ) ) {
+				$this->output->writeln( "Skip page $talkTitle." );
+				$this->deploymentInfo->addSkippedPage( $talkTitle );
+				continue;
+			}
 
 			$commentsData = $this->buildCommentsData(
 				$commentIds, $commentIdToMetadata, $userkeyToUsernameMap
@@ -120,22 +157,6 @@ class Comments extends ProcessorBase {
 			$this->output->writeln( "Adding comments for Talk page '$talkTitle'..." );
 			$this->appendTalkPageWithComments( $talkTitle, $commentsData );
 		}
-	}
-
-	/**
-	 * Build the correct Talk page title respecting namespaces:
-	 * "NS:Page" → "NS_Talk:Page", plain "Page" → "Talk:Page"
-	 *
-	 * @param string $pageTitle
-	 * @return string
-	 */
-	private function buildTalkTitle( string $pageTitle ): string {
-		$prefix = $this->migrationConfig->getNsTalkPrefix();
-		if ( strpos( $pageTitle, ':' ) !== false ) {
-			[ $ns, $titlePart ] = explode( ':', $pageTitle, 2 );
-			return $ns . '_' . "$prefix:$titlePart";
-		}
-		return $prefix . ':' . $pageTitle;
 	}
 
 	/**

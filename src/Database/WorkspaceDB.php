@@ -1021,15 +1021,26 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	 *
 	 * @return array
 	 */
-	public function getInvalidPages(): array {
+	public function getInvalidPages( ?int $spaceId = null ): array {
 		$result = [];
 
 		// 1. Collect pages with invalid titles
-		$stmt = $this->cachedPrepare(
-			'SELECT p.page_id, p.space_id, p.confluence_title, p.wiki_title, pit.text
-			FROM pages p
-			INNER JOIN page_invalid_titles pit ON p.page_id = pit.page_id'
-		);
+		if ( $spaceId !== null ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT p.page_id, p.space_id, p.confluence_title, p.wiki_title, pit.text
+				FROM pages p
+				INNER JOIN page_invalid_titles pit ON p.page_id = pit.page_id
+				WHERE p.space_id = :space_id'
+			);
+			$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$stmt = $this->cachedPrepare(
+				'SELECT p.page_id, p.space_id, p.confluence_title, p.wiki_title, pit.text
+				FROM pages p
+				INNER JOIN page_invalid_titles pit ON p.page_id = pit.page_id'
+			);
+		}
+
 		$queryResult = $stmt->execute();
 		$row = $queryResult->fetchArray( SQLITE3_ASSOC );
 		while ( $row !== false ) {
@@ -1058,11 +1069,22 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 
 		if ( !empty( $invalidBodyContents ) ) {
 			// 3. Load all pages (root and historical) to check their body_content_ids
-			$stmt = $this->cachedPrepare(
-				'SELECT page_id, space_id, confluence_title, wiki_title,
-				        body_content_ids, original_version_id
-				FROM pages'
-			);
+			if ( $spaceId !== null ) {
+				$stmt = $this->cachedPrepare(
+					'SELECT page_id, space_id, confluence_title, wiki_title,
+					        body_content_ids, original_version_id
+					FROM pages
+					WHERE space_id = :space_id'
+				);
+				$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+			} else {
+				$stmt = $this->cachedPrepare(
+					'SELECT page_id, space_id, confluence_title, wiki_title,
+					        body_content_ids, original_version_id
+					FROM pages'
+				);
+			}
+
 			$queryResult = $stmt->execute();
 			$allPages = [];
 			$row = $queryResult->fetchArray( SQLITE3_ASSOC );
@@ -1137,15 +1159,26 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	 *
 	 * @return array
 	 */
-	public function getInvalidBlogPosts(): array {
+	public function getInvalidBlogPosts( ?int $spaceId = null ): array {
 		$result = [];
 
 		// 1. Collect blog posts with invalid titles
-		$stmt = $this->cachedPrepare(
-			'SELECT bp.page_id, bp.space_id, bp.confluence_title, bp.wiki_title, bpit.text
-			FROM blog_posts bp
-			INNER JOIN blog_post_invalid_titles bpit ON bp.page_id = bpit.page_id'
-		);
+		if ( $spaceId !== null ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT bp.page_id, bp.space_id, bp.confluence_title, bp.wiki_title, bpit.text
+				FROM blog_posts bp
+				INNER JOIN blog_post_invalid_titles bpit ON bp.page_id = bpit.page_id
+				WHERE bp.space_id = :space_id'
+			);
+			$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$stmt = $this->cachedPrepare(
+				'SELECT bp.page_id, bp.space_id, bp.confluence_title, bp.wiki_title, bpit.text
+				FROM blog_posts bp
+				INNER JOIN blog_post_invalid_titles bpit ON bp.page_id = bpit.page_id'
+			);
+		}
+
 		$queryResult = $stmt->execute();
 		$row = $queryResult->fetchArray( SQLITE3_ASSOC );
 		while ( $row !== false ) {
@@ -1174,11 +1207,22 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 
 		if ( !empty( $invalidBodyContents ) ) {
 			// 3. Load all blog posts (root and historical) to check their body_content_ids
-			$stmt = $this->cachedPrepare(
-				'SELECT page_id, space_id, confluence_title, wiki_title,
-				        body_content_ids, original_version_id
-				FROM blog_posts'
-			);
+			if ( $spaceId !== null ) {
+				$stmt = $this->cachedPrepare(
+					'SELECT page_id, space_id, confluence_title, wiki_title,
+					        body_content_ids, original_version_id
+					FROM blog_posts
+					WHERE space_id = :space_id'
+				);
+				$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+			} else {
+				$stmt = $this->cachedPrepare(
+					'SELECT page_id, space_id, confluence_title, wiki_title,
+					        body_content_ids, original_version_id
+					FROM blog_posts'
+				);
+			}
+
 			$queryResult = $stmt->execute();
 			$allBlogPosts = [];
 			$row = $queryResult->fetchArray( SQLITE3_ASSOC );
@@ -1250,12 +1294,23 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	 *
 	 * @return array
 	 */
-	public function getInvalidAttachments(): array {
-		$stmt = $this->cachedPrepare(
-			'SELECT a.attachment_id, a.space_id, a.filename, ait.wiki_title, ait.text
-			FROM attachments a
-			INNER JOIN attachment_invalid_titles ait ON a.attachment_id = ait.attachment_id'
-		);
+	public function getInvalidAttachments( ?int $spaceId = null ): array {
+		if ( $spaceId !== null ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT a.attachment_id, a.space_id, a.filename, ait.wiki_title, ait.text
+				FROM attachments a
+				INNER JOIN attachment_invalid_titles ait ON a.attachment_id = ait.attachment_id
+				WHERE a.space_id = :space_id'
+			);
+			$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$stmt = $this->cachedPrepare(
+				'SELECT a.attachment_id, a.space_id, a.filename, ait.wiki_title, ait.text
+				FROM attachments a
+				INNER JOIN attachment_invalid_titles ait ON a.attachment_id = ait.attachment_id'
+			);
+		}
+
 		$queryResult = $stmt->execute();
 		$attachments = [];
 		$row = $queryResult->fetchArray( SQLITE3_ASSOC );
@@ -1280,15 +1335,26 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	 *
 	 * @return array
 	 */
-	public function getInvalidPageTemplates(): array {
+	public function getInvalidPageTemplates( ?int $spaceId = null ): array {
 		$result = [];
 
 		// 1. Collect templates with invalid titles
-		$stmt = $this->cachedPrepare(
-			'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptit.text
-			FROM page_templates pt
-			INNER JOIN page_template_invalid_titles ptit ON pt.template_id = ptit.template_id'
-		);
+		if ( $spaceId !== null ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptit.text
+				FROM page_templates pt
+				INNER JOIN page_template_invalid_titles ptit ON pt.template_id = ptit.template_id
+				WHERE pt.space_id = :space_id'
+			);
+			$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$stmt = $this->cachedPrepare(
+				'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptit.text
+				FROM page_templates pt
+				INNER JOIN page_template_invalid_titles ptit ON pt.template_id = ptit.template_id'
+			);
+		}
+
 		$queryResult = $stmt->execute();
 		$row = $queryResult->fetchArray( SQLITE3_ASSOC );
 		while ( $row !== false ) {
@@ -1304,11 +1370,22 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 		}
 
 		// 2. Collect templates with invalid contents
-		$stmt = $this->cachedPrepare(
-			'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptic.text
-			FROM page_templates pt
-			INNER JOIN page_template_invalid_contents ptic ON pt.template_id = ptic.template_id'
-		);
+		if ( $spaceId !== null ) {
+			$stmt = $this->cachedPrepare(
+				'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptic.text
+				FROM page_templates pt
+				INNER JOIN page_template_invalid_contents ptic ON pt.template_id = ptic.template_id
+				WHERE pt.space_id = :space_id'
+			);
+			$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$stmt = $this->cachedPrepare(
+				'SELECT pt.template_id, pt.space_id, pt.confluence_title, pt.wiki_title, ptic.text
+				FROM page_templates pt
+				INNER JOIN page_template_invalid_contents ptic ON pt.template_id = ptic.template_id'
+			);
+		}
+
 		$queryResult = $stmt->execute();
 		$row = $queryResult->fetchArray( SQLITE3_ASSOC );
 		while ( $row !== false ) {
@@ -2139,13 +2216,21 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	/**
 	 * @return array
 	 */
-	public function getPageIdWikiPageTitleMap(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT page_id, wiki_title FROM pages
-			 WHERE original_version_id = -1 AND content_status = :content_status'
-		);
-		$transaction->bindValue( ':content_status', 'current', SQLITE3_TEXT );
+	public function getPageIdWikiPageTitleMap( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title FROM pages
+				 WHERE original_version_id = -1 AND content_status = :content_status'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title FROM pages WHERE original_version_id = -1
+				 AND space_id = :space_id AND content_status = :content_status'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		}
 
+		$transaction->bindValue( ':content_status', 'current', SQLITE3_TEXT );
 		$result = $transaction->execute();
 		$data = $this->fetchDbArray( $result );
 
@@ -2490,13 +2575,24 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getBlogPostIdWikiBlogPostTitleMap(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT page_id, wiki_title FROM blog_posts
-			 WHERE original_version_id = -1 AND content_status = :content_status'
-		);
+	public function getBlogPostIdWikiBlogPostTitleMap( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title FROM blog_posts
+				WHERE original_version_id = -1 AND content_status = :content_status'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title FROM blog_posts
+				 WHERE original_version_id = -1
+				 AND space_id = :space_id AND content_status = :content_status'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		}
+
 		$transaction->bindValue( ':content_status', 'current', SQLITE3_TEXT );
 
 		$result = $transaction->execute();
@@ -3310,24 +3406,72 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getPageAttachments(): array {
-		return $this->getAllData( 'page_attachments' );
+	public function getPageAttachments( ?int $spaceId = null ): array {
+		if ( empty( $spaceId ) ) {
+			return $this->getAllData( 'page_attachments' );
+		}
+		$transaction = $this->cachedPrepare(
+			'SELECT pa.* FROM page_attachments pa
+			JOIN attachments a ON pa.attachment_id = a.attachment_id
+			WHERE a.space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getBlogPostAttachments(): array {
-		return $this->getAllData( 'blog_post_attachments' );
+	public function getBlogPostAttachments( ?int $spaceId = null ): array {
+		if ( empty( $spaceId ) ) {
+			return $this->getAllData( 'blog_post_attachments' );
+		}
+		$transaction = $this->cachedPrepare(
+			'SELECT bpa.* FROM blog_post_attachments bpa
+			JOIN attachments a ON bpa.attachment_id = a.attachment_id
+			WHERE a.space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getAdditionalAttachments(): array {
-		return $this->getAllData( 'additional_attachments' );
+	public function getAdditionalAttachments( ?int $spaceId = null ): array {
+		if ( empty( $spaceId ) ) {
+			return $this->getAllData( 'additional_attachments' );
+		}
+		$transaction = $this->cachedPrepare(
+			'SELECT aa.* FROM additional_attachments aa
+			JOIN attachments a ON aa.attachment_id = a.attachment_id
+			WHERE a.space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -3590,19 +3734,32 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	/**
 	 * Returns all page-level comments and the corresponding page wiki title.
 	 *
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getCommentsForPages(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
-			LEFT JOIN pages p ON p.page_id = c.container_id
-			WHERE c.content_class = :content_class
-			AND c.content_status = :content_status
-			AND p.content_status = :container_content_status'
-		);
-		$transaction->bindValue( ':content_class', 'Page', SQLITE3_TEXT );
-		$transaction->bindValue( ':content_status', 'current', SQLITE3_TEXT );
-		$transaction->bindValue( ':container_content_status', 'current', SQLITE3_TEXT );
+	public function getCommentsForPages( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
+				LEFT JOIN pages p ON p.page_id = c.container_id
+				 WHERE c.content_class = :content_class
+				 AND c.content_status = :content_status
+				 AND p.content_status = :container_content_status'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
+				LEFT JOIN pages p ON p.page_id = c.container_id
+				WHERE c.content_class = :content_class
+				 AND c.content_status = :content_status
+				 AND p.content_status = :container_content_status
+				 AND p.space_id = :space_id'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+			$transaction->bindValue( ':content_class', 'Page', SQLITE3_TEXT );
+			$transaction->bindValue( ':content_status', 'current', SQLITE3_TEXT );
+			$transaction->bindValue( ':container_content_status', 'current', SQLITE3_TEXT );
+		}
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
@@ -3615,16 +3772,30 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	/**
 	 * Returns all blog-post-level comments and the corresponding blog post wiki title.
 	 *
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getCommentsForBlogPosts(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
-			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
-			WHERE c.content_class = :content_class
-			AND c.content_status = :content_status
-			AND bp.content_status = :container_content_status'
-		);
+	public function getCommentsForBlogPosts( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
+				LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+				WHERE c.content_class = :content_class
+				AND c.content_status = :content_status
+				AND bp.content_status = :container_content_status'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
+				LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+				WHERE c.content_class = :content_class
+				AND c.content_status = :content_status
+				AND bp.content_status = :container_content_status
+				AND bp.space_id = :space_id'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		}
+
 		$transaction->bindValue( ':content_class', 'BlogPost', SQLITE3_TEXT );
 		$transaction->bindValue( ':content_status', 'current', SQLITE3_TEXT );
 		$transaction->bindValue( ':container_content_status', 'current', SQLITE3_TEXT );
@@ -4211,12 +4382,21 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	}
 
 	/**
+	 * @param int|null $spaceId
 	 * @return array
 	 */
-	public function getPageTemplateIdWikiTitleMap(): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT template_id, wiki_title FROM page_templates'
-		);
+	public function getPageTemplateIdWikiTitleMap( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT template_id, wiki_title FROM page_templates'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT template_id, wiki_title FROM page_templates
+				 WHERE space_id = :space_id'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		}
 
 		$result = $transaction->execute();
 		$data = $this->fetchDbArray( $result );

@@ -36,8 +36,13 @@ class Label extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 
-		if ( !isset( $properties['namespace'] ) || $properties['namespace'] !== 'global' ) {
+		if (
+			!isset( $properties['name'] ) ||
+			!isset( $properties['namespace'] ) ||
+			$properties['namespace'] !== 'global'
+		) {
 			// There may be `my` or `team` also
+			$this->logger->warning( 'Missing label property name or namespace' );
 			return;
 		}
 

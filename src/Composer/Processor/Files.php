@@ -2,23 +2,41 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use Symfony\Component\Console\Output\Output;
 
 class Files extends FileProcessorBase {
+
+	/**
+	 * @param DBComposerDataLookup $dataLookup
+	 * @param Workspace $workspace
+	 * @param Output $output
+	 * @param string $dest
+	 * @param MigrationConfig $migrationConfig
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param ComposerSkipHelper $skipHelper
+	 */
+	public function __construct(
+		protected DBComposerDataLookup $dataLookup,
+		protected Workspace $workspace,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig,
+		protected ComposerDeploymentInfo $deploymentInfo,
+		protected ComposerSkipHelper $skipHelper
+	) {
+		parent::__construct( $dataLookup, $workspace, $output, $dest, $migrationConfig );
+	}
 
 	/**
 	 * @return void
 	 */
 	public function execute(): void {
-		/**
-		 * base64 hash of files may exceed php memory limit.
-		 * Make sure enought memory is available or set
-		 * ini_set( "memory_limit", "-1" );
-		 */
-
-		$this->addDefaultFiles();
 		$this->addPageAttachments();
 		$this->addBlogPostAttachments();
 		$this->addAdditionalAttachments();
@@ -34,7 +52,19 @@ class Files extends FileProcessorBase {
 	private function addPageAttachments(): void {
 		$this->output->writeln( "\nAdding page attachments...\n" );
 
-		foreach ( $this->dataLookup->getPageAttachments() as $pageAttachment ) {
+		$pageAttachments = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$pageAttachments = array_merge(
+					$pageAttachments,
+					$this->dataLookup->getPageAttachments( (int)$spaceId )
+				);
+			}
+		} else {
+			$pageAttachments = $this->dataLookup->getPageAttachments();
+		}
+
+		foreach ( $pageAttachments as $pageAttachment ) {
 			$assocPageTitle = $this->dataLookup->getWikiPageTitleFromPageId(
 				$pageAttachment['page_id']
 			);
@@ -50,7 +80,19 @@ class Files extends FileProcessorBase {
 	private function addBlogPostAttachments(): void {
 		$this->output->writeln( "\nAdding blog post attachments...\n" );
 
-		foreach ( $this->dataLookup->getBlogPostAttachments() as $blogPostAttachment ) {
+		$blogPostAttachments = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$blogPostAttachments = array_merge(
+					$blogPostAttachments,
+					$this->dataLookup->getBlogPostAttachments( (int)$spaceId )
+				);
+			}
+		} else {
+			$blogPostAttachments = $this->dataLookup->getBlogPostAttachments();
+		}
+
+		foreach ( $blogPostAttachments as $blogPostAttachment ) {
 			$assocPageTitle = $this->dataLookup->getWikiBlogPostTitleFromBlogPostId(
 				$blogPostAttachment['blog_post_id']
 			);
@@ -89,6 +131,8 @@ class Files extends FileProcessorBase {
 			return;
 		}
 
+		$uploadPath = $this->getUploadPath();
+
 		$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 		foreach ( $attachments as $attachment ) {
 			if ( isset( $attachment['attachment_reference'] ) ) {
@@ -119,7 +163,7 @@ class Files extends FileProcessorBase {
 
 				$attachmentContent = file_get_contents( $filePath );
 				$uploadFilePath = $this->workspace->saveUploadFile(
-					"$timestamp-$filename", $attachmentContent, "result/images/$filename"
+					"$timestamp-$filename", $attachmentContent, $uploadPath
 				);
 
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
@@ -146,7 +190,19 @@ class Files extends FileProcessorBase {
 	private function addAdditionalAttachments(): void {
 		$this->output->writeln( "\nAdding additional attachments...\n" );
 
-		$additionalAttachments = $this->dataLookup->getAdditionalAttachments();
+		$additionalAttachments = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$additionalAttachments = array_merge(
+					$additionalAttachments,
+					$this->dataLookup->getAdditionalAttachments( (int)$spaceId )
+				);
+			}
+		} else {
+			$additionalAttachments = $this->dataLookup->getAdditionalAttachments();
+		}
+
+		$uploadPath = $this->getUploadPath();
 
 		foreach ( $additionalAttachments as $additionalAttachment ) {
 			$attachmentId = $additionalAttachment['attachment_id'];
@@ -185,6 +241,7 @@ class Files extends FileProcessorBase {
 						continue;
 					}
 
+					// Check for temporary files created by converter (e.g. a drawio file)
 					$testFilePath = $this->dest . '/images/' . $filename;
 					if ( file_exists( $testFilePath ) ) {
 						$this->output->writeln( "Attachment file override detected. Using override!" );
@@ -197,7 +254,9 @@ class Files extends FileProcessorBase {
 					}
 
 					$attachmentContent = file_get_contents( $filePath );
-					$uploadFilePath = $this->workspace->saveUploadFile( $filename, $attachmentContent );
+					$uploadFilePath = $this->workspace->saveUploadFile(
+						$filename, $attachmentContent, $uploadPath
+					);
 
 					$timestamp = $attachment['revision_timestamp'];
 					/* same as above: to use the author info in $attachment['last_modifier'],
@@ -218,37 +277,6 @@ class Files extends FileProcessorBase {
 					$this->output->writeln( "Attachment file was not found!" );
 				}
 			}
-		}
-	}
-
-	/**
-	 * @return void
-	 */
-	private function addDefaultFiles(): void {
-		$basepath = dirname( __DIR__ ) . '/_defaultfiles/';
-		$files = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $basepath ),
-			RecursiveIteratorIterator::LEAVES_ONLY
-		);
-
-		foreach ( $files as $fileObj ) {
-			if ( $fileObj->isDir() ) {
-				continue;
-			}
-			$file = $fileObj->getPathname();
-			$filename = basename( $file );
-			$attachmentPageTitle = $filename;
-			$data = file_get_contents( $file );
-
-			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $data, "result/images/$filename" );
-
-			// XML containing files is supported by MediaWiki dumpBackup but can not be imported
-			$this->builder->addFileRevision(
-				$attachmentPageTitle,
-				$this->getRelativeFilePath( $uploadFilePath ),
-				'',
-				''
-			);
 		}
 	}
 }

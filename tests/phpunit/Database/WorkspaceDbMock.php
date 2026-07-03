@@ -20,10 +20,7 @@ class WorkspaceDbMock {
 	 * @return WorkspaceDB
 	 */
 	public function createEmpty(): WorkspaceDB {
-		$workspaceDB = $this->createWorkspaceDB(
-			'confluence-migration-test-' . uniqid( '', true ) . '/workspace.sqlite'
-		);
-		return $workspaceDB;
+		return $this->createWorkspaceDB();
 	}
 
 	/**
@@ -47,9 +44,7 @@ class WorkspaceDbMock {
 		$this->nextTestAttachmentId = 20000;
 		$this->pageIds = [];
 
-		$workspaceDB = $this->createWorkspaceDB(
-			'confluence-migration-test-' . uniqid( '', true ) . '/workspace.sqlite'
-		);
+		$workspaceDB = $this->createWorkspaceDB();
 
 		$this->seedDefaultSpaces( $workspaceDB );
 		$this->seedUsers( $workspaceDB );
@@ -64,25 +59,8 @@ class WorkspaceDbMock {
 		return $workspaceDB;
 	}
 
-	private function createWorkspaceDB( string $pathSuffix ): WorkspaceDB {
-		$databasePath = sys_get_temp_dir() . '/' . $pathSuffix;
-		$databaseDir = dirname( $databasePath );
-
-		if (
-			!is_dir( $databaseDir )
-			&& !mkdir( $databaseDir, 0777, true )
-			&& !is_dir( $databaseDir )
-		) {
-			throw new \RuntimeException(
-				'Could not create temporary database directory: ' . $databaseDir
-			);
-		}
-
-		if ( file_exists( $databasePath ) ) {
-			unlink( $databasePath );
-		}
-
-		return WorkspaceDB::createNew( $databasePath );
+	private function createWorkspaceDB(): WorkspaceDB {
+		return WorkspaceDB::createNew( ':memory:' );
 	}
 
 	private function seedDefaultSpaces( WorkspaceDB $workspaceDB ): void {

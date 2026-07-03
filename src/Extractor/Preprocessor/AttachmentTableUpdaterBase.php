@@ -136,7 +136,10 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			);
 
 			$contentWikiTitle = $contentIdToWikiTitleMap[$containerId];
-			$contentWikiTitle = substr( $contentWikiTitle, strrpos( $contentWikiTitle, ':' ) + 1 );
+			if ( str_contains( $contentWikiTitle, ':' ) ) {
+				// If string does not contain a colon the page title is located in main namespace of the wiki
+				$contentWikiTitle = substr( $contentWikiTitle, strrpos( $contentWikiTitle, ':' ) + 1 );
+			}
 			$contentWikiTitleParts = explode( '/', $contentWikiTitle );
 			$shortContentWikiTitle = end( $contentWikiTitleParts );
 

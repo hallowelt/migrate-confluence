@@ -2,13 +2,44 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
-class BlogPosts extends ProcessorBase {
+use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
+use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use Symfony\Component\Console\Output\Output;
+
+class BlogPosts extends ContentProcessorBase {
+
+	/**
+	 * @param Builder $builder
+	 * @param DBComposerDataLookup $dataLookup
+	 * @param Workspace $workspace
+	 * @param Output $output
+	 * @param string $dest
+	 * @param MigrationConfig $migrationConfig
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param ComposerSkipHelper $skipHelper
+	 */
+	public function __construct(
+		protected Builder $builder,
+		protected DBComposerDataLookup $dataLookup,
+		protected Workspace $workspace,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig,
+		protected ComposerDeploymentInfo $deploymentInfo,
+		protected ComposerSkipHelper $skipHelper
+	) {
+		parent::__construct( $builder, $output, $dest, $migrationConfig );
+	}
 
 	/**
 	 * @return string
 	 */
 	protected function getOutputName(): string {
-		return 'blog';
+		return 'blogs';
 	}
 
 	/**
@@ -21,9 +52,10 @@ class BlogPosts extends ProcessorBase {
 	}
 
 	private function addBlogPages(): void {
-		// Get all page titles from DB and add them as pages to the workspace
-		// Key is blogPostId, value is blogPostTitle - do not use array_merge at this point to avoid renumbering of keys
-		$wikiTitles = $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap();
+		$wikiTitles = $this->collectBySpaceIdsReplaceByKey(
+			fn ( int $spaceId ): array => $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap( $spaceId ),
+			fn (): array => $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap()
+		);
 
 		foreach ( $wikiTitles as $blogPostId => $blogPostTitle ) {
 			if ( $this->skipHelper->skipBlogPost( $blogPostTitle ) ) {
@@ -37,21 +69,17 @@ class BlogPosts extends ProcessorBase {
 
 			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $blogPostId );
 			foreach ( $revisions as $revision ) {
-				$timestamp = $revision['revision_timestamp'];
-				$bodyContentIds = json_decode( $revision['body_content_ids'], true );
-				if ( !is_array( $bodyContentIds ) ) {
+				$timestamp = (string)$revision['revision_timestamp'];
+				if ( !$this->hasValidContentIdsJson( (string)( $revision['body_content_ids'] ?? '' ) ) ) {
 					continue;
 				}
-
-				$pageContent = '';
-				foreach ( $bodyContentIds as $bodyContentId ) {
-					if ( empty( $bodyContentId ) ) {
-						// Skip if no reference to a body content is not set
-						continue;
-					}
-					$this->output->writeln( "Getting '$bodyContentId' body content..." );
-					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
-				}
+				$pageContent = $this->buildConvertedContentFromIdsJson(
+					$this->workspace,
+					(string)( $revision['body_content_ids'] ?? '' ),
+					'body content',
+					'',
+					true
+				);
 
 				$this->addRevision(
 					$blogPostTitle,

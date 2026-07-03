@@ -3,39 +3,12 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
-use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
-use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
-use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Composer\ISpaceDependentProcessor;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
-abstract class ProcessorBase implements IConfluenceComposerProcessor {
-
-	/** @var Builder */
-	protected Builder $builder;
-
-	/** @var DBComposerDataLookup */
-	protected DBComposerDataLookup $dataLookup;
-
-	/** @var Workspace */
-	protected Workspace $workspace;
-
-	/** @var Output */
-	protected Output $output;
-
-	/** @var string */
-	protected string $dest = '';
-
-	/** @var MigrationConfig */
-	protected MigrationConfig $migrationConfig;
-
-	/** @var ComposerDeploymentInfo */
-	protected ComposerDeploymentInfo $deploymentInfo;
-
-	/** @var ComposerSkipHelper */
-	protected ComposerSkipHelper $skipHelper;
+abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceDependentProcessor {
 
 	/** @var bool */
 	protected bool $multiXmlOutputEnabled = false;
@@ -49,34 +22,49 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	/** @var int */
 	protected int $outputXmlFile = 0;
 
+	/** @var string */
+	protected string $subDir = '';
+
+	/** @var int[]|null */
+	protected ?array $currentSpaceIds = null;
+
 	/**
 	 * @param Builder $builder
-	 * @param DBComposerDataLookup $dataLookup
-	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
 	 * @param MigrationConfig $migrationConfig
-	 * @param ComposerDeploymentInfo $deploymentInfo
-	 * @param ComposerSkipHelper $skipHelper
 	 */
 	public function __construct(
-		Builder $builder, DBComposerDataLookup $dataLookup, Workspace $workspace,
-		Output $output, string $dest, MigrationConfig $migrationConfig,
-		ComposerDeploymentInfo $deploymentInfo, ComposerSkipHelper $skipHelper
+		protected Builder $builder,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig,
 	) {
 		$this->builder = $builder;
-		$this->dataLookup = $dataLookup;
-		$this->workspace = $workspace;
 		$this->output = $output;
 		$this->dest = $dest;
 		$this->migrationConfig = $migrationConfig;
-		$this->deploymentInfo = $deploymentInfo;
-		$this->skipHelper = $skipHelper;
 
 		$this->limit = $this->migrationConfig->getComposerPagePerXmlLimit();
 		if ( $this->limit > 0 ) {
 			$this->multiXmlOutputEnabled = true;
 		}
+	}
+
+	/**
+	 * @param string $name
+	 * @return void
+	 */
+	public function setSubDir( string $name ): void {
+		$this->subDir = $name;
+	}
+
+	/**
+	 * @param int[] $spaceIds
+	 * @return void
+	 */
+	public function setCurrentSpaceIds( array $spaceIds ): void {
+		$this->currentSpaceIds = $spaceIds;
 	}
 
 	/**
@@ -150,7 +138,9 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 
 		$name .= '.xml';
 
-		$this->builder->buildAndSave( $this->dest . "/result/$name" );
+		$basePath = $this->getBasePath();
+
+		$this->builder->buildAndSave( $basePath . $name );
 		$this->builder->reset();
 	}
 
@@ -178,5 +168,19 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor {
 	 */
 	protected function getOutputName(): string {
 		return 'output';
+	}
+
+	/**
+	 * @return string
+	 */
+	private function getBasePath(): string {
+		$basePath = $this->dest . "/result/";
+		if ( $this->subDir !== '' ) {
+			$basePath .= $this->subDir . '/';
+		}
+		if ( !file_exists( $basePath ) ) {
+			mkdir( $basePath, 0755 );
+		}
+		return $basePath;
 	}
 }

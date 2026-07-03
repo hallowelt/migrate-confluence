@@ -3,11 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
-use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikiUserXmlBuilder;
-use Phan\LanguageServer\Server\Workspace;
 use Symfony\Component\Console\Output\Output;
 
 class Users implements IConfluenceComposerProcessor {
@@ -18,20 +15,16 @@ class Users implements IConfluenceComposerProcessor {
 	/** @var DBComposerDataLookup */
 	private DBComposerDataLookup $dataLookup;
 
-	/** @var Workspace */
-	private Workspace $workspace;
-
 	/** @var Output */
 	private Output $output;
 
 	/** @var string */
 	private string $dest = '';
 
-	/** @var MigrationConfig */
-	private MigrationConfig $migrationConfig;
-
-	/** @var ComposerDeploymentInfo */
-	private ComposerDeploymentInfo $deploymentInfo;
+	/**
+	 * @var string
+	 */
+	private string $subDir = '';
 
 	/**
 	 * @param DBComposerDataLookup $dataLookup
@@ -45,6 +38,14 @@ class Users implements IConfluenceComposerProcessor {
 		$this->dataLookup = $dataLookup;
 		$this->output = $output;
 		$this->dest = $dest;
+	}
+
+	/**
+	 * @param string $name
+	 * @return void
+	 */
+	public function setSubDir( string $name ): void {
+		$this->subDir = $name;
 	}
 
 	/**
@@ -74,7 +75,12 @@ class Users implements IConfluenceComposerProcessor {
 		$name = $this->getOutputName();
 		$name .= '.xml';
 
-		$this->builder->buildAndSave( $this->dest . "/result/$name" );
+		$basePath = $this->dest . "/result/";
+		if ( $this->subDir !== '' ) {
+			$basePath .= $this->subDir . '/';
+		}
+
+		$this->builder->buildAndSave( $basePath . $name );
 		$this->builder->reset();
 
 		$this->output->writeln( 'Write users.xml' );

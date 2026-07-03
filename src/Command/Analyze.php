@@ -10,6 +10,7 @@ use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzePipeDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
@@ -365,28 +366,20 @@ class Analyze extends BatchFileProcessorBase {
 	 * @return MigrationConfig
 	 */
 	private function getMigrationConfig(): MigrationConfig {
-		$config = [];
-
 		$filename = $this->input->getOption( 'config' );
-		if ( is_string( $filename ) && is_file( realpath( $filename ) ) ) {
-			$content = file_get_contents( realpath( $filename ) );
-			if ( $content ) {
-				try {
-					$config = Yaml::parse( $content );
 
-					if ( !isset( $config['config'] ) ) {
-						throw new ParseException( 'Config key is missing.' );
-					}
+		$configOptionHelper = new ConfigOptionHelper( $filename );
+		$validationError = $configOptionHelper->validateFile();
 
-					$config = $config['config'];
-				} catch ( ParseException $e ) {
-					$this->output->writeln( 'Invalid config file provided: ' . $e->getMessage() );
-					exit( 1 );
-				}
-			}
+		if ( $validationError !== null ) {
+			$this->output->writeln( $validationError );
+			exit( 1 );
+		} else {
+			$advancedConfig = $configOptionHelper->getConfig();
+			$this->output->writeln( 'Config file loaded successfully' );
 		}
 
-		return new MigrationConfig( $config );
+		return new MigrationConfig( $advancedConfig );
 	}
 
 	/**

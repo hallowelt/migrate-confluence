@@ -4,39 +4,17 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
-use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
-use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
+use HalloWelt\MigrateConfluence\Composer\ISpaceDependentProcessor;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikiFileXmlBuilder;
 use Symfony\Component\Console\Output\Output;
 
-abstract class FileProcessorBase implements IConfluenceComposerProcessor {
+abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpaceDependentProcessor {
 
 	/** @var WikiFileXmlBuilder */
 	protected WikiFileXmlBuilder $builder;
-
-	/** @var DBComposerDataLookup */
-	protected DBComposerDataLookup $dataLookup;
-
-	/** @var Workspace */
-	protected Workspace $workspace;
-
-	/** @var Output */
-	protected Output $output;
-
-	/** @var string */
-	protected string $dest = '';
-
-	/** @var MigrationConfig */
-	protected MigrationConfig $migrationConfig;
-
-	/** @var ComposerDeploymentInfo */
-	protected ComposerDeploymentInfo $deploymentInfo;
-
-	/** @var ComposerSkipHelper */
-	protected ComposerSkipHelper $skipHelper;
 
 	/** @var bool */
 	protected bool $multiXmlOutputEnabled = false;
@@ -50,34 +28,48 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 	/** @var int */
 	protected int $outputXmlFile = 0;
 
+	/** @var string */
+	protected string $subDir = '';
+
+	/** @var int[]|null */
+	protected ?array $currentSpaceIds = null;
+
 	/**
 	 * @param DBComposerDataLookup $dataLookup
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
 	 * @param MigrationConfig $migrationConfig
-	 * @param ComposerDeploymentInfo $deploymentInfo
-	 * @param ComposerSkipHelper $skipHelper
 	 */
 	public function __construct(
-		DBComposerDataLookup $dataLookup, Workspace $workspace,
-		Output $output, string $dest, MigrationConfig $migrationConfig,
-		ComposerDeploymentInfo $deploymentInfo, ComposerSkipHelper $skipHelper
-	) {
-		$this->dataLookup = $dataLookup;
-		$this->workspace = $workspace;
-		$this->output = $output;
-		$this->dest = $dest;
-		$this->migrationConfig = $migrationConfig;
-		$this->deploymentInfo = $deploymentInfo;
-		$this->skipHelper = $skipHelper;
-
+		protected DBComposerDataLookup $dataLookup,
+		protected Workspace $workspace,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig
+	 ) {
 		$this->builder = new WikiFileXmlBuilder();
 
 		$this->limit = $this->migrationConfig->getComposerPagePerXmlLimit();
 		if ( $this->limit > 0 ) {
 			$this->multiXmlOutputEnabled = true;
 		}
+	}
+
+	/**
+	 * @param string $name
+	 * @return void
+	 */
+	public function setSubDir( string $name ): void {
+		$this->subDir = $name;
+	}
+
+	/**
+	 * @param int[] $spaceIds
+	 * @return void
+	 */
+	public function setCurrentSpaceIds( array $spaceIds ): void {
+		$this->currentSpaceIds = $spaceIds;
 	}
 
 	/**
@@ -117,7 +109,9 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 
 		$name .= '.xml';
 
-		$this->builder->buildAndSave( $this->dest . "/result/$name" );
+		$basePath = $this->getBasePath();
+
+		$this->builder->buildAndSave( $basePath . $name );
 		$this->builder->reset();
 	}
 
@@ -189,6 +183,27 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor {
 	 */
 	protected function getRelativeFilePath( string $filePath ): string {
 		// strip /result form $uploadPath to get the reference path for the file
-		return str_replace( '/result/', './', $filePath );
+		return str_replace( '/result/' . $this->subDir, '.', $filePath );
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getUploadPath(): string {
+		return 'result/' . $this->subDir . '/images';
+	}
+
+	/**
+	 * @return string
+	 */
+	private function getBasePath(): string {
+		$basePath = $this->dest . "/result/";
+		if ( $this->subDir !== '' ) {
+			$basePath .= $this->subDir . '/';
+		}
+		if ( !file_exists( $basePath ) ) {
+			mkdir( $basePath, 0755 );
+		}
+		return $basePath;
 	}
 }
