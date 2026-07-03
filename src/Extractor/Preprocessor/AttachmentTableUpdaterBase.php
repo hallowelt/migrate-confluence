@@ -276,6 +276,10 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		}
 
 		$this->workspace->saveRawContent( 'fd_' . $attachmentId, $originalFilename );
+
+		$knownIds = $this->workspace->loadData( 'fd_attachment_ids' );
+		$knownIds[$attachmentId] = true;
+		$this->workspace->saveData( 'fd_attachment_ids', $knownIds );
 	}
 
 	/**
