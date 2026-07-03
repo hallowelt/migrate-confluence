@@ -3,18 +3,18 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\WikiConfig;
 use XMLReader;
 
 class Spaces extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
-	 * @param MigrationConfig $migrationConfig
+	 * @param WikiConfig $wikiConfig
 	 */
 	public function __construct(
 		private WorkspaceDB $workspaceDB,
-		private MigrationConfig $migrationConfig
+		private WikiConfig $wikiConfig
 	) {
 	}
 
@@ -66,20 +66,21 @@ class Spaces extends ProcessorBase {
 		$properties['key'] = $spaceKey;
 
 		// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
-		$configSpacePrefix = $this->migrationConfig->getPrefixFromSpaceKeyToPrefixMap( $spaceKey );
-		if ( $configSpacePrefix !== null ) {
-			$customSpacePrefix = $configSpacePrefix;
-		} elseif ( $spaceKey !== 'GENERAL' ) {
-			$customSpacePrefix = "{$spaceKey}:";
-		} else {
-			$customSpacePrefix = '';
+		$namespacePrefix = '';
+		if ( $spaceKey !== 'GENERAL' ) {
+			$namespacePrefix = $this->wikiConfig->getNamespaceForSpaceKey( $spaceKey );
 		}
+
+		$interwikiPrefix = $this->wikiConfig->getInterwikiPrefixForSpaceKey( $spaceKey );
+		$rootPage = $this->wikiConfig->getRootPageForSpaceKey( $spaceKey );
 
 		$status = $this->workspaceDB->addSpace(
 			$spaceId,
 			$spaceKey,
 			isset( $properties['name'] ) ? $properties['name'] : '',
-			$customSpacePrefix,
+			$namespacePrefix,
+			$interwikiPrefix,
+			$rootPage,
 			isset( $properties['homePage'] ) ? (int)$properties['homePage'] : -1,
 			isset( $properties['description'] ) ? (int)$properties['description'] : -1
 		);
