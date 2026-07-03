@@ -10,7 +10,7 @@ use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
-class Pages extends ProcessorBase {
+class Pages extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
@@ -52,21 +52,10 @@ class Pages extends ProcessorBase {
 	}
 
 	private function addContentPages(): void {
-		// Get all page titles for the configured space IDs and merge them.
-		$wikiTitles = [];
-		if ( is_array( $this->currentSpaceIds ) ) {
-			foreach ( $this->currentSpaceIds as $spaceId ) {
-				// Merge blog post titles for each space ID into the $wikiTitles array
-				// Use array_replace to ensure that if there are duplicate blog post IDs,
-				// the last one will overwrite the previous ones.
-				$wikiTitles = array_replace(
-					$wikiTitles,
-					$this->dataLookup->getPageIdWikiPageTitleMap( (int)$spaceId )
-				);
-			}
-		} else {
-			$wikiTitles = $this->dataLookup->getPageIdWikiPageTitleMap();
-		}
+		$wikiTitles = $this->collectBySpaceIdsReplaceByKey(
+			fn ( int $spaceId ): array => $this->dataLookup->getPageIdWikiPageTitleMap( $spaceId ),
+			fn (): array => $this->dataLookup->getPageIdWikiPageTitleMap()
+		);
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
 			if ( $this->skipHelper->skipPage( $pageTitle ) ) {
@@ -92,22 +81,17 @@ class Pages extends ProcessorBase {
 			}
 
 			foreach ( $revisions as $revision ) {
-				$timestamp = $revision['revision_timestamp'];
-				$bodyContentIds = json_decode( $revision['body_content_ids'], true );
-				if ( !is_array( $bodyContentIds ) ) {
+				$timestamp = (string)$revision['revision_timestamp'];
+				if ( !$this->hasValidContentIdsJson( (string)( $revision['body_content_ids'] ?? '' ) ) ) {
 					continue;
 				}
-
-				$pageContent = '';
-				foreach ( $bodyContentIds as $bodyContentId ) {
-					if ( empty( $bodyContentId ) ) {
-						// Skip if no reference to a body content is not set
-						continue;
-					}
-
-					$this->output->writeln( "Getting '$bodyContentId' body content..." );
-					$pageContent .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
-				}
+				$pageContent = $this->buildConvertedContentFromIdsJson(
+					$this->workspace,
+					(string)( $revision['body_content_ids'] ?? '' ),
+					'body content',
+					'',
+					true
+				);
 
 				if ( $homepageId !== null ) {
 					$pageContent .= $this->addSpaceDescriptionToMainPage(
@@ -127,69 +111,5 @@ class Pages extends ProcessorBase {
 
 			$this->deploymentInfo->addNamespace( $namespace );
 		}
-	}
-
-	/**
-	 * Add space description to homepage
-	 *
-	 * @param int $pageId
-	 * @param int $homepageId
-	 * @param string $pageRevisionTimestamp
-	 * @param array $spaceDescriptionRevisions
-	 *
-	 * @return string
-	 */
-	private function addSpaceDescriptionToMainPage(
-		int $pageId,
-		int $homepageId,
-		string $pageRevisionTimestamp,
-		array $spaceDescriptionRevisions
-	): string {
-		if ( $pageId !== $homepageId ) {
-			return '';
-		}
-
-		foreach ( $spaceDescriptionRevisions as $spaceDescriptionRevision ) {
-			if ( !isset( $spaceDescriptionRevision['revision_timestamp'] ) ) {
-				continue;
-			}
-
-			$spaceDescriptionTimestamp = (string)$spaceDescriptionRevision['revision_timestamp'];
-			if ( $spaceDescriptionTimestamp > $pageRevisionTimestamp ) {
-				continue;
-			}
-
-			$bodyContentIds = json_decode( $spaceDescriptionRevision['body_content_ids'], true );
-			if ( !is_array( $bodyContentIds ) ) {
-				continue;
-			}
-
-			$description = '';
-			foreach ( $bodyContentIds as $bodyContentId ) {
-				if ( $bodyContentId === '' ) {
-					continue;
-				}
-
-				$description .= $this->workspace->getConvertedContent( $bodyContentId ) . "\n";
-			}
-
-			if ( $description !== '' ) {
-				return $this->wrapSpaceDescription( $description );
-			}
-		}
-
-		return '';
-	}
-
-	/**
-	 * @param string $description
-	 * @return string
-	 */
-	private function wrapSpaceDescription( string $description ): string {
-		$strippedDescription = trim( preg_replace( '/<!-- From bodyContent .*?-->/s', '', (string)$description ) );
-		if ( $strippedDescription === '' ) {
-			return '';
-		}
-		return '<div class="space-description">' . $description . '</div>';
 	}
 }

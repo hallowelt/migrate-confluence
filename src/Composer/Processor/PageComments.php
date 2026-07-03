@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\Output;
  * Generates Talk pages with cs-comments JSON slot for pages that have
  * Confluence page-level comments.
  */
-class PageComments extends ProcessorBase {
+class Comments extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
