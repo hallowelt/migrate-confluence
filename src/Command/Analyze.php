@@ -8,7 +8,6 @@ use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
-use HalloWelt\MigrateConfluence\Utility\WikiConfigCSVParser;
 use Symfony\Component\Console\Input\InputOption;
 
 class Analyze extends CommandAnalyze {

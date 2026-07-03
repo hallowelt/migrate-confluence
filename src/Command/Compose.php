@@ -81,7 +81,7 @@ class Compose extends CommandCompose {
 				$this->output->writeln( $validationError );
 				exit( 1 );
 			} else {
-			$advancedConfig = $configOptionHelper->getConfig();
+				$advancedConfig = $configOptionHelper->getConfig();
 				$config = array_merge( $config, $advancedConfig );
 				$this->output->writeln( 'Config file loaded successfully' );
 			}
