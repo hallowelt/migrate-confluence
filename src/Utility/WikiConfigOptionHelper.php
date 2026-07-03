@@ -27,8 +27,17 @@ class WikiConfigOptionHelper {
 
 		$wikiConfig = WikiConfigCSVParser::parseWikiConfigCSV( $filename );
 		foreach ( $wikiConfig as $config ) {
+			if ( !isset( $config['confluence-space-key'] ) || empty( $config['confluence-space-key'] ) ) {
+				return "Config file '$filename' is missing 'confluence-space-key' for a space.";
+			}
 			if ( !isset( $config['wiki-name'] ) || empty( $config['wiki-name'] ) ) {
 				return "Config file '$filename' is missing 'wiki-name' for a space.";
+			}
+			if ( !isset( $config['wiki-namespace'] ) ) {
+				return "Config file '$filename' is missing 'wiki-namespace' for a space.";
+			}
+			if ( !isset( $config['wiki-root-page'] ) ) {
+				return "Config file '$filename' is missing 'wiki-root-page' for a space.";
 			}
 		}
 		$this->wikiConfig = $wikiConfig;
