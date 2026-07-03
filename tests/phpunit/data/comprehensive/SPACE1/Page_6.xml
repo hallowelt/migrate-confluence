@@ -1,0 +1,7 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Page 6 content with include example</p>
+	
+	<ac:structured-macro ac:name="include" ac:schema-version="1" ac:macro-id="include1">
+		<ac:parameter ac:name="page">Page 1</ac:parameter>
+	</ac:structured-macro>
+</xml>

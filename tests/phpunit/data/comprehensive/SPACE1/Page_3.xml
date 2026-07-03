@@ -1,0 +1,21 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Page 3 with information panel and cross-space link</p>
+	
+	<h1>Cross-Space Link</h1>
+	<div>
+		<ac:link>
+			<ri:page ri:content-title="Page 1" ri:space-key="SPACE3" />
+			<ac:plain-text-link-body>
+				<![CDATA[Link to SPACE3 Page 1]]>
+			</ac:plain-text-link-body>
+		</ac:link>
+	</div>
+	
+	<h1>Important Information</h1>
+	<ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="info1">
+		<ac:parameter ac:name="title">Important Note</ac:parameter>
+		<ac:rich-text-body>
+			<p>This is important information that should be highlighted.</p>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>

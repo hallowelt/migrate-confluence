@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
+use HalloWelt\MigrateConfluence\Utility\WikiConfigCSVParser;
 use Symfony\Component\Console\Input\InputOption;
 
 class Analyze extends CommandAnalyze {
@@ -24,6 +25,14 @@ class Analyze extends CommandAnalyze {
 				null,
 				InputOption::VALUE_REQUIRED,
 				'Specifies the path to the config yaml file'
+			)
+		);
+		$definition->addOption(
+			new InputOption(
+				'wikiconf',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'Specifies the path to the csv file containing interwiki configuration'
 			)
 		);
 	}
@@ -87,6 +96,9 @@ class Analyze extends CommandAnalyze {
 			$config = array_merge( $config, $advancedConfig );
 			$this->output->writeln( 'Config file loaded successfully' );
 		}
+
+		$filename = $this->input->getOption( 'wikiconf' );
+		$config['wiki-config'] = WikiConfigCSVParser::parseWikiConfigCSV( $filename );
 	}
 
 	/**

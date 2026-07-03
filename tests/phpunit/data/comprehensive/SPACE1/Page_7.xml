@@ -1,0 +1,10 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Page 7 content with expandable section</p>
+	
+	<ac:structured-macro ac:name="expand" ac:schema-version="1" ac:macro-id="expand1">
+		<ac:parameter ac:name="title">Click to expand</ac:parameter>
+		<ac:rich-text-body>
+			<p>This content is hidden until the user expands it.</p>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>

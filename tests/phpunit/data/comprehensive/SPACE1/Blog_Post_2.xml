@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Blog Post 2 of SPACE1 with link to SPACE2</p>
+	
+	<div>
+		<ac:link>
+			<ri:page ri:content-title="Blog Post 1" ri:space-key="SPACE2" />
+		</ac:link>
+	</div>
+</xml>

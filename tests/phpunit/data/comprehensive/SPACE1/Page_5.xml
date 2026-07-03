@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Page 5 content with children macro example</p>
+	
+	<ac:structured-macro ac:name="children" ac:schema-version="1" ac:macro-id="children1">
+		<ac:parameter ac:name="sort">creation</ac:parameter>
+	</ac:structured-macro>
+	
+	<p>This page lists all child pages using the children macro.</p>
+</xml>

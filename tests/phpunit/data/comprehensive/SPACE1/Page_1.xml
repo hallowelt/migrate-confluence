@@ -1,0 +1,22 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Welcome to Page 1 of SPACE1. This is the homepage content.</p>
+	
+	<p>
+		<ac:structured-macro ac:name="toc" ac:schema-version="1" ac:macro-id="toc1">
+			<ac:parameter ac:name="maxLevel">2</ac:parameter>
+		</ac:structured-macro>
+	</p>
+	
+	<h1>Links</h1>
+	<div>
+		<ac:link>
+			<ri:page ri:content-title="Page 2" />
+			<ac:plain-text-link-body>
+				<![CDATA[Link to Page 2 in SPACE1]]>
+			</ac:plain-text-link-body>
+		</ac:link>
+	</div>
+	
+	<h1>Content</h1>
+	<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. This page provides an overview of SPACE1.</p>
+</xml>

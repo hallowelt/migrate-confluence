@@ -1,0 +1,30 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Page 2 content with code example</p>
+	
+	<h1>Links to other spaces</h1>
+	<div>
+		<ac:link>
+			<ri:page ri:content-title="Page 1" />
+			<ac:plain-text-link-body>
+				<![CDATA[Back to Page 1]]>
+			</ac:plain-text-link-body>
+		</ac:link>
+	</div>
+	
+	<div>
+		<ac:link>
+			<ri:page ri:content-title="Page 1" ri:space-key="SPACE2" />
+			<ac:plain-text-link-body>
+				<![CDATA[Link to SPACE2 Page 1]]>
+			</ac:plain-text-link-body>
+		</ac:link>
+	</div>
+	
+	<h1>Code Example</h1>
+	<ac:structured-macro ac:name="code" ac:schema-version="1" ac:macro-id="code1">
+		<ac:parameter ac:name="language">php</ac:parameter>
+		<ac:plain-text-body><![CDATA[<?php
+echo "Hello World";
+?>]]></ac:plain-text-body>
+	</ac:structured-macro>
+</xml>

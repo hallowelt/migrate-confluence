@@ -17,13 +17,10 @@ class WikiConfig {
 	}
 
 	/**
-	 * @return string
+	 * @return string|null
 	 */
-	public function getWikiNameForSpaceKey( string $spaceKey ): string {
+	public function getWikiNameForSpaceKey( string $spaceKey ): ?string {
 		$name = $this->workspaceDB->getWikiConfigWikiNameForSpaceKey( $spaceKey );
-		if ( $name === null ) {
-			return strtolower( "wiki-$spaceKey" );
-		}
 		return $name;
 	}
 
@@ -55,13 +52,6 @@ class WikiConfig {
 	 */
 	public function getInterwikiPrefixForSpaceKey( string $spaceKey ): string {
 		$prefix = $this->getNamespaceForSpaceKey( $spaceKey );
-		if ( empty( $prefix ) ) {
-			$prefix = $this->getWikiNameForSpaceKey( $spaceKey );
-		}
-		if ( empty( $prefix ) ) {
-			$prefix = $spaceKey;
-		}
-
 		return strtolower( "wiki-$prefix" );
 	}
 }
