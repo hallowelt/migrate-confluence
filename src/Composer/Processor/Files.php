@@ -132,8 +132,7 @@ class Files extends FileProcessorBase {
 		}
 
 		$uploadPath = $this->getUploadPath();
-		$originalFilename = $attachmentRecord['original_attachment_filename'] ?? '';
-		$pageText = $this->buildFileDescription( $attachmentPageTitle, $originalFilename );
+		$pageText = $this->workspace->getConvertedContent( 'fd_' . $attachmentId ) ?: '';
 
 		$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 		foreach ( $attachments as $attachment ) {
@@ -266,8 +265,7 @@ class Files extends FileProcessorBase {
 					 * we need target wiki user info (or be sure that we import the user ourselfs).
 					 */
 
-					$originalFilename = $additionalAttachment['original_attachment_filename'] ?? '';
-					$pageText = $this->buildFileDescription( $attachmentPageTitle, $originalFilename );
+					$pageText = $this->workspace->getConvertedContent( 'fd_' . $attachmentId ) ?: '';
 
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					$this->builder->addFileRevision(
@@ -285,28 +283,6 @@ class Files extends FileProcessorBase {
 				}
 			}
 		}
-	}
-
-	/**
-	 * Return a comment noting the original file name when we altered it (e.g. through abbreviation)
-	 */
-	private function buildFileDescription( string $targetTitle, string $originalFilename ): string {
-		if ( $originalFilename === '' ) {
-			return '';
-		}
-		$normalized = str_replace( [ ' ', '/' ], '_', $originalFilename );
-		$normalized = preg_replace( '/_+/', '_', $normalized ) ?? $normalized;
-
-		// Strip namespace prefix so we only search the local title part.
-		$colonPos = strpos( $targetTitle, ':' );
-		$localTarget = $colonPos !== false ? substr( $targetTitle, $colonPos + 1 ) : $targetTitle;
-
-		// Case-insensitive: WindowsFilename applies ucfirst() which must not cause false positives.
-		if ( stripos( $localTarget, $normalized ) !== false ) {
-			return '';
-		}
-		$quotedFileName = htmlspecialchars( $originalFilename, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
-		return "Original file name: <nowiki>$quotedFileName</nowiki>\n{{DISPLAYTITLE:$quotedFileName|noerror}}";
 	}
 
 	/**
