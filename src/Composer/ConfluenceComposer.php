@@ -7,11 +7,12 @@ use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\Processor\BlogPostComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\BlogPosts;
-use HalloWelt\MigrateConfluence\Composer\Processor\Comments;
 use HalloWelt\MigrateConfluence\Composer\Processor\DefaultFiles;
 use HalloWelt\MigrateConfluence\Composer\Processor\DefaultPages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Files;
+use HalloWelt\MigrateConfluence\Composer\Processor\PageComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Templates;
 use HalloWelt\MigrateConfluence\Composer\Processor\Users;
@@ -89,8 +90,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		foreach ( $spaces as $space ) {
 			$spaceId = (int)$space['space_id'];
 			$namespace = 'NS_MAIN';
-			if ( str_contains( $space['space_prefix'], ':' ) ) {
-				$namespace = substr( $space['space_prefix'], 0, strpos( $space['space_prefix'], ':' ) );
+			if ( !empty( $space['namespace_prefix'] ) ) {
+				$namespace = $space['namespace_prefix'];
 			}
 
 			if ( !isset( $namespaceMap[$namespace] ) ) {
@@ -168,7 +169,12 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo, $skipHelper
 			),
-			new Comments(
+			new PageComments(
+				$builder, $this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo, $skipHelper
+			),
+			new BlogPostComments(
 				$builder, $this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo, $skipHelper

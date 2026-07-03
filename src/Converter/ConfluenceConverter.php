@@ -91,6 +91,7 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
+use HalloWelt\MigrateConfluence\Utility\WikiConfig;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
@@ -110,6 +111,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 	/** @var DBConversionDataLookup */
 	private DBConversionDataLookup $dataLookup;
+
+	/** @var WikiConfig */
+	private WikiConfig $wikiConfig;
 
 	/** @var ConversionDataWriter|null */
 	private ?ConversionDataWriter $conversionDataWriter = null;
@@ -189,6 +193,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
+		$this->wikiConfig = new WikiConfig( $this->workspaceDB );
 		$this->conversionDataWriter = new ConversionDataWriter( $this->dest );
 
 		// Indicates usage of toc-macro
@@ -408,25 +413,29 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->migrationConfig
+				$this->migrationConfig,
+				$this->wikiConfig
 			),
 			new AnchorLink(
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->migrationConfig
+				$this->migrationConfig,
+				$this->wikiConfig
 			),
 			new PageLink(
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->migrationConfig
+				$this->migrationConfig,
+				$this->wikiConfig
 			),
 			new UserLink(
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->migrationConfig
+				$this->migrationConfig,
+				$this->wikiConfig
 			),
 			new PreserveCodeMacro(),
 			new NoFormatMacro(),
@@ -779,7 +788,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$this->dataLookup,
 			$this->currentSpace,
 			$this->confluencePageTitle,
-			$this->migrationConfig
+			$this->migrationConfig,
+			$this->wikiConfig
 		);
 
 		$pageAttachments = $this->dataLookup->getPageAttachmentsForPageId( $this->pageId );

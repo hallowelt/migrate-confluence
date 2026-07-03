@@ -172,6 +172,26 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * Returns the talk page wiki title for comments on the given blog post.
+	 *
+	 * @param int $blogPostId
+	 * @return string|null
+	 */
+	public function getWikiBlogPostCommentsFromBlogPostId( int $blogPostId ): ?string {
+		return $this->workspaceDB->getWikiBlogPostCommentTitleFromBlogPostId( $blogPostId );
+	}
+
+	/**
+	 * Returns the talk page wiki title for comments on the given page.
+	 *
+	 * @param int $pageId
+	 * @return string|null
+	 */
+	public function getWikiPageCommentTitleFromPageId( int $pageId ): ?string {
+		return $this->workspaceDB->getWikiPageCommentTitleFromPageId( $pageId );
+	}
+
+	/**
 	 * @param int $attachmentId
 	 * @return array
 	 */

@@ -29,7 +29,14 @@ class PageLink extends LinkProcessorBase {
 		$rawPageTitle = $node->getAttribute( 'ri:content-title' );
 		$spaceId = $this->ensureSpaceId( $node );
 
-		$targetTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $rawPageTitle );
+		// Use wiki config to determine if we should use wiki_title or interwiki_title
+		$targetTitle = $this->dataLookup->getPageTitleForLink(
+			$this->currentSpaceId,
+			$spaceId,
+			$rawPageTitle,
+			$this->wikiConfig
+		);
+
 		if ( $targetTitle === null ) {
 			// If not in migration data, save some info for manual post migration work
 			$targetTitle = $this->generateConfluenceKey( $spaceId, $rawPageTitle );

@@ -1,9 +1,5 @@
 config:
         mainpage: My Main Page
-        space-prefix:
-                ABC: "MY_NAMESPACE:ABC/"
-                DEF: "MY_NAMESPACE:DEf/"
-                GHI: "GHI_NAMESPACE:"
         composer-skip-namespace:
           - ABC
         composer-skip-titles:
