@@ -110,6 +110,26 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	}
 
 	/**
+	 * @return void
+	 */
+	private function initWikiConfig(): void {
+		$wikiConfig = [];
+		if ( isset( $this->config['wiki-config'] ) ) {
+			$wikiConfig = $this->config['wiki-config'];
+		}
+		foreach ( $wikiConfig as $config ) {
+			$this->workspaceDB->addWikiConfig(
+				$config['space-key'],
+				$config['wiki-name'],
+				$config['wiki-namespace'],
+				$config['wiki-root-page']
+			);
+		}
+
+		$this->wikiConfig = new WikiConfig( $this->workspaceDB );
+	}
+
+	/**
 	 * @param LoggerInterface $logger
 	 */
 	public function setLogger( LoggerInterface $logger ): void {
@@ -136,31 +156,13 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		$this->initMigrationConfig();
 		$this->initWorkspaceDB();
 		$this->initDBLog();
+		$this->initWikiConfig();
 
 		$result = parent::analyze( $file );
 
 		return $result;
 	}
 
-	/**
-	 * @return void
-	 */
-	private function initWikiConfig(): void {
-		$wikiConfig = [];
-		if ( isset( $this->config['wiki-config'] ) ) {
-			$wikiConfig = $this->config['wiki-config'];
-		}
-		foreach ( $wikiConfig as $config ) {
-			$this->workspaceDB->addWikiConfig(
-				$config['space-key'],
-				$config['wiki-name'],
-				$config['wiki-namespace'],
-				$config['wiki-root-page']
-			);
-		}
-
-		$this->wikiConfig = new WikiConfig( $this->workspaceDB );
-	}
 
 	/**
 	 * @return array

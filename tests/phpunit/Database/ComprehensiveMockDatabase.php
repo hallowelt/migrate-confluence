@@ -18,13 +18,18 @@ class ComprehensiveMockDatabase {
 	private array $spacePages = [];
 	/** @var array<int, array<int>> Map of spaceId to list of blog post IDs */
 	private array $spaceBlogs = [];
+	/** @var array<int, array<string, int>> Map of bodyContentId to content metadata */
+	private array $bodyContentMetadata = [];
+	/** @var array<int, array<int>> Map of pageId to list of body content IDs */
+	private array $pageBodyContentIds = [];
+	/** @var array<int, array<int>> Map of blogPostId to list of body content IDs */
+	private array $blogBodyContentIds = [];
 
 	/**
 	 * Create a comprehensive test database with 4 spaces.
 	 * Each space contains 10 pages and 5 blog posts.
-	 * Each page/blog post has 1-3 revisions and 1-10 attachments.
-	 * Each space has 1-3 additional attachments.
-	 * Each space has a homepage and description.
+	 * Each page/blog post has 2 revisions.
+	 * Body content includes cross-space links to other pages and blogs.
 	 *
 	 * @return WorkspaceDB
 	 */
@@ -39,12 +44,34 @@ class ComprehensiveMockDatabase {
 		$this->seedPagesAndBlogs( $workspaceDB );
 		$this->seedSpaceHomepages( $workspaceDB );
 		$this->seedAttachments( $workspaceDB );
+		$this->seedBodyContentBodies( $workspaceDB );
 
 		return $workspaceDB;
 	}
 
-	private function createWorkspaceDB( string $pathSuffix ): WorkspaceDB {
-		$databasePath = sys_get_temp_dir() . '/' . $pathSuffix;
+	/**
+	 * Create a comprehensive test database in a specific directory.
+	 * Useful for integration tests that need the database in a specific location.
+	 *
+	 * @param string $baseDir The base directory where workspace.sqlite will be created
+	 * @return WorkspaceDB
+	 */
+	public function createInDirectory( string $baseDir ): WorkspaceDB {
+		$workspaceDB = $this->createWorkspaceDB( $baseDir . '/workspace.sqlite', false );
+
+		$this->seedSpaceDescriptions( $workspaceDB );
+		$this->seedSpaces( $workspaceDB );
+		$this->seedUsers( $workspaceDB );
+		$this->seedPagesAndBlogs( $workspaceDB );
+		$this->seedSpaceHomepages( $workspaceDB );
+		$this->seedAttachments( $workspaceDB );
+		$this->seedBodyContentBodies( $workspaceDB );
+
+		return $workspaceDB;
+	}
+
+	private function createWorkspaceDB( string $pathOrSuffix, bool $isSystemTemp = true ): WorkspaceDB {
+		$databasePath = $isSystemTemp ? sys_get_temp_dir() . '/' . $pathOrSuffix : $pathOrSuffix;
 		$databaseDir = dirname( $databasePath );
 
 		if ( !is_dir( $databaseDir ) && !mkdir( $databaseDir, 0777, true ) && !is_dir( $databaseDir ) ) {
@@ -64,6 +91,16 @@ class ComprehensiveMockDatabase {
 			$this->spaceDescriptionIds[$spaceId] = $spaceDescriptionId;
 
 			$bodyContentId = $this->addBodyContent( $workspaceDB, $spaceDescriptionId );
+
+			// Get namespace for this space to build wiki title
+			$spaces = $workspaceDB->getSpaces();
+			$namespace = 'SPACE' . $spaceId; // Default fallback
+			foreach ( $spaces as $space ) {
+				if ( $space['space_id'] === $spaceId ) {
+					$namespace = $space['namespace_prefix'];
+					break;
+				}
+			}
 
 			$workspaceDB->addSpaceDescription(
 				$spaceDescriptionId,
@@ -98,10 +135,22 @@ class ComprehensiveMockDatabase {
 			$this->spacePages[$spaceId] = [];
 			$this->spaceBlogs[$spaceId] = [];
 
+			// Get the namespace prefix for this space to build wiki titles and interwiki prefix
+			$spaces = $workspaceDB->getSpaces();
+			$namespace = 'SPACE' . $spaceId; // Default fallback
+			foreach ( $spaces as $space ) {
+				if ( $space['space_id'] === $spaceId ) {
+					$namespace = $space['namespace_prefix'];
+					break;
+				}
+			}
+			$interwikiPrefix = "wiki-" . strtolower( $namespace );
+
 			// Add 10 pages to each space
 			for ( $pageNum = 1; $pageNum <= 10; $pageNum++ ) {
 				$confluenceTitle = "Page {$pageNum}";
-				$wikiTitle = "SPACE{$spaceId}:Page_{$pageNum}";
+				// Use the actual namespace prefix from the space configuration
+				$wikiTitle = $namespace . ':Page_' . $pageNum;
 				$pageId = $this->nextPageId++;
 
 				$this->spacePages[$spaceId][] = $pageId;
@@ -111,19 +160,22 @@ class ComprehensiveMockDatabase {
 					$this->spaceHomepages[$spaceId] = $pageId;
 				}
 
-			// Add 2 revisions for this page
-			$revisionCount = 2;
+				// Add 2 revisions for this page
+				$revisionCount = 2;
 				$bodyContentIds = [];
 				for ( $rev = 1; $rev <= $revisionCount; $rev++ ) {
 					$bodyContentIds[] = $this->addBodyContent( $workspaceDB, $pageId );
 				}
+
+				// Track body content IDs for this page
+				$this->pageBodyContentIds[$pageId] = $bodyContentIds;
 
 				$workspaceDB->addPage(
 					$pageId,
 					$spaceId,
 					$confluenceTitle,
 					$wikiTitle,
-					'Page content',
+					$interwikiPrefix,
 					'current',
 					'20240101000000',
 					'user1',
@@ -140,24 +192,28 @@ class ComprehensiveMockDatabase {
 			// Add 5 blog posts to each space
 			for ( $blogNum = 1; $blogNum <= 5; $blogNum++ ) {
 				$confluenceTitle = "Blog Post {$blogNum}";
-				$wikiTitle = "Blog:SPACE{$spaceId}/Blog_Post_{$blogNum}";
+				// Use the actual namespace prefix from the space configuration
+				$wikiTitle = 'Blog:' . $namespace . '/Blog_Post_' . $blogNum;
 				$blogPostId = $this->nextBlogPostId++;
 
 				$this->spaceBlogs[$spaceId][] = $blogPostId;
 
-			// Add 2 revisions for this blog post
-			$revisionCount = 2;
+				// Add 2 revisions for this blog post
+				$revisionCount = 2;
 				$bodyContentIds = [];
 				for ( $rev = 1; $rev <= $revisionCount; $rev++ ) {
 					$bodyContentIds[] = $this->addBodyContent( $workspaceDB, $blogPostId );
 				}
+
+				// Track body content IDs for this blog post
+				$this->blogBodyContentIds[$blogPostId] = $bodyContentIds;
 
 				$workspaceDB->addBlogPost(
 					$blogPostId,
 					$spaceId,
 					$confluenceTitle,
 					$wikiTitle,
-					'Blog content',
+					$interwikiPrefix,
 					'current',
 					'20240101000000',
 					'user1',
@@ -202,7 +258,7 @@ class ComprehensiveMockDatabase {
 				for ( $i = 1; $i <= $attachmentCount; $i++ ) {
 					$extension = $attachmentExtensions[($pageId + $i) % count( $attachmentExtensions )];
 					$filename = "attachment_{$pageId}_{$i}.{$extension}";
-					$this->addAttachmentToContent( $workspaceDB, $spaceId, $pageId, $filename );
+					$this->addPageAttachmentToContent( $workspaceDB, $spaceId, $pageId, $filename );
 				}
 			}
 
@@ -212,24 +268,17 @@ class ComprehensiveMockDatabase {
 				for ( $i = 1; $i <= $attachmentCount; $i++ ) {
 					$extension = $attachmentExtensions[($blogPostId + $i) % count( $attachmentExtensions )];
 					$filename = "blog_attachment_{$blogPostId}_{$i}.{$extension}";
-					$this->addAttachmentToContent( $workspaceDB, $spaceId, $blogPostId, $filename );
+					$this->addBlogPostAttachmentToContent( $workspaceDB, $spaceId, $blogPostId, $filename );
 				}
 			}
 
-			// Add 2 space-level attachments (not tied to any page/blog)
-			$spaceAttachmentCount = 2;
-			for ( $i = 1; $i <= $spaceAttachmentCount; $i++ ) {
-				$extension = $attachmentExtensions[($spaceId + $i) % count( $attachmentExtensions )];
-				$filename = "space_{$spaceId}_attachment_{$i}.{$extension}";
-				$this->addSpaceAttachment( $workspaceDB, $spaceId, $filename );
-			}
 		}
 	}
 
-	private function addAttachmentToContent(
+	private function addPageAttachmentToContent(
 		WorkspaceDB $workspaceDB,
 		int $spaceId,
-		int $contentId,
+		int $pageId,
 		string $filename
 	): void {
 		$attachmentId = $this->nextAttachmentId++;
@@ -240,7 +289,7 @@ class ComprehensiveMockDatabase {
 			$spaceId,
 			$filename,
 			$extension,
-			$contentId,
+			$pageId,
 			'current',
 			'1',
 			'20240101000000',
@@ -254,7 +303,41 @@ class ComprehensiveMockDatabase {
 
 		$workspaceDB->addPageAttachment(
 			$attachmentId,
-			$contentId,
+			$pageId,
+			$filename,
+			$filename
+		);
+	}
+
+	private function addBlogPostAttachmentToContent(
+		WorkspaceDB $workspaceDB,
+		int $spaceId,
+		int $blogPostId,
+		string $filename
+	): void {
+		$attachmentId = $this->nextAttachmentId++;
+		$extension = pathinfo( $filename, PATHINFO_EXTENSION );
+
+		$workspaceDB->addAttachment(
+			$attachmentId,
+			$spaceId,
+			$filename,
+			$extension,
+			$blogPostId,
+			'current',
+			'1',
+			'20240101000000',
+			'',
+			-1,
+			'',
+			[],
+			[],
+			[]
+		);
+
+		$workspaceDB->addBlogPostAttachment(
+			$attachmentId,
+			$blogPostId,
 			$filename,
 			$filename
 		);
@@ -285,5 +368,117 @@ class ComprehensiveMockDatabase {
 			[],
 			[]
 		);
+	}
+
+	private function seedBodyContentBodies( WorkspaceDB $workspaceDB ): void {
+		// Generate and populate body content for all pages and blogs with cross-space links
+		for ( $spaceId = 1; $spaceId <= 4; $spaceId++ ) {
+			// Populate page body contents
+			foreach ( $this->spacePages[$spaceId] as $index => $pageId ) {
+				$pageNum = $index + 1;
+				// Get all body content IDs for this page from tracking
+				if ( !isset( $this->pageBodyContentIds[$pageId] ) ) {
+					continue;
+				}
+				$bodyContentIds = $this->pageBodyContentIds[$pageId];
+
+				foreach ( $bodyContentIds as $bodyContentId ) {
+					// Generate XML content with cross-space links
+					$xmlContent = $this->generatePageXmlWithLinks( $spaceId, $pageNum );
+					$workspaceDB->addBodyContentBody( $bodyContentId, $xmlContent );
+				}
+			}
+
+			// Populate blog body contents
+			foreach ( $this->spaceBlogs[$spaceId] as $index => $blogPostId ) {
+				$blogNum = $index + 1;
+				// Get all body content IDs for this blog from tracking
+				if ( !isset( $this->blogBodyContentIds[$blogPostId] ) ) {
+					continue;
+				}
+				$bodyContentIds = $this->blogBodyContentIds[$blogPostId];
+
+				foreach ( $bodyContentIds as $bodyContentId ) {
+					// Generate XML content with cross-space links
+					$xmlContent = $this->generateBlogXmlWithLinks( $spaceId, $blogNum );
+					$workspaceDB->addBodyContentBody( $bodyContentId, $xmlContent );
+				}
+			}
+		}
+	}
+
+	private function generatePageXmlWithLinks( int $spaceId, int $pageNum ): string {
+		$xml = '<ac:root xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">' . "\n";
+		$xml .= '<p>Page ' . $pageNum . ' of SPACE' . $spaceId . '</p>' . "\n";
+		$xml .= '<h2>Links to other pages and blogs:</h2>' . "\n";
+
+		// Add links to other pages in same space
+		for ( $i = 1; $i <= 10; $i++ ) {
+			if ( $i !== $pageNum ) {
+				$xml .= '<p><ac:link><ri:page ri:content-title="Page ' . $i . '" />';
+				$xml .= '<ac:plain-text-link-body><![CDATA[Link to Page ' . $i . ' in SPACE' . $spaceId . ']]></ac:plain-text-link-body>';
+				$xml .= '</ac:link></p>' . "\n";
+			}
+		}
+
+		// Add links to other spaces
+		for ( $otherSpace = 1; $otherSpace <= 4; $otherSpace++ ) {
+			if ( $otherSpace !== $spaceId ) {
+				$xml .= '<p><ac:link><ri:page ri:content-title="Page 1" ri:space-key="SPACE' . $otherSpace . '" />';
+				$xml .= '<ac:plain-text-link-body><![CDATA[Link to Page 1 in SPACE' . $otherSpace . ']]></ac:plain-text-link-body>';
+				$xml .= '</ac:link></p>' . "\n";
+			}
+		}
+
+		// Add links to blogs in same space
+		for ( $blogNum = 1; $blogNum <= 5; $blogNum++ ) {
+			$xml .= '<p><ac:link><ri:page ri:content-title="Blog Post ' . $blogNum . '" />';
+			$xml .= '<ac:plain-text-link-body><![CDATA[Link to Blog Post ' . $blogNum . ' in SPACE' . $spaceId . ']]></ac:plain-text-link-body>';
+			$xml .= '</ac:link></p>' . "\n";
+		}
+
+		// Add link to a blog in another space
+		if ( $spaceId < 4 ) {
+			$otherSpace = $spaceId + 1;
+			$xml .= '<p><ac:link><ri:page ri:content-title="Blog Post 1" ri:space-key="SPACE' . $otherSpace . '" />';
+			$xml .= '<ac:plain-text-link-body><![CDATA[Link to Blog Post 1 in SPACE' . $otherSpace . ']]></ac:plain-text-link-body>';
+			$xml .= '</ac:link></p>' . "\n";
+		}
+
+		$xml .= '</ac:root>' . "\n";
+		return $xml;
+	}
+
+	private function generateBlogXmlWithLinks( int $spaceId, int $blogNum ): string {
+		$xml = '<ac:root xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">' . "\n";
+		$xml .= '<p>Blog Post ' . $blogNum . ' of SPACE' . $spaceId . '</p>' . "\n";
+		$xml .= '<h2>Links from blog:</h2>' . "\n";
+
+		// Add links to pages in same space
+		for ( $pageNum = 1; $pageNum <= 5; $pageNum++ ) {
+			$xml .= '<p><ac:link><ri:page ri:content-title="Page ' . $pageNum . '" />';
+			$xml .= '<ac:plain-text-link-body><![CDATA[Link to Page ' . $pageNum . ' in SPACE' . $spaceId . ']]></ac:plain-text-link-body>';
+			$xml .= '</ac:link></p>' . "\n";
+		}
+
+		// Add links to other blogs in same space
+		for ( $otherBlog = 1; $otherBlog <= 5; $otherBlog++ ) {
+			if ( $otherBlog !== $blogNum ) {
+				$xml .= '<p><ac:link><ri:page ri:content-title="Blog Post ' . $otherBlog . '" />';
+				$xml .= '<ac:plain-text-link-body><![CDATA[Link to Blog Post ' . $otherBlog . ' in SPACE' . $spaceId . ']]></ac:plain-text-link-body>';
+				$xml .= '</ac:link></p>' . "\n";
+			}
+		}
+
+		// Add links to pages in other spaces
+		if ( $spaceId < 4 ) {
+			$otherSpace = $spaceId + 1;
+			$xml .= '<p><ac:link><ri:page ri:content-title="Page 1" ri:space-key="SPACE' . $otherSpace . '" />';
+			$xml .= '<ac:plain-text-link-body><![CDATA[Link to Page 1 in SPACE' . $otherSpace . ']]></ac:plain-text-link-body>';
+			$xml .= '</ac:link></p>' . "\n";
+		}
+
+		$xml .= '</ac:root>' . "\n";
+		return $xml;
 	}
 }

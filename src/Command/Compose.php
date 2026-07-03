@@ -73,17 +73,18 @@ class Compose extends CommandCompose {
 	 */
 	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
+		if ( !empty( $filename ) ) {
+			$configOptionHelper = new ConfigOptionHelper( $filename );
+			$validationError = $configOptionHelper->validateFile();
 
-		$configOptionHelper = new ConfigOptionHelper( $filename );
-		$validationError = $configOptionHelper->validateFile();
-
-		if ( $validationError !== null ) {
-			$this->output->writeln( $validationError );
-			exit( 1 );
-		} else {
+			if ( $validationError !== null ) {
+				$this->output->writeln( $validationError );
+				exit( 1 );
+			} else {
 			$advancedConfig = $configOptionHelper->getConfig();
-			$config = array_merge( $config, $advancedConfig );
-			$this->output->writeln( 'Config file loaded successfully' );
+				$config = array_merge( $config, $advancedConfig );
+				$this->output->writeln( 'Config file loaded successfully' );
+			}
 		}
 	}
 

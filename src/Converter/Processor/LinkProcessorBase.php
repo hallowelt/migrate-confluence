@@ -9,6 +9,7 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\WikiConfig;
 
 abstract class LinkProcessorBase extends ConversionHelper implements IProcessor {
 
@@ -33,6 +34,11 @@ abstract class LinkProcessorBase extends ConversionHelper implements IProcessor 
 	protected MigrationConfig $migrationConfig;
 
 	/**
+	 * @var WikiConfig
+	 */
+	protected WikiConfig $wikiConfig;
+
+	/**
 	 * @var DOMElement
 	 */
 	private DOMElement $linkNode;
@@ -42,13 +48,15 @@ abstract class LinkProcessorBase extends ConversionHelper implements IProcessor 
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $migrationConfig
+	 * @param WikiConfig $wikiConfig
 	 */
 	public function __construct( DBConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {
+		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig, WikiConfig $wikiConfig ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
 		$this->migrationConfig = $migrationConfig;
+		$this->wikiConfig = $wikiConfig;
 	}
 
 	/**

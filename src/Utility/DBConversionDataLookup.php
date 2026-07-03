@@ -280,16 +280,22 @@ class DBConversionDataLookup {
 			return $this->getInterwikiPageTitleFromSpaceId( $targetSpaceId, $confluenceTitle );
 		}
 
+		// Same space: always use wiki_title
+		if ( $currentSpaceKey === $targetSpaceKey ) {
+			return $this->getWikiPageTitleFromSpaceId( $targetSpaceId, $confluenceTitle );
+		}
+
 		// Get wiki names for both spaces
 		$currentWikiName = $wikiConfig->getWikiNameForSpaceKey( $currentSpaceKey );
 		$targetWikiName = $wikiConfig->getWikiNameForSpaceKey( $targetSpaceKey );
 
-		// If both spaces belong to the same wiki, use wiki_title
-		if ( $currentWikiName === $targetWikiName ) {
+		// If both spaces belong to the same non-empty wiki, use wiki_title
+		// If wiki names are empty/null, treat as separate wikis (use interwiki_title)
+		if ( $currentWikiName !== null && $currentWikiName === $targetWikiName ) {
 			return $this->getWikiPageTitleFromSpaceId( $targetSpaceId, $confluenceTitle );
 		}
 
-		// Different wiki: use interwiki_title
+		// Different wiki or no wiki configured: use interwiki_title
 		return $this->getInterwikiPageTitleFromSpaceId( $targetSpaceId, $confluenceTitle );
 	}
 
@@ -321,16 +327,22 @@ class DBConversionDataLookup {
 			return $this->getInterwikiBlogPostTitleFromSpaceId( $targetSpaceId, $confluenceTitle );
 		}
 
+		// Same space: always use wiki_title
+		if ( $currentSpaceKey === $targetSpaceKey ) {
+			return $this->getWikiBlogPostTitleFromSpaceId( $targetSpaceId, $confluenceTitle );
+		}
+
 		// Get wiki names for both spaces
 		$currentWikiName = $wikiConfig->getWikiNameForSpaceKey( $currentSpaceKey );
 		$targetWikiName = $wikiConfig->getWikiNameForSpaceKey( $targetSpaceKey );
 
-		// If both spaces belong to the same wiki, use wiki_title
-		if ( $currentWikiName === $targetWikiName ) {
+		// If both spaces belong to the same non-empty wiki, use wiki_title
+		// If wiki names are empty/null, treat as separate wikis (use interwiki_title)
+		if ( $currentWikiName !== null && $currentWikiName === $targetWikiName ) {
 			return $this->getWikiBlogPostTitleFromSpaceId( $targetSpaceId, $confluenceTitle );
 		}
 
-		// Different wiki: use interwiki_title
+		// Different wiki or no wiki configured: use interwiki_title
 		return $this->getInterwikiBlogPostTitleFromSpaceId( $targetSpaceId, $confluenceTitle );
 	}
 }

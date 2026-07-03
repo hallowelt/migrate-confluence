@@ -7,6 +7,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\WikiConfig;
 use PHPUnit\Framework\TestCase;
 
 class AttachmentLinkTest extends TestCase {
@@ -36,13 +37,16 @@ class AttachmentLinkTest extends TestCase {
 
 		$currentSpaceId = 42;
 		$currentRawPagename = 'SomePage';
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
+		$dataLookup = new DBConversionDataLookup( $workspaceDB );
+		$wikiConfig = new WikiConfig( $workspaceDB );
 
 		$processor = new AttachmentLink(
 			$dataLookup,
 			$currentSpaceId,
 			$currentRawPagename,
-			new MigrationConfig( [] )
+			new MigrationConfig( [] ),
+			$wikiConfig
 		);
 		$processor->process( $dom );
 

@@ -1,7 +1,0 @@
-<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<p>Page 8 content with image attachment</p>
-	
-	<ac:image>
-		<ri:attachment ri:filename="attachment_10001_1.pdf" />
-	</ac:image>
-</xml>

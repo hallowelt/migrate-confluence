@@ -1,9 +1,0 @@
-<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<p>Page 3 with link to SPACE3</p>
-	
-	<div>
-		<ac:link>
-			<ri:page ri:content-title="Page 1" ri:space-key="SPACE3" />
-		</ac:link>
-	</div>
-</xml>
