@@ -344,7 +344,9 @@ class WorkspaceDB {
 				space_id INT PRIMARY KEY,
 				space_key CHAR,
 				space_name CHAR,
-				space_prefix CHAR,
+				namespace_prefix CHAR,
+				interwiki_prefix CHAR,
+				root_page CHAR,
 				homepage_id INT,
 				description_id INT
 			);'
@@ -736,6 +738,69 @@ class WorkspaceDB {
 		$transaction->bindValue( ':wiki_namespace', $wikiNamespace, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_root_page', $wikiRootPage, SQLITE3_TEXT );
 		$transaction->execute();
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @return string|null
+	 */
+	public function getWikiConfigWikiNameForSpaceKey( string $spaceKey ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_name FROM wiki_config WHERE space_key = :space_key LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['wiki_name'] ) ? $data['wiki_name'] : null;
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @return string|null
+	 */
+	public function getWikiConfigNamespaceForSpaceKey( string $spaceKey ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_namespace FROM wiki_config WHERE space_key = :space_key LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['wiki_namespace'] ) ? $data['wiki_namespace'] : null;
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @return string|null
+	 */
+	public function getWikiConfigRootPageForSpaceKey( string $spaceKey ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_root_page FROM wiki_config WHERE space_key = :space_key LIMIT 1'
+		);
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['wiki_root_page'] ) ? $data['wiki_root_page'] : null;
 	}
 
 	/**
@@ -1601,28 +1666,34 @@ class WorkspaceDB {
 	 * @param int $spaceId
 	 * @param string $spaceKey
 	 * @param string $spaceName
-	 * @param string $prefix
+	 * @param string $namespacePrefix
+	 * @param string $interwikiPrefix
+	 * @param string $rootPage
 	 * @param int $homepageId
 	 * @param int $descriptionId
 	 * @return bool True on success, false on error.
 	 */
 	public function addSpace(
 		int $spaceId, string $spaceKey, string $spaceName,
-		string $prefix, int $homepageId, int $descriptionId
+		string $namespacePrefix, string $interwikiPrefix, string $rootPage, int $homepageId, int $descriptionId
 	): bool {
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO spaces (
 				space_id,
 				space_key,
 				space_name,
-				space_prefix,
+				namespace_prefix,
+				interwiki_prefix,
+				root_page,
 				homepage_id,
 				description_id
 			) VALUES (
 				:space_id,
 				:space_key,
 				:space_name,
-				:space_prefix,
+				:namespace_prefix,
+				:interwiki_prefix,
+				:root_page,
 				:homepage_id,
 				:description_id
 			)'
@@ -1631,7 +1702,9 @@ class WorkspaceDB {
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
 		$transaction->bindValue( ':space_name', $spaceName, SQLITE3_TEXT );
-		$transaction->bindValue( ':space_prefix', $prefix, SQLITE3_TEXT );
+		$transaction->bindValue( ':namespace_prefix', $namespacePrefix, SQLITE3_TEXT );
+		$transaction->bindValue( ':interwiki_prefix', $interwikiPrefix, SQLITE3_TEXT );
+		$transaction->bindValue( ':root_page', $rootPage, SQLITE3_TEXT );
 		$transaction->bindValue( ':homepage_id', $homepageId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':description_id', $descriptionId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
@@ -1649,7 +1722,7 @@ class WorkspaceDB {
 	 */
 	public function getMapSpaceIdToPrefix(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT space_id,space_prefix FROM spaces'
+			'SELECT space_id, namespace_prefix, root_page FROM spaces'
 		);
 
 		$result = $transaction->execute();
@@ -1658,7 +1731,20 @@ class WorkspaceDB {
 		$map = [];
 		foreach ( $data as $item ) {
 			$key = $item['space_id'];
-			$value = $item['space_prefix'];
+			$namespacePrefix = $item['namespace_prefix'];
+			$rootPage = $item['root_page'];
+
+			// Add ':' after namespace_prefix if not empty and doesn't already end with ':'
+			if ( !empty( $namespacePrefix ) && substr( $namespacePrefix, -1 ) !== ':' ) {
+				$namespacePrefix .= ':';
+			}
+
+			// Add '/' after root_page if not empty and doesn't already end with '/'
+			if ( !empty( $rootPage ) && substr( $rootPage, -1 ) !== '/' ) {
+				$rootPage .= '/';
+			}
+
+			$value = $namespacePrefix . $rootPage;
 			$map[$key] = $value;
 		}
 
@@ -1909,23 +1995,28 @@ class WorkspaceDB {
 	 */
 	public function getSpacePrefixFromSpaceKey( string $spaceKey ): string {
 		$transaction = $this->cachedPrepare(
-			'SELECT space_prefix FROM spaces WHERE space_key = :space_key LIMIT 1'
+			'SELECT namespace_prefix, root_page FROM spaces WHERE space_key = :space_key LIMIT 1'
 		);
 		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
-		if ( $result === false ) {
-			return "$spaceKey:";
-		}
-
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		if ( $data === false || !isset( $data['space_prefix'] ) ) {
-			return "$spaceKey:";
+		$namespacePrefix = $data['namespace_prefix'];
+		$rootPage = $data['root_page'];
+
+		// Add ':' after namespace_prefix if not empty and doesn't already end with ':'
+		if ( !empty( $namespacePrefix ) && substr( $namespacePrefix, -1 ) !== ':' ) {
+			$namespacePrefix .= ':';
 		}
 
-		return $data['space_prefix'];
+		// Add '/' after root_page if not empty and doesn't already end with '/'
+		if ( !empty( $rootPage ) && substr( $rootPage, -1 ) !== '/' ) {
+			$rootPage .= '/';
+		}
+
+		return $namespacePrefix . $rootPage;
 	}
 
 	/**
@@ -2044,6 +2135,7 @@ class WorkspaceDB {
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
+	 * @param string $interwikiTitle
 	 * @param string $contentStatus
 	 * @param string $revisionTimestamp
 	 * @param string $lastModifier
@@ -2061,6 +2153,7 @@ class WorkspaceDB {
 		?int $spaceId,
 		string $confluenceTitle,
 		string $wikiTitle,
+		string $interwikiTitle,
 		string $contentStatus,
 		string $revisionTimestamp,
 		string $lastModifier,
@@ -2082,6 +2175,7 @@ class WorkspaceDB {
 				space_id,
 				confluence_title,
 				wiki_title,
+				interwiki_title,
 				parent_page_id,
 				content_status,
 				version,
@@ -2097,6 +2191,7 @@ class WorkspaceDB {
 				:space_id,
 				:confluence_title,
 				:wiki_title,
+				:interwiki_title,
 				:parent_page_id,
 				:content_status,
 				:version,
@@ -2118,6 +2213,7 @@ class WorkspaceDB {
 		}
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':interwiki_title', $interwikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':parent_page_id', $parentPageId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
@@ -2271,6 +2367,61 @@ class WorkspaceDB {
 		$result->finalize();
 
 		return !empty( $data['wiki_title'] ) ? $data['wiki_title'] : null;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 *
+	 * @return string|null
+	 */
+	public function getInterwikiPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT interwiki_title FROM pages WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['interwiki_title'] ) ? $data['interwiki_title'] : null;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 *
+	 * @return array|null Returns array with 'wiki_title' and 'interwiki_title' keys, or null
+	 */
+	public function getPageTitlesFromSpaceId( int $spaceId, string $confluenceTitle ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_title, interwiki_title FROM pages WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( empty( $data ) ) {
+			return null;
+		}
+
+		return [
+			'wiki_title' => $data['wiki_title'] ?? null,
+			'interwiki_title' => $data['interwiki_title'] ?? null,
+		];
 	}
 
 	/**
@@ -2480,6 +2631,7 @@ class WorkspaceDB {
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
+	 * @param string $interwikiTitle
 	 * @param string $contentStatus
 	 * @param string $revisionTimestamp
 	 * @param string $lastModifier
@@ -2496,6 +2648,7 @@ class WorkspaceDB {
 		?int $spaceId,
 		string $confluenceTitle,
 		string $wikiTitle,
+		string $interwikiTitle,
 		string $contentStatus,
 		string $revisionTimestamp,
 		string $lastModifier,
@@ -2516,6 +2669,7 @@ class WorkspaceDB {
 				space_id,
 				confluence_title,
 				wiki_title,
+				interwiki_title,
 				content_status,
 				version,
 				original_version_id,
@@ -2530,6 +2684,7 @@ class WorkspaceDB {
 				:space_id,
 				:confluence_title,
 				:wiki_title,
+				:interwiki_title,
 				:content_status,
 				:version,
 				:original_version_id,
@@ -2550,6 +2705,7 @@ class WorkspaceDB {
 		}
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':interwiki_title', $interwikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_version_id', $originalVersionId, SQLITE3_INTEGER );
@@ -2767,6 +2923,74 @@ class WorkspaceDB {
 		$result->finalize();
 
 		return !empty( $data['wiki_title'] ) ? $data['wiki_title'] : null;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 *
+	 * @return string|null
+	 */
+	public function getInterwikBlogPostTitleFromSpaceId( int $spaceId, string $confluenceTitle ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT interwiki_title FROM blog_posts
+			WHERE space_id = :space_id
+			AND confluence_title = :confluence_title
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return !empty( $data['interwiki_title'] ) ? $data['interwiki_title'] : null;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 *
+	 * @return string|null
+	 */
+	public function getInterwikiBlogPostTitleFromSpaceId( int $spaceId, string $confluenceTitle ): ?string {
+		return $this->getInterwikBlogPostTitleFromSpaceId( $spaceId, $confluenceTitle );
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 *
+	 * @return array|null Returns array with 'wiki_title' and 'interwiki_title' keys, or null
+	 */
+	public function getBlogPostTitlesFromSpaceId( int $spaceId, string $confluenceTitle ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_title, interwiki_title FROM blog_posts WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( empty( $data ) ) {
+			return null;
+		}
+
+		return [
+			'wiki_title' => $data['wiki_title'] ?? null,
+			'interwiki_title' => $data['interwiki_title'] ?? null,
+		];
 	}
 
 	/**
