@@ -2,14 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-use Symfony\Component\Yaml\Exception\ParseException;
-use Symfony\Component\Yaml\Yaml;
-
-class ConfigOptionHelper {
-
-	/** @var array */
-	private array $advancedConfig = [];
-
+class WikiConfigOptionHelper {
 	public function __construct( private ?string $configFilePath ) {
 	}
 
@@ -32,17 +25,13 @@ class ConfigOptionHelper {
 			return "Config file '$filename' is empty or could not be read.";
 		}
 
-		try {
-			$config = Yaml::parse( $content );
-		} catch ( ParseException $e ) {
-			return "Config file '$filename' is not a valid YAML file: " . $e->getMessage();
+		$wikiConfig = WikiConfigCSVParser::parseWikiConfigCSV( $filename );
+		foreach ( $wikiConfig as $config ) {
+			if ( !isset( $config['wiki-name'] ) || empty( $config['wiki-name'] ) ) {
+				return "Config file '$filename' is missing 'wiki-name' for a space.";
+			}
 		}
-
-		if ( !is_array( $config ) || !isset( $config['config'] ) || !is_array( $config['config'] ) ) {
-			return "Config file '$filename' must contain a 'config' key with an array of configuration options.";
-		}
-
-		$this->advancedConfig = $config['config'];
+		$this->wikiConfig = $wikiConfig;
 
 		// No validation errors
 		return null;
@@ -52,14 +41,14 @@ class ConfigOptionHelper {
 	 * @return array
 	 */
 	public function getConfig(): array {
-		return $this->advancedConfig;
+		return $this->wikiConfig;
 	}
 
 	/**
 	 * @return void
 	 */
 	public function showConfig(): void {
-		if ( $this->advancedConfig === [] ) {
+		if ( $this->wikiConfig === [] ) {
 			$error = $this->validateFile();
 			if ( $error !== null ) {
 				echo $error . PHP_EOL;
@@ -68,6 +57,8 @@ class ConfigOptionHelper {
 		}
 
 		echo 'Loaded config:' . PHP_EOL;
-		var_dump( $this->advancedConfig );
+		var_dump( $this->wikiConfig );
 	}
+}
+
 }
