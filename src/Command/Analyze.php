@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
+use HalloWelt\MigrateConfluence\Utility\WikiConfigCSVParser;
 use Symfony\Component\Console\Input\InputOption;
 
 class Analyze extends CommandAnalyze {
@@ -75,17 +76,18 @@ class Analyze extends CommandAnalyze {
 	 */
 	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
+		if ( !empty( $filename ) ) {
+			$configOptionHelper = new ConfigOptionHelper( $filename );
+			$validationError = $configOptionHelper->validateFile();
 
-		$configOptionHelper = new ConfigOptionHelper( $filename );
-		$validationError = $configOptionHelper->validateFile();
-
-		if ( $validationError !== null ) {
-			$this->output->writeln( $validationError );
-			exit( 1 );
-		} else {
-			$advancedConfig = $configOptionHelper->getConfig();
-			$config = array_merge( $config, $advancedConfig );
-			$this->output->writeln( 'Config file loaded successfully' );
+			if ( $validationError !== null ) {
+				$this->output->writeln( $validationError );
+				exit( 1 );
+			} else {
+				$advancedConfig = $configOptionHelper->getConfig();
+				$config = array_merge( $config, $advancedConfig );
+				$this->output->writeln( 'Config file loaded successfully' );
+			}
 		}
 	}
 
