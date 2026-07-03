@@ -208,6 +208,10 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 		$this->pageId = null;
 
+		if ( str_starts_with( $this->rawFile->getFilename(), 'fd_' ) ) {
+			return $this->buildFileDescriptionWikiText();
+		}
+
 		if ( str_starts_with( $this->rawFile->getFilename(), 'pt_' ) ) {
 			// This is the content of a page template
 			$bodyContentId = $this->getBodyContentIdFromPageTemplateFilename();
@@ -552,6 +556,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$filename = $this->rawFile->getFilename();
 		$filenameParts = explode( '.', $filename, 2 );
 		return (int)substr( $filenameParts[0], 3 );
+	}
+
+	/**
+	 * Generate the wikitext for an attachment file description page.
+	 * The raw file content is the original Confluence filename.
+	 *
+	 * @return string
+	 */
+	private function buildFileDescriptionWikiText(): string {
+		// e.g. "fd_67856345.mraw" — file content is the original attachment filename
+		$originalFilename = trim( file_get_contents( $this->rawFile->getPathname() ) ?: '' );
+		if ( $originalFilename === '' ) {
+			return '';
+		}
+		$quotedFileName = htmlspecialchars( $originalFilename, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
+		return "Original file name: <nowiki>$quotedFileName</nowiki>\n"
+			. "{{DISPLAYTITLE:$quotedFileName|noerror}}";
 	}
 
 	/**

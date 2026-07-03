@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -29,9 +30,11 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 * @param WorkspaceDB $workspaceDB
 	 * @param DBLog $dbLog
 	 * @param MigrationConfig $migrationConfig
+	 * @param Workspace $workspace
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB, DBLog $dbLog, protected MigrationConfig $migrationConfig
+		WorkspaceDB $workspaceDB, DBLog $dbLog, protected MigrationConfig $migrationConfig,
+		protected Workspace $workspace
 	) {
 		parent::__construct( $workspaceDB, $dbLog );
 	}
@@ -247,7 +250,32 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				$data['origFilename'],
 				$data['wikiTitle']
 			);
+			$this->saveFileDescriptionRaw( $attachmentId, $data['wikiTitle'], $data['origFilename'] );
 		}
+	}
+
+	/**
+	 * If the original filename is not preserved in the wiki title (e.g. due to abbreviation),
+	 * write a raw marker file for the convert step to generate a file description page.
+	 */
+	protected function saveFileDescriptionRaw(
+		int $attachmentId, string $targetTitle, string $originalFilename
+	): void {
+		if ( $originalFilename === '' ) {
+			return;
+		}
+		$normalized = str_replace( [ ' ', '/' ], '_', $originalFilename );
+		$normalized = preg_replace( '/_+/', '_', $normalized ) ?? $normalized;
+
+		$colonPos = strpos( $targetTitle, ':' );
+		$localTarget = $colonPos !== false ? substr( $targetTitle, $colonPos + 1 ) : $targetTitle;
+
+		// Case-insensitive: WindowsFilename applies ucfirst() which must not cause false positives.
+		if ( stripos( $localTarget, $normalized ) !== false ) {
+			return;
+		}
+
+		$this->workspace->saveRawContent( 'fd_' . $attachmentId, $originalFilename );
 	}
 
 	/**
