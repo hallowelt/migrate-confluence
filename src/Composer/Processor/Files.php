@@ -284,35 +284,4 @@ class Files extends FileProcessorBase {
 			}
 		}
 	}
-
-	/**
-	 * @return void
-	 */
-	private function addDefaultFiles(): void {
-		$basepath = dirname( __DIR__ ) . '/_defaultfiles/';
-		$files = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $basepath ),
-			RecursiveIteratorIterator::LEAVES_ONLY
-		);
-
-		foreach ( $files as $fileObj ) {
-			if ( $fileObj->isDir() ) {
-				continue;
-			}
-			$file = $fileObj->getPathname();
-			$filename = basename( $file );
-			$attachmentPageTitle = $filename;
-			$data = file_get_contents( $file );
-
-			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $data, "result/images/$filename" );
-
-			// XML containing files is supported by MediaWiki dumpBackup but can not be imported
-			$this->builder->addFileRevision(
-				$attachmentPageTitle,
-				$this->getRelativeFilePath( $uploadFilePath ),
-				'',
-				''
-			);
-		}
-	}
 }
