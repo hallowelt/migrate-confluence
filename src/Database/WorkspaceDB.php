@@ -103,6 +103,9 @@ class WorkspaceDB {
 			'users',
 			'content_properties',
 			'comments',
+			'page_comments',
+			'blog_post_comments',
+			'wiki_config',
 			'labellings',
 			'labels',
 			'gliffy',
@@ -213,6 +216,7 @@ class WorkspaceDB {
 		$this->createTableInvalidPageTemplateContents();
 
 		// Object tables
+		$this->createTableWikiConfig();
 		$this->createTableSpaces();
 		$this->createTableSpaceDescriptions();
 		$this->createTablePages();
@@ -226,6 +230,8 @@ class WorkspaceDB {
 		$this->createTableUsers();
 		$this->createTableContentProperties();
 		$this->createTableComments();
+		$this->createTablePageComments();
+		$this->createTableBlogPostComments();
 		$this->createTableLabellings();
 		$this->createTableLabels();
 		$this->createTableGliffy();
@@ -367,6 +373,20 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
+	private function createTableWikiConfig(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS wiki_config (
+				space_key CHAR PRIMARY KEY,
+				wiki_name CHAR,
+				wiki_namespace CHAR,
+				wiki_root_page CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
 	private function createTablePages(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS pages (
@@ -374,6 +394,7 @@ class WorkspaceDB {
 				space_id INT,
 				confluence_title CHAR,
 				wiki_title CHAR,
+				interwiki_title CHAR,
 				parent_page_id INT,
 				content_status CHAR,
 				version CHAR,
@@ -398,6 +419,7 @@ class WorkspaceDB {
 				space_id INT,
 				confluence_title CHAR,
 				wiki_title CHAR,
+				interwiki_title CHAR,
 				content_status CHAR,
 				version CHAR,
 				original_version_id INT,
@@ -551,6 +573,32 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
+	private function createTablePageComments(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS page_comments (
+				comment_id INT PRIMARY KEY,
+				page_id INT,
+				wiki_title CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableBlogPostComments(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS blog_post_comments (
+				comment_id INT PRIMARY KEY,
+				blog_post_id INT,
+				wiki_title CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
 	private function createTableLabellings(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS labellings (
@@ -654,6 +702,40 @@ class WorkspaceDB {
 				content TEXT
 			);'
 		);
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @param string $wikiName
+	 * @param string $wikiNamespace
+	 * @param string $wikiRootPage
+	 * @return void
+	 */
+	public function addWikiConfig(
+		string $spaceKey,
+		string $wikiName,
+		string $wikiNamespace,
+		string $wikiRootPage
+	): void {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR REPLACE INTO wiki_config (
+				space_key,
+				wiki_name,
+				wiki_namespace,
+				wiki_root_page
+			) VALUES (
+				:space_key,
+				:wiki_name,
+				:wiki_namespace,
+				:wiki_root_page
+			)'
+		);
+
+		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_name', $wikiName, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_namespace', $wikiNamespace, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_root_page', $wikiRootPage, SQLITE3_TEXT );
+		$transaction->execute();
 	}
 
 	/**
@@ -2066,6 +2148,21 @@ class WorkspaceDB {
 
 	/**
 	 * @param int $pageId
+	 * @param string $interwikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageInterwikiTitle( int $pageId, string $interwikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE pages SET interwiki_title = :interwiki_title WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':interwiki_title', $interwikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $pageId
 	 * @param int $spaceId
 	 * @return bool True on success, false on error.
 	 */
@@ -2500,6 +2597,21 @@ class WorkspaceDB {
 		);
 
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @param string $interwikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updateBlogPostInterwikiTitle( int $pageId, string $interwikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE blog_posts SET interwiki_title = :interwiki_title WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':interwiki_title', $interwikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
@@ -3695,6 +3807,110 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int $commentId
+	 * @param int $pageId
+	 * @param string $wikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function addPageComment( int $commentId, int $pageId, string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO page_comments (
+				comment_id,
+				page_id,
+				wiki_title
+			) VALUES (
+				:comment_id,
+				:page_id,
+				:wiki_title
+			)'
+		);
+
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $commentId
+	 * @param int $blogPostId
+	 * @param string $wikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function addBlogPostComment( int $commentId, int $blogPostId, string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO blog_post_comments (
+				comment_id,
+				blog_post_id,
+				wiki_title
+			) VALUES (
+				:comment_id,
+				:blog_post_id,
+				:wiki_title
+			)'
+		);
+
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':blog_post_id', $blogPostId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Returns the wiki_title from blog_post_comments for the given blog post ID, or null if not found.
+	 *
+	 * @param int $blogPostId
+	 * @return string|null
+	 */
+	public function getWikiBlogPostCommentTitleFromBlogPostId( int $blogPostId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_title FROM blog_post_comments WHERE blog_post_id = :blog_post_id LIMIT 1'
+		);
+		$transaction->bindValue( ':blog_post_id', $blogPostId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['wiki_title'] ) ) {
+			return null;
+		}
+
+		return $data['wiki_title'];
+	}
+
+	/**
+	 * Returns the wiki_title from page_comments for the given page ID, or null if not found.
+	 *
+	 * @param int $pageId
+	 * @return string|null
+	 */
+	public function getWikiPageCommentTitleFromPageId( int $pageId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_title FROM page_comments WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['wiki_title'] ) ) {
+			return null;
+		}
+
+		return $data['wiki_title'];
+	}
+
+	/**
 	 * Returns all page-level comments and the corresponding page wiki title.
 	 *
 	 * @param int|null $spaceId
@@ -4231,6 +4447,21 @@ class WorkspaceDB {
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
 		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $templateId
+	 * @param string $wikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageTemplateWikiTitle( int $templateId, string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE page_templates SET wiki_title = :wiki_title WHERE template_id = :template_id'
+		);
+
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
 

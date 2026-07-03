@@ -69,5 +69,3 @@ class WikiConfigOptionHelper {
 		var_dump( $this->wikiConfig );
 	}
 }
-
-}

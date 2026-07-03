@@ -365,7 +365,7 @@ class Convert extends CommandConvert {
 				$this->output->writeln( $validationError );
 				exit( 1 );
 			} else {
-			$advancedConfig = $configOptionHelper->getConfig();
+				$advancedConfig = $configOptionHelper->getConfig();
 				$config = array_merge( $config, $advancedConfig );
 				$this->output->writeln( 'Config file loaded successfully' );
 			}
@@ -373,7 +373,8 @@ class Convert extends CommandConvert {
 		$filename = $this->input->getOption( 'wikiconf' );
 		if ( !empty( $filename ) ) {
 			$wikiConfigOptionHelper = new WikiConfigOptionHelper( $filename );
-			if ( $validationError = $wikiConfigOptionHelper->validateFile() ) {
+			$validationError = $wikiConfigOptionHelper->validateFile();
+			if ( $validationError !== null ) {
 				$this->output->writeln( $validationError );
 				exit( 1 );
 			}

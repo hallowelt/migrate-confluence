@@ -163,7 +163,6 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		return $result;
 	}
 
-
 	/**
 	 * @return array
 	 */

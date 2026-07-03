@@ -10,12 +10,9 @@ use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
-use HalloWelt\MigrateConfluence\Utility\WikiConfigCSVParser;
 use HalloWelt\MigrateConfluence\Utility\WikiConfigOptionHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Yaml\Exception\ParseException;
-use Symfony\Component\Yaml\Yaml;
 
 class Extract extends CommandExtract {
 
@@ -124,13 +121,13 @@ class Extract extends CommandExtract {
 		$filename = $this->input->getOption( 'wikiconf' );
 		if ( !empty( $filename ) ) {
 			$wikiConfigOptionHelper = new WikiConfigOptionHelper( $filename );
-			if ( $validationError = $wikiConfigOptionHelper->validateFile() ) {
+			$validationError = $wikiConfigOptionHelper->validateFile();
+			if ( $validationError !== null ) {
 				$this->output->writeln( $validationError );
 				exit( 1 );
 			}
 			$config['wiki-config'] = $wikiConfigOptionHelper->getConfig();
 		}
-		
 	}
 
 	/**

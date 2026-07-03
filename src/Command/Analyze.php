@@ -8,7 +8,6 @@ use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
-use HalloWelt\MigrateConfluence\Utility\WikiConfigCSVParser;
 use HalloWelt\MigrateConfluence\Utility\WikiConfigOptionHelper;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -102,7 +101,8 @@ class Analyze extends CommandAnalyze {
 		$filename = $this->input->getOption( 'wikiconf' );
 		if ( !empty( $filename ) ) {
 			$wikiConfigOptionHelper = new WikiConfigOptionHelper( $filename );
-			if ( $validationError = $wikiConfigOptionHelper->validateFile() ) {
+			$validationError = $wikiConfigOptionHelper->validateFile();
+			if ( $validationError !== null ) {
 				$this->output->writeln( $validationError );
 				exit( 1 );
 			}
