@@ -148,8 +148,12 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog ),
 			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->workspace ),
 			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig, $this->workspace ),
-			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig, $this->workspace ),
-			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig, $this->workspace ),
+			new UpdateBlogPostAttachmentTable(
+				$this->workspaceDB, $this->dbLog,
+				$this->migrationConfig, $this->workspace ),
+			new PopulateAdditionalAttachmentsTable(
+				$this->workspaceDB, $this->dbLog,
+				$this->migrationConfig, $this->workspace ),
 		];
 	}
 
