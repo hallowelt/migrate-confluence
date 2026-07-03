@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\Output;
  * Generates Talk pages with cs-comments JSON slot for pages that have
  * Confluence page-level comments.
  */
-class Comments extends ProcessorBase {
+class PageComments extends ProcessorBase {
 
 	/**
 	 * @param Builder $builder
@@ -43,7 +43,7 @@ class Comments extends ProcessorBase {
 	 * @return string
 	 */
 	protected function getOutputName(): string {
-		return 'comments';
+		return 'page-talk';
 	}
 
 	/**
@@ -59,107 +59,33 @@ class Comments extends ProcessorBase {
 	 * @return void
 	 */
 	private function addCommentPages(): void {
-		$comments = [];
-		if ( is_array( $this->currentSpaceIds ) ) {
-			foreach ( $this->currentSpaceIds as $spaceId ) {
-				$comments = array_merge(
-					$comments,
-					$this->dataLookup->getCommentsForPages( (int)$spaceId ),
-					$this->dataLookup->getCommentsForBlogPosts( (int)$spaceId )
-				);
-			}
-		} else {
-			$comments = array_merge(
-				$this->dataLookup->getCommentsForPages(),
-				$this->dataLookup->getCommentsForBlogPosts()
-			);
-		}
-
+		$comments = $this->getComments();
 		if ( empty( $comments ) ) {
 			$this->output->writeln( "No comments found, skipping comment processing." );
 			return;
 		}
 
-		$pageIdToCommentIds = [];
-		$pageIdToTitleMap = [];
-		foreach ( $comments as $comment ) {
-			$commentId = $comment['comment_id'];
-			$containerContentId = $comment['container_id'];
-			$wikiTitle = $comment['wiki_title'];
+		$pageIdToCommentsMap = $this->getPageIdToCommentsMap( $comments );
 
-			if ( $this->skipHelper->skipWikiTitle( $wikiTitle ) ) {
-				$this->output->writeln( "Skip comments for page title $wikiTitle." );
-				continue;
-			}
-			$this->output->writeln( "Processing comments for page title $wikiTitle ..." );
+		foreach ( $pageIdToCommentsMap as $pageId => $comments ) {
+			$wikiTitle = $this->getWikiTitle( $pageId );
+			$talkTitle = $this->getTalkTitle( $pageId );
 
-			// Only handle page-level comments with content status 'current'
-			if ( $containerContentId === null ) {
-				continue;
-			}
-
-			if ( $wikiTitle === null || $wikiTitle === '' ) {
-				continue;
-			}
-
-			if ( !isset( $pageIdToCommentIds[$containerContentId] ) ) {
-				$pageIdToCommentIds[$containerContentId] = [];
-			}
-			$pageIdToCommentIds[$containerContentId][] = $commentId;
-			$pageIdToTitleMap[$containerContentId] = $wikiTitle;
-		}
-
-		$commentIdToMetadata = [];
-		foreach ( $comments as $comment ) {
-			$commentId = $comment['comment_id'];
-			$pageId = $comment['container_id'];
-			$bodyContentIds = json_decode( $comment['body_content_ids'], true );
-			$bodyContentId = $bodyContentIds[0] ?? null;
-			$creatorKey = $comment['user_key'];
-			$created = $comment['created'];
-			$modified = $comment['modified'];
-
-			if ( $bodyContentId === null ) {
-				continue;
-			}
-
-			$commentIdToMetadata[$commentId] = [
-				'page_id' => $pageId,
-				'body_content_id' => $bodyContentId,
-				'creator_key' => $creatorKey,
-				'created' => $created,
-				'modified' => $modified,
-			];
-		}
-
-		$userkeyToUsernameMap = [];
-		$users = $this->dataLookup->getUsers();
-		foreach ( $users as $user ) {
-			$userKey = $user['user_key'];
-			$username = $user['wiki_user_name'];
-			$userkeyToUsernameMap[$userKey] = $username;
-		}
-
-		if ( empty( $pageIdToCommentIds ) ) {
-			return;
-		}
-
-		foreach ( $pageIdToCommentIds as $pageId => $commentIds ) {
-			if ( !isset( $pageIdToTitleMap[$pageId] ) ) {
+			if ( $wikiTitle === null || $talkTitle === null ) {
 				$this->output->writeln( "Warning: No title found for page ID $pageId, skipping comments." );
 				continue;
 			}
-			$pageTitle = $pageIdToTitleMap[$pageId];
-			$talkTitle = $this->buildTalkTitle( $pageTitle );
-			if ( $this->skipHelper->skipPage( $pageTitle ) ) {
+
+			if (
+				$this->skipHelper->skipPage( $wikiTitle )
+				|| $this->skipHelper->skipPage( $talkTitle )
+			) {
 				$this->output->writeln( "Skip page $talkTitle." );
 				$this->deploymentInfo->addSkippedPage( $talkTitle );
 				continue;
 			}
 
-			$commentsData = $this->buildCommentsData(
-				$commentIds, $commentIdToMetadata, $userkeyToUsernameMap
-			);
+			$commentsData = $this->buildCommentsData( $comments );
 
 			if ( empty( $commentsData ) ) {
 				continue;
@@ -171,39 +97,106 @@ class Comments extends ProcessorBase {
 	}
 
 	/**
-	 * Build the correct Talk page title respecting namespaces:
-	 * "NS:Page" → "NS_Talk:Page", plain "Page" → "Talk:Page"
-	 *
-	 * @param string $pageTitle
-	 * @return string
+	 * @param int $pageId
+	 * @return string|null
 	 */
-	private function buildTalkTitle( string $pageTitle ): string {
-		$prefix = $this->migrationConfig->getNsTalkPrefix();
-		if ( strpos( $pageTitle, ':' ) !== false ) {
-			[ $ns, $titlePart ] = explode( ':', $pageTitle, 2 );
-			return $ns . '_' . "$prefix:$titlePart";
-		}
-		return $prefix . ':' . $pageTitle;
+	protected function getWikiTitle( int $pageId ): ?string {
+		return $this->dataLookup->getWikiPageTitleFromPageId( $pageId );
 	}
 
 	/**
-	 * @param array $commentIds
-	 * @param array $commentIdToMetadata
-	 * @param array $userkeyToUsernameMap
+	 * @param int $pageId
+	 * @return string|null
+	 */
+	protected function getTalkTitle( int $pageId ): ?string {
+		return $this->dataLookup->getWikiPageCommentTitleFromPageId( $pageId );
+	}
+
+	/**
 	 * @return array
 	 */
-	private function buildCommentsData(
-		array $commentIds, array $commentIdToMetadata, array $userkeyToUsernameMap
-	): array {
-		$commentsData = [];
-		$index = 1;
-		foreach ( $commentIds as $commentId ) {
-			if ( !isset( $commentIdToMetadata[$commentId] ) ) {
+	protected function getComments(): array {
+		$comments = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$comments = array_merge(
+					$comments,
+					$this->dataLookup->getCommentsForPages( (int)$spaceId )
+				);
+			}
+		} else {
+			$comments = $this->dataLookup->getCommentsForPages();
+		}
+		return $comments;
+	}
+
+	/**
+	 * @param array $comments
+	 * @return array
+	 */
+	private function getPageIdToCommentsMap( array $comments ): array {
+		$pageIdToCommentsMap = [];
+		foreach ( $comments as $comment ) {
+			$containerContentId = $comment['container_id'];
+			$wikiTitle = $comment['wiki_title'];
+
+			if ( $this->skipHelper->skipWikiTitle( $wikiTitle ) ) {
+				$this->output->writeln( "Skip comments for page title $wikiTitle." );
 				continue;
 			}
-			$metadata = $commentIdToMetadata[$commentId];
-			$bodyContentId = $metadata['body_content_id'];
 
+			if ( $containerContentId === null ) {
+				continue;
+			}
+
+			if ( $wikiTitle === null || $wikiTitle === '' ) {
+				continue;
+			}
+			$this->output->writeln( "Processing comments for page title $wikiTitle ..." );
+
+			if ( !isset( $pageIdToCommentsMap[$containerContentId] ) ) {
+				$pageIdToCommentsMap[$containerContentId] = [];
+			}
+			$pageIdToCommentsMap[$containerContentId][] = $comment;
+		}
+		return $pageIdToCommentsMap;
+	}
+
+	/**
+	 * @return array
+	 */
+	protected function getUserKeyToUsernameMap(): array {
+		$userkeyToUsernameMap = [];
+		$users = $this->dataLookup->getUsers();
+		foreach ( $users as $user ) {
+			$userKey = $user['user_key'];
+			$username = $user['wiki_user_name'];
+			$userkeyToUsernameMap[$userKey] = $username;
+		}
+		return $userkeyToUsernameMap;
+	}
+
+	/**
+	 * @param array $comments
+	 * @return array
+	 */
+	protected function buildCommentsData( array $comments ): array {
+		$userKeyToUsernameMap = $this->getUserKeyToUsernameMap();
+
+		$commentsData = [];
+		$index = 1;
+		foreach ( $comments as $comment ) {
+			$commentId = $comment['comment_id'];
+			$bodyContentIds = json_decode( $comment['body_content_ids'], true );
+
+			if ( empty( $bodyContentIds ) ) {
+				$this->output->writeln(
+					"Warning: No converted content for comment $commentId, skipping."
+				);
+				continue;
+			}
+
+			$bodyContentId = $bodyContentIds[0];
 			$wikitext = $this->workspace->getConvertedContent( $bodyContentId );
 			if ( empty( $wikitext ) ) {
 				$this->output->writeln(
@@ -212,16 +205,16 @@ class Comments extends ProcessorBase {
 				continue;
 			}
 
-			$creatorKey = $metadata['creator_key'];
-			$username = isset( $userkeyToUsernameMap[$creatorKey] )
-				? $userkeyToUsernameMap[$creatorKey]
+			$creatorKey = $comment['user_key'];
+			$username = isset( $userKeyToUsernameMap[$creatorKey] )
+				? $userKeyToUsernameMap[$creatorKey]
 				: $creatorKey;
 
 			$commentsData[$index] = [
 				'type' => 'comment',
 				'author' => $username,
-				'created' => $metadata['created'],
-				'modified' => $metadata['modified'],
+				'created' => $comment['created'],
+				'modified' => $comment['modified'],
 				'title' => '',
 				'block' => null,
 				'wikitext' => trim( $wikitext ),

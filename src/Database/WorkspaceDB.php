@@ -229,6 +229,8 @@ class WorkspaceDB {
 		$this->createTableUsers();
 		$this->createTableContentProperties();
 		$this->createTableComments();
+		$this->createTablePageComments();
+		$this->createTableBlogPostComments();
 		$this->createTableLabellings();
 		$this->createTableLabels();
 		$this->createTableGliffy();
@@ -563,6 +565,32 @@ class WorkspaceDB {
 				created CHAR,
 				modified CHAR,
 				properties BLOB
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTablePageComments(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS page_comments (
+				comment_id INT PRIMARY KEY,
+				page_id INT,
+				wiki_title CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableBlogPostComments(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS blog_post_comments (
+				comment_id INT PRIMARY KEY,
+				blog_post_id INT,
+				wiki_title CHAR
 			);'
 		);
 	}
@@ -3851,6 +3879,56 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int $commentId
+	 * @param int $pageId
+	 * @param string $wikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function addPageComment( int $commentId, int $pageId, string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO page_comments (
+				comment_id,
+				page_id,
+				wiki_title
+			) VALUES (
+				:comment_id,
+				:page_id,
+				:wiki_title
+			)'
+		);
+
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $commentId
+	 * @param int $blogPostId
+	 * @param string $wikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function addBlogPostComment( int $commentId, int $blogPostId, string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO blog_post_comments (
+				comment_id,
+				blog_post_id,
+				wiki_title
+			) VALUES (
+				:comment_id,
+				:blog_post_id,
+				:wiki_title
+			)'
+		);
+
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':blog_post_id', $blogPostId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
 	 * Returns all page-level comments and the corresponding page wiki title.
 	 *
 	 * @param int|null $spaceId
@@ -3946,6 +4024,60 @@ class WorkspaceDB {
 		$result->finalize();
 
 		return $exists;
+	}
+
+	/**
+	 * Returns the wiki_title from blog_post_comments for the given blog post ID, or null if not found.
+	 *
+	 * @param int $blogPostId
+	 * @return string|null
+	 */
+	public function getWikiBlogPostCommentTitleFromBlogPostId( int $blogPostId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_title FROM blog_post_comments WHERE blog_post_id = :blog_post_id LIMIT 1'
+		);
+		$transaction->bindValue( ':blog_post_id', $blogPostId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['wiki_title'] ) ) {
+			return null;
+		}
+
+		return $data['wiki_title'];
+	}
+
+	/**
+	 * Returns the wiki_title from page_comments for the given page ID, or null if not found.
+	 *
+	 * @param int $pageId
+	 * @return string|null
+	 */
+	public function getWikiPageCommentTitleFromPageId( int $pageId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_title FROM page_comments WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['wiki_title'] ) ) {
+			return null;
+		}
+
+		return $data['wiki_title'];
 	}
 
 	/**

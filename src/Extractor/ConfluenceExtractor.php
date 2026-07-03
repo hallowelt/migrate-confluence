@@ -24,6 +24,8 @@ use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesBodyContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyContents;
+use HalloWelt\MigrateConfluence\Extractor\Processor\UpdateBlogPostsCommentsTable;
+use HalloWelt\MigrateConfluence\Extractor\Processor\UpdatePageCommentsTable;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -166,7 +168,9 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		return [
 			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog ),
 			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
-			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->migrationConfig, $this->wikiConfig ),
+			new UpdatePagesTableWithWikiTitle(
+				$this->workspaceDB, $this->dbLog, $this->migrationConfig, $this->wikiConfig
+			),
 			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
 			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->wikiConfig ),
 			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->wikiConfig ),
@@ -180,7 +184,6 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return array
 	 */
 	private function getProcessors(): array {
-		return [];
 		return [
 			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
 			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
@@ -190,6 +193,8 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			new ExtractPagesMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new UpdatePageCommentsTable( $this->workspaceDB, $this->dbLog ),
+			new UpdateBlogPostsCommentsTable( $this->workspaceDB, $this->dbLog ),
 		];
 	}
 

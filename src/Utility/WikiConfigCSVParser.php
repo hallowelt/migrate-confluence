@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-
 class WikiConfigCSVParser {
 
 	/**
@@ -28,7 +27,7 @@ class WikiConfigCSVParser {
 					continue;
 				}
 
-				if (  str_starts_with( $line, 'confluence-space-key' ) ) {
+				if ( str_starts_with( $line, 'confluence-space-key' ) ) {
 					// Skip the header line
 					continue;
 				}
@@ -62,4 +61,3 @@ class WikiConfigCSVParser {
 		return $wikiConfig;
 	}
 }
-

@@ -5,8 +5,8 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
-use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
+use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -60,11 +60,13 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 			$templateId = (int)$pageTemplate['template_id'];
 
 			if ( !isset( $pageTemplate['space_id'] ) || !isset( $pageTemplate['confluence_title'] ) ) {
+				$message = "Skipping page template $templateId while updating wiki titles: ";
+				$message .= "missing space_id or confluence_title";
 				$this->dbLog->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
-					"Skipping page template $templateId while updating wiki titles: missing space_id or confluence_title"
+					$message
 				);
 				continue;
 			}
@@ -100,7 +102,8 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 			}
 
 			if ( empty( $wikiTitle ) ) {
-				$message = "TitleBuilder delivers empty wiki title for page template $confluenceTitle (template id $templateId)";
+				$message = "TitleBuilder delivers empty wiki title for";
+				$message .= " page template $confluenceTitle (template id $templateId)";
 
 				$this->dbLog->addLogEntry(
 					'error',

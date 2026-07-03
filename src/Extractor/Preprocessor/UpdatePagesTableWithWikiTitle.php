@@ -286,11 +286,11 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 	}
 
 	/**
-	 * @param integer $pageId
+	 * @param int $pageId
 	 * @param string $wikiTitle
 	 * @return string
 	 */
-	private function getInterwikiTitle( int $pageId,string $wikiTitle ): string {
+	private function getInterwikiTitle( int $pageId, string $wikiTitle ): string {
 		$spaceId = $this->workspaceDB->getSpaceIdForPageId( $pageId );
 		$spaceKey = $this->workspaceDB->getSpaceKeyFromSpaceId( $spaceId );
 		$namespace = $this->getNamespaceForSpaceKey( $spaceKey );
