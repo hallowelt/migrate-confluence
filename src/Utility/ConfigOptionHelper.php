@@ -10,7 +10,7 @@ class ConfigOptionHelper {
 	/** @var array */
 	private array $advancedConfig = [];
 
-	public function __construct( private string $configFilePath = '' ) {
+	public function __construct( private ?string $configFilePath ) {
 	}
 
 	public function validateFile(): ?string {
