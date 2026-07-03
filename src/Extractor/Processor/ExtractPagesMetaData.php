@@ -35,7 +35,8 @@ class ExtractPagesMetaData extends ProcessorBase {
 
 			$pageId = (int)$page['page_id'];
 			$originalVersionId = (int)$page['original_version_id'];
-			$labellings = $page['collection']['labellings'] ?? [];
+			$collection = json_decode( $page['collection'] ?? '{}', true ) ?? [];
+			$labellings = $collection['labellings'] ?? [];
 
 			if ( $originalVersionId !== -1 ) {
 				continue;

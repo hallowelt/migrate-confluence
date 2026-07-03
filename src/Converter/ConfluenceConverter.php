@@ -570,9 +570,19 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		if ( $originalFilename === '' ) {
 			return '';
 		}
+
+		$attachmentId = (int)substr( $this->rawFile->getBasename( '.mraw' ), 3 );
+		$metaData = $this->workspaceDB->getAttachmentMetaById( $attachmentId );
+
 		$quotedFileName = htmlspecialchars( $originalFilename, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
-		return "Original file name: <nowiki>$quotedFileName</nowiki>\n"
+		$wikiText = "Original file name: <nowiki>$quotedFileName</nowiki>\n"
 			. "{{DISPLAYTITLE:$quotedFileName|noerror}}";
+
+		foreach ( $metaData['categories'] ?? [] as $category ) {
+			$wikiText .= "\n[[Category:" . ucfirst( $category ) . "]]";
+		}
+
+		return $wikiText;
 	}
 
 	/**
@@ -682,9 +692,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		// Append categories
 		$metaData = [];
 		if ( $this->contentType === 'page' ) {
-			$metaData = $this->workspaceDB->getPageMeta();
+			$metaData = $this->workspaceDB->getPageMetaById( $this->pageId );
 		} elseif ( $this->contentType === 'blogPost' ) {
-			$metaData = $this->workspaceDB->getBlogPostMeta();
+			$metaData = $this->workspaceDB->getBlogPostMetaById( $this->pageId );
 		}
 		$categories = '';
 		if ( isset( $metaData['categories'] ) ) {

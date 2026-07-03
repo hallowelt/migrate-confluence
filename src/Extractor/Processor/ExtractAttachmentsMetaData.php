@@ -11,13 +11,14 @@ class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
 	 */
 	public function execute(): void {
 		foreach ( $this->workspaceDB->getCurrentAttachments() as $attachment ) {
-			if ( !isset( $attachment['page_id'] ) || !isset( $attachment['original_version_id'] ) ) {
+			if ( !isset( $attachment['attachment_id'] ) || !isset( $attachment['original_version_id'] ) ) {
 				continue;
 			}
 
-			$pageId = (int)$attachment['page_id'];
+			$attachmentId = (int)$attachment['attachment_id'];
 			$originalVersionId = (int)$attachment['original_version_id'];
-			$labellings = $attachment['collection']['labellings'] ?? [];
+			$collection = json_decode( $attachment['collection'] ?? '{}', true ) ?? [];
+			$labellings = $collection['labellings'] ?? [];
 
 			if ( $originalVersionId !== -1 ) {
 				continue;
@@ -30,7 +31,7 @@ class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
 			}
 
 			$this->workspaceDB->addAttachmentMeta(
-				$pageId,
+				$attachmentId,
 				[
 					'categories' => $categories
 				]
@@ -40,7 +41,7 @@ class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
 				'info',
 				'extract',
 				__METHOD__,
-				"Add attachment meta for attachment {$attachment['wiki_title']}"
+				"Add attachment meta for attachment ID $attachmentId"
 			);
 		}
 	}

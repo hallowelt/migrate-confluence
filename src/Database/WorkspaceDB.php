@@ -3970,10 +3970,24 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
+	 * @param int $pageId
+	 * @return array Decoded meta array, or empty array if not found.
 	 */
-	public function getPageMeta(): array {
-		return $this->getAllData( 'pages_meta' );
+	public function getPageMetaById( int $pageId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT meta FROM pages_meta WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+		if ( $row === false || !isset( $row['meta'] ) ) {
+			return [];
+		}
+		return json_decode( $row['meta'], true ) ?? [];
 	}
 
 	/**
@@ -4001,10 +4015,24 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
+	 * @param int $pageId
+	 * @return array Decoded meta array, or empty array if not found.
 	 */
-	public function getBlogPostMeta(): array {
-		return $this->getAllData( 'blog_posts_meta' );
+	public function getBlogPostMetaById( int $pageId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT meta FROM blog_posts_meta WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+		if ( $row === false || !isset( $row['meta'] ) ) {
+			return [];
+		}
+		return json_decode( $row['meta'], true ) ?? [];
 	}
 
 	/**
@@ -4032,10 +4060,24 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
+	 * @param int $attachmentId
+	 * @return array Decoded meta array, or empty array if not found.
 	 */
-	public function getAttachmentMeta(): array {
-		return $this->getAllData( 'attachments_meta' );
+	public function getAttachmentMetaById( int $attachmentId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT meta FROM attachments_meta WHERE attachment_id = :attachment_id LIMIT 1'
+		);
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+		if ( $row === false || !isset( $row['meta'] ) ) {
+			return [];
+		}
+		return json_decode( $row['meta'], true ) ?? [];
 	}
 
 	/**
