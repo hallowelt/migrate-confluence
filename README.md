@@ -45,19 +45,19 @@ The migrate confluence tool is available as [docker image](https://hub.docker.co
 
 ### Migrate the contents
 
-1. Create the "workspace" directory (e.g. `/tmp/confluence/workspace/` )
-2. From the main directory (e.g. `/tmp/confluence` ), run the migration commands
+1. Create the "workspace" directory (e.g. `/tmp/confluence/workspace/`)
+2. From the main directory (e.g. `/tmp/confluence`), run the migration commands
 	1. Run
 		
 		```
-		docker run -v $(pwd):/data bluespice/migrate-confluence:latest analyze --src=/data/input --dest=/data/workspace
+		docker run --rm -v $(pwd):/data bluespice/migrate-confluence:latest analyze --src=/data/input --dest=/data/workspace
 		```
 
 		to create "working files". After the script has run you can check those files and maybe apply changes if required (e.g. when applying structural changes).
 	2. Run
 	
 	    ```
-		docker run -v $(pwd):/data bluespice/migrate-confluence:latest extract --src=/data/input --dest=/data/workspace
+		docker run --rm -v $(pwd):/data bluespice/migrate-confluence:latest extract --src=/data/input --dest=/data/workspace
 		```
 		
 		to extract all contents, like wikipage contents, attachments and images into the workspace
@@ -65,7 +65,7 @@ The migrate confluence tool is available as [docker image](https://hub.docker.co
 	4. Run
 	
 	    ```
-		docker run -v $(pwd):/data bluespice/migrate-confluence:latest convert --src=/data/workspace --dest=/data/workspace
+		docker run --rm -v $(pwd):/data bluespice/migrate-confluence:latest convert --src=/data/workspace --dest=/data/workspace
 		```
 		
 		(yes, `--src=/data/workspace/` ) to convert the wikipage contents from Confluence Storage XML to MediaWiki WikiText. For large spaces, see [Parallel convert](#parallel-convert) below.
@@ -73,7 +73,7 @@ The migrate confluence tool is available as [docker image](https://hub.docker.co
 	5. Run
 
 		```
-		docker run -v $(pwd):/data bluespice/migrate-confluence:latest compose --src=/data/workspace --dest=/data/workspace
+		docker run --rm -v $(pwd):/data bluespice/migrate-confluence:latest compose --src=/data/workspace --dest=/data/workspace
 		```
 		
 		(yes, `--src=/data/workspace/` ) to create importable data
@@ -111,13 +111,13 @@ The script imports files in this order:
 
 `user.xml` is intentionally ignored.
 
-You may need to run `php maintenance/rebuildAll.php` and update your MediaWiki search index afterwards.
+You may need to run `php maintenance/rebuildall.php` and update your MediaWiki search index afterwards.
 
 ### Additional Features
 
 #### Config file
 It is possible to use a yaml file to configure the commands. As an example see `doc/config.sample.yaml`.
-If the configuration file is placed in, e.g., `/tmp/confluence/config.yaml`, it can be applied by adding the option `--config /data/config.yaml` to the comments above.
+If the configuration file is placed in, e.g., `/tmp/confluence/config.yaml`, it can be applied by adding the option `--config=/data/config.yaml` to the comments above.
 
 Not all parameters of `config.sample.yaml` have to be used in the config file. If something is not part of it the default will be used.
 
@@ -126,7 +126,7 @@ Not all parameters of `config.sample.yaml` have to be used in the config file. I
 For large Confluence spaces the `convert` step can be slow. You can speed it up by running multiple worker processes in parallel using the `--workers` option.
 
 ```bash
-docker run -v $(pwd):/data bluespice/migrate-confluence:latest convert \
+docker run --rm -v $(pwd):/data bluespice/migrate-confluence:latest convert \
   --src=/data/workspace --dest=/data/workspace \
   --workers=4
 ```
@@ -187,7 +187,9 @@ The import will always upload the following files:
 - `Icon-tip.svg`
 - `Icon-warning.svg`
 
-Be aware that files with this name will be overwritten by the import, if they already exist in the target wiki.
+Be aware that existing files with this name will not be overwritten. This might influence the depiction on result pages.
+
+If you want to update these and other images during the import, consider the the `--overwrite` flag of the `importFiles.php` script.
 
 #### MediaWiki settings
 In case your pages contain a lot of external images (`<img />` elements), be aware that MediaWiki does not show them by default. You'd need to configure `$wgAllowExternalImages`.
