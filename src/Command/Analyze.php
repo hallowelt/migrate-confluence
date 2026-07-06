@@ -363,6 +363,8 @@ class Analyze extends BatchFileProcessorBase {
 	 */
 	private function getMigrationConfig(): MigrationConfig {
 		$filename = $this->input->getOption( 'config' );
+
+		$advancedConfig = [];
 		if ( !empty( $filename ) ) {
 			$configOptionHelper = new ConfigOptionHelper( $filename );
 			$validationError = $configOptionHelper->validateFile();
@@ -372,7 +374,6 @@ class Analyze extends BatchFileProcessorBase {
 				exit( 1 );
 			} else {
 				$advancedConfig = $configOptionHelper->getConfig();
-				$config = array_merge( $config, $advancedConfig );
 				$this->output->writeln( 'Config file loaded successfully' );
 			}
 		}
