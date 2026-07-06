@@ -84,9 +84,15 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 		if ( $pageEl === null ) {
 			return;
 		}
+		$targetSpaceId = $this->currentSpaceId;
+		$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+		if ( $spaceKey !== '' ) {
+			$targetSpaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+		}
 		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );
-		$this->mediaWikiPageName = $this->dataLookup->getWikiPageTitleFromSpaceId(
+		$this->mediaWikiPageName = $this->dataLookup->getPageTitleForLink(
 			$this->currentSpaceId,
+			$targetSpaceId,
 			$targetPageName
 		) ?? '';
 	}

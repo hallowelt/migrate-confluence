@@ -207,7 +207,11 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				} else {
 					$spaceId = $this->spaceId;
 				}
-				$text = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $params['content-title'] );
+				$text = $this->dataLookup->getPageTitleForLink(
+					$this->spaceId,
+					$spaceId,
+					$params['content-title']
+				);
 				if ( $text === null ) {
 					$params['broken-macro'] = true;
 					break;
