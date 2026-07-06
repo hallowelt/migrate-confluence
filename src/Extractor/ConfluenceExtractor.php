@@ -74,7 +74,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return void
 	 */
 	private function initWorkspaceDB(): void {
-		$this->workspaceDB = new WorkspaceDB( $this->dest . '/workspace.sqlite' );
+		$this->workspaceDB = WorkspaceDB::open( $this->dest );
 	}
 
 	/**

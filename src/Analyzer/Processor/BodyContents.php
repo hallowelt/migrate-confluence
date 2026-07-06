@@ -2,16 +2,16 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
 class BodyContents extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IAnalyzeDataWriter $writer
 	 */
 	public function __construct(
-		private WorkspaceDB $workspaceDB
+		private IAnalyzeDataWriter $writer
 	) {
 	}
 
@@ -49,7 +49,7 @@ class BodyContents extends ProcessorBase {
 		// We store it in a separate table to be able to easily retrieve it for the content transformation and
 		// to keep the main table smaller.
 		if ( isset( $properties['body'] ) ) {
-			$this->workspaceDB->addBodyContentBody(
+			$this->writer->addBodyContentBody(
 				$bodyContentId,
 				$properties['body']
 			);
@@ -58,7 +58,7 @@ class BodyContents extends ProcessorBase {
 
 		$contentId = (int)trim( $properties['content'] );
 
-		$status = $this->workspaceDB->addBodyContent(
+		$status = $this->writer->addBodyContent(
 			$bodyContentId,
 			$contentId,
 			$contentClass,
@@ -66,7 +66,7 @@ class BodyContents extends ProcessorBase {
 		);
 
 		if ( !$status ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'error',
 				'analyze',
 				__CLASS__,
