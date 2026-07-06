@@ -15,6 +15,7 @@ use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBodyContentIdsFallb
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithSpaceIdOfHistoryVersions;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithWikiTitle;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageTemplatesWithWikiTitle;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractAttachmentsMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsMetaData;
@@ -23,10 +24,13 @@ use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesBodyContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyContents;
+use HalloWelt\MigrateConfluence\Extractor\Processor\UpdateBlogPostsCommentsTable;
+use HalloWelt\MigrateConfluence\Extractor\Processor\UpdatePageCommentsTable;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
+use HalloWelt\MigrateConfluence\Utility\WikiConfig;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
@@ -46,6 +50,9 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 
 	/** @var DBLog */
 	private DBLog $dbLog;
+
+	/** @var WikiConfig */
+	private WikiConfig $wikiConfig;
 
 	/**
 	 * @param array $config
@@ -102,12 +109,33 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	}
 
 	/**
+	 * @return void
+	 */
+	private function initWikiConfig(): void {
+		$wikiConfig = [];
+		if ( isset( $this->config['wiki-config'] ) ) {
+			$wikiConfig = $this->config['wiki-config'];
+		}
+		foreach ( $wikiConfig as $config ) {
+			$this->workspaceDB->addWikiConfig(
+				$config['space-key'],
+				$config['wiki-name'],
+				$config['wiki-namespace'],
+				$config['wiki-root-page']
+			);
+		}
+
+		$this->wikiConfig = new WikiConfig( $this->workspaceDB );
+	}
+
+	/**
 	 * @param SplFileInfo $file
 	 * @return bool
 	 */
 	protected function doExtract( SplFileInfo $file ): bool {
 		$this->initMigrationConfig();
 		$this->initWorkspaceDB();
+		$this->initWikiConfig();
 		$this->initDBLog();
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
@@ -140,9 +168,12 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		return [
 			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog ),
 			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
-			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new UpdatePagesTableWithWikiTitle(
+				$this->workspaceDB, $this->dbLog, $this->migrationConfig, $this->wikiConfig
+			),
 			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
-			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog ),
+			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->wikiConfig ),
+			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->wikiConfig ),
 			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
@@ -162,6 +193,8 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			new ExtractPagesMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new UpdatePageCommentsTable( $this->workspaceDB, $this->dbLog ),
+			new UpdateBlogPostsCommentsTable( $this->workspaceDB, $this->dbLog ),
 		];
 	}
 

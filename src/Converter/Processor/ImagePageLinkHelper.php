@@ -49,6 +49,7 @@ class ImagePageLinkHelper extends ConversionHelper {
 	 */
 	public function getLinkTarget( DOMElement $node ): string {
 		if ( $node->nodeName === 'ac:link' ) {
+			$sourceSpaceId = $this->currentSpaceId;
 			$page = $node->getElementsByTagName( 'page' )->item( 0 );
 
 			if ( $page instanceof DOMElement ) {
@@ -56,7 +57,8 @@ class ImagePageLinkHelper extends ConversionHelper {
 				$this->currentSpaceId = $this->ensureSpaceId( $page );
 			}
 
-			$targetTitle = $this->dataLookup->getWikiPageTitleFromSpaceId(
+			$targetTitle = $this->dataLookup->getPageTitleForLink(
+				$sourceSpaceId,
 				$this->currentSpaceId,
 				$this->rawPageTitle
 			);

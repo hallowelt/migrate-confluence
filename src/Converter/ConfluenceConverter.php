@@ -494,7 +494,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new LocalTabGroupMacro(),
 			new LoremIpsumMacro(),
 			new CreateFromTemplateMacro(
-				$this->dataLookup
+				$this->dataLookup,
+				$this->currentSpace ?? 0
 			)
 		];
 

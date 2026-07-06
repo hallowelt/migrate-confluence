@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
+use HalloWelt\MigrateConfluence\Tests\Database\InterwikiDbMock;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -20,6 +21,9 @@ class PageLinkTest extends TestCase {
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
+
+		$interwikiDbMock = new InterwikiDbMock();
+		$interwikiDbMock->create();
 
 		$currentSpaceId = 42;
 		$currentRawPagename = 'SomePage';

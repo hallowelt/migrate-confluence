@@ -69,11 +69,11 @@ class WorkspaceDbMock {
 	}
 
 	private function seedDefaultSpaces( WorkspaceDB $workspaceDB ): void {
-		$workspaceDB->addSpace( 0, '', 'General', 'GENERAL:', -1, -1 );
-		$workspaceDB->addSpace( 1, 'MKT', 'Marketing', 'MKT:', -1, -1 );
-		$workspaceDB->addSpace( 23, 'DEVOPS', 'DevOps', 'DEVOPS:', -1, -1 );
-		$workspaceDB->addSpace( 42, 'ABC', 'Some space', 'ABC:', -1, -1 );
-		$workspaceDB->addSpace( 52, 'INF', 'Some other space', 'INF:', -1, -1 );
+		$workspaceDB->addSpace( 0, '', 'General', '', 'wiki-general', '', -1, -1 );
+		$workspaceDB->addSpace( 1, 'MKT', 'Marketing', 'MKT', 'wiki-mkt', '', -1, -1 );
+		$workspaceDB->addSpace( 23, 'DEVOPS', 'DevOps', 'DEVOPS', 'wiki-devops', '', -1, -1 );
+		$workspaceDB->addSpace( 42, 'ABC', 'Some space', 'ABC', 'wiki-abc', '', -1, -1 );
+		$workspaceDB->addSpace( 52, 'INF', 'Some other space', 'INF', 'wiki-inf', '', -1, -1 );
 	}
 
 	private function seedUsers( WorkspaceDB $workspaceDB ): void {
@@ -364,6 +364,7 @@ class WorkspaceDbMock {
 			$spaceId,
 			$confluenceTitle,
 			$wikiTitle,
+			'',
 			'current',
 			'20240101000000',
 			'',
@@ -396,6 +397,7 @@ class WorkspaceDbMock {
 			$spaceId,
 			$confluenceTitle,
 			$wikiTitle,
+			'',
 			'current',
 			'20240101000000',
 			'',

@@ -23,6 +23,7 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
+use HalloWelt\MigrateConfluence\Utility\WikiConfig;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -47,6 +48,9 @@ class ConfluenceAnalyzer extends AnalyzerBase
 
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
+
+	/** @var WikiConfig */
+	private WikiConfig $wikiConfig;
 
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
@@ -106,6 +110,26 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	}
 
 	/**
+	 * @return void
+	 */
+	private function initWikiConfig(): void {
+		$wikiConfig = [];
+		if ( isset( $this->config['wiki-config'] ) ) {
+			$wikiConfig = $this->config['wiki-config'];
+		}
+		foreach ( $wikiConfig as $config ) {
+			$this->workspaceDB->addWikiConfig(
+				$config['space-key'],
+				$config['wiki-name'],
+				$config['wiki-namespace'],
+				$config['wiki-root-page']
+			);
+		}
+
+		$this->wikiConfig = new WikiConfig( $this->workspaceDB );
+	}
+
+	/**
 	 * @param LoggerInterface $logger
 	 */
 	public function setLogger( LoggerInterface $logger ): void {
@@ -132,6 +156,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 		$this->initMigrationConfig();
 		$this->initWorkspaceDB();
 		$this->initDBLog();
+		$this->initWikiConfig();
 
 		$result = parent::analyze( $file );
 
@@ -144,7 +169,7 @@ class ConfluenceAnalyzer extends AnalyzerBase
 	private function getProcessors(): array {
 		return [
 			'BodyContent' => new BodyContents( $this->workspaceDB ),
-			'Space' => new Spaces( $this->workspaceDB, $this->migrationConfig ),
+			'Space' => new Spaces( $this->workspaceDB, $this->wikiConfig ),
 			'SpaceDescription' => new SpaceDescription( $this->workspaceDB, $this->migrationConfig ),
 			'Page' => new Page( $this->workspaceDB, $this->migrationConfig ),
 			'BlogPost' => new BlogPost( $this->workspaceDB, $this->migrationConfig ),

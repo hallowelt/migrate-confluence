@@ -180,7 +180,11 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @throws Exception
 	 */
 	private function resolveWikiTitle( int $spaceId, string $confluenceTitle ): ?string {
-		$wikiTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle );
+		$wikiTitle = $this->dataLookup->getPageTitleForLink(
+			$this->spaceId,
+			$spaceId,
+			$confluenceTitle
+		);
 
 		if ( $wikiTitle === null ) {
 			return null;
