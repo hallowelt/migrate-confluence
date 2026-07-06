@@ -48,10 +48,17 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor {
 	private DBConversionDataLookup $dataLookup;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @var int
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup ) {
+	private int $currentSpaceId;
+
+	/**
+	 * @param DBConversionDataLookup $dataLookup
+	 * @param int $currentSpaceId
+	 */
+	public function __construct( DBConversionDataLookup $dataLookup, int $currentSpaceId = 0 ) {
 		$this->dataLookup = $dataLookup;
+		$this->currentSpaceId = $currentSpaceId;
 	}
 
 	/**
@@ -136,7 +143,7 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor {
 			return null;
 		}
 
-		return $this->dataLookup->getTemplateTitleFromTemplateId( (int)$params['templateId'] );
+		return $this->dataLookup->getTemplateTitleForLink( $this->currentSpaceId, (int)$params['templateId'] );
 	}
 
 	/**

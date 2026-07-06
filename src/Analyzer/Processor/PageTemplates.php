@@ -88,6 +88,7 @@ class PageTemplates extends ProcessorBase {
 			$name,
 			$spaceId,
 			'',
+			'',
 			$revisionTimestamp,
 			$version,
 			$properties,

@@ -148,6 +148,9 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 				"Updated wiki title for page template ID $templateId with title: $wikiTitle"
 			);
 			$this->workspaceDB->updatePageTemplateWikiTitle( (int)$templateId, $wikiTitle );
+
+			$interwikiTitle = $this->getInterwikiTitle( (int)$templateId, $wikiTitle );
+			$this->workspaceDB->updatePageTemplateInterwikiTitle( (int)$templateId, $interwikiTitle );
 		}
 	}
 
@@ -231,5 +234,21 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 
 		$builder->appendTitleSegment( $name );
 		return $builder->build();
+	}
+
+	/**
+	 * Build the interwiki title for a page template by prepending the interwiki prefix
+	 * of the template's space to the wiki_title.
+	 *
+	 * @param int $templateId
+	 * @param string $wikiTitle
+	 * @return string
+	 */
+	private function getInterwikiTitle( int $templateId, string $wikiTitle ): string {
+		$spaceId = $this->workspaceDB->getSpaceIdFromTemplateId( $templateId );
+		$spaceKey = $this->workspaceDB->getSpaceKeyFromSpaceId( $spaceId );
+		$interwikiPrefix = $this->wikiConfig->getInterwikiPrefixForSpaceKey( $spaceKey );
+
+		return $interwikiPrefix . ':' . $wikiTitle;
 	}
 }

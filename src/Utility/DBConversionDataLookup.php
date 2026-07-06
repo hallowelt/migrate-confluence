@@ -289,6 +289,33 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * Resolve a template title for links based on wiki grouping:
+	 * - same wiki: use wiki_title
+	 * - different wiki: use interwiki_title (stored by UpdatePageTemplatesWithWikiTitle)
+	 * - if no wiki config exists: treat all spaces as same wiki
+	 *
+	 * @param int $currentSpaceId
+	 * @param int $templateId
+	 * @return string|null
+	 */
+	public function getTemplateTitleForLink( int $currentSpaceId, int $templateId ): ?string {
+		$template = $this->workspaceDB->getPageTemplateById( $templateId );
+		if ( $template === null || empty( $template['wiki_title'] ) ) {
+			return null;
+		}
+
+		$wikiTitle = $template['wiki_title'];
+		$interwikiTitle = !empty( $template['interwiki_title'] ) ? $template['interwiki_title'] : null;
+		$templateSpaceId = isset( $template['space_id'] ) ? (int)$template['space_id'] : null;
+
+		if ( $templateSpaceId === null || $this->isSameWikiSpace( $currentSpaceId, $templateSpaceId ) ) {
+			return $wikiTitle;
+		}
+
+		return $interwikiTitle ?: $wikiTitle;
+	}
+
+	/**
 	 * @param int $spaceId
 	 * @return string|null
 	 */

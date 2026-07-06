@@ -15,14 +15,13 @@ class InterwikiDbMock {
 	 * @return WorkspaceDB
 	 */
 	public function create(): WorkspaceDB {
-		#$workspaceDB = new WorkspaceDB( ':memory:' );
-		$workspaceDB = new WorkspaceDB( '/app/test.sqlite' );
+		$workspaceDB = new WorkspaceDB( ':memory:' );
 
 		$this->seedWikiConfig( $workspaceDB );
 		$this->seedSpaces( $workspaceDB );
 		$this->seedPages( $workspaceDB );
+		$this->seedPageTemplates( $workspaceDB );
 
-	
 		return $workspaceDB;
 	}
 
@@ -268,6 +267,33 @@ class InterwikiDbMock {
 			[],
 			[]
 		);
+	}
+
+	/**
+	 * Seed page templates across different spaces to test interwiki template resolution.
+	 *
+	 * Templates in SPC1 are local when the current page is in SPC1.
+	 * Templates in SPC2, SPC3, SPC4 require interwiki prefixes.
+	 *
+	 * @param WorkspaceDB $workspaceDB
+	 * @return void
+	 */
+	private function seedPageTemplates( WorkspaceDB $workspaceDB ): void {
+		// Template in SPC1 (spaceId=1) — local for pages in SPC1
+		$workspaceDB->addPageTemplate( 2001, 'LocalTemplate', 1, 'Template:SPC1/LocalTemplate', 'wiki-space_1:Template:SPC1/LocalTemplate' );
+		$workspaceDB->addPageTemplateContents( 2001, '<p>Template 2001: local template in SPC1. Same-wiki links should resolve to wiki_title.</p>' );
+
+		// Template in SPC2 (spaceId=2) — remote; interwiki prefix: wiki-space_2
+		$workspaceDB->addPageTemplate( 2002, 'RemoteTemplate', 2, 'Template:SPC2/RemoteTemplate', 'wiki-space_2:Template:SPC2/RemoteTemplate' );
+		$workspaceDB->addPageTemplateContents( 2002, '<p>Template 2002: remote template in SPC2. Cross-wiki links should resolve to interwiki_title with prefix wiki-space_2.</p>' );
+
+		// Template in SPC3 (spaceId=3) — remote; interwiki prefix: wiki-space_3
+		$workspaceDB->addPageTemplate( 2003, 'AnotherRemoteTemplate', 3, 'Template:SPC3/AnotherRemoteTemplate', 'wiki-space_3:Template:SPC3/AnotherRemoteTemplate' );
+		$workspaceDB->addPageTemplateContents( 2003, '<p>Template 2003: remote template in SPC3. Cross-wiki links should resolve to interwiki_title with prefix wiki-space_3.</p>' );
+
+		// Template in SPC4 (spaceId=4) — remote; SPC4 and SPC5 share wiki-space_4
+		$workspaceDB->addPageTemplate( 2004, 'SharedWikiTemplate', 4, 'Template:SPC4/SharedWikiTemplate', 'wiki-space_4:Template:SPC4/SharedWikiTemplate' );
+		$workspaceDB->addPageTemplateContents( 2004, '<p>Template 2004: remote template in SPC4. SPC4 and SPC5 share wiki-space_4, so cross-wiki links resolve to interwiki_title with prefix wiki-space_4.</p>' );
 	}
 
 	private function reservePageId(): int {

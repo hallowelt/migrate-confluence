@@ -685,6 +685,7 @@ class WorkspaceDB {
 				space_id INT,
 				confluence_title CHAR,
 				wiki_title CHAR,
+				interwiki_title CHAR,
 				content_status CHAR,
 				revision_timestamp CHAR,
 				version CHAR,
@@ -4626,6 +4627,7 @@ class WorkspaceDB {
 		string $confluenceTitle,
 		?int $spaceId,
 		string $wikiTitle = '',
+		string $interwikiTitle = '',
 		string $revisionTimestamp = '',
 		string $version = '1',
 		array $properties = [],
@@ -4640,6 +4642,7 @@ class WorkspaceDB {
 				space_id,
 				confluence_title,
 				wiki_title,
+				interwiki_title,
 				content_status,
 				revision_timestamp,
 				version,
@@ -4650,6 +4653,7 @@ class WorkspaceDB {
 				:space_id,
 				:confluence_title,
 				:wiki_title,
+				:interwiki_title,
 				:content_status,
 				:revision_timestamp,
 				:version,
@@ -4666,6 +4670,7 @@ class WorkspaceDB {
 			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
 		}
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':interwiki_title', $interwikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':revision_timestamp', $revisionTimestamp, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
@@ -4685,6 +4690,21 @@ class WorkspaceDB {
 		);
 
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $templateId
+	 * @param string $interwikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageTemplateInterwikiTitle( int $templateId, string $interwikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE page_templates SET interwiki_title = :interwiki_title WHERE template_id = :template_id'
+		);
+
+		$transaction->bindValue( ':interwiki_title', $interwikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
