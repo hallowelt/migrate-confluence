@@ -15,12 +15,7 @@ class ConfigOptionHelper {
 
 	public function validateFile(): ?string {
 		$filename = $this->configFilePath;
-
-		if ( $filename === null ) {
-			return null;
-		}
-
-		if ( !is_file( realpath( $filename ) ) ) {
+		if ( !is_string( $filename ) || !is_file( realpath( $filename ) ) ) {
 			return "Config file '$filename' does not exist.";
 		}
 

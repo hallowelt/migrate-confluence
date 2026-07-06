@@ -364,15 +364,18 @@ class Analyze extends BatchFileProcessorBase {
 	private function getMigrationConfig(): MigrationConfig {
 		$filename = $this->input->getOption( 'config' );
 
-		$configOptionHelper = new ConfigOptionHelper( $filename );
-		$validationError = $configOptionHelper->validateFile();
+		$advancedConfig = [];
+		if ( !empty( $filename ) ) {
+			$configOptionHelper = new ConfigOptionHelper( $filename );
+			$validationError = $configOptionHelper->validateFile();
 
-		if ( $validationError !== null ) {
-			$this->output->writeln( $validationError );
-			exit( 1 );
-		} else {
-			$advancedConfig = $configOptionHelper->getConfig();
-			$this->output->writeln( 'Config file loaded successfully' );
+			if ( $validationError !== null ) {
+				$this->output->writeln( $validationError );
+				exit( 1 );
+			} else {
+				$advancedConfig = $configOptionHelper->getConfig();
+				$this->output->writeln( 'Config file loaded successfully' );
+			}
 		}
 
 		return new MigrationConfig( $advancedConfig );
