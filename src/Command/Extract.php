@@ -39,14 +39,6 @@ class Extract extends CommandExtract {
 				'Specifies the path to the config yaml file'
 			)
 		);
-		$definition->addOption(
-			new InputOption(
-				'wikiconf',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'Specifies the path to the csv file containing interwiki configuration'
-			)
-		);
 	}
 
 	/**
