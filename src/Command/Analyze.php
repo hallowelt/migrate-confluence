@@ -90,8 +90,8 @@ class Analyze extends BatchFileProcessorBase {
 
 		$dest = realpath( $input->getOption( 'dest' ) );
 		if ( !is_dir( $dest ) ) {
-			$this->output->writeln( "Destination does not exist" );
-			exit();
+			$output->writeln( "Destination does not exist" );
+			return Command::FAILURE;
 		}
 
 		if ( $isChildProcess ) {
