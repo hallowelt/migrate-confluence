@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Database;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use ReflectionClass;
 
 class WorkspaceDbMock {
 	private int $nextTestPageId = 10000;
@@ -60,7 +61,18 @@ class WorkspaceDbMock {
 	}
 
 	private function createWorkspaceDB(): WorkspaceDB {
-		return WorkspaceDB::createNew( ':memory:' );
+		$reflection = new ReflectionClass( WorkspaceDB::class );
+		$instance = $reflection->newInstanceWithoutConstructor();
+
+		$dbProp = $reflection->getProperty( 'db' );
+		$dbProp->setAccessible( true );
+		$dbProp->setValue( $instance, new \SQLite3( ':memory:', SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE ) );
+
+		$createTables = $reflection->getMethod( 'createTables' );
+		$createTables->setAccessible( true );
+		$createTables->invoke( $instance );
+
+		return $instance;
 	}
 
 	private function seedDefaultSpaces( WorkspaceDB $workspaceDB ): void {

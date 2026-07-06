@@ -84,7 +84,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			$output
 		);
 
-		$workspaceDB = WorkspaceDB::openExisting( "$dest/workspace.sqlite", true );
+		$workspaceDB = WorkspaceDB::open( $dest, true );
 		$pages = $workspaceDB->getPages();
 		$this->assertCount( 6, $pages, "Analyze: Invalid number of pages found" );
 		$blogPosts = $workspaceDB->getBlogPosts();
@@ -209,11 +209,11 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		BufferedOutput $output,
 	): void {
 		$dbPath = $dest . '/workspace.sqlite';
+
 		$workspaceDB = file_exists( $dbPath )
-			? WorkspaceDB::openExisting( $dbPath )
-			: WorkspaceDB::createNew(
-				$dbPath
-			);
+			? WorkspaceDB::open( $dest )
+			: WorkspaceDB::create( $dest );
+
 		$writer = new AnalyzeDirectDataWriter( $workspaceDB );
 
 		if ( isset( $config['config'] ) ) {
@@ -293,7 +293,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	 * @return void
 	 */
 	protected function ensureAllReferencedBodyContentsHaveWikiFiles( string $dest ): void {
-		$workspaceDB = WorkspaceDB::openExisting( $dest . '/workspace.sqlite' );
+		$workspaceDB = WorkspaceDB::open( $dest );
 
 		$entities = array_merge(
 			$workspaceDB->getPages(),

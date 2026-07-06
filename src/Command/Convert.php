@@ -130,7 +130,7 @@ class Convert extends CommandConvert {
 		 * the case in the host/worker situation */
 		$this->dest = realpath( $input->getOption( 'dest' ) );
 
-		$this->workspaceDB = WorkspaceDB::openExisting( $this->dest . '/workspace.sqlite' );
+		$this->workspaceDB = WorkspaceDB::open( $this->dest );
 		$this->dbLog = new DBLog( $this->workspaceDB );
 
 		if ( $logUsage ) {

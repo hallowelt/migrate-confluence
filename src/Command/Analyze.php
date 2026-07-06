@@ -94,13 +94,11 @@ class Analyze extends BatchFileProcessorBase {
 			exit();
 		}
 
-		$dbPath = $dest . '/workspace.sqlite';
-
 		if ( $isChildProcess ) {
-			return $this->executeAsChildProcess( $dbPath, $input, $output );
+			return $this->executeAsChildProcess( $dest, $input, $output );
 		}
 
-		$this->workspaceDB = WorkspaceDB::createNew( $dbPath );
+		$this->workspaceDB = WorkspaceDB::create( $dest );
 
 		if ( $workers > 1 ) {
 			$this->executionTime = new ExecutionTime();
@@ -146,14 +144,14 @@ class Analyze extends BatchFileProcessorBase {
 	}
 
 	/**
-	 * @param string $dbPath
+	 * @param string $dest
 	 * @param InputInterface $input
 	 * @param OutputInterface $output
 	 *
 	 * @return int
 	 */
-	private function executeAsChildProcess( string $dbPath, InputInterface $input, OutputInterface $output ): int {
-		$this->workspaceDB = WorkspaceDB::openExisting( $dbPath, true );
+	private function executeAsChildProcess( string $dest, InputInterface $input, OutputInterface $output ): int {
+		$this->workspaceDB = WorkspaceDB::open( $dest, true );
 
 		$this->workerPipe = fopen( 'php://fd/' . PipeToDB::FILE_DESCRIPTOR, 'w' );
 		if ( $this->workerPipe === false ) {

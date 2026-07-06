@@ -3,16 +3,19 @@
 namespace HalloWelt\MigrateConfluence\Database;
 
 use Exception;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use InvalidArgumentException;
+use RuntimeException;
 use SQLite3;
 use SQLite3Result;
 use SQLite3Stmt;
 
-class WorkspaceDB implements IAnalyzeDataWriter {
+class WorkspaceDB {
 
 	/** @var SQLite3 */
 	private SQLite3 $db;
+
+	/** @var string */
+	private const SQLITE_FILE = "workspace.sqlite";
 
 	/** @var array Cached prepared statements keyed by SQL string */
 	private array $stmtCache = [];
@@ -21,30 +24,36 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 	private bool $readonly = false;
 
 	/**
-	 * @param string $path
+	 * @param string $dest
+	 *
 	 * @return self
-	 * @throws \RuntimeException if the file already exists
+	 * @throws RuntimeException if the file already exists
 	 */
-	public static function createNew( string $path ): self {
-		if ( file_exists( $path ) ) {
-			throw new \RuntimeException( "Workspace DB already exists at '$path'" );
+	public static function create( string $dest ): self {
+		$dbPath = $dest . '/' . self::SQLITE_FILE;
+
+		if ( file_exists( $dbPath ) ) {
+			throw new RuntimeException( "Workspace DB already exists at '$dest'" );
 		}
-		return new self( $path, false, true );
+		return new self( $dest, false, true );
 	}
 
 	/**
-	 * @param string $path
+	 * @param string $dest
 	 * @param bool $readonly
+	 *
 	 * @return self
-	 * @throws \RuntimeException if the file does not exist
+	 * @throws RuntimeException if the file does not exist
 	 */
-	public static function openExisting( string $path, bool $readonly = false ): self {
-		if ( !file_exists( $path ) ) {
-			throw new \RuntimeException(
-				"Workspace DB not found at '$path' — did you run the analyze step first?"
+	public static function open( string $dest, bool $readonly = false ): self {
+		$dbPath = $dest . '/' . self::SQLITE_FILE;
+
+		if ( !file_exists( $dbPath ) ) {
+			throw new RuntimeException(
+				"Workspace DB not found at '$dest' — did you run the analyze step first?"
 			);
 		}
-		return new self( $path, $readonly, false );
+		return new self( $dest, $readonly, false );
 	}
 
 	/**
@@ -59,7 +68,8 @@ class WorkspaceDB implements IAnalyzeDataWriter {
 		} else {
 			$flags = $this->readonly ? SQLITE3_OPEN_READONLY : SQLITE3_OPEN_READWRITE;
 		}
-		$this->db = new SQLite3( $name, $flags );
+		$dbPath = $name . '/' . self::SQLITE_FILE;
+		$this->db = new SQLite3( $dbPath, $flags );
 		$this->db->enableExceptions( true );
 
 		$this->db->busyTimeout( 5000 );

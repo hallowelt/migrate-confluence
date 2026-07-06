@@ -66,7 +66,7 @@ class FullMigrationMultiSpaceTest extends FullMigrationSingleSpaceTest {
 			);
 		}
 
-		$resultWorkspaceDB = WorkspaceDB::openExisting( $this->tempDir . '/multi-source/workspace/workspace.sqlite' );
+		$resultWorkspaceDB = WorkspaceDB::open( $this->tempDir . '/multi-source/workspace' );
 		$pages = $resultWorkspaceDB->getPages();
 
 		// Build legacy map to compare results

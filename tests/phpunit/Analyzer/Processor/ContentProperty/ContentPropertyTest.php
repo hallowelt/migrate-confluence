@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ContentProperties;
 
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperty;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
@@ -34,7 +35,7 @@ class ContentPropertyTest extends TestCase {
 		$xmlReader = new XMLReader();
 		$xmlReader->open( $xmlFile );
 
-		$processor = new ContentProperty( $this->workspaceDB );
+		$processor = new ContentProperty( new AnalyzeDirectDataWriter( $this->workspaceDB ) );
 		$processor->setOutput( $this->makeOutput() );
 
 		$read = $xmlReader->read();
