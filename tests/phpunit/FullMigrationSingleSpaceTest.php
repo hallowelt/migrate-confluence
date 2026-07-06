@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
 use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
@@ -73,20 +74,17 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		$output = new BufferedOutput();
 
 		$configFile = $this->dataDir . '/config.yaml';
-		$config = file_exists( $configFile )
-			? Yaml::parseFile( $configFile )
-			: [];
+		$config = file_exists( $configFile ) ? Yaml::parseFile( $configFile ) : [];
 
 		// Step 1: Analyze
 		$this->runAnalyze(
 			$src,
 			$dest,
-			$workspace,
 			$config,
 			$output
 		);
 
-		$workspaceDB = new WorkspaceDB( "$dest/workspace.sqlite", true );
+		$workspaceDB = WorkspaceDB::open( $dest, true );
 		$pages = $workspaceDB->getPages();
 		$this->assertCount( 6, $pages, "Analyze: Invalid number of pages found" );
 		$blogPosts = $workspaceDB->getBlogPosts();
@@ -199,24 +197,32 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	/**
 	 * @param string $src
 	 * @param string $dest
-	 * @param Workspace $workspace
 	 * @param array $config
 	 * @param BufferedOutput $output
+	 *
 	 * @return void
 	 */
 	protected function runAnalyze(
 		string $src,
 		string $dest,
-		Workspace $workspace,
 		array $config,
 		BufferedOutput $output,
 	): void {
-		$buckets = new DataBuckets( [] );
-		$output = new BufferedOutput();
+		$dbPath = $dest . '/workspace.sqlite';
 
-		$analyzer = new ConfluenceAnalyzer( $config, $workspace, $buckets );
-		$analyzer->setOutput( $output );
-		$analyzer->setDestinationPath( $dest );
+		$workspaceDB = file_exists( $dbPath )
+			? WorkspaceDB::open( $dest )
+			: WorkspaceDB::create( $dest );
+
+		$writer = new AnalyzeDirectDataWriter( $workspaceDB );
+
+		if ( isset( $config['config'] ) ) {
+			$migrationConfig = new MigrationConfig( $config['config'] );
+		} else {
+			$migrationConfig = new MigrationConfig( [] );
+		}
+
+		$analyzer = new ConfluenceAnalyzer( $writer, $workspaceDB, $output, $migrationConfig );
 		$analyzer->analyze( new SplFileInfo( $src . '/entities.xml' ) );
 	}
 
@@ -225,6 +231,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	 * @param string $dest
 	 * @param Workspace $workspace
 	 * @param array $config
+	 *
 	 * @return void
 	 */
 	protected function runExtract(
@@ -245,6 +252,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	 * @param Workspace $workspace
 	 * @param array $config
 	 * @param BufferedOutput $output
+	 *
 	 * @return void
 	 */
 	protected function runConvert(
@@ -281,10 +289,11 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	 * create empty placeholders so compose can proceed deterministically.
 	 *
 	 * @param string $dest
+	 *
 	 * @return void
 	 */
 	protected function ensureAllReferencedBodyContentsHaveWikiFiles( string $dest ): void {
-		$workspaceDB = new WorkspaceDB( $dest . '/workspace.sqlite' );
+		$workspaceDB = WorkspaceDB::open( $dest );
 
 		$entities = array_merge(
 			$workspaceDB->getPages(),
@@ -324,6 +333,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	 * @param Workspace $workspace
 	 * @param array $config
 	 * @param BufferedOutput $output
+	 *
 	 * @return void
 	 */
 	protected function runCompose(
@@ -344,6 +354,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 
 	/**
 	 * @param string $xmlFile
+	 *
 	 * @return array title => page XML string, sorted by title
 	 */
 	protected function extractPages( string $xmlFile ): array {

@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\Comments;
 
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Comments;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
@@ -31,7 +32,7 @@ class CommentsTest extends TestCase {
 	 * @return void
 	 */
 	private function runProcessor( string $xmlFile ): void {
-		$processor = new Comments( $this->workspaceDB );
+		$processor = new Comments( new AnalyzeDirectDataWriter( $this->workspaceDB ) );
 		$processor->setOutput( $this->makeOutput() );
 
 		$xmlReader = new XMLReader();

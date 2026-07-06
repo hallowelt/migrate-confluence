@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Database;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use ReflectionClass;
 
 class WorkspaceDbMock {
 	private int $nextTestPageId = 10000;
@@ -20,10 +21,7 @@ class WorkspaceDbMock {
 	 * @return WorkspaceDB
 	 */
 	public function createEmpty(): WorkspaceDB {
-		$workspaceDB = $this->createWorkspaceDB(
-			'confluence-migration-test-' . uniqid( '', true ) . '/workspace.sqlite'
-		);
-		return $workspaceDB;
+		return $this->createWorkspaceDB();
 	}
 
 	/**
@@ -47,9 +45,7 @@ class WorkspaceDbMock {
 		$this->nextTestAttachmentId = 20000;
 		$this->pageIds = [];
 
-		$workspaceDB = $this->createWorkspaceDB(
-			'confluence-migration-test-' . uniqid( '', true ) . '/workspace.sqlite'
-		);
+		$workspaceDB = $this->createWorkspaceDB();
 
 		$this->seedDefaultSpaces( $workspaceDB );
 		$this->seedUsers( $workspaceDB );
@@ -64,8 +60,19 @@ class WorkspaceDbMock {
 		return $workspaceDB;
 	}
 
-	private function createWorkspaceDB( string $pathSuffix ): WorkspaceDB {
-		return new WorkspaceDB( ':memory:' );
+	private function createWorkspaceDB(): WorkspaceDB {
+		$reflection = new ReflectionClass( WorkspaceDB::class );
+		$instance = $reflection->newInstanceWithoutConstructor();
+
+		$dbProp = $reflection->getProperty( 'db' );
+		$dbProp->setAccessible( true );
+		$dbProp->setValue( $instance, new \SQLite3( ':memory:', SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE ) );
+
+		$createTables = $reflection->getMethod( 'createTables' );
+		$createTables->setAccessible( true );
+		$createTables->invoke( $instance );
+
+		return $instance;
 	}
 
 	private function seedDefaultSpaces( WorkspaceDB $workspaceDB ): void {

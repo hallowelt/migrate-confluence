@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Database;
 
 use Exception;
 use InvalidArgumentException;
+use RuntimeException;
 use SQLite3;
 use SQLite3Result;
 use SQLite3Stmt;
@@ -13,6 +14,9 @@ class WorkspaceDB {
 	/** @var SQLite3 */
 	private SQLite3 $db;
 
+	/** @var string */
+	private const SQLITE_FILE = "workspace.sqlite";
+
 	/** @var array Cached prepared statements keyed by SQL string */
 	private array $stmtCache = [];
 
@@ -20,15 +24,52 @@ class WorkspaceDB {
 	private bool $readonly = false;
 
 	/**
+	 * @param string $dest
+	 *
+	 * @return self
+	 * @throws RuntimeException if the file already exists
+	 */
+	public static function create( string $dest ): self {
+		$dbPath = $dest . '/' . self::SQLITE_FILE;
+
+		if ( file_exists( $dbPath ) ) {
+			throw new RuntimeException( "Workspace DB already exists at '$dest'" );
+		}
+		return new self( $dest, false, true );
+	}
+
+	/**
+	 * @param string $dest
+	 * @param bool $readonly
+	 *
+	 * @return self
+	 * @throws RuntimeException if the file does not exist
+	 */
+	public static function open( string $dest, bool $readonly = false ): self {
+		$dbPath = $dest . '/' . self::SQLITE_FILE;
+
+		if ( !file_exists( $dbPath ) ) {
+			throw new RuntimeException(
+				"Workspace DB not found at '$dest' — did you run the analyze step first?"
+			);
+		}
+		return new self( $dest, $readonly, false );
+	}
+
+	/**
 	 * @param string $name
 	 * @param bool $readonly
+	 * @param bool $create
 	 */
-	public function __construct( string $name, bool $readonly = false ) {
+	private function __construct( string $name, bool $readonly = false, bool $create = false ) {
 		$this->readonly = $readonly;
-		$this->db = new SQLite3(
-			$name,
-			$this->readonly ? SQLITE3_OPEN_READONLY : ( SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE )
-		);
+		if ( $create ) {
+			$flags = SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE;
+		} else {
+			$flags = $this->readonly ? SQLITE3_OPEN_READONLY : SQLITE3_OPEN_READWRITE;
+		}
+		$dbPath = $name . '/' . self::SQLITE_FILE;
+		$this->db = new SQLite3( $dbPath, $flags );
 		$this->db->enableExceptions( true );
 
 		$this->db->busyTimeout( 5000 );
@@ -43,6 +84,9 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function beginTransaction(): void {
+		if ( $this->readonly ) {
+			return;
+		}
 		$this->db->exec( 'BEGIN TRANSACTION' );
 	}
 
@@ -50,6 +94,9 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function commitTransaction(): void {
+		if ( $this->readonly ) {
+			return;
+		}
 		$this->db->exec( 'COMMIT' );
 	}
 

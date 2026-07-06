@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\BodyContents;
 
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
@@ -37,7 +38,7 @@ class BodyContentsTest extends TestCase {
 			if ( $class !== 'BodyContent' ) {
 				continue;
 			}
-			$processor = new BodyContents( $this->workspaceDB );
+			$processor = new BodyContents( new AnalyzeDirectDataWriter( $this->workspaceDB ) );
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
 				$processor->execute( $xmlReader );
@@ -77,7 +78,7 @@ class BodyContentsTest extends TestCase {
 			if ( $class !== 'BodyContent' ) {
 				continue;
 			}
-			$processor = new BodyContents( $this->workspaceDB );
+			$processor = new BodyContents( new AnalyzeDirectDataWriter( $this->workspaceDB ) );
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
 				$processor->execute( $xmlReader );
@@ -116,7 +117,7 @@ class BodyContentsTest extends TestCase {
 			if ( $class !== 'BodyContent' ) {
 				continue;
 			}
-			$processor = new BodyContents( $this->workspaceDB );
+			$processor = new BodyContents( new AnalyzeDirectDataWriter( $this->workspaceDB ) );
 
 			if ( $processor instanceof IAnalyzerProcessor ) {
 				$processor->execute( $xmlReader );

@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\BlogPost;
 
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
@@ -33,7 +34,7 @@ class BlogPostTest extends TestCase {
 	 * @return void
 	 */
 	private function runProcessor( string $xmlFile, array $data = [] ): void {
-		$processor = new BlogPost( $this->workspaceDB, $this->migrationConfig );
+		$processor = new BlogPost( new AnalyzeDirectDataWriter( $this->workspaceDB ), $this->migrationConfig );
 		$processor->setOutput( $this->makeOutput() );
 
 		$xmlReader = new XMLReader();

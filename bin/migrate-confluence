@@ -10,9 +10,6 @@ use HalloWelt\MigrateConfluence\Command\ValidateConfig;
 
 $config = [
 	'file-extension-whitelist' => [ 'xml' ],
-	'analyzers' => [
-		'HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer::factory'
-	],
 	'extractors' => [
 		'HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor::factory'
 	],
