@@ -10,12 +10,17 @@ class ConfigOptionHelper {
 	/** @var array */
 	private array $advancedConfig = [];
 
-	public function __construct( private string $configFilePath = '' ) {
+	public function __construct( private ?string $configFilePath ) {
 	}
 
 	public function validateFile(): ?string {
 		$filename = $this->configFilePath;
-		if ( !is_string( $filename ) || !is_file( realpath( $filename ) ) ) {
+
+		if ( $filename === null ) {
+			return null;
+		}
+
+		if ( !is_file( realpath( $filename ) ) ) {
 			return "Config file '$filename' does not exist.";
 		}
 

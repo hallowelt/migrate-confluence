@@ -81,7 +81,7 @@ class Comments extends ProcessorBase {
 			);
 		}
 
-		$creatorKey = $properties['creator'] ?? null;
+		$creatorKey = $properties['creator'] ?? '';
 		$created = $properties['creationDate'] ?? '';
 		$modified = $properties['lastModificationDate'] ?? '';
 
