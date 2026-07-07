@@ -281,4 +281,12 @@ class DBComposerDataLookup {
 	public function getBlogPostsForSidebar( ?int $spaceId = null ): array {
 		return $this->workspaceDB->getBlogPostsForSidebar( $spaceId );
 	}
+
+	/**
+	 * @param int $attachmentId
+	 * @return string
+	 */
+	public function getAttachmentDescription( int $attachmentId ): string {
+		return $this->workspaceDB->getAttachmentDescription( $attachmentId );
+	}
 }

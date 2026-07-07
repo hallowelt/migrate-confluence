@@ -33,14 +33,10 @@ class Files extends FileProcessorBase {
 		parent::__construct( $dataLookup, $workspace, $output, $dest, $migrationConfig );
 	}
 
-	/** @var array<int,true> */
-	private array $abbreviatedAttachmentIds = [];
-
 	/**
 	 * @return void
 	 */
 	public function execute(): void {
-		$this->abbreviatedAttachmentIds = $this->workspace->loadData( 'fd_attachment_ids' );
 		$this->addPageAttachments();
 		$this->addBlogPostAttachments();
 		$this->addAdditionalAttachments();
@@ -136,9 +132,7 @@ class Files extends FileProcessorBase {
 		}
 
 		$uploadPath = $this->getUploadPath();
-		$pageText = isset( $this->abbreviatedAttachmentIds[$attachmentId] )
-			? ( $this->workspace->getConvertedContent( 'fd_' . $attachmentId ) ?: '' )
-			: '';
+		$pageText = $this->dataLookup->getAttachmentDescription( (int)$attachmentId );
 
 		$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
 		foreach ( $attachments as $attachment ) {
@@ -271,9 +265,7 @@ class Files extends FileProcessorBase {
 					 * we need target wiki user info (or be sure that we import the user ourselfs).
 					 */
 
-					$pageText = isset( $this->abbreviatedAttachmentIds[$attachmentId] )
-						? ( $this->workspace->getConvertedContent( 'fd_' . $attachmentId ) ?: '' )
-						: '';
+					$pageText = $this->dataLookup->getAttachmentDescription( (int)$attachmentId );
 
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					$this->builder->addFileRevision(

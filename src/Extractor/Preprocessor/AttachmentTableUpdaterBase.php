@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
-use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -30,11 +29,9 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 * @param WorkspaceDB $workspaceDB
 	 * @param DBLog $dbLog
 	 * @param MigrationConfig $migrationConfig
-	 * @param Workspace $workspace
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB, DBLog $dbLog, protected MigrationConfig $migrationConfig,
-		protected Workspace $workspace
+		WorkspaceDB $workspaceDB, DBLog $dbLog, protected MigrationConfig $migrationConfig
 	) {
 		parent::__construct( $workspaceDB, $dbLog );
 	}
@@ -275,7 +272,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				$data['origFilename'],
 				$data['wikiTitle']
 			);
-			$this->saveFileDescriptionRaw( $attachmentId, $data['wikiTitle'], $data['origFilename'] );
+			$this->saveAttachmentDescription( $attachmentId, $data['wikiTitle'], $data['origFilename'] );
 		}
 	}
 
@@ -308,9 +305,9 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 
 	/**
 	 * If the original filename is not preserved in the wiki title (e.g. due to abbreviation),
-	 * write a raw marker file for the convert step to generate a file description page.
+	 * generate a file description wikitext and store it in the database.
 	 */
-	protected function saveFileDescriptionRaw(
+	protected function saveAttachmentDescription(
 		int $attachmentId, string $targetTitle, string $originalFilename
 	): void {
 		if ( $originalFilename === '' ) {
@@ -327,11 +324,10 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			return;
 		}
 
-		$this->workspace->saveRawContent( 'fd_' . $attachmentId, $originalFilename );
-
-		$knownIds = $this->workspace->loadData( 'fd_attachment_ids' );
-		$knownIds[$attachmentId] = true;
-		$this->workspace->saveData( 'fd_attachment_ids', $knownIds );
+		$quotedFileName = htmlspecialchars( $originalFilename, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
+		$description = "Original file name: <nowiki>$quotedFileName</nowiki>\n"
+			. "{{DISPLAYTITLE:$quotedFileName|noerror}}";
+		$this->workspaceDB->saveAttachmentDescription( $attachmentId, $description );
 	}
 
 	/**
