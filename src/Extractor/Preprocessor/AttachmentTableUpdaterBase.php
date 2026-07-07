@@ -95,7 +95,8 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			if ( !isset( $item['page_id'] ) || !isset( $item['wiki_title'] ) ) {
 				continue;
 			}
-			$contentIdToWikiTitleMap[(int)$item['page_id']] = (string)$item['wiki_title'];
+			$contentIdToWikiTitleMap[(int)$item['page_id']] =
+				$this->workspaceDB->getWikiPageTitleFromPageId( (int)$item['page_id'] );
 		}
 
 		if ( $contentIdToWikiTitleMap === [] ) {
