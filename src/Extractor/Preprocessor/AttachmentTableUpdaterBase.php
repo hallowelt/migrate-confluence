@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
 use Exception;
+use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -89,13 +90,26 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 */
 	abstract protected function getStoredAttachments(): array;
 
+	/**
+	 * @throws InvalidTitleException
+	 */
 	protected function addAttachments(): void {
 		$contentIdToWikiTitleMap = [];
 		foreach ( $this->getContentItems() as $item ) {
 			if ( !isset( $item['page_id'] ) || !isset( $item['wiki_title'] ) ) {
 				continue;
 			}
-			$contentIdToWikiTitleMap[(int)$item['page_id']] = (string)$item['wiki_title'];
+			$wikiTitle = (string)$item['wiki_title'];
+			$contentIdToWikiTitleMap[(int)$item['page_id']] = $wikiTitle;
+
+			// Attachments uploaded on older page revisions reference the historical revision's
+			// page_id as their container_id, not the current version's page_id. Map those too.
+			if ( !empty( $item['historical_ids'] ) ) {
+				$historicalIds = json_decode( (string)$item['historical_ids'], true ) ?? [];
+				foreach ( $historicalIds as $historicalId ) {
+					$contentIdToWikiTitleMap[(int)$historicalId] = $wikiTitle;
+				}
+			}
 		}
 
 		if ( $contentIdToWikiTitleMap === [] ) {

@@ -64,9 +64,10 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			return true;
 		}
 
-		$sourceBasePath = $file->getRealPath();
+		$sourceBasePath = $file->getPath();
+		$sourceFilePath = $file->getRealPath();
 
-		$this->output->writeln( "\nProcessing: $sourceBasePath" );
+		$this->output->writeln( "\nProcessing: $sourceFilePath" );
 		$this->output->writeln( "\nAnalyze data:" );
 
 		$processors = $this->getProcessors( $sourceBasePath );
