@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2021-02-16 10:21:02">
+
+    <object class="Attachment" package="com.atlassian.confluence.pages">
+        <id name="id">208864647</id>
+        <property name="fileName"><![CDATA[test-file.png]]></property>
+        <property name="contentStatus"><![CDATA[current]]></property>
+        <property name="version">1</property>
+        <property name="attachmentVersion">1</property>
+        <property name="lastModificationDate">2021-01-15 10:00:00.000</property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces">
+            <id name="id">42</id>
+        </property>
+        <property name="containerContent" class="Page" package="com.atlassian.confluence.pages">
+            <id name="id">208864646</id>
+        </property>
+    </object>
+
+</hibernate-generic>
