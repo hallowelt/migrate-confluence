@@ -1,0 +1,8 @@
+<noinclude>Template for confluence macro "multimedia"
+</noinclude><includeonly>[[File:{{{filename}}}|{{#if: {{{width|}}}
+    |{{{width}}}
+|}}{{#if: {{{height|}}}
+    |x{{{height}}}
+|}}{{# if: {{{width|}}}{{{height|}}}
+    |px
+|}}]]</includeonly>
