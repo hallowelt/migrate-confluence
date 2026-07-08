@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-07-08 10:00:00">
+	<object class="ConfluenceUserImpl" package="com.atlassian.confluence.user">
+		<id name="key"><![CDATA[user-key-1]]></id>
+		<property name="name"><![CDATA[John Doe]]></property>
+		<property name="lowerName"><![CDATA[johndoe@example.org]]></property>
+		<property name="email"><![CDATA[john@example.org]]></property>
+	</object>
+</hibernate-generic>

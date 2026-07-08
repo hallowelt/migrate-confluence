@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-07-08 10:00:00">
+	<object class="Label" package="com.atlassian.confluence.labels">
+		<id name="id">60</id>
+		<property name="name"><![CDATA[release]]></property>
+		<property name="namespace"><![CDATA[global]]></property>
+	</object>
+</hibernate-generic>

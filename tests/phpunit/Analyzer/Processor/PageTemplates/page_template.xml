@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-07-08 10:00:00">
+	<object class="PageTemplate" package="com.atlassian.confluence.pages.templates">
+		<id name="id">70</id>
+		<property name="name"><![CDATA[MyTemplate]]></property>
+		<property name="space" class="Space" package="com.atlassian.confluence.spaces">
+			<id name="id">10</id>
+		</property>
+		<property name="content"><![CDATA[<p>Template Body</p>]]></property>
+		<property name="lastModificationDate">2026-07-08 18:19:20.000</property>
+		<property name="version">4</property>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<collection name="labels" class="java.util.Collection" />
+	</object>
+</hibernate-generic>

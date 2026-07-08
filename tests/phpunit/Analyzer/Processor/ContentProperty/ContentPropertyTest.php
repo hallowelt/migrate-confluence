@@ -1,116 +1,43 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ContentProperties;
+namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ContentProperty;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperty;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Output\Output;
-use XMLReader;
 
 class ContentPropertyTest extends TestCase {
+	use ProcessorTestHelper;
 
-	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
 
-	/** @var MigrationConfig */
-	private MigrationConfig $migrationConfig;
-
-	/** @return Output */
-	private function makeOutput(): Output {
-		return new class extends Output {
-			public function doWrite( string $message, bool $newline ): void {
-			}
-		};
-	}
-
 	/**
-	 * @param string $xmlFile
-	 * @return void
+	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperty::doExecute
 	 */
-	private function runProcessor( string $xmlFile ): void {
-		$xmlReader = new XMLReader();
-		$xmlReader->open( $xmlFile );
+	public function testAllDatabaseFieldsAreStored(): void {
+		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
 		$processor = new ContentProperty( new AnalyzeDirectDataWriter( $this->workspaceDB ) );
-		$processor->setOutput( $this->makeOutput() );
-
-		$read = $xmlReader->read();
-		while ( $read ) {
-			if ( strtolower( $xmlReader->name ) !== 'object' ) {
-				$read = $xmlReader->read();
-				continue;
-			}
-
-			$class = $xmlReader->getAttribute( 'class' );
-			if ( $class === 'ContentProperty' ) {
-				$processor->execute( $xmlReader );
-			}
-
-			$read = $xmlReader->next();
-		}
-		$xmlReader->close();
-	}
-
-	/**
-	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties::execute
-	 */
-	public function testInlineCommentPropertyIsDetected() {
-		$this->migrationConfig = new MigrationConfig( [] );
-		$workspaceDBMock = new WorkspaceDbMock();
-		$this->workspaceDB = $workspaceDBMock->createEmpty();
-
-		$this->runProcessor(
-			__DIR__ . '/content_property_inline_comment.xml'
+		$this->executeProcessorForClass(
+			$processor,
+			__DIR__ . '/content_property_inline_comment.xml',
+			'ContentProperty'
 		);
 
 		$contentProperties = $this->workspaceDB->getContentProperties();
+		$this->assertCount( 1, $contentProperties, 'Expected exactly one content property row.' );
+
 		$contentProperty = $contentProperties[0];
+		$this->assertSame( 1001, $contentProperty['property_id'], 'Unexpected property_id value.' );
+		$this->assertSame( 'inline-comment', $contentProperty['property_name'], 'Unexpected property_name value.' );
+		$this->assertSame( 'Comment', $contentProperty['content_class'], 'Unexpected content_class value.' );
 
 		$properties = json_decode( $contentProperty['properties'], true );
-
-		$this->assertSame( "inline-comment", $properties['name'] );
-		$this->assertSame( 500, (int)$properties['content'] );
-	}
-
-	/**
-	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties::execute
-	 */
-	public function testInlineMarkerRefPropertyIsDetected() {
-		$this->migrationConfig = new MigrationConfig( [] );
-		$workspaceDBMock = new WorkspaceDbMock();
-		$this->workspaceDB = $workspaceDBMock->createEmpty();
-
-		$this->runProcessor(
-			__DIR__ . '/content_property_inline_marker_ref.xml'
-		);
-
-		$contentProperties = $this->workspaceDB->getContentProperties();
-		$contentProperty = $contentProperties[0];
-
-		$properties = json_decode( $contentProperty['properties'], true );
-
-		$this->assertSame( "inline-marker-ref", $properties['name'] );
-		$this->assertSame( 501, (int)$properties['content'] );
-	}
-
-	/**
-	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperties::execute
-	 */
-	public function testPageCommentPropertyIsNotDetectedAsInline() {
-		$this->migrationConfig = new MigrationConfig( [] );
-		$workspaceDBMock = new WorkspaceDbMock();
-		$this->workspaceDB = $workspaceDBMock->createEmpty();
-
-		$this->runProcessor(
-			__DIR__ . '/content_property_page_comment.xml'
-		);
-
-		$contentProperties = $this->workspaceDB->getContentProperties();
-
-		$this->assertSame( [], $contentProperties );
+		$this->assertSame( 'inline-comment', $properties['name'], 'Unexpected properties.name value.' );
+		$this->assertSame( '500', $properties['content'], 'Unexpected properties.content value.' );
+		$this->assertSame( 'true', $properties['stringValue'], 'Unexpected properties.stringValue value.' );
 	}
 }

@@ -65,11 +65,9 @@ class WorkspaceDbMock {
 		$instance = $reflection->newInstanceWithoutConstructor();
 
 		$dbProp = $reflection->getProperty( 'db' );
-		$dbProp->setAccessible( true );
 		$dbProp->setValue( $instance, new \SQLite3( ':memory:', SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE ) );
 
 		$createTables = $reflection->getMethod( 'createTables' );
-		$createTables->setAccessible( true );
 		$createTables->invoke( $instance );
 
 		return $instance;

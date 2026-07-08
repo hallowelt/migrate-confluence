@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-07-08 10:00:00">
+	<object class="Space" package="com.atlassian.confluence.spaces">
+		<id name="id">10</id>
+		<property name="key"><![CDATA[TEST]]></property>
+		<property name="name"><![CDATA[Test Space]]></property>
+		<property name="homePage" class="Page" package="com.atlassian.confluence.pages">
+			<id name="id">100</id>
+		</property>
+		<property name="description" class="SpaceDescription" package="com.atlassian.confluence.spaces">
+			<id name="id">101</id>
+		</property>
+	</object>
+</hibernate-generic>

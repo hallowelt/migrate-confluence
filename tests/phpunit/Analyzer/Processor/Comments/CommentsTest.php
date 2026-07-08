@@ -5,74 +5,48 @@ namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\Comments;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Comments;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Output\Output;
-use XMLReader;
 
 class CommentsTest extends TestCase {
+	use ProcessorTestHelper;
 
-	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
-
-	/** @var MigrationConfig */
-	private MigrationConfig $migrationConfig;
-
-	/** @return Output */
-	private function makeOutput(): Output {
-		return new class extends Output {
-			public function doWrite( string $message, bool $newline ): void {
-			}
-		};
-	}
-
-	/**
-	 * @param string $xmlFile
-	 * @return void
-	 */
-	private function runProcessor( string $xmlFile ): void {
-		$processor = new Comments( new AnalyzeDirectDataWriter( $this->workspaceDB ) );
-		$processor->setOutput( $this->makeOutput() );
-
-		$xmlReader = new XMLReader();
-		$xmlReader->open( $xmlFile );
-
-		$read = $xmlReader->read();
-		while ( $read ) {
-			if ( strtolower( $xmlReader->name ) !== 'object' ) {
-				$read = $xmlReader->read();
-				continue;
-			}
-
-			$class = $xmlReader->getAttribute( 'class' );
-			if ( $class === 'Comment' ) {
-				$processor->execute( $xmlReader );
-			}
-
-			$read = $xmlReader->next();
-		}
-		$xmlReader->close();
-	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\Comments::doExecute
 	 */
-	public function testPageLevelCommentIsStored() {
-		$this->migrationConfig = new MigrationConfig( [] );
-		$workspaceDBMock = new WorkspaceDbMock();
-		$this->workspaceDB = $workspaceDBMock->createEmpty();
+	public function testAllDatabaseFieldsAreStored(): void {
+		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
-		$this->runProcessor(
-			__DIR__ . '/comment_page_level.xml'
-		);
+		$processor = new Comments( new AnalyzeDirectDataWriter( $this->workspaceDB ) );
+		$this->executeProcessorForClass( $processor, __DIR__ . '/comment_page_level.xml', 'Comment' );
 
 		$comments = $this->workspaceDB->getComments();
-		$comment = $comments[0];
+		$this->assertCount( 1, $comments, 'Expected exactly one comment row.' );
 
-		$this->assertSame( 600, $comment['comment_id'] );
-		$this->assertSame( 700, $comment['container_id'] );
-		$this->assertSame( '[]', $comment['body_content_ids'] );
-		$this->assertSame( 'userkey-abc', $comment['user_key'] );
+		$comment = $comments[0];
+		$this->assertSame( 600, $comment['comment_id'], 'Unexpected comment_id value.' );
+		$this->assertSame( 700, $comment['container_id'], 'Unexpected container_id value.' );
+		$this->assertSame( 'Page', $comment['content_class'], 'Unexpected content_class value.' );
+		$this->assertSame( 'current', $comment['content_status'], 'Unexpected content_status value.' );
+		$this->assertSame( 'userkey-abc', $comment['user_key'], 'Unexpected user_key value.' );
+		$this->assertSame( '[]', $comment['body_content_ids'], 'Unexpected body_content_ids value.' );
+		$this->assertSame(
+			date( 'YmdHis', strtotime( '2026-02-12 17:09:43.563' ) ),
+			$comment['created'],
+			'Unexpected created timestamp value.'
+		);
+		$this->assertSame(
+			date( 'YmdHis', strtotime( '2026-02-12 17:09:43.563' ) ),
+			$comment['modified'],
+			'Unexpected modified timestamp value.'
+		);
+
+		$properties = json_decode( $comment['properties'], true );
+		$this->assertSame( 'current', $properties['contentStatus'], 'Unexpected properties.contentStatus value.' );
+		$this->assertSame( 'userkey-abc', $properties['creator'], 'Unexpected properties.creator value.' );
+		$this->assertSame( '700', $properties['containerContent'], 'Unexpected properties.containerContent value.' );
 	}
 }

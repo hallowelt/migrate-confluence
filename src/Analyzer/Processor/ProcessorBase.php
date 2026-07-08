@@ -117,9 +117,10 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 		$name = $this->xmlReader->getAttribute( 'name' );
 
 		if ( $this->xmlReader->isEmptyElement ) {
-			$properties[$name] = '';
 			return $properties;
 		}
+
+		$properties[$name] = '';
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
@@ -150,9 +151,10 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 		}
 
 		if ( $this->xmlReader->isEmptyElement ) {
-			$collection[$name] = [];
 			return $collection;
 		}
+
+		$collection[$name] = [];
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
