@@ -396,16 +396,6 @@ Name:{{{name|}}}
     </revision>
   </page>
   <page>
-    <title>Template:AttachmentsSectionStart</title>
-    <revision>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;
-== Attachments ==
-&lt;/includeonly&gt;</text>
-    </revision>
-  </page>
-  <page>
     <title>Template:LoremIpsum</title>
     <revision>
       <model>wikitext</model>
@@ -512,14 +502,6 @@ Parameters:
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;Template for confluence macro "viewpdf"
 &lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;</text>
-    </revision>
-  </page>
-  <page>
-    <title>Template:AttachmentsSectionEnd</title>
-    <revision>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>&lt;!-- Nothing to do here --&gt;</text>
     </revision>
   </page>
   <page>

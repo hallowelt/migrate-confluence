@@ -91,6 +91,7 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
+use HalloWelt\MigrateConfluence\Utility\TranslatableString;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
@@ -807,11 +808,14 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			$attachmentList = array_unique( $attachmentList );
 
 			if ( !empty( $attachmentList ) ) {
-				$wikiText .= "\n{{AttachmentsSectionStart}}\n";
+				$wikiText .= sprintf(
+					"\n<attachments hideversion=\"1\" hideeditor=\"1\" title=\"%s\">\n",
+					new TranslatableString( 'Attachments' )
+				);
 				foreach ( $attachmentList as $attachment ) {
 					$wikiText .= "* $attachment\n";
 				}
-				$wikiText .= "\n{{AttachmentsSectionEnd}}\n";
+				$wikiText .= "\n</attachments>\n";
 			}
 		}
 
