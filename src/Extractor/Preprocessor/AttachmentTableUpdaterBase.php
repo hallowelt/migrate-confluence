@@ -92,10 +92,35 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	protected function addAttachments(): void {
 		$contentIdToWikiTitleMap = [];
 		foreach ( $this->getContentItems() as $item ) {
-			if ( !isset( $item['page_id'] ) || !isset( $item['wiki_title'] ) ) {
+			if ( !isset( $item['page_id'] ) ) {
 				continue;
 			}
-			$contentIdToWikiTitleMap[(int)$item['page_id']] = (string)$item['wiki_title'];
+
+			$contentId = (int)$item['page_id'];
+			$wikiTitle = '';
+			if ( isset( $item['wiki_title'] ) ) {
+				$wikiTitle = (string)$item['wiki_title'];
+			}
+
+			if ( $wikiTitle === '' ) {
+				$pageTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $contentId );
+				if ( $pageTitle !== null ) {
+					$wikiTitle = $pageTitle;
+				}
+			}
+
+			if ( $wikiTitle === '' ) {
+				$blogPostTitle = $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $contentId );
+				if ( $blogPostTitle !== null ) {
+					$wikiTitle = $blogPostTitle;
+				}
+			}
+
+			if ( $wikiTitle === '' ) {
+				continue;
+			}
+
+			$contentIdToWikiTitleMap[$contentId] = $wikiTitle;
 		}
 
 		if ( $contentIdToWikiTitleMap === [] ) {

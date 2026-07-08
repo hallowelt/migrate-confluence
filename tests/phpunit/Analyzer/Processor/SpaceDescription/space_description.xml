@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-07-08 10:00:00">
+	<object class="SpaceDescription" package="com.atlassian.confluence.spaces">
+		<id name="id">20</id>
+		<property name="version">2</property>
+		<property name="lastModificationDate">2026-07-08 11:12:13.000</property>
+		<property name="originalVersion" class="SpaceDescription">
+			<id name="id">19</id>
+		</property>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<collection name="bodyContents" class="java.util.Collection">
+			<element class="BodyContent" package="com.atlassian.confluence.core">
+				<id name="id">200</id>
+			</element>
+		</collection>
+		<collection name="labellings" class="java.util.Collection">
+			<element class="Labelling" package="com.atlassian.confluence.labels">
+				<id name="id">300</id>
+			</element>
+		</collection>
+	</object>
+</hibernate-generic>

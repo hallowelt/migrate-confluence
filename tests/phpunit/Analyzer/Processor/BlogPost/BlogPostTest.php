@@ -3,95 +3,56 @@
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\BlogPost;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
-use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Output\Output;
-use XMLReader;
 
 class BlogPostTest extends TestCase {
+	use ProcessorTestHelper;
 
-	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
 
-	/** @var MigrationConfig */
-	private MigrationConfig $migrationConfig;
-
-	/** @return Output */
-	private function makeOutput(): Output {
-		return new class extends Output {
-			public function doWrite( string $message, bool $newline ): void {
-			}
-		};
-	}
-
-	/**
-	 * @param string $xmlFile
-	 * @param array $data
-	 * @return void
-	 */
-	private function runProcessor( string $xmlFile, array $data = [] ): void {
-		$processor = new BlogPost( new AnalyzeDirectDataWriter( $this->workspaceDB ), $this->migrationConfig );
-		$processor->setOutput( $this->makeOutput() );
-
-		$xmlReader = new XMLReader();
-		$xmlReader->open( $xmlFile );
-
-		$read = $xmlReader->read();
-		while ( $read ) {
-			if ( strtolower( $xmlReader->name ) !== 'object' ) {
-				$read = $xmlReader->read();
-				continue;
-			}
-			$class = $xmlReader->getAttribute( 'class' );
-			if ( $class !== 'BlogPost' ) {
-				$read = $xmlReader->next();
-				continue;
-			}
-			if ( $processor instanceof IAnalyzerProcessor ) {
-				$processor->execute( $xmlReader );
-			}
-			$read = $xmlReader->next();
-		}
-		$xmlReader->close();
-
-		$this->workspaceDB->updateBlogPostWikiTitle( 262251, 'Blog:TESTSPACE/Our_new_tool' );
-	}
-
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost::doExecute
 	 */
-	public function testTargetTitleUsesSpaceIdPrefix() {
-		$this->migrationConfig = new MigrationConfig( [] );
-		$workspaceDBMock = new WorkspaceDbMock();
-		$this->workspaceDB = $workspaceDBMock->createEmpty();
+	public function testAllDatabaseFieldsAreStored(): void {
+		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
-		$this->runProcessor( __DIR__ . '/blog_post.xml' );
-
-		$blogPosts = $this->workspaceDB->getBlogPosts();
-		$blogPost = $blogPosts[0];
-
-		$this->assertSame( 'Blog:TESTSPACE/Our_new_tool', $blogPost['wiki_title'] );
-	}
-
-	/**
-	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost::doExecute
-	 */
-	public function testBodyContentIdIsMappedToPageId() {
-		$this->migrationConfig = new MigrationConfig( [] );
-		$workspaceDBMock = new WorkspaceDbMock();
-		$this->workspaceDB = $workspaceDBMock->createEmpty();
-
-		$this->runProcessor( __DIR__ . '/blog_post.xml' );
+		$processor = new BlogPost(
+			new AnalyzeDirectDataWriter( $this->workspaceDB ),
+			new MigrationConfig( [] )
+		);
+		$this->executeProcessorForClass( $processor, __DIR__ . '/blog_post.xml', 'BlogPost' );
 
 		$blogPosts = $this->workspaceDB->getBlogPosts();
+		$this->assertCount( 1, $blogPosts, 'Expected exactly one blog post row.' );
+
 		$blogPost = $blogPosts[0];
+		$this->assertSame( 262251, $blogPost['page_id'], 'Unexpected page_id value.' );
+		$this->assertSame( 32973, $blogPost['space_id'], 'Unexpected space_id value.' );
+		$this->assertSame( 'Our new tool', $blogPost['confluence_title'], 'Unexpected confluence_title value.' );
+		$this->assertSame( '', $blogPost['wiki_title'], 'Unexpected wiki_title value.' );
+		$this->assertSame( 'current', $blogPost['content_status'], 'Unexpected content_status value.' );
+		$this->assertSame( '1', $blogPost['version'], 'Unexpected version value.' );
+		$this->assertSame( -1, $blogPost['original_version_id'], 'Unexpected original_version_id value.' );
+		$this->assertSame(
+			date( 'YmdHis', strtotime( '2020-11-09 16:07:42.492' ) ),
+			$blogPost['revision_timestamp'],
+			'Unexpected revision_timestamp value.'
+		);
+		$this->assertSame( '[]', $blogPost['historical_ids'], 'Unexpected historical_ids value.' );
+		$this->assertSame( '', $blogPost['last_modifier'], 'Unexpected last_modifier value.' );
+		$this->assertSame( '["262252"]', $blogPost['body_content_ids'], 'Unexpected body_content_ids value.' );
 
-		$bodyContentIds = json_decode( $blogPost['body_content_ids'], true );
+		$properties = json_decode( $blogPost['properties'], true );
+		$this->assertSame( 'Our new tool', $properties['title'], 'Unexpected properties.title value.' );
+		$this->assertSame( '1', $properties['version'], 'Unexpected properties.version value.' );
+		$this->assertSame( 'current', $properties['contentStatus'], 'Unexpected properties.contentStatus value.' );
 
-		$this->assertSame( 262252, (int)$bodyContentIds[0] );
+		$collection = json_decode( $blogPost['collection'], true );
+		$this->assertSame( [ '262252' ], $collection['bodyContents'], 'Unexpected collection.bodyContents value.' );
 	}
 }

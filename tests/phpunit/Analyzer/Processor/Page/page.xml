@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-07-08 10:00:00">
+	<object class="Page" package="com.atlassian.confluence.pages">
+		<id name="id">30</id>
+		<property name="title"><![CDATA[Sample Page]]></property>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<property name="version">3</property>
+		<property name="lastModificationDate">2026-07-08 13:14:15.000</property>
+		<property name="space" class="Space" package="com.atlassian.confluence.spaces">
+			<id name="id">10</id>
+		</property>
+		<property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user">
+			<id name="key">userkey1</id>
+		</property>
+		<property name="parent" class="Page" package="com.atlassian.confluence.pages">
+			<id name="id">11</id>
+		</property>
+		<property name="originalVersion">-1</property>
+		<collection name="bodyContents" class="java.util.Collection">
+			<element class="BodyContent" package="com.atlassian.confluence.core">
+				<id name="id">300</id>
+			</element>
+		</collection>
+		<collection name="historicalVersions" class="java.util.Collection">
+			<element class="Page" package="com.atlassian.confluence.pages">
+				<id name="id">29</id>
+			</element>
+		</collection>
+	</object>
+</hibernate-generic>

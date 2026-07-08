@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-07-08 10:00:00">
+	<object class="Labelling" package="com.atlassian.confluence.labels">
+		<id name="id">61</id>
+		<property name="label" class="Label" package="com.atlassian.confluence.labels">
+			<id name="id">60</id>
+		</property>
+	</object>
+</hibernate-generic>

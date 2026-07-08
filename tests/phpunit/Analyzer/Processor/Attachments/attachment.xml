@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-generic datetime="2026-07-08 10:00:00">
+	<object class="Attachment" package="com.atlassian.confluence.pages">
+		<id name="id">40</id>
+		<property name="fileName"><![CDATA[report.pdf]]></property>
+		<property name="space" class="Space" package="com.atlassian.confluence.spaces">
+			<id name="id">10</id>
+		</property>
+		<property name="containerContent" class="Page" package="com.atlassian.confluence.pages">
+			<id name="id">30</id>
+		</property>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<property name="version">2</property>
+		<property name="attachmentVersion">2</property>
+		<property name="lastModificationDate">2026-07-08 15:16:17.000</property>
+		<property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user">
+			<id name="key">userkey2</id>
+		</property>
+		<collection name="historicalVersions" class="java.util.Collection">
+			<element class="Attachment" package="com.atlassian.confluence.pages">
+				<id name="id">39</id>
+			</element>
+		</collection>
+	</object>
+</hibernate-generic>

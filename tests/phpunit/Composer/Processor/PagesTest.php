@@ -73,7 +73,6 @@ class PagesTest extends TestCase {
 		];
 
 		$method = new ReflectionMethod( Pages::class, 'addSpaceDescriptionToMainPage' );
-		$method->setAccessible( true );
 
 		$result = $method->invoke(
 			$processor,
