@@ -31,12 +31,15 @@ class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
 			->with( '101', '<html><body>Body ]]> content</body></html>' )
 			->willReturn( '/content/raw/101.mraw' );
 
+		$class = 'HalloWelt\\MigrateConfluence\\Extractor\\Processor\\';
+		$class .= 'ExtractSpaceDescriptionBodyContents::doExtractBodyContent';
+
 		$dbLog->expects( $this->once() )
 			->method( 'addLogEntry' )
 			->with(
 				'info',
 				'extract',
-				'HalloWelt\\MigrateConfluence\\Extractor\\Processor\\ExtractSpaceDescriptionBodyContents::doExtractBodyContent',
+				$class,
 				'Extract body content to /content/raw/101.mraw'
 			);
 

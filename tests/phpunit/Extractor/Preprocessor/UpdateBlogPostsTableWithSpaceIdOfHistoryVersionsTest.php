@@ -3,14 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithSpaceIdOfHistoryVersions;
-use HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor\PreprocessorTestHelper;
 use PHPUnit\Framework\TestCase;
 
 class UpdateBlogPostsTableWithSpaceIdOfHistoryVersionsTest extends TestCase {
 	use PreprocessorTestHelper;
 
 	/**
-	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithSpaceIdOfHistoryVersions::execute
+	 * @covers HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithSpaceIdOfHistoryVersions::execute
 	 */
 	public function testUpdatesHistoricalBlogPostSpaceIdFromOriginalVersion(): void {
 		$workspaceDB = $this->createWorkspaceDB();

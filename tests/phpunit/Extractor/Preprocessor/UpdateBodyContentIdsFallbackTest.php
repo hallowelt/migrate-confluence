@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBodyContentIdsFallback;
-use HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor\PreprocessorTestHelper;
 use PHPUnit\Framework\TestCase;
 
 class UpdateBodyContentIdsFallbackTest extends TestCase {
@@ -34,9 +33,25 @@ class UpdateBodyContentIdsFallbackTest extends TestCase {
 		$comment = $this->findRowById( $workspaceDB->getComments(), 'comment_id', 302 );
 		$spaceDescription = $this->findRowById( $workspaceDB->getSpaceDescriptions(), 'space_description_id', 303 );
 
-		$this->assertSame( [ 1300 ], json_decode( $page['body_content_ids'], true ), 'Expected page body_content_ids fallback update.' );
-		$this->assertSame( [ 1301 ], json_decode( $blogPost['body_content_ids'], true ), 'Expected blog post body_content_ids fallback update.' );
-		$this->assertSame( [ 1302 ], json_decode( $comment['body_content_ids'], true ), 'Expected comment body_content_ids fallback update.' );
-		$this->assertSame( [ 1303 ], json_decode( $spaceDescription['body_content_ids'], true ), 'Expected space description body_content_ids fallback update.' );
+		$this->assertSame(
+			[ 1300 ],
+			json_decode( $page['body_content_ids'], true ),
+			'Expected page body_content_ids fallback update.'
+		);
+		$this->assertSame(
+			[ 1301 ],
+			json_decode( $blogPost['body_content_ids'], true ),
+			'Expected blog post body_content_ids fallback update.'
+		);
+		$this->assertSame(
+			[ 1302 ],
+			json_decode( $comment['body_content_ids'], true ),
+			'Expected comment body_content_ids fallback update.'
+		);
+		$this->assertSame(
+			[ 1303 ],
+			json_decode( $spaceDescription['body_content_ids'], true ),
+			'Expected space description body_content_ids fallback update.'
+		);
 	}
 }

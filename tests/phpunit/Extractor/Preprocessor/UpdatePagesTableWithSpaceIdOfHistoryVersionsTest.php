@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithSpaceIdOfHistoryVersions;
-use HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor\PreprocessorTestHelper;
 use PHPUnit\Framework\TestCase;
 
 class UpdatePagesTableWithSpaceIdOfHistoryVersionsTest extends TestCase {

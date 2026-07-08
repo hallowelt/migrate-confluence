@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithWikiTitle;
-use HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor\PreprocessorTestHelper;
 use PHPUnit\Framework\TestCase;
 
 class UpdateBlogPostsTableWithWikiTitleTest extends TestCase {
