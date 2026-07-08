@@ -1,0 +1,24 @@
+<div class="pl-layout" ac-layout="layout">
+
+:rocket: 1f680 🚀 #F4F5F7
+'''Discover our family of products'''. Basic product knowledge that all employees should have!
+
+<span id="flowchat"></span>
+== FlowChat ==
+
+#DEEBFF lorem ipsum
+<span id="insighthub"></span>
+== InsightHub ==
+
+#DEEBFF lorem ipsum
+<span id="powerknow"></span>
+== PowerKnow ==
+
+#DEEBFF lorem impsum
+<span id="taskrules"></span>
+== TaskRules ==
+
+#DEEBFF lorem ipsum
+
+</div>
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

@@ -4,16 +4,15 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutSection;
-use PHPUnit\Framework\TestCase;
 
-class LayoutSectionTest extends TestCase {
+class LayoutSectionTest extends ProcessorTestCase {
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\LayoutSection::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
-		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+	public function testProcess() {
+		$dir = dirname(  __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/layout-section-input.xml" );
 
 		$dom = new DOMDocument();

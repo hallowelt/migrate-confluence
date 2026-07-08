@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
-use PHPUnit\Framework\TestCase;
 
-class HoistMacroFromHeadingTest extends TestCase {
+class HoistMacroFromHeadingTest extends ProcessorTestCase {
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading::preprocess

@@ -1,0 +1,2 @@
+{{ViewPpt|filename = ABC_SomePage-Dummy_1.ppt}}[[Category:Broken_attachment_link]]
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

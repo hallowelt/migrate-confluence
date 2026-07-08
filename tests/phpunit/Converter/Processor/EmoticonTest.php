@@ -4,16 +4,15 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
-use PHPUnit\Framework\TestCase;
 
-class EmoticonTest extends TestCase {
+class EmoticonTest extends ProcessorTestCase {
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\EmoticonProcessor::process
 	 * @return void
 	 */
-	public function testPreprocess() {
-		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+	public function testProcess() {
+		$dir = dirname(  __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/emoticon-input.xml" );
 
 		$dom = new DOMDocument();

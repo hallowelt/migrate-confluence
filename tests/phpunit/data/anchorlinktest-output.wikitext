@@ -1,0 +1,21 @@
+<div>
+
+[[#LoremIpsumAnker]]
+
+</div>
+<div>
+
+[[#Section Heading|Click here]]
+
+</div>
+<div>
+
+[[#AnotherAnchor|Jump to section]]
+
+</div>
+<div>
+
+
+
+</div>
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

@@ -1,0 +1,2 @@
+{{PageTree|content-title=ABC:SomeLinkedPage/Testpage}} {{PageTree|content-title={{FULLPAGENAME}}|version-at-save=1}}
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

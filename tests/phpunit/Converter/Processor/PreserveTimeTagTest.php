@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
-use PHPUnit\Framework\TestCase;
 
-class PreserveTimeTagTest extends TestCase {
+class PreserveTimeTagTest extends ProcessorTestCase {
 
 	/**
 	 * @var string

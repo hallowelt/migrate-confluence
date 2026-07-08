@@ -8,9 +8,8 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
-use PHPUnit\Framework\TestCase;
 
-class GliffyMacroTest extends TestCase {
+class GliffyMacroTest extends ProcessorTestCase {
 	/** @var DBConversionDataLookup */
 	private $dataLookup;
 

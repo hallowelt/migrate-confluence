@@ -7,14 +7,13 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use PHPUnit\Framework\TestCase;
 
-class AttachmentLinkTest extends TestCase {
+class AttachmentLinkTest extends ProcessorTestCase {
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\AttatchmentsLinkProcessor::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$this->doTestAttachments(
 			'attachmentlinktest-input.xml',
 			'attachmentlinktest-output.xml',
@@ -28,7 +27,7 @@ class AttachmentLinkTest extends TestCase {
 	 * @return void
 	 */
 	private function doTestAttachments( string $input, string $output ): void {
-		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$dir = dirname(  __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/$input" );
 
 		$dom = new DOMDocument();

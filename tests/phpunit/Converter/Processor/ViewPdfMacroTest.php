@@ -6,9 +6,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ViewPdfMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use PHPUnit\Framework\TestCase;
 
-class ViewPdfMacroTest extends TestCase {
+class ViewPdfMacroTest extends ProcessorTestCase {
 	/**
 	 * @var mixed
 	 */
@@ -26,7 +25,7 @@ class ViewPdfMacroTest extends TestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ViewPdfMacro::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		/** SpaceId GENERAL */

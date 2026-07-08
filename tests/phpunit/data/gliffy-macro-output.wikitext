@@ -1,0 +1,2 @@
+{{Gliffy|displayName=gliffy-file-1.png |name=gliffy-file-1.png |pagePin=5 }} {{Gliffy|displayName=gliffy-file-2 |name=gliffy-file-2 |pagePin=5 }} {{Gliffy|displayName=gliffy-file-2 |name=gliffy-file-2.svg |pagePin=5 }}
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

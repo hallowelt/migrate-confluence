@@ -7,15 +7,14 @@ use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use PHPUnit\Framework\TestCase;
 
-class GalleryMacroTest extends TestCase {
+class GalleryMacroTest extends ProcessorTestCase {
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
-		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$dir = dirname(  __DIR__, 2 ) . '/data';
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ) );
 

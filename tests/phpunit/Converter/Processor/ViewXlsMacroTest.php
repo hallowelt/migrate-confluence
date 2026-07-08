@@ -6,9 +6,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use PHPUnit\Framework\TestCase;
 
-class ViewXlsMacroTest extends TestCase {
+class ViewXlsMacroTest extends ProcessorTestCase {
 	/**
 	 * @var mixed
 	 */
@@ -26,7 +25,7 @@ class ViewXlsMacroTest extends TestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		/** SpaceId GENERAL */

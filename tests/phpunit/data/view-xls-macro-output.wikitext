@@ -1,0 +1,2 @@
+{{ViewXls|filename = ABC_SomePage-Dummy_3.xls}}[[Category:Broken_attachment_link]]
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

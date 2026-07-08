@@ -1,0 +1,4 @@
+{{RecentlyUpdated|namespace=}}
+
+Lorem ipsum
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

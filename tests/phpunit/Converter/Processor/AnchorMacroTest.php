@@ -4,16 +4,15 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
-use PHPUnit\Framework\TestCase;
 
-class AnchorMacroTest extends TestCase {
+class AnchorMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
-		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$dir = dirname(  __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/anchor-macro-input.xml" );
 
 		$dom = new DOMDocument();
@@ -36,7 +35,7 @@ class AnchorMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcessBrokenMacro() {
-		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$dir = dirname(  __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/anchor-macro-broken-input.xml" );
 
 		$dom = new DOMDocument();

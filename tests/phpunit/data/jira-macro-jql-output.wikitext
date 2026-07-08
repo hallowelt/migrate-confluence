@@ -1,0 +1,2 @@
+{{Jira|jql = project = ABC AND status != Done}}
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

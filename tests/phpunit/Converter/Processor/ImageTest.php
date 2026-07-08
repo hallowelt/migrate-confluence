@@ -7,9 +7,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use PHPUnit\Framework\TestCase;
 
-class ImageTest extends TestCase {
+class ImageTest extends ProcessorTestCase {
 	/**
 	 * @var DBConversionDataLookup
 	 */
@@ -24,8 +23,8 @@ class ImageTest extends TestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
-		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+	public function testProcess() {
+		$this->dir = dirname(  __DIR__, 2 ) . '/data';
 
 		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
@@ -43,7 +42,7 @@ class ImageTest extends TestCase {
 	 * @return void
 	 */
 	public function testUrlImageInExternalLink() {
-		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$this->dir = dirname(  __DIR__, 2 ) . '/data';
 
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(

@@ -6,22 +6,21 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use PHPUnit\Framework\TestCase;
 
-class ExcerptIncludeMacroTest extends TestCase {
+class ExcerptIncludeMacroTest extends ProcessorTestCase {
 	protected function getInput(): string {
-		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/excerpt-include-macro-input.xml' );
+		return file_get_contents( dirname(  __DIR__, 2 ) . '/data/excerpt-include-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/excerpt-include-macro-output.xml' );
+		return file_get_contents( dirname(  __DIR__, 2 ) . '/data/excerpt-include-macro-output.xml' );
 	}
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\ExcerptIncludeMacro::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$currentSpaceId = 42;
 

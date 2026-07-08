@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\LoremIpsumMacro;
-use PHPUnit\Framework\TestCase;
 
-class LoremIpsumMacroTest extends TestCase {
+class LoremIpsumMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @var string

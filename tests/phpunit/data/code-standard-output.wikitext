@@ -1,0 +1,16 @@
+<span id="the-menu"></span>
+====== The menu ======
+
+<syntaxhighlight lang="sql" collapse="true">
+		SELECT * FROM menu;
+		</syntaxhighlight>
+<span id="json-test"></span>
+====== JSON test ======
+
+<syntaxhighlight lang="json" collapse="true">
+		{
+			"name": "test",
+			"version": "null"
+		}
+		</syntaxhighlight>
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

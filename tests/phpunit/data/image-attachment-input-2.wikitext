@@ -1,0 +1,11 @@
+<div>
+
+<span height="150">https://server/confluence/download/attachments/123456789/image2021-8-17_10-15-14.png</span>
+
+</div>
+<div>
+
+<span height="250" original-url="https://server/confluence/download/attachments/123456789/image2021-8-17_10-15-14.png?version=1&amp;modificationDate=1571760909000&amp;api=v2">https://server/confluence/download/attachments/123456789/image2021-8-17_10-15-14.png</span>
+
+</div>
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

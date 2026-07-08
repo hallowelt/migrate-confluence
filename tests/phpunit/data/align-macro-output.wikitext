@@ -1,0 +1,7 @@
+<div class="ac-macro-align" params="{&quot;align&quot;:&quot;center&quot;}" style="text-align: center;">
+
+lorem ipsum dolor
+
+</div>
+sit amet
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

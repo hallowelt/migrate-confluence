@@ -1,0 +1,6 @@
+{{ExcerptInclude
+|target = ABC:Some_MediaWiki_page_name
+|nopanel = true
+}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

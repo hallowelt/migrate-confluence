@@ -4,23 +4,22 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro;
-use PHPUnit\Framework\TestCase;
 
-class LocalTabMacroTest extends TestCase {
+class LocalTabMacroTest extends ProcessorTestCase {
 
 	protected function getInput(): string {
-		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/local-tab-macro-input.xml' );
+		return file_get_contents( dirname(  __DIR__, 2 ) . '/data/local-tab-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/local-tab-macro-output.xml' );
+		return file_get_contents( dirname(  __DIR__, 2 ) . '/data/local-tab-macro-output.xml' );
 	}
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$input = $this->getInput();
 		$expectedOutput = $this->getExpectedOutput();
 

@@ -6,9 +6,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use PHPUnit\Framework\TestCase;
 
-class ViewFileMacroTest extends TestCase {
+class ViewFileMacroTest extends ProcessorTestCase {
 	/**
 	 * @var mixed
 	 */

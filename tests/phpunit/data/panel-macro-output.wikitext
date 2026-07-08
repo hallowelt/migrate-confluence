@@ -1,0 +1,34 @@
+<br />
+
+
+{{PanelStart}}
+
+<br />
+
+
+33%
+
+<br />
+
+
+33%
+
+<span id="lorem-ipsum"></span>
+=== Lorem ipsum ===
+
+<span id="lorem-ipsum-dolor"></span>
+=== Lorem ipsum dolor ===
+
+<br />
+
+
+<br />
+
+
+33%
+
+<br />
+
+
+{{PanelEnd}}
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

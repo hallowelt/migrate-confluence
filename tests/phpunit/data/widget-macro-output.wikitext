@@ -1,0 +1,11 @@
+<div class="ac-widget" params="{&quot;url&quot;:&quot;https:\/\/www.example.com\/1&quot;}">
+
+https://www.example.com/1
+
+</div>
+<div class="ac-widget" params="{&quot;url&quot;:&quot;https:\/\/www.example.com\/2&quot;}">
+
+https://www.example.com/2
+
+</div>
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

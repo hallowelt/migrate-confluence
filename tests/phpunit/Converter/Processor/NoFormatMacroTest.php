@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
-use PHPUnit\Framework\TestCase;
 
-class NoFormatMacroTest extends TestCase {
+class NoFormatMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @param string $inputFile
@@ -33,7 +32,7 @@ class NoFormatMacroTest extends TestCase {
 	 * @return array
 	 */
 	public function provideTestProcessData() {
-		$dir = dirname( dirname( __DIR__ ) );
+		$dir = dirname(  __DIR__, 2 );
 		return [
 			'standard' => [
 				"$dir/data/noformat-standard-input.xml",
