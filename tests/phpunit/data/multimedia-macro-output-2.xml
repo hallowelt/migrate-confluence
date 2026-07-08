@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	{{Multimedia|filename = DEVOPS:SomePage-Dummy_1.pdf|version-at-save = 1}}
+	{{Multimedia|filename = DEVOPS:SomePage-Dummy_2.docx|version-at-save = 1}}
+	{{Multimedia|filename = DEVOPS:SomePage-Dummy_3.png|version-at-save = 1}}
+</xml>
