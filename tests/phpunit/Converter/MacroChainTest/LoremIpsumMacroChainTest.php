@@ -36,7 +36,6 @@ class LoremIpsumMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new LoremIpsumMacro();
 	}
 

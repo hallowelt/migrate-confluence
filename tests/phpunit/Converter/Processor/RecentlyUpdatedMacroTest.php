@@ -33,10 +33,10 @@ class RecentlyUpdatedMacroTest extends ProcessorTestCase {
 	}
 
 	protected function getInput(): string {
-		return file_get_contents( dirname(  __DIR__, 2 ) . '/data/recently-updated-macro-input.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/recently-updated-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( dirname(  __DIR__, 2 ) . '/data/recently-updated-macro-output.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/recently-updated-macro-output.xml' );
 	}
 }

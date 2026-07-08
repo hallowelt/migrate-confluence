@@ -12,7 +12,7 @@ class EmoticonTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$dir = dirname(  __DIR__, 2 ) . '/data';
+		$dir = dirname( __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/emoticon-input.xml" );
 
 		$dom = new DOMDocument();

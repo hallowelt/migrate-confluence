@@ -32,7 +32,7 @@ class NoFormatMacroTest extends ProcessorTestCase {
 	 * @return array
 	 */
 	public function provideTestProcessData() {
-		$dir = dirname(  __DIR__, 2 );
+		$dir = dirname( __DIR__, 2 );
 		return [
 			'standard' => [
 				"$dir/data/noformat-standard-input.xml",

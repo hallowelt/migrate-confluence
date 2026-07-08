@@ -9,7 +9,12 @@ class CDATAClosingFixerTest extends TestCase {
 
 	// phpcs:disable
 	private $input = <<<HERE
-	<html><body><p>Lorem ipsum dolor sit amet <ac:link><ri:page ri:content-title="Somepage" ri:space-key="SOMESPACE" /><ac:plain-text-link-body><![CDATA[JSON]]></ac:plain-text-link-body></ac:link>.</p><p>Lorem ipsum</p><ul><li>Item 1</li><li>Item 2</li></ul><p>&nbsp;</p><ac:structured-macro ac:name="code"><ac:parameter ac:name="title">Example</ac:parameter><ac:parameter ac:name="language">js</ac:parameter><ac:plain-text-body><![CDATA[[
+	<html><body><p>Lorem ipsum dolor sit amet
+	<ac:link><ri:page ri:content-title="Somepage" ri:space-key="SOMESPACE" />
+	<ac:plain-text-link-body><![CDATA[JSON]]></ac:plain-text-link-body></ac:link>.</p>
+	<p>Lorem ipsum</p><ul><li>Item 1</li><li>Item 2</li></ul><p>&nbsp;</p>
+	<ac:structured-macro ac:name="code"><ac:parameter ac:name="title">Example</ac:parameter>
+	<ac:parameter ac:name="language">js</ac:parameter><ac:plain-text-body><![CDATA[[
 		{
 		  object_class : "ABC:def:ghi",
 		  name : "Name1",
@@ -19,13 +24,19 @@ class CDATAClosingFixerTest extends TestCase {
 		  [
 		  ]
 		}
-	  ]] ]></ac:plain-text-body></ac:structured-macro><p>&nbsp;</p><p>&nbsp;</p></body></html>
+	  ]] ]></ac:plain-text-body></ac:structured-macro>
+	<p>&nbsp;</p><p>&nbsp;</p></body></html>
 HERE;
 	// phpcs:enable
 
 	// phpcs:disable
 	private $expectedOutput = <<<HERE
-	<html><body><p>Lorem ipsum dolor sit amet <ac:link><ri:page ri:content-title="Somepage" ri:space-key="SOMESPACE" /><ac:plain-text-link-body><![CDATA[JSON]]></ac:plain-text-link-body></ac:link>.</p><p>Lorem ipsum</p><ul><li>Item 1</li><li>Item 2</li></ul><p>&nbsp;</p><ac:structured-macro ac:name="code"><ac:parameter ac:name="title">Example</ac:parameter><ac:parameter ac:name="language">js</ac:parameter><ac:plain-text-body><![CDATA[[
+	<html><body><p>Lorem ipsum dolor sit amet
+	<ac:link><ri:page ri:content-title="Somepage" ri:space-key="SOMESPACE" />
+	<ac:plain-text-link-body><![CDATA[JSON]]></ac:plain-text-link-body></ac:link>.</p>
+	<p>Lorem ipsum</p><ul><li>Item 1</li><li>Item 2</li></ul><p>&nbsp;</p>
+	<ac:structured-macro ac:name="code"><ac:parameter ac:name="title">Example</ac:parameter>
+	<ac:parameter ac:name="language">js</ac:parameter><ac:plain-text-body><![CDATA[[
 		{
 		  object_class : "ABC:def:ghi",
 		  name : "Name1",
@@ -35,7 +46,8 @@ HERE;
 		  [
 		  ]
 		}
-	  ]] ]> [[Category:Broken_CDATA]] ]]></ac:plain-text-body></ac:structured-macro><p>&nbsp;</p><p>&nbsp;</p></body></html>
+	  ]] ]> [[Category:Broken_CDATA]] ]]></ac:plain-text-body></ac:structured-macro>
+	<p>&nbsp;</p><p>&nbsp;</p></body></html>
 HERE;
 	// phpcs:enable
 

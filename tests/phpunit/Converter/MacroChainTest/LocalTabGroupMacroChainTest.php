@@ -36,7 +36,6 @@ class LocalTabGroupMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new LocalTabGroupMacro();
 	}
 

@@ -29,7 +29,8 @@ class NoteMacroChainTest extends MacroChainTestBase {
 					</ac:rich-text-body>
 				</ac:structured-macro>
 			</root>
-XML,
+XML
+,
 		];
 
 		foreach ( $inlineFixtures as $index => $inlineXml ) {
@@ -39,7 +40,9 @@ XML,
 		}
 
 		if ( $executedAssertions === 0 ) {
-			$fallbackXml = '<?xml version="1.0" encoding="UTF-8"?><root xmlns:ac="some" xmlns:ri="thing"><p>Fallback fixture for NoteMacro.</p></root>';
+			$fallbackXml =
+				'<?xml version="1.0" encoding="UTF-8"?><root xmlns:ac="some" xmlns:ri="thing">' .
+				'<p>Fallback fixture for NoteMacro.</p></root>';
 			$actual = $this->runChainWithProcessor( $this->createProcessor(), $fallbackXml );
 			$this->assertNotSame( '', trim( $actual ), "Empty chain output for fallback fixture" );
 		}
@@ -49,7 +52,6 @@ XML,
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new NoteMacro();
 	}
 

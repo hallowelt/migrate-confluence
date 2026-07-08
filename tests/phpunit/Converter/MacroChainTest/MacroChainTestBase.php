@@ -80,7 +80,6 @@ abstract class MacroChainTestBase extends TestCase {
 	 * @return string
 	 */
 	protected function applyConfluenceFinalReplacements( string $wikiText ): string {
-
 		$wikiText = str_replace( "\r", '', $wikiText );
 		$wikiText = str_replace( '###BREAK###', "\n", $wikiText );
 		$wikiText = str_replace( '###HTMLCOMMENTOPEN###', '<!-- ', $wikiText );
@@ -110,23 +109,33 @@ abstract class MacroChainTestBase extends TestCase {
 	 * @return string
 	 */
 	private function runPandoc( string $html ): string {
-		$binary = trim( (string)shell_exec( 'command -v pandoc 2>/dev/null' ) );
-		$this->assertNotSame( '', $binary, 'pandoc is required for MacroChain tests.' );
+		$descriptors = [
+			0 => [ 'pipe', 'r' ],
+			1 => [ 'pipe', 'w' ],
+			2 => [ 'pipe', 'w' ],
+		];
 
-		$tmpFile = tempnam( sys_get_temp_dir(), 'macro-chain-' );
-		$this->assertNotFalse( $tmpFile, 'Failed to create temp file for pandoc input.' );
-		$inputFile = $tmpFile . '.html';
-		rename( $tmpFile, $inputFile );
-		file_put_contents( $inputFile, $html );
+		$command = [ 'pandoc', '-f', 'html', '-t', 'mediawiki' ];
+		// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.proc_open
+		$proc = proc_open( $command, $descriptors, $pipes );
+		$this->assertIsResource( $proc, 'Failed to start pandoc process.' );
 
-		$result = [];
-		$exitCode = 0;
-		$command = 'pandoc -f html -t mediawiki ' . escapeshellarg( $inputFile );
-		// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.exec
-		exec( $command, $result, $exitCode );
-		@unlink( $inputFile );
+		fwrite( $pipes[0], $html );
+		fclose( $pipes[0] );
 
-		$this->assertSame( 0, $exitCode, 'pandoc conversion failed.' );
-		return implode( "\n", $result );
+		$output = stream_get_contents( $pipes[1] );
+		fclose( $pipes[1] );
+
+		$errorOutput = stream_get_contents( $pipes[2] );
+		fclose( $pipes[2] );
+
+		$exitCode = proc_close( $proc );
+		$this->assertSame(
+			0,
+			$exitCode,
+			'pandoc conversion failed. ' . trim( (string)$errorOutput )
+		);
+
+		return (string)$output;
 	}
 }

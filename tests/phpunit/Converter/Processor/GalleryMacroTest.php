@@ -14,7 +14,7 @@ class GalleryMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$dir = dirname(  __DIR__, 2 ) . '/data';
+		$dir = dirname( __DIR__, 2 ) . '/data';
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ) );
 

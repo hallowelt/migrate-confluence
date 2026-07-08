@@ -36,7 +36,6 @@ class LayoutSectionMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new LayoutSection();
 	}
 

@@ -27,7 +27,7 @@ class AttachmentLinkTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	private function doTestAttachments( string $input, string $output ): void {
-		$dir = dirname(  __DIR__, 2 ) . '/data';
+		$dir = dirname( __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/$input" );
 
 		$dom = new DOMDocument();

@@ -8,11 +8,11 @@ use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
 class LocalTabGroupMacroTest extends ProcessorTestCase {
 
 	protected function getInput(): string {
-		return file_get_contents( dirname(  __DIR__, 2 ) . '/data/local-tab-group-macro-input.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/local-tab-group-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( dirname(  __DIR__, 2 ) . '/data/local-tab-group-macro-output.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/local-tab-group-macro-output.xml' );
 	}
 
 	/**

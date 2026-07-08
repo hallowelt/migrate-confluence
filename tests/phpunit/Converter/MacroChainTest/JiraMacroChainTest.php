@@ -43,7 +43,6 @@ class JiraMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new JiraMacro();
 	}
 

@@ -36,7 +36,6 @@ class AlignMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new AlignMacro();
 	}
 

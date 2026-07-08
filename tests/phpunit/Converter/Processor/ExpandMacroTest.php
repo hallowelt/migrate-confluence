@@ -17,7 +17,7 @@ class ExpandMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dir = dirname(  __DIR__, 2 ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$input = file_get_contents( "$this->dir/expand-macro-input.xml" );
 

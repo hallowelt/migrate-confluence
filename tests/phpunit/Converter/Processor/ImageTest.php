@@ -24,7 +24,7 @@ class ImageTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dir = dirname(  __DIR__, 2 ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
@@ -42,7 +42,7 @@ class ImageTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testUrlImageInExternalLink() {
-		$this->dir = dirname(  __DIR__, 2 ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(

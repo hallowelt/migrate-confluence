@@ -17,7 +17,7 @@ class InlineCommentMarkerTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dir = dirname(  __DIR__, 2 ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$input = file_get_contents( "$this->dir/inline-comment-marker-input.xml" );
 

@@ -36,7 +36,6 @@ class ContentByLabelMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new ContentByLabelMacro( 'SomePage' );
 	}
 

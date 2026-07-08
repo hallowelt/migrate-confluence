@@ -36,7 +36,6 @@ class PlaceholderMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new Placeholder();
 	}
 

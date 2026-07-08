@@ -36,7 +36,6 @@ class LayoutCellMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new LayoutCell();
 	}
 

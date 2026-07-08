@@ -36,7 +36,6 @@ class EmoticonMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new Emoticon();
 	}
 

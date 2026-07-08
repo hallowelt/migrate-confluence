@@ -36,7 +36,6 @@ class AttachmentsMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-
 		return new AttachmentsMacro();
 	}
 
