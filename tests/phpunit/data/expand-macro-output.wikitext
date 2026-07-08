@@ -6,4 +6,5 @@
 ** something more
 
 {{ExpandEnd}}
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

@@ -1,2 +1,3 @@
 [[Category:Broken_macro/jira]]
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

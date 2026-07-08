@@ -7,4 +7,5 @@ Lorem ipsum dolor
 
 
 </div>
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

@@ -6,4 +6,5 @@ Before
 
 </div>
 After
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

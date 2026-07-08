@@ -6,4 +6,5 @@
 26
 
 </div>
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

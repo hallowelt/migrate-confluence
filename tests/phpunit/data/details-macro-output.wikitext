@@ -10,4 +10,5 @@
 === There may be multiple rich texts ===
 
 {{DetailsEnd}}
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

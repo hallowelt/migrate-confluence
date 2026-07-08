@@ -3,4 +3,5 @@ Before
 # Hello Some **bold** text
 
 After
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

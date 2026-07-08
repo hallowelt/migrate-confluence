@@ -1,3 +1,4 @@
 <taskreport status="unchecked" namespaces="MT|AB" user="TheFirstUser"/>
 <taskreport status="checked" namespaces="MT" user="TheFirstUser|TheSecondUser"/>
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

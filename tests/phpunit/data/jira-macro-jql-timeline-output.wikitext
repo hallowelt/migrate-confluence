@@ -1,2 +1,3 @@
 {{Jira|jql = https://jira.example.com/jira/software/projects/DMP/boards/2/timeline?assignee=currentUser()}}
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

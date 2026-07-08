@@ -21,4 +21,5 @@
 16 complete <span class="placeholder-inline-tasks"> <datetime>2024-02-22</datetime> Testaufgabe 1</span>
 
 17 incomplete <span class="placeholder-inline-tasks"> <datetime>2024-02-12</datetime> Testaufgabe 2</span>
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

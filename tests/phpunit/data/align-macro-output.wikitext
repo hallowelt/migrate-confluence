@@ -4,4 +4,5 @@ lorem ipsum dolor
 
 </div>
 sit amet
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

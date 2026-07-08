@@ -3,4 +3,5 @@
 |nopanel = true
 }}
 
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

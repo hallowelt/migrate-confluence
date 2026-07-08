@@ -8,4 +8,5 @@ https://www.example.com/1
 https://www.example.com/2
 
 </div>
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

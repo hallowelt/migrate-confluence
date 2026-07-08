@@ -38,4 +38,5 @@
 |}
 
 {{TableFilterEnd}}
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

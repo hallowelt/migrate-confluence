@@ -3,4 +3,5 @@
 This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.
 
 </div><!-- end excerpt macro -->[[Category:Broken_macro/excerpt]]
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

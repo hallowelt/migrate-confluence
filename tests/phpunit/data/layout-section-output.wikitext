@@ -29,4 +29,5 @@
 #DEEBFF lorem ipsum
 
 </div>
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

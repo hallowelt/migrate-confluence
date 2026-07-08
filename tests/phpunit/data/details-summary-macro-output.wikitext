@@ -8,4 +8,5 @@
 |}
 
 ''Details Summary - CQL: label = &quot;Label 1&quot; and parent = currentContent ( )''
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

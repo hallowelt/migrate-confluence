@@ -18,4 +18,5 @@
 [[Media:SomePage-SomeImage3.png]][[Category:Broken_attachment_link]]
 
 </div>
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

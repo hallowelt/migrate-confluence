@@ -31,4 +31,5 @@
 
 
 {{PanelEnd}}
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

@@ -32,4 +32,5 @@ Lorem ipsum
 <!-- &lt;ac:structured-macro ac:name=&quot;tasks-report-macro&quot; ac:schema-version=&quot;1&quot; data-layout=&quot;default&quot; ac:local-id=&quot;b99f2390-dd98-4550-aac5-3454fdee2583&quot; ac:macro-id=&quot;0a576863c5a4cb1df573402cac1aead1&quot;&gt; &lt;ac:parameter ac:name=&quot;creators&quot;/&gt; &lt;ac:parameter ac:name=&quot;spaces&quot;&gt;MT&lt;/ac:parameter&gt; &lt;ac:parameter ac:name=&quot;assignees&quot;&gt;&lt;ri:user ri:userkey=&quot;123456&quot;/&gt;&lt;ri:user ri:userkey=&quot;789456&quot;/&gt;&lt;/ac:parameter&gt; &lt;ac:parameter ac:name=&quot;pageSize&quot;&gt;10&lt;/ac:parameter&gt; &lt;ac:parameter ac:name=&quot;createddateFrom&quot;/&gt; &lt;ac:parameter ac:name=&quot;isMissingRequiredParameters&quot;&gt;true&lt;/ac:parameter&gt; &lt;ac:parameter ac:name=&quot;status&quot;&gt;complete&lt;/ac:parameter&gt; &lt;/ac:structured-macro&gt; -->[[Category:Broken_macro/tasks-report-macro]]
 
 </div>
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

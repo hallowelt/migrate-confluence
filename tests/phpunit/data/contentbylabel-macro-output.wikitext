@@ -1,2 +1,3 @@
 {{ContentByLabel |showLabels=false |max=99 |showSpace=false |cql=label = &quot;label_1&quot; and label = &quot;label_2&quot; |conditions=[[Category:Label_1]][[Category:Label_2]] }}
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

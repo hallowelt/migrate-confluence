@@ -3,4 +3,5 @@ Some text before
 <span id="my-anchor"></span>
 
 Some text after
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
