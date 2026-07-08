@@ -162,6 +162,21 @@
     </revision>
   </page>
   <page>
+    <title>Template:Multimedia</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template for confluence macro "multimedia"
+&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}|{{#if: {{{width|}}}
+    |{{{width}}}
+|}}{{#if: {{{height|}}}
+    |x{{{height}}}
+|}}{{# if: {{{width|}}}{{{height|}}}
+    |px
+|}}]]&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:Note</title>
     <revision>
       <model>wikitext</model>

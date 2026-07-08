@@ -60,6 +60,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LoremIpsumMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\MarkdownMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\MultimediaMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
@@ -482,6 +483,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->migrationConfig
 			),
 			new ViewPdfMacro(
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
+			),
+			new MultimediaMacro(
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
