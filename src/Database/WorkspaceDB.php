@@ -4283,6 +4283,21 @@ class WorkspaceDB {
 
 	/**
 	 * @param int $templateId
+	 * @param string $wikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageTemplateWikiTitle( int $templateId, string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE page_templates SET wiki_title = :wiki_title WHERE template_id = :template_id'
+		);
+
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':template_id', $templateId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $templateId
 	 * @return array|null
 	 */
 	public function getPageTemplateById( int $templateId ): ?array {
