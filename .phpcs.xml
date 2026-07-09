@@ -3,6 +3,8 @@
 	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
 	</rule>
 	<file>.</file>
+	<!-- exclude files created by the migration -->
+	<exclude-pattern>*/execution-time.php$</exclude-pattern>
 	<arg name="extensions" value="php"/>
 	<arg name="encoding" value="UTF-8"/>
 </ruleset>

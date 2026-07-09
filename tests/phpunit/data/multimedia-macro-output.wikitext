@@ -1,0 +1,3 @@
+{{Multimedia|filename = SomePage-Dummy_1.pdf|version-at-save = 1}} {{Multimedia|filename = SomePage-Dummy_2.docx|version-at-save = 1}} {{Multimedia|filename = SomePage-Dummy_3.png|version-at-save = 1}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
