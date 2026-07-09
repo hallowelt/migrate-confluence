@@ -6,12 +6,23 @@ usage() {
   cat <<'EOF'
 Usage: ./src/Composer/_shell/import.sh --src=/path/to/result/<namespace>
 
-Runs MediaWiki imports from a result namespace directory in this order:
-  1) files.xml
-  2) blogs.xml
-  3) comments.xml
-  4) templates.xml
-  5) pages.xml
+Runs MediaWiki imports from a result namespace directory.
+Supports both single-file output (e.g. pages.xml) and split output
+(e.g. pages-00000001.xml, pages-00000002.xml, ...).
+
+Options:
+  --add-default    Also import default-files*.xml and default-pages*.xml
+
+Import order:
+  1) files*.xml
+  2) blogs*.xml
+  3) comments*.xml (or page-talk*.xml + blog-talk*.xml if comments*.xml is absent)
+  4) templates*.xml
+  5) pages*.xml
+
+When --add-default is set, these are included:
+  - default-files*.xml (before files*.xml)
+  - default-pages*.xml (before pages*.xml)
 
 Notes:
 - Run this script from the MediaWiki root directory.
@@ -20,11 +31,15 @@ EOF
 }
 
 src=""
+add_default=0
 
 for arg in "$@"; do
   case "$arg" in
     --src=*)
       src="${arg#*=}"
+      ;;
+    --add-default)
+      add_default=1
       ;;
     -h|--help)
       usage
@@ -62,37 +77,98 @@ if [[ ! -f "extensions/BlueSpiceDistributionConnector/maintenance/importFiles.ph
   exit 1
 fi
 
-run_required() {
-  local label="$1"
-  local file="$2"
-  shift 2
+collect_xml_files() {
+  local base="$1"
+  local -n out_ref="$2"
+  local files=()
+  local split_candidates=()
+  local split_files=()
 
-  if [[ ! -f "$file" ]]; then
-    echo "Error: required file missing for $label: $file" >&2
-    exit 1
+  if [[ -f "$src/$base.xml" ]]; then
+    files+=("$src/$base.xml")
   fi
 
-  echo "==> Importing $label from $file"
-  if ! "$@"; then
-    echo "Error: import failed for $label" >&2
-    exit 1
+  shopt -s nullglob
+  split_candidates=("$src/$base"-*.xml)
+  shopt -u nullglob
+
+  for file in "${split_candidates[@]}"; do
+    if [[ "$(basename "$file")" =~ ^${base}-[0-9]+\.xml$ ]]; then
+      split_files+=("$file")
+    fi
+  done
+
+  if (( ${#split_files[@]} > 0 )); then
+    mapfile -t split_files < <(printf '%s\n' "${split_files[@]}" | sort -V)
+    files+=("${split_files[@]}")
   fi
+
+  out_ref=("${files[@]}")
 }
 
-run_required "files.xml" "$src/files.xml" \
-  php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php --src="$src/files.xml"
+run_import_dump_file() {
+  local file="$1"
+  php maintenance/importDump.php "$file"
+}
 
-run_required "blogs.xml" "$src/blogs.xml" \
-  php maintenance/importDump.php "$src/blogs.xml"
+run_import_files_file() {
+  local file="$1"
+  php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php --src="$file"
+}
 
-run_required "comments.xml" "$src/comments.xml" \
-  php maintenance/importDump.php "$src/comments.xml"
+run_group() {
+  local base="$1"
+  local mode="$2"
+  local required="$3"
+  local files=()
 
-run_required "templates.xml" "$src/templates.xml" \
-  php maintenance/importDump.php "$src/templates.xml"
+  collect_xml_files "$base" files
 
-run_required "pages.xml" "$src/pages.xml" \
-  php maintenance/importDump.php "$src/pages.xml"
+  if (( ${#files[@]} == 0 )); then
+    if [[ "$required" == "required" ]]; then
+      echo "Error: required file group missing: $base.xml or $base-<number>.xml" >&2
+      exit 1
+    fi
+    echo "Note: no $base.xml or split variants found, skipping optional group."
+    return 0
+  fi
+
+  for file in "${files[@]}"; do
+    echo "==> Importing $base from $file"
+    if [[ "$mode" == "files" ]]; then
+      if ! run_import_files_file "$file"; then
+        echo "Error: import failed for $file" >&2
+        exit 1
+      fi
+    else
+      if ! run_import_dump_file "$file"; then
+        echo "Error: import failed for $file" >&2
+        exit 1
+      fi
+    fi
+  done
+}
+
+if [[ "$add_default" -eq 1 ]]; then
+  run_group "default-files" "files" "optional"
+fi
+run_group "files" "files" "required"
+run_group "blogs" "dump" "required"
+
+comment_files=()
+collect_xml_files "comments" comment_files
+if (( ${#comment_files[@]} > 0 )); then
+  run_group "comments" "dump" "required"
+else
+  run_group "page-talk" "dump" "required"
+  run_group "blog-talk" "dump" "required"
+fi
+
+run_group "templates" "dump" "required"
+if [[ "$add_default" -eq 1 ]]; then
+  run_group "default-pages" "dump" "optional"
+fi
+run_group "pages" "dump" "required"
 
 if [[ -f "$src/user.xml" ]]; then
   echo "Note: user.xml exists at $src/user.xml and is intentionally ignored."
