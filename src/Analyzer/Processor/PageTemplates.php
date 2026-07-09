@@ -2,8 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
-use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
@@ -72,26 +70,6 @@ class PageTemplates extends ProcessorBase {
 		$version = $properties['version'] ?? '1';
 		$contentStatus = $properties['contentStatus'] ?? 'current';
 
-		$wikiTitle = '';
-		try {
-			$wikiTitle = $this->buildTemplateTitle( $name, $spaceId );
-		} catch ( InvalidTitleException $e ) {
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
-				"Page Template with ID $templateId has invalid title '$name': " . $e->getMessage()
-			);
-
-			$this->writer->addInvalidPageTemplateTitle(
-				$templateId,
-				$wikiTitle,
-				"Page Template with ID $templateId has invalid title '$name': " . $e->getMessage()
-			);
-
-			return;
-		}
-
 		$this->writer->addPageTemplateContents( $templateId, $content );
 
 		unset( $properties['content'] );
@@ -100,7 +78,7 @@ class PageTemplates extends ProcessorBase {
 			$templateId,
 			$name,
 			$spaceId,
-			$wikiTitle,
+			'',
 			$revisionTimestamp,
 			$version,
 			$properties,
@@ -119,20 +97,5 @@ class PageTemplates extends ProcessorBase {
 		}
 
 		$this->output->writeln( "Add page template '$name' (ID:$templateId)" );
-	}
-
-	private function buildTemplateTitle( string $name, ?int $spaceId ): string {
-		$builder = new GenericTitleBuilder( $this->workspaceDB->getMapSpaceIdToPrefix() );
-		$builder->setNamespace( GenericTitleBuilder::NS_TEMPLATE );
-
-		$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();
-		if ( isset( $spaces[$spaceId] ) ) {
-			$spacePrefix = $spaces[$spaceId];
-			$spacePrefix = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) );
-			$builder->appendTitleSegment( $spacePrefix );
-		}
-
-		$builder->appendTitleSegment( $name );
-		return $builder->build();
 	}
 }

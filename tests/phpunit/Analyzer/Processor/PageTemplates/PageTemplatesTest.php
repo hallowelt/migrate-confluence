@@ -34,7 +34,7 @@ class PageTemplatesTest extends TestCase {
 		$this->assertSame( 70, $pageTemplate['template_id'], 'Unexpected template_id value.' );
 		$this->assertSame( 10, $pageTemplate['space_id'], 'Unexpected space_id value.' );
 		$this->assertSame( 'MyTemplate', $pageTemplate['confluence_title'], 'Unexpected confluence_title value.' );
-		$this->assertSame( 'Template:TEST/MyTemplate', $pageTemplate['wiki_title'], 'Unexpected wiki_title value.' );
+		$this->assertSame( '', $pageTemplate['wiki_title'], 'Unexpected wiki_title value.' );
 		$this->assertSame( 'current', $pageTemplate['content_status'], 'Unexpected content_status value.' );
 		$this->assertSame(
 			date( 'YmdHis', strtotime( '2026-07-08 18:19:20.000' ) ),
