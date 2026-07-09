@@ -24,7 +24,6 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 	public function __construct(
 		WorkspaceDB $workspaceDB,
 		DBLog $dbLog,
-		private MigrationConfig $migrationConfig
 	) {
 		parent::__construct( $workspaceDB, $dbLog );
 	}
