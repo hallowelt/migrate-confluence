@@ -17,9 +17,11 @@ use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithSpace
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithWikiTitle;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageTemplatesWithWikiTitle;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractAttachmentsMetaData;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostComments;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractCommentsBodyContents;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageComments;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesBodyContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents;
@@ -164,6 +166,8 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			new ExtractPagesMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new ExtractPageComments( $this->workspaceDB, $this->dbLog ),
+			new ExtractBlogPostComments( $this->workspaceDB, $this->dbLog ),
 		];
 	}
 

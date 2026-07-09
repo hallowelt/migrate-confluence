@@ -187,11 +187,47 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			);
 		}
 
-		// Verify comments.xml
+		// Verify page-talk.xml
 		$expectedCommentsFile = $this->dataDir . '/expected/result_comments.xml';
-		$actualCommentsFile = $this->tempDir . '/single-source/workspace/result/CON/comments.xml';
-		$this->assertFileExists( $actualCommentsFile );
-		$this->assertXmlFileEqualsXmlFile( $expectedCommentsFile, $actualCommentsFile );
+		$expectedPageTalkPages = $this->extractPages( $expectedCommentsFile );
+
+		$commentsDir = $this->tempDir . '/single-source/workspace/result/CON';
+		$pageTalkFile = $commentsDir . '/page-talk.xml';
+		$blogTalkFile = $commentsDir . '/blog-talk.xml';
+
+		$this->assertFileExists( $pageTalkFile );
+		$pageTalkPages = $this->extractPages( $pageTalkFile );
+
+		$this->assertSame(
+			array_keys( $expectedPageTalkPages ),
+			array_keys( $pageTalkPages ),
+			'Page talk titles do not match expected fixture'
+		);
+
+		foreach ( $expectedPageTalkPages as $title => $expectedCommentXml ) {
+			$this->assertArrayHasKey( $title, $pageTalkPages, "Missing page talk page: $title" );
+			$this->assertXmlStringEqualsXmlString(
+				$expectedCommentXml,
+				$pageTalkPages[$title],
+				"Page talk content mismatch for: $title"
+			);
+		}
+
+		// Verify blog-talk.xml
+		$this->assertFileExists( $blogTalkFile );
+		$blogTalkPages = $this->extractPages( $blogTalkFile );
+
+		$this->assertCount( 1, $blogTalkPages, 'Expected exactly one blog talk page.' );
+		$this->assertArrayHasKey(
+			'Blog_Talk:CON/My_Blog_Post',
+			$blogTalkPages,
+			'Expected blog talk page was not generated.'
+		);
+		$this->assertStringContainsString(
+			'cs-comments',
+			$blogTalkPages['Blog_Talk:CON/My_Blog_Post'],
+			'Expected cs-comments slot in blog talk page.'
+		);
 	}
 
 	/**

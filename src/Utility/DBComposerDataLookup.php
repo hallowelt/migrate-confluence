@@ -160,6 +160,16 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * Returns the talk page wiki title for comments on the given page.
+	 *
+	 * @param int $pageId
+	 * @return string|null
+	 */
+	public function getWikiPageCommentTitleFromPageId( int $pageId ): ?string {
+		return $this->workspaceDB->getWikiPageCommentTitleFromPageId( $pageId );
+	}
+
+	/**
 	 * Get the wiki blog_post title for a given blog_post ID.
 	 * If the blog_post has an original version, recursively look up the original version
 	 * until the original version is reached and return its wiki title.
@@ -169,6 +179,16 @@ class DBComposerDataLookup {
 	 */
 	public function getWikiBlogPostTitleFromBlogPostId( int $blogPostId ): ?string {
 		return $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $blogPostId );
+	}
+
+	/**
+	 * Returns the talk page wiki title for comments on the given blog post.
+	 *
+	 * @param int $blogPostId
+	 * @return string|null
+	 */
+	public function getWikiBlogPostCommentsFromBlogPostId( int $blogPostId ): ?string {
+		return $this->workspaceDB->getWikiBlogPostCommentTitleFromBlogPostId( $blogPostId );
 	}
 
 	/**
