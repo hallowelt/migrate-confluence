@@ -158,8 +158,6 @@ Be aware that those pages will be overwritten by the import, if they already exi
 
 The list of included templates is in `./src/Composer/_defaultpages/Template/`. It includes, amongst others:
 
-- `AttachmentsSectionEnd`
-- `AttachmentsSectionStart`
 - `Details`
 - `DetailsSummary`
 - `Excerpt`
