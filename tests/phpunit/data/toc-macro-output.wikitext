@@ -1,0 +1,6 @@
+__TOC__ 
+
+
+Lorem ipsum
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

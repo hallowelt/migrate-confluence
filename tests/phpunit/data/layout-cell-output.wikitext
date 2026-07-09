@@ -1,0 +1,41 @@
+<div class="pl-col" ac-layout="layout-cell">
+
+:rocket: 1f680 🚀 #F4F5F7
+'''Discover our family of products'''. Basic product knowledge that all employees should have!
+
+
+</div>
+<div class="pl-col" ac-layout="layout-cell" local-id="6c8260238b47">
+
+<span id="flowchat"></span>
+== FlowChat ==
+
+#DEEBFF lorem ipsum
+
+</div>
+<div class="pl-col" ac-layout="layout-cell" local-id="478ec356c180">
+
+<span id="insighthub"></span>
+== InsightHub ==
+
+#DEEBFF lorem ipsum
+
+</div>
+<div class="pl-col" ac-layout="layout-cell" local-id="f1336427497e">
+
+<span id="powerknow"></span>
+== PowerKnow ==
+
+#DEEBFF lorem impsum
+
+</div>
+<div class="pl-col" ac-layout="layout-cell" local-id="35e4acdc9530">
+
+<span id="taskrules"></span>
+== TaskRules ==
+
+#DEEBFF lorem ipsum
+
+</div>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

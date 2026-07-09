@@ -3,9 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use HalloWelt\MigrateConfluence\Converter\Processor\SpaceDetailsMacro;
-use PHPUnit\Framework\TestCase;
 
-class SpaceDetailsMacroTest extends TestCase {
+class SpaceDetailsMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\SpaceDetailsMacroTest::process

@@ -4,15 +4,14 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
-use PHPUnit\Framework\TestCase;
 
-class RecentlyUpdatedMacroTest extends TestCase {
+class RecentlyUpdatedMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$input = $this->getInput();
 
 		$dom = new DOMDocument();
@@ -34,10 +33,10 @@ class RecentlyUpdatedMacroTest extends TestCase {
 	}
 
 	protected function getInput(): string {
-		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/recently-updated-macro-input.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/recently-updated-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/recently-updated-macro-output.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/recently-updated-macro-output.xml' );
 	}
 }

@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
-use PHPUnit\Framework\TestCase;
 
-class InfoMacroTest extends TestCase {
+class InfoMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @var string

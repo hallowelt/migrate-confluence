@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
-use PHPUnit\Framework\TestCase;
 
-class TaskListMacroTest extends TestCase {
+class TaskListMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @var string
@@ -18,7 +17,7 @@ class TaskListMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$input = $this->getInput();
 

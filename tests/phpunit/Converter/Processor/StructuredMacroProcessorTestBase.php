@@ -29,7 +29,7 @@ abstract class StructuredMacroProcessorTestBase extends ProcessorTestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\StructuredMacroProcessor::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$input = $this->getInput();
 		$expectedOutput = $this->getExpectedOutput();
 

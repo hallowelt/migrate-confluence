@@ -1,0 +1,42 @@
+{{TableFilterStart
+|inverse = ,
+|sparkName = Sparkline
+|column = Status
+|limitHeight = 
+|separator = Point (.)
+|default = ,
+|isFirstTimeEnter = true
+|cell-width = ,
+|userfilter = Thema
+|datepattern = dd.mm.yy
+|id = 1234567890123_-456789017
+|updateSelectOptions = true
+|worklog = 365|5|8|y w d h m|y w d h m
+|isOR = AND
+|order = 0,1
+}}|body = 
+
+{| class="wikitable fixed-table wrapped datagrid"
+|-
+! Position
+! Name
+! Process
+! User?
+! Status
+|-
+| 1
+| Test 1
+| Process 1
+| Sysop
+| style="text-align: center;"| done
+|-
+| 2
+| Process 2
+| <br />
+| <br />
+| <br />
+|}
+
+{{TableFilterEnd}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

@@ -4,23 +4,22 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
-use PHPUnit\Framework\TestCase;
 
-class ExcerptMacroTest extends TestCase {
+class ExcerptMacroTest extends ProcessorTestCase {
 
 	protected function getInput(): string {
-		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/excerpt-macro-input.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/excerpt-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( dirname( dirname( __DIR__ ) ) . '/data/excerpt-macro-output.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/excerpt-macro-output.xml' );
 	}
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$input = $this->getInput();
 		$expectedOutput = $this->getExpectedOutput();
 

@@ -1,0 +1,7 @@
+Some text before
+
+[[Category:Broken_macro/anchor]]
+
+Some text after
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

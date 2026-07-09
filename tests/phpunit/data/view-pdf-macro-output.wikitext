@@ -1,0 +1,3 @@
+{{ViewPdf|filename = ABC_SomePage-Dummy_1.pdf}}[[Category:Broken_attachment_link]]
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

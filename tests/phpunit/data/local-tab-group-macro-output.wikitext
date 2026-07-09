@@ -1,0 +1,10 @@
+<div class="ac-localtabgroup">
+
+Test
+Lorem ipsum dolor
+
+<headertabs />
+
+</div>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

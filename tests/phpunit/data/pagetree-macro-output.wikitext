@@ -1,0 +1,3 @@
+{{PageTree|content-title=SomePage|excerpt=true|expandCollapseAll=true|reverse=false|searchBox=true|sort=natural|startDepth=3}} {{PageTree|content-title=ABC:Main Page|space-key=DEVOPS}} {{PageTree|content-title=SomePage|space-key=DEVOPS}} {{PageTree|content-title=SomePage|space-key=DEVOPS}} [[Category:Broken_macro/pagetree]] {{PageTree|content-title=|space-key=DEVOPS}} [[Category:Broken_macro/pagetree]] {{PageTree|content-title=|space-key={{NAMESPACE}}}} [[Category:Broken_macro/pagetree]] {{PageTree|content-title=DEVOPS:Testpage|space-key=DEVOPS}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

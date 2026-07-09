@@ -1,0 +1,37 @@
+<div>
+
+[[ABC:Page_Title|Link to another Confluence Page]]
+
+</div>
+<div>
+
+[[ABC:Page_Title2|Page Title2]]
+
+</div>
+<div>
+
+[[DEVOPS:Page_Title3|Link to a Confluence Page in another space]]
+
+</div>
+<div>
+
+[[DEVOPS:Page_Title3|Page Title3]]
+
+</div>
+<div>
+
+[[DEVOPS:Page_Title3/Test|Test]]
+
+</div>
+<div>
+
+[[Confluence_page---DEF---Page_Title4|Confluence_page---DEF---Page_Title4]][[Category:Broken_page_link]]
+
+</div>
+<div>
+
+[[ABC:Test/Page_Title5|Page Title5]] [[Page_Title6|Page Title6]] [[Test/Page_Title7|Page Title7]]
+
+</div>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

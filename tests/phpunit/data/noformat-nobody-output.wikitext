@@ -1,0 +1,3 @@
+<pre class="noformat">[[Category:Broken_macro/noformat]]</pre>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

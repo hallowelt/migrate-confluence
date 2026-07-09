@@ -1,0 +1,3 @@
+{{ViewFile|filename = ABC_SomePage-Dummy_1.pdf|version-at-save = 1}}[[Category:Broken_attachment_link]] {{ViewFile|filename = ABC_SomePage-Dummy_2.docx|version-at-save = 1}}[[Category:Broken_attachment_link]] {{ViewFile|filename = ABC_SomePage-Dummy_3.png|version-at-save = 1}}[[Category:Broken_attachment_link]]
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

@@ -17,7 +17,7 @@ class TableFilterMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$input = file_get_contents( "$this->dir/table-filter-macro-input.xml" );
 

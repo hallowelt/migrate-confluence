@@ -1,0 +1,3 @@
+{{Jira|key = ABC-3423}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

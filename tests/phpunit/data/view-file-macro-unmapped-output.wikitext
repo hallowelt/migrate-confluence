@@ -1,0 +1,3 @@
+{{ViewFile|filename = ABC_SomePage-NotInMap.pdf|version-at-save = 1}}[[Category:Broken_attachment_link]]
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

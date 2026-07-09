@@ -1,0 +1,10 @@
+Before
+
+<div class="ac-gallery" params="{&quot;title&quot;:&quot;Cross-Page Gallery&quot;,&quot;page&quot;:&quot;OtherPage, MKT:Marketing Assets&quot;}">
+
+&lt;gallery caption=&quot;Cross-Page Gallery&quot;&gt; logo.png &lt;/gallery&gt;
+
+</div>
+After
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

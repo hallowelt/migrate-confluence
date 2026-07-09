@@ -1,0 +1,10 @@
+{{ExpandStart
+|title = click here to expand
+}}
+
+* something
+** something more
+
+{{ExpandEnd}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

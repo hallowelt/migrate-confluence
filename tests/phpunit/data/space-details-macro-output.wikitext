@@ -1,0 +1,3 @@
+{{SpaceDetails|width = 100%}} {{SpaceDetails|width = 100%}} {{SpaceDetails|width = 50%}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

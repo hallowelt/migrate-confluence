@@ -7,15 +7,14 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use PHPUnit\Framework\TestCase;
 
-class AnchorLinkTest extends TestCase {
+class AnchorLinkTest extends ProcessorTestCase {
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink::process
 	 * @return void
 	 */
 	public function testProcess() {
-		$dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$dir = dirname( __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/anchorlinktest-input.xml" );
 
 		$dom = new DOMDocument();

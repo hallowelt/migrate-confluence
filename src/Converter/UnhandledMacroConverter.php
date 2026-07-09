@@ -5,7 +5,7 @@ namespace HalloWelt\MigrateConfluence\Converter;
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
-class UnhandledMacroConverter extends ConversionHelper {
+class UnhandledMacroConverter extends ConversionHelper implements IProcessor {
 
 	/**
 	 * @param DOMDocument $dom

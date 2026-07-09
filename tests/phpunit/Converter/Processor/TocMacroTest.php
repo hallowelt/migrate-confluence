@@ -5,15 +5,14 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\TocMacro;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
-use PHPUnit\Framework\TestCase;
 
-class TocMacroTest extends TestCase {
+class TocMacroTest extends ProcessorTestCase {
 
 		/**
 		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\TocMacro::process
 		 * @return void
 		 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/toc-macro-input.xml" );
 

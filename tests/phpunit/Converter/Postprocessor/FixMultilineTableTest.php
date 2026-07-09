@@ -268,13 +268,17 @@ class FixMultilineTableTest extends TestCase {
 			],
 			'nested table in header with attributes' => [
 				'{|',
-				"{| class=\"wikitable\"\n|-\n! style=\"text-align: center;\" | Some text {| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
-				"{| class=\"wikitable\"\n|-\n! style=\"text-align: center;\" | Some text\n{| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
+				"{| class=\"wikitable\"\n|-\n! style=\"text-align: center;\" | Some text " .
+					"{| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
+				"{| class=\"wikitable\"\n|-\n! style=\"text-align: center;\" | Some text\n" .
+					"{| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
 			],
 			'nested table in cell with attributes' => [
 				'{|',
-				"{| class=\"wikitable\"\n|-\n| style=\"text-align: center;\" | Some text {| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
-				"{| class=\"wikitable\"\n|-\n| style=\"text-align: center;\" | Some text\n{| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
+				"{| class=\"wikitable\"\n|-\n| style=\"text-align: center;\" | Some text " .
+					"{| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
+				"{| class=\"wikitable\"\n|-\n| style=\"text-align: center;\" | Some text\n" .
+					"{| class=\"wikitable2\"\n|-\n| cell\n|}\n|}",
 			],
 		];
 	}

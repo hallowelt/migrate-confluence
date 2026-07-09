@@ -60,4 +60,5 @@ abstract class ProcessorTestCase extends TestCase {
 			}
 		}
 	}
+
 }

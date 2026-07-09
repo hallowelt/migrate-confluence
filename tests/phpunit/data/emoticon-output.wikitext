@@ -1,0 +1,7 @@
+Some sample text with emoticon :)
+
+Some text with unknown emoticon [[Category:Broken_emoticon]]
+
+Some text with &quot;blue-star&quot; emoticon 📧
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

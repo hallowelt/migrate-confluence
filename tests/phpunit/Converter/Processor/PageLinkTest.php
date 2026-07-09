@@ -7,14 +7,13 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use PHPUnit\Framework\TestCase;
 
-class PageLinkTest extends TestCase {
+class PageLinkTest extends ProcessorTestCase {
 		/**
 		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageLink::preprocess
 		 * @return void
 		 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$input = file_get_contents( "$dir/pagelinktest-input.xml" );
 

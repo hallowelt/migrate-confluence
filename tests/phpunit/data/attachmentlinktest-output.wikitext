@@ -1,0 +1,22 @@
+<div>
+
+[[Media:ABC_SomePage-SomeImage.png|Link to a Confluence Attachment]]
+
+</div>
+<div>
+
+[[Media:ABC_SomePage-SomeImage1.png]]
+
+</div>
+<div>
+
+[[Media:DEVOPS_SomePage-SomeImage2.png]]
+
+</div>
+<div>
+
+[[Media:SomePage-SomeImage3.png]][[Category:Broken_attachment_link]]
+
+</div>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

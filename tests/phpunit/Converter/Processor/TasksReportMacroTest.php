@@ -6,9 +6,8 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use PHPUnit\Framework\TestCase;
 
-class TasksReportMacroTest extends TestCase {
+class TasksReportMacroTest extends ProcessorTestCase {
 	/**
 	 * @var mixed
 	 */
@@ -23,7 +22,7 @@ class TasksReportMacroTest extends TestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro::preprocess
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );

@@ -1,0 +1,14 @@
+{{DetailsStart
+|id = Lorem
+|something = we have never seen before
+}}
+
+<span id="ipsum-dolor"></span>
+=== Ipsum dolor ===
+
+<span id="there-may-be-multiple-rich-texts"></span>
+=== There may be multiple rich texts ===
+
+{{DetailsEnd}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

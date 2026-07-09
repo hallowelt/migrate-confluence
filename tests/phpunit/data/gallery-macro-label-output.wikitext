@@ -1,0 +1,7 @@
+Before
+
+[[Category:Broken_macro/gallery]]
+
+After
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

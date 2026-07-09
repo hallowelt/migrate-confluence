@@ -1,0 +1,15 @@
+{{SubpageList|page=SomePage}}
+
+{{SubpageList|all=true|style=h2|sort=creation|reverse=true|page=SomePage}}
+
+{{SubpageList|all=true|depth=1|style=h2|page=ABC:Some page}}
+
+{{SubpageList|all=true|depth=1|style=h2|page=DEVOPS:Some other page}}
+
+{{SubpageList|all=true|depth=1|style=h2|page=Confluence_page---DEVOPS---Unknown_page}}[[Category:Broken_macro/children]]
+
+{{SubpageList|all=true|depth=1|style=h2|page=Confluence_page------Unknown_page}}[[Category:Broken_macro/children]]
+
+{{SubpageList|all=true|depth=1|style=h2|page=SomePage}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

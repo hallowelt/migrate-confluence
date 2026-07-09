@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
-use PHPUnit\Framework\TestCase;
 
-class AttachmentsMacroTest extends TestCase {
+class AttachmentsMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @var string
@@ -18,7 +17,7 @@ class AttachmentsMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$input = file_get_contents( "$this->dir/attachments-macro-input.xml" );
 

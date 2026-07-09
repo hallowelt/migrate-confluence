@@ -4,9 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
-use PHPUnit\Framework\TestCase;
 
-class PlaceholderTest extends TestCase {
+class PlaceholderTest extends ProcessorTestCase {
 
 	/**
 	 * @var string
@@ -18,7 +17,7 @@ class PlaceholderTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dir = dirname( dirname( __DIR__ ) ) . '/data';
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
 		$input = file_get_contents( "$this->dir/placeholder-input.xml" );
 

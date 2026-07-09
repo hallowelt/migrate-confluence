@@ -12,7 +12,7 @@ class CodeMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testPostprocess() {
-		$dir = dirname( dirname( __DIR__ ) );
+		$dir = dirname( __DIR__, 2 );
 
 		$input = file_get_contents( "$dir/data/code-input.wikitext" );
 		$expectedOutput = file_get_contents( "$dir/data/code-output.wikitext" );

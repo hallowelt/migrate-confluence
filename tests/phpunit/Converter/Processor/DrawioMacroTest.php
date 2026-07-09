@@ -7,9 +7,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use PHPUnit\Framework\TestCase;
 
-class DrawioMacroTest extends TestCase {
+class DrawioMacroTest extends ProcessorTestCase {
 	/** @var DBConversionDataLookup */
 	private $dataLookup;
 
@@ -38,7 +37,7 @@ class DrawioMacroTest extends TestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro::process
 	 * @return void
 	 */
-	public function testPreprocess() {
+	public function testProcess() {
 		$this->tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-test-' . uniqid();
 		$this->conversionDataWriter = new ConversionDataWriter( $this->tempDir );
 		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );

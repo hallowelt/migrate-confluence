@@ -5,9 +5,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use PHPUnit\Framework\TestCase;
 
-class PageTreeMacroTest extends TestCase {
+class PageTreeMacroTest extends ProcessorTestCase {
 	/** @var DBConversionDataLookup */
 	private $dataLookup;
 

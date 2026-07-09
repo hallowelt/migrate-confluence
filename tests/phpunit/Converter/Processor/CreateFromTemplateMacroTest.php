@@ -6,9 +6,8 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use PHPUnit\Framework\TestCase;
 
-class CreateFromTemplateMacroTest extends TestCase {
+class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro::process

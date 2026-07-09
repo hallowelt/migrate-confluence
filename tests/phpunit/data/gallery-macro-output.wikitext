@@ -1,0 +1,10 @@
+Before
+
+<div class="ac-gallery" params="{&quot;title&quot;:&quot;Assets Gallery (All Image Types)&quot;,&quot;columns&quot;:&quot;4&quot;}">
+
+&lt;gallery caption=&quot;Assets Gallery (All Image Types)&quot; perrow=&quot;4&quot;&gt; ABC_SomePage-dashboard.png ABC_SomePage-photo.jpg ABC_SomePage-loading.gif ABC_SomePage-illustration.webp ABC_SomePage-raw-scan.bmp ABC_SomePage-blueprint.tiff ABC_SomePage-icon.svg ABC_logo.png team.jpg ABC_SomePage-document.pdf &lt;/gallery&gt;[[Category:Broken_attachment_link]]
+
+</div>
+After
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

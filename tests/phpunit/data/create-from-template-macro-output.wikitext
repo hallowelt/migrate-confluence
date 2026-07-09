@@ -1,0 +1,9 @@
+Some text before
+
+{{CreateFromTemplate|preload = Template:ABC/SomePage|buttonlabel = Create|macroid = 9c4e10cc-3728-409e-b178-16a9e2751ae8}} {{CreateFromTemplate|preload = Template:DEVOPS/SomeOtherPage|buttonlabel = New|macroid = 68860c88-2cb6-47fa-bb6c-afd9d0fdbdef}} {{CreateFromTemplate|preload = Template:ABC/SomePage|buttonlabel = Create|macroid = f1bcfd9e-b015-4b0e-9237-35e1737343c1}}
+
+Some text after
+
+{{CreateFromTemplate|preload = Template:FallbackCreateFromTemplate|buttonlabel = New|macroid = 68860c88-2cb6-47fa-bb6c-afd9d0fdbdef}}<!--  Template could not be found (templateId: 345)  --> [[Category:Broken_macro/create-from-template]] {{CreateFromTemplate|preload = Template:FallbackCreateFromTemplate|buttonlabel = Create|macroid = f1bcfd9e-b015-4b0e-9237-35e1737343c1}}<!--  Template is a confluence blueprint or plugin and is not available (blueprintModuleCompleteKey: com.atlassian.confluence.plugins.confluence-business-blueprints:file-list-blueprint)  --> [[Category:Broken_macro/create-from-template]]
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

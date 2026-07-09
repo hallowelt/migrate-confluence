@@ -1,0 +1,15 @@
+{{Note
+|title = Some nice title
+|body = 
+
+
+<span id="some-heading"></span>
+=== Some heading: ===
+
+# some inline text
+# some other inline text
+
+}}
+
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

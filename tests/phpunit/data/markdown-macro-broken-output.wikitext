@@ -1,0 +1,7 @@
+Before
+
+[[Category:Broken_macro/markdown]]
+
+After
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
