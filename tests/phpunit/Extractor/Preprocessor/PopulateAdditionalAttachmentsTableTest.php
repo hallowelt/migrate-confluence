@@ -12,18 +12,18 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable::execute
 	 */
-	public function testAddsOnlyUnknownCurrentAttachmentsToAdditionalTable(): void {
+	public function testCreatesTargetAttachmentFilenameWithEmptyMigrationConfig(): void {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 
-		$workspaceDB->addSpace( 10, 'TEST', 'Test Space', 'TEST:', -1, -1 );
-		$workspaceDB->addPage( 800, 10, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
-			801, 10, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
+			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
 		);
 		$workspaceDB->addAttachment(
-			802, 10, 'extra.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/d', [], [], []
+			802, 1000, 'extra.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/d', [], [], []
 		);
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
@@ -31,21 +31,193 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
-		$this->assertCount( 1, $additionalAttachments, 'Expected one additional attachment entry.' );
+		$this->assertCount( 1, $additionalAttachments, 'empty-config: expected exactly one additional attachment entry.' );
+		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'TEST_extra.pdf';
 		$this->assertSame(
-			802,
-			$additionalAttachments[0]['attachment_id'],
-			'Expected only unknown attachment to be added.'
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"empty-config: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepo(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+
+		$workspaceDB->addAttachment(
+			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			802, 1000, 'extra.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/d', [], [], []
+		);
+		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
+
+		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'ext-ns-file-repo-compat' => true
+		] ) );
+		$processor->execute();
+
+		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
+		$this->assertCount( 1, $additionalAttachments, 'ext-ns-file-repo-compat: expected exactly one additional attachment entry.' );
+		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'TEST:extra.pdf';
 		$this->assertSame(
-			'extra.pdf',
-			$additionalAttachments[0]['original_attachment_filename'],
-			'Unexpected original filename for additional attachment.'
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"ext-ns-file-repo-compat: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
-		$this->assertNotSame(
-			'',
-			$additionalAttachments[0]['target_attachment_filename'],
-			'Expected target filename for additional attachment.'
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithSpaceMapping(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+
+		$workspaceDB->addAttachment(
+			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			802, 1000, 'extra.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/d', [], [], []
+		);
+		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
+
+		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST'
+			]
+		] ) );
+		$processor->execute();
+
+		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
+		$this->assertCount( 1, $additionalAttachments, 'space-prefix mapping: expected exactly one additional attachment entry.' );
+		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST_extra.pdf';
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepoAndSpaceMapping(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+
+		$workspaceDB->addAttachment(
+			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			802, 1000, 'extra.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/d', [], [], []
+		);
+		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
+
+		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST'
+			],
+			'ext-ns-file-repo-compat' => true
+		] ) );
+		$processor->execute();
+
+		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
+		$this->assertCount( 1, $additionalAttachments, 'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one additional attachment entry.' );
+		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST:extra.pdf';
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithSpaceMappingAndRootpages(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+
+		$workspaceDB->addAttachment(
+			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			802, 1000, 'extra.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/d', [], [], []
+		);
+		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
+
+		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST:Root/'
+			]
+		] ) );
+		$processor->execute();
+
+		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
+		$this->assertCount( 1, $additionalAttachments, 'space-prefix mapping: expected exactly one additional attachment entry.' );
+		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST_extra.pdf';
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepoAndSpaceMappingAndRootpages(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+
+		$workspaceDB->addAttachment(
+			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			802, 1000, 'extra.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/d', [], [], []
+		);
+		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
+
+		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST:Root/'
+			],
+			'ext-ns-file-repo-compat' => true
+		] ) );
+		$processor->execute();
+
+		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
+		$this->assertCount( 1, $additionalAttachments, 'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one additional attachment entry.' );
+		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST:extra.pdf';
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 }

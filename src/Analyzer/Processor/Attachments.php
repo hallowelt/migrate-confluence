@@ -140,7 +140,39 @@ class Attachments extends ProcessorBase {
 	 * @return string
 	 */
 	private function makeAttachmentReference( int $attachmentId, int $containerContentId, array $properties ): string {
-		$attachmentsPath = $this->sourceBasePath . '/attachments';
+		// Try the default path first
+		$attachmentsBasePath = $this->sourceBasePath;
+		$attachmentsPath = $attachmentsBasePath . '/attachments';
+		$potentialAttachmentRef = $attachmentsPath . "/" . $containerContentId . '/' . $attachmentId;
+
+		// If attachment exists in the default path, use it
+		if ( is_dir( $potentialAttachmentRef ) ) {
+			// Use default path - no need to scan
+		} else {
+			// Only if not found in default path, scan other subdirectories
+			// This handles multi-space conversions where directories have arbitrary names
+			$parentPath = dirname( $this->sourceBasePath );
+			if ( is_dir( $parentPath ) ) {
+				$dirs = @scandir( $parentPath );
+				if ( $dirs !== false ) {
+					foreach ( $dirs as $dir ) {
+						if ( $dir === '.' || $dir === '..' ) {
+							continue;
+						}
+						$potentialAttachmentsPath = $parentPath . '/' . $dir . '/attachments';
+						if ( is_dir( $potentialAttachmentsPath ) ) {
+							$potentialAttachmentRef = $potentialAttachmentsPath;
+							$potentialAttachmentRef .= "/" . $containerContentId . '/' . $attachmentId;
+							if ( is_dir( $potentialAttachmentRef ) ) {
+								$attachmentsBasePath = $parentPath . '/' . $dir;
+								$attachmentsPath = $attachmentsBasePath . '/attachments';
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
 
 		$attachmentVersion = '';
 		if ( isset( $properties['attachmentVersion'] ) ) {

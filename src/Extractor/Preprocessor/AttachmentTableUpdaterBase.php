@@ -128,7 +128,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		}
 
 		$filenameBuilder = new FilenameBuilder(
-			$this->workspaceDB->getMapSpaceIdToPrefix(),
+			$this->getSpaceIdToPrefixMapWithConfigOverrides(),
 			$this->migrationConfig
 		);
 
@@ -260,6 +260,36 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		}
 	}
 
+	/**
+	 * Builds the space_id => prefix map used for attachment title generation.
+	 * Configured space-prefix values override DB prefixes by matching space keys.
+	 *
+	 * @return array
+	 */
+	protected function getSpaceIdToPrefixMapWithConfigOverrides(): array {
+		$spaceIdToPrefixMap = $this->workspaceDB->getMapSpaceIdToPrefix();
+		$spaceIdToKeyMap = $this->workspaceDB->getMapSpaceIdToKey();
+
+		foreach ( $spaceIdToKeyMap as $spaceId => $spaceKey ) {
+			$configPrefix = $this->migrationConfig->getPrefixFromSpaceKeyToPrefixMap( (string)$spaceKey );
+			if ( $configPrefix === null ) {
+				continue;
+			}
+
+			// Keep backward compatibility for plain namespace names like "MYTEST".
+			if ( $configPrefix !== '' && strpos( $configPrefix, ':' ) === false ) {
+				$configPrefix .= ':';
+			}
+
+			$spaceIdToPrefixMap[(int)$spaceId] = $configPrefix;
+		}
+
+		return $spaceIdToPrefixMap;
+	}
+
+	/**
+	 * @return void
+	 */
 	private function checkWikiTitles(): void {
 		$validityChecker = new TitleValidityChecker();
 		foreach ( $this->getStoredAttachments() as $attachment ) {
