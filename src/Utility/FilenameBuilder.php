@@ -68,8 +68,16 @@ class FilenameBuilder {
 				$filePrefix = $this->spaceIdPrefixMap[$spaceId];
 				if ( $filePrefix !== '' ) {
 					$namespacePart = substr( $filePrefix, 0, strpos( $filePrefix, ':' ) );
-					if ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
+					// WindowsFilename replaces colons with dashes
+					if ( strpos( $filename, "{$namespacePart}-" ) === 0 ) {
+						// Replace namespace dash with colon
+						$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}-" ) );
+					} elseif ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
+						// Handle underscore variant (just in case)
 						$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}_" ) );
+					} elseif ( strpos( $filename, "$namespacePart:" ) !== 0 ) {
+						// If filename doesn't already start with namespace:colon, prepend it
+						$filename = "$namespacePart:$filename";
 					}
 				}
 			}

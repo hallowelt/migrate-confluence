@@ -364,8 +364,7 @@ class Convert extends CommandConvert {
 				$this->output->writeln( $validationError );
 				exit( 1 );
 			} else {
-				$advancedConfig = $configOptionHelper->getConfig();
-				$config = array_merge( $config, $advancedConfig );
+				$config['config'] = $configOptionHelper->getConfig();
 				$this->output->writeln( 'Config file loaded successfully' );
 			}
 		}
