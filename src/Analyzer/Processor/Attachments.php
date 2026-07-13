@@ -153,7 +153,7 @@ class Attachments extends ProcessorBase {
 			// This handles multi-space conversions where directories have arbitrary names
 			$parentPath = dirname( $this->sourceBasePath );
 			if ( is_dir( $parentPath ) ) {
-				$dirs = @scandir( $parentPath );
+				$dirs = scandir( $parentPath );
 				if ( $dirs !== false ) {
 					foreach ( $dirs as $dir ) {
 						if ( $dir === '.' || $dir === '..' ) {
