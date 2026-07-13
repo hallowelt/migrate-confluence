@@ -118,12 +118,16 @@ class SpaceDescription extends ProcessorBase {
 		);
 
 		if ( !$status ) {
-			$this->writer->addLogEntry(
-				'error',
-				'analyze',
-				__CLASS__,
-				"Failed to add space description (ID:$descriptionId) to the database."
-			);
+				$xmlFile = $this->xmlReader->baseURI;
+				$xmlDir = dirname( $xmlFile );
+				$xmlFilename = basename( $xmlFile );
+				$this->writer->addLogEntry(
+					'serious-error',
+					'analyze',
+					__CLASS__,
+					"Space description ID $descriptionId already exists in the database."
+						. " Source directory: '$xmlDir', file: '$xmlFilename'."
+				);
 		}
 
 		$this->output->writeln( "\nAdd space description ($descriptionId)" );

@@ -85,11 +85,15 @@ class Spaces extends ProcessorBase {
 		);
 
 		if ( !$status ) {
+			$xmlFile = $this->xmlReader->baseURI;
+			$xmlDir = dirname( $xmlFile );
+			$xmlFilename = basename( $xmlFile );
 			$this->writer->addLogEntry(
-				'error',
+				'serious-error',
 				'analyze',
 				__CLASS__,
-				"Failed to add space (ID:$spaceId) to the database."
+				"Space ID $spaceId already exists in the database."
+					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);
 		}
 	}

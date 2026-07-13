@@ -115,7 +115,7 @@ class Attachments extends ProcessorBase {
 			$properties
 		);
 
-		$this->writer->addAttachment(
+		$status = $this->writer->addAttachment(
 			$attachmentId,
 			$spaceId,
 			$confluenceFilename,
@@ -131,6 +131,19 @@ class Attachments extends ProcessorBase {
 			$properties,
 			$collection
 		);
+
+		if ( !$status ) {
+			$xmlFile = $this->xmlReader->baseURI;
+			$xmlDir = dirname( $xmlFile );
+			$xmlFilename = basename( $xmlFile );
+			$this->writer->addLogEntry(
+				'serious-error',
+				'analyze',
+				__CLASS__,
+				"Attachment ID $attachmentId already exists in the database."
+					. " Source directory: '$xmlDir', file: '$xmlFilename'."
+			);
+		}
 	}
 
 	/**
@@ -151,6 +164,8 @@ class Attachments extends ProcessorBase {
 		} else {
 			// Only if not found in default path, scan other subdirectories
 			// This handles multi-space conversions where directories have arbitrary names
+			$expectedDir = $potentialAttachmentRef;
+			$foundInAltDir = false;
 			$parentPath = dirname( $this->sourceBasePath );
 			if ( is_dir( $parentPath ) ) {
 				$dirs = scandir( $parentPath );
@@ -166,11 +181,28 @@ class Attachments extends ProcessorBase {
 							if ( is_dir( $potentialAttachmentRef ) ) {
 								$attachmentsBasePath = $parentPath . '/' . $dir;
 								$attachmentsPath = $attachmentsBasePath . '/attachments';
+								$this->writer->addLogEntry(
+									'error',
+									'analyze',
+									__CLASS__,
+									"Attachment ID $attachmentId not found in expected directory"
+										. " '$expectedDir', found in '$potentialAttachmentRef' instead."
+								);
+								$foundInAltDir = true;
 								break;
 							}
 						}
 					}
 				}
+			}
+			if ( !$foundInAltDir ) {
+				$this->writer->addLogEntry(
+					'error',
+					'analyze',
+					__CLASS__,
+					"Attachment ID $attachmentId not found in expected directory '$expectedDir'"
+						. " and not found in any subdirectory of '$parentPath'."
+				);
 			}
 		}
 

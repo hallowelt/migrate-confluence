@@ -136,12 +136,15 @@ class BlogPost extends ProcessorBase {
 		);
 
 		if ( !$status ) {
+			$xmlFile = $this->xmlReader->baseURI;
+			$xmlDir = dirname( $xmlFile );
+			$xmlFilename = basename( $xmlFile );
 			$this->writer->addLogEntry(
-				'error',
+				'serious-error',
 				'analyze',
 				__CLASS__,
-				"Failed to add blog post '$confluenceTitle' (ID:$pageId) to the database."
-				. " This may indicate a problem with the page id. Maybe it does exist twice."
+				"Blog post ID $pageId ('$confluenceTitle') already exists in the database."
+					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);
 		}
 	}
