@@ -31,10 +31,11 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$this->assertCount( 1, $pageAttachments, 'empty-config: expected exactly one page attachment entry.' );
 		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'TEST_Page-file.txt';
+		$message = "empty-config: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"empty-config: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -59,13 +60,18 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
-		$this->assertCount( 1, $pageAttachments, 'ext-ns-file-repo-compat: expected exactly one page attachment entry.' );
+		$this->assertCount(
+			1,
+			$pageAttachments,
+			'ext-ns-file-repo-compat: expected exactly one page attachment entry.'
+		);
 		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'TEST:Page-file.txt';
+		$message = "ext-ns-file-repo-compat: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"ext-ns-file-repo-compat: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -95,10 +101,11 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$this->assertCount( 1, $pageAttachments, 'space-prefix mapping: expected exactly one page attachment entry.' );
 		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST_Page-file.txt';
+		$message = "space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -126,13 +133,18 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
-		$this->assertCount( 1, $pageAttachments, 'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one page attachment entry.' );
+		$this->assertCount(
+			1,
+			$pageAttachments,
+			'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one page attachment entry.'
+		);
 		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST:Page-file.txt';
+		$message = "ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -159,13 +171,18 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
-		$this->assertCount( 1, $pageAttachments, 'space-prefix mapping: expected exactly one page attachment entry.' );
+		$this->assertCount(
+			1,
+			$pageAttachments,
+			'space-prefix mapping: expected exactly one page attachment entry.'
+		);
 		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST_Page-file.txt';
+		$message = "space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -193,13 +210,18 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
-		$this->assertCount( 1, $pageAttachments, 'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one page attachment entry.' );
+		$this->assertCount(
+			1,
+			$pageAttachments,
+			'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one page attachment entry.'
+		);
 		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST:Page-file.txt';
+		$message = "ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 

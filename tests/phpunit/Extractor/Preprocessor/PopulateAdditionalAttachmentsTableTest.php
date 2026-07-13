@@ -31,13 +31,18 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
-		$this->assertCount( 1, $additionalAttachments, 'empty-config: expected exactly one additional attachment entry.' );
+		$this->assertCount(
+			1,
+			$additionalAttachments,
+			'empty-config: expected exactly one additional attachment entry.'
+		);
 		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'TEST_extra.pdf';
+		$message = "empty-config: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"empty-config: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -65,13 +70,18 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
-		$this->assertCount( 1, $additionalAttachments, 'ext-ns-file-repo-compat: expected exactly one additional attachment entry.' );
+		$this->assertCount(
+			1,
+			$additionalAttachments,
+			'ext-ns-file-repo-compat: expected exactly one additional attachment entry.'
+		);
 		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'TEST:extra.pdf';
+		$message = "ext-ns-file-repo-compat: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"ext-ns-file-repo-compat: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -101,13 +111,18 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
-		$this->assertCount( 1, $additionalAttachments, 'space-prefix mapping: expected exactly one additional attachment entry.' );
+		$this->assertCount(
+			1,
+			$additionalAttachments,
+			'space-prefix mapping: expected exactly one additional attachment entry.'
+		);
 		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST_extra.pdf';
+		$message = "space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -138,13 +153,18 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
-		$this->assertCount( 1, $additionalAttachments, 'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one additional attachment entry.' );
+		$this->assertCount(
+			1,
+			$additionalAttachments,
+			'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one additional attachment entry.'
+		);
 		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST:extra.pdf';
+		$message = "ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -174,13 +194,18 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
-		$this->assertCount( 1, $additionalAttachments, 'space-prefix mapping: expected exactly one additional attachment entry.' );
+		$this->assertCount(
+			1,
+			$additionalAttachments,
+			'space-prefix mapping: expected exactly one additional attachment entry.'
+		);
 		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST_extra.pdf';
+		$message = "space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -211,13 +236,18 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
-		$this->assertCount( 1, $additionalAttachments, 'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one additional attachment entry.' );
+		$this->assertCount(
+			1,
+			$additionalAttachments,
+			'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one additional attachment entry.'
+		);
 		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST:extra.pdf';
+		$message = "ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 }

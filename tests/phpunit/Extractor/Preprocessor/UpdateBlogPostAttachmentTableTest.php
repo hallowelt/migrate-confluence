@@ -29,10 +29,11 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$this->assertCount( 1, $blogPostAttachments, 'empty-config: expected exactly one blog post attachment entry.' );
 		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'TEST_Blog-image.png';
+		$message = "empty-config: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"empty-config: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -55,13 +56,18 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
-		$this->assertCount( 1, $blogPostAttachments, 'ext-ns-file-repo-compat: expected exactly one blog post attachment entry.' );
+		$this->assertCount(
+			1,
+			$blogPostAttachments,
+			'ext-ns-file-repo-compat: expected exactly one blog post attachment entry.'
+		);
 		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'TEST:Blog-image.png';
+		$message = "ext-ns-file-repo-compat: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"ext-ns-file-repo-compat: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -86,13 +92,18 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
-		$this->assertCount( 1, $blogPostAttachments, 'space-prefix mapping: expected exactly one blog post attachment entry.' );
+		$this->assertCount(
+			1,
+			$blogPostAttachments,
+			'space-prefix mapping: expected exactly one blog post attachment entry.'
+		);
 		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST_Blog-image.png';
+		$message = "space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -118,13 +129,18 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
-		$this->assertCount( 1, $blogPostAttachments, 'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one blog post attachment entry.' );
+		$this->assertCount(
+			1,
+			$blogPostAttachments,
+			'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one blog post attachment entry.'
+		);
 		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST:Blog-image.png';
+		$message = "ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -149,13 +165,18 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
-		$this->assertCount( 1, $blogPostAttachments, 'space-prefix mapping: expected exactly one blog post attachment entry.' );
+		$this->assertCount(
+			1,
+			$blogPostAttachments,
+			'space-prefix mapping: expected exactly one blog post attachment entry.'
+		);
 		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST_Blog-image.png';
+		$message = "space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 
@@ -181,13 +202,18 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
-		$this->assertCount( 1, $blogPostAttachments, 'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one blog post attachment entry.' );
+		$this->assertCount(
+			1,
+			$blogPostAttachments,
+			'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one blog post attachment entry.'
+		);
 		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
 		$expectedTargetFilename = 'MYTEST:Blog-image.png';
+		$message = "ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
 			$expectedTargetFilename,
 			$actualTargetFilename,
-			"ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename. Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 }
