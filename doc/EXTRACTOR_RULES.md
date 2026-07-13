@@ -12,6 +12,7 @@ The Extractor reads data from the analyzed workspace and extracts body contents,
 
 ### Responsibilities
 - Read analyzed data from `WorkspaceDB`
+- Build all wikit titles and all wiki file titles. The extractor is the only step in which the creation of wiki titles and wiki file titles is allowed. 
 - Extract file contents and attachments from the source export
 - Organize extracted files in the destination workspace directory
 - Create structured output for downstream processing (Converter, Composer)
