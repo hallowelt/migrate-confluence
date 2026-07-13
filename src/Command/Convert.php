@@ -214,6 +214,7 @@ class Convert extends CommandConvert {
 			}
 			stream_set_blocking( $workerPipes[1], false );
 			stream_set_blocking( $workerPipes[2], false );
+			stream_set_blocking( $workerPipes[3], false );
 			fclose( $workerPipes[0] );
 			$processes[$i] = $proc;
 			$pipes[$i] = [ $workerPipes[1], $workerPipes[2] ];
