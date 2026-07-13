@@ -72,9 +72,6 @@ class FilenameBuilder {
 					if ( strpos( $filename, "{$namespacePart}-" ) === 0 ) {
 						// Replace namespace dash with colon
 						$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}-" ) );
-					} elseif ( strpos( $filename, "$namespacePart:" ) !== 0 ) {
-						// If filename doesn't already start with namespace:colon, prepend it
-						$filename = "$namespacePart:$filename";
 					}
 				}
 			}
