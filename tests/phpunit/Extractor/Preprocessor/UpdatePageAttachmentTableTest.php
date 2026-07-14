@@ -12,42 +12,217 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
 	 */
-	public function testCreatesPageAttachmentEntry(): void {
+	public function testCreatesTargetAttachmentFilenameWithEmptyMigrationConfig(): void {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 
-		$workspaceDB->addSpace( 10, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
 		$workspaceDB->addPage(
-			600, 10, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
 		$workspaceDB->addAttachment(
-			601, 10, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
 		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [] ) );
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
-		$this->assertCount( 1, $pageAttachments, 'Expected one page attachment entry.' );
+		$this->assertCount( 1, $pageAttachments, 'empty-config: expected exactly one page attachment entry.' );
+		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'TEST_Page-file.txt';
+		$message = "empty-config: unexpected target_attachment_filename.";
 		$this->assertSame(
-			601,
-			$pageAttachments[0]['attachment_id'],
-			'Unexpected attachment_id for page attachment.'
-		);
-		$this->assertSame(
-			600,
-			$pageAttachments[0]['page_id'],
-			'Unexpected page_id for page attachment.'
-		);
-		$this->assertSame(
-			'file.txt',
-			$pageAttachments[0]['original_attachment_filename'],
-			'Unexpected original filename for page attachment.'
-		);
-		$this->assertStringContainsString(
-			'file.txt',
-			$pageAttachments[0]['target_attachment_filename'],
-			'Expected target filename to include original filename.'
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepo(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'ext-ns-file-repo-compat' => true
+		] ) );
+		$processor->execute();
+
+		$pageAttachments = $workspaceDB->getPageAttachments();
+		$this->assertCount(
+			1,
+			$pageAttachments,
+			'ext-ns-file-repo-compat: expected exactly one page attachment entry.'
+		);
+		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'TEST:Page-file.txt';
+		$message = "ext-ns-file-repo-compat: unexpected target_attachment_filename.";
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithSpaceMapping(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST'
+			]
+		] ) );
+		$processor->execute();
+
+		$pageAttachments = $workspaceDB->getPageAttachments();
+		$this->assertCount( 1, $pageAttachments, 'space-prefix mapping: expected exactly one page attachment entry.' );
+		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST_Page-file.txt';
+		$message = "space-prefix mapping: unexpected target_attachment_filename.";
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepoAndSpaceMapping(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST'
+			],
+			'ext-ns-file-repo-compat' => true
+		] ) );
+		$processor->execute();
+
+		$pageAttachments = $workspaceDB->getPageAttachments();
+		$this->assertCount(
+			1,
+			$pageAttachments,
+			'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one page attachment entry.'
+		);
+		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST:Page-file.txt';
+		$message = "ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename.";
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithSpaceMappingAndRootpages(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST:Root/'
+			]
+		] ) );
+		$processor->execute();
+
+		$pageAttachments = $workspaceDB->getPageAttachments();
+		$this->assertCount(
+			1,
+			$pageAttachments,
+			'space-prefix mapping: expected exactly one page attachment entry.'
+		);
+		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST_Page-file.txt';
+		$message = "space-prefix mapping: unexpected target_attachment_filename.";
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepoAndSpaceMappingAndRootpages(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST:Root/'
+			],
+			'ext-ns-file-repo-compat' => true
+		] ) );
+		$processor->execute();
+
+		$pageAttachments = $workspaceDB->getPageAttachments();
+		$this->assertCount(
+			1,
+			$pageAttachments,
+			'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one page attachment entry.'
+		);
+		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST:Page-file.txt';
+		$message = "ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename.";
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
 }

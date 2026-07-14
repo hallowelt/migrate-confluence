@@ -12,40 +12,208 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable::execute
 	 */
-	public function testCreatesBlogPostAttachmentEntry(): void {
+	public function testCreatesTargetAttachmentFilenameWithEmptyMigrationConfig(): void {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 
-		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST:', -1, -1 );
-		$workspaceDB->addBlogPost( 700, 42, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
 		$workspaceDB->addAttachment(
-			701, 42, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
+			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
 		);
 
 		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [] ) );
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
-		$this->assertCount( 1, $blogPostAttachments, 'Expected one blog post attachment entry.' );
+		$this->assertCount( 1, $blogPostAttachments, 'empty-config: expected exactly one blog post attachment entry.' );
+		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'TEST_Blog-image.png';
+		$message = "empty-config: unexpected target_attachment_filename.";
 		$this->assertSame(
-			701,
-			$blogPostAttachments[0]['attachment_id'],
-			'Unexpected attachment_id for blog post attachment.'
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepo(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
+		$workspaceDB->addAttachment(
+			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
+		);
+
+		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'ext-ns-file-repo-compat' => true
+		] ) );
+		$processor->execute();
+
+		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
+		$this->assertCount(
+			1,
+			$blogPostAttachments,
+			'ext-ns-file-repo-compat: expected exactly one blog post attachment entry.'
+		);
+		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'TEST:Blog-image.png';
+		$message = "ext-ns-file-repo-compat: unexpected target_attachment_filename.";
 		$this->assertSame(
-			700,
-			$blogPostAttachments[0]['blog_post_id'],
-			'Unexpected blog_post_id for blog post attachment.'
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithSpaceMapping(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
+		$workspaceDB->addAttachment(
+			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
+		);
+
+		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST'
+			]
+		] ) );
+		$processor->execute();
+
+		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
+		$this->assertCount(
+			1,
+			$blogPostAttachments,
+			'space-prefix mapping: expected exactly one blog post attachment entry.'
+		);
+		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST_Blog-image.png';
+		$message = "space-prefix mapping: unexpected target_attachment_filename.";
 		$this->assertSame(
-			'image.png',
-			$blogPostAttachments[0]['original_attachment_filename'],
-			'Unexpected original filename for blog post attachment.'
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
-		$this->assertStringContainsString(
-			'image.png',
-			$blogPostAttachments[0]['target_attachment_filename'],
-			'Expected target filename to include original filename.'
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepoAndSpaceMapping(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
+		$workspaceDB->addAttachment(
+			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
+		);
+
+		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST'
+			],
+			'ext-ns-file-repo-compat' => true
+		] ) );
+		$processor->execute();
+
+		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
+		$this->assertCount(
+			1,
+			$blogPostAttachments,
+			'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one blog post attachment entry.'
+		);
+		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST:Blog-image.png';
+		$message = "ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename.";
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithSpaceMappingAndRootpages(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
+		$workspaceDB->addAttachment(
+			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
+		);
+
+		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST:Root/'
+			]
+		] ) );
+		$processor->execute();
+
+		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
+		$this->assertCount(
+			1,
+			$blogPostAttachments,
+			'space-prefix mapping: expected exactly one blog post attachment entry.'
+		);
+		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST_Blog-image.png';
+		$message = "space-prefix mapping: unexpected target_attachment_filename.";
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable::execute
+	 */
+	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepoAndSpaceMappingAndRootpages(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
+		$workspaceDB->addAttachment(
+			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
+		);
+
+		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+			'space-prefix' => [
+				'TEST' => 'MYTEST:Root/'
+			],
+			'ext-ns-file-repo-compat' => true
+		] ) );
+		$processor->execute();
+
+		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
+		$this->assertCount(
+			1,
+			$blogPostAttachments,
+			'ext-ns-file-repo-compat + space-prefix mapping: expected exactly one blog post attachment entry.'
+		);
+		$actualTargetFilename = (string)$blogPostAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'MYTEST:Blog-image.png';
+		$message = "ext-ns-file-repo-compat + space-prefix mapping: unexpected target_attachment_filename.";
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
 }

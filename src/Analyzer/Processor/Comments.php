@@ -98,11 +98,15 @@ class Comments extends ProcessorBase {
 		);
 
 		if ( !$status ) {
+			$xmlFile = $this->xmlReader->baseURI;
+			$xmlDir = dirname( $xmlFile );
+			$xmlFilename = basename( $xmlFile );
 			$this->writer->addLogEntry(
-				'error',
+				'serious-error',
 				'analyze',
 				__CLASS__,
-				"Failed to add comment (ID:$commentId) to the database."
+				"Comment ID $commentId already exists in the database."
+					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);
 		}
 	}

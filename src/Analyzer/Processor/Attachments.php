@@ -115,7 +115,7 @@ class Attachments extends ProcessorBase {
 			$properties
 		);
 
-		$this->writer->addAttachment(
+		$status = $this->writer->addAttachment(
 			$attachmentId,
 			$spaceId,
 			$confluenceFilename,
@@ -131,6 +131,19 @@ class Attachments extends ProcessorBase {
 			$properties,
 			$collection
 		);
+
+		if ( !$status ) {
+			$xmlFile = $this->xmlReader->baseURI;
+			$xmlDir = dirname( $xmlFile );
+			$xmlFilename = basename( $xmlFile );
+			$this->writer->addLogEntry(
+				'serious-error',
+				'analyze',
+				__CLASS__,
+				"Attachment ID $attachmentId already exists in the database."
+					. " Source directory: '$xmlDir', file: '$xmlFilename'."
+			);
+		}
 	}
 
 	/**
@@ -140,7 +153,58 @@ class Attachments extends ProcessorBase {
 	 * @return string
 	 */
 	private function makeAttachmentReference( int $attachmentId, int $containerContentId, array $properties ): string {
-		$attachmentsPath = $this->sourceBasePath . '/attachments';
+		// Try the default path first
+		$attachmentsBasePath = $this->sourceBasePath;
+		$attachmentsPath = $attachmentsBasePath . '/attachments';
+		$potentialAttachmentRef = $attachmentsPath . "/" . $containerContentId . '/' . $attachmentId;
+
+		// If attachment exists in the default path, use it
+		if ( is_dir( $potentialAttachmentRef ) ) {
+			// Use default path - no need to scan
+		} else {
+			// Only if not found in default path, scan other subdirectories
+			// This handles multi-space conversions where directories have arbitrary names
+			$expectedDir = $potentialAttachmentRef;
+			$foundInAltDir = false;
+			$parentPath = dirname( $this->sourceBasePath );
+			if ( is_dir( $parentPath ) ) {
+				$dirs = scandir( $parentPath );
+				if ( $dirs !== false ) {
+					foreach ( $dirs as $dir ) {
+						if ( $dir === '.' || $dir === '..' ) {
+							continue;
+						}
+						$potentialAttachmentsPath = $parentPath . '/' . $dir . '/attachments';
+						if ( is_dir( $potentialAttachmentsPath ) ) {
+							$potentialAttachmentRef = $potentialAttachmentsPath;
+							$potentialAttachmentRef .= "/" . $containerContentId . '/' . $attachmentId;
+							if ( is_dir( $potentialAttachmentRef ) ) {
+								$attachmentsBasePath = $parentPath . '/' . $dir;
+								$attachmentsPath = $attachmentsBasePath . '/attachments';
+								$this->writer->addLogEntry(
+									'error',
+									'analyze',
+									__CLASS__,
+									"Attachment ID $attachmentId not found in expected directory"
+										. " '$expectedDir', found in '$potentialAttachmentRef' instead."
+								);
+								$foundInAltDir = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+			if ( !$foundInAltDir ) {
+				$this->writer->addLogEntry(
+					'error',
+					'analyze',
+					__CLASS__,
+					"Attachment ID $attachmentId not found in expected directory '$expectedDir'"
+						. " and not found in any subdirectory of '$parentPath'."
+				);
+			}
+		}
 
 		$attachmentVersion = '';
 		if ( isset( $properties['attachmentVersion'] ) ) {

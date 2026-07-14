@@ -27,7 +27,8 @@ class FilenameBuilder {
 	public function buildFromAttachmentData(
 		int $spaceId, string $originalFilename, string $assocTitle, string $suffix = ''
 	): string {
-		$builder = new GenericTitleBuilder( $this->spaceIdPrefixMap );
+		$simplifiedPrefixMap = $this->getSimplifiedPrefixMap( $this->spaceIdPrefixMap );
+		$builder = new GenericTitleBuilder( $simplifiedPrefixMap );
 		$builder->setNamespace( $spaceId );
 
 		$originalFilename = str_replace( [ ' ', '/' ], '_', $originalFilename );
@@ -67,7 +68,12 @@ class FilenameBuilder {
 				$filePrefix = $this->spaceIdPrefixMap[$spaceId];
 				if ( $filePrefix !== '' ) {
 					$namespacePart = substr( $filePrefix, 0, strpos( $filePrefix, ':' ) );
-					if ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
+					// WindowsFilename replaces colons with dashes
+					if ( strpos( $filename, "{$namespacePart}-" ) === 0 ) {
+						// Replace namespace dash with colon
+						$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}-" ) );
+					} elseif ( strpos( $filename, "{$namespacePart}_" ) === 0 ) {
+						// Handle underscore variant (just in case)
 						$filename = "$namespacePart:" . substr( $filename, strlen( "{$namespacePart}_" ) );
 					}
 				}
@@ -75,5 +81,23 @@ class FilenameBuilder {
 		}
 
 		return $filename;
+	}
+
+	/**
+	 * Simplify the space ID to prefix map by extracting only the namespace part.
+	 * Converts "MY_NAMESPACE:ABC/" to "MY_NAMESPACE:"
+	 *
+	 * @param array $spaceIdPrefixMap
+	 * @return array
+	 */
+	private function getSimplifiedPrefixMap( array $spaceIdPrefixMap ): array {
+		$simpleMap = [];
+		foreach ( $spaceIdPrefixMap as $spaceId => $prefix ) {
+			if ( !str_ends_with( $prefix, ':' ) ) {
+				$prefix = substr( $prefix, 0, strpos( $prefix, ':' ) + 1 );
+			}
+			$simpleMap[$spaceId] = $prefix;
+		}
+		return $simpleMap;
 	}
 }
