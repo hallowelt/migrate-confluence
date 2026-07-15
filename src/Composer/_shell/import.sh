@@ -79,7 +79,6 @@ fi
 
 collect_xml_files() {
   local base="$1"
-  local -n out_ref="$2"
   local files=()
   local split_candidates=()
   local split_files=()
@@ -103,7 +102,7 @@ collect_xml_files() {
     files+=("${split_files[@]}")
   fi
 
-  out_ref=("${files[@]}")
+  printf "%q\n" "${files[@]}"
 }
 
 run_import_dump_file() {
@@ -122,7 +121,7 @@ run_group() {
   local required="$3"
   local files=()
 
-  collect_xml_files "$base" files
+  readarray -t files < <(collect_xml_files "$base")
 
   if (( ${#files[@]} == 0 )); then
     if [[ "$required" == "required" ]]; then
