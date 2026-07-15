@@ -12,6 +12,7 @@ Supports both single-file output (e.g. pages.xml) and split output
 
 Options:
   --add-default    Also import default-files*.xml and default-pages*.xml
+  --sfr=WIKI       Import into the WIKI wiki
 
 Import order:
   1) files*.xml
@@ -31,12 +32,18 @@ EOF
 }
 
 src=""
+sfr=""
 add_default=0
 
 for arg in "$@"; do
   case "$arg" in
     --src=*)
       src="${arg#*=}"
+      ;;
+    --sfr=*)
+      # the flag has the same name for the PHP scripts, so we keep the whole
+      # argument including the --sfr= part
+      sfr="${arg}"
       ;;
     --add-default)
       add_default=1
@@ -107,12 +114,22 @@ collect_xml_files() {
 
 run_import_dump_file() {
   local file="$1"
-  php maintenance/importDump.php "$file"
+  local args=()
+  if [[ $sfr ]]; then
+    args+=("$sfr")
+  fi
+  args+=("$file")
+  php maintenance/importDump.php "${args[@]}"
 }
 
 run_import_files_file() {
   local file="$1"
-  php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php --src="$file"
+  local args=()
+  if [[ $sfr ]]; then
+    args+=("$sfr")
+  fi
+  args+=("--src=$file")
+  php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php "${args[@]}"
 }
 
 run_group() {
