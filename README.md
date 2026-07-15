@@ -108,6 +108,7 @@ The script imports files in this order:
 3. `comments.xml`
 4. `templates.xml`
 5. `pages.xml`
+6. if it exists, `enhanced-sidebar.xml`, containing the `MediaWiki:Sidebar.json` page for a sidebar that matches the Confluence one
 
 `user.xml` is intentionally ignored.
 
@@ -236,6 +237,7 @@ These extensions are not strictly required but are recommended for full compatib
 
 1. [WikiMarkdown](https://www.mediawiki.org/wiki/Extension:WikiMarkdown) - Renders `<markdown>` tags produced from Confluence markdown macros
 1. [PageLayouts](https://github.com/BlueSpice-Wiki/mediawiki-extensions-PageLayouts/) - Allows multi-column layouts in the visual editor
+1. the [BlueSpice Discovery](https://www.mediawiki.org/wiki/Skin:BlueSpiceDiscovery) skin – Allows a customized nested sidebar
 
 ### Manual post-import maintenance
 #### Cleanup Categories

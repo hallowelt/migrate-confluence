@@ -49,7 +49,7 @@ class Sidebar {
 		if ( !is_dir( $resultPath ) ) {
 			mkdir( $resultPath, 0755, true );
 		}
-		$builder->buildAndSave( $resultPath . 'sidebar.xml' );
+		$builder->buildAndSave( $resultPath . 'enhanced-sidebar.xml' );
 	}
 
 	/**

@@ -35,10 +35,10 @@ class SidebarTest extends TestCase {
 	}
 
 	/**
-	 * Parse sidebar.xml and return the decoded JSON structure
+	 * Parse enhanced-sidebar.xml and return the decoded JSON structure
 	 */
 	private function readSidebarJson(): array {
-		$path = $this->tmpDir . '/result/sidebar.xml';
+		$path = $this->tmpDir . '/result/enhanced-sidebar.xml';
 		$this->assertFileExists( $path );
 		$xml = simplexml_load_file( $path );
 		$this->assertNotFalse( $xml );
@@ -82,7 +82,7 @@ class SidebarTest extends TestCase {
 
 		$this->makeSidebar( $dataLookup, false )->execute();
 
-		$this->assertFileDoesNotExist( $this->tmpDir . '/result/sidebar.xml' );
+		$this->assertFileDoesNotExist( $this->tmpDir . '/result/enhanced-sidebar.xml' );
 	}
 
 	/**
