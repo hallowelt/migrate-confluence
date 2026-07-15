@@ -25,10 +25,6 @@ class SidebarTest extends TestCase {
 		parent::tearDown();
 	}
 
-	// ---------------------------------------------------------------------------
-	// Helpers
-	// ---------------------------------------------------------------------------
-
 	private function makeSidebar(
 		DBComposerDataLookup $dataLookup,
 		bool $createSidebar = true
@@ -38,7 +34,9 @@ class SidebarTest extends TestCase {
 		return new Sidebar( $dataLookup, $config, $this->tmpDir );
 	}
 
-	/** Parse sidebar.xml and return the decoded JSON structure. */
+	/**
+	 * Parse sidebar.xml and return the decoded JSON structure
+	 */
 	private function readSidebarJson(): array {
 		$path = $this->tmpDir . '/result/sidebar.xml';
 		$this->assertFileExists( $path );
@@ -75,10 +73,9 @@ class SidebarTest extends TestCase {
 		];
 	}
 
-	// ---------------------------------------------------------------------------
-	// create-sidebar: false
-	// ---------------------------------------------------------------------------
-
+	/**
+	 * create-sidebar: false
+	 */
 	public function testCreateSidebarFalseWritesNoFile(): void {
 		$dataLookup = $this->createMock( DBComposerDataLookup::class );
 		$dataLookup->expects( $this->never() )->method( 'getSpaces' );
@@ -88,10 +85,9 @@ class SidebarTest extends TestCase {
 		$this->assertFileDoesNotExist( $this->tmpDir . '/result/sidebar.xml' );
 	}
 
-	// ---------------------------------------------------------------------------
-	// Single space
-	// ---------------------------------------------------------------------------
-
+	/**
+	 * Single space
+	 */
 	public function testSingleSpacePagesAndBlogs(): void {
 		$dataLookup = $this->createMock( DBComposerDataLookup::class );
 		$dataLookup->method( 'getSpaces' )->willReturn( [ $this->makeSpace( 1, 'Space A' ) ] );
@@ -152,8 +148,8 @@ class SidebarTest extends TestCase {
 		$dataLookup->method( 'getSpaces' )->willReturn( [ $this->makeSpace( 1, 'Space A' ) ] );
 		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [
 			$this->makePage( 10, 'Second', -1, 200 ),
-			$this->makePage( 20, 'First',  -1, 100 ),
-			$this->makePage( 30, 'Third',  -1, 300 ),
+			$this->makePage( 20, 'First', -1, 100 ),
+			$this->makePage( 30, 'Third', -1, 300 ),
 		] );
 		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
@@ -161,18 +157,18 @@ class SidebarTest extends TestCase {
 		$sidebar = $this->readSidebarJson();
 
 		$children = $sidebar[0]['children'];
-		$this->assertSame( 'First',  $children[0]['page'] );
+		$this->assertSame( 'First', $children[0]['page'] );
 		$this->assertSame( 'Second', $children[1]['page'] );
-		$this->assertSame( 'Third',  $children[2]['page'] );
+		$this->assertSame( 'Third', $children[2]['page'] );
 	}
 
 	public function testSingleSpaceNestedPages(): void {
 		$dataLookup = $this->createMock( DBComposerDataLookup::class );
 		$dataLookup->method( 'getSpaces' )->willReturn( [ $this->makeSpace( 1, 'Space A' ) ] );
 		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [
-			$this->makePage( 10, 'Parent',       -1, 100 ),
-			$this->makePage( 20, 'Child',         10, 100 ),
-			$this->makePage( 30, 'Grandchild',    20, 100 ),
+			$this->makePage( 10, 'Parent', -1, 100 ),
+			$this->makePage( 20, 'Child', 10, 100 ),
+			$this->makePage( 30, 'Grandchild', 20, 100 ),
 		] );
 		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
@@ -257,10 +253,9 @@ class SidebarTest extends TestCase {
 		$this->assertSame( 'Spalten', $link['page'] );
 	}
 
-	// ---------------------------------------------------------------------------
-	// Multi-space
-	// ---------------------------------------------------------------------------
-
+	/**
+	 * Multi-space
+	 */
 	public function testMultiSpaceCreatesSpaceHeadings(): void {
 		$dataLookup = $this->createMock( DBComposerDataLookup::class );
 		$dataLookup->method( 'getSpaces' )->willReturn( [
@@ -353,7 +348,7 @@ class SidebarTest extends TestCase {
 			->willReturnMap( [
 				[ 1, [
 					$this->makePage( 10, 'Second', -1, 200 ),
-					$this->makePage( 20, 'First',  -1, 100 ),
+					$this->makePage( 20, 'First', -1, 100 ),
 				] ],
 				[ 2, [] ],
 			] );
@@ -363,13 +358,9 @@ class SidebarTest extends TestCase {
 		$sidebar = $this->readSidebarJson();
 
 		$pages = $sidebar[0]['children'][0]['children'];
-		$this->assertSame( 'First',  $pages[0]['page'] );
+		$this->assertSame( 'First', $pages[0]['page'] );
 		$this->assertSame( 'Second', $pages[1]['page'] );
 	}
-
-	// ---------------------------------------------------------------------------
-	// Helpers
-	// ---------------------------------------------------------------------------
 
 	private function deleteDir( string $dir ): void {
 		if ( $dir === '' || !is_dir( $dir ) ) {

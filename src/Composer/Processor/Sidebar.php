@@ -144,7 +144,7 @@ class Sidebar {
 	}
 
 	/**
-	 * @param array $pages      Siblings to render
+	 * @param array $pages Siblings to render
 	 * @param array $childrenOf Full map of parentId → children
 	 * @return array
 	 */
