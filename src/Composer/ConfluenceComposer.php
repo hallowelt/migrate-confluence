@@ -14,6 +14,7 @@ use HalloWelt\MigrateConfluence\Composer\Processor\DefaultPages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Files;
 use HalloWelt\MigrateConfluence\Composer\Processor\PageComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
+use HalloWelt\MigrateConfluence\Composer\Processor\Sidebar;
 use HalloWelt\MigrateConfluence\Composer\Processor\Templates;
 use HalloWelt\MigrateConfluence\Composer\Processor\Users;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
@@ -131,6 +132,8 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		}
 
 		$this->writeUserReadableDBLog( $dbLog );
+
+		( new Sidebar( $this->dataLookup, $this->migrationConfig, $this->dest ) )->execute();
 	}
 
 	/**

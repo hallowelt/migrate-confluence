@@ -2348,6 +2348,89 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Returns current, non-historical pages with their id, wiki_title, confluence_title,
+	 * parent_page_id and position extracted from the properties JSON blob.
+	 *
+	 * @param int|null $spaceId If given, only return pages for that space.
+	 * @return array Each entry: ['page_id', 'wiki_title', 'confluence_title', 'parent_page_id', 'position']
+	 */
+	public function getPagesForSidebar( ?int $spaceId = null ): array {
+		if ( $spaceId !== null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title, confluence_title, parent_page_id, properties
+				 FROM pages
+				 WHERE original_version_id = -1 AND content_status = :content_status
+				 AND space_id = :space_id'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title, confluence_title, parent_page_id, properties
+				 FROM pages
+				 WHERE original_version_id = -1 AND content_status = :content_status'
+			);
+		}
+		$transaction->bindValue( ':content_status', 'current', SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		$rows = $this->fetchDbArray( $result );
+
+		$pages = [];
+		foreach ( $rows as $row ) {
+			$props = json_decode( (string)$row['properties'], true ) ?? [];
+			$pages[] = [
+				'page_id'         => (int)$row['page_id'],
+				'wiki_title'      => (string)$row['wiki_title'],
+				'confluence_title' => (string)$row['confluence_title'],
+				'parent_page_id'  => (int)$row['parent_page_id'],
+				'position'        => isset( $props['position'] ) ? (int)$props['position'] : PHP_INT_MAX,
+			];
+		}
+
+		return $pages;
+	}
+
+	/**
+	 * Returns current, non-historical blog posts with their id, wiki_title and confluence_title.
+	 * Blog posts have no parent hierarchy in Confluence, so no position/parent needed.
+	 *
+	 * @param int|null $spaceId If given, only return blog posts for that space.
+	 * @return array Each entry: ['page_id', 'wiki_title', 'confluence_title']
+	 */
+	public function getBlogPostsForSidebar( ?int $spaceId = null ): array {
+		if ( $spaceId !== null ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title, confluence_title
+				 FROM blog_posts
+				 WHERE original_version_id = -1 AND content_status = :content_status
+				 AND space_id = :space_id'
+			);
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT page_id, wiki_title, confluence_title
+				 FROM blog_posts
+				 WHERE original_version_id = -1 AND content_status = :content_status'
+			);
+		}
+		$transaction->bindValue( ':content_status', 'current', SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		$rows = $this->fetchDbArray( $result );
+
+		$blogs = [];
+		foreach ( $rows as $row ) {
+			$blogs[] = [
+				'page_id'         => (int)$row['page_id'],
+				'wiki_title'      => (string)$row['wiki_title'],
+				'confluence_title' => (string)$row['confluence_title'],
+			];
+		}
+
+		return $blogs;
+	}
+
+	/**
 	 * Update body_content_ids for a page.
 	 *
 	 * @param int $pageId
