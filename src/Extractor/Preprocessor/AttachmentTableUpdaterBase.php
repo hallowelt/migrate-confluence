@@ -272,7 +272,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				$data['origFilename'],
 				$data['wikiTitle']
 			);
-			$this->saveAttachmentDescription( $attachmentId, $data['wikiTitle'], $data['origFilename'] );
+			$this->addAttachmentDescription( $attachmentId, $data['wikiTitle'], $data['origFilename'] );
 		}
 	}
 
@@ -307,7 +307,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 * If the original filename is not preserved in the wiki title (e.g. due to abbreviation),
 	 * generate a file description wikitext and store it in the database.
 	 */
-	protected function saveAttachmentDescription(
+	protected function addAttachmentDescription(
 		int $attachmentId, string $targetTitle, string $originalFilename
 	): void {
 		if ( $originalFilename === '' ) {
@@ -327,7 +327,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		$quotedFileName = htmlspecialchars( $originalFilename, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
 		$description = "Original file name: <nowiki>$quotedFileName</nowiki>\n"
 			. "{{DISPLAYTITLE:$quotedFileName|noerror}}";
-		$this->workspaceDB->saveAttachmentDescription( $attachmentId, $description );
+		$this->workspaceDB->addAttachmentDescription( $attachmentId, $description );
 	}
 
 	/**

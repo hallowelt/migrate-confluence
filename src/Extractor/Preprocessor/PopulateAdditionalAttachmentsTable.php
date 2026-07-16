@@ -183,7 +183,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 				$data['origFilename'],
 				$data['wikiTitle']
 			);
-			$this->saveAttachmentDescription( $attachmentId, $data['wikiTitle'], $data['origFilename'] );
+			$this->addAttachmentDescription( $attachmentId, $data['wikiTitle'], $data['origFilename'] );
 		}
 	}
 

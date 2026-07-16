@@ -749,7 +749,7 @@ class WorkspaceDB {
 	 * @param string $description
 	 * @return void
 	 */
-	public function saveAttachmentDescription( int $attachmentId, string $description ): void {
+	public function addAttachmentDescription( int $attachmentId, string $description ): void {
 		$stmt = $this->cachedPrepare(
 			'INSERT OR REPLACE INTO attachments_descriptions (attachment_id, description)
 			VALUES (:attachment_id, :description)'
