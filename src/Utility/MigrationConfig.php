@@ -98,4 +98,11 @@ class MigrationConfig {
 	public function getNsTalkPrefix(): string {
 		return $this->get( 'ns-talk-prefix', 'Talk' );
 	}
+
+	/**
+	 * @return bool
+	 */
+	public function getCreateSidebar(): bool {
+		return $this->get( 'create-sidebar', true );
+	}
 }

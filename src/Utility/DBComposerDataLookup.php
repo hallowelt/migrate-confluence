@@ -265,4 +265,20 @@ class DBComposerDataLookup {
 	public function getInvalidPageTemplates( ?int $spaceId = null ): array {
 		return $this->workspaceDB->getInvalidPageTemplates( $spaceId );
 	}
+
+	/**
+	 * @param int|null $spaceId If given, only return pages for that space.
+	 * @return array Each entry: ['page_id', 'wiki_title', 'confluence_title', 'parent_page_id', 'position']
+	 */
+	public function getPagesForSidebar( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getPagesForSidebar( $spaceId );
+	}
+
+	/**
+	 * @param int|null $spaceId If given, only return blog posts for that space.
+	 * @return array Each entry: ['page_id', 'wiki_title', 'confluence_title']
+	 */
+	public function getBlogPostsForSidebar( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getBlogPostsForSidebar( $spaceId );
+	}
 }

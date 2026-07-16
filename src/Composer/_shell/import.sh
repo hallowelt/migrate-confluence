@@ -20,6 +20,7 @@ Import order:
   3) comments*.xml (or page-talk*.xml + blog-talk*.xml if comments*.xml is absent)
   4) templates*.xml
   5) pages*.xml
+  6) ../sidebar.xml (if present)
 
 When --add-default is set, these are included:
   - default-files*.xml (before files*.xml)
@@ -185,6 +186,15 @@ if [[ "$add_default" -eq 1 ]]; then
   run_group "default-pages" "dump" "optional"
 fi
 run_group "pages" "dump" "required"
+
+sidebar_file="$(dirname "$src")/sidebar.xml"
+if [[ -f "$sidebar_file" ]]; then
+  echo "==> Importing sidebar from $sidebar_file"
+  if ! run_import_dump_file "$sidebar_file"; then
+    echo "Error: import failed for $sidebar_file" >&2
+    exit 1
+  fi
+fi
 
 if [[ -f "$src/user.xml" ]]; then
   echo "Note: user.xml exists at $src/user.xml and is intentionally ignored."
