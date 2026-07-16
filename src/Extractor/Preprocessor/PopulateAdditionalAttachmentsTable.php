@@ -59,6 +59,9 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 			$this->migrationConfig
 		);
 
+		/** @var array<int,array{containerId:int,origFilename:string,wikiTitle:string}> $collected */
+		$collected = [];
+
 		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
 			if (
 				!isset( $attachment['attachment_id'] )
@@ -159,17 +162,28 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 				$counter++;
 			}
 
+			$collected[$attachmentId] = [
+				'containerId' => (int)$attachment['container_id'],
+				'origFilename' => (string)$attachment['filename'],
+				'wikiTitle' => $attachmentWikiTitle,
+			];
+		}
+
+		$collected = $this->compressWikiTitles( $collected );
+
+		foreach ( $collected as $attachmentId => $data ) {
 			$this->writeln(
 				"Add {$this->getContentLabel()} attachment for attachment ID $attachmentId"
-				. " with title: $attachmentWikiTitle"
+				. " with title: {$data['wikiTitle']}"
 			);
 
 			$this->storeAttachment(
 				$attachmentId,
-				(int)$attachment['container_id'],
-				(string)$attachment['filename'],
-				$attachmentWikiTitle
+				$data['containerId'],
+				$data['origFilename'],
+				$data['wikiTitle']
 			);
+			$this->addAttachmentDescription( $attachmentId, $data['wikiTitle'], $data['origFilename'] );
 		}
 	}
 

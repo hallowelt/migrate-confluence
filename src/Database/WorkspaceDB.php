@@ -283,6 +283,7 @@ class WorkspaceDB {
 		$this->createTableAttachmentsMeta();
 		$this->createTablePageTemplates();
 		$this->createTablePageTemplateContents();
+		$this->createTableAttachmentsDescriptions();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -729,6 +730,48 @@ class WorkspaceDB {
 				content TEXT
 			);'
 		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableAttachmentsDescriptions(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS attachments_descriptions (
+				attachment_id INT PRIMARY KEY,
+				description TEXT
+			);'
+		);
+	}
+
+	/**
+	 * @param int $attachmentId
+	 * @param string $description
+	 * @return void
+	 */
+	public function addAttachmentDescription( int $attachmentId, string $description ): void {
+		$stmt = $this->cachedPrepare(
+			'INSERT OR REPLACE INTO attachments_descriptions (attachment_id, description)
+			VALUES (:attachment_id, :description)'
+		);
+		$stmt->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		$stmt->bindValue( ':description', $description, SQLITE3_TEXT );
+		$stmt->execute()->finalize();
+	}
+
+	/**
+	 * @param int $attachmentId
+	 * @return string
+	 */
+	public function getAttachmentDescription( int $attachmentId ): string {
+		$stmt = $this->cachedPrepare(
+			'SELECT description FROM attachments_descriptions WHERE attachment_id = :attachment_id'
+		);
+		$stmt->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		$result = $stmt->execute();
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+		return $row !== false ? (string)$row['description'] : '';
 	}
 
 	/**

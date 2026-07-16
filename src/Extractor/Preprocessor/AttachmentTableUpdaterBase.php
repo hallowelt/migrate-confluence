@@ -3,6 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
 use Exception;
+use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
+use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -132,6 +134,9 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			$this->migrationConfig
 		);
 
+		/** @var array<int,array{containerId:int,origFilename:string,wikiTitle:string}> $collected */
+		$collected = [];
+
 		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
 			if (
 				!isset( $attachment['attachment_id'] )
@@ -246,17 +251,28 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				$attachmentWikiTitle .= self::UNKNOWN_EXTENSION;
 			}
 
+			$collected[$attachmentId] = [
+				'containerId' => $containerId,
+				'origFilename' => $attachment['filename'],
+				'wikiTitle' => $attachmentWikiTitle,
+			];
+		}
+
+		$collected = $this->compressWikiTitles( $collected );
+
+		foreach ( $collected as $attachmentId => $data ) {
 			$this->writeln(
 				"Add {$this->getContentLabel()} attachment for attachment ID $attachmentId"
-				. " with title: $attachmentWikiTitle"
+				. " with title: {$data['wikiTitle']}"
 			);
 
 			$this->storeAttachment(
 				$attachmentId,
-				$containerId,
-				$attachment['filename'],
-				$attachmentWikiTitle
+				$data['containerId'],
+				$data['origFilename'],
+				$data['wikiTitle']
 			);
+			$this->addAttachmentDescription( $attachmentId, $data['wikiTitle'], $data['origFilename'] );
 		}
 	}
 
@@ -285,6 +301,57 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		}
 
 		return $spaceIdToPrefixMap;
+	}
+
+	/**
+	 * If the original filename is not preserved in the wiki title (e.g. due to abbreviation),
+	 * generate a file description wikitext and store it in the database.
+	 */
+	protected function addAttachmentDescription(
+		int $attachmentId, string $targetTitle, string $originalFilename
+	): void {
+		if ( $originalFilename === '' ) {
+			return;
+		}
+		$normalized = str_replace( [ ' ', '/' ], '_', $originalFilename );
+		$normalized = preg_replace( '/_+/', '_', $normalized ) ?? $normalized;
+
+		$colonPos = strpos( $targetTitle, ':' );
+		$localTarget = $colonPos !== false ? substr( $targetTitle, $colonPos + 1 ) : $targetTitle;
+
+		// Case-insensitive: WindowsFilename applies ucfirst() which must not cause false positives.
+		if ( stripos( $localTarget, $normalized ) !== false ) {
+			return;
+		}
+
+		$quotedFileName = htmlspecialchars( $originalFilename, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
+		$description = "Original file name: <nowiki>$quotedFileName</nowiki>\n"
+			. "{{DISPLAYTITLE:$quotedFileName|noerror}}";
+		$this->workspaceDB->addAttachmentDescription( $attachmentId, $description );
+	}
+
+	/**
+	 * Apply TitleCompressor to shorten attachment wiki titles that exceed 255 characters.
+	 *
+	 * @param array<int,array{containerId:int,origFilename:string,wikiTitle:string}> $collected
+	 * @return array<int,array{containerId:int,origFilename:string,wikiTitle:string}>
+	 */
+	protected function compressWikiTitles( array $collected ): array {
+		$attachmentIdToWikiTitleMap = array_map(
+			static fn ( array $data ) => $data['wikiTitle'],
+			$collected
+		);
+
+		$titleCompressor = new TitleCompressor();
+		$compressedTitlesMap = $titleCompressor->execute( $attachmentIdToWikiTitleMap );
+		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
+		$compressedMap = $applyCompressedTitles->toMapValues( $attachmentIdToWikiTitleMap );
+
+		foreach ( $compressedMap as $attachmentId => $compressedTitle ) {
+			$collected[$attachmentId]['wikiTitle'] = $compressedTitle;
+		}
+
+		return $collected;
 	}
 
 	/**
