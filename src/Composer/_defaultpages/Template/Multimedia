@@ -1,8 +1,30 @@
-<noinclude>Template for confluence macro "multimedia"
-</noinclude><includeonly>[[File:{{{filename}}}|{{#if: {{{width|}}}
-    |{{{width}}}
+<noinclude>Template added by Confluence migration to handle the "multimedia" macro.
+<templatedata>
+{
+    "description": "show a multimedia file embedded in the page",
+    "params": {
+        "filename": {
+            "label": "file name",
+            "description": "name of the multimedia file to be displayed",
+            "type": "string",
+            "required": true
+        },
+        "width": {
+            "label": "width",
+            "description": "width of the display in pixels",
+            "type": "number"
+        },
+        "height": {
+            "label": "height",
+            "description": "height of the display in pixels",
+            "type": "number"
+        }
+    }
+}
+</templatedata>
+</noinclude><includeonly>{{#if: {{{filename|}}}|[[File:{{{filename}}}|{{#if: {{{width|}}}
+|{{{width}}}{{#if: {{{height|}}}||px}}
 |}}{{#if: {{{height|}}}
-    |x{{{height}}}
-|}}{{# if: {{{width|}}}{{{height|}}}
-    |px
-|}}]]</includeonly>
+|x{{{height}}}px
+|}}
+]]|<span class="d-inline-flex alert alert-warning mb-3 mt-3 px-2 py-1 bg-warning-subtle border border-warning-subtle rounded-2 fst-italic">File name missing: nothing to show</span>}}</includeonly>
