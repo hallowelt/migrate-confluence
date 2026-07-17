@@ -17,7 +17,8 @@ class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
 
 			$attachmentId = (int)$attachment['attachment_id'];
 			$originalVersionId = (int)$attachment['original_version_id'];
-			$labellings = $attachment['collection']['labellings'] ?? [];
+			$collection = json_decode( $attachment['collection'] ?? '{}', true ) ?? [];
+			$labellings = $collection['labellings'] ?? [];
 
 			if ( $originalVersionId !== -1 ) {
 				continue;
@@ -40,7 +41,7 @@ class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
 				'info',
 				'extract',
 				__METHOD__,
-				"Add attachment meta for attachment {$attachment['wiki_title']}"
+				"Add attachment meta for attachment ID $attachmentId"
 			);
 		}
 	}

@@ -16,6 +16,7 @@ use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithSpaceIdOfHistoryVersions;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithWikiTitle;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageTemplatesWithWikiTitle;
+use HalloWelt\MigrateConfluence\Extractor\Processor\BuildAttachmentDescriptions;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractAttachmentsMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostComments;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
@@ -166,6 +167,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			new ExtractPagesMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
 			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new BuildAttachmentDescriptions( $this->workspaceDB, $this->dbLog ),
 			new ExtractPageComments( $this->workspaceDB, $this->dbLog ),
 			new ExtractBlogPostComments( $this->workspaceDB, $this->dbLog ),
 		];

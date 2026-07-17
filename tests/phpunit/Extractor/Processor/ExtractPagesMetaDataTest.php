@@ -24,7 +24,7 @@ class ExtractPagesMetaDataTest extends TestCase {
 				'page_id' => 30,
 				'wiki_title' => 'TEST:Page',
 				'original_version_id' => -1,
-				'collection' => [ 'labellings' => [ 200 ] ],
+				'collection' => json_encode( [ 'labellings' => [ 200 ] ] ),
 			],
 		] );
 		$workspaceDB->method( 'getLabellingById' )->with( 200 )->willReturn( [ 'label_id' => 300 ] );
