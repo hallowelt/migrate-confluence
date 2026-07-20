@@ -108,7 +108,7 @@ The script imports files in this order:
 3. `comments.xml`
 4. `templates.xml`
 5. `pages.xml`
-6. if it exists, `enhanced-sidebar.xml`, containing the `MediaWiki:Sidebar.json` page for a sidebar that matches the Confluence one
+6. if it exists, `enhanced-sidebar.xml`, containing the `MediaWiki:Sidebar.json` page for a sidebar that reflects the Confluence space navigation (one file per namespace result folder)
 
 `user.xml` is intentionally ignored.
 
