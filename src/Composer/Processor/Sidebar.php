@@ -22,7 +22,7 @@ class Sidebar {
 
 	/**
 	 * @param string $namespace The result sub-directory (e.g. "NS_MAIN", "MY_NS").
-	 * @param array  $spaces    Spaces belonging to this namespace, each with 'space_id' and 'space_name'.
+	 * @param array $spaces Spaces belonging to this namespace, each with 'space_id' and 'space_name'.
 	 * @return void
 	 */
 	public function execute( string $namespace, array $spaces ): void {
