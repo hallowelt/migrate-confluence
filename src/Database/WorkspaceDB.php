@@ -284,6 +284,7 @@ class WorkspaceDB {
 		$this->createTablePageTemplates();
 		$this->createTablePageTemplateContents();
 		$this->createTableAttachmentsDescriptions();
+		$this->createTableExportProperties();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -772,6 +773,52 @@ class WorkspaceDB {
 		$row = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 		return $row !== false ? (string)$row['description'] : '';
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableExportProperties(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS export_properties (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				space_key CHAR,
+				source CHAR,
+				confluence_version CHAR,
+				export_date CHAR,
+				timezone_id CHAR,
+				entities_xml_path CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @param string $spaceKey The Confluence space key (e.g. "HR"), from exportDescriptor.properties `spaceKey`
+	 * @param string $source Export origin: "server" or "cloud"
+	 * @param string $confluenceVersion Confluence version that created the export, e.g. "7.19.18"
+	 * @param string $exportDate Raw timestamp from the properties comment line, e.g. "Mon May 18 11:58:00 CEST 2026"
+	 * @param string $timezoneId Timezone of the exporting instance, e.g. "UTC" or "GMT"; empty for server exports
+	 * @param string $entitiesXmlPath Last path segment and filename of the entities.xml, e.g. "my_space/entities.xml"
+	 * @return void
+	 */
+	public function addExportProperties(
+		string $spaceKey, string $source,
+		string $confluenceVersion, string $exportDate,
+		string $timezoneId, string $entitiesXmlPath
+	): void {
+		$stmt = $this->cachedPrepare(
+			'INSERT INTO export_properties
+				(space_key, source, confluence_version, export_date, timezone_id, entities_xml_path)
+			VALUES
+				(:space_key, :source, :confluence_version, :export_date, :timezone_id, :entities_xml_path)'
+		);
+		$stmt->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
+		$stmt->bindValue( ':source', $source, SQLITE3_TEXT );
+		$stmt->bindValue( ':confluence_version', $confluenceVersion, SQLITE3_TEXT );
+		$stmt->bindValue( ':export_date', $exportDate, SQLITE3_TEXT );
+		$stmt->bindValue( ':timezone_id', $timezoneId, SQLITE3_TEXT );
+		$stmt->bindValue( ':entities_xml_path', $entitiesXmlPath, SQLITE3_TEXT );
+		$stmt->execute()->finalize();
 	}
 
 	/**

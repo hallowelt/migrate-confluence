@@ -72,10 +72,43 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 		$processors = $this->getProcessors( $file->getPath() );
 
 		$this->workspaceDB->beginTransaction();
+		$this->processExportDescriptor( $file );
 		$this->processFile( $sourcePath, $processors );
 		$this->workspaceDB->commitTransaction();
 
 		return true;
+	}
+
+	/**
+	 * @param SplFileInfo $entitiesFile
+	 * @return void
+	 */
+	private function processExportDescriptor( SplFileInfo $entitiesFile ): void {
+		$descriptorPath = $entitiesFile->getPath() . '/exportDescriptor.properties';
+		if ( !file_exists( $descriptorPath ) ) {
+			return;
+		}
+
+		$props = [];
+		foreach ( file( $descriptorPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES ) as $line ) {
+			if ( str_starts_with( $line, '#' ) ) {
+				if ( empty( $props['_date'] ) ) {
+					$props['_date'] = ltrim( $line, '#' );
+				}
+				continue;
+			}
+			[ $key, $value ] = explode( '=', $line, 2 ) + [ 1 => '' ];
+			$props[trim( $key )] = trim( $value );
+		}
+
+		$this->workspaceDB->addExportProperties(
+			$props['spaceKey'] ?? '',
+			$props['source'] ?? '',
+			$props['createdByVersionNumber'] ?? '',
+			trim( $props['_date'] ?? '' ),
+			$props['timezoneId'] ?? '',
+			basename( $entitiesFile->getPath() ) . '/' . $entitiesFile->getFilename()
+		);
 	}
 
 	/**
