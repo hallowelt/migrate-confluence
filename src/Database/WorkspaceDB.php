@@ -195,7 +195,7 @@ class WorkspaceDB {
 		try {
 			$result = $transaction->execute();
 		} catch ( Exception $e ) {
-			if ($e->getCode() === self::SQLITE_CONSTRAINT_ERROR_CODE) {
+			if ( $e->getCode() === self::SQLITE_CONSTRAINT_ERROR_CODE ) {
 				$this->addLogEntry(
 					'warning',
 					'',
