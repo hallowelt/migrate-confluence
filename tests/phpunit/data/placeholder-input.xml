@@ -21,4 +21,8 @@
 			</ac:task>
 		</ac:task-list>
 	</p>
+    <p>
+        <ac:placeholder>This is a placeholder</ac:placeholder>
+        <ac:placeholder></ac:placeholder>
+    </p>
 </xml>
