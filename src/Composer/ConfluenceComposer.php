@@ -87,6 +87,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 		// Fetching namespaces
 		$namespaceMap = [];
+		$namespaceSpacesMap = [];
 		$spaces = $this->dataLookup->getSpaces();
 		foreach ( $spaces as $space ) {
 			$spaceId = (int)$space['space_id'];
@@ -97,8 +98,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 			if ( !isset( $namespaceMap[$namespace] ) ) {
 				$namespaceMap[$namespace] = [];
+				$namespaceSpacesMap[$namespace] = [];
 			}
 			$namespaceMap[$namespace][] = $spaceId;
+			$namespaceSpacesMap[$namespace][] = $space;
 		}
 
 		// Run processors for each namespace
@@ -129,11 +132,12 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$this->writeInvalidPageTemplatesLog( $spaceIds, $namespace );
 
 			$this->addImportHelper( $namespace );
+
+			( new Sidebar( $this->dataLookup, $this->migrationConfig, $this->dest ) )
+				->execute( $namespace, $namespaceSpacesMap[$namespace] );
 		}
 
 		$this->writeUserReadableDBLog( $dbLog );
-
-		( new Sidebar( $this->dataLookup, $this->migrationConfig, $this->dest ) )->execute();
 	}
 
 	/**

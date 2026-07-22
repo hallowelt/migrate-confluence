@@ -21,17 +21,26 @@ class Sidebar {
 	}
 
 	/**
+	 * @param string $namespace The result sub-directory (e.g. "NS_MAIN", "MY_NS").
+	 * @param array $spaces Spaces belonging to this namespace, each with 'space_id' and 'space_name'.
 	 * @return void
 	 */
-	public function execute(): void {
+	public function execute( string $namespace, array $spaces ): void {
 		if ( !$this->migrationConfig->getCreateSidebar() ) {
 			return;
 		}
 
-		$spaces = $this->dataLookup->getSpaces();
-		$sidebar = count( $spaces ) > 1
-			? $this->buildMultiSpaceSidebar( $spaces )
-			: $this->buildSingleSpaceSidebar( $spaces );
+		$sidebar = [];
+		foreach ( $spaces as $space ) {
+			$section = $this->buildSpaceSection( $space );
+			if ( $section !== null ) {
+				$sidebar[] = $section;
+			}
+		}
+
+		if ( $sidebar === [] ) {
+			return;
+		}
 
 		$json = json_encode( $sidebar, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 
@@ -45,7 +54,7 @@ class Sidebar {
 			'application/json'
 		);
 
-		$resultPath = $this->dest . '/result/';
+		$resultPath = $this->dest . '/result/' . $namespace . '/';
 		if ( !is_dir( $resultPath ) ) {
 			mkdir( $resultPath, 0755, true );
 		}
@@ -53,58 +62,39 @@ class Sidebar {
 	}
 
 	/**
-	 * Single space: top-level "Pages" and "Blogs" sections (omitting empty ones).
+	 * Builds a top-level section for a single space.
 	 *
-	 * @param array $spaces
-	 * @return array
-	 */
-	private function buildSingleSpaceSidebar( array $spaces ): array {
-		$spaceId = !empty( $spaces ) ? (int)$spaces[0]['space_id'] : null;
-		return $this->buildPagesBlogsSections( $spaceId );
-	}
-
-	/**
-	 * Multiple spaces: top-level per-space headings, each containing "Pages"/"Blogs" sections.
+	 * Structure:
+	 * - Space heading (always)
+	 *   - If both pages and blogs exist: "Pages" and "Blogs" sub-headings
+	 *   - If only one type: entries directly under the space heading (no sub-heading)
 	 *
-	 * @param array $spaces
-	 * @return array
-	 */
-	private function buildMultiSpaceSidebar( array $spaces ): array {
-		$sidebar = [];
-		foreach ( $spaces as $space ) {
-			$spaceId = (int)$space['space_id'];
-			$spaceName = (string)$space['space_name'];
-
-			$sections = $this->buildPagesBlogsSections( $spaceId );
-			if ( $sections === [] ) {
-				continue;
-			}
-
-			$sidebar[] = $this->buildSection( $spaceName, $sections );
-		}
-		return $sidebar;
-	}
-
-	/**
-	 * Builds "Pages" and/or "Blogs" sections for a space, skipping empty ones.
+	 * Returns null when the space has no content.
 	 *
-	 * @param int|null $spaceId
-	 * @return array
+	 * @param array $space
+	 * @return array|null
 	 */
-	private function buildPagesBlogsSections( ?int $spaceId ): array {
-		$sections = [];
+	private function buildSpaceSection( array $space ): ?array {
+		$spaceId = (int)$space['space_id'];
+		$spaceName = (string)$space['space_name'];
 
 		$pageEntries = $this->buildPageTree( $this->dataLookup->getPagesForSidebar( $spaceId ) );
-		if ( $pageEntries !== [] ) {
-			$sections[] = $this->buildSection( 'Pages', $pageEntries );
-		}
-
 		$blogEntries = $this->buildBlogList( $this->dataLookup->getBlogPostsForSidebar( $spaceId ) );
-		if ( $blogEntries !== [] ) {
-			$sections[] = $this->buildSection( 'Blogs', $blogEntries );
+
+		if ( $pageEntries === [] && $blogEntries === [] ) {
+			return null;
 		}
 
-		return $sections;
+		if ( $pageEntries !== [] && $blogEntries !== [] ) {
+			$children = [
+				$this->buildSection( 'Pages', $pageEntries ),
+				$this->buildSection( 'Blogs', $blogEntries ),
+			];
+		} else {
+			$children = $pageEntries !== [] ? $pageEntries : $blogEntries;
+		}
+
+		return $this->buildSection( $spaceName, $children );
 	}
 
 	/**

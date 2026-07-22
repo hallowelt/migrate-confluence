@@ -11,7 +11,7 @@ Supports both single-file output (e.g. pages.xml) and split output
 (e.g. pages-00000001.xml, pages-00000002.xml, ...).
 
 Options:
-  --add-default    Also import default-files*.xml and default-pages*.xml
+  --add-default    Also import default-files*.xml, default-pages*.xml and enhanced-sidebar.xml
   --sfr=WIKI       Import into the WIKI wiki
 
 Import order:
@@ -20,7 +20,7 @@ Import order:
   3) comments*.xml (or page-talk*.xml + blog-talk*.xml if comments*.xml is absent)
   4) templates*.xml
   5) pages*.xml
-  6) ../sidebar.xml (if present)
+  6) enhanced-sidebar.xml (if present and --add-default is set)
 
 When --add-default is set, these are included:
   - default-files*.xml (before files*.xml)
@@ -187,8 +187,8 @@ if [[ "$add_default" -eq 1 ]]; then
 fi
 run_group "pages" "dump" "required"
 
-sidebar_file="$(dirname "$src")/sidebar.xml"
-if [[ -f "$sidebar_file" ]]; then
+sidebar_file="$src/enhanced-sidebar.xml"
+if [[ "$add_default" -eq 1 ]] && [[ -f "$sidebar_file" ]]; then
   echo "==> Importing sidebar from $sidebar_file"
   if ! run_import_dump_file "$sidebar_file"; then
     echo "Error: import failed for $sidebar_file" >&2
