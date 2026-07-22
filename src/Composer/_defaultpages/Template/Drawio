@@ -1,4 +1,27 @@
-{{#tag:drawio
+<noinclude>Template added by Confluence migration to handle DrawIO diagrams.
+
+<templatedata>
+{
+    "description": {
+        "en": "show a DrawIO diagram",
+        "de": "Ein DrawIO-Diagramm anzeigen"
+    },
+    "params": {
+        "diagramName": {
+            "label": {
+                "en": "diagramName",
+                "de": "Diagrammname"
+            },
+            "type": "wiki-file-name",
+            "required": true,
+            "description": {
+                "en": "The name of the DrawIO diagram to display",
+                "de": "Der Name des anzuzeigenden DrawIO-Diagramms"
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{#tag:drawio
 |
 |filename={{{diagramName}}}
-}}
+}}</includeonly>

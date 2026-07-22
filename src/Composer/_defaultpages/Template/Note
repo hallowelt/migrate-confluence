@@ -1,1 +1,36 @@
-{{Textbox|boxtype=note|header={{{title|}}}|text={{{body|}}}|icon=yes}}
+<noinclude>Template added by Confluence migration to handle the "note" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "show a note message",
+        "de": "Eine Hinweismeldung anzeigen"
+    },
+    "params": {
+        "title": {
+            "label": {
+                "en": "title",
+                "de": "Titel"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "The title of the note message",
+                "de": "Der Titel der Hinweismeldung"
+            }
+        },
+        "body": {
+            "label": {
+                "en": "body",
+                "de": "Inhalt"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "The body of the note message",
+                "de": "Der Inhalt der Hinweismeldung"
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{Textbox|boxtype=note|header={{{title|}}}|text={{{body|}}}|icon=yes}}</includeonly>

@@ -1,4 +1,56 @@
-<includeonly>{{#ask: [[~{{{page|{{FULLPAGENAME}}}}}/*]] [[Modification date::+]]
+<noinclude>Template added by Confluence migration tool
+
+Uses the [[:Template:SubpageListRow|SubpageListRow]] template for display.
+<templatedata>
+{
+    "description": {
+        "en": "show a list of child pages",
+        "de": "Eine Liste von Unterseiten anzeigen"
+    },
+    "params": {
+        "page": {
+            "label": {
+                "en": "page",
+                "de": "Seite"
+            },
+            "description": {
+                "en": "the parent page. Default is the current page",
+                "de": "Die übergeordnete Seite. Standard ist die aktuelle Seite"
+            },
+            "type": "wiki-page-name",
+            "default": "current page"
+        },
+        "first": {
+            "label": {
+                "en": "limit",
+                "de": "Begrenzung"
+            },
+            "description": {
+                "en": "limit the output to the first N found pages",
+                "de": "Ausgabe auf die ersten N gefundenen Seiten begrenzen"
+            },
+            "type": "number",
+            "default": "10"
+        },
+        "sort": {
+            "label": {
+                "en": "sort",
+                "de": "Sortierung"
+            },
+            "description": {
+                "en": "sort by either “title” or “creation”",
+                "de": "Sortieren nach „Titel“ oder „Erstellung“"
+            },
+            "type": "string",
+            "suggested_values": [
+                "title",
+                "creation"
+            ]
+        }
+    }
+}
+</templatedata>
+</noinclude><includeonly>{{#ask: [[~{{{page|{{FULLPAGENAME}}}}}/*]] [[Modification date::+]]
 |?=title
 |format=ul
 |template=SubpageListRow
