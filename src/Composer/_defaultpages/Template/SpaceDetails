@@ -1,5 +1,27 @@
-<noinclude>Template for macro "space-details"
-</noinclude><includeonly>{| class="wikitable" style="width:{{{width}}}"
+<noinclude>Template added by Confluence migration to handle the "space-details" macro
+
+<templatedata>
+{
+    "description": {
+        "en": "show details about this namespace",
+        "de": "Details zu diesem Namensraum anzeigen"
+    },
+    "params": {
+        "width": {
+            "label": {
+                "en": "width",
+                "de": "Breite"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "The width of the table to display with unit (px, em, %)",
+                "de": "Die Breite der anzuzeigenden Tabelle mit Einheit (px, em, %)"
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{| class="wikitable" style="width:{{{width}}}"
 |-
 | Name || {{NAMESPACE}}
 |-

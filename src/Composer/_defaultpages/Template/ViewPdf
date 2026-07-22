@@ -1,2 +1,24 @@
-<noinclude>Template for confluence macro "viewpdf"
-</noinclude><includeonly>[[File:{{{filename}}}]]</includeonly>
+<noinclude>Template added by Confluence migration to handle the "viewpdf" macro
+
+<templatedata>
+{
+    "description": {
+        "en": "show a PDF file",
+        "de": "Eine PDF-Datei anzeigen"
+    },
+    "params": {
+        "filename": {
+            "label": {
+                "en": "filename",
+                "de": "Dateiname"
+            },
+            "type": "wiki-file-name",
+            "required": true,
+            "description": {
+                "en": "The name of the file to display",
+                "de": "Der Name der anzuzeigenden Datei"
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>[[File:{{{filename}}}]]</includeonly>
