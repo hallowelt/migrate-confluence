@@ -17,6 +17,9 @@ class WorkspaceDB {
 	/** @var string */
 	private const SQLITE_FILE = "workspace.sqlite";
 
+	/** @var int */
+	private const SQLITE_CONSTRAINT_ERROR_CODE = 19;
+
 	/** @var array Cached prepared statements keyed by SQL string */
 	private array $stmtCache = [];
 
@@ -183,6 +186,7 @@ class WorkspaceDB {
 
 	/**
 	 * Execute an add statement and return whether it succeeded.
+	 * If an error is cause bei unique constraint failure, proceed.
 	 *
 	 * @param SQLite3Stmt $transaction
 	 * @return bool
@@ -191,6 +195,17 @@ class WorkspaceDB {
 		try {
 			$result = $transaction->execute();
 		} catch ( Exception $e ) {
+			if ( $e->getCode() === self::SQLITE_CONSTRAINT_ERROR_CODE ) {
+				$this->addLogEntry(
+					'warning',
+					'',
+					__CLASS__,
+					$e->getMessage()
+				);
+
+				return true;
+			}
+
 			return false;
 		}
 
