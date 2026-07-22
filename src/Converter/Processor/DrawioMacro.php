@@ -139,12 +139,12 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		// For example, diagram name could be "something.OG" - then diagram image will be "something.OG.png"
 
 		if ( strtolower( $this->getFileExtension( $filename ) ) !== 'png' ) {
-			// find png
+			// find png — the image file has the same name as the data file plus ".png"
 			$drawioDataFilename = $originalFilename;
 			$drawioImageFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 				$spaceId,
 				$this->rawPageTitle,
-				$diagramName
+				$diagramName . '.png'
 			) ?? '';
 		} else {
 			// find data
