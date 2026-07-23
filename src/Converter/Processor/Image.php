@@ -6,10 +6,12 @@ use DOMDocument;
 use DOMElement;
 use DOMException;
 use DOMNode;
+use Exception;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
+use HalloWelt\MigrateConfluence\Utility\LinkHelper;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class Image extends ConversionHelper implements IProcessor {
@@ -276,77 +278,65 @@ class Image extends ConversionHelper implements IProcessor {
 
 	/**
 	 * @param DOMElement $node
+	 *
 	 * @return DOMNode
+	 * @throws Exception
 	 */
 	private function makeImagePageLinkReplacement( DOMElement $node ): DOMNode {
+		$brokenPageLinkInfo = '';
 		$params = $this->getImageParams( $node );
 
 		$attachmentNode = $node->getElementsByTagName( 'attachment' )->item( 0 );
 		if ( !$attachmentNode || !$attachmentNode->hasAttribute( 'ri:filename' ) ) {
 			return $node;
 		}
+
+		$linkHelper = new LinkHelper(
+			$this->dataLookup,
+			$this->currentSpaceId
+		);
+
 		$filename = $attachmentNode->getAttribute( 'ri:filename' );
 		$pageEl = $node->getElementsByTagName( 'page' )->item( 0 );
 
-		$rawPageTitle = $this->rawPageTitle;
-		$linkPageTitle = $rawPageTitle;
-		$spaceId = $this->currentSpaceId;
 		if ( $pageEl instanceof DOMElement ) {
-			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
-				$linkPageTitle = $pageEl->getAttribute( 'ri:content-title' );
-			}
-			$spaceKey = '';
-			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
-				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
-			}
-			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
-				// TODO: Log if spaceId is null, but we should be able to
-				// resolve the filename without spaceId as well, so we can continue processing
-			}
-		}
+
+		$spaceId = $linkHelper->ensureSpaceId( $pageEl );
+		$rawPageTitle = $this->rawPageTitle;
 
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
 				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 		array_unshift( $params, $targetFilename );
 
-		$linkBody = $node->parentNode;
-		$link = $linkBody->parentNode;
+		$target = $linkHelper->getWikiPageTitleFromLinkElement( $node );
+		if ( !$target ) {
+			$brokenPageLinkInfo .= $this->getCategoryBroken( 'image_page_link' );
+			$target = $linkHelper->generateConfluenceKey( $this->currentSpaceId, $this->rawPageTitle );
+		}
 
-		$imagePageLinkHelper = new ImagePageLinkHelper(
-			$this->dataLookup,
-			$this->currentSpaceId,
-			$linkPageTitle
-		);
-		$target = $imagePageLinkHelper->getLinkTarget( $link );
 		if ( !empty( $target ) ) {
 			$params[] = "link=$target";
 		}
 
-		$isBrokenPageLink = $imagePageLinkHelper->isBrokenLink();
-		$brokenPageLinkInfo = '';
-		if ( $isBrokenPageLink ) {
-			$brokenPageLinkInfo = $this->getCategoryBroken( 'image_page_link' );
-		}
 		if ( $isBrokenFile ) {
 			$brokenPageLinkInfo .= $this->getCategoryBroken( 'image' );
 		}
 
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 
-		$replacementNode = $this->makeImageLinkWithDebugInfo(
+		return $this->makeImageLinkWithDebugInfo(
 			$node->ownerDocument,
 			$params,
 			$confluenceFileKey,
 			$brokenPageLinkInfo
 		);
-
-		return $replacementNode;
 	}
 
 	/**
 	 * @param DOMElement $node
+	 *
 	 * @return DOMNode
+	 * @throws Exception
 	 */
 	private function makeImageExternalLinkReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node );

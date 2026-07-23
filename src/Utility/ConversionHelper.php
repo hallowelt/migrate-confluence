@@ -55,7 +55,7 @@ class ConversionHelper {
 	 * @param string $confluenceTitle
 	 * @return string
 	 */
-	protected function getConfluencePageKeyFromSpaceId(
+	public function getConfluencePageKeyFromSpaceId(
 		?string $spaceId, string $confluenceTitle
 	): string {
 		$space = $this->getSpaceStringFromSpaceId( $spaceId );
@@ -67,7 +67,7 @@ class ConversionHelper {
 	 * @param string $confluenceTitle
 	 * @return string
 	 */
-	protected function getConfluencePageKeyFromSpaceKey(
+	public function getConfluencePageKeyFromSpaceKey(
 		?string $spaceKey, string $confluenceTitle
 	): string {
 		$space = $this->getSpaceStringFromSpaceKey( $spaceKey );
