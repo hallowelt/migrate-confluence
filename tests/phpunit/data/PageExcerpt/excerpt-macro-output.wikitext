@@ -1,7 +1,4 @@
-<!-- start excerpt macro --><div data-macro="excerpt" name="b50b3cdb-e32a-447c-8c42-7be043c457ce" hidden="true">
-
-This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.
-
-</div><!-- end excerpt macro -->[[Category:Broken_macro/excerpt]]
+<excerpt-block hidden="true"><p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt macro.</p></excerpt-block>
+<excerpt-block name="Excerpt Name 1" hidden="false"><p local-id="176212f6efc1">This content is transcluded from page “excerpt”.</p></excerpt-block>
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

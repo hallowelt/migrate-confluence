@@ -8,11 +8,11 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
 class ExcerptMacroTest extends ProcessorTestCase {
 
 	protected function getInput(): string {
-		return file_get_contents( dirname( __DIR__, 2 ) . '/data/excerpt-macro-input.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/PageExcerpt/excerpt-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( dirname( __DIR__, 2 ) . '/data/excerpt-macro-output.xml' );
+		return file_get_contents( dirname( __DIR__, 2 ) . '/data/PageExcerpt/excerpt-macro-output.xml' );
 	}
 
 	/**

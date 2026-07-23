@@ -15,7 +15,7 @@ class ExcerptMacroChainTest extends MacroChainTestBase {
 	 * @return void
 	 */
 	public function testMacroChain(): void {
-		$dir = dirname( __DIR__, 2 ) . '/data';
+		$dir = dirname( __DIR__, 2 ) . '/data/PageExcerpt';
 		$fixtures = [
 			'excerpt-macro-input.xml' => 'excerpt-macro-output.wikitext',
 		];

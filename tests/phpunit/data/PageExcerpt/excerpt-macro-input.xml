@@ -1,10 +1,18 @@
 <?xml version="1.0"?>
-<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<ac:structured-macro ac:name="excerpt" ac:macro-id="b50b3cdb-e32a-447c-8c42-7be043c457ce">
-		<ac:parameter ac:name="hidden">true</ac:parameter>
-		<ac:parameter ac:name="atlassian-macro-output-type">BLOCK</ac:parameter>
-		<ac:rich-text-body>
-			<p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt macro.</p>
-  		</ac:rich-text-body>
-	</ac:structured-macro>
+<xml xmlns:ac="sample_namespace">
+    <ac:structured-macro ac:name="excerpt" ac:macro-id="b50b3cdb-e32a-447c-8c42-7be043c457ce">
+        <ac:parameter ac:name="hidden">true</ac:parameter>
+        <ac:parameter ac:name="atlassian-macro-output-type">BLOCK</ac:parameter>
+        <ac:rich-text-body>
+            <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt macro.
+            </p>
+        </ac:rich-text-body>
+    </ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt" ac:schema-version="1" data-layout="default"
+                         ac:local-id="7832bfc2-cce6-4596-a2f5-80b9f81dcdd3"
+                         ac:macro-id="b1b5153851c9736263b4daba0d3b85b3c03e0dc53388f0990e2cb59b068bd2e5">
+    <ac:parameter ac:name="name">Excerpt Name 1</ac:parameter>
+    <ac:rich-text-body>
+        <p local-id="176212f6efc1">This content is transcluded from page “excerpt”.</p>
+    </ac:rich-text-body>
 </xml>

@@ -1,10 +1,62 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_namespace2">
     <ac:structured-macro ac:name="excerpt-include">
-      <ac:parameter ac:name="nopanel">true</ac:parameter>
-      <ac:parameter ac:name="">
-        <ac:link>
-          <ri:page ri:content-title="Some Confluence page name" ri:version-at-save="2"/>
-        </ac:link>
-      </ac:parameter>
+        <ac:parameter ac:name="nopanel">true</ac:parameter>
+        <ac:parameter ac:name="">
+            <ac:link>
+                <ri:page ri:content-title="Some Confluence page name" ri:version-at-save="2"/>
+            </ac:link>
+        </ac:parameter>
+    </ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt-include">
+        <ac:parameter ac:name="nopanel">false</ac:parameter>
+        <ac:parameter ac:name="">
+            <ac:link>
+                <ri:page ri:content-title="Some Confluence page name" ri:version-at-save="2"/>
+            </ac:link>
+        </ac:parameter>
+        <ac:parameter ac:name="name"></ac:parameter>
+    </ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt-include">
+        <ac:parameter ac:name="">
+            <ac:link>
+                <ri:page ri:content-title="Some Confluence page name"/>
+            </ac:link>
+        </ac:parameter>
+    </ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt-include">
+        <ac:parameter ac:name="">
+            <ac:link>
+                <ri:page ri:content-title="Some Confluence page name"/>
+            </ac:link>
+        </ac:parameter>
+        <ac:parameter ac:name="name">Excerpt Name 1</ac:parameter>
+    </ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt-include">
+        <ac:parameter ac:name="nopanel">false</ac:parameter>
+        <ac:parameter ac:name="">
+            <ac:link>
+                <ri:page ri:content-title="Some Confluence page name"/>
+            </ac:link>
+        </ac:parameter>
+        <ac:parameter ac:name="name">Excerpt Name 2</ac:parameter>
+    </ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt-include">
+        <ac:default-parameter>Some Confluence page name</ac:default-parameter>
+    </ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt-include">
+        <ac:default-parameter>
+            <ac:link>
+                <ri:page ri:content-title="Some Confluence page name"/>
+            </ac:link>
+        </ac:default-parameter>
+    </ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt-include">
+        <ac:parameter ac:name=""><ac:link></ac:link></ac:parameter>
+    </ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt-include"></ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt-include">
+        <ac:parameter ac:name="nopanel">false</ac:parameter>
+        <ac:parameter ac:name=""></ac:parameter>
+        <ac:parameter ac:name="name">Excerpt Name 2</ac:parameter>
     </ac:structured-macro>
 </xml>
