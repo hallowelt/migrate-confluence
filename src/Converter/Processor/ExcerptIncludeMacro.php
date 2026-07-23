@@ -6,8 +6,15 @@ use DOMElement;
 use DOMException;
 use DOMNode;
 use Exception;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
+
+	/**
+	 * @param DBConversionDataLookup $dataLookup
+	 */
+	public function __construct( private readonly DBConversionDataLookup $dataLookup ) {
+	}
 
 	/**
 	 * @return string
@@ -26,7 +33,9 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 			throw new Exception( 'Could not create excerpt-include element' );
 		}
 
-		$targetPage = $this->findPageParameter( $node );
+		$pageParameter = $this->findPageParameter( $node );
+		$this->dataLookup->getWikiPageTitleFromSpaceId()
+
 		if ( $targetPage ) {
 			$macroReplacement->setAttribute( 'page', $targetPage );
 		}
@@ -38,11 +47,15 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 			$macroReplacement->setAttribute( 'excerpt', $options['name'] );
 		}
 
-		if ( !$targetPage ) {
-			$macroReplacement = $this->setMacroAsBroken( $macroReplacement, $node );
-		}
-
 		$node->parentNode->replaceChild( $macroReplacement, $node );
+
+		if ( !$targetPage ) {
+			$macroReplacement->after($this->createTextNode(
+				$macroReplacement->ownerDocument,
+				$this->getBrokenMacroCategory(),
+				__METHOD__
+			));
+		}
 	}
 
 	/**
@@ -119,20 +132,7 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 		}
 
 		$page = trim( $page );
+
 		return $page === '' ? null : $page;
-	}
-
-	/**
-	 * @param DOMElement $macroReplacement
-	 * @param DOMElement $node
-	 *
-	 * @return DOMElement
-	 * @throws DOMException
-	 */
-	private function setMacroAsBroken( DOMElement $macroReplacement, DOMElement $node ): DOMNode {
-		$wikiText = $macroReplacement->textContent;
-		$wikiText .= $this->getBrokenMacroCategory();
-
-		return $this->createTextNode( $node->ownerDocument, $wikiText, __METHOD__ );
 	}
 }

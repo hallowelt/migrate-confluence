@@ -1,12 +1,12 @@
-<excerpt-include showpanel="false" page="Some_Confluence_page_name" />
-<excerpt-include showpanel="true" page="Some_Confluence_page_name" />
-<excerpt-include showpanel="true" page="Some_Confluence_page_name" />
-<excerpt-include showpanel="false" excerpt="Excerpt Name 1" page="Some_Confluence_page_name" />
-<excerpt-include showpanel="true" excerpt="Excerpt Name 2" page="Some_Confluence_page_name" />
-<excerpt-include showpanel="true" page="Some_Confluence_page_name" />
-<excerpt-include showpanel="true" page="Some_Confluence_page_name" />
-<!-- <excerpt-include showpanel="true" /> -->[[Category:Broken_macro/excerpt-include]]
-<!-- <excerpt-include showpanel="true" /> -->[[Category:Broken_macro/excerpt-include]]
-<!-- <excerpt-include showpanel="true" excerpt="Excerpt Name 2" /> -->[[Category:Broken_macro/excerpt-include]]
+<excerpt-include showpanel="false" page="Some_Confluence_page_name"/>
+<excerpt-include showpanel="true" page="Some_Confluence_page_name"/>
+<excerpt-include showpanel="true" page="Some_Confluence_page_name"/>
+<excerpt-include showpanel="true" excerpt="Excerpt Name 1" page="Some_Confluence_page_name" />
+<excerpt-include showpanel="true" excerpt="Excerpt Name 2" page="Some_Confluence_page_name"/>
+<excerpt-include showpanel="true" page="Some_Confluence_page_name"/>
+<excerpt-include showpanel="true" page="Some_Confluence_page_name"/>
+<excerpt-include showpanel="true"/>[[Category:Broken_macro/excerpt-include]]
+<excerpt-include showpanel="true"/>[[Category:Broken_macro/excerpt-include]]
+<excerpt-include showpanel="true" excerpt="Excerpt Name 2"/>[[Category:Broken_macro/excerpt-include]]
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

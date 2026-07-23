@@ -1,8 +1,13 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_namespace2">
-    {{ExcerptInclude###BREAK###
- |target = ABC:Some_MediaWiki_page_name###BREAK###
- |nopanel = true###BREAK###
-}}###BREAK###
-
+    <excerpt-include page="Some Confluence page name" showpanel="true"/>
+    <excerpt-include page="Some Confluence page name" showpanel="true"/>
+    <excerpt-include page="Some Confluence page name" showpanel="true"/>
+    <excerpt-include page="Some Confluence page name" showpanel="true" excerpt="Excerpt Name 1"/>
+    <excerpt-include page="Some Confluence page name" showpanel="true" excerpt="Excerpt Name 2"/>
+    <excerpt-include page="Some Confluence page name" showpanel="true"/>
+    <excerpt-include page="Some Confluence page name" showpanel="true"/>
+    <excerpt-include showpanel="true"/>[[Category:Broken_macro/excerpt-include]]
+    <excerpt-include showpanel="true"/>[[Category:Broken_macro/excerpt-include]]
+    <excerpt-include showpanel="true" excerpt="Excerpt Name 2"/>[[Category:Broken_macro/excerpt-include]]
 </xml>

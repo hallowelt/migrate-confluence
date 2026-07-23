@@ -394,10 +394,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->currentSpace
 			),
 			new ExcerptMacro(),
-			new ExcerptIncludeMacro(
-				$this->dataLookup,
-				$this->currentSpace
-			),
+			new ExcerptIncludeMacro( $this->dataLookup, $this->currentSpace ),
 			new Emoticon(),
 			new PreserveTasksReportMacro( $this->dataLookup ),
 			new Image(
@@ -753,7 +750,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			[
 				"#&lt;headertabs /&gt;#si",
 				"#&lt;subpages(.*?)/&gt;#si",
-				"#&lt;img(.*?)/&gt;#s"
+				"#&lt;img(.*?)/&gt;#s",
+				"#&lt;excerpt-include(.*?)/&gt;#si",
 			],
 			static function ( $aMatches ) {
 				return html_entity_decode( $aMatches[0] );
