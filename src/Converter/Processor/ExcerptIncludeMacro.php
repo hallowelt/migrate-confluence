@@ -3,17 +3,27 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use DOMException;
-use DOMNode;
 use Exception;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 
+	/** @var ConversionHelper */
+	private ConversionHelper $conversionHelper;
+
+	/** @var bool */
+	private bool $isBroken;
+
 	/**
 	 * @param DBConversionDataLookup $dataLookup
+	 * @param int $currentSpaceId
 	 */
-	public function __construct( private readonly DBConversionDataLookup $dataLookup ) {
+	public function __construct(
+		private readonly DBConversionDataLookup $dataLookup,
+		private readonly int $currentSpaceId
+	) {
+		$this->conversionHelper = new ConversionHelper();
 	}
 
 	/**
@@ -28,17 +38,19 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 	 * @throws Exception
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
+		$this->isBroken = false;
+
 		$macroReplacement = $node->ownerDocument->createElement( 'excerpt-include' );
 		if ( !$macroReplacement ) {
 			throw new Exception( 'Could not create excerpt-include element' );
 		}
 
-		$pageParameter = $this->findPageParameter( $node );
-		$this->dataLookup->getWikiPageTitleFromSpaceId()
-
+		$targetPage = $this->findPageParameter( $node );
 		if ( $targetPage ) {
 			$macroReplacement->setAttribute( 'page', $targetPage );
 		}
+
+		$macroReplacement->setAttribute( 'data-foo', 'bar' );
 
 		$options = $this->findOptionsParameters( $node );
 		$macroReplacement->setAttribute( 'showpanel', !!$options['nopanel'] ? "true" : "false" );
@@ -49,12 +61,15 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 
-		if ( !$targetPage ) {
-			$macroReplacement->after($this->createTextNode(
-				$macroReplacement->ownerDocument,
-				$this->getBrokenMacroCategory(),
-				__METHOD__
-			));
+		if ( $this->isBroken ) {
+			$macroReplacement->after(
+				$this->createTextNode(
+					$macroReplacement->ownerDocument,
+					$this->getBrokenMacroCategory(),
+					__METHOD__
+				)
+			);
+			$this->isBroken = false;
 		}
 	}
 
@@ -90,20 +105,22 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 	 * Either ac:name="" or ac:default-parameter
 	 *
 	 * @return string|null
+	 * @throws Exception
 	 */
 	private function findPageParameter( DOMElement $node ): ?string {
-		$defaultParameter = $node->getElementsByTagName( 'default-parameter' )->item( 0 );
-		if ( $defaultParameter ) {
-			return $this->findPageValue( $defaultParameter );
+		$defaultParameterElement = $node->getElementsByTagName( 'default-parameter' )->item( 0 );
+		if ( $defaultParameterElement ) {
+			return $this->findPageValue( $defaultParameterElement );
 		}
 
-		foreach ( $node->getElementsByTagName( 'parameter' ) as $parameter ) {
-			$nameParameter = $parameter->getAttribute( 'ac:name' );
+		foreach ( $node->getElementsByTagName( 'parameter' ) as $parameterElement ) {
+			$nameParameter = $parameterElement->getAttribute( 'ac:name' );
 			if ( $nameParameter === "" ) {
-				return $this->findPageValue( $parameter );
+				return $this->findPageValue( $parameterElement );
 			}
 		}
 
+		$this->isBroken = true;
 		return null;
 	}
 
@@ -113,26 +130,67 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 	 * The parameter either wraps an <ac:link><ri:page ri:content-title="…"/></ac:link>
 	 * or holds the page title as plain text.
 	 *
-	 * @param DOMElement $pageParameter
+	 * @param DOMElement $pageElement
 	 *
-	 * @return string|null The page title, or null if it can't be determined.
+	 * @return string|null The wiki page title, or null if it can't be determined.
+	 * @throws Exception
 	 */
-	private function findPageValue( DOMElement $pageParameter ): ?string {
-		$page = null;
-		$pageLink = $pageParameter->getElementsByTagName( 'link' )->item( 0 );
-		if ( $pageLink instanceof DOMElement ) {
-			$pageEl = $pageLink->getElementsByTagName( 'page' )->item( 0 );
-			if ( $pageEl instanceof DOMElement ) {
-				$page = $pageEl->getAttribute( 'ri:content-title' );
+	private function findPageValue( DOMElement $pageElement ): ?string {
+		$pageLinkElement = $pageElement->getElementsByTagName( 'link' )->item( 0 );
+		if ( $pageLinkElement instanceof DOMElement ) {
+			$pageLinkPageElement = $pageLinkElement->getElementsByTagName( 'page' )->item( 0 );
+			if ( $pageLinkPageElement instanceof DOMElement ) {
+				$confluenceTitle = $pageLinkPageElement->getAttribute( 'ri:content-title' );
+				if ( empty ( $confluenceTitle ) ) {
+					$this->isBroken = true;
+					return null;
+				}
+
+				return $this->getWikiPageTitle(
+					$confluenceTitle,
+					$pageLinkPageElement
+				);
 			}
 		}
 
-		if ( !$page ) {
-			$page = $pageParameter->textContent;
+		$confluenceTitle = $pageElement->textContent;
+		if ( empty ( $confluenceTitle ) ) {
+			$this->isBroken = true;
+			return null;
 		}
 
-		$page = trim( $page );
+		return $this->getWikiPageTitle( $confluenceTitle, $pageElement );
+	}
 
-		return $page === '' ? null : $page;
+	/**
+	 * @param string $confluenceTitle
+	 * @param DOMElement $el
+	 *
+	 * @return string
+	 * @throws Exception
+	 */
+	private function getWikiPageTitle( string $confluenceTitle, DOMElement $el ): string {
+		$spaceId = null;
+		$spaceKey = $el->getAttribute( 'ri:space-key' );
+
+		if ( !empty ( $spaceKey ) ) {
+			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+		}
+
+		if ( !$spaceId ) {
+			$spaceId = $this->currentSpaceId;
+		}
+
+		if ( $wikiTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle ) ) {
+			return $wikiTitle;
+		}
+
+		// Fallback to confluence page key
+		$this->isBroken = true;
+		if ( empty( $spaceKey ) ) {
+			return $this->conversionHelper->getConfluencePageKeyFromSpaceId( $spaceId, $confluenceTitle );
+		}
+
+		return $this->conversionHelper->getConfluencePageKeyFromSpaceKey( $spaceKey, $confluenceTitle );
 	}
 }

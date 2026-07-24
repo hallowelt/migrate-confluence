@@ -93,8 +93,7 @@ abstract class MacroChainTestBase extends TestCase {
 			[
 				"#&lt;headertabs /&gt;#si",
 				"#&lt;subpages(.*?)/&gt;#si",
-				"#&lt;img(.*?)/&gt;#s",
-				"#&lt;excerpt-include(.*?)/&gt;#si",
+				"#&lt;img(.*?)/&gt;#s"
 			],
 			static function ( $matches ) {
 				return html_entity_decode( $matches[0] );

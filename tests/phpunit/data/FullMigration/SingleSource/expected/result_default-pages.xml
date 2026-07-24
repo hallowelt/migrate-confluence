@@ -359,24 +359,6 @@
     </revision>
   </page>
   <page>
-    <title>Template:ExcerptInclude</title>
-    <revision>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text>&lt;includeonly&gt;
-{{#dpl:
-|title   = {{{target|}}}
-|include = {{{name|}}}
-}}
-
-Target:{{{target|}}}
-
-Name:{{{name|}}}
-
-&lt;/includeonly&gt;</text>
-    </revision>
-  </page>
-  <page>
     <title>Template:ColumnEnd</title>
     <revision>
       <model>wikitext</model>

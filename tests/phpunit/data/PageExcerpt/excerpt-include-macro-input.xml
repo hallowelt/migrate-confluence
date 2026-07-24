@@ -3,8 +3,8 @@
         <ac:parameter ac:name="nopanel">true</ac:parameter>
         <ac:parameter ac:name="">
             <ac:link>
-                <ri:page ri:content-title="Some Confluence page name" ri:version-at-save="2"/>
-            </ac:link>
+                <ri:page ri:space-key="DEF" ri:content-title="Some Confluence page name" ri:version-at-save="2"/>
+            </ac:link>Some Confluence page name
         </ac:parameter>
     </ac:structured-macro>
     <ac:structured-macro ac:name="excerpt-include">
@@ -47,6 +47,13 @@
         <ac:default-parameter>
             <ac:link>
                 <ri:page ri:content-title="Some Confluence page name"/>
+            </ac:link>
+        </ac:default-parameter>
+    </ac:structured-macro>
+    <ac:structured-macro ac:name="excerpt-include">
+        <ac:default-parameter>
+            <ac:link>
+                <ri:page ri:content-title="Page doesnt exist"/>
             </ac:link>
         </ac:default-parameter>
     </ac:structured-macro>
