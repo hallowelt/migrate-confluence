@@ -35,42 +35,44 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
-	 * @throws Exception
+	 *
+	 * Pandoc strips unknown HTML elements like <excerpt-include> when converting to MediaWiki
+	 * format. To preserve the tag, we insert a text placeholder here and restore the actual
+	 * <excerpt-include> tag in the RestoreExcerptIncludeMacro postprocessor.
+	 * Placeholders use pipe-separated values to avoid HTML attribute quote encoding issues.
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
 		$this->isBroken = false;
 
-		$macroReplacement = $node->ownerDocument->createElement( 'excerpt-include' );
-		if ( !$macroReplacement ) {
-			throw new Exception( 'Could not create excerpt-include element' );
-		}
-
 		$targetPage = $this->findPageParameter( $node );
-		if ( $targetPage ) {
-			$macroReplacement->setAttribute( 'page', $targetPage );
-		}
-
-		$macroReplacement->setAttribute( 'data-foo', 'bar' );
-
 		$options = $this->findOptionsParameters( $node );
-		$macroReplacement->setAttribute( 'showpanel', !!$options['nopanel'] ? "true" : "false" );
 
-		if ( !empty( $options['name'] ) ) {
-			$macroReplacement->setAttribute( 'excerpt', $options['name'] );
-		}
+		$page = $targetPage ?? '';
+		$showpanel = ( $options['nopanel'] === "true" ) ? "false" : "true";
+		$excerpt = $options['name'] ?? '';
 
-		$node->parentNode->replaceChild( $macroReplacement, $node );
+		$parent = $node->parentNode;
+
+		$placeholder = $this->createTextNode(
+			$node->ownerDocument,
+			"#####EXCERPTINCLUDE|$showpanel|$page|$excerpt#####",
+			__METHOD__
+		);
+		$parent->insertBefore( $placeholder, $node );
 
 		if ( $this->isBroken ) {
-			$macroReplacement->after(
+			$parent->insertBefore(
 				$this->createTextNode(
-					$macroReplacement->ownerDocument,
+					$node->ownerDocument,
 					$this->getBrokenMacroCategory(),
 					__METHOD__
-				)
+				),
+				$node
 			);
 			$this->isBroken = false;
 		}
+
+		$parent->removeChild( $node );
 	}
 
 	/**
@@ -88,7 +90,7 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 			$parameterName = $parameter->getAttribute( 'ac:name' );
 			$paramValue = $parameter->textContent;
 
-			if ( ( $parameterName !== "nopanel" && $parameterName !== "name" ) || empty ( $paramValue ) ) {
+			if ( ( $parameterName !== "nopanel" && $parameterName !== "name" ) || empty( $paramValue ) ) {
 				continue;
 			}
 
@@ -121,6 +123,7 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 		}
 
 		$this->isBroken = true;
+
 		return null;
 	}
 
@@ -141,8 +144,9 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 			$pageLinkPageElement = $pageLinkElement->getElementsByTagName( 'page' )->item( 0 );
 			if ( $pageLinkPageElement instanceof DOMElement ) {
 				$confluenceTitle = $pageLinkPageElement->getAttribute( 'ri:content-title' );
-				if ( empty ( $confluenceTitle ) ) {
+				if ( empty( $confluenceTitle ) ) {
 					$this->isBroken = true;
+
 					return null;
 				}
 
@@ -154,8 +158,9 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 		}
 
 		$confluenceTitle = $pageElement->textContent;
-		if ( empty ( $confluenceTitle ) ) {
+		if ( empty( $confluenceTitle ) ) {
 			$this->isBroken = true;
+
 			return null;
 		}
 
@@ -173,7 +178,7 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 		$spaceId = null;
 		$spaceKey = $el->getAttribute( 'ri:space-key' );
 
-		if ( !empty ( $spaceKey ) ) {
+		if ( !empty( $spaceKey ) ) {
 			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
 		}
 
@@ -181,7 +186,8 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 			$spaceId = $this->currentSpaceId;
 		}
 
-		if ( $wikiTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle ) ) {
+		$wikiTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle );
+		if ( $wikiTitle ) {
 			return $wikiTitle;
 		}
 

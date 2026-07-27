@@ -1,6 +1,18 @@
 <?xml version="1.0"?>
-<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	#####EXCERPTBLOCKOPEN|b50b3cdb-e32a-447c-8c42-7be043c457ce|true#####
-			<p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt macro.</p>
-  		#####EXCERPTBLOCKCLOSE#####[[Category:Broken_macro/excerpt]]
+<xml xmlns:ac="sample_namespace">
+    <p>
+        #####EXCERPTBLOCKOPEN||true#####
+                <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
+                    macro.
+                </p>
+            #####EXCERPTBLOCKCLOSE#####
+    </p>
+    <p>
+        #####EXCERPTBLOCKOPEN||false##########EXCERPTBLOCKCLOSE#####
+    </p>
+    <p>
+        #####EXCERPTBLOCKOPEN|Excerpt Name 1|false#####
+                <p local-id="176212f6efc1">This content is transcluded from page &#x201C;excerpt&#x201D;.</p>
+            #####EXCERPTBLOCKCLOSE#####
+    </p>
 </xml>
