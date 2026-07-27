@@ -1,0 +1,13 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+    <p>{{Livesearch|spaceKey=ABC|size=medium|placeholder=Placeholder text}}[[Category:Broken_macro/livesearch]]</p>
+    <p>{{Livesearch}}[[Category:Broken_macro/livesearch]]</p>
+    <p>
+        {{Livesearch|spaceKey=ABC|size=large|additional=info|placeholder=Placeholder text|type=page}}[[Category:Broken_macro/livesearch]]
+    </p>
+    <p>
+        {{Livesearch|spaceKey=ABC}}[[Category:Broken_macro/livesearch]]
+    </p>
+    <p>
+        {{Livesearch}}[[Category:Broken_macro/livesearch]]
+    </p>
+</xml>

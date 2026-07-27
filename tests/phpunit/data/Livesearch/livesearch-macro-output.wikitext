@@ -1,0 +1,11 @@
+{{Livesearch|spaceKey=ABC|size=medium|placeholder=Placeholder text}}[[Category:Broken_macro/livesearch]]
+
+{{Livesearch}}[[Category:Broken_macro/livesearch]]
+
+{{Livesearch|spaceKey=ABC|size=large|additional=info|placeholder=Placeholder text|type=page}}[[Category:Broken_macro/livesearch]]
+
+{{Livesearch|spaceKey=ABC}}[[Category:Broken_macro/livesearch]]
+
+{{Livesearch}}[[Category:Broken_macro/livesearch]]
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
