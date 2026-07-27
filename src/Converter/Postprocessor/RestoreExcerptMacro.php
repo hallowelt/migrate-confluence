@@ -13,19 +13,21 @@ class RestoreExcerptMacro implements IPostprocessor {
 		return preg_replace_callback(
 			'/#####EXCERPTBLOCKOPEN\|(.*?)\|(.*?)#####(.*?)#####EXCERPTBLOCKCLOSE#####/si',
 			static function ( $matches ) {
-				$name = "";
-				if ( !empty( $matches[1] ) ) {
-					$name = " name=\"$matches[1]\"";
+				$attributes = [
+					'name'   => $matches[1] ?? '',
+					'hidden' => $matches[2] ?? '',
+				];
+
+				$attrString = '';
+				foreach ( $attributes as $attr => $value ) {
+					if ( $value !== '' ) {
+						$attrString .= sprintf( ' %s="%s"', $attr, $value );
+					}
 				}
 
-				$hidden = "";
-				if ( !empty( $matches[2] ) ) {
-					$hidden = " hidden=\"$matches[2]\"";
-				}
+				$content = trim( $matches[3] ?? '' );
 
-				$content = trim( $matches[3] ) ?? "";
-
-				return sprintf( '<excerpt-block%s%s>%s</excerpt-block>', $name, $hidden, $content );
+				return "<excerpt-block$attrString>$content</excerpt-block>";
 			},
 			$wikiText
 		);
