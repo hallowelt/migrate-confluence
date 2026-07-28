@@ -40,6 +40,51 @@ class WorkspaceDbMock {
 		return $this->createFixtureDatabase( true );
 	}
 
+	/**
+	 * Create a minimal database with a single page that has two drawio attachments:
+	 * the data file (.drawio) and the image file (.drawio.png), both pointing to
+	 * actual files on disk so baking can be tested end-to-end.
+	 *
+	 * @param int $spaceId
+	 * @param string $pageTitle Confluence and wiki title of the page
+	 * @param string $dataFilename Original filename of the .drawio data attachment
+	 * @param string $dataFilePath Path to the actual .drawio file on disk
+	 * @param string $imageFilename Original filename of the .drawio.png attachment
+	 * @param string $imageFilePath Path to the actual .drawio.png file on disk
+	 * @return WorkspaceDB
+	 */
+	public function createWithDrawioAttachments(
+		int $spaceId,
+		string $pageTitle,
+		string $dataFilename,
+		string $dataFilePath,
+		string $imageFilename,
+		string $imageFilePath
+	): WorkspaceDB {
+		$this->nextTestPageId = 10000;
+		$this->nextTestAttachmentId = 20000;
+		$this->pageIds = [];
+
+		$workspaceDB = $this->createWorkspaceDB();
+
+		$this->seedDefaultSpaces( $workspaceDB );
+
+		$pageId = $this->addPageMapping( $workspaceDB, $spaceId, $pageTitle, $pageTitle );
+
+		$this->addAttachmentMapping(
+			$workspaceDB, $spaceId, $pageId,
+			$dataFilename, "$pageTitle-$dataFilename",
+			[], $dataFilePath
+		);
+		$this->addAttachmentMapping(
+			$workspaceDB, $spaceId, $pageId,
+			$imageFilename, "$pageTitle-$imageFilename",
+			[], $imageFilePath
+		);
+
+		return $workspaceDB;
+	}
+
 	private function createFixtureDatabase( bool $keepAttachmentNamespaceColon ): WorkspaceDB {
 		$this->nextTestPageId = 10000;
 		$this->nextTestAttachmentId = 20000;
