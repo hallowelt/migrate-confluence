@@ -1,1 +1,10 @@
-<includeonly>Macro Livesearch is not supported yet.</includeonly>
+<noinclude>Template added by Confluence migration to handle the "livesearch" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "show a broken macro message",
+        "de": "Eine Hinweismeldung anzeigen"
+    }
+}
+</templatedata></noinclude><includeonly>Macro Livesearch is not supported yet.</includeonly>
