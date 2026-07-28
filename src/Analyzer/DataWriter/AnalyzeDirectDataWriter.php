@@ -237,4 +237,22 @@ class AnalyzeDirectDataWriter implements IAnalyzeDataWriter {
 	public function addInvalidPageTemplateTitle( int $templateId, string $wikiTitle, string $text ): void {
 		$this->db->addInvalidPageTemplateTitle( $templateId, $wikiTitle, $text );
 	}
+
+	public function addExportProperties(
+		string $spaceKey,
+		string $source,
+		string $confluenceVersion,
+		string $exportDate,
+		string $timezoneId,
+		string $entitiesXmlPath
+	): void {
+		$this->db->addExportProperties(
+			$spaceKey,
+			$source,
+			$confluenceVersion,
+			$exportDate,
+			$timezoneId,
+			$entitiesXmlPath
+		);
+	}
 }

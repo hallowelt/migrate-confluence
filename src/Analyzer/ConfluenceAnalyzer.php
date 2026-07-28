@@ -16,7 +16,6 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\PageTemplates;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -32,13 +31,11 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 
 	/**
 	 * @param IAnalyzeDataWriter $writer
-	 * @param WorkspaceDB $workspaceDB
 	 * @param OutputInterface $output
 	 * @param MigrationConfig $config
 	 */
 	public function __construct(
 		private readonly IAnalyzeDataWriter $writer,
-		private readonly WorkspaceDB $workspaceDB,
 		private readonly OutputInterface $output,
 		private readonly MigrationConfig $config,
 	) {
@@ -71,10 +68,8 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 
 		$processors = $this->getProcessors( $file->getPath() );
 
-		$this->workspaceDB->beginTransaction();
 		$this->processExportDescriptor( $file );
 		$this->processFile( $sourcePath, $processors );
-		$this->workspaceDB->commitTransaction();
 
 		return true;
 	}
@@ -101,7 +96,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			$props[trim( $key )] = trim( $value );
 		}
 
-		$this->workspaceDB->addExportProperties(
+		$this->writer->addExportProperties(
 			$props['spaceKey'] ?? '',
 			$props['source'] ?? '',
 			$props['createdByVersionNumber'] ?? '',
@@ -129,7 +124,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			'Labelling' => new Labelling( $this->writer ),
 			'ContentProperty' => new ContentProperty( $this->writer ),
 			'ConfluenceUserImpl' => new Users( $this->writer ),
-			'PageTemplate' => new PageTemplates( $this->writer, $this->workspaceDB ),
+			'PageTemplate' => new PageTemplates( $this->writer ),
 		];
 	}
 

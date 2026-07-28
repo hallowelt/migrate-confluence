@@ -133,12 +133,13 @@ class Analyze extends BatchFileProcessorBase {
 
 		$analyzer = new ConfluenceAnalyzer(
 			$dataWriter,
-			$this->workspaceDB,
 			$this->output,
 			$this->getMigrationConfig()
 		);
 
+		$this->workspaceDB->beginTransaction();
 		$analyzer->analyze( $file );
+		$this->workspaceDB->commitTransaction();
 
 		return true;
 	}

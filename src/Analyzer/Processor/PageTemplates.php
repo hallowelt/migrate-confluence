@@ -3,15 +3,11 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use XMLReader;
 
 class PageTemplates extends ProcessorBase {
 
-	public function __construct(
-		private IAnalyzeDataWriter $writer,
-		private WorkspaceDB $workspaceDB
-	) {
+	public function __construct( private IAnalyzeDataWriter $writer ) {
 	}
 
 	public function doExecute(): void {

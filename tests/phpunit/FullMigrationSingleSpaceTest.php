@@ -258,7 +258,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			$migrationConfig = new MigrationConfig( [] );
 		}
 
-		$analyzer = new ConfluenceAnalyzer( $writer, $workspaceDB, $output, $migrationConfig );
+		$analyzer = new ConfluenceAnalyzer( $writer, $output, $migrationConfig );
 		$analyzer->analyze( new SplFileInfo( $src . '/entities.xml' ) );
 	}
 

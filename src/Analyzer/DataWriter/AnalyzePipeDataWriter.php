@@ -257,4 +257,15 @@ class AnalyzePipeDataWriter implements IAnalyzeDataWriter {
 	public function addInvalidPageTemplateTitle( int $templateId, string $wikiTitle, string $text ): void {
 		$this->pipe->send( __FUNCTION__, $templateId, $wikiTitle, $text );
 	}
+
+	public function addExportProperties(
+		string $spaceKey,
+		string $source,
+		string $confluenceVersion,
+		string $exportDate,
+		string $timezoneId,
+		string $entitiesXmlPath
+	): void {
+		$this->pipe->send( __FUNCTION__, $spaceKey, $source, $confluenceVersion, $exportDate, $timezoneId, $entitiesXmlPath );
+	}
 }

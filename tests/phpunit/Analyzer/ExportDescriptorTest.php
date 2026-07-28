@@ -47,7 +47,6 @@ class ExportDescriptorTest extends TestCase {
 
 		$analyzer = new ConfluenceAnalyzer(
 			new AnalyzeDirectDataWriter( $workspaceDB ),
-			$workspaceDB,
 			new NullOutput(),
 			new MigrationConfig( [] )
 		);
@@ -76,7 +75,6 @@ class ExportDescriptorTest extends TestCase {
 
 		$analyzer = new ConfluenceAnalyzer(
 			new AnalyzeDirectDataWriter( $workspaceDB ),
-			$workspaceDB,
 			new NullOutput(),
 			new MigrationConfig( [] )
 		);
@@ -91,7 +89,6 @@ class ExportDescriptorTest extends TestCase {
 
 		$analyzer = new ConfluenceAnalyzer(
 			new AnalyzeDirectDataWriter( $workspaceDB ),
-			$workspaceDB,
 			new NullOutput(),
 			new MigrationConfig( [] )
 		);

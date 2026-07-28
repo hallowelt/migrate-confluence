@@ -126,4 +126,13 @@ interface IAnalyzeDataWriter {
 	): bool;
 
 	public function addInvalidPageTemplateTitle( int $templateId, string $wikiTitle, string $text ): void;
+
+	public function addExportProperties(
+		string $spaceKey,
+		string $source,
+		string $confluenceVersion,
+		string $exportDate,
+		string $timezoneId,
+		string $entitiesXmlPath
+	): void;
 }
