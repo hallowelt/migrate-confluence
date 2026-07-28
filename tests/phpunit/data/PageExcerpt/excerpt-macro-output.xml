@@ -8,6 +8,13 @@
             #####EXCERPTBLOCKCLOSE#####
     </p>
     <p>
+        #####EXCERPTINLINEOPEN||true#####
+                <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
+                    macro.
+                </p>
+            #####EXCERPTINLINECLOSE#####
+    </p>
+    <p>
         #####EXCERPTBLOCKOPEN||false##########EXCERPTBLOCKCLOSE#####
     </p>
     <p>

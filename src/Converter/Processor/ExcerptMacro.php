@@ -28,19 +28,29 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
 		$hidden = 'false';
+		$layout = 'BLOCK';
 		$excerptName = "";
 
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode instanceof DOMElement === false ) {
 				continue;
 			}
-			if ( $childNode->nodeName === 'ac:parameter'
-				&& $childNode->getAttribute( 'ac:name' ) === 'hidden' ) {
+
+			if ( $childNode->nodeName !== 'ac:parameter' ) {
+				continue;
+			}
+
+			$name = $childNode->getAttribute( 'ac:name' );
+			if ( $name === 'hidden' ) {
 				$hidden = trim( $childNode->nodeValue );
 			}
-			if ( $childNode->nodeName === 'ac:parameter'
-				&& $childNode->getAttribute( 'ac:name' ) === 'name' ) {
+
+			if ( $name === 'name' ) {
 				$excerptName = trim( $childNode->nodeValue );
+			}
+
+			if ( $name === 'atlassian-macro-output-type' ) {
+				$layout = strtoupper( trim( $childNode->nodeValue ) );
 			}
 		}
 
@@ -48,7 +58,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 
 		$openTag = $this->createTextNode(
 			$node->ownerDocument,
-			"#####EXCERPTBLOCKOPEN|$excerptName|$hidden#####",
+			"#####EXCERPT{$layout}OPEN|$excerptName|$hidden#####",
 			__METHOD__
 		);
 		$parent->insertBefore( $openTag, $node );
@@ -63,7 +73,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 
 		$closeTag = $this->createTextNode(
 			$node->ownerDocument,
-			'#####EXCERPTBLOCKCLOSE#####',
+			"#####EXCERPT{$layout}CLOSE#####",
 			__METHOD__
 		);
 		$parent->insertBefore( $closeTag, $node );

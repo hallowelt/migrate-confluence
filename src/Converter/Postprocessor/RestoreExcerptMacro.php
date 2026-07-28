@@ -11,26 +11,23 @@ class RestoreExcerptMacro implements IPostprocessor {
 	 */
 	public function postprocess( string $wikiText ): string {
 		return preg_replace_callback(
-			'/#####EXCERPTBLOCKOPEN\|(.*?)\|(.*?)#####(.*?)#####EXCERPTBLOCKCLOSE#####/si',
+			'/#####EXCERPT(BLOCK|INLINE)OPEN\|(.*?)\|(.*?)#####(.*?)#####EXCERPT\1CLOSE#####/si',
 			static function ( $matches ) {
+				$tag = 'excerpt-' . strtolower( $matches[1] );
 				$attributes = [
-					'name'   => $matches[1] ?? '',
-					'hidden' => $matches[2] ?? '',
+					'name'   => $matches[2] ?? '',
+					'hidden' => $matches[3] ?? '',
 				];
-
 				$attrString = '';
 				foreach ( $attributes as $attr => $value ) {
 					if ( $value !== '' ) {
 						$attrString .= sprintf( ' %s="%s"', $attr, $value );
 					}
 				}
-
-				$content = trim( $matches[3] ?? '' );
-
-				return "<excerpt-block$attrString>$content</excerpt-block>";
+				$content = trim( $matches[4] ?? '' );
+				return "<$tag$attrString>$content</$tag>";
 			},
 			$wikiText
 		);
 	}
-
 }
