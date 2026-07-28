@@ -266,6 +266,14 @@ class AnalyzePipeDataWriter implements IAnalyzeDataWriter {
 		string $timezoneId,
 		string $entitiesXmlPath
 	): void {
-		$this->pipe->send( __FUNCTION__, $spaceKey, $source, $confluenceVersion, $exportDate, $timezoneId, $entitiesXmlPath );
+		$this->pipe->send(
+			__FUNCTION__,
+			$spaceKey,
+			$source,
+			$confluenceVersion,
+			$exportDate,
+			$timezoneId,
+			$entitiesXmlPath
+		);
 	}
 }
