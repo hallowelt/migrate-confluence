@@ -1,22 +1,44 @@
-<noinclude>Template added by Confluence migration to handle the "multimedia" macro.
+<noinclude>Template added by Confluence migration to handle the "multimedia" macro
+
 <templatedata>
 {
-    "description": "show a multimedia file embedded in the page",
+    "description": {
+        "en": "show a multimedia file embedded in the page",
+        "de": "Eine in die Seite eingebettete Multimedia-Datei anzeigen"
+    },
     "params": {
         "filename": {
-            "label": "file name",
-            "description": "name of the multimedia file to be displayed",
+            "label": {
+                "en": "file name",
+                "de": "Dateiname"
+            },
+            "description": {
+                "en": "name of the multimedia file to be displayed",
+                "de": "Name der anzuzeigenden Multimedia-Datei"
+            },
             "type": "string",
             "required": true
         },
         "width": {
-            "label": "width",
-            "description": "width of the display in pixels",
+            "label": {
+                "en": "width",
+                "de": "Breite"
+            },
+            "description": {
+                "en": "width of the display in pixels",
+                "de": "Breite der Anzeige in Pixeln"
+            },
             "type": "number"
         },
         "height": {
-            "label": "height",
-            "description": "height of the display in pixels",
+            "label": {
+                "en": "height",
+                "de": "Höhe"
+            },
+            "description": {
+                "en": "height of the display in pixels",
+                "de": "Höhe der Anzeige in Pixeln"
+            },
             "type": "number"
         }
     }

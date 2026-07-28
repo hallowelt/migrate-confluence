@@ -1,4 +1,6 @@
-<noinclude>Links to Jira issues and queries via interwiki links.
+<noinclude>Template added by Confluence migration to handle the "jira" macro
+
+Links to Jira issues and queries via interwiki links.
 * Use <code>{{Jira|key=PROJECT-123}}</code> to link to a specific issue (uses the <code>jira-task</code> interwiki prefix).
 * Use <code>{{Jira|jql=...}}</code> to link to a Jira filter. When the value is a Jira URL, the view type is detected from the path:
 ** <code>/timeline</code> → <code>jira-timeline</code>
@@ -6,4 +8,35 @@
 ** <code>/summary</code> → <code>jira-summary</code>
 ** <code>/boards</code> → <code>jira-board</code>
 ** otherwise → <code>jira-jql</code> (plain JQL query)
-</noinclude><includeonly>{{#if:{{{key|}}}|[[jira-task:{{{key}}}]]|{{#if:{{#pos:{{{jql|}}}|/timeline}}|[[jira-timeline:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/calendar}}|[[jira-calendar:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/summary}}|[[jira-summary:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/boards}}|[[jira-board:{{{jql}}}]]|[[jira-jql:{{{jql}}}]]}}}}}}}}}}</includeonly>
+<templatedata>
+{
+    "description": {
+        "en": "link to and query Jira issues",
+        "de": "Jira-Issues verlinken und abfragen"
+    },
+    "params": {
+        "key": {
+            "label": {
+                "en": "key",
+                "de": "Schlüssel"
+            },
+            "description": {
+                "en": "Jira issue name",
+                "de": "Jira-Vorgangsname"
+            },
+            "type": "string"
+        },
+        "jql": {
+            "label": {
+                "en": "query",
+                "de": "Abfrage"
+            },
+            "description": {
+                "en": "Jira filter",
+                "de": "Jira-Filter"
+            },
+            "type": "string"
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{#if:{{{key|}}}|[[jira-task:{{{key}}}]]|{{#if:{{#pos:{{{jql|}}}|/timeline}}|[[jira-timeline:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/calendar}}|[[jira-calendar:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/summary}}|[[jira-summary:{{{jql}}}]]|{{#if:{{#pos:{{{jql|}}}|/boards}}|[[jira-board:{{{jql}}}]]|[[jira-jql:{{{jql}}}]]}}}}}}}}}}</includeonly>

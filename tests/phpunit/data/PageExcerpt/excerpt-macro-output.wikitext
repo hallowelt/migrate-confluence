@@ -1,0 +1,9 @@
+<excerpt-block hidden="true">This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.</excerpt-block>
+
+<excerpt-inline hidden="true">This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.</excerpt-inline>
+
+<excerpt-block hidden="false"></excerpt-block>
+
+<excerpt-block name="Excerpt Name 1" hidden="false">This content is transcluded from page “excerpt”.</excerpt-block>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

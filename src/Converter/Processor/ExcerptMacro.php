@@ -6,7 +6,6 @@ use DOMElement;
 
 /**
  * Converts the Confluence excerpt macro to a BlueSpice <excerpt-block> element.
- * The broken macro category is added because the BlueSpice Excerpt extension is not yet available.
  *
  * @see https://confluence.atlassian.com/doc/excerpt-macro-148062.html
  */
@@ -28,24 +27,30 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 	 * Placeholders use pipe-separated values to avoid HTML attribute quote encoding issues.
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
-		$macroId = $node->getAttribute( 'ac:macro-id' );
 		$hidden = 'false';
-
-		// TODO: Set to false as soon as the excerpt extension is available
-		$isBroken = true;
-
-		if ( empty( $macroId ) ) {
-			$isBroken = true;
-		}
+		$layout = 'BLOCK';
+		$excerptName = "";
 
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode instanceof DOMElement === false ) {
 				continue;
 			}
-			if ( $childNode->nodeName === 'ac:parameter'
-				&& $childNode->getAttribute( 'ac:name' ) === 'hidden' ) {
+
+			if ( $childNode->nodeName !== 'ac:parameter' ) {
+				continue;
+			}
+
+			$name = $childNode->getAttribute( 'ac:name' );
+			if ( $name === 'hidden' ) {
 				$hidden = trim( $childNode->nodeValue );
-				break;
+			}
+
+			if ( $name === 'name' ) {
+				$excerptName = trim( $childNode->nodeValue );
+			}
+
+			if ( $name === 'atlassian-macro-output-type' ) {
+				$layout = strtoupper( trim( $childNode->nodeValue ) );
 			}
 		}
 
@@ -53,7 +58,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 
 		$openTag = $this->createTextNode(
 			$node->ownerDocument,
-			"#####EXCERPTBLOCKOPEN|$macroId|$hidden#####",
+			"#####EXCERPT{$layout}OPEN|$excerptName|$hidden#####",
 			__METHOD__
 		);
 		$parent->insertBefore( $openTag, $node );
@@ -68,19 +73,10 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 
 		$closeTag = $this->createTextNode(
 			$node->ownerDocument,
-			'#####EXCERPTBLOCKCLOSE#####',
+			"#####EXCERPT{$layout}CLOSE#####",
 			__METHOD__
 		);
 		$parent->insertBefore( $closeTag, $node );
-
-		if ( $isBroken ) {
-			$brokenCategory = $this->createTextNode(
-				$node->ownerDocument,
-				$this->getBrokenMacroCategory(),
-				__METHOD__
-			);
-			$parent->insertBefore( $brokenCategory, $node );
-		}
 
 		$parent->removeChild( $node );
 	}

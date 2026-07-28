@@ -1,11 +1,55 @@
-<noinclude>
+<noinclude>Template added by Confluence migration to handle the "create-from-template" macro
+
 Renders an inputbox for creating new pages from a template and lists pages previously created by this macro instance.
 
 Parameters:
 * preload - The template page to preload when creating a new page
 * buttonlabel - Label for the create button
 * macroid - Unique identifier for this macro instance (used to scope created pages)
-</noinclude><includeonly>
+<templatedata>
+{
+    "description": {
+        "en": "show an input box that creates a new page based on a template",
+        "de": "Eingabefeld anzeigen, das eine neue Seite basierend auf einer Vorlage erstellt"
+    },
+    "params": {
+        "preload": {
+            "label": {
+                "en": "template to pre-load on the newly created page",
+                "de": "Vorlage, die auf der neu erstellten Seite vorgeladen wird"
+            },
+            "type": "wiki-template-name",
+            "suggested": "true",
+            "default": "preload"
+        },
+        "buttonlabel": {
+            "label": {
+                "en": "button label",
+                "de": "Schaltflächenbeschriftung"
+            },
+            "description": {
+                "en": "the label of the button to show for creation",
+                "de": "Die Beschriftung der Schaltfläche für die Erstellung"
+            },
+            "type": "string",
+            "default": "Create from template",
+            "suggested": true
+        },
+        "macroid": {
+            "label": {
+                "en": "identifier",
+                "de": "Bezeichner"
+            },
+            "description": {
+                "en": "unique identifier to group created pages together",
+                "de": "Eindeutiger Bezeichner zum Gruppieren erstellter Seiten"
+            },
+            "type": "string",
+            "suggested": true
+        }
+    }
+}
+</templatedata></noinclude><includeonly>
 {{#tag:inputbox|
 type=create
 preload={{{preload|preload}}}
