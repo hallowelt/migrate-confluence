@@ -1,2 +1,24 @@
 <noinclude>Template for confluence macro "viewppt"
-</noinclude><includeonly>[[File:{{{filename}}}]]</includeonly>
+
+<templatedata>
+{
+    "description": {
+        "en": "show a PowerPoint file",
+        "de": "Eine PowerPoint-Datei anzeigen"
+    },
+    "params": {
+        "filename": {
+            "label": {
+                "en": "filename",
+                "de": "Dateiname"
+            },
+            "type": "wiki-file-name",
+            "required": true,
+            "description": {
+                "en": "The name of the file to display",
+                "de": "Der Name der anzuzeigenden Datei"
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>[[File:{{{filename}}}]]</includeonly>

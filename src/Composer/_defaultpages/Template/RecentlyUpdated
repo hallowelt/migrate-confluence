@@ -1,4 +1,39 @@
-<includeonly>{{#ask:[[{{NAMESPACE}}:+]]{{#if:{{{labels|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}[[Modification date::+]]
+<noinclude>Template added by Confluence migration to handle the "recentlyupdated" macro
+
+Uses the [[:Template:RecentlyUpdatedRow|RecentlyUpdatedRow]] template for display.
+<templatedata>
+{
+    "description": {
+        "en": "show a list of recently updated pages",
+        "de": "Eine Liste zuletzt aktualisierter Seiten anzeigen"
+    },
+    "params": {
+        "labels": {
+            "label": {
+                "en": "categories",
+                "de": "Kategorien"
+            },
+            "description": {
+                "en": "list of categories separated by comma",
+                "de": "Kommagetrennte Liste von Kategorien"
+            },
+            "type": "string"
+        },
+        "max": {
+            "label": {
+                "en": "number of pages",
+                "de": "Anzahl der Seiten"
+            },
+            "description": {
+                "en": "maximum number of pages to show",
+                "de": "Maximale Anzahl der anzuzeigenden Seiten"
+            },
+            "type": "number",
+            "default": "8"
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{#ask:[[{{NAMESPACE}}:+]]{{#if:{{{labels|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}[[Modification date::+]]
 |?Last editor is
 |?Modification date#ISO
 |format=plainlist

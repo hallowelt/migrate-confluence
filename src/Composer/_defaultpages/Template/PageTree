@@ -1,1 +1,23 @@
-<includeonly>{{#subpages:{{{content-title}}}}}</includeonly>
+<noinclude>Template added by Confluence migration to handle the "page-tree" macro
+
+<templatedata>
+{
+    "description": {
+        "en": "show a page tree",
+        "de": "Einen Seitenbaum anzeigen"
+    },
+    "params": {
+        "content-title": {
+            "label": {
+                "en": "Content title",
+                "de": "Inhaltstitel"
+            },
+            "description": {
+                "en": "The title of the content to show the page tree for",
+                "de": "Der Titel des Inhalts, für den der Seitenbaum angezeigt werden soll"
+            },
+            "suggested": true
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{#subpages:{{{content-title}}}}}</includeonly>
