@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace">
+    <p>
+        #####EXCERPTBLOCKOPEN||true#####
+                <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
+                    macro.
+                </p>
+            #####EXCERPTBLOCKCLOSE#####
+    </p>
+    <p>
+        #####EXCERPTINLINEOPEN||true#####
+                <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
+                    macro.
+                </p>
+            #####EXCERPTINLINECLOSE#####
+    </p>
+    <p>
+        #####EXCERPTBLOCKOPEN||false##########EXCERPTBLOCKCLOSE#####
+    </p>
+    <p>
+        #####EXCERPTBLOCKOPEN|Excerpt Name 1|false#####
+                <p local-id="176212f6efc1">This content is transcluded from page &#x201C;excerpt&#x201D;.</p>
+            #####EXCERPTBLOCKCLOSE#####
+    </p>
+</xml>

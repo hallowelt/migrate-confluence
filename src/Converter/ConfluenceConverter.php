@@ -20,6 +20,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
@@ -394,10 +395,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->currentSpace
 			),
 			new ExcerptMacro(),
-			new ExcerptIncludeMacro(
-				$this->dataLookup,
-				$this->currentSpace
-			),
+			new ExcerptIncludeMacro( $this->dataLookup, $this->currentSpace ),
 			new Emoticon(),
 			new PreserveTasksReportMacro( $this->dataLookup ),
 			new Image(
@@ -519,6 +517,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$postProcessors = [
 			new RestorePStyleTag(),
 			new RestoreExcerptMacro(),
+			new RestoreExcerptIncludeMacro(),
 			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
@@ -753,7 +752,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			[
 				"#&lt;headertabs /&gt;#si",
 				"#&lt;subpages(.*?)/&gt;#si",
-				"#&lt;img(.*?)/&gt;#s"
+				"#&lt;img(.*?)/&gt;#s",
+				"#&lt;excerpt-include(.*?)/&gt;#si",
 			],
 			static function ( $aMatches ) {
 				return html_entity_decode( $aMatches[0] );
