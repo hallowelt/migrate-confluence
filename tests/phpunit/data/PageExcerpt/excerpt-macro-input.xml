@@ -36,4 +36,69 @@
             </ac:rich-text-body>
         </ac:structured-macro>
     </p>
+    <p>
+        <ac:structured-macro ac:name="excerpt" ac:schema-version="1" data-layout="default">
+            <ac:parameter ac:name="atlassian-macro-output-type">INLINE</ac:parameter>
+            <ac:rich-text-body>
+                <table class="relative-table wrapped">
+                    <colgroup><col /></colgroup>
+                    <tbody>
+                        <tr><th>Table Header 1</th></tr>
+                        <tr><td>Table Cell 1</td></tr>
+                    </tbody>
+                </table>
+            </ac:rich-text-body>
+        </ac:structured-macro>
+    </p>
+    <p>
+        <ac:structured-macro ac:name="excerpt" ac:schema-version="1" data-layout="default">
+            <ac:parameter ac:name="atlassian-macro-output-type">INLINE</ac:parameter>
+            <ac:rich-text-body>
+                <table class="relative-table wrapped">
+                    <colgroup><col /></colgroup>
+                    <tbody>
+                        <tr><th>Table Header 1</th></tr>
+                        <tr><td>Table Cell 1</td></tr>
+                    </tbody>
+                </table>
+            </ac:rich-text-body>
+        </ac:structured-macro>
+    </p>
+    <p>
+        <ac:structured-macro ac:name="excerpt" ac:macro-id="a1a1a1a1-0000-0000-0000-000000000001">
+            <ac:parameter ac:name="atlassian-macro-output-type">INLINE</ac:parameter>
+            <ac:rich-text-body>
+                <p>First paragraph of the excerpt.</p>
+                <p>Second paragraph of the excerpt.</p>
+            </ac:rich-text-body>
+        </ac:structured-macro>
+    </p>
+    <p>
+        <ac:structured-macro ac:name="excerpt" ac:macro-id="a1a1a1a1-0000-0000-0000-000000000002">
+            <ac:parameter ac:name="atlassian-macro-output-type">INLINE</ac:parameter>
+            <ac:rich-text-body>
+                <p>Intro text before the heading.</p>
+                <h2>A heading inside the excerpt</h2>
+            </ac:rich-text-body>
+        </ac:structured-macro>
+    </p>
+    <p>
+        <ac:structured-macro ac:name="excerpt" ac:macro-id="a1a1a1a1-0000-0000-0000-000000000003">
+            <ac:parameter ac:name="atlassian-macro-output-type">INLINE</ac:parameter>
+            <ac:rich-text-body>
+                <ul>
+                    <li>First list item</li>
+                    <li>Second list item</li>
+                </ul>
+            </ac:rich-text-body>
+        </ac:structured-macro>
+    </p>
+    <p>
+        <ac:structured-macro ac:name="excerpt" ac:macro-id="a1a1a1a1-0000-0000-0000-000000000004">
+            <ac:parameter ac:name="atlassian-macro-output-type">INLINE</ac:parameter>
+            <ac:rich-text-body>
+                <p>Line one of the excerpt.<br/>Line two of the excerpt.</p>
+            </ac:rich-text-body>
+        </ac:structured-macro>
+    </p>
 </xml>
