@@ -6,4 +6,33 @@
 
 <excerpt-block name="Excerpt Name 1" hidden="false">This content is transcluded from page “excerpt”.</excerpt-block>
 
+<excerpt-block hidden="false">{| class="wikitable relative-table wrapped"
+|-
+! Table Header 1
+|-
+| Table Cell 1
+|}</excerpt-block>
+
+<excerpt-block hidden="false">{| class="wikitable relative-table wrapped"
+|-
+! Table Header 1
+|-
+| Table Cell 1
+|}</excerpt-block>
+
+<excerpt-block hidden="false">First paragraph of the excerpt.
+
+Second paragraph of the excerpt.</excerpt-block>
+
+<excerpt-block hidden="false">Intro text before the heading.
+
+<span id="a-heading-inside-the-excerpt"></span>
+== A heading inside the excerpt ==</excerpt-block>
+
+<excerpt-block hidden="false">* First list item
+* Second list item</excerpt-block>
+
+<excerpt-block hidden="false">Line one of the excerpt.<br />
+Line two of the excerpt.</excerpt-block>
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
