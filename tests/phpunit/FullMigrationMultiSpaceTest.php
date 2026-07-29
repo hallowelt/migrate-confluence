@@ -41,8 +41,6 @@ class FullMigrationMultiSpaceTest extends FullMigrationSingleSpaceTest {
 	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
 	 */
 	public function testMigration(): void {
-		$expectedPagesFile = $this->dataDir . '/MulitSource/expected/result_pages.xml';
-
 		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];
 
 		$output = new BufferedOutput();

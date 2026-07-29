@@ -86,27 +86,24 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ViewPptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
+use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use HalloWelt\MigrateConfluence\Utility\TranslatableString;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
-class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware, IPipeSender {
+class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware {
 
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
 
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
-
-	/** @var PipeToDB */
-	private PipeToDB $pipeToDB;
 
 	/** @var string */
 	private string $dest;
@@ -151,15 +148,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @param array $config
 	 * @param Workspace $workspace
 	 */
-	public function __construct( $config, Workspace $workspace ) {
+	public function __construct( $config, Workspace $workspace, private IDataWriter $dataWriter) {
 		parent::__construct( $config, $workspace );
-	}
-
-	/**
-	 * @param resource|false $pipe
-	 */
-	public function setPipe( $pipe ): void {
-		$this->pipeToDB = new PipeToDB( $pipe );
 	}
 
 	/**
@@ -441,7 +431,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->pipeToDB
+				$this->dataWriter
 			),
 			new ContentByLabelMacro( $this->wikiPageTitle ),
 			new AttachmentsMacro(),
@@ -855,9 +845,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return void
 	 */
 	private function checkContentLength( int $bodyContentId ): void {
-		$exceed = '';
-		$wikiTextLength = strlen( $this->wikiText );
-		$wikiTextLength = $wikiTextLength / 1000;
+		$exceed = null;
+
+		$wikiTextLength = strlen( $this->wikiText ) / 1000;
 		if ( $wikiTextLength >= 512 ) {
 			$exceed = '512';
 		} elseif ( $wikiTextLength >= 256 ) {
@@ -865,22 +855,27 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		} elseif ( $wikiTextLength >= 100 ) {
 			$exceed = '100';
 		}
-		if ( $exceed !== '' ) {
-			$method = 'addInvalidBodyContent';
+
+		if ( !$exceed ) {
+			return;
+		}
+
+		if ( $exceed >= 512 ) {
 			if ( strpos( $this->rawFile->getFileInfo(), 0, 3 ) === 'pt_' ) {
-				$method = 'addInvalidPageTemplateContent';
-			}
-			if ( $exceed >= 512 ) {
-				$this->pipeToDB->send(
-					$method,
+				$this->dataWriter->addInvalidPageTemplateContent(
+					$bodyContentId,
+					'BodyContent exeeded length of 512 characters'
+				);
+			} else {
+				$this->dataWriter->addInvalidBodyContent(
 					$bodyContentId,
 					'BodyContent exeeded length of 512 characters'
 				);
 			}
-
-			$this->addNonBlockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
-			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 		}
+
+		$this->addNonBlockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
+		$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 	}
 
 	/**
@@ -890,8 +885,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return void
 	 */
 	private function addNonBlockingLogEntry( string $message, string $type = 'warning' ): void {
-		$this->pipeToDB->send(
-			'log',
+		$this->dataWriter->addLogEntry(
 			$type,
 			'convert',
 			__CLASS__,

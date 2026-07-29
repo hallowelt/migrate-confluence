@@ -7,8 +7,8 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzePipeDataWriter;
+use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -128,8 +128,8 @@ class Analyze extends BatchFileProcessorBase {
 	protected function processFile( SplFileInfo $file ): bool {
 		$this->output->writeln( "Analyzing file '{$this->currentFile->getFilename()}'" );
 
-		$dataWriter = $this->workerPipe ? new AnalyzePipeDataWriter( new PipeToDB( $this->workerPipe ) )
-			: new AnalyzeDirectDataWriter( $this->workspaceDB );
+		$dataWriter = $this->workerPipe ? new PipeDataWriter( new PipeToDB( $this->workerPipe ) )
+			: new DirectDataWriter( $this->workspaceDB );
 
 		$analyzer = new ConfluenceAnalyzer(
 			$dataWriter,
@@ -195,10 +195,9 @@ class Analyze extends BatchFileProcessorBase {
 	 * @return int
 	 */
 	private function spawnWorkers( OutputInterface $output, int $workers ): int {
-		$dbLog = new DBLog( $this->workspaceDB );
-		$dbLog->addLogEntry(
+		$this->workspaceDB->addLogEntry(
 			'info',
-			'analyze',
+			'analyze.spawn-workers',
 			__CLASS__,
 			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 		);
@@ -265,7 +264,7 @@ class Analyze extends BatchFileProcessorBase {
 				}
 				$line = fgets( $DBWritePipes[$i] );
 				while ( $line !== false ) {
-					$this->storeWorkerResponse( $line, $dbLog );
+					$this->storeWorkerResponse( $line );
 					$line = fgets( $DBWritePipes[$i] );
 				}
 				$status = proc_get_status( $proc );
@@ -309,29 +308,26 @@ class Analyze extends BatchFileProcessorBase {
 	 *
 	 * @return void
 	 */
-	private function storeWorkerResponse( string $line, DBLog $dbLog ): void {
+	private function storeWorkerResponse( string $line ): void {
 		$data = json_decode( $line, true );
 		if ( is_array( $data ) && count( $data ) > 1 ) {
-			$method = array_shift( $data );
-			if ( $method === 'log' ) {
-				$dbLog->addLogEntry( ...$data );
-			} else {
-				call_user_func_array(
-					[
-						$this->workspaceDB,
-						$method
-					],
-					$data
-				);
-			}
-		} else {
-			$dbLog->addLogEntry(
-				'error',
-				'analyze.invalid-worker-output',
-				__CLASS__,
-				$line
+			call_user_func_array(
+				[
+					$this->workspaceDB,
+					array_shift( $data )
+				],
+				$data
 			);
+
+			return;
 		}
+
+		$this->workspaceDB->addLogEntry(
+			'error',
+			'analyze.invalid-worker-output',
+			__CLASS__,
+			$line
+		);
 	}
 
 	/**

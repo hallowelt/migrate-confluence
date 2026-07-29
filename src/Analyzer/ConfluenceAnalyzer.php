@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
 use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
@@ -16,6 +15,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\PageTemplates;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
+use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Psr\Log\LoggerAwareInterface;
@@ -31,13 +31,13 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	private LoggerInterface|NullLogger $logger;
 
 	/**
-	 * @param IAnalyzeDataWriter $writer
+	 * @param IDataWriter $writer
 	 * @param WorkspaceDB $workspaceDB
 	 * @param OutputInterface $output
 	 * @param MigrationConfig $config
 	 */
 	public function __construct(
-		private readonly IAnalyzeDataWriter $writer,
+		private readonly IDataWriter $writer,
 		private readonly WorkspaceDB $workspaceDB,
 		private readonly OutputInterface $output,
 		private readonly MigrationConfig $config,

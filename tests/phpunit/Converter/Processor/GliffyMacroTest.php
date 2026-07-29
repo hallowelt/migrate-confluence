@@ -4,6 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
+use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
@@ -13,21 +15,19 @@ class GliffyMacroTest extends ProcessorTestCase {
 	/** @var DBConversionDataLookup */
 	private $dataLookup;
 
-	/** @var WorkspaceDB */
-	private $workspaceDB;
-
-	/** @var PipeToDB */
-	private $pipeToDB;
+	/** @var PipeDataWriter */
+	private PipeDataWriter $dataWriter;
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->workspaceDB = ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat();
-		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
+		$workspaceDB = ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat();
+		$this->dataLookup = new DBConversionDataLookup( $workspaceDB );
+
 		$pipe = fopen( 'php://temp', 'r+' );
-		$this->pipeToDB = new PipeToDB( $pipe );
+		$this->dataWriter = new PipeDataWriter( new PipeToDB( $pipe ) );
 
 		$this->doTest( 0, 'gliffy-macro-input.xml', 'gliffy-macro-output-1.xml' );
 		$this->doTest( 23, 'gliffy-macro-input.xml', 'gliffy-macro-output-2.xml' );
@@ -54,7 +54,7 @@ class GliffyMacroTest extends ProcessorTestCase {
 			$this->dataLookup,
 			$spaceId,
 			'SomePage',
-			$this->pipeToDB
+			$this->dataWriter
 		);
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();

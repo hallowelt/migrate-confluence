@@ -2,8 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\BodyContents;
 
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
+use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
@@ -20,7 +20,7 @@ class BodyContentsTest extends TestCase {
 	public function testAllDatabaseFieldsAreStored(): void {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
-		$processor = new BodyContents( new AnalyzeDirectDataWriter( $this->workspaceDB ) );
+		$processor = new BodyContents( new DirectDataWriter( $this->workspaceDB ) );
 		$this->executeProcessorForClass( $processor, __DIR__ . '/body_content_page.xml', 'BodyContent' );
 
 		$bodyContents = $this->workspaceDB->getBodyContents();

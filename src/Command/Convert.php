@@ -6,11 +6,11 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MigrateConfluence\Converter\IPipeSender;
+use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Command\Command;
@@ -26,11 +26,8 @@ class Convert extends CommandConvert {
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
 
-	/** @var DBLog */
-	private DBLog $dbLog;
-
 	/** @var resource|false */
-	private $pipe = false;
+	private $workerPipe = false;
 
 	/**
 	 * @return void
@@ -96,20 +93,20 @@ class Convert extends CommandConvert {
 		/* this is the "single worker" case. Here we define our own pipe for the converter to
 		 * send data to. */
 		if ( !$isChildProcess ) {
-			$this->pipe = fopen( 'php://temp', 'r+' );
+			$this->workerPipe = fopen( 'php://temp', 'r+' );
 		}
 
 		$returnValue = parent::execute( $input, $output );
 
-		if ( $this->pipe !== false ) {
-			rewind( $this->pipe );
-			$line = fgets( $this->pipe );
+		if ( $this->workerPipe !== false ) {
+			rewind( $this->workerPipe );
+			$line = fgets( $this->workerPipe );
 			while ( $line !== false ) {
 				$this->storeWorkerResponse( $line );
-				$line = fgets( $this->pipe );
+				$line = fgets( $this->workerPipe );
 			}
-			$pipe = $this->pipe;
-			$this->pipe = false;
+			$pipe = $this->workerPipe;
+			$this->workerPipe = false;
 			fclose( $pipe );
 		}
 
@@ -131,10 +128,9 @@ class Convert extends CommandConvert {
 		$this->dest = realpath( $input->getOption( 'dest' ) );
 
 		$this->workspaceDB = WorkspaceDB::open( $this->dest );
-		$this->dbLog = new DBLog( $this->workspaceDB );
 
 		if ( $logUsage ) {
-			$this->dbLog->addLogEntry(
+			$this->workspaceDB->addLogEntry(
 				'info',
 				'convert',
 				__CLASS__,
@@ -152,10 +148,13 @@ class Convert extends CommandConvert {
 
 		$this->readConfigFile( $this->config );
 
+		$dataWriter = $this->workerPipe ? new PipeDataWriter( new PipeToDB( $this->workerPipe ) )
+			: new DirectDataWriter( $this->workspaceDB );
+
 		foreach ( $converterFactoryCallbacks as $key => $callback ) {
 			$converter = call_user_func_array(
 				$callback,
-				[ $this->config, $this->workspace, $this->pipe ]
+				[ $this->config, $this->workspace, $dataWriter ]
 			);
 			if ( $converter instanceof IConverter === false ) {
 				throw new Exception(
@@ -168,9 +167,6 @@ class Convert extends CommandConvert {
 			}
 			if ( $converter instanceof IDestinationPathAware ) {
 				$converter->setDestinationPath( $this->dest );
-			}
-			if ( $converter instanceof IPipeSender ) {
-				$converter->setPipe( $this->pipe );
 			}
 
 			$result = $converter->convert( $this->currentFile );
