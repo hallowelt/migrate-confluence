@@ -71,10 +71,10 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 
 		$processors = $this->getProcessors( $file->getPath() );
 
-		$this->workspaceDB->beginTransaction();
+		$this->writer->beginTransaction();
 		$this->processExportDescriptor( $file );
 		$this->processFile( $sourcePath, $processors );
-		$this->workspaceDB->commitTransaction();
+		$this->writer->commitTransaction();
 
 		return true;
 	}

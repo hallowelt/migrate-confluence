@@ -15,4 +15,14 @@ interface IDataWriter {
 	public function addLogEntry(
 		string $type, string $step, string $caller, string $text
 	): void;
+
+	/**
+	 * @return void
+	 */
+	public function beginTransaction(): void;
+
+	/**
+	 * @return void
+	 */
+	public function commitTransaction(): void;
 }
