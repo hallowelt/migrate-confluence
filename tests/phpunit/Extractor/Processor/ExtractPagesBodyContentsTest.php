@@ -16,7 +16,7 @@ class ExtractPagesBodyContentsTest extends TestCase {
 	public function testExtractsCurrentPageBodyContent(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
-		$writer = $this->createMock( ExtractorDirectDataWriter::class);
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentPages' )->willReturn( [ [ 'page_id' => 12 ] ] );
 		$workspaceDB->method( 'getBodyContentIdsForContentId' )->with( 12 )->willReturn( [ 102 ] );

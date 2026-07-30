@@ -15,7 +15,7 @@ class ExtractPagesMetaDataTest extends TestCase {
 	 */
 	public function testAddsPageMetaWithConfiguredAndLabelCategories(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$writer = $this->createMock( ExtractorDirectDataWriter::class);
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 
 		$migrationConfig->method( 'getCategories' )->willReturn( [ 'ConfiguredCategory' ] );

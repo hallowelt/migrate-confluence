@@ -40,11 +40,6 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceDepe
 		protected string $dest,
 		protected MigrationConfig $migrationConfig,
 	) {
-		$this->builder = $builder;
-		$this->output = $output;
-		$this->dest = $dest;
-		$this->migrationConfig = $migrationConfig;
-
 		$this->limit = $this->migrationConfig->getComposerPagePerXmlLimit();
 		if ( $this->limit > 0 ) {
 			$this->multiXmlOutputEnabled = true;

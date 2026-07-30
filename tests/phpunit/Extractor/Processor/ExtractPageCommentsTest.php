@@ -14,7 +14,7 @@ class ExtractPageCommentsTest extends TestCase {
 	 */
 	public function testAddsTalkTitleForAllValidComments(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$writer = $this->createMock( ExtractorDirectDataWriter::class);
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCommentsForPages' )->willReturn( [
 			[

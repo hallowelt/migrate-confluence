@@ -16,7 +16,7 @@ class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
 	public function testExtractsCurrentSpaceDescriptionBodyContentToRawWorkspaceFile(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
-		$writer = $this->createMock( ExtractorDirectDataWriter::class);
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentSpaceDescriptions' )->willReturn( [
 			[ 'space_description_id' => 11 ]

@@ -1162,6 +1162,8 @@ class WorkspaceDB {
 	 *
 	 * No historical version of a page is returned.
 	 *
+	 * @param int|null $spaceId
+	 *
 	 * @return array
 	 */
 	public function getInvalidPages( ?int $spaceId = null ): array {
@@ -1300,6 +1302,8 @@ class WorkspaceDB {
 	 *
 	 * No historical version of a blog post is returned.
 	 *
+	 * @param int|null $spaceId
+	 *
 	 * @return array
 	 */
 	public function getInvalidBlogPosts( ?int $spaceId = null ): array {
@@ -1435,6 +1439,8 @@ class WorkspaceDB {
 	 * Returns all invalid attachments with their space_id, attachment_id, filename,
 	 * wiki_title, and text comment from attachment_invalid_titles.
 	 *
+	 * @param int|null $spaceId
+	 *
 	 * @return array
 	 */
 	public function getInvalidAttachments( ?int $spaceId = null ): array {
@@ -1475,6 +1481,8 @@ class WorkspaceDB {
 	 * Returns all invalid page templates with their space_id, template_id, confluence_title,
 	 * wiki_title, and a concatenated text of all associated comments from
 	 * page_template_invalid_titles and page_template_invalid_contents.
+	 *
+	 * @param int|null $spaceId
 	 *
 	 * @return array
 	 */
@@ -2357,6 +2365,8 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int|null $spaceId
+	 *
 	 * @return array
 	 */
 	public function getPageIdWikiPageTitleMap( ?int $spaceId = null ): array {
@@ -4561,6 +4571,8 @@ class WorkspaceDB {
 	 * @param string $version
 	 * @param array $properties
 	 * @param array $collection
+	 * @param string $contentStatus
+	 *
 	 * @return bool
 	 */
 	public function addPageTemplate(

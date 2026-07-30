@@ -16,7 +16,7 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 	public function testExtractsCurrentBlogPostBodyContent(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
-		$writer = $this->createMock( ExtractorDirectDataWriter::class);
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentBlogPosts' )->willReturn( [ [ 'page_id' => 13 ] ] );
 		$workspaceDB->method( 'getBodyContentIdsForContentId' )->with( 13 )->willReturn( [ 103 ] );

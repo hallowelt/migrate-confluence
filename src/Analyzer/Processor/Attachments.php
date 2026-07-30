@@ -226,6 +226,8 @@ class Attachments extends ProcessorBase {
 
 	/**
 	 * @param string $attachmentReference
+	 * @param string $confluenceFilename
+	 *
 	 * @return string
 	 */
 	private function guessFileExtension( string $attachmentReference, string $confluenceFilename ): string {

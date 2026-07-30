@@ -15,7 +15,7 @@ class ExtractBlogPostsMetaDataTest extends TestCase {
 	 */
 	public function testAddsBlogPostMetaFromLabellingCategories(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$writer = $this->createMock( ExtractorDirectDataWriter::class);
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 
 		$migrationConfig->method( 'getCategories' )->willReturn( [] );

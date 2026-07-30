@@ -80,7 +80,6 @@ interface IExtractorDataWriter extends IDataWriter {
 	 */
 	public function updateBlogPostWikiTitle( int $pageId, string $wikiTitle ): bool;
 
-
 	/**
 	 * @param int $blogPostId
 	 * @param string $wikiTitle

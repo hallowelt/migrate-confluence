@@ -39,6 +39,8 @@ class ConverterDirectDataWriter extends AbstractDirectDataWriter implements ICon
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		return $this->db->addGliffy( $spaceId, $confluenceTitle, $originalAttachmentFilename, $targetAttachmentFilename );
+		return $this->db->addGliffy(
+			$spaceId, $confluenceTitle, $originalAttachmentFilename, $targetAttachmentFilename
+		);
 	}
 }

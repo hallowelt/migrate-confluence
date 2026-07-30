@@ -16,7 +16,7 @@ class ExtractPageTemplateContentsTest extends TestCase {
 	public function testExtractsNonEmptyTemplateContentsAsRawFiles(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
-		$writer = $this->createMock( ExtractorDirectDataWriter::class);
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentPageTemplateContents' )->willReturn( [
 			[ 'template_id' => 20, 'content' => 'Template content' ],

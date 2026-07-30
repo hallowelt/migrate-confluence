@@ -16,7 +16,7 @@ class ExtractCommentsBodyContentsTest extends TestCase {
 	public function testExtractsOnlyPageAndBlogPostComments(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
-		$writer = $this->createMock( ExtractorDirectDataWriter::class);
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentComments' )->willReturn( [
 			[ 'comment_id' => 14, 'content_class' => 'Page' ],

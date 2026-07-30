@@ -4,17 +4,17 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 
-	/**
-	 *
-	 * <ac:macro ac:name="localtabgroup">
-	 * <ac:rich-text-body>
-	 * <ac:macro ac:name="localtab">
-	 * <ac:parameter ac:name="title">...</ac:parameter>
-	 * <ac:rich-text-body>...</ac:rich-text-body>
-	 * </ac:macro>
-	 * </ac:rich-text-body>
-	 * </ac:macro>
-	 */
+/**
+ *
+ * <ac:macro ac:name="localtabgroup">
+ * <ac:rich-text-body>
+ * <ac:macro ac:name="localtab">
+ * <ac:parameter ac:name="title">...</ac:parameter>
+ * <ac:rich-text-body>...</ac:rich-text-body>
+ * </ac:macro>
+ * </ac:rich-text-body>
+ * </ac:macro>
+ */
 class LocalTabMacro extends MacroProcessorBase {
 
 	/**

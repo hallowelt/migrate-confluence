@@ -133,7 +133,9 @@ class ExtractorDirectDataWriter extends AbstractDirectDataWriter implements IExt
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		return $this->db->addPageAttachment( $attachmentId, $pageId, $originalAttachmentFilename, $targetAttachmentFilename );
+		return $this->db->addPageAttachment(
+			$attachmentId, $pageId, $originalAttachmentFilename, $targetAttachmentFilename
+		);
 	}
 
 	/**
@@ -161,7 +163,9 @@ class ExtractorDirectDataWriter extends AbstractDirectDataWriter implements IExt
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		return $this->db->addBlogPostAttachment( $attachmentId, $blogPostId, $originalAttachmentFilename, $targetAttachmentFilename );
+		return $this->db->addBlogPostAttachment(
+			$attachmentId, $blogPostId, $originalAttachmentFilename, $targetAttachmentFilename
+		);
 	}
 
 	/**
@@ -176,7 +180,9 @@ class ExtractorDirectDataWriter extends AbstractDirectDataWriter implements IExt
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		return $this->db->addAdditionalAttachment( $attachmentId, $originalAttachmentFilename, $targetAttachmentFilename );
+		return $this->db->addAdditionalAttachment(
+			$attachmentId, $originalAttachmentFilename, $targetAttachmentFilename
+		);
 	}
 
 	/**
