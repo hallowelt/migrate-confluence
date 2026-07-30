@@ -26,7 +26,7 @@ class UpdateBlogPostAttachmentTable extends AttachmentTableUpdaterBase {
 	protected function storeAttachment(
 		int $attachmentId, int $containerId, string $originalFilename, string $targetFilename
 	): void {
-		$this->workspaceDB->addBlogPostAttachment(
+		$this->writer->addBlogPostAttachment(
 			$attachmentId, $containerId, $originalFilename, $targetFilename
 		);
 	}

@@ -275,4 +275,20 @@ interface IAnalyzeDataWriter extends IDataWriter {
 		int $templateId,
 		string $content,
 	): bool;
+
+	/**
+	 * @param string $spaceKey
+	 * @param string $source
+	 * @param string $confluenceVersion
+	 * @param string $exportDate
+	 * @param string $timezoneId
+	 * @param string $entitiesXmlPath
+	 *
+	 * @return void
+	 */
+	public function addExportProperties(
+		string $spaceKey, string $source,
+		string $confluenceVersion, string $exportDate,
+		string $timezoneId, string $entitiesXmlPath
+	): void;
 }

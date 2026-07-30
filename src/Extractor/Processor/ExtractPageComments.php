@@ -24,7 +24,7 @@ class ExtractPageComments extends ProcessorBase {
 			$wikiTitle = (string)( $comment['wiki_title'] ?? '' );
 
 			if ( $wikiTitle === '' ) {
-				$this->workspaceDB->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -42,7 +42,7 @@ class ExtractPageComments extends ProcessorBase {
 				$talkTitle = 'Talk:' . $wikiTitle;
 			}
 
-			$this->workspaceDB->addPageComment( $commentId, $pageId, $talkTitle );
+			$this->writer->addPageComment( $commentId, $pageId, $talkTitle );
 
 			$this->writeln(
 				"Added page comment ID $commentId for page ID $pageId with title '$talkTitle'"

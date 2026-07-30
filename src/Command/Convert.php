@@ -102,7 +102,7 @@ class Convert extends CommandConvert {
 			}
 		}
 
-		$workspaceDB = WorkspaceDB::open( $this->dest, true );
+		$workspaceDB = WorkspaceDB::open( $this->dest );
 		$workspaceDB->addLogEntry(
 			'info',
 			'convert',

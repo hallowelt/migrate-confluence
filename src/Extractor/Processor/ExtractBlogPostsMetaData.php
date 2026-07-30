@@ -29,14 +29,14 @@ class ExtractBlogPostsMetaData extends ExtractPagesMetaData {
 				continue;
 			}
 
-			$this->workspaceDB->addBlogPostMeta(
+			$this->writer->addBlogPostMeta(
 				$pageId,
 				[
 					'categories' => $categories
 				]
 			);
 
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'info',
 				'extract',
 				__METHOD__,

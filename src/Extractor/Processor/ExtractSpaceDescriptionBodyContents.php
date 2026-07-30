@@ -4,8 +4,8 @@ namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 
 /**
  */
@@ -14,14 +14,14 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 	/**
 	 * @param WorkspaceDB $workspaceDB
 	 * @param Workspace $workspace
-	 * @param DBLog $dbLog
+	 * @param IExtractorDataWriter $writer
 	 */
 	public function __construct(
-		protected WorkspaceDB $workspaceDB,
+		WorkspaceDB $workspaceDB,
 		protected Workspace $workspace,
-		protected DBLog $dbLog
+		IExtractorDataWriter $writer
 	) {
-		parent::__construct( $workspaceDB, $dbLog );
+		parent::__construct( $workspaceDB, $writer );
 	}
 
 	/**
@@ -60,7 +60,7 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 				$bodyContentHTML = $this->normalizeBodyContentHTML( $body );
 				$targetFileName = $this->workspace->saveRawContent( (string)$bodyContentId, $bodyContentHTML );
 
-				$this->workspaceDB->addLogEntry(
+				$this->writer->addLogEntry(
 					'info', 'extract', __METHOD__, "Extract body content to $targetFileName"
 				);
 			}

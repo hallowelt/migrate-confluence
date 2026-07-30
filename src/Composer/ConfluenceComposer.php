@@ -17,6 +17,7 @@ use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Sidebar;
 use HalloWelt\MigrateConfluence\Composer\Processor\Templates;
 use HalloWelt\MigrateConfluence\Composer\Processor\Users;
+use HalloWelt\MigrateConfluence\Database\DataWriter\LogDirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
@@ -75,8 +76,9 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @return void
 	 */
 	public function buildXML( Builder $builder ): void {
-		$workspaceDB = WorkspaceDB::open( $this->dest );
-		$this->logMigrateConfluenceToolVersion( $workspaceDB );
+		$workspaceDB = WorkspaceDB::open( $this->dest, true );
+
+		$this->logMigrateConfluenceToolVersion();
 
 		$this->dataLookup = new DBComposerDataLookup( $workspaceDB );
 		$skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
@@ -357,12 +359,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/**
 	 * Add version information of the migrate confluece tool to the database
 	 *
-	 * @param WorkspaceDB $db
-	 *
 	 * @return void
 	 */
-	private function logMigrateConfluenceToolVersion( WorkspaceDB $db ): void {
-		$db->addLogEntry(
+	private function logMigrateConfluenceToolVersion(): void {
+		$logWriter = new LogDirectDataWriter( WorkspaceDB::open( $this->dest ) );
+		$logWriter->addLogEntry(
 			'info',
 			'compose',
 			__CLASS__,

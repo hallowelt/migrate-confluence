@@ -101,7 +101,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			$props[trim( $key )] = trim( $value );
 		}
 
-		$this->workspaceDB->addExportProperties(
+		$this->writer->addExportProperties(
 			$props['spaceKey'] ?? '',
 			$props['source'] ?? '',
 			$props['createdByVersionNumber'] ?? '',

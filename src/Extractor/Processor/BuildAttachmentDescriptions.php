@@ -62,6 +62,6 @@ class BuildAttachmentDescriptions extends ProcessorBase {
 			$description .= "\n[[Category:" . ucfirst( $category ) . "]]";
 		}
 
-		$this->workspaceDB->addAttachmentDescription( $attachmentId, $description );
+		$this->writer->addAttachmentDescription( $attachmentId, $description );
 	}
 }

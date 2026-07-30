@@ -6,8 +6,8 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
@@ -27,13 +27,13 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
-	 * @param DBLog $dbLog
+	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB, DBLog $dbLog, protected MigrationConfig $migrationConfig
+		WorkspaceDB $workspaceDB, IExtractorDataWriter $writer, protected MigrationConfig $migrationConfig
 	) {
-		parent::__construct( $workspaceDB, $dbLog );
+		parent::__construct( $workspaceDB, $writer );
 	}
 
 	/**
@@ -180,7 +180,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					$shortContentWikiTitle,
 				);
 			} catch ( Exception $fallbackEx ) {
-				$this->workspaceDB->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'analyze',
 					__CLASS__,
@@ -192,7 +192,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			if ( empty( $attachmentWikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
 
-				$this->workspaceDB->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -209,7 +209,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			$counter = 1;
 			while ( $exists ) {
 				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
-					$this->workspaceDB->addLogEntry(
+					$this->writer->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
@@ -230,7 +230,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					$message = "TitleCompressor delivers empty wiki title for "
 					 . "attachment id $attachmentId while uncolliding";
 
-					$this->workspaceDB->addLogEntry(
+					$this->writer->addLogEntry(
 						'error',
 						'extract',
 						__CLASS__,
@@ -335,7 +335,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			$attachmentId = $attachment['attachment_id'];
 			$wikiTitle = $attachment['target_attachment_filename'];
 			if ( !$validityChecker->hasValidLength( $wikiTitle ) ) {
-				$this->workspaceDB->addInvalidAttachmentTitle(
+				$this->writer->addInvalidAttachmentTitle(
 					$attachmentId,
 					$wikiTitle,
 					'Attachment title contains too many characters (>255)'

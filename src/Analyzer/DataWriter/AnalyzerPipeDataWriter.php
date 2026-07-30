@@ -2,7 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\DataWriter;
 
-use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\AbstractPipeDataWriter;
 
 class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeDataWriter {
@@ -26,6 +25,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 		int $descriptionId
 	): bool {
 		$this->send( __FUNCTION__, $spaceId, $spaceKey, $spaceName, $prefix, $homepageId, $descriptionId );
+
 		return true;
 	}
 
@@ -65,6 +65,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 			$properties,
 			$collection
 		);
+
 		return true;
 	}
 
@@ -119,6 +120,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 			$properties,
 			$collection
 		);
+
 		return true;
 	}
 
@@ -170,6 +172,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 			$properties,
 			$collection
 		);
+
 		return true;
 	}
 
@@ -183,6 +186,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 */
 	public function addBodyContent( int $bodyContentId, int $contentId, string $class, array $properties ): bool {
 		$this->send( __FUNCTION__, $bodyContentId, $contentId, $class, $properties );
+
 		return true;
 	}
 
@@ -194,6 +198,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 */
 	public function addBodyContentBody( int $bodyContentId, string $body ): bool {
 		$this->send( __FUNCTION__, $bodyContentId, $body );
+
 		return true;
 	}
 
@@ -248,6 +253,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 			$properties,
 			$collection
 		);
+
 		return true;
 	}
 
@@ -287,6 +293,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 			$modified,
 			$properties
 		);
+
 		return true;
 	}
 
@@ -305,6 +312,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 		array $properties
 	): bool {
 		$this->send( __FUNCTION__, $propertyId, $propertyName, $class, $properties );
+
 		return true;
 	}
 
@@ -318,6 +326,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 */
 	public function addLabel( int $labelId, string $name, string $namespace, array $properties ): bool {
 		$this->send( __FUNCTION__, $labelId, $name, $namespace, $properties );
+
 		return true;
 	}
 
@@ -330,6 +339,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 */
 	public function addLabelling( int $labellingId, int $labelId, array $properties ): bool {
 		$this->send( __FUNCTION__, $labellingId, $labelId, $properties );
+
 		return true;
 	}
 
@@ -343,6 +353,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 */
 	public function addUser( string $userKey, string $wikiUsername, string $email, array $properties ): bool {
 		$this->send( __FUNCTION__, $userKey, $wikiUsername, $email, $properties );
+
 		return true;
 	}
 
@@ -382,6 +393,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 			$collection,
 			$contentStatus
 		);
+
 		return true;
 	}
 
@@ -391,19 +403,38 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 *
 	 * @return bool
 	 */
-	public function addPageTemplateContents( int $templateId, string $content, ): bool {
+	public function addPageTemplateContents( int $templateId, string $content ): bool {
 		$this->send( __FUNCTION__, $templateId, $content );
+
 		return true;
 	}
 
 	/**
-	 * @param int $templateId
-	 * @param string $wikiTitle
-	 * @param string $text
+	 * @param string $spaceKey
+	 * @param string $source
+	 * @param string $confluenceVersion
+	 * @param string $exportDate
+	 * @param string $timezoneId
+	 * @param string $entitiesXmlPath
 	 *
 	 * @return void
 	 */
-	public function addInvalidPageTemplateTitle( int $templateId, string $wikiTitle, string $text ): void {
-		$this->send( __FUNCTION__, $templateId, $wikiTitle, $text );
+	public function addExportProperties(
+		string $spaceKey,
+		string $source,
+		string $confluenceVersion,
+		string $exportDate,
+		string $timezoneId,
+		string $entitiesXmlPath
+	): void {
+		$this->send(
+			__FUNCTION__,
+			$spaceKey,
+			$source,
+			$confluenceVersion,
+			$exportDate,
+			$timezoneId,
+			$entitiesXmlPath
+		);
 	}
 }

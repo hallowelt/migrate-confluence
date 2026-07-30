@@ -30,7 +30,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 	protected function storeAttachment(
 		int $attachmentId, int $containerId, string $originalFilename, string $targetFilename
 	): void {
-		$this->workspaceDB->addAdditionalAttachment( $attachmentId, $originalFilename, $targetFilename );
+		$this->writer->addAdditionalAttachment( $attachmentId, $originalFilename, $targetFilename );
 	}
 
 	/** @inheritDoc */
@@ -96,7 +96,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 					''
 				);
 			} catch ( Exception $ex ) {
-				$this->workspaceDB->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'analyze',
 					__CLASS__,
@@ -108,7 +108,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 			if ( empty( $attachmentWikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
 
-				$this->workspaceDB->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -125,7 +125,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 			$counter = 1;
 			while ( $exists ) {
 				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
-					$this->workspaceDB->addLogEntry(
+					$this->writer->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
@@ -146,7 +146,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 					$message = "TitleCompressor delivers empty wiki title for "
 					. "attachment id $attachmentId while uncolliding";
 
-					$this->workspaceDB->addLogEntry(
+					$this->writer->addLogEntry(
 						'error',
 						'extract',
 						__CLASS__,

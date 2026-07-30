@@ -10,7 +10,6 @@ use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerPipeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
-use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
@@ -112,7 +111,7 @@ class Analyze extends BatchFileProcessorBase {
 		);
 
 		if ( $workers > 1 ) {
-			$pool = new WorkerPool( $output, new ConverterDirectDataWriter( $workspaceDB ) );
+			$pool = new WorkerPool( $output, new AnalyzerDirectDataWriter( $workspaceDB ) );
 
 			$this->executionTime = new ExecutionTime();
 			$result = $pool->run( WorkerPool::baseCommandFromArgv(), $workers );
@@ -150,7 +149,7 @@ class Analyze extends BatchFileProcessorBase {
 
 		$analyzer = new ConfluenceAnalyzer(
 			$this->dataWriter,
-			WorkspaceDB::open( $this->dest ),
+			WorkspaceDB::open( $this->dest, true ),
 			$this->output,
 			$this->getMigrationConfig()
 		);

@@ -3,23 +3,23 @@
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ExtractPagesMetaData extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
-	 * @param DBLog $dbLog
+	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		protected WorkspaceDB $workspaceDB,
-		protected DBLog $dbLog,
+		WorkspaceDB $workspaceDB,
+		IExtractorDataWriter $writer,
 		protected MigrationConfig $migrationConfig
 	) {
-		parent::__construct( $workspaceDB, $dbLog );
+		parent::__construct( $workspaceDB, $writer );
 	}
 
 	/**
@@ -48,14 +48,14 @@ class ExtractPagesMetaData extends ProcessorBase {
 				continue;
 			}
 
-			$this->workspaceDB->addPageMeta(
+			$this->writer->addPageMeta(
 				$pageId,
 				[
 					'categories' => $categories
 				]
 			);
 
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'info',
 				'extract',
 				__METHOD__,

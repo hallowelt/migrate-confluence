@@ -67,7 +67,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 			} catch ( Exception $ex ) {
-				$this->workspaceDB->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -78,7 +78,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
 
-				$this->workspaceDB->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -92,7 +92,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
-			$this->workspaceDB->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'extract',
 				__CLASS__,
@@ -110,7 +110,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
 
-				$this->workspaceDB->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -123,7 +123,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			$this->writeln(
 				"Updated wiki title for blog post ID $pageId with title: $wikiTitle"
 			);
-			$this->workspaceDB->updateBlogPostWikiTitle( (int)$pageId, $wikiTitle );
+			$this->writer->updateBlogPostWikiTitle( (int)$pageId, $wikiTitle );
 		}
 	}
 
@@ -148,14 +148,14 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 
 		foreach ( $titles as $pageId => $title ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
-				$this->workspaceDB->addInvalidBlogPostWikiTitle(
+				$this->writer->addInvalidBlogPostWikiTitle(
 					$pageId, $title, 'Title ends with invalid character'
 				);
 			}
 
 			if ( str_contains( $title, ':' ) ) {
 				if ( $validityChecker->hasDoubleColon( $title ) ) {
-					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+					$this->writer->addInvalidBlogPostWikiTitle(
 						$pageId, $title, 'Title contains multiple colons'
 					);
 				}
@@ -163,19 +163,19 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				$text = substr( $title, strpos( $title, ':' ) + 1 );
 
 				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
-					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+					$this->writer->addInvalidBlogPostWikiTitle(
 						$pageId, $title, 'Invalid namespace character detected'
 					);
 				}
 
 				if ( !$validityChecker->hasValidLength( $text ) ) {
-					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+					$this->writer->addInvalidBlogPostWikiTitle(
 						$pageId, $title, 'Title contains too many characters (>255)'
 					);
 				}
 			} else {
 				if ( !$validityChecker->hasValidLength( $title ) ) {
-					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+					$this->writer->addInvalidBlogPostWikiTitle(
 						$pageId, $title, 'Title contains too many characters (>255)'
 					);
 				}

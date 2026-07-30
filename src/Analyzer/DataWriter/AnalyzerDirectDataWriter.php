@@ -374,4 +374,32 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	public function addPageTemplateContents( int $templateId, string $content ): bool {
 		return $this->db->addPageTemplateContents( $templateId, $content );
 	}
+
+	/**
+	 * @param string $spaceKey
+	 * @param string $source
+	 * @param string $confluenceVersion
+	 * @param string $exportDate
+	 * @param string $timezoneId
+	 * @param string $entitiesXmlPath
+	 *
+	 * @return void
+	 */
+	public function addExportProperties(
+		string $spaceKey,
+		string $source,
+		string $confluenceVersion,
+		string $exportDate,
+		string $timezoneId,
+		string $entitiesXmlPath
+	): void {
+		$this->db->addExportProperties(
+			$spaceKey,
+			$source,
+			$confluenceVersion,
+			$exportDate,
+			$timezoneId,
+			$entitiesXmlPath
+		);
+	}
 }

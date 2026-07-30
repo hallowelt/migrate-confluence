@@ -39,7 +39,7 @@ class UpdateBlogPostsTableWithSpaceIdOfHistoryVersions extends ProcessorBase {
 			}
 
 			$originalSpaceId = $pageIdToSpaceIdMap[$originalVersionId];
-			$this->workspaceDB->updateBlogPostSpaceId( $pageId, $originalSpaceId );
+			$this->writer->updateBlogPostSpaceId( $pageId, $originalSpaceId );
 			$this->writeln(
 				"Updated space_id for historical blog post ID $pageId with space_id: $originalSpaceId"
 			);

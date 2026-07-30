@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use Symfony\Component\Console\Command\Command;
@@ -67,7 +68,7 @@ class Extract extends CommandExtract {
 		foreach ( $extractorFactoryCallbacks as $key => $callback ) {
 			$extractor = call_user_func_array(
 				$callback,
-				[ $this->config, $this->workspace, $this->buckets ]
+				[ $this->config, $this->workspace, $this->buckets,  ]
 			);
 			if ( $extractor instanceof IExtractor === false ) {
 				throw new Exception(
