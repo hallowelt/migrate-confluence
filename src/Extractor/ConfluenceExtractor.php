@@ -85,8 +85,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return void
 	 */
 	private function initDBLog(): void {
-		$this->dbLog = new DBLog( $this->workspaceDB );
-		$this->dbLog->addLogEntry(
+		$this->workspaceDB->addLogEntry(
 			'info',
 			'extract',
 			__CLASS__,
@@ -177,7 +176,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return void
 	 */
 	private function checkTitles(): void {
-		if ( !empty( $this->dbLog->getLogEntriesForStep( 'analyze' ) ) ) {
+		if ( !empty( $this->workspaceDB->getLogEntriesForStep( 'analyze' ) ) ) {
 			$this->writeln( "\n\nWARNINGS / ERRORS:\n" );
 			$this->writeln(
 				"\nPlease check logging table in workspaceDB for details about invalid titles and filenames\n\n"

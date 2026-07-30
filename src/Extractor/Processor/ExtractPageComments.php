@@ -24,7 +24,7 @@ class ExtractPageComments extends ProcessorBase {
 			$wikiTitle = (string)( $comment['wiki_title'] ?? '' );
 
 			if ( $wikiTitle === '' ) {
-				$this->dbLog->addLogEntry(
+				$this->workspaceDB->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,

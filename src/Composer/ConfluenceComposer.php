@@ -22,7 +22,6 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Output\Output;
@@ -77,8 +76,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 */
 	public function buildXML( Builder $builder ): void {
 		$workspaceDB = WorkspaceDB::open( $this->dest );
-		$dbLog = new DBLog( $workspaceDB );
-		$this->logMigrateConfluenceToolVersion( $dbLog );
+		$this->logMigrateConfluenceToolVersion( $workspaceDB );
 
 		$this->dataLookup = new DBComposerDataLookup( $workspaceDB );
 		$skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
@@ -137,7 +135,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 				->execute( $namespace, $namespaceSpacesMap[$namespace] );
 		}
 
-		$this->writeUserReadableDBLog( $dbLog );
+		$this->writeUserReadableDBLog( $workspaceDB );
 	}
 
 	/**
@@ -223,13 +221,14 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
-	 * @param DBLog $dbLog
+	 * @param WorkspaceDB $db
+	 *
 	 * @return void
 	 */
-	private function writeUserReadableDBLog( DBLog $dbLog ): void {
-		$this->writeDBLogContent( $dbLog, 'error' );
-		$this->writeDBLogContent( $dbLog, 'warning' );
-		$this->writeDBLogContent( $dbLog, 'info' );
+	private function writeUserReadableDBLog( WorkspaceDB $db ): void {
+		$this->writeDBLogContent( $db, 'error' );
+		$this->writeDBLogContent( $db, 'warning' );
+		$this->writeDBLogContent( $db, 'info' );
 	}
 
 	/**
@@ -245,12 +244,13 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
-	 * @param DBLog $dbLog
+	 * @param WorkspaceDB $db
 	 * @param string $type
+	 *
 	 * @return void
 	 */
-	private function writeDBLogContent( DBLog $dbLog, string $type ): void {
-		$data = $dbLog->getLogEntriesForStep( 'compose', $type );
+	private function writeDBLogContent( WorkspaceDB $db, string $type ): void {
+		$data = $db->getLogEntriesForStep( 'compose', $type );
 		$content = '';
 		foreach ( $data as $item ) {
 			$content .= $item['caller'] . ': ' . $item['text'] . "\n";
@@ -357,11 +357,12 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/**
 	 * Add version information of the migrate confluece tool to the database
 	 *
-	 * @param DBLog $dbLog
+	 * @param WorkspaceDB $db
+	 *
 	 * @return void
 	 */
-	private function logMigrateConfluenceToolVersion( DBLog $dbLog ): void {
-		$dbLog->addLogEntry(
+	private function logMigrateConfluenceToolVersion( WorkspaceDB $db ): void {
+		$db->addLogEntry(
 			'info',
 			'compose',
 			__CLASS__,

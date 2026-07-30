@@ -1,41 +1,11 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Database\DataWriter;
+namespace HalloWelt\MigrateConfluence\Analyzer\DataWriter;
 
-abstract class AbstractWriter implements IDataWriter {
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Database\DataWriter\AbstractPipeDataWriter;
 
-	/**
-	 * @param string $method
-	 * @param array $args
-	 *
-	 * @return void
-	 */
-	abstract protected function dispatch( string $method, array $args ): mixed;
-
-	/**
-	 * @param string $type
-	 * @param string $step
-	 * @param string $caller
-	 * @param string $text
-	 *
-	 * @return void
-	 */
-	public function addLogEntry(
-		string $type,
-		string $step,
-		string $caller,
-		string $text
-	): void {
-		$this->dispatch(
-			__FUNCTION__,
-			[
-				$type,
-				$step,
-				$caller,
-				$text
-			]
-		);
-	}
+class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeDataWriter {
 
 	/**
 	 * @param int $spaceId
@@ -55,17 +25,8 @@ abstract class AbstractWriter implements IDataWriter {
 		int $homepageId,
 		int $descriptionId
 	): bool {
-		return $this->dispatch(
-			__FUNCTION__,
-			[
-				$spaceId,
-				$spaceKey,
-				$spaceName,
-				$prefix,
-				$homepageId,
-				$descriptionId
-			]
-		);
+		$this->send( __FUNCTION__, $spaceId, $spaceKey, $spaceName, $prefix, $homepageId, $descriptionId );
+		return true;
 	}
 
 	/**
@@ -92,20 +53,19 @@ abstract class AbstractWriter implements IDataWriter {
 		array $properties,
 		array $collection
 	): bool {
-		return $this->dispatch(
+		$this->send(
 			__FUNCTION__,
-			[
-				$spaceDescriptionId,
-				$contentStatus,
-				$version,
-				$originalVersionId,
-				$revisionTimestamp,
-				$bodyContentIds,
-				$labellingIds,
-				$properties,
-				$collection
-			]
+			$spaceDescriptionId,
+			$contentStatus,
+			$version,
+			$originalVersionId,
+			$revisionTimestamp,
+			$bodyContentIds,
+			$labellingIds,
+			$properties,
+			$collection
 		);
+		return true;
 	}
 
 	/**
@@ -142,26 +102,24 @@ abstract class AbstractWriter implements IDataWriter {
 		array $properties,
 		array $collection
 	): bool {
-		return $this->dispatch(
+		$this->send(
 			__FUNCTION__,
-			[
-				$pageId,
-				$spaceId,
-				$confluenceTitle,
-				$wikiTitle,
-				$contentStatus,
-				$revisionTimestamp,
-				$lastModifier,
-				$version,
-				$originalVersionId,
-				$parentPageId,
-				$bodyContentIds,
-				$historicalIds,
-				$properties,
-				$collection
-			]
-
+			$pageId,
+			$spaceId,
+			$confluenceTitle,
+			$wikiTitle,
+			$contentStatus,
+			$revisionTimestamp,
+			$lastModifier,
+			$version,
+			$originalVersionId,
+			$parentPageId,
+			$bodyContentIds,
+			$historicalIds,
+			$properties,
+			$collection
 		);
+		return true;
 	}
 
 	/**
@@ -196,24 +154,23 @@ abstract class AbstractWriter implements IDataWriter {
 		array $properties,
 		array $collection
 	): bool {
-		return $this->dispatch(
+		$this->send(
 			__FUNCTION__,
-			[
-				$pageId,
-				$spaceId,
-				$confluenceTitle,
-				$wikiTitle,
-				$contentStatus,
-				$revisionTimestamp,
-				$lastModifier,
-				$version,
-				$originalVersionId,
-				$bodyContentIds,
-				$historicalIds,
-				$properties,
-				$collection
-			]
+			$pageId,
+			$spaceId,
+			$confluenceTitle,
+			$wikiTitle,
+			$contentStatus,
+			$revisionTimestamp,
+			$lastModifier,
+			$version,
+			$originalVersionId,
+			$bodyContentIds,
+			$historicalIds,
+			$properties,
+			$collection
 		);
+		return true;
 	}
 
 	/**
@@ -224,21 +181,9 @@ abstract class AbstractWriter implements IDataWriter {
 	 *
 	 * @return bool
 	 */
-	public function addBodyContent(
-		int $bodyContentId,
-		int $contentId,
-		string $class,
-		array $properties
-	): bool {
-		return $this->dispatch(
-			__FUNCTION__,
-			[
-				$bodyContentId,
-				$contentId,
-				$class,
-				$properties
-			]
-		);
+	public function addBodyContent( int $bodyContentId, int $contentId, string $class, array $properties ): bool {
+		$this->send( __FUNCTION__, $bodyContentId, $contentId, $class, $properties );
+		return true;
 	}
 
 	/**
@@ -247,17 +192,9 @@ abstract class AbstractWriter implements IDataWriter {
 	 *
 	 * @return bool
 	 */
-	public function addBodyContentBody(
-		int $bodyContentId,
-		string $body
-	): bool {
-		return $this->dispatch(
-			__FUNCTION__,
-			[
-				$bodyContentId,
-				$body
-			]
-		);
+	public function addBodyContentBody( int $bodyContentId, string $body ): bool {
+		$this->send( __FUNCTION__, $bodyContentId, $body );
+		return true;
 	}
 
 	/**
@@ -294,25 +231,24 @@ abstract class AbstractWriter implements IDataWriter {
 		array $properties,
 		array $collection
 	): bool {
-		return $this->dispatch(
+		$this->send(
 			__FUNCTION__,
-			[
-				$attachmentId,
-				$spaceId,
-				$filename,
-				$fileExtension,
-				$containerContentId,
-				$contentStatus,
-				$version,
-				$revisionTimestamp,
-				$lastModifier,
-				$originalVersionId,
-				$attachmentReference,
-				$historicalIds,
-				$properties,
-				$collection
-			]
+			$attachmentId,
+			$spaceId,
+			$filename,
+			$fileExtension,
+			$containerContentId,
+			$contentStatus,
+			$version,
+			$revisionTimestamp,
+			$lastModifier,
+			$originalVersionId,
+			$attachmentReference,
+			$historicalIds,
+			$properties,
+			$collection
 		);
+		return true;
 	}
 
 	/**
@@ -339,20 +275,19 @@ abstract class AbstractWriter implements IDataWriter {
 		string $modified,
 		array $properties
 	): bool {
-		return $this->dispatch(
+		$this->send(
 			__FUNCTION__,
-			[
-				$commentId,
-				$containerContentId,
-				$class,
-				$contentStatus,
-				$userKey,
-				$bodyContentIds,
-				$created,
-				$modified,
-				$properties
-			]
+			$commentId,
+			$containerContentId,
+			$class,
+			$contentStatus,
+			$userKey,
+			$bodyContentIds,
+			$created,
+			$modified,
+			$properties
 		);
+		return true;
 	}
 
 	/**
@@ -369,15 +304,8 @@ abstract class AbstractWriter implements IDataWriter {
 		string $class,
 		array $properties
 	): bool {
-		return $this->dispatch(
-			__FUNCTION__,
-			[
-				$propertyId,
-				$propertyName,
-				$class,
-				$properties
-			]
-		);
+		$this->send( __FUNCTION__, $propertyId, $propertyName, $class, $properties );
+		return true;
 	}
 
 	/**
@@ -388,21 +316,9 @@ abstract class AbstractWriter implements IDataWriter {
 	 *
 	 * @return bool
 	 */
-	public function addLabel(
-		int $labelId,
-		string $name,
-		string $namespace,
-		array $properties
-	): bool {
-		return $this->dispatch(
-			__FUNCTION__,
-			[
-				$labelId,
-				$name,
-				$namespace,
-				$properties
-			]
-		);
+	public function addLabel( int $labelId, string $name, string $namespace, array $properties ): bool {
+		$this->send( __FUNCTION__, $labelId, $name, $namespace, $properties );
+		return true;
 	}
 
 	/**
@@ -412,19 +328,9 @@ abstract class AbstractWriter implements IDataWriter {
 	 *
 	 * @return bool
 	 */
-	public function addLabelling(
-		int $labellingId,
-		int $labelId,
-		array $properties
-	): bool {
-		return $this->dispatch(
-			__FUNCTION__,
-			[
-				$labellingId,
-				$labelId,
-				$properties
-			]
-		);
+	public function addLabelling( int $labellingId, int $labelId, array $properties ): bool {
+		$this->send( __FUNCTION__, $labellingId, $labelId, $properties );
+		return true;
 	}
 
 	/**
@@ -435,21 +341,9 @@ abstract class AbstractWriter implements IDataWriter {
 	 *
 	 * @return bool
 	 */
-	public function addUser(
-		string $userKey,
-		string $wikiUsername,
-		string $email,
-		array $properties
-	): bool {
-		return $this->dispatch(
-			__FUNCTION__,
-			[
-				$userKey,
-				$wikiUsername,
-				$email,
-				$properties
-			]
-		);
+	public function addUser( string $userKey, string $wikiUsername, string $email, array $properties ): bool {
+		$this->send( __FUNCTION__, $userKey, $wikiUsername, $email, $properties );
+		return true;
 	}
 
 	/**
@@ -476,20 +370,19 @@ abstract class AbstractWriter implements IDataWriter {
 		array $collection = [],
 		string $contentStatus = 'current'
 	): bool {
-		return $this->dispatch(
+		$this->send(
 			__FUNCTION__,
-			[
-				$templateId,
-				$confluenceTitle,
-				$spaceId,
-				$wikiTitle,
-				$revisionTimestamp,
-				$version,
-				$properties,
-				$collection,
-				$contentStatus
-			]
+			$templateId,
+			$confluenceTitle,
+			$spaceId,
+			$wikiTitle,
+			$revisionTimestamp,
+			$version,
+			$properties,
+			$collection,
+			$contentStatus
 		);
+		return true;
 	}
 
 	/**
@@ -498,17 +391,9 @@ abstract class AbstractWriter implements IDataWriter {
 	 *
 	 * @return bool
 	 */
-	public function addPageTemplateContents(
-		int $templateId,
-		string $content,
-	): bool {
-		return $this->dispatch(
-			__FUNCTION__,
-			[
-				$templateId,
-				$content
-			]
-		);
+	public function addPageTemplateContents( int $templateId, string $content, ): bool {
+		$this->send( __FUNCTION__, $templateId, $content );
+		return true;
 	}
 
 	/**
@@ -519,58 +404,6 @@ abstract class AbstractWriter implements IDataWriter {
 	 * @return void
 	 */
 	public function addInvalidPageTemplateTitle( int $templateId, string $wikiTitle, string $text ): void {
-		$this->dispatch(
-			__FUNCTION__,
-			[
-				$templateId,
-				$wikiTitle,
-				$text
-			]
-		);
-	}
-
-	/**
-	 * @param int|null $spaceId
-	 * @param string $confluenceTitle
-	 * @param string $originalAttachmentFilename
-	 * @param string $targetAttachmentFilename
-	 *
-	 * @return bool
-	 */
-	public function addGliffy(
-		?int $spaceId,
-		string $confluenceTitle,
-		string $originalAttachmentFilename,
-		string $targetAttachmentFilename
-	): bool {
-		return $this->dispatch(
-			__FUNCTION__,
-			[
-				$spaceId,
-				$confluenceTitle,
-				$originalAttachmentFilename,
-				$targetAttachmentFilename
-			]
-		);
-	}
-
-	public function addInvalidBodyContent( int $bodyContentId, string $text ): void {
-		$this->dispatch(
-			__FUNCTION__,
-			[
-				$bodyContentId,
-				$text
-			]
-		);
-	}
-
-	public function addInvalidPageTemplateContent( int $templateId, string $text ): void {
-		$this->dispatch(
-			__FUNCTION__,
-			[
-				$templateId,
-				$text
-			]
-		);
+		$this->send( __FUNCTION__, $templateId, $wikiTitle, $text );
 	}
 }

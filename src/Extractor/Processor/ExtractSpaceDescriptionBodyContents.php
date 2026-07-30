@@ -60,7 +60,7 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 				$bodyContentHTML = $this->normalizeBodyContentHTML( $body );
 				$targetFileName = $this->workspace->saveRawContent( (string)$bodyContentId, $bodyContentHTML );
 
-				$this->dbLog->addLogEntry(
+				$this->workspaceDB->addLogEntry(
 					'info', 'extract', __METHOD__, "Extract body content to $targetFileName"
 				);
 			}

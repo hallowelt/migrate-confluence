@@ -180,7 +180,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					$shortContentWikiTitle,
 				);
 			} catch ( Exception $fallbackEx ) {
-				$this->dbLog->addLogEntry(
+				$this->workspaceDB->addLogEntry(
 					'warning',
 					'analyze',
 					__CLASS__,
@@ -192,7 +192,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			if ( empty( $attachmentWikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
 
-				$this->dbLog->addLogEntry(
+				$this->workspaceDB->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -209,7 +209,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			$counter = 1;
 			while ( $exists ) {
 				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
-					$this->dbLog->addLogEntry(
+					$this->workspaceDB->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
@@ -230,7 +230,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					$message = "TitleCompressor delivers empty wiki title for "
 					 . "attachment id $attachmentId while uncolliding";
 
-					$this->dbLog->addLogEntry(
+					$this->workspaceDB->addLogEntry(
 						'error',
 						'extract',
 						__CLASS__,

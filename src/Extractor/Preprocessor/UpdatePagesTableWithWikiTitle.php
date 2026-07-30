@@ -37,6 +37,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 	/**
 	 * @return void
+	 * @throws Exception
 	 */
 	private function updateWikiTitles(): void {
 		$titleBuilder = new TitleBuilder(
@@ -51,7 +52,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$pageIdToWikiTitleMap = [];
 		foreach ( $pages as $page ) {
 			if ( !isset( $page['page_id'] ) ) {
-				$this->dbLog->addLogEntry(
+				$this->workspaceDB->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -63,7 +64,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			$pageId = (int)$page['page_id'];
 
 			if ( !isset( $page['space_id'] ) || !isset( $page['confluence_title'] ) ) {
-				$this->dbLog->addLogEntry(
+				$this->workspaceDB->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -74,7 +75,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 			// historical versions
 			if ( (int)$page['original_version_id'] !== -1 ) {
-				$this->dbLog->addLogEntry(
+				$this->workspaceDB->addLogEntry(
 					'info',
 					'extract',
 					__CLASS__,
@@ -100,7 +101,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 			} catch ( Exception $ex ) {
-				$this->dbLog->addLogEntry(
+				$this->workspaceDB->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -111,7 +112,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleBuilder delivers empty wiki title for page $confluenceTitle (page id $pageId)";
 
-				$this->dbLog->addLogEntry(
+				$this->workspaceDB->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -125,7 +126,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
-			$this->dbLog->addLogEntry(
+			$this->workspaceDB->addLogEntry(
 				'warning',
 				'extract',
 				__CLASS__,
@@ -143,7 +144,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for page id $pageId";
 
-				$this->dbLog->addLogEntry(
+				$this->workspaceDB->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,

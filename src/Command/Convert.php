@@ -4,14 +4,17 @@ namespace HalloWelt\MigrateConfluence\Command;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
+use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
-use HalloWelt\MigrateConfluence\Database\DataWriter\PipeDataWriter;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterPipeDataWriter;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
+use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
-use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,11 +26,8 @@ class Convert extends CommandConvert {
 	/** @var string */
 	private string $wikiTextBasePath = '';
 
-	/** @var WorkspaceDB */
-	private WorkspaceDB $workspaceDB;
-
-	/** @var resource|false */
-	private $workerPipe = false;
+	/** @var IConverterDataWriter|null */
+	private ?IConverterDataWriter $dataWriter;
 
 	/**
 	 * @return void
@@ -78,68 +78,65 @@ class Convert extends CommandConvert {
 	 *
 	 * @param InputInterface $input
 	 * @param OutputInterface $output
+	 *
 	 * @return int
+	 * @throws Exception
 	 */
 	protected function execute( InputInterface $input, OutputInterface $output ): int {
 		$workers = (int)$input->getOption( 'workers' );
 		$isChildProcess = $input->hasParameterOption( '--worker' );
 
-		$this->setupDB( $input, !$isChildProcess );
-
-		if ( $workers > 1 && !$isChildProcess ) {
-			return $this->spawnWorkers( $input, $output, $workers );
+		$this->dest = realpath( $input->getOption( 'dest' ) );
+		if ( !is_dir( $this->dest ) ) {
+			$output->writeln( "Destination does not exist" );
+			return Command::FAILURE;
 		}
 
-		/* this is the "single worker" case. Here we define our own pipe for the converter to
-		 * send data to. */
-		if ( !$isChildProcess ) {
-			$this->workerPipe = fopen( 'php://temp', 'r+' );
-		}
+		if ( $isChildProcess ) {
+			$this->dataWriter = new ConverterPipeDataWriter( new PipeChannel() );
 
-		$returnValue = parent::execute( $input, $output );
-
-		if ( $this->workerPipe !== false ) {
-			rewind( $this->workerPipe );
-			$line = fgets( $this->workerPipe );
-			while ( $line !== false ) {
-				$this->storeWorkerResponse( $line );
-				$line = fgets( $this->workerPipe );
+			try {
+				return parent::execute( $input, $output );
+			} finally {
+				$this->dataWriter = null;
 			}
-			$pipe = $this->workerPipe;
-			$this->workerPipe = false;
-			fclose( $pipe );
 		}
 
-		return $returnValue;
+		$workspaceDB = WorkspaceDB::open( $this->dest, true );
+		$workspaceDB->addLogEntry(
+			'info',
+			'convert',
+			__CLASS__,
+			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
+		);
+
+		if ( $workers > 1 ) {
+			$pool = new WorkerPool( $output, new ConverterDirectDataWriter( $workspaceDB ) );
+
+			$this->executionTime = new ExecutionTime();
+			$result = $pool->run( WorkerPool::baseCommandFromArgv(), $workers );
+			$this->logExecutionTime();
+
+			return $result;
+		}
+
+		$this->dataWriter = new ConverterDirectDataWriter( $workspaceDB );
+
+		try {
+			return parent::execute( $input, $output );
+		} finally {
+			$this->dataWriter = null;
+		}
 	}
 
 	/**
-	 * set up DB connection
-	 *
-	 * We use this connection here in order to prevent multiple write connections to the DB in
-	 * the case of more than one worker.
-	 *
-	 * @param InputInterface $input
-	 * @param bool $logUsage mention the run in the log, if this is either the only or the host process
+	 * @throws Exception
 	 */
-	private function setupDB( InputInterface $input, bool $logUsage ): void {
-		/* dest is never set if parent::execute is not called. This is unfortunately
-		 * the case in the host/worker situation */
-		$this->dest = realpath( $input->getOption( 'dest' ) );
-
-		$this->workspaceDB = WorkspaceDB::open( $this->dest );
-
-		if ( $logUsage ) {
-			$this->workspaceDB->addLogEntry(
-				'info',
-				'convert',
-				__CLASS__,
-				sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-			);
-		}
-	}
-
 	protected function doProcessFile(): bool {
+		if ( !$this->dataWriter ) {
+			throw new Exception( 'No data writer is set' );
+		}
+
 		$converterFactoryCallbacks = $this->config['converters'];
 
 		$this->wikiTextBasePath = $this->dest . '/content/wikitext';
@@ -148,13 +145,10 @@ class Convert extends CommandConvert {
 
 		$this->readConfigFile( $this->config );
 
-		$dataWriter = $this->workerPipe ? new PipeDataWriter( new PipeToDB( $this->workerPipe ) )
-			: new DirectDataWriter( $this->workspaceDB );
-
 		foreach ( $converterFactoryCallbacks as $key => $callback ) {
 			$converter = call_user_func_array(
 				$callback,
-				[ $this->config, $this->workspace, $dataWriter ]
+				[ $this->config, $this->workspace, $this->dataWriter ]
 			);
 			if ( $converter instanceof IConverter === false ) {
 				throw new Exception(
@@ -174,152 +168,6 @@ class Convert extends CommandConvert {
 			file_put_contents( $this->targetPathname, $result );
 		}
 		return true;
-	}
-
-	/**
-	 * Spawn $workers child processes, each handling a disjoint slice of the file list,
-	 * and stream their combined output until all are done.
-	 *
-	 * @param InputInterface $input
-	 * @param OutputInterface $output
-	 * @param int $workers
-	 * @return int
-	 */
-	private function spawnWorkers( InputInterface $input, OutputInterface $output, int $workers ): int {
-		$baseCmd = $this->buildBaseCommand();
-		$descriptors = [
-			0 => [ 'pipe', 'r' ],
-			1 => [ 'pipe', 'w' ],
-			2 => [ 'pipe', 'w' ],
-		];
-		$descriptors[PipeToDB::FILE_DESCRIPTOR] = [ 'pipe', 'w' ];
-
-		$processes = [];
-		$pipes = [];
-		$DBWritePipes = [];
-
-		for ( $i = 0; $i < $workers; $i++ ) {
-			$cmd = array_merge( $baseCmd, [ '--worker=' . $i ] );
-			$cmdString = implode( ' ', array_map( 'escapeshellarg', $cmd ) );
-			$output->writeln( "Starting worker {$i}: <comment>{$cmdString}</comment>" );
-			// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.proc_open
-			$proc = proc_open( $cmdString, $descriptors, $workerPipes );
-			if ( $proc === false ) {
-				$output->writeln( "<error>Failed to start worker {$i}.</error>" );
-				return Command::FAILURE;
-			}
-			stream_set_blocking( $workerPipes[1], false );
-			stream_set_blocking( $workerPipes[2], false );
-			stream_set_blocking( $workerPipes[3], false );
-			fclose( $workerPipes[0] );
-			$processes[$i] = $proc;
-			$pipes[$i] = [ $workerPipes[1], $workerPipes[2] ];
-			$DBWritePipes[$i] = $workerPipes[3];
-		}
-
-		$exitCodes = array_fill( 0, $workers, null );
-		while ( count( array_filter( $processes ) ) > 0 ) {
-			foreach ( $processes as $i => $proc ) {
-				if ( $proc === null ) {
-					continue;
-				}
-				foreach ( $pipes[$i] as $pipe ) {
-					$line = fgets( $pipe );
-					while ( $line !== false ) {
-						$output->write( "[Worker {$i}] " . $line );
-						$line = fgets( $pipe );
-					}
-				}
-				$line = fgets( $DBWritePipes[$i] );
-				while ( $line !== false ) {
-					$this->storeWorkerResponse( $line );
-					$line = fgets( $DBWritePipes[$i] );
-				}
-				$status = proc_get_status( $proc );
-				if ( !$status['running'] ) {
-					// Drain any remaining output
-					foreach ( $pipes[$i] as $pipe ) {
-						// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition
-						while ( ( $line = fgets( $pipe ) ) !== false ) {
-							$output->write( "[Worker {$i}] " . $line );
-						}
-						fclose( $pipe );
-					}
-					$line = fgets( $DBWritePipes[$i] );
-					while ( $line !== false ) {
-						$this->storeWorkerResponse( $line );
-						$line = fgets( $DBWritePipes[$i] );
-					}
-					fclose( $DBWritePipes[$i] );
-					$exitCodes[$i] = proc_close( $proc );
-					$processes[$i] = null;
-					$output->writeln( "Worker {$i} finished with exit code {$exitCodes[$i]}." );
-				}
-			}
-			usleep( 50000 );
-		}
-
-		$failed = array_filter( $exitCodes, static function ( $code ) {
-			return $code !== Command::SUCCESS;
-		} );
-
-		if ( !empty( $failed ) ) {
-			$failedList = implode( ', ', array_keys( $failed ) );
-			$output->writeln( "<error>One or more workers failed: workers {$failedList}</error>" );
-			return Command::FAILURE;
-		}
-
-		$output->writeln( '<info>All workers completed successfully.</info>' );
-		return Command::SUCCESS;
-	}
-
-	/**
-	 *
-	 */
-	private function storeWorkerResponse( string $line ): void {
-		$data = json_decode( $line, true );
-		if ( is_array( $data ) && count( $data ) > 1 ) {
-			$method = array_shift( $data );
-			if ( $method === 'log' ) {
-				$this->dbLog->addLogEntry( ...$data );
-			} else {
-				call_user_func_array( [ $this->workspaceDB, $method ], $data );
-			}
-		} else {
-			$this->dbLog->addLogEntry(
-				'error',
-				'convert.invalid-worker-output',
-				__CLASS__,
-				$line
-			);
-		}
-	}
-
-	/**
-	 * Reconstruct the command array (PHP binary + script + current arguments)
-	 * without the --workers value, so children can receive it unmodified,
-	 * and without any pre-existing --worker flag.
-	 *
-	 * @return string[]
-	 */
-	private function buildBaseCommand(): array {
-		$argv = $_SERVER['argv'];
-		$cmd = [ PHP_BINARY, $argv[0] ];
-
-		for ( $i = 1; $i < count( $argv ); $i++ ) {
-			$arg = $argv[$i];
-			// Strip any --worker option that was somehow passed to the orchestrator
-			if ( preg_match( '#^--worker(=.*)?$#', $arg ) ) {
-				// skip value token too if separate
-				if ( $arg === '--worker' ) {
-					$i++;
-				}
-				continue;
-			}
-			$cmd[] = $arg;
-		}
-
-		return $cmd;
 	}
 
 	/**

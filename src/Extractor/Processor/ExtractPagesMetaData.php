@@ -55,7 +55,7 @@ class ExtractPagesMetaData extends ProcessorBase {
 				]
 			);
 
-			$this->dbLog->addLogEntry(
+			$this->workspaceDB->addLogEntry(
 				'info',
 				'extract',
 				__METHOD__,

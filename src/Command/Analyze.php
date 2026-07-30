@@ -7,13 +7,15 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
-use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
-use HalloWelt\MigrateConfluence\Database\DataWriter\PipeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerPipeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
+use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
@@ -23,14 +25,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Analyze extends BatchFileProcessorBase {
 
-	/** @var WorkspaceDB */
-	private WorkspaceDB $workspaceDB;
-
-	/** @var resource|false */
-	private $workerPipe = false;
-
 	/** @var ExecutionTime|null */
 	private ?ExecutionTime $executionTime = null;
+
+	/** @var IAnalyzeDataWriter|null */
+	private ?IAnalyzeDataWriter $dataWriter;
 
 	/**
 	 * @param array $config
@@ -88,26 +87,47 @@ class Analyze extends BatchFileProcessorBase {
 		$workers = (int)$input->getOption( 'workers' );
 		$isChildProcess = $input->hasParameterOption( '--worker' );
 
-		$dest = realpath( $input->getOption( 'dest' ) );
-		if ( !is_dir( $dest ) ) {
+		$this->dest = realpath( $input->getOption( 'dest' ) );
+		if ( !is_dir( $this->dest ) ) {
 			$output->writeln( "Destination does not exist" );
 			return Command::FAILURE;
 		}
 
 		if ( $isChildProcess ) {
-			return $this->executeAsChildProcess( $dest, $input, $output );
+			$this->dataWriter = new AnalyzerPipeDataWriter( new PipeChannel() );
+
+			try {
+				return parent::execute( $input, $output );
+			} finally {
+				$this->dataWriter = null;
+			}
 		}
 
-		$this->workspaceDB = WorkspaceDB::create( $dest );
+		$workspaceDB = WorkspaceDB::create( $this->dest );
+		$workspaceDB->addLogEntry(
+			'info',
+			'analyze',
+			__CLASS__,
+			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
+		);
 
 		if ( $workers > 1 ) {
+			$pool = new WorkerPool( $output, new ConverterDirectDataWriter( $workspaceDB ) );
+
 			$this->executionTime = new ExecutionTime();
-			$result = $this->spawnWorkers( $output, $workers );
-			$this->logExecutionTime( $output, $dest );
+			$result = $pool->run( WorkerPool::baseCommandFromArgv(), $workers );
+			$this->logExecutionTime( $output, $this->dest );
+
 			return $result;
 		}
 
-		return parent::execute( $input, $output );
+		$this->dataWriter = new AnalyzerDirectDataWriter( $workspaceDB );
+
+		try {
+			return parent::execute( $input, $output );
+		} finally {
+			$this->dataWriter = null;
+		}
 	}
 
 	protected function processFiles(): int {
@@ -128,12 +148,9 @@ class Analyze extends BatchFileProcessorBase {
 	protected function processFile( SplFileInfo $file ): bool {
 		$this->output->writeln( "Analyzing file '{$this->currentFile->getFilename()}'" );
 
-		$dataWriter = $this->workerPipe ? new PipeDataWriter( new PipeToDB( $this->workerPipe ) )
-			: new DirectDataWriter( $this->workspaceDB );
-
 		$analyzer = new ConfluenceAnalyzer(
-			$dataWriter,
-			$this->workspaceDB,
+			$this->dataWriter,
+			WorkspaceDB::open( $this->dest ),
 			$this->output,
 			$this->getMigrationConfig()
 		);
@@ -141,33 +158,6 @@ class Analyze extends BatchFileProcessorBase {
 		$analyzer->analyze( $file );
 
 		return true;
-	}
-
-	/**
-	 * @param string $dest
-	 * @param InputInterface $input
-	 * @param OutputInterface $output
-	 *
-	 * @return int
-	 */
-	private function executeAsChildProcess( string $dest, InputInterface $input, OutputInterface $output ): int {
-		$this->workspaceDB = WorkspaceDB::open( $dest, true );
-
-		$this->workerPipe = fopen( 'php://fd/' . PipeToDB::FILE_DESCRIPTOR, 'w' );
-		if ( $this->workerPipe === false ) {
-			$output->writeln( '<error>Failed to open worker pipe (fd ' . PipeToDB::FILE_DESCRIPTOR . ').</error>' );
-
-			return Command::FAILURE;
-		}
-
-		$returnValue = parent::execute( $input, $output );
-
-		if ( $this->workerPipe !== false ) {
-			fclose( $this->workerPipe );
-			$this->workerPipe = false;
-		}
-
-		return $returnValue;
 	}
 
 	/**
@@ -186,172 +176,6 @@ class Analyze extends BatchFileProcessorBase {
 		$buckets->loadFromWorkspace( $workspace );
 		$buckets->addData( 'execution-time', $this->getName(), $time, false, true );
 		$buckets->saveToWorkspace( $workspace );
-	}
-
-	/**
-	 * @param OutputInterface $output
-	 * @param int $workers
-	 *
-	 * @return int
-	 */
-	private function spawnWorkers( OutputInterface $output, int $workers ): int {
-		$this->workspaceDB->addLogEntry(
-			'info',
-			'analyze.spawn-workers',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
-
-		$baseCmd = $this->buildBaseCommand();
-		$descriptors = [
-			0 => [
-				'pipe',
-				'r'
-			],
-			1 => [
-				'pipe',
-				'w'
-			],
-			2 => [
-				'pipe',
-				'w'
-			],
-		];
-		$descriptors[PipeToDB::FILE_DESCRIPTOR] = [
-			'pipe',
-			'w'
-		];
-
-		$processes = [];
-		$pipes = [];
-		$DBWritePipes = [];
-
-		for ( $i = 0; $i < $workers; $i++ ) {
-			$cmd = array_merge( $baseCmd, [ '--worker=' . $i ] );
-			$cmdString = implode( ' ', array_map( 'escapeshellarg', $cmd ) );
-			$output->writeln( "Starting worker {$i}: <comment>{$cmdString}</comment>" );
-			// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.proc_open
-			$proc = proc_open( $cmdString, $descriptors, $workerPipes );
-			if ( $proc === false ) {
-				$output->writeln( "<error>Failed to start worker {$i}.</error>" );
-
-				return Command::FAILURE;
-			}
-			stream_set_blocking( $workerPipes[1], false );
-			stream_set_blocking( $workerPipes[2], false );
-			stream_set_blocking( $workerPipes[PipeToDB::FILE_DESCRIPTOR], false );
-			fclose( $workerPipes[0] );
-			$processes[$i] = $proc;
-			$pipes[$i] = [
-				$workerPipes[1],
-				$workerPipes[2]
-			];
-			$DBWritePipes[$i] = $workerPipes[3];
-		}
-
-		$exitCodes = array_fill( 0, $workers, null );
-		while ( count( array_filter( $processes ) ) > 0 ) {
-			foreach ( $processes as $i => $proc ) {
-				if ( $proc === null ) {
-					continue;
-				}
-				foreach ( $pipes[$i] as $pipe ) {
-					$line = fgets( $pipe );
-					while ( $line !== false ) {
-						$output->write( "[Worker {$i}] " . $line );
-						$line = fgets( $pipe );
-					}
-				}
-				$line = fgets( $DBWritePipes[$i] );
-				while ( $line !== false ) {
-					$this->storeWorkerResponse( $line );
-					$line = fgets( $DBWritePipes[$i] );
-				}
-				$status = proc_get_status( $proc );
-				if ( !$status['running'] ) {
-					foreach ( $pipes[$i] as $pipe ) {
-						// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition
-						while ( ( $line = fgets( $pipe ) ) !== false ) {
-							$output->write( "[Worker {$i}] " . $line );
-						}
-						fclose( $pipe );
-					}
-					$line = fgets( $DBWritePipes[$i] );
-					while ( $line !== false ) {
-						$this->storeWorkerResponse( $line, $dbLog );
-						$line = fgets( $DBWritePipes[$i] );
-					}
-					fclose( $DBWritePipes[$i] );
-					$exitCodes[$i] = proc_close( $proc );
-					$processes[$i] = null;
-				}
-			}
-			usleep( 100000 );
-		}
-
-		foreach ( $exitCodes as $i => $exitCode ) {
-			if ( $exitCode !== 0 ) {
-				$output->writeln( "<error>Worker {$i} failed with exit code {$exitCode}.</error>" );
-
-				return Command::FAILURE;
-			}
-		}
-
-		$output->writeln( '<info>All workers completed successfully.</info>' );
-
-		return Command::SUCCESS;
-	}
-
-	/**
-	 * @param string $line
-	 * @param DBLog $dbLog
-	 *
-	 * @return void
-	 */
-	private function storeWorkerResponse( string $line ): void {
-		$data = json_decode( $line, true );
-		if ( is_array( $data ) && count( $data ) > 1 ) {
-			call_user_func_array(
-				[
-					$this->workspaceDB,
-					array_shift( $data )
-				],
-				$data
-			);
-
-			return;
-		}
-
-		$this->workspaceDB->addLogEntry(
-			'error',
-			'analyze.invalid-worker-output',
-			__CLASS__,
-			$line
-		);
-	}
-
-	/**
-	 * @return array
-	 */
-	private function buildBaseCommand(): array {
-		$argv = $_SERVER['argv'];
-		$cmd = [
-			PHP_BINARY,
-			$argv[0]
-		];
-
-		for ( $i = 1; $i < count( $argv ); $i++ ) {
-			$arg = $argv[$i];
-			if ( preg_match( '#^--worker(=.*)?$#', $arg ) ) {
-				if ( $arg === '--worker' ) {
-					$i++;
-				}
-				continue;
-			}
-			$cmd[] = $arg;
-		}
-
-		return $cmd;
 	}
 
 	/**
