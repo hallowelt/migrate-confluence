@@ -4,9 +4,11 @@ namespace HalloWelt\MigrateConfluence\Command;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
+use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterPipeDataWriter;
@@ -17,6 +19,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\Version;
+use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -84,6 +87,9 @@ class Convert extends CommandConvert {
 	 * @throws Exception
 	 */
 	protected function execute( InputInterface $input, OutputInterface $output ): int {
+		$this->input = $input;
+		$this->output = $output;
+
 		$workers = (int)$input->getOption( 'workers' );
 		$isChildProcess = $input->hasParameterOption( '--worker' );
 
@@ -128,6 +134,18 @@ class Convert extends CommandConvert {
 		} finally {
 			$this->dataWriter = null;
 		}
+	}
+
+	protected function logExecutionTime(): void {
+		if ( $this->input->hasParameterOption( '--worker' ) ) {
+			return;
+		}
+		if ( $this->workspace === null ) {
+			$this->workspace = new Workspace( new SplFileInfo( $this->dest ) );
+			$this->executionTimeBuckets = new DataBuckets( [ 'execution-time' ] );
+			$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
+		}
+		parent::logExecutionTime();
 	}
 
 	/**

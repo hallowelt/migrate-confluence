@@ -122,21 +122,14 @@ class Analyze extends BatchFileProcessorBase {
 
 		$this->dataWriter = new AnalyzerDirectDataWriter( $workspaceDB );
 
+		$this->executionTime = new ExecutionTime();
 		try {
-			return parent::execute( $input, $output );
+			$result = parent::execute( $input, $output );
+			$this->logExecutionTime( $output, $this->dest );
+			return $result;
 		} finally {
 			$this->dataWriter = null;
 		}
-	}
-
-	protected function processFiles(): int {
-		$this->executionTime = new ExecutionTime();
-
-		$returnValue = parent::processFiles();
-
-		$this->logExecutionTime( $this->output );
-
-		return $returnValue;
 	}
 
 	/**
