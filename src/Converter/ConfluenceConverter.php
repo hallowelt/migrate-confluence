@@ -873,7 +873,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		if ( $exceed >= 512 ) {
-			if ( strpos( $this->rawFile->getFileInfo(), 0, 3 ) === 'pt_' ) {
+			if ( str_starts_with( $this->rawFile->getFilename(), 'pt_' ) ) {
 				$this->writer->addInvalidPageTemplateContent(
 					$bodyContentId,
 					'BodyContent exeeded length of 512 characters'
