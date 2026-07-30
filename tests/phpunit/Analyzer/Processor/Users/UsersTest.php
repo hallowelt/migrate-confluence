@@ -2,8 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\Users;
 
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
-use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
@@ -20,7 +20,7 @@ class UsersTest extends TestCase {
 	public function testAllDatabaseFieldsAreStored(): void {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
-		$processor = new Users( new DirectDataWriter( $this->workspaceDB ) );
+		$processor = new Users( new AnalyzerDirectDataWriter( $this->workspaceDB ) );
 		$this->executeProcessorForClass( $processor, __DIR__ . '/user.xml', 'ConfluenceUserImpl' );
 
 		$users = $this->workspaceDB->getUsers();

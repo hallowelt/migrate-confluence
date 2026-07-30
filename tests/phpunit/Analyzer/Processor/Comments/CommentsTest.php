@@ -2,8 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\Comments;
 
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Comments;
-use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
@@ -20,7 +20,7 @@ class CommentsTest extends TestCase {
 	public function testAllDatabaseFieldsAreStored(): void {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
-		$processor = new Comments( new DirectDataWriter( $this->workspaceDB ) );
+		$processor = new Comments( new AnalyzerDirectDataWriter( $this->workspaceDB ) );
 		$this->executeProcessorForClass( $processor, __DIR__ . '/comment_page_level.xml', 'Comment' );
 
 		$comments = $this->workspaceDB->getComments();

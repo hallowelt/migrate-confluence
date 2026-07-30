@@ -8,9 +8,10 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
-use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -250,7 +251,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			? WorkspaceDB::open( $dest )
 			: WorkspaceDB::create( $dest );
 
-		$writer = new DirectDataWriter( $workspaceDB );
+		$writer = new AnalyzerDirectDataWriter( $workspaceDB );
 
 		if ( isset( $config['config'] ) ) {
 			$migrationConfig = new MigrationConfig( $config['config'] );
@@ -303,11 +304,12 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			? WorkspaceDB::open( $dest )
 			: WorkspaceDB::create( $dest );
 
-		$writer = new DirectDataWriter( $workspaceDB );
+		$writer = new ConverterDirectDataWriter( $workspaceDB );
 
 		$rawFiles = glob( $dest . '/content/raw/*.mraw' );
 		foreach ( $rawFiles as $rawFilePath ) {
-			$converter = new ConfluenceConverter( $config, $workspace, $writer );
+			$converter = new ConfluenceConverter( $config, $workspace );
+			$converter->setDataWriter( $writer );
 			$converter->setDestinationPath( $dest );
 			$converter->setOutput( $output );
 

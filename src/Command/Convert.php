@@ -7,6 +7,7 @@ use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterPipeDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
@@ -148,13 +149,16 @@ class Convert extends CommandConvert {
 		foreach ( $converterFactoryCallbacks as $key => $callback ) {
 			$converter = call_user_func_array(
 				$callback,
-				[ $this->config, $this->workspace, $this->dataWriter ]
+				[ $this->config, $this->workspace ]
 			);
 			if ( $converter instanceof IConverter === false ) {
 				throw new Exception(
 					"Factory callback for converter '$key' did not return an "
 					. "IConverter object"
 				);
+			}
+			if ( $converter instanceof ConfluenceConverter ) {
+				$converter->setDataWriter( $this->dataWriter );
 			}
 			if ( $converter instanceof IOutputAwareInterface ) {
 				$converter->setOutput( $this->output );

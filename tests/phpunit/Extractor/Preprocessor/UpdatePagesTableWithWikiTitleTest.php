@@ -14,14 +14,14 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 	 */
 	public function testBuildsWikiTitleForCurrentTopLevelPage(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createDataWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST:', -1, -1 );
 		$workspaceDB->addPage(
 			400, 42, 'Sample page', '', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
 
-		$processor = new UpdatePagesTableWithWikiTitle( $workspaceDB, $dbLog, new MigrationConfig( [] ) );
+		$processor = new UpdatePagesTableWithWikiTitle( $workspaceDB, $writer, new MigrationConfig( [] ) );
 		$processor->execute();
 
 		$page = $this->findRowById( $workspaceDB->getPages(), 'page_id', 400 );

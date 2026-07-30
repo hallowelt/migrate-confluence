@@ -14,7 +14,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithEmptyMigrationConfig(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createDataWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
 		$workspaceDB->addPage(
@@ -24,7 +24,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [] ) );
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $writer, new MigrationConfig( [] ) );
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
@@ -44,7 +44,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepo(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createDataWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
 		$workspaceDB->addPage(
@@ -54,7 +54,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $writer, new MigrationConfig( [
 			'ext-ns-file-repo-compat' => true
 		] ) );
 		$processor->execute();
@@ -80,7 +80,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithSpaceMapping(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createDataWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
 		$workspaceDB->addPage(
@@ -90,7 +90,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $writer, new MigrationConfig( [
 			'space-prefix' => [
 				'TEST' => 'MYTEST'
 			]
@@ -114,7 +114,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepoAndSpaceMapping(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createDataWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
 		$workspaceDB->addPage(
@@ -124,7 +124,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $writer, new MigrationConfig( [
 			'space-prefix' => [
 				'TEST' => 'MYTEST'
 			],
@@ -153,7 +153,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithSpaceMappingAndRootpages(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createDataWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
 		$workspaceDB->addPage(
@@ -163,7 +163,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $writer, new MigrationConfig( [
 			'space-prefix' => [
 				'TEST' => 'MYTEST:Root/'
 			]
@@ -191,7 +191,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepoAndSpaceMappingAndRootpages(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createDataWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
 		$workspaceDB->addPage(
@@ -201,7 +201,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, new MigrationConfig( [
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $writer, new MigrationConfig( [
 			'space-prefix' => [
 				'TEST' => 'MYTEST:Root/'
 			],

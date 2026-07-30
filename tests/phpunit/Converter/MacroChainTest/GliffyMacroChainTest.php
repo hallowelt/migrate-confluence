@@ -2,9 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
-use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
@@ -41,7 +41,7 @@ class GliffyMacroChainTest extends MacroChainTestBase {
 	private function createProcessor(): IProcessor {
 		$workspaceDb = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
 		$dataLookup = new DBConversionDataLookup( $workspaceDb );
-		$dataWriter = new DirectDataWriter( $workspaceDb );
+		$dataWriter = new ConverterDirectDataWriter( $workspaceDb );
 
 		return new GliffyMacro( $dataLookup, 42, 'SomePage', $dataWriter );
 	}

@@ -3,8 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsMetaData;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +15,7 @@ class ExtractBlogPostsMetaDataTest extends TestCase {
 	 */
 	public function testAddsBlogPostMetaFromLabellingCategories(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$dbLog = $this->createMock( DBLog::class );
+		$writer = $this->createMock( ExtractorDirectDataWriter::class);
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 
 		$migrationConfig->method( 'getCategories' )->willReturn( [] );
@@ -30,13 +30,13 @@ class ExtractBlogPostsMetaDataTest extends TestCase {
 		$workspaceDB->method( 'getLabellingById' )->with( 201 )->willReturn( [ 'label_id' => 301 ] );
 		$workspaceDB->method( 'getLabelById' )->with( 301 )->willReturn( [ 'name' => 'BlogLabel' ] );
 
-		$workspaceDB->expects( $this->once() )
+		$writer->expects( $this->once() )
 			->method( 'addBlogPostMeta' )
 			->with( 40, [ 'categories' => [ 'BlogLabel' ] ] );
 
-		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
+		$writer->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractBlogPostsMetaData( $workspaceDB, $dbLog, $migrationConfig );
+		$processor = new ExtractBlogPostsMetaData( $workspaceDB, $writer, $migrationConfig );
 		$processor->execute();
 	}
 }

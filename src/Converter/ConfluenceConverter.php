@@ -10,6 +10,7 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
@@ -86,7 +87,6 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ViewPptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
@@ -144,12 +144,24 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var TocMacroUsage */
 	private TocMacroUsage $tocMacroUsage;
 
+	/** @var IConverterDataWriter */
+	private IConverterDataWriter $writer;
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
 	 */
-	public function __construct( $config, Workspace $workspace, private IDataWriter $dataWriter) {
+	public function __construct( $config, Workspace $workspace ) {
 		parent::__construct( $config, $workspace );
+	}
+
+	/**
+	 * @param IConverterDataWriter $dataWriter
+	 *
+	 * @return void
+	 */
+	public function setDataWriter( IConverterDataWriter $dataWriter ): void {
+		$this->writer = $dataWriter;
 	}
 
 	/**
@@ -431,7 +443,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->dataWriter
+				$this->writer
 			),
 			new ContentByLabelMacro( $this->wikiPageTitle ),
 			new AttachmentsMacro(),
@@ -862,12 +874,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 		if ( $exceed >= 512 ) {
 			if ( strpos( $this->rawFile->getFileInfo(), 0, 3 ) === 'pt_' ) {
-				$this->dataWriter->addInvalidPageTemplateContent(
+				$this->writer->addInvalidPageTemplateContent(
 					$bodyContentId,
 					'BodyContent exeeded length of 512 characters'
 				);
 			} else {
-				$this->dataWriter->addInvalidBodyContent(
+				$this->writer->addInvalidBodyContent(
 					$bodyContentId,
 					'BodyContent exeeded length of 512 characters'
 				);
@@ -885,7 +897,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return void
 	 */
 	private function addNonBlockingLogEntry( string $message, string $type = 'warning' ): void {
-		$this->dataWriter->addLogEntry(
+		$this->writer->addLogEntry(
 			$type,
 			'convert',
 			__CLASS__,

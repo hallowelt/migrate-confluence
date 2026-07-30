@@ -2,8 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ContentProperty;
 
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperty;
-use HalloWelt\MigrateConfluence\Database\DataWriter\DirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
@@ -20,7 +20,7 @@ class ContentPropertyTest extends TestCase {
 	public function testAllDatabaseFieldsAreStored(): void {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
-		$processor = new ContentProperty( new DirectDataWriter( $this->workspaceDB ) );
+		$processor = new ContentProperty( new AnalyzerDirectDataWriter( $this->workspaceDB ) );
 		$this->executeProcessorForClass(
 			$processor,
 			__DIR__ . '/content_property_inline_comment.xml',
