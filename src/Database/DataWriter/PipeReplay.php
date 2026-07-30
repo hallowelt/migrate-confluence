@@ -17,10 +17,12 @@ class PipeReplay {
 	/** Feed a raw chunk read from the pipe. Replays every *complete* line in it. */
 	public function feed( string $chunk ): void {
 		$this->buffer .= $chunk;
-		while ( ( $nl = strpos( $this->buffer, "\n" ) ) !== false ) {
+		$nl = strpos( $this->buffer, "\n" );
+		while ( $nl !== false ) {
 			$line = substr( $this->buffer, 0, $nl );
 			$this->buffer = substr( $this->buffer, $nl + 1 );
 			$this->replayLine( $line );
+			$nl = strpos( $this->buffer, "\n" );
 		}
 	}
 

@@ -29,18 +29,23 @@ class WorkerPool {
 			PipeChannel::FILE_DESCRIPTOR => [ 'pipe', 'w' ],
 		];
 
-		$procs = [];       // i => resource
-		$replays = [];     // i => PipeReplay (own buffer per worker)
-		$exit = [];        // i => int|null
-		$openPipes = [];   // i => count of pipes still open
-		$streams = [];     // (int)$stream => [ i, kind, resource ]
+		// i => resource
+		$procs = [];
+		// i => PipeReplay (own buffer per worker)
+		$replays = [];
+		// i => int|null
+		$exit = [];
+		// i => count of pipes still open
+		$openPipes = [];
+		// (int)$stream => [ i, kind, resource ]
+		$streams = [];
 
 		for ( $i = 0; $i < $workers; $i++ ) {
 			$pipes = [];
 			// Array form: proc_open bypasses the shell — no escapeshellarg needed.
 			// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.proc_open
 			$proc = proc_open( [ ...$baseCommand, '--worker=' . $i ], $descriptors, $pipes );
-			if ( !is_resource( $proc ) ) {
+			if ( $proc === false ) {
 				$this->output->writeln( "<error>Failed to start worker {$i}.</error>" );
 				$this->terminate( $procs );
 				return Command::FAILURE;
@@ -70,6 +75,7 @@ class WorkerPool {
 			$write = null;
 			$except = null;
 
+			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged -- stream_select() warns on EINTR
 			$ready = @stream_select( $read, $write, $except, self::SELECT_TIMEOUT_SEC );
 			if ( $ready === false ) {
 				// Interrupted syscall (EINTR): retry.
@@ -152,10 +158,8 @@ class WorkerPool {
 	/** @param array<int,resource> $procs already-started children to clean up */
 	private function terminate( array $procs ): void {
 		foreach ( $procs as $proc ) {
-			if ( is_resource( $proc ) ) {
-				proc_terminate( $proc );
-				proc_close( $proc );
-			}
+			proc_terminate( $proc );
+			proc_close( $proc );
 		}
 	}
 }

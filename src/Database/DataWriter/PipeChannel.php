@@ -6,7 +6,7 @@ use RuntimeException;
 
 /**
  * Child-side transport. Serialises one method call per line and writes it to the
- * DB pipe (fd 3). Replaces Utility\PipeToDB.
+ * DB pipe (fd 3).
  */
 class PipeChannel {
 
@@ -18,7 +18,7 @@ class PipeChannel {
 
 	/** @param resource|null $stream */
 	public function __construct( $stream = null ) {
-		if ( is_resource( $stream ) ) {
+		if ( $stream !== null ) {
 			$this->stream = $stream;
 			return;
 		}
@@ -45,8 +45,9 @@ class PipeChannel {
 	}
 
 	public function __destruct() {
-		if ( $this->ownsStream && is_resource( $this->stream ) ) {
+		if ( $this->ownsStream ) {
 			fclose( $this->stream );
+			$this->ownsStream = false;
 		}
 	}
 }
