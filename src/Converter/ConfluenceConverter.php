@@ -10,6 +10,7 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
@@ -91,22 +92,18 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use HalloWelt\MigrateConfluence\Utility\TranslatableString;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
-class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware, IPipeSender {
+class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware {
 
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
 
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
-
-	/** @var PipeToDB */
-	private PipeToDB $pipeToDB;
 
 	/** @var string */
 	private string $dest;
@@ -147,6 +144,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var TocMacroUsage */
 	private TocMacroUsage $tocMacroUsage;
 
+	/** @var IConverterDataWriter */
+	private IConverterDataWriter $writer;
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -156,10 +156,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	}
 
 	/**
-	 * @param resource|false $pipe
+	 * @param IConverterDataWriter $dataWriter
+	 *
+	 * @return void
 	 */
-	public function setPipe( $pipe ): void {
-		$this->pipeToDB = new PipeToDB( $pipe );
+	public function setDataWriter( IConverterDataWriter $dataWriter ): void {
+		$this->writer = $dataWriter;
 	}
 
 	/**
@@ -441,7 +443,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->pipeToDB
+				$this->writer
 			),
 			new ContentByLabelMacro( $this->wikiPageTitle ),
 			new AttachmentsMacro(),
@@ -855,9 +857,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return void
 	 */
 	private function checkContentLength( int $bodyContentId ): void {
-		$exceed = '';
-		$wikiTextLength = strlen( $this->wikiText );
-		$wikiTextLength = $wikiTextLength / 1000;
+		$exceed = null;
+
+		$wikiTextLength = strlen( $this->wikiText ) / 1000;
 		if ( $wikiTextLength >= 512 ) {
 			$exceed = '512';
 		} elseif ( $wikiTextLength >= 256 ) {
@@ -865,22 +867,27 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		} elseif ( $wikiTextLength >= 100 ) {
 			$exceed = '100';
 		}
-		if ( $exceed !== '' ) {
-			$method = 'addInvalidBodyContent';
-			if ( strpos( $this->rawFile->getFileInfo(), 0, 3 ) === 'pt_' ) {
-				$method = 'addInvalidPageTemplateContent';
-			}
-			if ( $exceed >= 512 ) {
-				$this->pipeToDB->send(
-					$method,
+
+		if ( !$exceed ) {
+			return;
+		}
+
+		if ( $exceed >= 512 ) {
+			if ( str_starts_with( $this->rawFile->getFilename(), 'pt_' ) ) {
+				$this->writer->addInvalidPageTemplateContent(
+					$bodyContentId,
+					'BodyContent exeeded length of 512 characters'
+				);
+			} else {
+				$this->writer->addInvalidBodyContent(
 					$bodyContentId,
 					'BodyContent exeeded length of 512 characters'
 				);
 			}
-
-			$this->addNonBlockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
-			$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 		}
+
+		$this->addNonBlockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
+		$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
 	}
 
 	/**
@@ -890,8 +897,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return void
 	 */
 	private function addNonBlockingLogEntry( string $message, string $type = 'warning' ): void {
-		$this->pipeToDB->send(
-			'log',
+		$this->writer->addLogEntry(
 			$type,
 			'convert',
 			__CLASS__,

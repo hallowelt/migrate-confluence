@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\PageTemplates;
 
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\PageTemplates;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
@@ -22,7 +22,7 @@ class PageTemplatesTest extends TestCase {
 		$this->workspaceDB->addSpace( 10, 'TEST', 'Test Space', 'TEST:', -1, -1 );
 
 		$processor = new PageTemplates(
-			new AnalyzeDirectDataWriter( $this->workspaceDB ),
+			new AnalyzerDirectDataWriter( $this->workspaceDB ),
 			$this->workspaceDB
 		);
 		$this->executeProcessorForClass( $processor, __DIR__ . '/page_template.xml', 'PageTemplate' );

@@ -17,6 +17,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 
 	/**
 	 * @return void
+	 * @throws Exception
 	 */
 	public function execute(): void {
 		$this->updateWikiTitles();
@@ -123,7 +124,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			$this->writeln(
 				"Updated wiki title for blog post ID $pageId with title: $wikiTitle"
 			);
-			$this->workspaceDB->updateBlogPostWikiTitle( (int)$pageId, $wikiTitle );
+			$this->writer->updateBlogPostWikiTitle( (int)$pageId, $wikiTitle );
 		}
 	}
 
@@ -148,14 +149,14 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 
 		foreach ( $titles as $pageId => $title ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
-				$this->workspaceDB->addInvalidBlogPostWikiTitle(
+				$this->writer->addInvalidBlogPostWikiTitle(
 					$pageId, $title, 'Title ends with invalid character'
 				);
 			}
 
 			if ( str_contains( $title, ':' ) ) {
 				if ( $validityChecker->hasDoubleColon( $title ) ) {
-					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+					$this->writer->addInvalidBlogPostWikiTitle(
 						$pageId, $title, 'Title contains multiple colons'
 					);
 				}
@@ -163,19 +164,19 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				$text = substr( $title, strpos( $title, ':' ) + 1 );
 
 				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
-					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+					$this->writer->addInvalidBlogPostWikiTitle(
 						$pageId, $title, 'Invalid namespace character detected'
 					);
 				}
 
 				if ( !$validityChecker->hasValidLength( $text ) ) {
-					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+					$this->writer->addInvalidBlogPostWikiTitle(
 						$pageId, $title, 'Title contains too many characters (>255)'
 					);
 				}
 			} else {
 				if ( !$validityChecker->hasValidLength( $title ) ) {
-					$this->workspaceDB->addInvalidBlogPostWikiTitle(
+					$this->writer->addInvalidBlogPostWikiTitle(
 						$pageId, $title, 'Title contains too many characters (>255)'
 					);
 				}

@@ -120,6 +120,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param array $params
+	 * @param bool &$hasBroken
 	 *
 	 * @return string[]
 	 */

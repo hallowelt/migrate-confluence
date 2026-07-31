@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractAttachmentsMetaData;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -16,6 +17,7 @@ class ExtractAttachmentsMetaDataTest extends TestCase {
 	public function testAddsAttachmentMetaFromLabellingCategories(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$dbLog = $this->createMock( DBLog::class );
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 
 		$migrationConfig->method( 'getCategories' )->willReturn( [] );
@@ -30,13 +32,13 @@ class ExtractAttachmentsMetaDataTest extends TestCase {
 		$workspaceDB->method( 'getLabellingById' )->with( 202 )->willReturn( [ 'label_id' => 302 ] );
 		$workspaceDB->method( 'getLabelById' )->with( 302 )->willReturn( [ 'name' => 'AttachmentLabel' ] );
 
-		$workspaceDB->expects( $this->once() )
+		$writer->expects( $this->once() )
 			->method( 'addAttachmentMeta' )
 			->with( 50, [ 'categories' => [ 'AttachmentLabel' ] ] );
 
 		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractAttachmentsMetaData( $workspaceDB, $dbLog, $migrationConfig );
+		$processor = new ExtractAttachmentsMetaData( $workspaceDB, $dbLog, $writer, $migrationConfig );
 		$processor->execute();
 	}
 }

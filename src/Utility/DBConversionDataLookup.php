@@ -75,11 +75,11 @@ class DBConversionDataLookup {
 		if ( $spacePrefix === '' ) {
 			return '';
 		}
-		$namespace = substr( $spacePrefix, 0, strpos( $spacePrefix, ':' ) );
-		if ( $namespace === false ) {
+		$colonPos = strpos( $spacePrefix, ':' );
+		if ( $colonPos === false ) {
 			return $spacePrefix;
 		}
-		return $namespace;
+		return substr( $spacePrefix, 0, $colonPos );
 	}
 
 	/**
@@ -203,6 +203,8 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $pageId
+	 *
 	 * @return array
 	 */
 	public function getPageAttachmentsForPageId( int $pageId ): array {
@@ -210,6 +212,8 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $blogPostId
+	 *
 	 * @return array
 	 */
 	public function getBlogPostAttachmentsForBlogPostId( int $blogPostId ): array {

@@ -3,8 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use HalloWelt\MigrateConfluence\Utility\PipeToDB;
 
 class GliffyMacro extends StructuredMacroProcessorBase {
 
@@ -12,13 +12,13 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
-	 * @param PipeToDB $pipeToDB
+	 * @param IConverterDataWriter $dataWriter
 	 */
 	public function __construct(
 		private DBConversionDataLookup $dataLookup,
 		private int $currentSpaceId,
 		private string $rawPageTitle,
-		private PipeToDB $pipeToDB
+		private IConverterDataWriter $dataWriter
 	) {
 	}
 
@@ -101,8 +101,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 			return '';
 		}
 
-		$this->pipeToDB->send(
-			'addGliffy',
+		$this->dataWriter->addGliffy(
 			$this->currentSpaceId,
 			$this->rawPageTitle,
 			$name,

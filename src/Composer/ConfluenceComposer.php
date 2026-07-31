@@ -259,6 +259,9 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
+	 * @param array $spaceIds
+	 * @param string $namespace
+	 *
 	 * @return void
 	 */
 	private function writeInvalidPagesLog( array $spaceIds, string $namespace = '' ): void {
@@ -280,6 +283,9 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
+	 * @param array $spaceIds
+	 * @param string $namespace
+	 *
 	 * @return void
 	 */
 	private function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '' ): void {
@@ -301,6 +307,9 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
+	 * @param array $spaceIds
+	 * @param string $namespace
+	 *
 	 * @return void
 	 */
 	private function writeInvalidPageTemplatesLog( array $spaceIds, string $namespace = '' ): void {
@@ -321,6 +330,9 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
+	 * @param array $spaceIds
+	 * @param string $namespace
+	 *
 	 * @return void
 	 */
 	private function writeInvalidAttachmentsLog( array $spaceIds, string $namespace = '' ): void {
@@ -355,7 +367,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
-	 * Add version information of the migrate confluece tool to the database
+	 * Add version information of the migrate confluence tool to the database
 	 *
 	 * @param DBLog $dbLog
 	 * @return void

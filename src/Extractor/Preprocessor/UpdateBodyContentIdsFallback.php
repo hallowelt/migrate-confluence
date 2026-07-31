@@ -48,7 +48,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 				continue;
 			}
 
-			$this->workspaceDB->updatePageBodyContentIds( $pageId, $foundIds );
+			$this->writer->updatePageBodyContentIds( $pageId, $foundIds );
 
 			$this->writeln(
 				"Updated body_content_ids for page ID $pageId with IDs: " . implode( ', ', $foundIds )
@@ -78,7 +78,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 				continue;
 			}
 
-			$this->workspaceDB->updateBlogPostBodyContentIds( $pageId, $foundIds );
+			$this->writer->updateBlogPostBodyContentIds( $pageId, $foundIds );
 
 			$this->writeln(
 				"Updated body_content_ids for blog post ID $pageId with IDs: " . implode( ', ', $foundIds )
@@ -108,7 +108,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 				continue;
 			}
 
-			$this->workspaceDB->updateCommentBodyContentIds( $commentId, $foundIds );
+			$this->writer->updateCommentBodyContentIds( $commentId, $foundIds );
 
 			$this->writeln(
 				"Updated body_content_ids for comment ID $commentId with IDs: " . implode( ', ', $foundIds )
@@ -137,7 +137,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 				continue;
 			}
 
-			$this->workspaceDB->updateSpaceDescriptionBodyContentIds( $spaceDescriptionId, $foundIds );
+			$this->writer->updateSpaceDescriptionBodyContentIds( $spaceDescriptionId, $foundIds );
 
 			$this->writeln(
 				"Updated body_content_ids for space description ID $spaceDescriptionId with IDs: " .

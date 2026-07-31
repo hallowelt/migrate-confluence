@@ -30,7 +30,7 @@ class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
 				continue;
 			}
 
-			$this->workspaceDB->addAttachmentMeta(
+			$this->writer->addAttachmentMeta(
 				$attachmentId,
 				[
 					'categories' => $categories

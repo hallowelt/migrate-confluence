@@ -7,6 +7,8 @@ use HalloWelt\MediaWiki\Lib\Migration\ExtractorBase;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithSpaceIdOfHistoryVersions;
@@ -114,10 +116,12 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		$this->initWorkspaceDB();
 		$this->initDBLog();
 
+		$writer = new ExtractorDirectDataWriter( $this->workspaceDB );
+
 		$this->buckets->loadFromWorkspace( $this->workspace );
 
 		// preparation
-		$preprocessors = $this->getPreprocessors();
+		$preprocessors = $this->getPreprocessors( $writer );
 		foreach ( $preprocessors as $processor ) {
 			if ( $this->output ) {
 				$processor->setOutput( $this->output );
@@ -129,7 +133,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		$this->checkTitles();
 
 		// extraction
-		$processors = $this->getProcessors();
+		$processors = $this->getProcessors( $writer );
 		foreach ( $processors as $processor ) {
 			$processor->execute();
 		}
@@ -140,36 +144,36 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/**
 	 * @return array
 	 */
-	private function getPreprocessors(): array {
+	private function getPreprocessors( IExtractorDataWriter $writer ): array {
 		return [
-			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog ),
-			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
-			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog ),
-			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog ),
-			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog ),
-			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
+			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 		];
 	}
 
 	/**
 	 * @return array
 	 */
-	private function getProcessors(): array {
+	private function getProcessors( IExtractorDataWriter $writer ): array {
 		return [
-			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
-			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
-			new ExtractBlogPostsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
-			new ExtractCommentsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
-			new ExtractPageTemplateContents( $this->workspaceDB, $this->workspace, $this->dbLog ),
-			new ExtractPagesMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $this->migrationConfig ),
-			new BuildAttachmentDescriptions( $this->workspaceDB, $this->dbLog ),
-			new ExtractPageComments( $this->workspaceDB, $this->dbLog ),
-			new ExtractBlogPostComments( $this->workspaceDB, $this->dbLog ),
+			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+			new ExtractBlogPostsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+			new ExtractCommentsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+			new ExtractPageTemplateContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+			new ExtractPagesMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new BuildAttachmentDescriptions( $this->workspaceDB, $this->dbLog, $writer ),
+			new ExtractPageComments( $this->workspaceDB, $this->dbLog, $writer ),
+			new ExtractBlogPostComments( $this->workspaceDB, $this->dbLog, $writer ),
 		];
 	}
 

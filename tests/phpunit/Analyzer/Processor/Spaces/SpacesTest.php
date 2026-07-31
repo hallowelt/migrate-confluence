@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\Spaces;
 
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
@@ -22,7 +22,7 @@ class SpacesTest extends TestCase {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
 		$processor = new Spaces(
-			new AnalyzeDirectDataWriter( $this->workspaceDB ),
+			new AnalyzerDirectDataWriter( $this->workspaceDB ),
 			new MigrationConfig( [] )
 		);
 

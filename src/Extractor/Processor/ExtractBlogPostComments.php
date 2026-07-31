@@ -41,7 +41,7 @@ class ExtractBlogPostComments extends ProcessorBase {
 				$wikiTitle = self::NS_BLOG_TALK_NAME . ':' . substr( $wikiTitle, strlen( $blogNsPrefix ) );
 			}
 
-			$this->workspaceDB->addBlogPostComment( $commentId, $blogPostId, $wikiTitle );
+			$this->writer->addBlogPostComment( $commentId, $blogPostId, $wikiTitle );
 
 			$this->writeln(
 				"Added blog post comment ID $commentId for blog post ID $blogPostId with title '$wikiTitle'"

@@ -30,7 +30,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 	protected function storeAttachment(
 		int $attachmentId, int $containerId, string $originalFilename, string $targetFilename
 	): void {
-		$this->workspaceDB->addAdditionalAttachment( $attachmentId, $originalFilename, $targetFilename );
+		$this->writer->addAdditionalAttachment( $attachmentId, $originalFilename, $targetFilename );
 	}
 
 	/** @inheritDoc */
