@@ -94,12 +94,15 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		$xpath = new DOMXPath( $dom );
 		foreach ( $xpath->query( '//text()[contains(., "{")]' ) as $textNode ) {
 			$original = $textNode->nodeValue;
+			$broken = false;
 
 			$rewritten = preg_replace_callback(
 				$regex,
-				static function ( array $m ) use ( $widgetSyntax ) {
+				function ( array $m ) use ( $widgetSyntax, &$broken ) {
 					$params = $m[1] ?? '';
-
+					if ( $this->hasUnsupportedParams( $this->parseWikiMarkupParams( $params ) ) ) {
+						$broken = true;
+					}
 					return $params === ''
 						? '{{' . $widgetSyntax . '}}'
 						: '{{' . $widgetSyntax . '|' . $params . '}}';
@@ -108,8 +111,6 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 			);
 
 			if ( $rewritten !== $original ) {
-				$paramsStr = preg_match( $regex, $original, $m ) ? ( $m[1] ?? '' ) : '';
-				$broken = $this->hasUnsupportedParams( $this->parseWikiMarkupParams( $paramsStr ) );
 				$textNode->nodeValue = $rewritten . ( $broken ? $this->getBrokenMacroCategory() : '' );
 				$found = true;
 			}
