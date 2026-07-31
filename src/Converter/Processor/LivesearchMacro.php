@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use DOMException;
-use DOMText;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
@@ -84,14 +83,14 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	 *
 	 * @param DOMDocument $dom
 	 *
-	 * @return DOMText[] the text nodes that were changed
+	 * @return void
 	 */
-	private function processAsWikiMarkup( DOMDocument $dom ): array {
+	private function processAsWikiMarkup( DOMDocument $dom ): void {
 		$macroName = $this->getMacroName();
 		$widgetSyntax = $this->getWidgetSyntax();
 		$regex = '/\{' . preg_quote( $macroName, '/' ) . '(?::([^}]*))?\}/';
 
-		$touched = [];
+		$found = false;
 		$xpath = new DOMXPath( $dom );
 		foreach ( $xpath->query( '//text()[contains(., "{")]' ) as $textNode ) {
 			$original = $textNode->nodeValue;
@@ -112,15 +111,13 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 				$paramsStr = preg_match( $regex, $original, $m ) ? ( $m[1] ?? '' ) : '';
 				$broken = $this->hasUnsupportedParams( $this->parseWikiMarkupParams( $paramsStr ) );
 				$textNode->nodeValue = $rewritten . ( $broken ? $this->getBrokenMacroCategory() : '' );
-				$touched[] = $textNode;
+				$found = true;
 			}
 		}
 
-		if ( !empty( $touched ) ) {
+		if ( $found ) {
 			$this->workspaceDB->addRequiredWidget( self::WIDGET_NAME );
 		}
-
-		return $touched;
 	}
 
 	/**
