@@ -289,4 +289,11 @@ class DBComposerDataLookup {
 	public function getAttachmentDescription( int $attachmentId ): string {
 		return $this->workspaceDB->getAttachmentDescription( $attachmentId );
 	}
+
+	/**
+	 * @return string[] list of required widget names
+	 */
+	public function getRequiredWidgets(): array {
+		return $this->workspaceDB->getRequiredWidgets();
+	}
 }

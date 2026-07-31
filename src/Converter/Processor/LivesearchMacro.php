@@ -7,8 +7,27 @@ use DOMElement;
 use DOMException;
 use DOMText;
 use DOMXPath;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
 class LivesearchMacro extends StructuredMacroProcessorBase {
+
+	private const WIDGET_NAME = 'InlineSearch';
+
+	/**
+	 * Params fully supported by the InlineSearch widget.
+	 * All other params indicate a broken/degraded conversion.
+	 */
+	private const SUPPORTED_PARAMS = [ 'placeholder', 'button' ];
+
+	/** @var WorkspaceDB */
+	private WorkspaceDB $workspaceDB;
+
+	/**
+	 * @param WorkspaceDB $workspaceDB
+	 */
+	public function __construct( WorkspaceDB $workspaceDB ) {
+		$this->workspaceDB = $workspaceDB;
+	}
 
 	/**
 	 * @inheritDoc
@@ -51,8 +70,8 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * Rewrites `{macroName:a=1|b=2}` -> `{{TemplateName|a=1|b=2}}` and the
-	 * bare `{macroName}` -> `{{TemplateName}}`, directly in the text nodes.
+	 * Rewrites `{macroName:a=1|b=2}` -> `{{#widget:InlineSearch|a=1|b=2}}` and the
+	 * bare `{macroName}` -> `{{#widget:InlineSearch}}`, directly in the text nodes.
 	 *
 	 * @param DOMDocument $dom
 	 *
@@ -60,7 +79,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	 */
 	private function processAsWikiMarkup( DOMDocument $dom ): array {
 		$macroName = $this->getMacroName();
-		$templateName = $this->getTemplateName();
+		$widgetSyntax = $this->getWidgetSyntax();
 		$regex = '/\{' . preg_quote( $macroName, '/' ) . '(?::([^}]*))?\}/';
 
 		$touched = [];
@@ -70,18 +89,26 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 
 			$rewritten = preg_replace_callback(
 				$regex,
-				static function ( array $m ) use ( $templateName ) {
+				function ( array $m ) use ( $widgetSyntax ) {
 					$params = $m[1] ?? '';
 
-					return $params === '' ? '{{' . $templateName . '}}' : '{{' . $templateName . '|' . $params . '}}';
+					return $params === ''
+						? '{{' . $widgetSyntax . '}}'
+						: '{{' . $widgetSyntax . '|' . $params . '}}';
 				},
 				$original
 			);
 
 			if ( $rewritten !== $original ) {
-				$textNode->nodeValue = $rewritten . $this->getBrokenMacroCategory();
+				$paramsStr = preg_match( $regex, $original, $m ) ? ( $m[1] ?? '' ) : '';
+				$broken = $this->hasUnsupportedParams( $this->parseWikiMarkupParams( $paramsStr ) );
+				$textNode->nodeValue = $rewritten . ( $broken ? $this->getBrokenMacroCategory() : '' );
 				$touched[] = $textNode;
 			}
+		}
+
+		if ( !empty( $touched ) ) {
+			$this->workspaceDB->addRequiredWidget( self::WIDGET_NAME );
 		}
 
 		return $touched;
@@ -94,7 +121,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	 * @throws DOMException
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
-		$templateName = $this->getTemplateName();
+		$widgetSyntax = $this->getWidgetSyntax();
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:parameter' ) {
@@ -123,11 +150,14 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		$node->parentNode->replaceChild(
 			$this->createTextNode(
 				$node->ownerDocument,
-				"{{" . $templateName . $paramsString . "}}" . $this->getBrokenMacroCategory(),
+				"{{" . $widgetSyntax . $paramsString . "}}"
+					. ( $this->hasUnsupportedParams( $params ) ? $this->getBrokenMacroCategory() : '' ),
 				__METHOD__
 			),
 			$node
 		);
+
+		$this->workspaceDB->addRequiredWidget( self::WIDGET_NAME );
 	}
 
 	/**
@@ -154,18 +184,47 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @return string
+	 * Returns true if any key in $params is not in SUPPORTED_PARAMS.
+	 *
+	 * @param array $params keys are param names
+	 * @return bool
 	 */
-	private function getTemplateName(): string {
-		return "Livesearch";
+	private function hasUnsupportedParams( array $params ): bool {
+		foreach ( array_keys( $params ) as $key ) {
+			if ( !in_array( $key, self::SUPPORTED_PARAMS, true ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
-	 * Replace when ERM49287 is implemented
+	 * Parses a wiki-markup param string like "spaceKey=ABC|size=medium|placeholder=Foo"
+	 * into an associative array.
 	 *
-	 * @return string
+	 * @param string $paramsStr
+	 * @return array
 	 */
-	private function getBrokenMacroCategoryHint(): string {
-		return $this->getBrokenMacroCategory();
+	private function parseWikiMarkupParams( string $paramsStr ): array {
+		if ( $paramsStr === '' ) {
+			return [];
+		}
+		$result = [];
+		foreach ( explode( '|', $paramsStr ) as $pair ) {
+			if ( str_contains( $pair, '=' ) ) {
+				[ $key, ] = explode( '=', $pair, 2 );
+				$result[ trim( $key ) ] = true;
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Returns the parser function syntax for the widget (without outer braces).
+	 *
+	 * @return string e.g. "#widget:InlineSearch"
+	 */
+	private function getWidgetSyntax(): string {
+		return '#widget:' . self::WIDGET_NAME;
 	}
 }

@@ -184,7 +184,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return string
 	 */
 	public function convert( SplFileInfo $file ): string {
-		$this->workspaceDB = WorkspaceDB::open( $this->dest, true );
+		$this->workspaceDB = WorkspaceDB::open( $this->dest );
 
 		if ( isset( $this->config['config'] ) ) {
 			$this->migrationConfig = new MigrationConfig( $this->config['config'] );
@@ -503,7 +503,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new CreateFromTemplateMacro(
 				$this->dataLookup
 			),
-			new LivesearchMacro()
+			new LivesearchMacro( $this->workspaceDB )
 		];
 
 		/** @var IProcessor $processor */

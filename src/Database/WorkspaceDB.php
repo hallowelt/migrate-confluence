@@ -156,6 +156,7 @@ class WorkspaceDB {
 			'labellings',
 			'labels',
 			'gliffy',
+			'required_widgets',
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -300,6 +301,7 @@ class WorkspaceDB {
 		$this->createTablePageTemplateContents();
 		$this->createTableAttachmentsDescriptions();
 		$this->createTableExportProperties();
+		$this->createTableRequiredWidgets();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -4861,5 +4863,38 @@ class WorkspaceDB {
 		}
 
 		return $template['confluence_title'];
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableRequiredWidgets(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS required_widgets (
+				widget_name TEXT PRIMARY KEY
+			);'
+		);
+	}
+
+	/**
+	 * @param string $widgetName
+	 * @return void
+	 */
+	public function addRequiredWidget( string $widgetName ): void {
+		$stmt = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO required_widgets (widget_name) VALUES (:widget_name)'
+		);
+		$stmt->bindValue( ':widget_name', $widgetName, SQLITE3_TEXT );
+		$stmt->execute();
+	}
+
+	/**
+	 * @return string[] list of required widget names
+	 */
+	public function getRequiredWidgets(): array {
+		$stmt = $this->cachedPrepare( 'SELECT widget_name FROM required_widgets ORDER BY widget_name' );
+		$result = $stmt->execute();
+		$rows = $this->fetchDbArray( $result );
+		return array_column( $rows, 'widget_name' );
 	}
 }

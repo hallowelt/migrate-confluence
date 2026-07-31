@@ -20,7 +20,8 @@ Import order:
   3) comments*.xml (or page-talk*.xml + blog-talk*.xml if comments*.xml is absent)
   4) templates*.xml
   5) pages*.xml
-  6) enhanced-sidebar.xml (if present and --add-default is set)
+  6) widgets.xml (if present)
+  7) enhanced-sidebar.xml (if present and --add-default is set)
 
 When --add-default is set, these are included:
   - default-files*.xml (before files*.xml)
@@ -186,6 +187,15 @@ if [[ "$add_default" -eq 1 ]]; then
   run_group "default-pages" "dump" "optional"
 fi
 run_group "pages" "dump" "required"
+
+widgets_file="$src/widgets.xml"
+if [[ -f "$widgets_file" ]]; then
+  echo "==> Importing widgets from $widgets_file"
+  if ! run_import_dump_file "$widgets_file"; then
+    echo "Error: import failed for $widgets_file" >&2
+    exit 1
+  fi
+fi
 
 sidebar_file="$src/enhanced-sidebar.xml"
 if [[ "$add_default" -eq 1 ]] && [[ -f "$sidebar_file" ]]; then

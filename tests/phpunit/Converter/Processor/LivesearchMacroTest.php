@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\LivesearchMacro;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
 class LivesearchMacroTest extends ProcessorTestCase {
 
@@ -18,7 +19,7 @@ class LivesearchMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new LivesearchMacro();
+		$processor = new LivesearchMacro( $this->createMock( WorkspaceDB::class ) );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
