@@ -22,4 +22,51 @@
                 <p local-id="176212f6efc1">This content is transcluded from page &#x201C;excerpt&#x201D;.</p>
             #####EXCERPTBLOCKCLOSE#####
     </p>
+    <p>
+        #####EXCERPTBLOCKOPEN||false#####
+                <table class="relative-table wrapped">
+                    <colgroup><col/></colgroup>
+                    <tbody>
+                        <tr><th>Table Header 1</th></tr>
+                        <tr><td>Table Cell 1</td></tr>
+                    </tbody>
+                </table>
+            #####EXCERPTBLOCKCLOSE#####
+    </p>
+    <p>
+        #####EXCERPTBLOCKOPEN||false#####
+                <table class="relative-table wrapped">
+                    <colgroup><col/></colgroup>
+                    <tbody>
+                        <tr><th>Table Header 1</th></tr>
+                        <tr><td>Table Cell 1</td></tr>
+                    </tbody>
+                </table>
+            #####EXCERPTBLOCKCLOSE#####
+    </p>
+    <p>
+        #####EXCERPTBLOCKOPEN||false#####
+                <p>First paragraph of the excerpt.</p>
+                <p>Second paragraph of the excerpt.</p>
+            #####EXCERPTBLOCKCLOSE#####
+    </p>
+    <p>
+        #####EXCERPTBLOCKOPEN||false#####
+                <p>Intro text before the heading.</p>
+                <h2>A heading inside the excerpt</h2>
+            #####EXCERPTBLOCKCLOSE#####
+    </p>
+    <p>
+        #####EXCERPTBLOCKOPEN||false#####
+                <ul>
+                    <li>First list item</li>
+                    <li>Second list item</li>
+                </ul>
+            #####EXCERPTBLOCKCLOSE#####
+    </p>
+    <p>
+        #####EXCERPTBLOCKOPEN||false#####
+                <p>Line one of the excerpt.<br/>Line two of the excerpt.</p>
+            #####EXCERPTBLOCKCLOSE#####
+    </p>
 </xml>
