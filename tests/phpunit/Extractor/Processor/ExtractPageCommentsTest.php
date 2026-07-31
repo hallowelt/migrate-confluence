@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageComments;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 
 class ExtractPageCommentsTest extends TestCase {
@@ -14,6 +15,7 @@ class ExtractPageCommentsTest extends TestCase {
 	 */
 	public function testAddsTalkTitleForAllValidComments(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCommentsForPages' )->willReturn( [
@@ -36,9 +38,9 @@ class ExtractPageCommentsTest extends TestCase {
 				[ 101, 31, 'TEST_Talk:SamplePage_2' ]
 			);
 
-		$writer->expects( $this->never() )->method( 'addLogEntry' );
+		$dbLog->expects( $this->never() )->method( 'addLogEntry' );
 
-		$processor = new ExtractPageComments( $workspaceDB, $writer );
+		$processor = new ExtractPageComments( $workspaceDB, $dbLog, $writer );
 		$processor->execute();
 	}
 }

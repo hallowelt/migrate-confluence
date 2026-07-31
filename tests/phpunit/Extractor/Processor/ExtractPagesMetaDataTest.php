@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -15,8 +16,9 @@ class ExtractPagesMetaDataTest extends TestCase {
 	 */
 	public function testAddsPageMetaWithConfiguredAndLabelCategories(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$writer = $this->createMock( ExtractorDirectDataWriter::class );
+		$dbLog = $this->createMock( DBLog::class );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$migrationConfig->method( 'getCategories' )->willReturn( [ 'ConfiguredCategory' ] );
 		$workspaceDB->method( 'getCurrentPages' )->willReturn( [
@@ -37,9 +39,9 @@ class ExtractPagesMetaDataTest extends TestCase {
 				[ 'categories' => [ 'ConfiguredCategory', 'LabelCategory' ] ]
 			);
 
-		$writer->expects( $this->once() )->method( 'addLogEntry' );
+		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractPagesMetaData( $workspaceDB, $writer, $migrationConfig );
+		$processor = new ExtractPagesMetaData( $workspaceDB, $dbLog, $writer, $migrationConfig );
 		$processor->execute();
 	}
 }

@@ -14,6 +14,7 @@ use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
@@ -103,7 +104,8 @@ class Analyze extends BatchFileProcessorBase {
 		}
 
 		$workspaceDB = WorkspaceDB::create( $this->dest );
-		$workspaceDB->addLogEntry(
+		$dbLog = new DBLog( $workspaceDB );
+		$dbLog->addLogEntry(
 			'info',
 			'analyze',
 			__CLASS__,
@@ -142,7 +144,6 @@ class Analyze extends BatchFileProcessorBase {
 
 		$analyzer = new ConfluenceAnalyzer(
 			$this->dataWriter,
-			WorkspaceDB::open( $this->dest, true ),
 			$this->output,
 			$this->getMigrationConfig()
 		);

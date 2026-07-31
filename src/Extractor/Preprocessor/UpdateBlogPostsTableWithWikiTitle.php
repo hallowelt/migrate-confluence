@@ -17,6 +17,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 
 	/**
 	 * @return void
+	 * @throws Exception
 	 */
 	public function execute(): void {
 		$this->updateWikiTitles();
@@ -67,7 +68,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 			} catch ( Exception $ex ) {
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -78,7 +79,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
 
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -92,7 +93,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
-			$this->writer->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'warning',
 				'extract',
 				__CLASS__,
@@ -110,7 +111,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
 
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,

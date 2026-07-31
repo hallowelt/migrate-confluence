@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithSpaceIdOfHistoryVersions;
@@ -29,6 +30,7 @@ use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyContents;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
@@ -48,19 +50,15 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
 
-	/** @var ExtractorDirectDataWriter */
-	private ExtractorDirectDataWriter $writer;
+	/** @var DBLog */
+	private DBLog $dbLog;
 
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
 	 * @param DataBuckets $buckets
 	 */
-	public function __construct(
-		$config,
-		Workspace $workspace,
-		DataBuckets $buckets
-	) {
+	public function __construct( $config, Workspace $workspace, DataBuckets $buckets ) {
 		parent::__construct( $config, $workspace, $buckets );
 	}
 
@@ -81,6 +79,26 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/**
 	 * @return void
 	 */
+	private function initWorkspaceDB(): void {
+		$this->workspaceDB = WorkspaceDB::open( $this->dest );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function initDBLog(): void {
+		$this->dbLog = new DBLog( $this->workspaceDB );
+		$this->dbLog->addLogEntry(
+			'info',
+			'extract',
+			__CLASS__,
+			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
+		);
+	}
+
+	/**
+	 * @return void
+	 */
 	private function initMigrationConfig(): void {
 		$advancedConfig = [];
 		if ( isset( $this->config['config'] ) ) {
@@ -95,20 +113,15 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	protected function doExtract( SplFileInfo $file ): bool {
 		$this->initMigrationConfig();
+		$this->initWorkspaceDB();
+		$this->initDBLog();
 
-		$this->workspaceDB = WorkspaceDB::open( $this->dest, true );
-		$this->writer = new ExtractorDirectDataWriter( WorkspaceDB::open( $this->dest ) );
-		$this->writer->addLogEntry(
-			'info',
-			'extract',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
+		$writer = new ExtractorDirectDataWriter( $this->workspaceDB );
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
 
 		// preparation
-		$preprocessors = $this->getPreprocessors();
+		$preprocessors = $this->getPreprocessors( $writer );
 		foreach ( $preprocessors as $processor ) {
 			if ( $this->output ) {
 				$processor->setOutput( $this->output );
@@ -120,7 +133,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		$this->checkTitles();
 
 		// extraction
-		$processors = $this->getProcessors();
+		$processors = $this->getProcessors( $writer );
 		foreach ( $processors as $processor ) {
 			$processor->execute();
 		}
@@ -131,36 +144,36 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/**
 	 * @return array
 	 */
-	private function getPreprocessors(): array {
+	private function getPreprocessors( IExtractorDataWriter $writer ): array {
 		return [
-			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->writer ),
-			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->writer ),
-			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->writer, $this->migrationConfig ),
-			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->writer ),
-			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->writer ),
-			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->writer ),
-			new UpdatePageAttachmentTable( $this->workspaceDB, $this->writer, $this->migrationConfig ),
-			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->writer, $this->migrationConfig ),
-			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->writer, $this->migrationConfig ),
+			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 		];
 	}
 
 	/**
 	 * @return array
 	 */
-	private function getProcessors(): array {
+	private function getProcessors( IExtractorDataWriter $writer ): array {
 		return [
-			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->writer ),
-			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->writer ),
-			new ExtractBlogPostsBodyContents( $this->workspaceDB, $this->workspace, $this->writer ),
-			new ExtractCommentsBodyContents( $this->workspaceDB, $this->workspace, $this->writer ),
-			new ExtractPageTemplateContents( $this->workspaceDB, $this->workspace, $this->writer ),
-			new ExtractPagesMetaData( $this->workspaceDB, $this->writer, $this->migrationConfig ),
-			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->writer, $this->migrationConfig ),
-			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->writer, $this->migrationConfig ),
-			new BuildAttachmentDescriptions( $this->workspaceDB, $this->writer ),
-			new ExtractPageComments( $this->workspaceDB, $this->writer ),
-			new ExtractBlogPostComments( $this->workspaceDB, $this->writer ),
+			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+			new ExtractBlogPostsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+			new ExtractCommentsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+			new ExtractPageTemplateContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+			new ExtractPagesMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new BuildAttachmentDescriptions( $this->workspaceDB, $this->dbLog, $writer ),
+			new ExtractPageComments( $this->workspaceDB, $this->dbLog, $writer ),
+			new ExtractBlogPostComments( $this->workspaceDB, $this->dbLog, $writer ),
 		];
 	}
 
@@ -168,7 +181,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 * @return void
 	 */
 	private function checkTitles(): void {
-		if ( !empty( $this->workspaceDB->getLogEntriesForStep( 'analyze' ) ) ) {
+		if ( !empty( $this->dbLog->getLogEntriesForStep( 'analyze' ) ) ) {
 			$this->writeln( "\n\nWARNINGS / ERRORS:\n" );
 			$this->writeln(
 				"\nPlease check logging table in workspaceDB for details about invalid titles and filenames\n\n"

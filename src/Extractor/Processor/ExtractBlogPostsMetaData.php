@@ -36,7 +36,7 @@ class ExtractBlogPostsMetaData extends ExtractPagesMetaData {
 				]
 			);
 
-			$this->writer->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'info',
 				'extract',
 				__METHOD__,

@@ -2,18 +2,18 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
 class Page extends ProcessorBase {
 
 	/**
-	 * @param IDataWriter $writer
+	 * @param IAnalyzeDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private IDataWriter $writer,
+		private IAnalyzeDataWriter $writer,
 		private MigrationConfig $migrationConfig
 	) {
 	}

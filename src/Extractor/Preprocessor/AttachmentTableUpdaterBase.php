@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
@@ -27,17 +28,22 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
+	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB, IExtractorDataWriter $writer, protected MigrationConfig $migrationConfig
+		WorkspaceDB $workspaceDB,
+		DBLog $dbLog,
+		IExtractorDataWriter $writer,
+		protected MigrationConfig $migrationConfig,
 	) {
-		parent::__construct( $workspaceDB, $writer );
+		parent::__construct( $workspaceDB, $dbLog, $writer );
 	}
 
 	/**
 	 * @return void
+	 * @throws Exception
 	 */
 	public function execute(): void {
 		$this->addAttachments();
@@ -180,7 +186,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					$shortContentWikiTitle,
 				);
 			} catch ( Exception $fallbackEx ) {
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'warning',
 					'analyze',
 					__CLASS__,
@@ -192,7 +198,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			if ( empty( $attachmentWikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
 
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -209,7 +215,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			$counter = 1;
 			while ( $exists ) {
 				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
-					$this->writer->addLogEntry(
+					$this->dbLog->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
@@ -230,7 +236,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					$message = "TitleCompressor delivers empty wiki title for "
 					 . "attachment id $attachmentId while uncolliding";
 
-					$this->writer->addLogEntry(
+					$this->dbLog->addLogEntry(
 						'error',
 						'extract',
 						__CLASS__,

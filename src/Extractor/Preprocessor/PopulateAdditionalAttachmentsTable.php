@@ -96,7 +96,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 					''
 				);
 			} catch ( Exception $ex ) {
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'error',
 					'analyze',
 					__CLASS__,
@@ -108,7 +108,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 			if ( empty( $attachmentWikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
 
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -125,7 +125,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 			$counter = 1;
 			while ( $exists ) {
 				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
-					$this->writer->addLogEntry(
+					$this->dbLog->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
@@ -146,7 +146,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 					$message = "TitleCompressor delivers empty wiki title for "
 					. "attachment id $attachmentId while uncolliding";
 
-					$this->writer->addLogEntry(
+					$this->dbLog->addLogEntry(
 						'error',
 						'extract',
 						__CLASS__,

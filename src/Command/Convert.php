@@ -18,6 +18,7 @@ use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
@@ -110,7 +111,9 @@ class Convert extends CommandConvert {
 		}
 
 		$workspaceDB = WorkspaceDB::open( $this->dest );
-		$workspaceDB->addLogEntry(
+
+		$dbLog = new DBLog( $workspaceDB );
+		$dbLog->addLogEntry(
 			'info',
 			'convert',
 			__CLASS__,

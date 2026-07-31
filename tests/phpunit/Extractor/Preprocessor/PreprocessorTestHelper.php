@@ -6,6 +6,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 
 trait PreprocessorTestHelper {
 
@@ -13,7 +14,11 @@ trait PreprocessorTestHelper {
 		return ( new WorkspaceDbMock() )->createEmpty();
 	}
 
-	private function createDataWriter( WorkspaceDB $workspaceDB ): IExtractorDataWriter {
+	private function createDBLog( WorkspaceDB $workspaceDB ): DBLog {
+		return new DBLog( $workspaceDB );
+	}
+
+	private function createWriter( WorkspaceDB $workspaceDB ): IExtractorDataWriter {
 		return new ExtractorDirectDataWriter( $workspaceDB );
 	}
 

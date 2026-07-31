@@ -247,11 +247,9 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	): void {
 		$dbPath = $dest . '/workspace.sqlite';
 
-		$workspaceDB = file_exists( $dbPath )
-			? WorkspaceDB::open( $dest )
-			: WorkspaceDB::create( $dest );
-
-		$writer = new AnalyzerDirectDataWriter( $workspaceDB );
+		$writer = new AnalyzerDirectDataWriter(
+			file_exists( $dbPath ) ? WorkspaceDB::open( $dest ) : WorkspaceDB::create( $dest )
+		);
 
 		if ( isset( $config['config'] ) ) {
 			$migrationConfig = new MigrationConfig( $config['config'] );
@@ -259,7 +257,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			$migrationConfig = new MigrationConfig( [] );
 		}
 
-		$analyzer = new ConfluenceAnalyzer( $writer, $workspaceDB, $output, $migrationConfig );
+		$analyzer = new ConfluenceAnalyzer( $writer, $output, $migrationConfig );
 		$analyzer->analyze( new SplFileInfo( $src . '/entities.xml' ) );
 	}
 

@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
@@ -18,17 +19,18 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
-	 * @param IExtractorDataWriter $writer
+	 * @param DBLog $dbLog
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB, IExtractorDataWriter $writer, private MigrationConfig $migrationConfig
+		WorkspaceDB $workspaceDB, DBLog $dbLog, IExtractorDataWriter $writer, private MigrationConfig $migrationConfig
 	) {
-		parent::__construct( $workspaceDB, $writer );
+		parent::__construct( $workspaceDB, $dbLog, $writer );
 	}
 
 	/**
 	 * @return void
+	 * @throws Exception
 	 */
 	public function execute(): void {
 		$this->updateWikiTitles();
@@ -52,7 +54,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$pageIdToWikiTitleMap = [];
 		foreach ( $pages as $page ) {
 			if ( !isset( $page['page_id'] ) ) {
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -64,7 +66,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			$pageId = (int)$page['page_id'];
 
 			if ( !isset( $page['space_id'] ) || !isset( $page['confluence_title'] ) ) {
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -75,7 +77,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 			// historical versions
 			if ( (int)$page['original_version_id'] !== -1 ) {
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'info',
 					'extract',
 					__CLASS__,
@@ -101,7 +103,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 			} catch ( Exception $ex ) {
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -112,7 +114,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleBuilder delivers empty wiki title for page $confluenceTitle (page id $pageId)";
 
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -126,7 +128,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
-			$this->writer->addLogEntry(
+			$this->dbLog->addLogEntry(
 				'warning',
 				'extract',
 				__CLASS__,
@@ -144,7 +146,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for page id $pageId";
 
-				$this->writer->addLogEntry(
+				$this->dbLog->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,

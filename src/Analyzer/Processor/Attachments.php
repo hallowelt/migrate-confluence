@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 use XMLReader;
@@ -10,12 +10,12 @@ use XMLReader;
 class Attachments extends ProcessorBase {
 
 	/**
-	 * @param IDataWriter $writer
+	 * @param IAnalyzeDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 * @param string $sourceBasePath
 	 */
 	public function __construct(
-		private IDataWriter $writer,
+		private IAnalyzeDataWriter $writer,
 		private MigrationConfig $migrationConfig,
 		private string $sourceBasePath
 	) {

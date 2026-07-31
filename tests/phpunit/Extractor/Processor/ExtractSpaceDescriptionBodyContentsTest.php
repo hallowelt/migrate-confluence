@@ -6,6 +6,7 @@ use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyContents;
+use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 
 class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
@@ -16,6 +17,7 @@ class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
 	public function testExtractsCurrentSpaceDescriptionBodyContentToRawWorkspaceFile(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
+		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentSpaceDescriptions' )->willReturn( [
@@ -34,7 +36,7 @@ class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
 		$class = 'HalloWelt\\MigrateConfluence\\Extractor\\Processor\\';
 		$class .= 'ExtractSpaceDescriptionBodyContents::doExtractBodyContent';
 
-		$writer->expects( $this->once() )
+		$dbLog->expects( $this->once() )
 			->method( 'addLogEntry' )
 			->with(
 				'info',
@@ -43,7 +45,7 @@ class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
 				'Extract body content to /content/raw/101.mraw'
 			);
 
-		$processor = new ExtractSpaceDescriptionBodyContents( $workspaceDB, $workspace, $writer );
+		$processor = new ExtractSpaceDescriptionBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
 		$processor->execute();
 	}
 }

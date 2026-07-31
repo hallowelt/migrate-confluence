@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
 use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
@@ -15,8 +16,6 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\PageTemplates;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -31,14 +30,12 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	private LoggerInterface|NullLogger $logger;
 
 	/**
-	 * @param IDataWriter $writer
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IAnalyzeDataWriter $writer
 	 * @param OutputInterface $output
 	 * @param MigrationConfig $config
 	 */
 	public function __construct(
-		private readonly IDataWriter $writer,
-		private readonly WorkspaceDB $workspaceDB,
+		private readonly IAnalyzeDataWriter $writer,
 		private readonly OutputInterface $output,
 		private readonly MigrationConfig $config,
 	) {
@@ -129,7 +126,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			'Labelling' => new Labelling( $this->writer ),
 			'ContentProperty' => new ContentProperty( $this->writer ),
 			'ConfluenceUserImpl' => new Users( $this->writer ),
-			'PageTemplate' => new PageTemplates( $this->writer, $this->workspaceDB ),
+			'PageTemplate' => new PageTemplates( $this->writer ),
 		];
 	}
 

@@ -2,18 +2,21 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
 class PageTemplates extends ProcessorBase {
 
-	public function __construct(
-		private IDataWriter $writer,
-		private WorkspaceDB $workspaceDB
-	) {
+
+	/**
+	 * @param IAnalyzeDataWriter $writer
+	 */
+	public function __construct( private IAnalyzeDataWriter $writer ) {
 	}
 
+	/**
+	 * @return void
+	 */
 	public function doExecute(): void {
 		$templateId = null;
 		$properties = [];

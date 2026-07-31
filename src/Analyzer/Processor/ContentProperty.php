@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
 /**
@@ -13,10 +13,10 @@ use XMLReader;
 class ContentProperty extends ProcessorBase {
 
 	/**
-	 * @param IDataWriter $writer
+	 * @param IAnalyzeDataWriter $writer
 	 */
 	public function __construct(
-		private IDataWriter $writer
+		private IAnalyzeDataWriter $writer
 	) {
 	}
 
