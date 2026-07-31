@@ -22,4 +22,8 @@ abstract class AbstractDirectDataWriter implements IDataWriter {
 	public function commitTransaction(): void {
 		$this->db->commitTransaction();
 	}
+
+	public function rollbackTransaction(): void {
+		$this->db->rollbackTransaction();
+	}
 }

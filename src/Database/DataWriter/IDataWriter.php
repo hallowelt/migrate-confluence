@@ -25,4 +25,9 @@ interface IDataWriter {
 	 * @return void
 	 */
 	public function commitTransaction(): void;
+
+	/**
+	 * @return void
+	 */
+	public function rollbackTransaction(): void;
 }

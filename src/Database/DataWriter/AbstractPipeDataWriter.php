@@ -23,4 +23,8 @@ abstract class AbstractPipeDataWriter implements IDataWriter {
 	public function commitTransaction(): void {
 		$this->send( __FUNCTION__ );
 	}
+
+	public function rollbackTransaction(): void {
+		$this->send( __FUNCTION__ );
+	}
 }

@@ -26,6 +26,9 @@ class WorkspaceDB {
 	/** @var bool readonly mark this connection as read-only */
 	private bool $readonly = false;
 
+	/** @var bool tracks whether a transaction is currently open */
+	private bool $inTransaction = false;
+
 	/**
 	 * @param string $dest
 	 *
@@ -87,20 +90,33 @@ class WorkspaceDB {
 	 * @return void
 	 */
 	public function beginTransaction(): void {
-		if ( $this->readonly ) {
+		if ( $this->readonly || $this->inTransaction ) {
 			return;
 		}
 		$this->db->exec( 'BEGIN TRANSACTION' );
+		$this->inTransaction = true;
 	}
 
 	/**
 	 * @return void
 	 */
 	public function commitTransaction(): void {
-		if ( $this->readonly ) {
+		if ( $this->readonly || !$this->inTransaction ) {
 			return;
 		}
 		$this->db->exec( 'COMMIT' );
+		$this->inTransaction = false;
+	}
+
+	/**
+	 * @return void
+	 */
+	public function rollbackTransaction(): void {
+		if ( $this->readonly || !$this->inTransaction ) {
+			return;
+		}
+		$this->db->exec( 'ROLLBACK' );
+		$this->inTransaction = false;
 	}
 
 	/**
