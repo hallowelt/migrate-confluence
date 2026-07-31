@@ -31,11 +31,17 @@ class DefaultPages extends ProcessorBase {
 				continue;
 			}
 
-			$file = $fileObj->getPathname();
-			$namespacePrefix = basename( dirname( $file ) );
-			$pageName = basename( $file );
-			$wikiPageName = "$namespacePrefix:$pageName";
-			$wikiText = file_get_contents( $file );
+			/* support nested templates like Template/SomeName/style.css to be converted to Template:SomeName/style.css */
+			$namespacePrefix = str_replace( $basepath, '', $fileObj->getPath() );
+			$firstSlash = strpos( $namespacePrefix, '/' );
+			if ( $firstSlash !== false ) {
+				$namespacePrefix = substr_replace( $namespacePrefix, ':', $firstSlash, 1 ) . '/';
+			} else {
+				$namespacePrefix .= ':';
+			}
+			$pageName = $fileObj->getFilename();
+			$wikiPageName = "$namespacePrefix$pageName";
+			$wikiText = file_get_contents( $fileObj->getPathname() );
 
 			$this->addRevision( $wikiPageName, $wikiText );
 		}
