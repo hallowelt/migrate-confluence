@@ -7,7 +7,6 @@ use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractAttachmentsMetaData;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use Phan\ForkPool\Writer;
 use PHPUnit\Framework\TestCase;
 
 class ExtractAttachmentsMetaDataTest extends TestCase {

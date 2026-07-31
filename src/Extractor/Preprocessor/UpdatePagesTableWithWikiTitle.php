@@ -20,6 +20,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 	/**
 	 * @param WorkspaceDB $workspaceDB
 	 * @param DBLog $dbLog
+	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(

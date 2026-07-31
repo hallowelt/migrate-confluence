@@ -7,7 +7,6 @@ use XMLReader;
 
 class PageTemplates extends ProcessorBase {
 
-
 	/**
 	 * @param IAnalyzeDataWriter $writer
 	 */

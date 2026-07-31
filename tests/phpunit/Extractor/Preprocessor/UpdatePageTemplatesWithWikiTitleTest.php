@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageTemplatesWithWikiTitle;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
 class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
