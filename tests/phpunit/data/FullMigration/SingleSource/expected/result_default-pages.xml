@@ -532,7 +532,7 @@ useve=true
     </revision>
   </page>
   <page>
-    <title>Template:RecentlyUpdatedStyles/style.css</title>
+    <title>Template:RecentlyUpdatedRow/style.css</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>

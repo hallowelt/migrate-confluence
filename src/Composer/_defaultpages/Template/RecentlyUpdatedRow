@@ -1,6 +1,0 @@
-<noinclude>Template added by Confluence migration to handle the "recentlyupdated" macro
-
-This template is used by the [[:Template:RecentlyUpdated|RecentlyUpdated]] template and embeds the [[:Template:RecentlyUpdatedStyles/style.css|RecentlyUpdatedStyles/style.css]] stylesheet.
-</noinclude><includeonly>[[{{{1}}}|<i class="bi bi-card-text recently-updated-icon"></i> {{SUBPAGENAME:{{{1}}}}}]]
-<div class="recently-updated-byline"><small>{{#switch:{{CONTENTLANG}}|en={{#time:M d, Y|{{{3}}}}}|de={{#time:d.M Y|{{{3}}}}}|{{#time:M/d/YY|{{{3}}}}} }}
-{{#ifeq:{{#show:{{{1}}}|?Last editor is|link=none}}|User:imported>Unknown user||· {{#ifeq:{{{2}}}|Benutzer:imported>Unknown user|imported|[[{{{2}}}|{{PAGENAME:{{{2}}} }}]]}}}}</small></div><templatestyles src="RecentlyUpdatedStyles/style.css"/></includeonly>

@@ -31,7 +31,7 @@ class DefaultPages extends ProcessorBase {
 				continue;
 			}
 
-			/* support nested templates like Template/SomeName/style.css to be
+			/* support folder structures like Template/SomeName/style.css to be
 			 * converted to Template:SomeName/style.css */
 			$namespacePrefix = str_replace( $basepath, '', $fileObj->getPath() );
 			$firstSlash = strpos( $namespacePrefix, '/' );
@@ -40,7 +40,8 @@ class DefaultPages extends ProcessorBase {
 			} else {
 				$namespacePrefix .= ':';
 			}
-			$pageName = $fileObj->getFilename();
+			/* strip off an optional .wikitext extension */
+			$pageName = $fileObj->getBasename( '.wikitext' );
 			$wikiPageName = "$namespacePrefix$pageName";
 			$wikiText = file_get_contents( $fileObj->getPathname() );
 
