@@ -897,8 +897,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return void
 	 */
 	private function addNonBlockingLogEntry( string $message, string $type = 'warning' ): void {
-		$this->dbLog->send(
-			'log',
+		$this->writer->addLogEntry(
 			$type,
 			'convert',
 			__CLASS__,
