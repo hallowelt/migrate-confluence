@@ -1,13 +1,17 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-    <p>{{#widget:InlineSearch|spaceKey=ABC|size=medium|placeholder=Placeholder text}}[[Category:Broken_macro/livesearch]]</p>
+    <p>{{#widget:InlineSearch|spaceKey=ABC|size=medium|labels=confluence|placeholder=Placeholder text}}[[Category:Broken_macro/livesearch]]</p>
     <p>{{#widget:InlineSearch}}</p>
+    <p>{{#widget:InlineSearch|placeholder=Search here}}</p>
     <p>
-        {{#widget:InlineSearch|spaceKey=ABC|size=large|additional=info|placeholder=Placeholder text|type=page}}[[Category:Broken_macro/livesearch]]
+        {{#widget:InlineSearch|spaceKey=ABC|size=large|additional=excerpt|placeholder=Placeholder text|type=page|labels=my-label}}[[Category:Broken_macro/livesearch]]
     </p>
     <p>
         {{#widget:InlineSearch|spaceKey=ABC}}[[Category:Broken_macro/livesearch]]
     </p>
     <p>
         {{#widget:InlineSearch}}
+    </p>
+    <p>
+        {{#widget:InlineSearch|placeholder=Find something}}
     </p>
 </xml>

@@ -15,7 +15,16 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * Params fully supported by the InlineSearch widget.
-	 * All other params indicate a broken/degraded conversion.
+	 * All other params indicate a broken/degraded conversion and trigger the broken-macro category.
+	 *
+	 * Known Confluence livesearch params (for reference):
+	 *   - placeholder  – grey prompt text inside the empty field            → SUPPORTED
+	 *   - button       – label on the submit button (widget-specific)       → SUPPORTED
+	 *   - spaceKey     – restrict results to one space (plain key or <ri:space>) → unsupported
+	 *   - size         – input width: "medium" (default) or "large"         → unsupported
+	 *   - type         – content type: page, blogpost/blog, comment, attachment → unsupported
+	 *   - additional   – extra info per result: none, space, excerpt/page excerpt → unsupported
+	 *   - labels       – restrict results to labelled content               → unsupported
 	 */
 	private const SUPPORTED_PARAMS = [ 'placeholder', 'button' ];
 
@@ -89,7 +98,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 
 			$rewritten = preg_replace_callback(
 				$regex,
-				function ( array $m ) use ( $widgetSyntax ) {
+				static function ( array $m ) use ( $widgetSyntax ) {
 					$params = $m[1] ?? '';
 
 					return $params === ''
