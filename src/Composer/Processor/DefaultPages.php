@@ -31,7 +31,8 @@ class DefaultPages extends ProcessorBase {
 				continue;
 			}
 
-			/* support nested templates like Template/SomeName/style.css to be converted to Template:SomeName/style.css */
+			/* support nested templates like Template/SomeName/style.css to be
+			 * converted to Template:SomeName/style.css */
 			$namespacePrefix = str_replace( $basepath, '', $fileObj->getPath() );
 			$firstSlash = strpos( $namespacePrefix, '/' );
 			if ( $firstSlash !== false ) {
