@@ -1,15 +1,15 @@
-{{#widget:InlineSearch|placeholder=Placeholder text}}
+{{TagSearch|namespace=ABC|category=confluence|placeholder=Placeholder text}}
 
-{{#widget:InlineSearch}}
+{{TagSearch}}
 
-{{#widget:InlineSearch|placeholder=Search here}}
+{{TagSearch|placeholder=Search here}}
 
-{{#widget:InlineSearch|placeholder=Placeholder text}}
+{{TagSearch|category=my-label|placeholder=Placeholder text}}
 
-{{#widget:InlineSearch}}
+{{TagSearch|namespace=ABC}}
 
-{{#widget:InlineSearch}}
+{{TagSearch}}
 
-{{#widget:InlineSearch|placeholder=Find something}}
+{{TagSearch|placeholder=Find something}}
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

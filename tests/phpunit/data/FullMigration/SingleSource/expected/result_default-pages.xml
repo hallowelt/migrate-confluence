@@ -393,14 +393,6 @@
     </revision>
   </page>
   <page>
-      <title>Template:Livesearch</title>
-      <revision>
-          <model>wikitext</model>
-          <format>text/x-wiki</format>
-          <text><includeonly>Macro Livesearch is not supported yet.</includeonly></text>
-      </revision>
-  </page>
-  <page>
     <title>Template:LoremIpsum</title>
     <revision>
       <model>wikitext</model>

@@ -10,23 +10,21 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
 class LivesearchMacro extends StructuredMacroProcessorBase {
 
-	private const WIDGET_NAME = 'InlineSearch';
+	private const TEMPLATE_NAME = 'TagSearch';
 
 	/**
-	 * Confluence livesearch params passed through to the InlineSearch widget.
-	 * All other params are silently dropped — the widget always produces a working
-	 * search box even without any params.
+	 * Confluence livesearch param → TagSearch template param mapping.
+	 * Unmapped Confluence params are silently dropped.
 	 *
-	 * Known Confluence livesearch params (for reference):
-	 *   - placeholder  – grey prompt text inside the empty field            → passed through
-	 *   - button       – label on the submit button (widget-specific)       → passed through
-	 *   - spaceKey     – restrict results to one space (plain key or <ri:space>) → dropped
-	 *   - size         – input width: "medium" (default) or "large"         → dropped
-	 *   - type         – content type: page, blogpost/blog, comment, attachment → dropped
-	 *   - additional   – extra info per result: none, space, excerpt/page excerpt → dropped
-	 *   - labels       – restrict results to labelled content               → dropped
+	 *   spaceKey    → namespace   (restrict results to one space)
+	 *   labels      → category    (comma-separated labels)
+	 *   placeholder → placeholder (grey prompt text inside the empty field)
 	 */
-	private const SUPPORTED_PARAMS = [ 'placeholder', 'button' ];
+	private const PARAM_MAP = [
+		'spaceKey'    => 'namespace',
+		'labels'      => 'category',
+		'placeholder' => 'placeholder',
+	];
 
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
@@ -79,14 +77,13 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * Rewrites `{livesearch:key=val|...}` and bare `{livesearch}` in text nodes,
-	 * keeping only supported params.
+	 * mapping supported Confluence params to TagSearch template params.
 	 *
 	 * @param DOMDocument $dom
 	 * @return void
 	 */
 	private function processAsWikiMarkup( DOMDocument $dom ): void {
 		$macroName = $this->getMacroName();
-		$widgetSyntax = $this->getWidgetSyntax();
 		$regex = '/\{' . preg_quote( $macroName, '/' ) . '(?::([^}]*))?\}/';
 
 		$found = false;
@@ -96,11 +93,11 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 
 			$rewritten = preg_replace_callback(
 				$regex,
-				function ( array $m ) use ( $widgetSyntax ) {
-					$supported = $this->filterToSupportedParams(
+				function ( array $m ) {
+					$mapped = $this->mapParams(
 						$this->parseWikiMarkupParams( $m[1] ?? '' )
 					);
-					return '{{' . $widgetSyntax . $this->buildParamsString( $supported ) . '}}';
+					return '{{' . self::TEMPLATE_NAME . $this->buildParamsString( $mapped ) . '}}';
 				},
 				$original
 			);
@@ -112,7 +109,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		}
 
 		if ( $found ) {
-			$this->workspaceDB->addRequiredWidget( self::WIDGET_NAME );
+			$this->workspaceDB->addRequiredTemplate( self::TEMPLATE_NAME );
 		}
 	}
 
@@ -122,7 +119,6 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	 * @throws DOMException
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
-		$widgetSyntax = $this->getWidgetSyntax();
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName !== 'ac:parameter' ) {
@@ -138,28 +134,35 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 			$params[$paramName] = trim( $childNode->nodeValue );
 		}
 
-		$supported = $this->filterToSupportedParams( $params );
+		$mapped = $this->mapParams( $params );
 
 		$node->parentNode->replaceChild(
 			$this->createTextNode(
 				$node->ownerDocument,
-				'{{' . $widgetSyntax . $this->buildParamsString( $supported ) . '}}',
+				'{{' . self::TEMPLATE_NAME . $this->buildParamsString( $mapped ) . '}}',
 				__METHOD__
 			),
 			$node
 		);
 
-		$this->workspaceDB->addRequiredWidget( self::WIDGET_NAME );
+		$this->workspaceDB->addRequiredTemplate( self::TEMPLATE_NAME );
 	}
 
 	/**
-	 * Keeps only the params that the InlineSearch widget supports.
+	 * Maps Confluence livesearch params to TagSearch template params,
+	 * dropping any params not present in PARAM_MAP or with empty values.
 	 *
 	 * @param array $params
 	 * @return array
 	 */
-	private function filterToSupportedParams( array $params ): array {
-		return array_intersect_key( $params, array_flip( self::SUPPORTED_PARAMS ) );
+	private function mapParams( array $params ): array {
+		$mapped = [];
+		foreach ( self::PARAM_MAP as $confluenceKey => $templateKey ) {
+			if ( isset( $params[$confluenceKey] ) && $params[$confluenceKey] !== '' ) {
+				$mapped[$templateKey] = $params[$confluenceKey];
+			}
+		}
+		return $mapped;
 	}
 
 	/**
@@ -195,13 +198,5 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		}
 		return $result;
 	}
-
-	/**
-	 * Returns the parser function syntax for the widget (without outer braces).
-	 *
-	 * @return string e.g. "#widget:InlineSearch"
-	 */
-	private function getWidgetSyntax(): string {
-		return '#widget:' . self::WIDGET_NAME;
-	}
 }
+

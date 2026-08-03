@@ -15,9 +15,9 @@ use HalloWelt\MigrateConfluence\Composer\Processor\Files;
 use HalloWelt\MigrateConfluence\Composer\Processor\PageComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Sidebar;
+use HalloWelt\MigrateConfluence\Composer\Processor\RequiredTemplates;
 use HalloWelt\MigrateConfluence\Composer\Processor\Templates;
 use HalloWelt\MigrateConfluence\Composer\Processor\Users;
-use HalloWelt\MigrateConfluence\Composer\Processor\Widgets;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
@@ -157,7 +157,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			new DefaultPages(
 				$builder, $this->output, $this->dest, $this->migrationConfig
 			),
-			new Widgets(
+			new RequiredTemplates(
 				$this->dataLookup, $builder, $this->output, $this->dest, $this->migrationConfig
 			),
 			new Files(

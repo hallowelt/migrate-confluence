@@ -7,7 +7,7 @@ use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
-class Widgets extends ProcessorBase {
+class RequiredTemplates extends ProcessorBase {
 
 	/** @var DBComposerDataLookup */
 	private DBComposerDataLookup $dataLookup;
@@ -34,28 +34,28 @@ class Widgets extends ProcessorBase {
 	 * @return string
 	 */
 	protected function getOutputName(): string {
-		return 'widgets';
+		return 'required_templates';
 	}
 
 	/**
 	 * @return void
 	 */
 	public function execute(): void {
-		$requiredWidgets = $this->dataLookup->getRequiredWidgets();
+		$requiredTemplates = $this->dataLookup->getRequiredTemplates();
 
-		if ( empty( $requiredWidgets ) ) {
+		if ( empty( $requiredTemplates ) ) {
 			return;
 		}
 
-		$basePath = dirname( __DIR__ ) . '/_widgets/';
+		$basePath = dirname( __DIR__ ) . '/_templates/';
 
-		foreach ( $requiredWidgets as $widgetName ) {
-			$filePath = $basePath . $widgetName;
+		foreach ( $requiredTemplates as $templateName ) {
+			$filePath = $basePath . $templateName;
 			if ( !is_file( $filePath ) ) {
-				$this->output->writeln( "Warning: no default file found for widget '$widgetName', skipping." );
+				$this->output->writeln( "Warning: no default file found for template '$templateName', skipping." );
 				continue;
 			}
-			$this->addRevision( "Widget:$widgetName", file_get_contents( $filePath ) );
+			$this->addRevision( "Template:$templateName", file_get_contents( $filePath ) );
 		}
 
 		$this->writeOutputFile();

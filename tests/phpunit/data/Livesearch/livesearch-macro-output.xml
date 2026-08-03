@@ -1,17 +1,17 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-    <p>{{#widget:InlineSearch|placeholder=Placeholder text}}</p>
-    <p>{{#widget:InlineSearch}}</p>
-    <p>{{#widget:InlineSearch|placeholder=Search here}}</p>
+    <p>{{TagSearch|namespace=ABC|category=confluence|placeholder=Placeholder text}}</p>
+    <p>{{TagSearch}}</p>
+    <p>{{TagSearch|placeholder=Search here}}</p>
     <p>
-        {{#widget:InlineSearch|placeholder=Placeholder text}}
+        {{TagSearch|category=my-label|placeholder=Placeholder text}}
     </p>
     <p>
-        {{#widget:InlineSearch}}
+        {{TagSearch|namespace=ABC}}
     </p>
     <p>
-        {{#widget:InlineSearch}}
+        {{TagSearch}}
     </p>
     <p>
-        {{#widget:InlineSearch|placeholder=Find something}}
+        {{TagSearch|placeholder=Find something}}
     </p>
 </xml>

@@ -172,7 +172,7 @@ class WorkspaceDB {
 			'labellings',
 			'labels',
 			'gliffy',
-			'required_widgets',
+			'required_templates',
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -317,7 +317,7 @@ class WorkspaceDB {
 		$this->createTablePageTemplateContents();
 		$this->createTableAttachmentsDescriptions();
 		$this->createTableExportProperties();
-		$this->createTableRequiredWidgets();
+		$this->createTableRequiredTemplates();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -4896,33 +4896,33 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createTableRequiredWidgets(): void {
+	private function createTableRequiredTemplates(): void {
 		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS required_widgets (
-				widget_name TEXT PRIMARY KEY
+			'CREATE TABLE IF NOT EXISTS required_templates (
+				template_name TEXT PRIMARY KEY
 			);'
 		);
 	}
 
 	/**
-	 * @param string $widgetName
+	 * @param string $templateName
 	 * @return void
 	 */
-	public function addRequiredWidget( string $widgetName ): void {
+	public function addRequiredTemplate( string $templateName ): void {
 		$stmt = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO required_widgets (widget_name) VALUES (:widget_name)'
+			'INSERT OR IGNORE INTO required_templates (template_name) VALUES (:template_name)'
 		);
-		$stmt->bindValue( ':widget_name', $widgetName, SQLITE3_TEXT );
+		$stmt->bindValue( ':template_name', $templateName, SQLITE3_TEXT );
 		$stmt->execute();
 	}
 
 	/**
-	 * @return string[] list of required widget names
+	 * @return string[] list of required template names
 	 */
-	public function getRequiredWidgets(): array {
-		$stmt = $this->cachedPrepare( 'SELECT widget_name FROM required_widgets ORDER BY widget_name' );
+	public function getRequiredTemplates(): array {
+		$stmt = $this->cachedPrepare( 'SELECT template_name FROM required_templates ORDER BY template_name' );
 		$result = $stmt->execute();
 		$rows = $this->fetchDbArray( $result );
-		return array_column( $rows, 'widget_name' );
+		return array_column( $rows, 'template_name' );
 	}
 }

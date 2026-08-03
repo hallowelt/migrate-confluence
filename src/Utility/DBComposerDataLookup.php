@@ -291,9 +291,9 @@ class DBComposerDataLookup {
 	}
 
 	/**
-	 * @return string[] list of required widget names
+	 * @return string[] list of required template names
 	 */
-	public function getRequiredWidgets(): array {
-		return $this->workspaceDB->getRequiredWidgets();
+	public function getRequiredTemplates(): array {
+		return $this->workspaceDB->getRequiredTemplates();
 	}
 }
