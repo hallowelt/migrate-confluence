@@ -1,6 +1,10 @@
-<form class="form-inline input-group" action="/w/index.php" method="GET" role="search">
-    <input class="form-control" type="search"<!--{if $placeholder}--> placeholder="<!--{$placeholder|escape:attr}-->"<!--{/if}--> name="raw_term">
-    <input type="hidden" name="title" value="Special:Search">
-    <input type="hidden" name="fulltext" value="1">
-    <button class="input-group-text bi bi-search" type="submit"><span style="padding-inline-start:.75em"><!--{$button|default:"search"}--></span></button>
-</form>
+<noinclude>
+</noinclude>
+<includeonly>
+    <form class="form-inline input-group" action="/w/index.php" method="GET" role="search">
+        <input class="form-control" type="search"<!--{if $placeholder}--> placeholder="<!--{$placeholder|escape:attr}-->"<!--{/if}--> name="raw_term">
+        <input type="hidden" name="title" value="Special:Search">
+        <input type="hidden" name="fulltext" value="1">
+        <button class="input-group-text bi bi-search" type="submit"><span style="padding-inline-start:.75em"><!--{$button|default:"search"}--></span></button>
+    </form>
+</includeonly>

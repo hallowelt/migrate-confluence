@@ -1,12 +1,12 @@
-{{#widget:InlineSearch|spaceKey=ABC|size=medium|labels=confluence|placeholder=Placeholder text}}[[Category:Broken_macro/livesearch]]
+{{#widget:InlineSearch|placeholder=Placeholder text}}
 
 {{#widget:InlineSearch}}
 
 {{#widget:InlineSearch|placeholder=Search here}}
 
-{{#widget:InlineSearch|spaceKey=ABC|size=large|additional=excerpt|placeholder=Placeholder text|type=page|labels=my-label}}[[Category:Broken_macro/livesearch]]
+{{#widget:InlineSearch|placeholder=Placeholder text}}
 
-{{#widget:InlineSearch|spaceKey=ABC}}[[Category:Broken_macro/livesearch]]
+{{#widget:InlineSearch}}
 
 {{#widget:InlineSearch}}
 

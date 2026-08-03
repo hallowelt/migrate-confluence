@@ -13,17 +13,18 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	private const WIDGET_NAME = 'InlineSearch';
 
 	/**
-	 * Params fully supported by the InlineSearch widget.
-	 * All other params indicate a broken/degraded conversion and trigger the broken-macro category.
+	 * Confluence livesearch params passed through to the InlineSearch widget.
+	 * All other params are silently dropped — the widget always produces a working
+	 * search box even without any params.
 	 *
 	 * Known Confluence livesearch params (for reference):
-	 *   - placeholder  – grey prompt text inside the empty field            → SUPPORTED
-	 *   - button       – label on the submit button (widget-specific)       → SUPPORTED
-	 *   - spaceKey     – restrict results to one space (plain key or <ri:space>) → unsupported
-	 *   - size         – input width: "medium" (default) or "large"         → unsupported
-	 *   - type         – content type: page, blogpost/blog, comment, attachment → unsupported
-	 *   - additional   – extra info per result: none, space, excerpt/page excerpt → unsupported
-	 *   - labels       – restrict results to labelled content               → unsupported
+	 *   - placeholder  – grey prompt text inside the empty field            → passed through
+	 *   - button       – label on the submit button (widget-specific)       → passed through
+	 *   - spaceKey     – restrict results to one space (plain key or <ri:space>) → dropped
+	 *   - size         – input width: "medium" (default) or "large"         → dropped
+	 *   - type         – content type: page, blogpost/blog, comment, attachment → dropped
+	 *   - additional   – extra info per result: none, space, excerpt/page excerpt → dropped
+	 *   - labels       – restrict results to labelled content               → dropped
 	 */
 	private const SUPPORTED_PARAMS = [ 'placeholder', 'button' ];
 
@@ -63,7 +64,6 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param DOMDocument $dom
-	 *
 	 * @return array
 	 */
 	private function findAsStructuredMacro( DOMDocument $dom ): array {
@@ -78,11 +78,10 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * Rewrites `{macroName:a=1|b=2}` -> `{{#widget:InlineSearch|a=1|b=2}}` and the
-	 * bare `{macroName}` -> `{{#widget:InlineSearch}}`, directly in the text nodes.
+	 * Rewrites `{livesearch:key=val|...}` and bare `{livesearch}` in text nodes,
+	 * keeping only supported params.
 	 *
 	 * @param DOMDocument $dom
-	 *
 	 * @return void
 	 */
 	private function processAsWikiMarkup( DOMDocument $dom ): void {
@@ -94,24 +93,20 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		$xpath = new DOMXPath( $dom );
 		foreach ( $xpath->query( '//text()[contains(., "{")]' ) as $textNode ) {
 			$original = $textNode->nodeValue;
-			$broken = false;
 
 			$rewritten = preg_replace_callback(
 				$regex,
-				function ( array $m ) use ( $widgetSyntax, &$broken ) {
-					$params = $m[1] ?? '';
-					if ( $this->hasUnsupportedParams( $this->parseWikiMarkupParams( $params ) ) ) {
-						$broken = true;
-					}
-					return $params === ''
-						? '{{' . $widgetSyntax . '}}'
-						: '{{' . $widgetSyntax . '|' . $params . '}}';
+				function ( array $m ) use ( $widgetSyntax ) {
+					$supported = $this->filterToSupportedParams(
+						$this->parseWikiMarkupParams( $m[1] ?? '' )
+					);
+					return '{{' . $widgetSyntax . $this->buildParamsString( $supported ) . '}}';
 				},
 				$original
 			);
 
 			if ( $rewritten !== $original ) {
-				$textNode->nodeValue = $rewritten . ( $broken ? $this->getBrokenMacroCategory() : '' );
+				$textNode->nodeValue = $rewritten;
 				$found = true;
 			}
 		}
@@ -123,7 +118,6 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param DOMElement $node
-	 *
 	 * @return void
 	 * @throws DOMException
 	 */
@@ -131,34 +125,25 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		$widgetSyntax = $this->getWidgetSyntax();
 		$params = [];
 		foreach ( $node->childNodes as $childNode ) {
-			if ( $childNode->nodeName === 'ac:parameter' ) {
-				if ( $childNode instanceof DOMElement === false ) {
-					continue;
-				}
-				$paramName = $childNode->getAttribute( 'ac:name' );
-				if ( $paramName === '' ) {
-					continue;
-				}
-
-				if ( $paramName === "spaceKey" ) {
-					$params[$paramName] = $this->extractSpaceKey( $childNode );
-					continue;
-				}
-
-				$params[$paramName] = trim( $childNode->nodeValue );
+			if ( $childNode->nodeName !== 'ac:parameter' ) {
+				continue;
 			}
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
+			$paramName = $childNode->getAttribute( 'ac:name' );
+			if ( $paramName === '' ) {
+				continue;
+			}
+			$params[$paramName] = trim( $childNode->nodeValue );
 		}
 
-		$paramsString = '';
-		foreach ( $params as $key => $value ) {
-			$paramsString .= "|$key=$value";
-		}
+		$supported = $this->filterToSupportedParams( $params );
 
 		$node->parentNode->replaceChild(
 			$this->createTextNode(
 				$node->ownerDocument,
-				"{{" . $widgetSyntax . $paramsString . "}}"
-					. ( $this->hasUnsupportedParams( $params ) ? $this->getBrokenMacroCategory() : '' ),
+				'{{' . $widgetSyntax . $this->buildParamsString( $supported ) . '}}',
 				__METHOD__
 			),
 			$node
@@ -168,46 +153,31 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * Reads the space key from an <ac:parameter ac:name="spaceKey"> node in
-	 * either storage representation:
-	 *   <ac:parameter ...><ri:space ri:space-key="ABC"/></ac:parameter>
-	 *   <ac:parameter ...>ABC</ac:parameter>
+	 * Keeps only the params that the InlineSearch widget supports.
 	 *
-	 * @param DOMElement $childNode the ac:parameter element
-	 *
-	 * @return string|null the space key, or null if none is present
+	 * @param array $params
+	 * @return array
 	 */
-	private function extractSpaceKey( DOMElement $childNode ): ?string {
-		$spaces = $childNode->getElementsByTagName( 'space' );
-		if ( $spaces->length > 0 ) {
-			$key = trim( $spaces->item( 0 )->getAttribute( 'ri:space-key' ) );
-
-			return $key === '' ? null : $key;
-		}
-
-		$key = trim( $childNode->textContent );
-
-		return $key === '' ? null : $key;
+	private function filterToSupportedParams( array $params ): array {
+		return array_intersect_key( $params, array_flip( self::SUPPORTED_PARAMS ) );
 	}
 
 	/**
-	 * Returns true if any key in $params is not in SUPPORTED_PARAMS.
+	 * Builds a `|key=value|...` string from a params array.
 	 *
-	 * @param array $params keys are param names
-	 * @return bool
+	 * @param array $params
+	 * @return string
 	 */
-	private function hasUnsupportedParams( array $params ): bool {
-		foreach ( array_keys( $params ) as $key ) {
-			if ( !in_array( $key, self::SUPPORTED_PARAMS, true ) ) {
-				return true;
-			}
+	private function buildParamsString( array $params ): string {
+		$paramsString = '';
+		foreach ( $params as $key => $value ) {
+			$paramsString .= "|$key=$value";
 		}
-		return false;
+		return $paramsString;
 	}
 
 	/**
-	 * Parses a wiki-markup param string like "spaceKey=ABC|size=medium|placeholder=Foo"
-	 * into an associative array.
+	 * Parses `key=val|key2=val2` into `['key' => 'val', 'key2' => 'val2']`.
 	 *
 	 * @param string $paramsStr
 	 * @return array
@@ -219,8 +189,8 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		$result = [];
 		foreach ( explode( '|', $paramsStr ) as $pair ) {
 			if ( str_contains( $pair, '=' ) ) {
-				[ $key, ] = explode( '=', $pair, 2 );
-				$result[ trim( $key ) ] = true;
+				[ $key, $value ] = explode( '=', $pair, 2 );
+				$result[ trim( $key ) ] = $value;
 			}
 		}
 		return $result;
