@@ -42,4 +42,8 @@ class ConverterPipeDataWriter extends AbstractPipeDataWriter implements IConvert
 		$this->send( __FUNCTION__, $spaceId, $confluenceTitle, $originalAttachmentFilename, $targetAttachmentFilename );
 		return true;
 	}
+
+	public function addRequiredTemplate( string $templateName ): void {
+		$this->send( __FUNCTION__, $templateName );
+	}
 }

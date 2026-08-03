@@ -6,7 +6,7 @@ use DOMDocument;
 use DOMElement;
 use DOMException;
 use DOMXPath;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 
 class LivesearchMacro extends StructuredMacroProcessorBase {
 
@@ -26,14 +26,10 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		'placeholder' => 'placeholder',
 	];
 
-	/** @var WorkspaceDB */
-	private WorkspaceDB $workspaceDB;
-
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IConverterDataWriter $writer
 	 */
-	public function __construct( WorkspaceDB $workspaceDB ) {
-		$this->workspaceDB = $workspaceDB;
+	public function __construct( private IConverterDataWriter $writer ) {
 	}
 
 	/**
@@ -109,7 +105,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		}
 
 		if ( $found ) {
-			$this->workspaceDB->addRequiredTemplate( self::TEMPLATE_NAME );
+			$this->writer->addRequiredTemplate( self::TEMPLATE_NAME );
 		}
 	}
 
@@ -145,7 +141,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 			$node
 		);
 
-		$this->workspaceDB->addRequiredTemplate( self::TEMPLATE_NAME );
+		$this->writer->addRequiredTemplate( self::TEMPLATE_NAME );
 	}
 
 	/**

@@ -21,6 +21,8 @@ interface IConverterDataWriter extends IDataWriter {
 		string $targetAttachmentFilename
 	): bool;
 
+	public function addRequiredTemplate( string $templateName ): void;
+
 	/**
 	 * @param int $bodyContentId
 	 * @param string $text
