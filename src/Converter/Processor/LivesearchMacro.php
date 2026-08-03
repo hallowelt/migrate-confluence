@@ -199,4 +199,3 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		return $result;
 	}
 }
-
