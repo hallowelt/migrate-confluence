@@ -2952,7 +2952,7 @@ class WorkspaceDB {
 		}
 
 		$data = json_decode( $data['properties'], true );
-		if ( ! is_array( $data ) ) {
+		if ( !is_array( $data ) ) {
 			return null;
 		}
 		return $data;
