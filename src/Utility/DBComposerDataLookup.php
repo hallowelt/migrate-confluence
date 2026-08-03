@@ -60,6 +60,14 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * @param int $pageId
+	 * @return array|null The properties of the given page or null, if an error occurred
+	 */
+	public function getPropertiesForPageId( int $pageId ): ?array {
+		return $this->workspaceDB->getPropertiesForPageId( $pageId );
+	}
+
+	/**
 	 * @param int $spaceId
 	 * @return int|null The page_id of the space homepage for the given space_id, or null if not found.
 	 */

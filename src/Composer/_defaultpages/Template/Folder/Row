@@ -1,0 +1,2 @@
+<noinclude>Template added by Confluence migration to handle the "folder" pages
+</noinclude><includeonly>[[{{{1}}}|<i class="bi bi-card-text prefix"></i>]] [[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]] <small>{{{2}}}</small><br><div class="byline neutral prefixicon"><small>{{#invoke:PortalSubpageRoot|main|{{{1}}}}}</small></div></includeonly>

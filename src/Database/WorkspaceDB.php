@@ -2931,6 +2931,35 @@ class WorkspaceDB {
 
 	/**
 	 * @param int $pageId
+	 * @return array|null
+	 */
+	public function getPropertiesForPageId( int $pageId ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT properties FROM pages WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['properties'] ) ) {
+			return null;
+		}
+
+		$data = json_decode( $data['properties'], true );
+		if ( ! is_array( $data ) ) {
+			return null;
+		}
+		return $data;
+	}
+
+	/**
+	 * @param int $pageId
 	 * @return int|null The space_id for the given page_id, or null if not found.
 	 */
 	public function getSpaceIdForPageId( int $pageId ): ?int {
