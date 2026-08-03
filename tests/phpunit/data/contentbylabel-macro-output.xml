@@ -7,4 +7,12 @@
 |cql=label = "label_1" and label = "label_2"
 |conditions=[[Category:Label_1]][[Category:Label_2]]
 }}
+
+	 {{ContentByLabel
+|showLabels=false
+|showSpace=false
+|sort=title
+|cql=label = "o-z" and space = currentSpace()
+|conditions=[[Category:O-z]][[{{NAMESPACE}}:+]]
+}}
 </xml>
