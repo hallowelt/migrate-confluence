@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesBodyContents;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +18,7 @@ class ExtractPagesBodyContentsTest extends TestCase {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
 		$dbLog = $this->createMock( DBLog::class );
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentPages' )->willReturn( [ [ 'page_id' => 12 ] ] );
 		$workspaceDB->method( 'getBodyContentIdsForContentId' )->with( 12 )->willReturn( [ 102 ] );
@@ -29,7 +31,7 @@ class ExtractPagesBodyContentsTest extends TestCase {
 
 		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractPagesBodyContents( $workspaceDB, $workspace, $dbLog );
+		$processor = new ExtractPagesBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
 		$processor->execute();
 	}
 }

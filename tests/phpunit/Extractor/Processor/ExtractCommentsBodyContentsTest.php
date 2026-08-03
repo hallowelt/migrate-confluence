@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractCommentsBodyContents;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +18,7 @@ class ExtractCommentsBodyContentsTest extends TestCase {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
 		$dbLog = $this->createMock( DBLog::class );
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentComments' )->willReturn( [
 			[ 'comment_id' => 14, 'content_class' => 'Page' ],
@@ -54,7 +56,7 @@ class ExtractCommentsBodyContentsTest extends TestCase {
 
 		$dbLog->expects( $this->exactly( 2 ) )->method( 'addLogEntry' );
 
-		$processor = new ExtractCommentsBodyContents( $workspaceDB, $workspace, $dbLog );
+		$processor = new ExtractCommentsBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
 		$processor->execute();
 	}
 }

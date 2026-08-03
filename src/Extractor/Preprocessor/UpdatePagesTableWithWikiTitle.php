@@ -6,6 +6,7 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -19,16 +20,18 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 	/**
 	 * @param WorkspaceDB $workspaceDB
 	 * @param DBLog $dbLog
+	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB, DBLog $dbLog, private MigrationConfig $migrationConfig
+		WorkspaceDB $workspaceDB, DBLog $dbLog, IExtractorDataWriter $writer, private MigrationConfig $migrationConfig
 	) {
-		parent::__construct( $workspaceDB, $dbLog );
+		parent::__construct( $workspaceDB, $dbLog, $writer );
 	}
 
 	/**
 	 * @return void
+	 * @throws Exception
 	 */
 	public function execute(): void {
 		$this->updateWikiTitles();
@@ -37,6 +40,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 	/**
 	 * @return void
+	 * @throws Exception
 	 */
 	private function updateWikiTitles(): void {
 		$titleBuilder = new TitleBuilder(
@@ -156,7 +160,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			$this->writeln(
 				"Updated wiki title for page ID $pageId with title: $wikiTitle"
 			);
-			$this->workspaceDB->updatePageWikiTitle( (int)$pageId, $wikiTitle );
+			$this->writer->updatePageWikiTitle( (int)$pageId, $wikiTitle );
 		}
 	}
 
@@ -181,14 +185,14 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 		foreach ( $titles as $pageId => $title ) {
 			if ( !$validityChecker->hasValidEnding( $title ) ) {
-				$this->workspaceDB->addInvalidPageWikiTitle(
+				$this->writer->addInvalidPageWikiTitle(
 					$pageId, $title, 'Title ends with invalid character'
 				);
 			}
 
 			if ( str_contains( $title, ':' ) ) {
 				if ( $validityChecker->hasDoubleColon( $title ) ) {
-					$this->workspaceDB->addInvalidPageWikiTitle(
+					$this->writer->addInvalidPageWikiTitle(
 						$pageId, $title, 'Title contains multiple colons'
 					);
 				}
@@ -196,19 +200,19 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				$text = substr( $title, strpos( $title, ':' ) + 1 );
 
 				if ( !$validityChecker->hasValidNamespace( $namespace ) ) {
-					$this->workspaceDB->addInvalidPageWikiTitle(
+					$this->writer->addInvalidPageWikiTitle(
 						$pageId, $title, 'Invalid namespace character detected'
 					);
 				}
 
 				if ( !$validityChecker->hasValidLength( $text ) ) {
-					$this->workspaceDB->addInvalidPageWikiTitle(
+					$this->writer->addInvalidPageWikiTitle(
 						$pageId, $title, 'Title contains too many characters (>255)'
 					);
 				}
 			} else {
 				if ( !$validityChecker->hasValidLength( $title ) ) {
-					$this->workspaceDB->addInvalidPageWikiTitle(
+					$this->writer->addInvalidPageWikiTitle(
 						$pageId, $title, 'Title contains too many characters (>255)'
 					);
 				}

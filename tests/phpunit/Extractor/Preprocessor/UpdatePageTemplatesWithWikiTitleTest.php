@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageTemplatesWithWikiTitle;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
 class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
@@ -15,6 +14,7 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 	public function testBuildsWikiTitleForPageTemplate(): void {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST:', -1, -1 );
 		$workspaceDB->addPageTemplate(
@@ -29,7 +29,7 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 			'current'
 		);
 
-		$processor = new UpdatePageTemplatesWithWikiTitle( $workspaceDB, $dbLog, new MigrationConfig( [] ) );
+		$processor = new UpdatePageTemplatesWithWikiTitle( $workspaceDB, $dbLog, $writer );
 		$processor->execute();
 
 		$pageTemplate = $this->findRowById( $workspaceDB->getPageTemplates(), 'template_id', 700 );

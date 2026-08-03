@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyContents;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +18,7 @@ class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
 		$dbLog = $this->createMock( DBLog::class );
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentSpaceDescriptions' )->willReturn( [
 			[ 'space_description_id' => 11 ]
@@ -43,7 +45,7 @@ class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
 				'Extract body content to /content/raw/101.mraw'
 			);
 
-		$processor = new ExtractSpaceDescriptionBodyContents( $workspaceDB, $workspace, $dbLog );
+		$processor = new ExtractSpaceDescriptionBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
 		$processor->execute();
 	}
 }

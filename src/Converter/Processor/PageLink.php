@@ -76,7 +76,6 @@ class PageLink extends LinkProcessorBase {
 	 * @param string $rawPageTitle
 	 *
 	 * @return string
-	 * @throws InvalidTitleException
 	 */
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
 		$spaceKey = $this->spaceKey;

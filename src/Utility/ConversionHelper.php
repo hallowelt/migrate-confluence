@@ -29,21 +29,21 @@ class ConversionHelper {
 	 * @param DOMDocument $dom
 	 * @param string $text
 	 * @param string $caller
-	 * @return DOMNode
 	 *
+	 * @return DOMNode
 	 * @throws DOMException
 	 */
 	protected function createTextNode(
 		DOMDocument $dom, string $text, string $caller
 	): DOMNode {
 		if ( $dom instanceof DOMDocument === false ) {
-			new DOMException(
+			throw new DOMException(
 				"Trying to createTextNode on invalid DOMDocument in " . $caller
 			);
 		}
 		$textNode = $dom->createTextNode( $text );
 		if ( $textNode instanceof DOMNode === false ) {
-			new DOMException(
+			throw new DOMException(
 				"createTextNode does not return DOMNode in " . $caller
 			);
 		}
@@ -51,8 +51,9 @@ class ConversionHelper {
 	}
 
 	/**
-	 * @param int|null $spaceId
+	 * @param string|null $spaceId
 	 * @param string $confluenceTitle
+	 *
 	 * @return string
 	 */
 	public function getConfluencePageKeyFromSpaceId(
@@ -75,9 +76,10 @@ class ConversionHelper {
 	}
 
 	/**
-	 * @param int|null $spaceId
+	 * @param string|null $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $origFilename
+	 *
 	 * @return string
 	 */
 	protected function getConfluenceFileKeyFromSpaceId(
@@ -88,9 +90,10 @@ class ConversionHelper {
 	}
 
 	/**
-	 * @param string|null $spaceKey
+	 * @param string $spaceKey
 	 * @param string $confluenceTitle
 	 * @param string $origFilename
+	 *
 	 * @return string
 	 */
 	protected function getConfluenceFileKeyFromSpaceKey(

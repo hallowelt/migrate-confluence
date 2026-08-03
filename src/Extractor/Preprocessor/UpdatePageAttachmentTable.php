@@ -26,7 +26,7 @@ class UpdatePageAttachmentTable extends AttachmentTableUpdaterBase {
 	protected function storeAttachment(
 		int $attachmentId, int $containerId, string $originalFilename, string $targetFilename
 	): void {
-		$this->workspaceDB->addPageAttachment(
+		$this->writer->addPageAttachment(
 			$attachmentId, $containerId, $originalFilename, $targetFilename
 		);
 	}

@@ -8,9 +8,10 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -246,11 +247,9 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	): void {
 		$dbPath = $dest . '/workspace.sqlite';
 
-		$workspaceDB = file_exists( $dbPath )
-			? WorkspaceDB::open( $dest )
-			: WorkspaceDB::create( $dest );
-
-		$writer = new AnalyzeDirectDataWriter( $workspaceDB );
+		$writer = new AnalyzerDirectDataWriter(
+			file_exists( $dbPath ) ? WorkspaceDB::open( $dest ) : WorkspaceDB::create( $dest )
+		);
 
 		if ( isset( $config['config'] ) ) {
 			$migrationConfig = new MigrationConfig( $config['config'] );
@@ -258,7 +257,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			$migrationConfig = new MigrationConfig( [] );
 		}
 
-		$analyzer = new ConfluenceAnalyzer( $writer, $workspaceDB, $output, $migrationConfig );
+		$analyzer = new ConfluenceAnalyzer( $writer, $output, $migrationConfig );
 		$analyzer->analyze( new SplFileInfo( $src . '/entities.xml' ) );
 	}
 
@@ -297,15 +296,18 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		array $config,
 		BufferedOutput $output,
 	): void {
-		$pipe = fopen( 'php://temp', 'w+' );
-		if ( $pipe === false ) {
-			throw new \RuntimeException( 'Unable to open temporary pipe for converter test run' );
-		}
+		$dbPath = $dest . '/workspace.sqlite';
+
+		$workspaceDB = file_exists( $dbPath )
+			? WorkspaceDB::open( $dest )
+			: WorkspaceDB::create( $dest );
+
+		$writer = new ConverterDirectDataWriter( $workspaceDB );
 
 		$rawFiles = glob( $dest . '/content/raw/*.mraw' );
 		foreach ( $rawFiles as $rawFilePath ) {
 			$converter = new ConfluenceConverter( $config, $workspace );
-			$converter->setPipe( $pipe );
+			$converter->setDataWriter( $writer );
 			$converter->setDestinationPath( $dest );
 			$converter->setOutput( $output );
 
@@ -315,7 +317,6 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			file_put_contents( $dest . '/content/wikitext/' . $id . '.wiki', $wikiText );
 		}
 
-		fclose( $pipe );
 		$this->ensureAllReferencedBodyContentsHaveWikiFiles( $dest );
 	}
 

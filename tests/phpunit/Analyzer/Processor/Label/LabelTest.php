@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\Label;
 
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Label;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
@@ -20,7 +20,7 @@ class LabelTest extends TestCase {
 	public function testAllDatabaseFieldsAreStored(): void {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
-		$processor = new Label( new AnalyzeDirectDataWriter( $this->workspaceDB ) );
+		$processor = new Label( new AnalyzerDirectDataWriter( $this->workspaceDB ) );
 		$this->executeProcessorForClass( $processor, __DIR__ . '/label.xml', 'Label' );
 
 		$labels = $this->workspaceDB->getLabels();

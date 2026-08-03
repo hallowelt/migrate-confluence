@@ -29,7 +29,7 @@ class ExtractBlogPostsMetaData extends ExtractPagesMetaData {
 				continue;
 			}
 
-			$this->workspaceDB->addBlogPostMeta(
+			$this->writer->addBlogPostMeta(
 				$pageId,
 				[
 					'categories' => $categories

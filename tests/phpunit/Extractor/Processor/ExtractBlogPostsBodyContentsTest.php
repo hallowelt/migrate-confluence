@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +18,7 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
 		$dbLog = $this->createMock( DBLog::class );
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentBlogPosts' )->willReturn( [ [ 'page_id' => 13 ] ] );
 		$workspaceDB->method( 'getBodyContentIdsForContentId' )->with( 13 )->willReturn( [ 103 ] );
@@ -29,7 +31,7 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 
 		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractBlogPostsBodyContents( $workspaceDB, $workspace, $dbLog );
+		$processor = new ExtractBlogPostsBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
 		$processor->execute();
 	}
 }

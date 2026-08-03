@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer;
 
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Tests\Database\ExportPropertiesQueryHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -46,8 +46,7 @@ class ExportDescriptorTest extends TestCase {
 		$workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
 		$analyzer = new ConfluenceAnalyzer(
-			new AnalyzeDirectDataWriter( $workspaceDB ),
-			$workspaceDB,
+			new AnalyzerDirectDataWriter( $workspaceDB ),
 			new NullOutput(),
 			new MigrationConfig( [] )
 		);
@@ -75,8 +74,7 @@ class ExportDescriptorTest extends TestCase {
 		$workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
 		$analyzer = new ConfluenceAnalyzer(
-			new AnalyzeDirectDataWriter( $workspaceDB ),
-			$workspaceDB,
+			new AnalyzerDirectDataWriter( $workspaceDB ),
 			new NullOutput(),
 			new MigrationConfig( [] )
 		);
@@ -90,8 +88,7 @@ class ExportDescriptorTest extends TestCase {
 		$workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
 		$analyzer = new ConfluenceAnalyzer(
-			new AnalyzeDirectDataWriter( $workspaceDB ),
-			$workspaceDB,
+			new AnalyzerDirectDataWriter( $workspaceDB ),
 			new NullOutput(),
 			new MigrationConfig( [] )
 		);

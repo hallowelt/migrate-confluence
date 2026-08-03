@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\BlogPost;
 
-use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzeDirectDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
@@ -22,7 +22,7 @@ class BlogPostTest extends TestCase {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
 		$processor = new BlogPost(
-			new AnalyzeDirectDataWriter( $this->workspaceDB ),
+			new AnalyzerDirectDataWriter( $this->workspaceDB ),
 			new MigrationConfig( [] )
 		);
 		$this->executeProcessorForClass( $processor, __DIR__ . '/blog_post.xml', 'BlogPost' );
