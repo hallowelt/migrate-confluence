@@ -878,11 +878,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 					$bodyContentId,
 					'BodyContent exeeded length of 512 characters'
 				);
-			} else {
-				$this->writer->addInvalidBodyContent(
-					$bodyContentId,
-					'BodyContent exeeded length of 512 characters'
-				);
 			}
 		}
 
