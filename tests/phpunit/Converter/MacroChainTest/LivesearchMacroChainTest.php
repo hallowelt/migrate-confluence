@@ -2,9 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\LivesearchMacro;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
 /**
  * @group full
@@ -37,7 +37,7 @@ class LivesearchMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new LivesearchMacro( $this->createMock( WorkspaceDB::class ) );
+		return new LivesearchMacro( $this->createMock( ConverterDirectDataWriter::class ) );
 	}
 
 }
