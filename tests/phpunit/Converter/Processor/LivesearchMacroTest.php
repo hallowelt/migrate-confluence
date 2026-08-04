@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\LivesearchMacro;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
 class LivesearchMacroTest extends ProcessorTestCase {
 
