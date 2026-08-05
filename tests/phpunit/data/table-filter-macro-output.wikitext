@@ -14,7 +14,7 @@
 |worklog = 365|5|8|y w d h m|y w d h m
 |isOR = AND
 |order = 0,1
-}}|body = 
+}}
 
 {| class="wikitable fixed-table wrapped datagrid"
 |-

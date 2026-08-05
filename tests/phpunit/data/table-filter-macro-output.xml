@@ -16,7 +16,7 @@
 |worklog = 365|5|8|y w d h m|y w d h m###BREAK###
 |isOR = AND###BREAK###
 |order = 0,1###BREAK###
-}}|body = ###BREAK###
+}}###BREAK###
 <table class="fixed-table wrapped datagrid">
 				<colgroup>
 					<col style="width: 38.0px;"/>
