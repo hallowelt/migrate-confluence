@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use HalloWelt\MigrateConfluence\Utility\CQLParser\SemanticMediaWikiCQLParser;
+use HalloWelt\MigrateConfluence\Utility\CQLParser\DplCQLParser;
 
 class ContentByLabelMacro extends StructuredMacroProcessorBase {
 
@@ -101,7 +101,7 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 	 * @return string
 	 */
 	private function getConditionsForCQL( string $cql ): string {
-		$cqlParser = new SemanticMediaWikiCQLParser();
+		$cqlParser = new DplCQLParser();
 		$conditions = $cqlParser->parse( $cql );
 
 		return $conditions;
