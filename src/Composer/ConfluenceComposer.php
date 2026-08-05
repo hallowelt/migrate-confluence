@@ -12,6 +12,7 @@ use HalloWelt\MigrateConfluence\Composer\Processor\BlogPosts;
 use HalloWelt\MigrateConfluence\Composer\Processor\DefaultFiles;
 use HalloWelt\MigrateConfluence\Composer\Processor\DefaultPages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Files;
+use HalloWelt\MigrateConfluence\Composer\Processor\InvalidContents;
 use HalloWelt\MigrateConfluence\Composer\Processor\PageComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Sidebar;
@@ -188,6 +189,10 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			),
 			new Users(
 				$this->dataLookup, $this->output, $this->dest
+			),
+			new InvalidContents(
+				$builder, $this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig
 			),
 		];
 	}

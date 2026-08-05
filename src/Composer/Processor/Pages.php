@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Composer\PageSplitter;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
@@ -103,43 +102,14 @@ class Pages extends ContentProcessorBase {
 					);
 				}
 
-				$this->addSplitRevisions( $pageTitle, $pageContent, $timestamp );
+				$this->addRevision(
+					$pageTitle,
+					$pageContent,
+					$timestamp
+				);
 			}
 
 			$this->deploymentInfo->addNamespace( $namespace );
-		}
-	}
-
-	/**
-	 * Emit one or more revisions for $pageTitle.  If the content exceeds the
-	 * visual-editor size limit it is split into numbered child pages
-	 * (<title>/2, <title>/3, …) linked to each other.
-	 *
-	 * @param string $pageTitle
-	 * @param string $pageContent
-	 * @param string $timestamp
-	 * @return void
-	 */
-	private function addSplitRevisions( string $pageTitle, string $pageContent, string $timestamp ): void {
-		$parts = PageSplitter::split( $pageContent );
-
-		if ( count( $parts ) === 1 ) {
-			$this->addRevision( $pageTitle, $parts[0], $timestamp );
-			return;
-		}
-
-		$this->output->writeln(
-			"Page '$pageTitle' is oversized, splitting into " . count( $parts ) . " parts."
-		);
-
-		$titles = PageSplitter::buildPartTitles( $pageTitle, count( $parts ) );
-
-		foreach ( $parts as $idx => $part ) {
-			$this->addRevision(
-				$titles[$idx],
-				PageSplitter::addNavigation( $part, $idx, $titles ),
-				$timestamp
-			);
 		}
 	}
 }
