@@ -61,7 +61,7 @@ class TableFilterMacro extends ConvertMacroToTemplateWithBodyBase {
 		}
 
 		if ( !empty( $richTextBodyEls ) ) {
-			$bodyString = "|body = ";
+			$bodyString = "";
 			if ( $this->addLinebreakInsideTemplate() ) {
 				$bodyString .= "###BREAK###\n";
 			}
