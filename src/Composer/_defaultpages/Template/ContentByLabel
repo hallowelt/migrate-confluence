@@ -106,7 +106,6 @@
 	]
 }
 </templatedata>
-</noinclude><includeonly><dpl>
 <!--
 Behavior summary:
 - Uses conditions directly when present.
@@ -117,6 +116,7 @@ Behavior summary:
 - Uses showSpace to choose default display path when path is not set:
   showSpace set -> fullpagename, otherwise -> pagename.
 -->
+</noinclude><includeonly><dpl>
 {{#if:{{{conditions|}}}|{{{conditions}}}|category={{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}}}}}
 mode=unordered
 format=,\n* {{#switch:{{{path|{{#if:{{{showSpace|}}}|fullpagename|pagename}}}}}|fullpagename=[[ %PAGE% ]]|basepagename=[[ %PAGE%|{{BASEPAGENAME:%PAGE%}} ]]|subpagename=[[ %PAGE%|{{SUBPAGENAME:%PAGE%}} ]]|#default=[[ %PAGE%|{{PAGENAME:%PAGE%}} ]]}}
