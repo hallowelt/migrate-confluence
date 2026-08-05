@@ -5,9 +5,11 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      PANDOC_VERSION: "3.1.11.1"
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -15,8 +17,33 @@ jobs:
           php-version: 8.5
           tools: composer:2
 
+      - name: Cache pandoc
+        id: cache-pandoc
+        uses: actions/cache@v4
+        with:
+          path: ~/pandoc
+          key: pandoc-${{ env.PANDOC_VERSION }}
+
       - name: Install pandoc
-        run: sudo apt-get update && sudo apt-get install -y pandoc
+        if: steps.cache-pandoc.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/pandoc/bin
+          wget -q https://github.com/jgm/pandoc/releases/download/${{ env.PANDOC_VERSION }}/pandoc-${{ env.PANDOC_VERSION }}-linux-amd64.tar.gz
+          tar -xzf pandoc-${{ env.PANDOC_VERSION }}-linux-amd64.tar.gz --strip-components=2 -C ~/pandoc/bin pandoc-${{ env.PANDOC_VERSION }}/bin/pandoc
+
+      - name: Add pandoc to PATH
+        run: echo "$HOME/pandoc/bin" >> $GITHUB_PATH
+
+      - name: Get composer cache dir
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
 
       - name: Install dependencies
         run: composer update
