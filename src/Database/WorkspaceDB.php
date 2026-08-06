@@ -475,6 +475,7 @@ class WorkspaceDB {
 				space_id INT,
 				confluence_title CHAR,
 				wiki_title CHAR,
+				interwiki_title CHAR,
 				parent_page_id INT,
 				content_status CHAR,
 				version CHAR,
@@ -1895,7 +1896,7 @@ class WorkspaceDB {
 	 */
 	public function getMapSpaceIdToPrefix(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT space_id,space_prefix FROM spaces'
+			'SELECT space_id, namespace_prefix, root_page FROM spaces'
 		);
 
 		$result = $transaction->execute();
@@ -1904,7 +1905,20 @@ class WorkspaceDB {
 		$map = [];
 		foreach ( $data as $item ) {
 			$key = $item['space_id'];
-			$value = $item['space_prefix'];
+			$namespacePrefix = $item['namespace_prefix'];
+			$rootPage = $item['root_page'];
+
+			// Add ':' after namespace_prefix if not empty and doesn't already end with ':'
+			if ( !empty( $namespacePrefix ) && substr( $namespacePrefix, -1 ) !== ':' ) {
+				$namespacePrefix .= ':';
+			}
+
+			// Add '/' after root_page if not empty and doesn't already end with '/'
+			if ( !empty( $rootPage ) && substr( $rootPage, -1 ) !== '/' ) {
+				$rootPage .= '/';
+			}
+
+			$value = $namespacePrefix . $rootPage;
 			$map[$key] = $value;
 		}
 
@@ -2388,6 +2402,21 @@ class WorkspaceDB {
 		);
 
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @param string $interwikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageInterwikiTitle( int $pageId, string $interwikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE pages SET interwiki_title = :interwiki_title WHERE page_id = :page_id'
+		);
+
+		$transaction->bindValue( ':interwiki_title', $interwikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
