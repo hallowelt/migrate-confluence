@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Utility\CQLParser;
 
 use HalloWelt\MigrateConfluence\Utility\CQLParser\Fields\Label;
 use HalloWelt\MigrateConfluence\Utility\CQLParser\Fields\Space;
-use HalloWelt\MigrateConfluence\Utility\CQLParser\Fields\Title;
 
 class DplCQLParser extends CQLParser {
 	private const OR_SEPARATOR = '{{!}}';
@@ -16,7 +15,6 @@ class DplCQLParser extends CQLParser {
 		return [
 			new Label(),
 			new Space(),
-			new Title(),
 		];
 	}
 
@@ -24,7 +22,7 @@ class DplCQLParser extends CQLParser {
 	 * Build a DPL4 condition string from parsed CQL clauses.
 	 *
 	 * Only fields with direct DPL4 counterparts are mapped.
-	 * Currently: `label`, `space`, `title`.
+	 * Currently: `label`, `space`.
 	 * Other validated fields are intentionally ignored until mapping rules exist.
 	 *
 	 * @param array $queryClauses
@@ -72,13 +70,16 @@ class DplCQLParser extends CQLParser {
 			}
 		}
 
-		return implode(
-			"\n",
-			array_map(
-				static fn ( array $clause ) => $clause['key'] . '=' . $clause['value'],
-				$result
-			)
+		$queryParts = array_map(
+			static fn ( array $clause ) => $clause['key'] . '=' . $clause['value'],
+			$result
 		);
+
+		if ( $queryParts === [] ) {
+			return '';
+		}
+
+		return implode( ',', $queryParts );
 	}
 
 	/**
@@ -93,12 +94,8 @@ class DplCQLParser extends CQLParser {
 		$operator = $clause['operator'];
 		$leadingNot = $clause['leadingNot'];
 
-		if ( $field !== 'label' && $field !== 'space' && $field !== 'title' ) {
+		if ( $field !== 'label' && $field !== 'space' ) {
 			return [];
-		}
-
-		if ( $field === 'title' ) {
-			return $this->buildTitleDplClauses( $clause );
 		}
 
 		if ( $operator === '=' || $operator === '!=' ) {
@@ -147,41 +144,6 @@ class DplCQLParser extends CQLParser {
 		}
 
 		return [];
-	}
-
-	/**
-	 * Convert one parsed title clause into one or many DPL4 parameter fragments.
-	 *
-	 * @param array{field:string, operator:string, values:array<int,string>, leadingNot:bool} $clause
-	 * @return array<int, array{key:string, value:string, orComposable:bool}>
-	 */
-	private function buildTitleDplClauses( array $clause ): array {
-		$operator = $clause['operator'];
-		$leadingNot = $clause['leadingNot'];
-
-		if ( $operator !== '=' && $operator !== '!=' && $operator !== '~' && $operator !== '!~' ) {
-			return [];
-		}
-
-		$negated = ( $operator === '!=' || $operator === '!~' ) !== $leadingNot;
-		$raw = trim( $clause['values'][0] );
-		if ( $raw === '' ) {
-			return [];
-		}
-
-		if ( $operator === '~' || $operator === '!~' ) {
-			$value = '%' . $raw . '%';
-		} else {
-			$value = $raw;
-		}
-
-		return [
-			[
-				'key' => $negated ? 'nottitlematch' : 'titlematch',
-				'value' => $value,
-				'orComposable' => !$negated,
-			]
-		];
 	}
 
 	/**
@@ -244,6 +206,5 @@ class DplCQLParser extends CQLParser {
 		}
 
 		return 'Blog:' . $namespace;
-
 	}
 }

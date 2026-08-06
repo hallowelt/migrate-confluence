@@ -12,7 +12,10 @@ class DplCQLParserTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Utility\CQLParser\DplCQLParser::buildQueryFromClauses()
 	 */
 	public function testDplParserExtendsBaseParser(): void {
-		$this->assertTrue( is_subclass_of( DplCQLParser::class, CQLParser::class ) );
+		$this->assertTrue(
+			is_subclass_of( DplCQLParser::class, CQLParser::class ),
+			'DplCQLParser must extend CQLParser to reuse base CQL validation and splitting logic.'
+		);
 	}
 
 	/**
@@ -22,7 +25,7 @@ class DplCQLParserTest extends TestCase {
 		$this->assertParsedResult( 'label = "dev"', 'category=Dev' );
 		$this->assertParsedResult( 'label != "dev"', 'notcategory=Dev' );
 		$this->assertParsedResult( 'label in ("dev", "test")', 'category=Dev{{!}}Test' );
-		$this->assertParsedResult( 'label not in ("dev", "test")', "notcategory=Dev\nnotcategory=Test" );
+		$this->assertParsedResult( 'label not in ("dev", "test")', 'notcategory=Dev,notcategory=Test' );
 	}
 
 	/**
@@ -32,18 +35,18 @@ class DplCQLParserTest extends TestCase {
 		$this->assertParsedResult( 'space = "DEV"', 'namespace=DEV' );
 		$this->assertParsedResult( 'space != "DEV"', 'notnamespace=DEV' );
 		$this->assertParsedResult( 'space in ("DEV", "Test")', 'namespace=DEV{{!}}Test' );
-		$this->assertParsedResult( 'space not in ("DEV", "Test")', "notnamespace=DEV\nnotnamespace=Test" );
+		$this->assertParsedResult( 'space not in ("DEV", "Test")', 'notnamespace=DEV,notnamespace=Test' );
 		$this->assertParsedResult( 'space = currentSpace()', 'namespace={{NAMESPACE}}' );
 	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Utility\CQLParser\CQLParser::parse()
 	 */
-	public function testTitleClausesAreMappedToDplParameters(): void {
-		$this->assertParsedResult( 'title = "Project Plan"', 'titlematch=Project Plan' );
-		$this->assertParsedResult( 'title != "Project Plan"', 'nottitlematch=Project Plan' );
-		$this->assertParsedResult( 'title ~ "Project"', 'titlematch=%Project%' );
-		$this->assertParsedResult( 'title !~ "Project"', 'nottitlematch=%Project%' );
+	public function testTitleClausesAreRejectedForDplParser(): void {
+		$this->assertParsedResult( 'title = "Project Plan"', '' );
+		$this->assertParsedResult( 'title != "Project Plan"', '' );
+		$this->assertParsedResult( 'title ~ "Project"', '' );
+		$this->assertParsedResult( 'title !~ "Project"', '' );
 	}
 
 	/**
@@ -60,7 +63,7 @@ class DplCQLParserTest extends TestCase {
 	public function testAndClausesAreRenderedAsSeparateCriteria(): void {
 		$this->assertParsedResult(
 			'label = "dev" and space = "DEV"',
-			"category=Dev\nnamespace=DEV"
+			'category=Dev,namespace=DEV'
 		);
 	}
 
@@ -82,6 +85,16 @@ class DplCQLParserTest extends TestCase {
 	}
 
 	/**
+	 * @covers \HalloWelt\MigrateConfluence\Utility\CQLParser\CQLParser::parse()
+	 */
+	public function testLabelOrThenAndClausesStayConvertible(): void {
+		$this->assertParsedResult(
+			'label = "label_1" or label = "label_2" and label = "label_3"',
+			'category=Label_1{{!}}Label_2,category=Label_3'
+		);
+	}
+
+	/**
 	 * @param string $input
 	 * @param string $expected
 	 */
@@ -89,6 +102,10 @@ class DplCQLParserTest extends TestCase {
 		$cqlParser = new DplCQLParser();
 		$actual = $cqlParser->parse( $input );
 
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame(
+			$expected,
+			$actual,
+			"Unexpected DPL mapping for CQL: '$input'. Expected: '$expected', got: '$actual'."
+		);
 	}
 }
