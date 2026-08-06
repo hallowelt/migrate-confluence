@@ -15,7 +15,7 @@ interface IAnalyzeDataWriter extends IDataWriter {
 	 * @param string $rootPage
 	 * @param int $homepageId
 	 * @param int $descriptionId
-	 * @return boolean
+	 * @return bool
 	 */
 	public function addSpace(
 		int $spaceId, string $spaceKey, string $spaceName,

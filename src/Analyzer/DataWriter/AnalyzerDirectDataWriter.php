@@ -15,7 +15,7 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	 * @param string $rootPage
 	 * @param int $homepageId
 	 * @param int $descriptionId
-	 * @return boolean
+	 * @return bool
 	 */
 	public function addSpace(
 		int $spaceId,
