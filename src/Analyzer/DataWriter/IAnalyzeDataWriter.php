@@ -10,15 +10,16 @@ interface IAnalyzeDataWriter extends IDataWriter {
 	 * @param int $spaceId
 	 * @param string $spaceKey
 	 * @param string $spaceName
-	 * @param string $prefix
+	 * @param string $namespacePrefix
+	 * @param string $interwikiPrefix
+	 * @param string $rootPage
 	 * @param int $homepageId
 	 * @param int $descriptionId
-	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	public function addSpace(
 		int $spaceId, string $spaceKey, string $spaceName,
-		string $prefix, int $homepageId, int $descriptionId
+		string $namespacePrefix, string $interwikiPrefix, string $rootPage, int $homepageId, int $descriptionId
 	): bool;
 
 	/**

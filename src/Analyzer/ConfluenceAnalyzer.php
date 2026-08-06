@@ -17,6 +17,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -38,6 +39,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 		private readonly IAnalyzeDataWriter $writer,
 		private readonly OutputInterface $output,
 		private readonly MigrationConfig $config,
+		private readonly WikisConfig $wikis,
 	) {
 		$this->logger = new NullLogger();
 	}
@@ -121,7 +123,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	private function getProcessors( string $sourceBasePath ): array {
 		return [
 			'BodyContent' => new BodyContents( $this->writer ),
-			'Space' => new Spaces( $this->writer, $this->config ),
+			'Space' => new Spaces( $this->writer, $this->config, $this->wikis ),
 			'SpaceDescription' => new SpaceDescription( $this->writer, $this->config ),
 			'Page' => new Page( $this->writer, $this->config ),
 			'BlogPost' => new BlogPost( $this->writer, $this->config ),

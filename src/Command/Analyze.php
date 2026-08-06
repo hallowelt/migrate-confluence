@@ -17,6 +17,8 @@ use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
+use HalloWelt\MigrateConfluence\Utility\WikisConfig;
+use HalloWelt\MigrateConfluence\Utility\WikisOptionHelper;
 use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -30,6 +32,11 @@ class Analyze extends BatchFileProcessorBase {
 
 	/** @var IAnalyzeDataWriter|null */
 	private ?IAnalyzeDataWriter $dataWriter;
+
+	/**
+	 * @var WikisConfig
+	 */
+	private WikisConfig $wikisConfig;
 
 	/**
 	 * @param array $config
@@ -50,6 +57,14 @@ class Analyze extends BatchFileProcessorBase {
 		$definition->addOption(
 			new InputOption(
 				'config', null, InputOption::VALUE_REQUIRED, 'Specifies the path to the config yaml file'
+			)
+		);
+		$definition->addOption(
+			new InputOption(
+				'wikis',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'Specifies the path to the csv file containing interwiki configuration'
 			)
 		);
 		$definition->addOption(
@@ -84,6 +99,9 @@ class Analyze extends BatchFileProcessorBase {
 	 * @return int
 	 */
 	protected function execute( InputInterface $input, OutputInterface $output ): int {
+		$this->input = $input;
+		$this->output = $output;
+
 		$workers = (int)$input->getOption( 'workers' );
 		$isChildProcess = $input->hasParameterOption( '--worker' );
 
@@ -104,6 +122,9 @@ class Analyze extends BatchFileProcessorBase {
 		}
 
 		$workspaceDB = WorkspaceDB::create( $this->dest );
+		$this->readWikisConfigFile( $workspaceDB );
+		$this->wikisConfig = new WikisConfig( $workspaceDB );
+
 		$dbLog = new DBLog( $workspaceDB );
 		$dbLog->addLogEntry(
 			'info',
@@ -145,7 +166,8 @@ class Analyze extends BatchFileProcessorBase {
 		$analyzer = new ConfluenceAnalyzer(
 			$this->dataWriter,
 			$this->output,
-			$this->getMigrationConfig()
+			$this->getMigrationConfig(),
+			$this->wikisConfig
 		);
 
 		$analyzer->analyze( $file );
@@ -192,6 +214,32 @@ class Analyze extends BatchFileProcessorBase {
 		}
 
 		return new MigrationConfig( $advancedConfig );
+	}
+
+	/**
+	 * @param WorkspaceDB $workspaceDB
+	 *
+	 * @return void
+	 */
+	private function readWikisConfigFile( WorkspaceDB $workspaceDB ): void {
+		$filename = $this->input->getOption( 'wikis' );
+		if ( !empty( $filename ) ) {
+			$wikiConfigOptionHelper = new WikisOptionHelper( $filename );
+			$validationError = $wikiConfigOptionHelper->validateFile();
+			if ( $validationError !== null ) {
+				$this->output->writeln( $validationError );
+				exit( 1 );
+			}
+
+			foreach ( $wikiConfigOptionHelper->getConfig() as $wikiConfig ) {
+				$workspaceDB->addWikisConfig(
+					$wikiConfig['space-key'],
+					$wikiConfig['wiki-name'],
+					$wikiConfig['wiki-namespace'],
+					$wikiConfig['wiki-root-page']
+				);
+			}
+		}
 	}
 
 	/**

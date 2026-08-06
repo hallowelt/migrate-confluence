@@ -10,21 +10,27 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	 * @param int $spaceId
 	 * @param string $spaceKey
 	 * @param string $spaceName
-	 * @param string $prefix
+	 * @param string $namespacePrefix
+	 * @param string $interwikiPrefix
+	 * @param string $rootPage
 	 * @param int $homepageId
 	 * @param int $descriptionId
-	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	public function addSpace(
 		int $spaceId,
 		string $spaceKey,
 		string $spaceName,
-		string $prefix,
+		string $namespacePrefix,
+		string $interwikiPrefix,
+		string $rootPage,
 		int $homepageId,
 		int $descriptionId
 	): bool {
-		return $this->db->addSpace( $spaceId, $spaceKey, $spaceName, $prefix, $homepageId, $descriptionId );
+		return $this->db->addSpace(
+			$spaceId, $spaceKey, $spaceName, $namespacePrefix, $interwikiPrefix,
+			$rootPage, $homepageId, $descriptionId
+		);
 	}
 
 	/**
