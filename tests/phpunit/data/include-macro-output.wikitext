@@ -1,3 +1,5 @@
 {{:ABC:Some_MediaWiki_page_name}}
 
+{{:DEF:Test:_TargetPage}}
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
