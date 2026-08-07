@@ -668,12 +668,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$sContent = preg_replace( '/<at:declarations[^>]*>.*?<\/at:declarations>/s', '', $sContent );
 
 		// Append categories
-		$metaData = [];
-		if ( $this->contentType === 'page' ) {
-			$metaData = $this->workspaceDB->getPageMeta();
-		} elseif ( $this->contentType === 'blogPost' ) {
-			$metaData = $this->workspaceDB->getBlogPostMeta();
-		}
+		$metaData = $this->getMetaData();
 		$categories = '';
 		if ( isset( $metaData['categories'] ) ) {
 			foreach ( $metaData['categories'] as $category ) {
@@ -687,6 +682,35 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice" xmlns:at="atlassian-template">' . $sContent . '</xml>';
 
 		return $sContent;
+	}
+
+	private function getMetaData(): array {
+		static $pageMetaData = null;
+		static $blogPostMetaData = null;
+		if ( $pageMetaData === null ) {
+			$pageMetaData = $this->workspaceDB->getPageMeta();
+		}
+		if ( $blogPostMetaData === null ) {
+			$blogPostMetaData = $this->workspaceDB->getBlogPostMeta();
+		}
+		$metaData = [];
+		$source = null;
+		if ( $this->contentType === 'page' ) {
+			$source = $pageMetaData;
+		} elseif ( $this->contentType === 'blogPost' ) {
+			$source = $blogPostMetaData;
+		}
+		if ( !$source ) {
+			return $metaData;
+		}
+		foreach ( $source as $row ) {
+			if ( $row['page_id'] === $this->pageId ) {
+				$metaData = json_decode( $row['meta'], true ) ?? [];
+				break;
+			}
+		}
+
+		return $metaData;
 	}
 
 	/**

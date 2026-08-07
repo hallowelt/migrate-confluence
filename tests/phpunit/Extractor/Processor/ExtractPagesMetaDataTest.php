@@ -44,4 +44,42 @@ class ExtractPagesMetaDataTest extends TestCase {
 		$processor = new ExtractPagesMetaData( $workspaceDB, $dbLog, $writer, $migrationConfig );
 		$processor->execute();
 	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData::execute
+	 */
+	public function testDoesNotLeakLabelCategoriesBetweenPages(): void {
+		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$dbLog = $this->createMock( DBLog::class );
+		$migrationConfig = $this->createMock( MigrationConfig::class );
+		$writer = $this->createMock( ExtractorDirectDataWriter::class );
+
+		$migrationConfig->method( 'getCategories' )->willReturn( [] );
+		$workspaceDB->method( 'getCurrentPages' )->willReturn( [
+			[
+				'page_id' => 10,
+				'wiki_title' => 'TEST:PageWithLabel',
+				'original_version_id' => -1,
+				'collection' => json_encode( [ 'labellings' => [ 200 ] ] ),
+			],
+			[
+				'page_id' => 20,
+				'wiki_title' => 'TEST:PageWithoutLabel',
+				'original_version_id' => -1,
+				'collection' => json_encode( [ 'labellings' => [] ] ),
+			],
+		] );
+		$workspaceDB->method( 'getLabellingById' )->with( 200 )->willReturn( [ 'label_id' => 300 ] );
+		$workspaceDB->method( 'getLabelById' )->with( 300 )->willReturn( [ 'name' => 'LabelCategory' ] );
+
+		$writer->expects( $this->once() )
+			->method( 'addPageMeta' )
+			->with(
+				10,
+				[ 'categories' => [ 'LabelCategory' ] ]
+			);
+
+		$processor = new ExtractPagesMetaData( $workspaceDB, $dbLog, $writer, $migrationConfig );
+		$processor->execute();
+	}
 }
