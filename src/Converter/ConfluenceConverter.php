@@ -684,37 +684,21 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		return $sContent;
 	}
 
-	/** @var array|null */
-	private ?array $pageMetaData = null;
-
-	/** @var array|null */
-	private ?array $blogPostMetaData = null;
-
+	/**
+	 * @return array
+	 */
 	private function getMetaData(): array {
-		if ( $this->pageMetaData === null ) {
-			$this->pageMetaData = $this->workspaceDB->getPageMeta();
-		}
-		if ( $this->blogPostMetaData === null ) {
-			$this->blogPostMetaData = $this->workspaceDB->getBlogPostMeta();
-		}
-		$metaData = [];
-		$source = null;
+		$row = null;
 		if ( $this->contentType === 'page' ) {
-			$source = $this->pageMetaData;
+			$row = $this->workspaceDB->getPageMetaByPageId( $this->pageId );
 		} elseif ( $this->contentType === 'blogPost' ) {
-			$source = $this->blogPostMetaData;
+			$row = $this->workspaceDB->getBlogPostMetaByPageId( $this->pageId );
 		}
-		if ( !$source ) {
-			return $metaData;
-		}
-		foreach ( $source as $row ) {
-			if ( $row['page_id'] === $this->pageId ) {
-				$metaData = json_decode( $row['meta'], true ) ?? [];
-				break;
-			}
+		if ( $row === null ) {
+			return [];
 		}
 
-		return $metaData;
+		return json_decode( $row['meta'], true ) ?? [];
 	}
 
 	/**
