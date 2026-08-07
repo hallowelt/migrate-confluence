@@ -116,13 +116,35 @@ Behavior summary:
 - Uses showSpace to choose default display path when path is not set:
   showSpace set -> fullpagename, otherwise -> pagename.
 -->
-</noinclude><includeonly>{{#dpl:
-{{#if:{{{conditions|}}}|{{#arraymap:{{{conditions}}}|,|@@|{{!}}@@}}|
-|category={{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}}}
+</noinclude><includeonly>
+{{Textbox|boxtype=note|header=Test|text=output for <nowiki>{{{conditions}}}</nowiki>: {{{conditions}}}|icon=yes}}
+<div role="list">
+{{#if:{{{conditions|}}}|{{#dpl:
+{{#explode:{{{conditions}}}|,|0}}
+|{{#explode:{{{conditions|}}}|,|1}}
+|{{#explode:{{{conditions|}}}|,|2}}
+|{{#explode:{{{conditions|}}}|,|3}}
+|{{#explode:{{{conditions|}}}|,|4}}
+|{{#explode:{{{conditions|}}}|,|5}}
+|{{#explode:{{{conditions|}}}|,|6}}
+|{{#explode:{{{conditions|}}}|,|7}}
+|{{#explode:{{{conditions|}}}|,|8}}
+|{{#explode:{{{conditions|}}}|,|9}}
+|mode=userformat
+|replaceintitle={{#switch:{{{path|pagename}}}
+ |fullpagename= %PAGE%,
+ |basepagename=/\/[^\/]+$/,
+ |subpagename=/^.*\//,
+ |#default=/^$/,
 }}
-|mode=unordered
-|format=,\n* {{#switch:{{{path|{{#if:{{{showSpace|}}}|fullpagename|pagename}}}}}|fullpagename=[[ %PAGE% ]]|basepagename=[[ %PAGE%|{{BASEPAGENAME:%PAGE%}} ]]|subpagename=[[ %PAGE%|{{SUBPAGENAME:%PAGE%}} ]]|#default=[[ %PAGE%|{{PAGENAME:%PAGE%}} ]]}}
-{{#if:{{{sort|}}}|{{!}}ordermethod={{{sort}}}|}}
-{{#switch:{{lc:{{{reverse|}}}}}|true={{!}}order=descending|yes={{!}}order=descending|#default=}}
+|addcategories={{{showLabels|}}}
+|format=,\n <div role="list-item" style="margin-left:1em; padding-top:0.6em">[[ %PAGE%|<i class="bi bi-card-text prefix"></i> %TITLE% ]] {{#ifeq:{{{showSpace}}}|true|({{{namespace|}}})}}<br><span class="badge rounded-pill bg-light text-dark" style="margin-left:2.5em">%CATLIST%</span></div>
+|ordermethod={{{sort|}}} 
+|{{#switch:{{lc:{{{reverse|}}}}}|true|yes=order=descending}}
 |count={{{max|999}}}
-}}</includeonly>
+|mode=none
+}}
+ |<div style="margin-left:1em">no categories found</div>
+}}
+</div>
+</includeonly>
