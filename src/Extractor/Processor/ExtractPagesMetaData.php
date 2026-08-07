@@ -29,7 +29,7 @@ class ExtractPagesMetaData extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$categories = $this->migrationConfig->getCategories();
+		$configCategories = $this->migrationConfig->getCategories();
 
 		foreach ( $this->workspaceDB->getCurrentPages() as $page ) {
 			if ( !isset( $page['page_id'] ) || !isset( $page['original_version_id'] ) ) {
@@ -45,7 +45,7 @@ class ExtractPagesMetaData extends ProcessorBase {
 				continue;
 			}
 
-			$categories = $this->getCategoryMeta( $labellings, $categories );
+			$categories = $this->getCategoryMeta( $labellings, $configCategories );
 
 			if ( empty( $categories ) ) {
 				continue;

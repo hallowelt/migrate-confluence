@@ -668,12 +668,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$sContent = preg_replace( '/<at:declarations[^>]*>.*?<\/at:declarations>/s', '', $sContent );
 
 		// Append categories
-		$metaData = [];
-		if ( $this->contentType === 'page' ) {
-			$metaData = $this->workspaceDB->getPageMeta();
-		} elseif ( $this->contentType === 'blogPost' ) {
-			$metaData = $this->workspaceDB->getBlogPostMeta();
-		}
+		$metaData = $this->getMetaData();
 		$categories = '';
 		if ( isset( $metaData['categories'] ) ) {
 			foreach ( $metaData['categories'] as $category ) {
@@ -687,6 +682,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice" xmlns:at="atlassian-template">' . $sContent . '</xml>';
 
 		return $sContent;
+	}
+
+	/**
+	 * @return array
+	 */
+	private function getMetaData(): array {
+		$row = null;
+		if ( $this->contentType === 'page' ) {
+			$row = $this->workspaceDB->getPageMetaByPageId( $this->pageId );
+		} elseif ( $this->contentType === 'blogPost' ) {
+			$row = $this->workspaceDB->getBlogPostMetaByPageId( $this->pageId );
+		}
+		if ( $row === null ) {
+			return [];
+		}
+
+		return json_decode( $row['meta'], true ) ?? [];
 	}
 
 	/**
