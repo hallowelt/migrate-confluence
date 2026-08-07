@@ -1,53 +1,150 @@
 <noinclude>Template added by Confluence migration to handle the "contentbylabel" macro
 <templatedata>
 {
-    "params": {
-        "conditions": {},
-        "labels": {},
-        "path": {
-            "label": {
-                "en": "Display path",
-                "de": "Anzeigepfad"
-            },
-            "description": {
-                "en": "What path level to show",
-                "de": "Welche Seitenpfadebenen angezeigt werden soll"
-            },
-            "suggestedvalues": [
-                "fullpagename",
-                "pagename",
-                "basepagename",
-                "subpagename"
-            ],
-            "default": "pagename",
-            "suggested": true
-        },
-        "max": {
-            "label": {
-                "en": "number of pages",
-                "de": "Anzahl Seiten"
-            },
-            "description": {
-                "en": "maximum number of pages to show",
-                "de": "maximale Anzahl Seiten, die angezeigt werden"
-            },
-            "type": "number",
-            "default": "999"
-        }
-    },
-    "paramOrder": [
-        "path",
-        "conditions",
-        "labels"
-    ]
+	"description": "Renders a content-by-label list using DPL conditions generated during Confluence migration.",
+	"params": {
+		"conditions": {
+			"label": {
+				"en": "DPL conditions",
+				"de": "DPL-Bedingungen"
+			},
+			"description": {
+				"en": "Comma-separated DPL selection parameters generated from CQL."
+			},
+			"type": "string",
+			"suggested": true
+		},
+		"labels": {
+			"label": {
+				"en": "Labels",
+				"de": "Labels"
+			},
+			"description": {
+				"en": "Comma-separated labels used only when conditions is empty."
+			},
+			"type": "string"
+		},
+		"path": {
+			"label": {
+				"en": "Display path",
+				"de": "Anzeigepfad"
+			},
+			"description": {
+				"en": "How page links are shown in output."
+			},
+			"type": "string",
+			"suggestedvalues": [
+				"fullpagename",
+				"pagename",
+				"basepagename",
+				"subpagename"
+			],
+			"default": "pagename",
+			"suggested": true
+		},
+		"showSpace": {
+			"label": {
+				"en": "Show space",
+				"de": "Namensraum anzeigen"
+			},
+			"description": {
+				"en": "If set and path is missing, default display path becomes fullpagename; otherwise pagename."
+			},
+			"type": "boolean"
+		},
+		"sort": {
+			"label": {
+				"en": "Sort",
+				"de": "Sortierung"
+			},
+			"description": {
+				"en": "Mapped to DPL ordermethod when provided."
+			},
+			"type": "string"
+		},
+		"reverse": {
+			"label": {
+				"en": "Reverse",
+				"de": "Umgekehrt"
+			},
+			"description": {
+				"en": "If true/yes, sets DPL order=descending."
+			},
+			"type": "boolean"
+		},
+		"max": {
+			"label": {
+				"en": "Number of pages",
+				"de": "Anzahl Seiten"
+			},
+			"description": {
+				"en": "Maximum number of pages to show; mapped to DPL count."
+			},
+			"type": "number",
+			"default": "999"
+		},
+		"cql": {
+			"label": {
+				"en": "Original CQL",
+				"de": "Originale CQL"
+			},
+			"description": {
+				"en": "Passed through for traceability; not used by this template."
+			},
+			"type": "string"
+		}
+	},
+	"paramOrder": [
+		"conditions",
+		"labels",
+		"path",
+		"showSpace",
+		"sort",
+		"reverse",
+		"max",
+		"cql"
+	]
 }
 </templatedata>
+<!--
+Behavior summary:
+- Uses conditions directly when present.
+- Falls back to categories derived from labels when conditions is empty.
+- Uses max as DPL count.
+- Uses sort as DPL ordermethod when provided.
+- Uses reverse=true/yes to set order=descending.
+- Uses showSpace to choose default display path when path is not set:
+  showSpace set -> fullpagename, otherwise -> pagename.
+-->
 </noinclude><includeonly>
-{{#ask:{{#if:{{{conditions|}}}|[[Category:{{#arraymap:{{{conditions|}}}|,|@@|@@|{{!}}{{!}}}}]]|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
-|format=ul
-|template=ContentByLabel/{{{path|pagename}}}
-|limit={{{max|999}}}
-|link=none
-|searchlabel=
+{{Textbox|boxtype=note|header=Test|text=output for <nowiki>{{{conditions}}}</nowiki>: {{{conditions}}}|icon=yes}}
+<div role="list">
+{{#if:{{{conditions|}}}|{{#dpl:
+{{#explode:{{{conditions}}}|,|0}}
+|{{#explode:{{{conditions|}}}|,|1}}
+|{{#explode:{{{conditions|}}}|,|2}}
+|{{#explode:{{{conditions|}}}|,|3}}
+|{{#explode:{{{conditions|}}}|,|4}}
+|{{#explode:{{{conditions|}}}|,|5}}
+|{{#explode:{{{conditions|}}}|,|6}}
+|{{#explode:{{{conditions|}}}|,|7}}
+|{{#explode:{{{conditions|}}}|,|8}}
+|{{#explode:{{{conditions|}}}|,|9}}
+|mode=userformat
+|replaceintitle={{#switch:{{{path|pagename}}}
+ |fullpagename= %PAGE%,
+ |basepagename=/\/[^\/]+$/,
+ |subpagename=/^.*\//,
+ |#default=/^$/,
 }}
+|addcategories={{{showLabels|}}}
+|format=,\n <div role="list-item" style="margin-left:1em; padding-top:0.6em">[[ %PAGE%|<i class="bi bi-card-text prefix"></i> %TITLE% ]] {{#ifeq:{{{showSpace}}}|true|({{{namespace|}}})}}<br><span class="badge rounded-pill bg-light text-dark" style="margin-left:2.5em">%CATLIST%</span></div>
+|ordermethod={{{sort|}}} 
+|{{#switch:{{lc:{{{reverse|}}}}}|true|yes=order=descending}}
+|count={{{max|999}}}
+|mode=none
+}}
+ |<div style="margin-left:1em">no categories found</div>
+}}
+</div>
 </includeonly>

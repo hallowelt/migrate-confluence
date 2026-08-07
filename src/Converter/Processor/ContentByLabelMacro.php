@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use HalloWelt\MigrateConfluence\Utility\CQLParser;
+use HalloWelt\MigrateConfluence\Utility\CQLParser\DplCQLParser;
 
 class ContentByLabelMacro extends StructuredMacroProcessorBase {
 
@@ -47,7 +47,7 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 				continue;
 			}
 
-			$params[$name] = $paramNode->nodeValue;
+			$params[$name] = trim( (string)$paramNode->nodeValue );
 		}
 
 		if ( isset( $params['labels' ] ) ) {
@@ -68,10 +68,7 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 		$cqlError = false;
 		if ( isset( $params['cql'] ) ) {
 			$params['conditions'] = $this->getConditionsForCQL( $params['cql'] );
-
-			$matches = [];
-			preg_match_all( '#(\snot\s|\sNOT\s|!=)#', $params['cql'], $matches );
-			if ( !empty( $matches[0] ) ) {
+			if ( $params['conditions'] === '' ) {
 				$cqlError = true;
 			}
 		}
@@ -104,7 +101,7 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 	 * @return string
 	 */
 	private function getConditionsForCQL( string $cql ): string {
-		$cqlParser = new CQLParser();
+		$cqlParser = new DplCQLParser();
 		$conditions = $cqlParser->parse( $cql );
 
 		return $conditions;
