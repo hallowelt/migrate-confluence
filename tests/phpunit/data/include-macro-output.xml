@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_namespace2">
-    {{:ABC:Some_MediaWiki_page_name}}
-
-    {{:DEF:Test:_TargetPage}}
+    <p>
+        {{:ABC:Some_MediaWiki_page_name}}
+    </p>
+    <p>
+        {{:Confluence_page---42---Some_non_existing_page}}[[Category:Broken_macro/Include]]
+    </p>
 </xml>

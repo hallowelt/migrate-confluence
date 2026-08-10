@@ -11,9 +11,9 @@
     <p>
         <ac:structured-macro ac:name="include" ac:schema-version="1" ac:macro-id="0eff2775-4b96-4758-bbf8-6ca33547a8d6">
             <ac:parameter ac:name="">
-<ac:link>
-    <ri:page ri:space-key="DEF" ri:content-title="Some page"/>
-</ac:link>
+                <ac:link>
+                    <ri:page ri:space-key="DEF" ri:content-title="Some non existing page"/>
+                </ac:link>
             </ac:parameter>
         </ac:structured-macro>
     </p>
