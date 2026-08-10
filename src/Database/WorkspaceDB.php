@@ -4364,10 +4364,23 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
+	 * @param int $pageId
+	 * @return array|null
 	 */
-	public function getPageMeta(): array {
-		return $this->getAllData( 'pages_meta' );
+	public function getPageMetaByPageId( int $pageId ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM pages_meta WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		if ( $data === [] ) {
+			return null;
+		}
+
+		return $data[0];
 	}
 
 	/**
@@ -4395,10 +4408,23 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
+	 * @param int $pageId
+	 * @return array|null
 	 */
-	public function getBlogPostMeta(): array {
-		return $this->getAllData( 'blog_posts_meta' );
+	public function getBlogPostMetaByPageId( int $pageId ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM blog_posts_meta WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		if ( $data === [] ) {
+			return null;
+		}
+
+		return $data[0];
 	}
 
 	/**

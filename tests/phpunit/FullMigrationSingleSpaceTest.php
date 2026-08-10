@@ -87,7 +87,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 
 		$workspaceDB = WorkspaceDB::open( $dest, true );
 		$pages = $workspaceDB->getPages();
-		$this->assertCount( 6, $pages, "Analyze: Invalid number of pages found" );
+		$this->assertCount( 7, $pages, "Analyze: Invalid number of pages found" );
 		$blogPosts = $workspaceDB->getBlogPosts();
 		$this->assertCount( 1, $blogPosts, "Analyze: Invalid number of blog_posts found" );
 
