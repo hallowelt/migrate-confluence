@@ -8,6 +8,9 @@ use DOMNode;
 
 class ConversionHelper {
 
+	public const string CONFLUENCE_PAGE_KEY_PREFIX = 'Confluence_page---';
+	public const string CONFLUENCE_FILE_KEY_PREFIX = 'Confluence_file---';
+
 	/**
 	 * @param string $macroName
 	 * @return string
@@ -110,7 +113,11 @@ class ConversionHelper {
 	 * @return string
 	 */
 	private function getConfluenceFileKey( string $spaceKey, string $confluenceTitle, string $origFilename ): string {
-		return str_replace( ' ', '_', "Confluence_file---$spaceKey---$confluenceTitle---$origFilename" );
+		return str_replace(
+			' ',
+			'_',
+			self::CONFLUENCE_FILE_KEY_PREFIX . "$spaceKey---$confluenceTitle---$origFilename"
+		);
 	}
 
 	/**
@@ -119,7 +126,11 @@ class ConversionHelper {
 	 * @return string
 	 */
 	private function getConfluencePageKey( string $spaceKey, string $confluenceTitle ): string {
-		return str_replace( ' ', '_', "Confluence_page---$spaceKey---$confluenceTitle" );
+		return str_replace(
+			' ',
+			'_',
+			self::CONFLUENCE_PAGE_KEY_PREFIX . "$spaceKey---$confluenceTitle"
+		);
 	}
 
 	/**
