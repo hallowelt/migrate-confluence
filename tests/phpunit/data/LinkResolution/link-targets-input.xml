@@ -1,0 +1,220 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+    <!-- Row 1: Page, plain-text -->
+    <ac:link>
+        <ri:page ri:space-key="ABC" ri:content-title="SomePage"/>
+        <ac:plain-text-link-body><![CDATA[Text]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 2: Page, rich-text -->
+    <ac:link>
+        <ri:page ri:space-key="ABC" ri:content-title="SomePage"/>
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 3: Page, none -->
+    <ac:link>
+        <ri:page ri:space-key="ABC" ri:content-title="SomePage"/>
+    </ac:link>
+
+    <!-- Row 4: Blog post, plain-text -->
+    <ac:link>
+        <ri:blog-post ri:space-key="ABC" ri:content-title="Some Blog Post" ri:posting-day="2012/01/30"/>
+        <ac:plain-text-link-body><![CDATA[Text]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 5: Blog post, rich-text -->
+    <ac:link>
+        <ri:blog-post ri:space-key="ABC" ri:content-title="Some Blog Post" ri:posting-day="2012/01/30"/>
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 6: Blog post, none -->
+    <ac:link>
+        <ri:blog-post ri:space-key="ABC" ri:content-title="Some Blog Post" ri:posting-day="2012/01/30"/>
+    </ac:link>
+
+    <!-- Row 7: Attachment (relative), plain-text -->
+    <ac:link>
+        <ri:attachment ri:filename="SomeImage.png"/>
+        <ac:plain-text-link-body><![CDATA[Text]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 8: Attachment (relative), rich-text -->
+    <ac:link>
+        <ri:attachment ri:filename="SomeImage.png"/>
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 9: Attachment (relative), none -->
+    <ac:link>
+        <ri:attachment ri:filename="SomeImage.png"/>
+    </ac:link>
+
+    <!-- Row 10: Attachment (absolute), plain-text -->
+    <ac:link>
+        <ri:attachment ri:filename="SomeImage.png">
+            <ri:page ri:space-key="ABC" ri:content-title="SomePage"/>
+        </ri:attachment>
+        <ac:plain-text-link-body><![CDATA[Text]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 11: Attachment (absolute), rich-text -->
+    <ac:link>
+        <ri:attachment ri:filename="SomeImage.png">
+            <ri:page ri:space-key="ABC" ri:content-title="SomePage"/>
+        </ri:attachment>
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 12: Attachment (absolute), none -->
+    <ac:link>
+        <ri:attachment ri:filename="SomeImage.png">
+            <ri:page ri:space-key="ABC" ri:content-title="SomePage"/>
+        </ri:attachment>
+    </ac:link>
+
+    <!-- Row 13: External URL, plain-text -->
+    <ac:link>
+        <ri:url ri:value="http://example.org/x.gif"/>
+        <ac:plain-text-link-body><![CDATA[Text]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 14: External URL, rich-text -->
+    <ac:link>
+        <ri:url ri:value="http://example.org/x.gif"/>
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 15: External URL, none -->
+    <ac:link>
+        <ri:url ri:value="http://example.org/x.gif"/>
+    </ac:link>
+
+    <!-- Row 16: Shortcut, plain-text -->
+    <ac:link>
+        <ri:shortcut ri:key="jira" ri:parameter="ABC-123"/>
+        <ac:plain-text-link-body><![CDATA[Text]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 17: Shortcut, rich-text -->
+    <ac:link>
+        <ri:shortcut ri:key="jira" ri:parameter="ABC-123"/>
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 18: Shortcut, none -->
+    <ac:link>
+        <ri:shortcut ri:key="jira" ri:parameter="ABC-123"/>
+    </ac:link>
+
+    <!-- Row 19: User, plain-text -->
+    <ac:link>
+        <ri:user ri:userkey="abc123"/>
+        <ac:plain-text-link-body><![CDATA[Text]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 20: User, rich-text -->
+    <ac:link>
+        <ri:user ri:userkey="abc123"/>
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 21: User, none -->
+    <ac:link>
+        <ri:user ri:userkey="abc123"/>
+    </ac:link>
+
+    <!-- Row 22: Space, plain-text -->
+    <ac:link>
+        <ri:space ri:space-key="ABC"/>
+        <ac:plain-text-link-body><![CDATA[Text]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 23: Space, rich-text -->
+    <ac:link>
+        <ri:space ri:space-key="ABC"/>
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 24: Space, none -->
+    <ac:link>
+        <ri:space ri:space-key="ABC"/>
+    </ac:link>
+
+    <!-- Row 25: Content by ID, plain-text -->
+    <ac:link>
+        <ri:content-entity ri:content-id="123"/>
+        <ac:plain-text-link-body><![CDATA[Text]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 26: Content by ID, rich-text -->
+    <ac:link>
+        <ri:content-entity ri:content-id="123"/>
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 27: Content by ID, none -->
+    <ac:link>
+        <ri:content-entity ri:content-id="123"/>
+    </ac:link>
+
+    <!-- Row 28: Anchor (same page), plain-text -->
+    <ac:link ac:anchor="Section Heading">
+        <ac:plain-text-link-body><![CDATA[Click here]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 29: Anchor (same page), rich-text -->
+    <ac:link ac:anchor="Section Heading">
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 30: Anchor (same page), none -->
+    <ac:link ac:anchor="Section Heading"/>
+
+    <!-- Row 31: Anchor (other page), plain-text -->
+    <ac:link ac:anchor="anchor">
+        <ri:page ri:content-title="SomePage"/>
+        <ac:plain-text-link-body><![CDATA[Text]]></ac:plain-text-link-body>
+    </ac:link>
+
+    <!-- Row 32: Anchor (other page), rich-text -->
+    <ac:link ac:anchor="anchor">
+        <ri:page ri:content-title="SomePage"/>
+        <ac:link-body>Some <strong>Rich</strong> Text
+        </ac:link-body>
+    </ac:link>
+
+    <!-- Row 33: Anchor (other page), none -->
+    <ac:link ac:anchor="anchor">
+        <ri:page ri:content-title="SomePage"/>
+    </ac:link>
+
+    <!-- Row 34: Current page (empty link), none -->
+    <ac:link/>
+
+    <!-- Row 35: External URL (plain HTML) -->
+    <a href="http://www.atlassian.com">Atlassian</a>
+
+    <!-- Row 38: Page via macro param, plain-text title -->
+    <ac:default-parameter>Some page</ac:default-parameter>
+
+    <!-- Row 39: Image from attachment -->
+    <ac:image>
+        <ri:attachment ri:filename="SomeImage.png"/>
+    </ac:image>
+
+    <!-- Row 40: Image from URL -->
+    <ac:image>
+        <ri:url ri:value="http://example.org/logo.png"/>
+    </ac:image>
+</xml>

@@ -36,7 +36,7 @@ use Exception;
  * placeholder built from generateConfluenceKey() and/or add a "broken link"
  * category).
  */
-class LinkTargetResolver {
+class LinkResolver {
 
 	/**
 	 * Local (prefixed) tag names of ri:* elements that can occur as the
@@ -64,7 +64,7 @@ class LinkTargetResolver {
 		$this->conversionHelper = new ConversionHelper();
 	}
 
-	public function tryResolvePageLinkNode( DOMElement $node ): ?string {
+	public function tryResolveLinkTarget( DOMElement $node, string $confluenceParentTitle = null ): ?string {
 		$anchor = $this->findAnchor( $node );
 		$target = $this->findTargetNode( $node );
 
