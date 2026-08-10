@@ -1,0 +1,3 @@
+This is <span id="cr1" class="brand">Product Name©</span> software.
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
