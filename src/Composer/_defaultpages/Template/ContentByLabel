@@ -116,10 +116,11 @@ Behavior summary:
 - Uses showSpace to choose default display path when path is not set:
   showSpace set -> fullpagename, otherwise -> pagename.
 -->
+<!--#dplreplace is used to extract namespace prefix for showSpace=true. claude.ai:drop a plain marker span containing %PAGE% where you want the namespace shown, then post-process the entire DPL output with two chained #dplreplace calls — one to pull the namespace out of spans that have a colon, one to clean up the leftover markers on main-namespace pages (which have no colon to extract).-->
+<!-- Important note about DISPLAYTITLE - currently a bug in DPL (https://github.com/Universal-Omega/DynamicPageList4/issues/572). If this is an issue, replace with #ask parser function-->
 </noinclude><includeonly>
-{{Textbox|boxtype=note|header=Test|text=output for <nowiki>{{{conditions}}}</nowiki>: {{{conditions}}}|icon=yes}}
 <div role="list">
-{{#if:{{{conditions|}}}|{{#dpl:
+{{#if:{{{conditions|}}}|{{#dplreplace:{{#dplreplace:{{#dpl:
 {{#explode:{{{conditions}}}|,|0}}
 |{{#explode:{{{conditions|}}}|,|1}}
 |{{#explode:{{{conditions|}}}|,|2}}
@@ -131,18 +132,25 @@ Behavior summary:
 |{{#explode:{{{conditions|}}}|,|8}}
 |{{#explode:{{{conditions|}}}|,|9}}
 |mode=userformat
-|replaceintitle={{#switch:{{{path|pagename}}}
- |fullpagename= %PAGE%,
+|mode=userformat
+ |replaceintitle={{#switch:{{{path|pagename}}}
+ |fullpagename= /^$/,
  |basepagename=/\/[^\/]+$/,
  |subpagename=/^.*\//,
- |#default=/^$/,
+ |#default=/^$/, 
 }}
 |addcategories={{{showLabels|}}}
-|format=,\n <div role="list-item" style="margin-left:1em; padding-top:0.6em">[[ %PAGE%|<i class="bi bi-card-text prefix"></i> %TITLE% ]] {{#ifeq:{{{showSpace}}}|true|({{{namespace|}}})}}<br><span class="badge rounded-pill bg-light text-dark" style="margin-left:2.5em">%CATLIST%</span></div>
+|format=,\n <div role="list-item" style="margin-left:1em; padding-top:0.6em">[[ %PAGE%|<i class="bi bi-card-text prefix"></i> {{#ifeq:{{{path|}}}|fullpagename|%PAGE%|%TITLE%}} ]] {{#ifeq:{{{showSpace}}}|true|<span class="dpl-ns-marker">%PAGE%</span>}}<br><span class="badge rounded-pill bg-light text-dark" style="margin-left:2.5em">%CATLIST%</span></div>
 |ordermethod={{{sort|}}} 
 |{{#switch:{{lc:{{{reverse|}}}}}|true|yes=order=descending}}
 |count={{{max|999}}}
 |mode=none
+}}
+|<span class="dpl-ns-marker">([^:<]+):[^<]*</span>
+|($1)
+}}
+|<span class="dpl-ns-marker">[^<]*</span>
+|
 }}
  |<div style="margin-left:1em">no categories found</div>
 }}
