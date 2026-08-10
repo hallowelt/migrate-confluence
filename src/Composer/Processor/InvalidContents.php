@@ -16,14 +16,6 @@ class InvalidContents extends ContentProcessorBase {
 	/** @var int[] */
 	private array $invalidBlogPostIds = [];
 
-	private const REASON_CATEGORY_MAP = [
-		'BodyContent exceeded length of 512 characters' => 'Overly_long_page',
-		'Title ends with invalid character'             => 'Invalid_title_ends_with_invalid_character',
-		'Invalid namespace character detected'          => 'Invalid_title_namespace_character',
-		'Title contains multiple colons'                => 'Invalid_title_multiple_colons',
-		'Title contains too many characters (>255)'     => 'Invalid_title_too_long',
-	];
-
 	/**
 	 * @param Builder $builder
 	 * @param DBComposerDataLookup $dataLookup
@@ -95,8 +87,6 @@ class InvalidContents extends ContentProcessorBase {
 				);
 			}
 
-			$invalidText = (string)( $invalidPage['text'] ?? '' );
-
 			$revisions = $this->dataLookup->getPageRevisionsForPageId( $pageId );
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)( $revision['revision_timestamp'] ?? '' );
@@ -116,8 +106,6 @@ class InvalidContents extends ContentProcessorBase {
 						$spaceDescriptions
 					);
 				}
-
-				$pageContent = $this->appendInvalidCategories( $pageContent, $invalidText );
 
 				$this->addRevision( $wikiTitle, $pageContent, $timestamp );
 			}
@@ -143,8 +131,6 @@ class InvalidContents extends ContentProcessorBase {
 			$this->invalidBlogPostIds[$blogPostId] = $blogPostId;
 			$this->output->writeln( "Processing skipped invalid blog post '$wikiTitle' ..." );
 
-			$invalidText = (string)( $invalidBlogPost['text'] ?? '' );
-
 			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $blogPostId );
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)( $revision['revision_timestamp'] ?? '' );
@@ -155,7 +141,6 @@ class InvalidContents extends ContentProcessorBase {
 					$this->workspace,
 					(string)( $revision['body_content_ids'] ?? '' )
 				);
-				$pageContent = $this->appendInvalidCategories( $pageContent, $invalidText );
 				$this->addRevision( $wikiTitle, $pageContent, $timestamp, '', 'blog_post' );
 			}
 		}
@@ -272,8 +257,6 @@ class InvalidContents extends ContentProcessorBase {
 
 			$this->output->writeln( "Processing skipped invalid template '$wikiTitle' ..." );
 
-			$invalidText = (string)( $invalidPageTemplate['text'] ?? '' );
-
 			$revisions = $this->dataLookup->getPageTemplateRevisionsForTemplateId( $templateId );
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)( $revision['revision_timestamp'] ?? '' );
@@ -286,30 +269,9 @@ class InvalidContents extends ContentProcessorBase {
 					'template content',
 					'pt_'
 				);
-				$pageContent = $this->appendInvalidCategories( $pageContent, $invalidText );
 				$this->addRevision( $wikiTitle, $pageContent, $timestamp );
 			}
 		}
-	}
-
-	/**
-	 * Append category tags to $content for every known reason found in $invalidText.
-	 *
-	 * @param string $content
-	 * @param string $invalidText
-	 * @return string
-	 */
-	private function appendInvalidCategories( string $content, string $invalidText ): string {
-		$categories = '';
-		foreach ( self::REASON_CATEGORY_MAP as $reason => $category ) {
-			if ( str_contains( $invalidText, $reason ) ) {
-				$categories .= "\n[[Category:$category]]";
-			}
-		}
-		if ( $categories === '' ) {
-			return $content;
-		}
-		return rtrim( $content ) . $categories;
 	}
 
 	/**
