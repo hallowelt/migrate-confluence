@@ -116,7 +116,7 @@ Behavior summary:
 - Uses showSpace to choose default display path when path is not set:
   showSpace set -> fullpagename, otherwise -> pagename.
 -->
-<!--#dplreplace is used to extract namespace prefix for showSpace=true. claude.ai:drop a plain marker span containing %PAGE% where you want the namespace shown, then post-process the entire DPL output with two chained #dplreplace calls — one to pull the namespace out of spans that have a colon, one to clean up the leftover markers on main-namespace pages (which have no colon to extract).-->
+<!--#dplreplace is used to extract namespace prefix for showSpace=true-->
 <!-- Important note about DISPLAYTITLE - currently a bug in DPL (https://github.com/Universal-Omega/DynamicPageList4/issues/572). If this is an issue, replace with #ask parser function-->
 </noinclude><includeonly>
 <div role="list">
