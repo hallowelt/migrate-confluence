@@ -289,4 +289,11 @@ class DBComposerDataLookup {
 	public function getAttachmentDescription( int $attachmentId ): string {
 		return $this->workspaceDB->getAttachmentDescription( $attachmentId );
 	}
+
+	/**
+	 * @return string[] list of required template names
+	 */
+	public function getRequiredTemplates(): array {
+		return $this->workspaceDB->getRequiredTemplates();
+	}
 }

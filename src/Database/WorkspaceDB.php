@@ -172,6 +172,7 @@ class WorkspaceDB {
 			'labellings',
 			'labels',
 			'gliffy',
+			'required_templates',
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -316,6 +317,7 @@ class WorkspaceDB {
 		$this->createTablePageTemplateContents();
 		$this->createTableAttachmentsDescriptions();
 		$this->createTableExportProperties();
+		$this->createTableRequiredTemplates();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -4915,5 +4917,38 @@ class WorkspaceDB {
 		}
 
 		return $template['confluence_title'];
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableRequiredTemplates(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS required_templates (
+				template_name TEXT PRIMARY KEY
+			);'
+		);
+	}
+
+	/**
+	 * @param string $templateName
+	 * @return void
+	 */
+	public function addRequiredTemplate( string $templateName ): void {
+		$stmt = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO required_templates (template_name) VALUES (:template_name)'
+		);
+		$stmt->bindValue( ':template_name', $templateName, SQLITE3_TEXT );
+		$stmt->execute();
+	}
+
+	/**
+	 * @return string[] list of required template names
+	 */
+	public function getRequiredTemplates(): array {
+		$stmt = $this->cachedPrepare( 'SELECT template_name FROM required_templates ORDER BY template_name' );
+		$result = $stmt->execute();
+		$rows = $this->fetchDbArray( $result );
+		return array_column( $rows, 'template_name' );
 	}
 }

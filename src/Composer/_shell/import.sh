@@ -18,9 +18,10 @@ Import order:
   1) files*.xml
   2) blogs*.xml
   3) comments*.xml (or page-talk*.xml + blog-talk*.xml if comments*.xml is absent)
-  4) templates*.xml
-  5) pages*.xml
-  6) enhanced-sidebar.xml (if present and --add-default is set)
+  4) required_templates*.xml (if present)
+  5) templates*.xml
+  6) pages*.xml
+  7) enhanced-sidebar.xml (if present and --add-default is set)
 
 When --add-default is set, these are included:
   - default-files*.xml (before files*.xml)
@@ -181,6 +182,7 @@ else
   run_group "blog-talk" "dump" "required"
 fi
 
+run_group "required_templates" "dump" "optional"
 run_group "templates" "dump" "required"
 if [[ "$add_default" -eq 1 ]]; then
   run_group "default-pages" "dump" "optional"

@@ -1,0 +1,15 @@
+{{TagSearch|namespace=ABC|category=confluence|placeholder=Placeholder text}}
+
+{{TagSearch}}
+
+{{TagSearch|placeholder=Search here}}
+
+{{TagSearch|category=my-label|placeholder=Placeholder text}}
+
+{{TagSearch|namespace=ABC}}
+
+{{TagSearch}}
+
+{{TagSearch|placeholder=Find something}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

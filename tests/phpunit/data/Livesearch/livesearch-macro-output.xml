@@ -1,0 +1,17 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+    <p>{{TagSearch|namespace=ABC|category=confluence|placeholder=Placeholder text}}</p>
+    <p>{{TagSearch}}</p>
+    <p>{{TagSearch|placeholder=Search here}}</p>
+    <p>
+        {{TagSearch|category=my-label|placeholder=Placeholder text}}
+    </p>
+    <p>
+        {{TagSearch|namespace=ABC}}
+    </p>
+    <p>
+        {{TagSearch}}
+    </p>
+    <p>
+        {{TagSearch|placeholder=Find something}}
+    </p>
+</xml>

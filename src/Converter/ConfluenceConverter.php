@@ -58,6 +58,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Layout;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutCell;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutSection;
+use HalloWelt\MigrateConfluence\Converter\Processor\LivesearchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LoremIpsumMacro;
@@ -503,7 +504,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new LoremIpsumMacro(),
 			new CreateFromTemplateMacro(
 				$this->dataLookup
-			)
+			),
+			new LivesearchMacro( $this->writer )
 		];
 
 		/** @var IProcessor $processor */
