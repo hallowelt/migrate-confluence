@@ -4,10 +4,11 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
+use HalloWelt\MigrateConfluence\Composer\ISpacesDependentProcessor;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
-class Sidebar implements IConfluenceComposerProcessor {
+class Sidebar implements IConfluenceComposerProcessor, ISpacesDependentProcessor {
 
 	/** @var string */
 	private string $subDir = '';

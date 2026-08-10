@@ -258,6 +258,23 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 				$processor->execute();
 			}
 
+			// Add enhanced sidebar to the namespace directory, not shared. It is a namespace-scoped feature.
+			$sidebarProcessor = new Sidebar(
+				$this->dataLookup, $this->migrationConfig, $this->dest
+			);
+			if ( $wikiName !== '' ) {
+				$sidebarProcessor->setSubDir( $wikiName );
+			} else {
+				$sidebarProcessor->setSubDir( $namespace );
+			}
+			if ( $sidebarProcessor instanceof ISpaceIdsDependentProcessor ) {
+				$sidebarProcessor->setCurrentSpaceIds( $spaceIds );
+			}
+			if ( $sidebarProcessor instanceof ISpacesDependentProcessor ) {
+				$sidebarProcessor->setCurrentSpaces( $spaces );
+			}
+			$sidebarProcessor->execute();
+
 			$this->writeDeploymentLog( $namespace, $deploymentInfo, $wikiName );
 			$this->writeSkippedPagesLog( $namespace, $deploymentInfo, $wikiName );
 
@@ -351,9 +368,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			new Users(
 				$this->dataLookup, $this->output, $this->dest
 			),
-			new Sidebar(
-				$this->dataLookup, $this->migrationConfig, $this->dest
-			)
 		];
 	}
 
