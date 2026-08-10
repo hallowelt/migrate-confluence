@@ -12,7 +12,7 @@ Supports both single-file output (e.g. pages.xml) and split output
 
 Options:
   --wiki-root=PATH Path to the MediaWiki root directory
-  --add-default    Also import default-files*.xml, default-pages*.xml and enhanced-sidebar.xml
+  --add-default    Also import default-files*.xml and default-pages*.xml
   --sfr=WIKI       Import into the WIKI wiki
 
 Import order:
@@ -21,7 +21,7 @@ Import order:
   3) comments*.xml (or page-talk*.xml + blog-talk*.xml if comments*.xml is absent)
   4) templates*.xml
   5) pages*.xml
-  6) enhanced-sidebar.xml (if present and --add-default is set)
+  6) enhanced-sidebar.xml (if present)
 
 When --add-default is set, these are included:
   - default-files*.xml (before files*.xml)
@@ -203,7 +203,7 @@ fi
 run_group "pages" "dump" "required"
 
 sidebar_file="$src/enhanced-sidebar.xml"
-if [[ "$add_default" -eq 1 ]] && [[ -f "$sidebar_file" ]]; then
+if [[ -f "$sidebar_file" ]]; then
   echo "==> Importing sidebar from $sidebar_file"
   if ! run_import_dump_file "$sidebar_file"; then
     echo "Error: import failed for $sidebar_file" >&2

@@ -18,7 +18,7 @@ Options:
 Notes:
 - Shared output is imported once from --src/<wiki>/_shared when present.
 - Each namespace directory under --src/<wiki> is imported independently.
-- This script expects the existing ./src/Composer/_shell/import.sh helper to be present.
+- This script expects the existing ./src/Composer/_shell/spaceimport.sh helper to be present.
 EOF
 }
 
@@ -90,7 +90,7 @@ if [[ -d "$shared_dir" ]]; then
     shared_args+=("--add-default")
   fi
 
-  if ! "$script_dir/import.sh" "${shared_args[@]}"; then
+  if ! "$script_dir/spaceimport.sh" "${shared_args[@]}"; then
     echo "Error: import failed for shared output $shared_dir" >&2
     exit 1
   fi
@@ -119,7 +119,7 @@ for namespace_dir in "${namespace_dirs[@]}"; do
 
   args=("--wiki-root=$wiki_root" "--src=$namespace_dir" "--sfr=$wiki")
 
-  if ! "$script_dir/import.sh" "${args[@]}"; then
+  if ! "$script_dir/spaceimport.sh" "${args[@]}"; then
     echo "Error: import failed for namespace directory $namespace_dir" >&2
     exit 1
   fi
