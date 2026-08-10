@@ -19,7 +19,7 @@ class PageTemplatesTest extends TestCase {
 	 */
 	public function testAllDatabaseFieldsAreStored(): void {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
-		$this->workspaceDB->addSpace( 10, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$this->workspaceDB->addSpace( 10, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 
 		$processor = new PageTemplates(
 			new AnalyzerDirectDataWriter( $this->workspaceDB ),

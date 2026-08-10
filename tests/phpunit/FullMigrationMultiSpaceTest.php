@@ -232,7 +232,7 @@ class FullMigrationMultiSpaceTest extends FullMigrationSingleSpaceTest {
 		// Step 5: Verify that the unique pages from each export appear in the output.
 		// "Shared Page" intentionally excluded: it has two body-content revisions
 		// and its exact output format is verified separately.
-		$actualFile = $dest . '/result/ALPHA/pages.xml';
+		$actualFile = $dest . '/result/full-migration-wiki/ALPHA/pages.xml';
 		$this->assertFileExists( $actualFile );
 
 		$actualPages = $this->extractPages( $actualFile );

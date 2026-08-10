@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Composer;
 
-interface ISpaceDependentProcessor {
+interface ISpaceIdsDependentProcessor {
 
 	/**
 	 * @param int[] $spaceIds

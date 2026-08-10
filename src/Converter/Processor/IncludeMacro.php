@@ -20,7 +20,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @var string
 	 */
-	protected string $mediaWikiPageName = '';
+	protected string $wikiPageTitle = '';
 
 	/**
 	 * @var DOMElement|null
@@ -49,11 +49,11 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
 		$this->currentNode = $node;
-		$this->setMediaWikiPageName();
+		$this->setwikiPageTitle();
 
 		$wikiTextTemplateCall = $this->makeTemplateCall();
 
-		if ( $this->mediaWikiPageName === '' ) {
+		if ( $this->wikiPageTitle === '' ) {
 			$category = $this->getCategoryBrokenMacro( 'Include' );
 			$wikiTextTemplateCall .= $category;
 		}
@@ -70,13 +70,13 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	 * @return string
 	 */
 	protected function makeTemplateCall(): string {
-		return '{{:' . $this->mediaWikiPageName . '}}';
+		return '{{:' . $this->wikiPageTitle . '}}';
 	}
 
 	/**
 	 * @return void
 	 */
-	private function setMediaWikiPageName(): void {
+	private function setwikiPageTitle(): void {
 		if ( $this->currentNode instanceof DOMElement === false ) {
 			return;
 		}
@@ -84,9 +84,17 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 		if ( $pageEl === null ) {
 			return;
 		}
+
+		$targetSpaceId = $this->currentSpaceId;
+		$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+		if ( $spaceKey !== '' ) {
+			$targetSpaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+		}
+
 		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );
-		$this->mediaWikiPageName = $this->dataLookup->getWikiPageTitleFromSpaceId(
+		$this->wikiPageTitle = $this->dataLookup->getWikiPageTitleForLink(
 			$this->currentSpaceId,
+			$targetSpaceId,
 			$targetPageName
 		) ?? '';
 	}

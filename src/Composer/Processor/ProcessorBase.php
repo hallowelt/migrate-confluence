@@ -4,11 +4,11 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
-use HalloWelt\MigrateConfluence\Composer\ISpaceDependentProcessor;
+use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
-abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceDependentProcessor {
+abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsDependentProcessor {
 
 	/** @var bool */
 	protected bool $multiXmlOutputEnabled = false;
@@ -174,7 +174,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceDepe
 			$basePath .= $this->subDir . '/';
 		}
 		if ( !file_exists( $basePath ) ) {
-			mkdir( $basePath, 0755 );
+			mkdir( $basePath, 0755, true );
 		}
 		return $basePath;
 	}

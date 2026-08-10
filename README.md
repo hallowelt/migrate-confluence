@@ -93,12 +93,12 @@ Important: If you re-run the scripts you will need to clean up the "workspace" d
 6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages. Use the same command to import `blogs.xml`, `comments.xml` and `templates.xml`, but not `user.xml`. This file can not be imported and is just for making user data available.
 
 #### Import helper script
-To simplify imports there is a helper script at `src/Composer/_shell/import.sh`.
+To simplify imports there is a helper script at `src/Composer/_shell/spaceimport.sh`.
 
-Run it from your MediaWiki root directory and pass the result namespace directory with `--src`:
+Run it with the MediaWiki root path and pass the result namespace directory with `--src`:
 
 ```bash
-./src/Composer/_shell/import.sh --src=/tmp/result/ABC
+./src/Composer/_shell/spaceimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/ABC
 ```
 
 The script imports files in this order:
@@ -113,6 +113,17 @@ The script imports files in this order:
 `user.xml` is intentionally ignored.
 
 You may need to run `php maintenance/rebuildall.php` and update your MediaWiki search index afterwards.
+
+#### Wiki import helper
+If the composer output is grouped by wiki name, use `src/Composer/_shell/wikiimport.sh` to import every namespace directory for a single wiki.
+
+Example:
+
+```bash
+./src/Composer/_shell/wikiimport.sh --wiki-root=/tmp/mediawiki --wiki=MyWiki
+```
+
+The script uses `<wiki-root>/result` by default as the result root. You can override it with `--src` if the result directory lives elsewhere.
 
 ### Additional Features
 

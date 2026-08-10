@@ -941,6 +941,57 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return array
+	 */
+	public function getWikisConfigWikiNames(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_name FROM wikis_config'
+		);
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$rows = $this->fetchDbArray( $result );
+		$result->finalize();
+
+		$wikiNames = [];
+		foreach ( $rows as $row ) {
+			$wikiName = isset( $row['wiki_name'] ) ? (string)$row['wiki_name'] : '';
+			if ( $wikiName !== '' ) {
+				$wikiNames[] = $wikiName;
+			}
+		}
+
+		return $wikiNames;
+	}
+
+	/**
+	 * @param string $wikiName
+	 * @return array
+	 */
+	public function getWikisConfigSpacesForWikiName( string $wikiName ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT s.*
+			FROM spaces s
+			INNER JOIN wikis_config wc ON wc.space_key = s.space_key
+			WHERE wc.wiki_name = :wiki_name'
+		);
+		$transaction->bindValue( ':wiki_name', $wikiName, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$rows = $this->fetchDbArray( $result );
+		$result->finalize();
+
+		return $rows;
+	}
+
+	/**
 	 * @param string $spaceKey The Confluence space key (e.g. "HR"), from exportDescriptor.properties `spaceKey`
 	 * @param string $source Export origin: "server" or "cloud"
 	 * @param string $confluenceVersion Confluence version that created the export, e.g. "7.19.18"
@@ -2169,23 +2220,23 @@ class WorkspaceDB {
 	 */
 	public function getSpacePrefixFromSpaceKey( string $spaceKey ): string {
 		$transaction = $this->cachedPrepare(
-			'SELECT space_prefix FROM spaces WHERE space_key = :space_key LIMIT 1'
+			'SELECT namespace_prefix FROM spaces WHERE space_key = :space_key LIMIT 1'
 		);
 		$transaction->bindValue( ':space_key', $spaceKey, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
-			return "$spaceKey:";
+			return $spaceKey;
 		}
 
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		if ( $data === false || !isset( $data['space_prefix'] ) ) {
-			return "$spaceKey:";
+		if ( $data === false || !isset( $data['namespace_prefix'] ) ) {
+			return $spaceKey;
 		}
 
-		return $data['space_prefix'];
+		return $data['namespace_prefix'];
 	}
 
 	/**
@@ -2482,6 +2533,39 @@ class WorkspaceDB {
 		$result->finalize();
 
 		return !empty( $data['wiki_title'] ) ? $data['wiki_title'] : null;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @return array|null
+	 */
+	public function getPageTitlesFromSpaceId( int $spaceId, string $confluenceTitle ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_title, interwiki_title
+			FROM pages
+			WHERE space_id = :space_id AND confluence_title = :confluence_title
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false ) {
+			return null;
+		}
+
+		return [
+			'wiki_title' => !empty( $data['wiki_title'] ) ? $data['wiki_title'] : null,
+			'interwiki_title' => !empty( $data['interwiki_title'] ) ? $data['interwiki_title'] : null,
+		];
 	}
 
 	/**

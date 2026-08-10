@@ -289,4 +289,15 @@ class DBComposerDataLookup {
 	public function getAttachmentDescription( int $attachmentId ): string {
 		return $this->workspaceDB->getAttachmentDescription( $attachmentId );
 	}
+
+	/**
+	 * @return array
+	 */
+	public function getWikisConfigWikiNames(): array {
+		return $this->workspaceDB->getWikisConfigWikiNames();
+	}
+
+	public function getWikisConfigSpacesForWikiName( string $wikiName ): array {
+		return $this->workspaceDB->getWikisConfigSpacesForWikiName( $wikiName );
+	}
 }

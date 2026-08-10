@@ -32,7 +32,7 @@ class WikisConfig {
 		if ( $namespace === null ) {
 			return $spaceKey;
 		}
-		return $namespace;
+		return rtrim( $namespace, ':' );
 	}
 
 	/**

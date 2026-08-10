@@ -94,6 +94,7 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use HalloWelt\MigrateConfluence\Utility\TranslatableString;
+use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
@@ -147,6 +148,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var IConverterDataWriter */
 	private IConverterDataWriter $writer;
 
+	/** @var WikisConfig */
+	private WikisConfig $wikisConfig;
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -186,6 +190,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 */
 	public function convert( SplFileInfo $file ): string {
 		$this->workspaceDB = WorkspaceDB::open( $this->dest, true );
+		$this->wikisConfig = new WikisConfig( $this->workspaceDB );
 
 		if ( isset( $this->config['config'] ) ) {
 			$this->migrationConfig = new MigrationConfig( $this->config['config'] );

@@ -71,15 +71,11 @@ class DBConversionDataLookup {
 	 * @return string
 	 */
 	public function getNamespaceFromSpaceKey( string $spaceKey ): string {
-		$spacePrefix = $this->workspaceDB->getSpacePrefixFromSpaceKey( $spaceKey );
+		$spacePrefix = $this->getSpacePrefixFromSpaceKey( $spaceKey );
 		if ( $spacePrefix === '' ) {
 			return '';
 		}
-		$colonPos = strpos( $spacePrefix, ':' );
-		if ( $colonPos === false ) {
-			return $spacePrefix;
-		}
-		return substr( $spacePrefix, 0, $colonPos );
+		return $spacePrefix;
 	}
 
 	/**
@@ -103,6 +99,76 @@ class DBConversionDataLookup {
 		int $spaceId, string $confluenceTitle
 	): ?string {
 		return $this->workspaceDB->getWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle );
+	}
+
+	/**
+	 * Resolve a page title for links based on wiki grouping:
+	 * - same wiki: use wiki_title
+	 * - different wiki: use interwiki_title
+	 * - if no wiki config exists: treat all spaces as same wiki
+	 *
+	 * @param int $currentSpaceId
+	 * @param int $targetSpaceId
+	 * @param string $confluenceTitle
+	 *
+	 * @return string|null
+	 */
+	public function getWikiPageTitleForLink(
+		int $currentSpaceId,
+		int $targetSpaceId,
+		string $confluenceTitle
+	): ?string {
+		$titles = $this->workspaceDB->getPageTitlesFromSpaceId( $targetSpaceId, $confluenceTitle );
+		if ( $titles === null ) {
+			return null;
+		}
+
+		$wikiTitle = $titles['wiki_title'] ?? null;
+		$interwikiTitle = $titles['interwiki_title'] ?? null;
+
+		if ( $this->isSameWikiSpace( $currentSpaceId, $targetSpaceId ) ) {
+			return $wikiTitle;
+		}
+
+		return $interwikiTitle ?: $wikiTitle;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @return string|null
+	 */
+	private function getWikiNameForSpaceId( int $spaceId ): ?string {
+		$spaceKey = $this->workspaceDB->getSpaceKeyFromSpaceId( $spaceId );
+		if ( $spaceKey === null ) {
+			return null;
+		}
+
+		return $this->workspaceDB->getWikisConfigWikiNameForSpaceKey( $spaceKey );
+	}
+
+	/**
+	 * @param int $currentSpaceId
+	 * @param int $targetSpaceId
+	 * @return bool
+	 */
+	private function isSameWikiSpace( int $currentSpaceId, int $targetSpaceId ): bool {
+		if ( $currentSpaceId === $targetSpaceId ) {
+			return true;
+		}
+
+		$currentWiki = $this->getWikiNameForSpaceId( $currentSpaceId );
+		$targetWiki = $this->getWikiNameForSpaceId( $targetSpaceId );
+
+		if ( $currentWiki === null && $targetWiki === null ) {
+			// No wiki config present: all spaces are treated as one wiki.
+			return true;
+		}
+
+		if ( $currentWiki === null || $targetWiki === null ) {
+			return false;
+		}
+
+		return $currentWiki === $targetWiki;
 	}
 
 	/**

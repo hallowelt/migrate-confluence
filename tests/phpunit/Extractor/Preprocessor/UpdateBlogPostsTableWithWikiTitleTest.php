@@ -16,7 +16,7 @@ class UpdateBlogPostsTableWithWikiTitleTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 500, 42, 'Sample blog', '', 'current', '', '', '1', -1, [], [], [], [] );
 
 		$processor = new UpdateBlogPostsTableWithWikiTitle( $workspaceDB, $dbLog, $writer );

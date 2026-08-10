@@ -43,6 +43,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	private DBComposerDataLookup $dataLookup;
 
 	/**
+	 * @var ComposerSkipHelper
+	 */
+	private ComposerSkipHelper $skipHelper;
+
+	/**
 	 * @param array $config
 	 * @param Workspace $workspace
 	 * @param DataBuckets $buckets
@@ -81,63 +86,207 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$this->logMigrateConfluenceToolVersion( $dbLog );
 
 		$this->dataLookup = new DBComposerDataLookup( $workspaceDB );
-		$skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
+		$this->skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
 
-		// Run space dependent processors for each space
+		// Run shared content processors
+		$sharedProcessors = $this->initProcessorsForSharedContent(
+			$builder, $this->skipHelper, new ComposerDeploymentInfo()
+		);
 
-		// Fetching namespaces
-		$namespaceMap = [];
-		$namespaceSpacesMap = [];
-		$spaces = $this->dataLookup->getSpaces();
-		foreach ( $spaces as $space ) {
-			$spaceId = (int)$space['space_id'];
-			$namespace = 'NS_MAIN';
-			if ( str_contains( $space['space_prefix'], ':' ) ) {
-				$namespace = substr( $space['space_prefix'], 0, strpos( $space['space_prefix'], ':' ) );
-			}
-
-			if ( !isset( $namespaceMap[$namespace] ) ) {
-				$namespaceMap[$namespace] = [];
-				$namespaceSpacesMap[$namespace] = [];
-			}
-			$namespaceMap[$namespace][] = $spaceId;
-			$namespaceSpacesMap[$namespace][] = $space;
+		foreach ( $sharedProcessors as $processor ) {
+			$processor->setSubDir( '_shared' );
+			$processor->execute();
 		}
 
+		// Run space dependent processors for each space
+		$wikiNames = $this->dataLookup->getWikisConfigWikiNames();
+		if ( $wikiNames === [] ) {
+			// If no wikis are configured, we will process all spaces and group them by namespace
+			$this->output->writeln( "Data is not assigned to any wikis." );
+
+			$spaces = $this->dataLookup->getSpaces();
+			if ( $spaces === [] ) {
+				$this->output->writeln( "No spaces found." );
+			}
+
+			$spacesMap = $this->buildSpacesMap( $spaces );
+			$this->storeMigrationResult( $spacesMap, $builder );
+
+		} else {
+			// If wikis are configured, we will process spaces grouped by wiki name
+			$this->output->writeln( "Data is assigned to some wikis." );
+			$this->copySharedDirectoryToWikiDirectories( $wikiNames );
+
+			foreach ( $wikiNames as $wikiName ) {
+				$spaces = $this->dataLookup->getWikisConfigSpacesForWikiName( $wikiName );
+				if ( $spaces === [] ) {
+					$this->output->writeln( "No spaces found for wiki '$wikiName'." );
+					continue;
+				}
+
+				$spacesMap = $this->buildSpacesMap( $spaces );
+				$this->storeMigrationResult( $spacesMap, $builder, $wikiName );
+
+				$this->output->writeln( "Processing wiki '$wikiName' with " . count( $spaces ) . " spaces." );
+			}
+		}
+
+		$this->writeUserReadableDBLog( $dbLog );
+	}
+
+	/**
+	 * @param string[] $wikiNames
+	 * @return void
+	 */
+	private function copySharedDirectoryToWikiDirectories( array $wikiNames ): void {
+		$sharedPath = $this->dest . '/result/_shared';
+		if ( !is_dir( $sharedPath ) ) {
+			return;
+		}
+
+		foreach ( $wikiNames as $wikiName ) {
+			$wikiSharedPath = $this->dest . '/result/' . $wikiName . '/_shared';
+			$this->copyDirectoryRecursively( $sharedPath, $wikiSharedPath );
+		}
+
+		$this->deleteDirectoryRecursively( $sharedPath );
+	}
+
+	/**
+	 * @param string $sourcePath
+	 * @param string $targetPath
+	 * @return void
+	 */
+	private function copyDirectoryRecursively( string $sourcePath, string $targetPath ): void {
+		if ( !is_dir( $targetPath ) && !mkdir( $targetPath, 0755, true ) && !is_dir( $targetPath ) ) {
+			throw new \RuntimeException( 'Failed to create target directory: ' . $targetPath );
+		}
+
+		$sourceItems = scandir( $sourcePath );
+		if ( $sourceItems === false ) {
+			throw new \RuntimeException( 'Failed to read source directory: ' . $sourcePath );
+		}
+
+		foreach ( $sourceItems as $item ) {
+			if ( $item === '.' || $item === '..' ) {
+				continue;
+			}
+
+			$currentSourcePath = $sourcePath . '/' . $item;
+			$currentTargetPath = $targetPath . '/' . $item;
+
+			if ( is_dir( $currentSourcePath ) ) {
+				$this->copyDirectoryRecursively( $currentSourcePath, $currentTargetPath );
+				continue;
+			}
+
+			if ( !copy( $currentSourcePath, $currentTargetPath ) ) {
+				throw new \RuntimeException( 'Failed to copy shared file: ' . $currentSourcePath );
+			}
+
+			$sourcePerms = fileperms( $currentSourcePath );
+			if ( $sourcePerms !== false ) {
+				chmod( $currentTargetPath, $sourcePerms & 0777 );
+			}
+		}
+	}
+
+	/**
+	 * @param string $path
+	 * @return void
+	 */
+	private function deleteDirectoryRecursively( string $path ): void {
+		$items = scandir( $path );
+		if ( $items === false ) {
+			throw new \RuntimeException( 'Failed to read directory for deletion: ' . $path );
+		}
+
+		foreach ( $items as $item ) {
+			if ( $item === '.' || $item === '..' ) {
+				continue;
+			}
+
+			$currentPath = $path . '/' . $item;
+			if ( is_dir( $currentPath ) ) {
+				$this->deleteDirectoryRecursively( $currentPath );
+			} else {
+				if ( !unlink( $currentPath ) ) {
+					throw new \RuntimeException( 'Failed to remove file: ' . $currentPath );
+				}
+			}
+		}
+
+		if ( !rmdir( $path ) ) {
+			throw new \RuntimeException( 'Failed to remove directory: ' . $path );
+		}
+	}
+
+	/**
+	 * @param array $spacesMap
+	 * @param Builder $builder
+	 * @param string $wikiName
+	 * @return void
+	 */
+	private function storeMigrationResult( array $spacesMap, Builder $builder, string $wikiName = '' ): void {
 		// Run processors for each namespace
-		foreach ( $namespaceMap as $namespace => $spaceIds ) {
-			if ( $skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
+		foreach ( $spacesMap as $namespace => $spaces ) {
+			if ( $this->skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
 				$this->output->writeln( "Skip namespace '$namespace' by configuration." );
 				continue;
 			}
 			$deploymentInfo = new ComposerDeploymentInfo();
 			$deploymentInfo->addNamespace( $namespace );
 
-			$processors = $this->initProcessorsForSpace( $builder, $skipHelper, $deploymentInfo );
+			$subdir = '';
+			if ( $wikiName !== '' ) {
+				$subdir = $wikiName . '/';
+			}
+			$subdir .= $namespace;
 
+			$processors = $this->initProcessorsForSpaceContent( $builder, $this->skipHelper, $deploymentInfo );
+
+			$spaceIds = array_keys( $spaces );
 			foreach ( $processors as $processor ) {
-				if ( $processor instanceof ISpaceDependentProcessor ) {
+				$processor->setSubDir( $subdir );
+				if ( $processor instanceof ISpaceIdsDependentProcessor ) {
 					$processor->setCurrentSpaceIds( $spaceIds );
 				}
-				$processor->setSubDir( $namespace );
+				if ( $processor instanceof ISpacesDependentProcessor ) {
+					$processor->setCurrentSpaces( $spaces );
+				}
+
 				$processor->execute();
 			}
 
-			$this->writeDeploymentLog( $namespace, $deploymentInfo );
-			$this->writeSkippedPagesLog( $namespace, $deploymentInfo );
+			$this->writeDeploymentLog( $namespace, $deploymentInfo, $wikiName );
+			$this->writeSkippedPagesLog( $namespace, $deploymentInfo, $wikiName );
 
-			$this->writeInvalidPagesLog( $spaceIds, $namespace );
-			$this->writeInvalidBlogPostsLog( $spaceIds, $namespace );
-			$this->writeInvalidAttachmentsLog( $spaceIds, $namespace );
-			$this->writeInvalidPageTemplatesLog( $spaceIds, $namespace );
+			$this->writeInvalidPagesLog( $spaceIds, $namespace, $wikiName );
+			$this->writeInvalidBlogPostsLog( $spaceIds, $namespace, $wikiName );
+			$this->writeInvalidAttachmentsLog( $spaceIds, $namespace, $wikiName );
+			$this->writeInvalidPageTemplatesLog( $spaceIds, $namespace, $wikiName );
 
-			$this->addImportHelper( $namespace );
+			$this->addImportHelper( $namespace, $wikiName );
+		}
+	}
 
-			( new Sidebar( $this->dataLookup, $this->migrationConfig, $this->dest ) )
-				->execute( $namespace, $namespaceSpacesMap[$namespace] );
+	/**
+	 * @param array $spaces
+	 * @return array
+	 */
+	private function buildSpacesMap( array $spaces ): array {
+		$map = [];
+		foreach ( $spaces as $space ) {
+			$spaceId = (int)$space['space_id'];
+			$namespace = $space['namespace_prefix'] ?? 'NS_MAIN';
+
+			if ( !isset( $map[$namespace] ) ) {
+				$map[$namespace] = [];
+			}
+			$map[$namespace][$spaceId] = $space;
 		}
 
-		$this->writeUserReadableDBLog( $dbLog );
+		return $map;
 	}
 
 	/**
@@ -146,7 +295,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @param ComposerDeploymentInfo $deploymentInfo
 	 * @return array
 	 */
-	private function initProcessorsForSpace(
+	private function initProcessorsForSharedContent(
 		Builder $builder, ComposerSkipHelper $skipHelper, ComposerDeploymentInfo $deploymentInfo
 	): array {
 		return [
@@ -156,6 +305,19 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			new DefaultPages(
 				$builder, $this->output, $this->dest, $this->migrationConfig
 			),
+		];
+	}
+
+	/**
+	 * @param Builder $builder
+	 * @param ComposerSkipHelper $skipHelper
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @return array
+	 */
+	private function initProcessorsForSpaceContent(
+		Builder $builder, ComposerSkipHelper $skipHelper, ComposerDeploymentInfo $deploymentInfo
+	): array {
+		return [
 			new Files(
 				$this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
@@ -189,15 +351,21 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			new Users(
 				$this->dataLookup, $this->output, $this->dest
 			),
+			new Sidebar(
+				$this->dataLookup, $this->migrationConfig, $this->dest
+			)
 		];
 	}
 
 	/**
 	 * @param string $namespace
 	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param string $wikiName
 	 * @return void
 	 */
-	private function writeDeploymentLog( string $namespace, ComposerDeploymentInfo $deploymentInfo ): void {
+	private function writeDeploymentLog(
+		string $namespace, ComposerDeploymentInfo $deploymentInfo, string $wikiName = ''
+	): void {
 		$content = "# Namespaces\n\n";
 		$namespaces = $deploymentInfo->getNamespaces();
 		$content .= $this->makeListContent( $namespaces );
@@ -206,19 +374,23 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$fileExtensions = $deploymentInfo->getFileExtensions();
 		$content .= $this->makeListContent( $fileExtensions );
 
-		file_put_contents( $this->dest . "/result/$namespace/deployment.txt", $content );
+		$logDir = $this->ensureNamespacePath( $namespace, $wikiName );
+		file_put_contents( $logDir . "/deployment.txt", $content );
 	}
 
 	/**
 	 * @param string $namespace
 	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param string $wikiName
 	 * @return void
 	 */
-	private function writeSkippedPagesLog( string $namespace, ComposerDeploymentInfo $deploymentInfo ): void {
+	private function writeSkippedPagesLog(
+		string $namespace, ComposerDeploymentInfo $deploymentInfo, string $wikiName = ''
+	): void {
 		$skippedPages = $deploymentInfo->getSkippedPages();
 		$content = $this->makeListContent( $skippedPages );
 
-		$logDir = $this->ensureNamespacePath( $namespace );
+		$logDir = $this->ensureNamespacePath( $namespace, $wikiName );
 		file_put_contents( $logDir . "/skipped_pages.log", $content );
 	}
 
@@ -261,10 +433,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	/**
 	 * @param array $spaceIds
 	 * @param string $namespace
+	 * @param string $wikiName
 	 *
 	 * @return void
 	 */
-	private function writeInvalidPagesLog( array $spaceIds, string $namespace = '' ): void {
+	private function writeInvalidPagesLog( array $spaceIds, string $namespace = '', string $wikiName = '' ): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
 			$data = array_merge( $data, $this->dataLookup->getInvalidPages( (int)$spaceId ) );
@@ -278,17 +451,18 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		$logDir = $this->ensureNamespacePath( $namespace );
+		$logDir = $this->ensureNamespacePath( $namespace, $wikiName );
 		file_put_contents( $logDir . "/invalid_pages.log", $content );
 	}
 
 	/**
 	 * @param array $spaceIds
 	 * @param string $namespace
+	 * @param string $wikiName
 	 *
 	 * @return void
 	 */
-	private function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '' ): void {
+	private function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '', string $wikiName = '' ): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
 			$data = array_merge( $data, $this->dataLookup->getInvalidBlogPosts( (int)$spaceId ) );
@@ -302,17 +476,20 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		$logDir = $this->ensureNamespacePath( $namespace );
+		$logDir = $this->ensureNamespacePath( $namespace, $wikiName );
 		file_put_contents( $logDir . "/invalid_blog_posts.log", $content );
 	}
 
 	/**
 	 * @param array $spaceIds
 	 * @param string $namespace
+	 * @param string $wikiName
 	 *
 	 * @return void
 	 */
-	private function writeInvalidPageTemplatesLog( array $spaceIds, string $namespace = '' ): void {
+	private function writeInvalidPageTemplatesLog(
+		array $spaceIds, string $namespace = '', string $wikiName = ''
+	): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
 			$data = array_merge( $data, $this->dataLookup->getInvalidPageTemplates( (int)$spaceId ) );
@@ -325,17 +502,20 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		$logDir = $this->ensureNamespacePath( $namespace );
+		$logDir = $this->ensureNamespacePath( $namespace, $wikiName );
 		file_put_contents( $logDir . "/invalid_page_templates.log", $content );
 	}
 
 	/**
 	 * @param array $spaceIds
 	 * @param string $namespace
+	 * @param string $wikiName
 	 *
 	 * @return void
 	 */
-	private function writeInvalidAttachmentsLog( array $spaceIds, string $namespace = '' ): void {
+	private function writeInvalidAttachmentsLog(
+		array $spaceIds, string $namespace = '', string $wikiName = ''
+	): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
 			$data = array_merge( $data, $this->dataLookup->getInvalidAttachments( (int)$spaceId ) );
@@ -349,16 +529,21 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$line .= $item['text'] . ';';
 			$content .= $line . "\n";
 		}
-		$logDir = $this->ensureNamespacePath( $namespace );
+		$logDir = $this->ensureNamespacePath( $namespace, $wikiName );
 		file_put_contents( $logDir . "/invalid_attachments.log", $content );
 	}
 
 	/**
 	 * @param string $namespace
+	 * @param string $wikiName
 	 * @return string
 	 */
-	private function ensureNamespacePath( string $namespace ): string {
-		$path = $this->dest . "/result/$namespace/log";
+	private function ensureNamespacePath( string $namespace, string $wikiName = '' ): string {
+		$path = $this->dest . "/result";
+		if ( $wikiName !== '' ) {
+			$path .= "/$wikiName";
+		}
+		$path .= "/$namespace/log";
 		if ( !is_dir( $path ) ) {
 			mkdir( $path, 0755, true );
 		}
@@ -383,33 +568,47 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 	/**
 	 * @param string $namespace
+	 * @param string $wikiName
 	 * @return void
 	 */
-	private function addImportHelper( string $namespace ): void {
+	private function addImportHelper( string $namespace, string $wikiName = '' ): void {
 		$sourcePaths = glob( __DIR__ . '/_shell/*' );
 		if ( $sourcePaths === false || $sourcePaths === [] ) {
 			return;
 		}
 
-		$targetDir = $this->dest . "/result/$namespace";
-		if ( !is_dir( $targetDir ) && !mkdir( $targetDir, 0755, true ) && !is_dir( $targetDir ) ) {
-			throw new \RuntimeException( 'Failed to create import helper target directory: ' . $targetDir );
+		$targetDir = $this->dest . "/result";
+		if ( $wikiName !== '' ) {
+			$targetDir .= "/$wikiName";
+			$sourcePath = __DIR__ . '/_shell/wikiimport.sh';
+			$this->copyShellScript( $sourcePath, $targetDir . '/wikiimport.sh' );
+
+			$sourcePath = __DIR__ . '/_shell/spaceimport.sh';
+			$this->copyShellScript( $sourcePath, $targetDir . '/spaceimport.sh' );
+		} else {
+			$targetDir .= "/$namespace";
+			$sourcePath = __DIR__ . '/_shell/spaceimport.sh';
+			$this->copyShellScript( $sourcePath, $targetDir . '/spaceimport.sh' );
+		}
+	}
+
+	/**
+	 * @param string $sourcePath
+	 * @param string $targetPath
+	 * @return void
+	 */
+	private function copyShellScript( string $sourcePath, string $targetPath ): void {
+		if ( !file_exists( $sourcePath ) ) {
+			throw new \RuntimeException( 'Could not find shell script: ' . $sourcePath );
 		}
 
-		foreach ( $sourcePaths as $sourcePath ) {
-			if ( !is_file( $sourcePath ) ) {
-				continue;
-			}
+		if ( !copy( $sourcePath, $targetPath ) ) {
+			throw new \RuntimeException( 'Failed to copy shell script: ' . $sourcePath );
+		}
 
-			$targetPath = $targetDir . '/' . basename( $sourcePath );
-			if ( !copy( $sourcePath, $targetPath ) ) {
-				throw new \RuntimeException( 'Failed to copy import helper file: ' . $sourcePath );
-			}
-
-			$sourcePerms = fileperms( $sourcePath );
-			if ( $sourcePerms !== false ) {
-				chmod( $targetPath, $sourcePerms & 0777 );
-			}
+		$sourcePerms = fileperms( $sourcePath );
+		if ( $sourcePerms !== false ) {
+			chmod( $targetPath, $sourcePerms & 0777 );
 		}
 	}
 }

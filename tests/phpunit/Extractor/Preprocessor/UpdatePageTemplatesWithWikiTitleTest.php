@@ -16,7 +16,7 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPageTemplate(
 			700,
 			'Sample template',

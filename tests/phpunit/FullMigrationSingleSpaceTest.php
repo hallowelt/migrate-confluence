@@ -15,6 +15,7 @@ use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use PHPUnit\Framework\TestCase;
 use SplFileInfo;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -132,7 +133,8 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		$expectedPagesFile = $this->dataDir . '/expected/result_pages.xml';
 		$expectedPages = $this->extractPages( $expectedPagesFile );
 
-		$actualFile = $this->tempDir . '/single-source/workspace/result/CON/pages.xml';
+		$resultRoot = $this->tempDir . '/single-source/workspace/result/full-migration-wiki/CON';
+		$actualFile = $resultRoot . '/pages.xml';
 		$this->assertFileExists( $actualFile );
 		$actualPages = $this->extractPages( $actualFile );
 
@@ -155,7 +157,8 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		$expectedTemplatesFile = $this->dataDir . '/expected/result_default-pages.xml';
 		$expectedTemplates = $this->extractPages( $expectedTemplatesFile );
 
-		$actualTemplatesFile = $this->tempDir . '/single-source/workspace/result/CON/default-pages.xml';
+		$actualTemplatesFile = $this->tempDir
+			. '/single-source/workspace/result/full-migration-wiki/_shared/default-pages.xml';
 		$this->assertFileExists( $actualTemplatesFile );
 		$actualTemplates = $this->extractPages( $actualTemplatesFile );
 
@@ -169,7 +172,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		$expectedTemplatesFile = $this->dataDir . '/expected/result_templates.xml';
 		$expectedTemplates = $this->extractPages( $expectedTemplatesFile );
 
-		$actualTemplatesFile = $this->tempDir . '/single-source/workspace/result/CON/templates.xml';
+		$actualTemplatesFile = $resultRoot . '/templates.xml';
 		$this->assertFileExists( $actualTemplatesFile );
 		$actualTemplates = $this->extractPages( $actualTemplatesFile );
 
@@ -192,7 +195,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		$expectedCommentsFile = $this->dataDir . '/expected/result_comments.xml';
 		$expectedPageTalkPages = $this->extractPages( $expectedCommentsFile );
 
-		$commentsDir = $this->tempDir . '/single-source/workspace/result/CON';
+		$commentsDir = $resultRoot;
 		$pageTalkFile = $commentsDir . '/page-talk.xml';
 		$blogTalkFile = $commentsDir . '/blog-talk.xml';
 
@@ -246,10 +249,9 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		BufferedOutput $output,
 	): void {
 		$dbPath = $dest . '/workspace.sqlite';
+		$workspaceDB = file_exists( $dbPath ) ? WorkspaceDB::open( $dest ) : WorkspaceDB::create( $dest );
 
-		$writer = new AnalyzerDirectDataWriter(
-			file_exists( $dbPath ) ? WorkspaceDB::open( $dest ) : WorkspaceDB::create( $dest )
-		);
+		$writer = new AnalyzerDirectDataWriter( $workspaceDB );
 
 		if ( isset( $config['config'] ) ) {
 			$migrationConfig = new MigrationConfig( $config['config'] );
@@ -257,8 +259,39 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			$migrationConfig = new MigrationConfig( [] );
 		}
 
-		$analyzer = new ConfluenceAnalyzer( $writer, $output, $migrationConfig );
+		$analyzer = new ConfluenceAnalyzer( $writer, $output, $migrationConfig, new WikisConfig( $workspaceDB ) );
 		$analyzer->analyze( new SplFileInfo( $src . '/entities.xml' ) );
+
+		$this->seedWikisConfigForAnalyzedSpaces( $workspaceDB, $config );
+	}
+
+	/**
+	 * Ensure WikisConfig is available for all analyzed spaces in full-migration tests.
+	 * Namespace mapping comes from config.space-prefix (if present), otherwise space key.
+	 * All spaces are assigned to one wiki to keep cross-space links as same-wiki links.
+	 *
+	 * @param WorkspaceDB $workspaceDB
+	 * @param array $config
+	 * @return void
+	 */
+	protected function seedWikisConfigForAnalyzedSpaces( WorkspaceDB $workspaceDB, array $config ): void {
+		$spacePrefixMap = [];
+		if ( isset( $config['config']['space-prefix'] ) && is_array( $config['config']['space-prefix'] ) ) {
+			$spacePrefixMap = $config['config']['space-prefix'];
+		}
+
+		foreach ( $workspaceDB->getSpaces() as $space ) {
+			$spaceKey = isset( $space['space_key'] ) ? (string)$space['space_key'] : '';
+			if ( $spaceKey === '' ) {
+				$namespace = '';
+			} elseif ( isset( $spacePrefixMap[$spaceKey] ) ) {
+				$namespace = trim( (string)$spacePrefixMap[$spaceKey], ':' );
+			} else {
+				$namespace = $spaceKey;
+			}
+
+			$workspaceDB->addWikisConfig( $spaceKey, 'full-migration-wiki', $namespace, '' );
+		}
 	}
 
 	/**

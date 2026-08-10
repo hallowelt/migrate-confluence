@@ -4,13 +4,14 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./src/Composer/_shell/import.sh --src=/path/to/result/<namespace>
+Usage: ./src/Composer/_shell/import.sh --wiki-root=/path/to/wiki-root --src=/path/to/result/<namespace>
 
 Runs MediaWiki imports from a result namespace directory.
 Supports both single-file output (e.g. pages.xml) and split output
 (e.g. pages-00000001.xml, pages-00000002.xml, ...).
 
 Options:
+  --wiki-root=PATH Path to the MediaWiki root directory
   --add-default    Also import default-files*.xml, default-pages*.xml and enhanced-sidebar.xml
   --sfr=WIKI       Import into the WIKI wiki
 
@@ -35,9 +36,13 @@ EOF
 src=""
 sfr=""
 add_default=0
+wiki_root=""
 
 for arg in "$@"; do
   case "$arg" in
+    --wiki-root=*)
+      wiki_root="${arg#*=}"
+      ;;
     --src=*)
       src="${arg#*=}"
       ;;
@@ -61,6 +66,12 @@ for arg in "$@"; do
   esac
 done
 
+if [[ -z "$wiki_root" ]]; then
+  echo "Error: --wiki-root is required" >&2
+  usage >&2
+  exit 1
+fi
+
 if [[ -z "$src" ]]; then
   echo "Error: --src is required" >&2
   usage >&2
@@ -72,16 +83,20 @@ if [[ ! -d "$src" ]]; then
   exit 1
 fi
 
-# Require execution from MediaWiki root.
-if [[ ! -f "maintenance/importDump.php" ]]; then
-  echo "Error: maintenance/importDump.php not found in current directory." >&2
-  echo "Run this script from the MediaWiki root." >&2
+if [[ ! -d "$wiki_root" ]]; then
+  echo "Error: --wiki-root directory does not exist: $wiki_root" >&2
   exit 1
 fi
 
-if [[ ! -f "extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php" ]]; then
-  echo "Error: extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php not found." >&2
-  echo "Make sure BlueSpiceDistributionConnector is installed and run from wiki root." >&2
+if [[ ! -f "$wiki_root/maintenance/importDump.php" ]]; then
+  echo "Error: maintenance/importDump.php not found in wiki root: $wiki_root" >&2
+  echo "Make sure you passed the correct wiki root directory." >&2
+  exit 1
+fi
+
+if [[ ! -f "$wiki_root/extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php" ]]; then
+  echo "Error: extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php not found in wiki root: $wiki_root" >&2
+  echo "Make sure BlueSpiceDistributionConnector is installed and the wiki root path is correct." >&2
   exit 1
 fi
 
@@ -120,7 +135,7 @@ run_import_dump_file() {
     args+=("$sfr")
   fi
   args+=("$file")
-  php maintenance/importDump.php "${args[@]}"
+  ( cd "$wiki_root" && php maintenance/importDump.php "${args[@]}" )
 }
 
 run_import_files_file() {
@@ -130,7 +145,7 @@ run_import_files_file() {
     args+=("$sfr")
   fi
   args+=("--src=$file")
-  php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php "${args[@]}"
+  ( cd "$wiki_root" && php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php "${args[@]}" )
 }
 
 run_group() {
