@@ -1,3 +1,5 @@
 {{:ABC:Some_MediaWiki_page_name}}
 
+{{:Confluence_page---DEF---Some_non_existing_page}}[[Category:Broken_macro/Include]]
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

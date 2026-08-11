@@ -1,0 +1,73 @@
+<noinclude>Template added by Confluence migration to handle the "livesearch" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Show a tag-based search box",
+        "de": "Eine tag-basierte Suchbox anzeigen"
+    },
+    "params": {
+        "namespace": {
+            "label": {
+                "en": "Namespace",
+                "de": "Namensraum"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "Restrict results to this namespace",
+                "de": "Ergebnisse auf diesen Namensraum einschränken"
+            }
+        },
+        "category": {
+            "label": {
+                "en": "Category",
+                "de": "Kategorie"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "Comma-separated list of categories to restrict results to",
+                "de": "Kommagetrennte Liste von Kategorien, auf die die Ergebnisse eingeschränkt werden"
+            }
+        },
+        "operator": {
+            "label": {
+                "en": "Operator",
+                "de": "Operator"
+            },
+            "type": "string",
+            "required": false,
+            "default": "AND",
+            "description": {
+                "en": "Logical operator for combining categories: AND or OR",
+                "de": "Logischer Operator zum Verknüpfen von Kategorien: AND oder OR"
+            }
+        },
+        "type": {
+            "label": {
+                "en": "Type",
+                "de": "Typ"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "Content type to restrict results to",
+                "de": "Inhaltstyp, auf den die Ergebnisse eingeschränkt werden"
+            }
+        },
+        "placeholder": {
+            "label": {
+                "en": "Placeholder",
+                "de": "Platzhaltertext"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "Placeholder text shown inside the empty search field",
+                "de": "Platzhaltertext im leeren Suchfeld"
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{#tag:tagsearch||operator={{#if:{{{operator|}}}|{{{operator}}}|AND}}|namespace={{{namespace|}}}|category={{{category|}}}|type={{{type|}}}|placeholder={{{placeholder|}}}}}</includeonly>

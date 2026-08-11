@@ -1,0 +1,31 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+    <p>{livesearch:spaceKey=ABC|size=medium|labels=confluence|placeholder=Placeholder text}</p>
+    <p>{livesearch}</p>
+    <p>{livesearch:placeholder=Search here}</p>
+    <p>
+        <ac:structured-macro ac:name="livesearch" ac:schema-version="1"
+                             ac:macro-id="53709627-e993-4560-8a8d-2d146191e0c2">
+            <ac:parameter ac:name="spaceKey">
+                <ri:space ri:space-key="ABC"/>
+            </ac:parameter>
+            <ac:parameter ac:name="size">large</ac:parameter>
+            <ac:parameter ac:name="additional">excerpt</ac:parameter>
+            <ac:parameter ac:name="placeholder">Placeholder text</ac:parameter>
+            <ac:parameter ac:name="type">page</ac:parameter>
+            <ac:parameter ac:name="labels">my-label</ac:parameter>
+        </ac:structured-macro>
+    </p>
+    <p>
+        <ac:structured-macro ac:name="livesearch">
+            <ac:parameter ac:name="spaceKey">ABC</ac:parameter>
+        </ac:structured-macro>
+    </p>
+    <p>
+        <ac:structured-macro ac:name="livesearch"></ac:structured-macro>
+    </p>
+    <p>
+        <ac:structured-macro ac:name="livesearch">
+            <ac:parameter ac:name="placeholder">Find something</ac:parameter>
+        </ac:structured-macro>
+    </p>
+</xml>

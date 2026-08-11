@@ -172,6 +172,7 @@ class WorkspaceDB {
 			'labellings',
 			'labels',
 			'gliffy',
+			'required_templates',
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -319,6 +320,7 @@ class WorkspaceDB {
 		$this->createTablePageTemplateContents();
 		$this->createTableAttachmentsDescriptions();
 		$this->createTableExportProperties();
+		$this->createTableRequiredTemplates();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -1107,6 +1109,14 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int $pageId
+	 * @return string|null
+	 */
+	public function getInvalidPageWikiTitleReason( int $pageId ): ?string {
+		return $this->getInvalidTitleReason( 'page_invalid_titles', 'page_id', $pageId );
+	}
+
+	/**
 	 * @param int $blogPostId
 	 * @param string $wikiTitle
 	 * @param string $text
@@ -1136,6 +1146,14 @@ class WorkspaceDB {
 	 */
 	public function getInvalidBlogPostWikiTitles(): array {
 		return $this->getAllData( 'blog_post_invalid_titles' );
+	}
+
+	/**
+	 * @param int $blogPostId
+	 * @return string|null
+	 */
+	public function getInvalidBlogPostWikiTitleReason( int $blogPostId ): ?string {
+		return $this->getInvalidTitleReason( 'blog_post_invalid_titles', 'page_id', $blogPostId );
 	}
 
 	/**
@@ -1189,6 +1207,38 @@ class WorkspaceDB {
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':text', $text, SQLITE3_TEXT );
 		$transaction->execute();
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return string|null
+	 */
+	public function getInvalidPageTemplateTitleReason( int $templateId ): ?string {
+		return $this->getInvalidTitleReason( 'page_template_invalid_titles', 'template_id', $templateId );
+	}
+
+	/**
+	 * Fetches the stored invalid-title reason text for a given id from one of the
+	 * *_invalid_titles tables. At most one row exists per id (primary key), so the
+	 * first match is returned.
+	 *
+	 * @param string $table
+	 * @param string $idColumn
+	 * @param int $id
+	 * @return string|null
+	 */
+	private function getInvalidTitleReason( string $table, string $idColumn, int $id ): ?string {
+		$stmt = $this->cachedPrepare(
+			"SELECT text FROM $table WHERE $idColumn = :id LIMIT 1"
+		);
+		$stmt->bindValue( ':id', $id, SQLITE3_INTEGER );
+		$result = $stmt->execute();
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		if ( $row === false || !isset( $row['text'] ) || $row['text'] === '' ) {
+			return null;
+		}
+
+		return (string)$row['text'];
 	}
 
 	/**
@@ -4601,10 +4651,23 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
+	 * @param int $pageId
+	 * @return array|null
 	 */
-	public function getPageMeta(): array {
-		return $this->getAllData( 'pages_meta' );
+	public function getPageMetaByPageId( int $pageId ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM pages_meta WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		if ( $data === [] ) {
+			return null;
+		}
+
+		return $data[0];
 	}
 
 	/**
@@ -4632,10 +4695,23 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @return array
+	 * @param int $pageId
+	 * @return array|null
 	 */
-	public function getBlogPostMeta(): array {
-		return $this->getAllData( 'blog_posts_meta' );
+	public function getBlogPostMetaByPageId( int $pageId ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM blog_posts_meta WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		if ( $data === [] ) {
+			return null;
+		}
+
+		return $data[0];
 	}
 
 	/**
@@ -5126,5 +5202,38 @@ class WorkspaceDB {
 		}
 
 		return $template['confluence_title'];
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableRequiredTemplates(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS required_templates (
+				template_name TEXT PRIMARY KEY
+			);'
+		);
+	}
+
+	/**
+	 * @param string $templateName
+	 * @return void
+	 */
+	public function addRequiredTemplate( string $templateName ): void {
+		$stmt = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO required_templates (template_name) VALUES (:template_name)'
+		);
+		$stmt->bindValue( ':template_name', $templateName, SQLITE3_TEXT );
+		$stmt->execute();
+	}
+
+	/**
+	 * @return string[] list of required template names
+	 */
+	public function getRequiredTemplates(): array {
+		$stmt = $this->cachedPrepare( 'SELECT template_name FROM required_templates ORDER BY template_name' );
+		$result = $stmt->execute();
+		$rows = $this->fetchDbArray( $result );
+		return array_column( $rows, 'template_name' );
 	}
 }

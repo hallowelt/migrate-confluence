@@ -19,6 +19,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\InvalidContentCategories;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMacro;
@@ -27,10 +28,10 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\Table;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\html\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\HTML\CDATAClosingFixer;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
@@ -58,6 +59,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Layout;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutCell;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutSection;
+use HalloWelt\MigrateConfluence\Converter\Processor\LivesearchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LoremIpsumMacro;
@@ -142,6 +144,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var string */
 	private string $contentType = '';
 
+	/** @var string|null */
+	private ?string $bodyLengthInvalidReason = null;
+
 	/** @var TocMacroUsage */
 	private TocMacroUsage $tocMacroUsage;
 
@@ -217,6 +222,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->rawFile = $file;
 
 		$this->pageId = null;
+		$this->bodyLengthInvalidReason = null;
 
 		if ( str_starts_with( $this->rawFile->getFilename(), 'pt_' ) ) {
 			// This is the content of a page template
@@ -358,6 +364,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->postprocessWikiText();
 
 		$this->checkContentLength( $bodyContentId );
+
+		$invalidContentCategories = new InvalidContentCategories( $this->collectInvalidReasons( $bodyContentId ) );
+		$this->wikiText = $invalidContentCategories->postprocess( $this->wikiText );
 
 		return $this->wikiText;
 	}
@@ -508,7 +517,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new LoremIpsumMacro(),
 			new CreateFromTemplateMacro(
 				$this->dataLookup
-			)
+			),
+			new LivesearchMacro( $this->writer )
 		];
 
 		/** @var IProcessor $processor */
@@ -673,12 +683,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$sContent = preg_replace( '/<at:declarations[^>]*>.*?<\/at:declarations>/s', '', $sContent );
 
 		// Append categories
-		$metaData = [];
-		if ( $this->contentType === 'page' ) {
-			$metaData = $this->workspaceDB->getPageMeta();
-		} elseif ( $this->contentType === 'blogPost' ) {
-			$metaData = $this->workspaceDB->getBlogPostMeta();
-		}
+		$metaData = $this->getMetaData();
 		$categories = '';
 		if ( isset( $metaData['categories'] ) ) {
 			foreach ( $metaData['categories'] as $category ) {
@@ -692,6 +697,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice" xmlns:at="atlassian-template">' . $sContent . '</xml>';
 
 		return $sContent;
+	}
+
+	/**
+	 * @return array
+	 */
+	private function getMetaData(): array {
+		$row = null;
+		if ( $this->contentType === 'page' ) {
+			$row = $this->workspaceDB->getPageMetaByPageId( $this->pageId );
+		} elseif ( $this->contentType === 'blogPost' ) {
+			$row = $this->workspaceDB->getBlogPostMetaByPageId( $this->pageId );
+		}
+		if ( $row === null ) {
+			return [];
+		}
+
+		return json_decode( $row['meta'], true ) ?? [];
 	}
 
 	/**
@@ -878,21 +900,56 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		}
 
 		if ( $exceed >= 512 ) {
+			$this->bodyLengthInvalidReason = InvalidContentCategories::REASON_BODY_TOO_LONG;
 			if ( str_starts_with( $this->rawFile->getFilename(), 'pt_' ) ) {
 				$this->writer->addInvalidPageTemplateContent(
 					$bodyContentId,
-					'BodyContent exeeded length of 512 characters'
+					InvalidContentCategories::REASON_BODY_TOO_LONG
 				);
 			} else {
 				$this->writer->addInvalidBodyContent(
 					$bodyContentId,
-					'BodyContent exeeded length of 512 characters'
+					InvalidContentCategories::REASON_BODY_TOO_LONG
 				);
 			}
 		}
 
 		$this->addNonBlockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
 		$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
+	}
+
+	/**
+	 * Gathers the invalid reason texts (body content length, invalid wiki title) that apply
+	 * to the content currently being converted, so {@see InvalidContentCategories} can
+	 * translate them into category tags.
+	 *
+	 * @param int $bodyContentId
+	 * @return string
+	 */
+	private function collectInvalidReasons( int $bodyContentId ): string {
+		$reasons = [];
+
+		if ( $this->bodyLengthInvalidReason !== null ) {
+			$reasons[] = $this->bodyLengthInvalidReason;
+		}
+
+		// For page templates the pageId is never set; the template is identified by
+		// its bodyContentId (== templateId) instead.
+		$titleReason = match ( $this->contentType ) {
+			'page' => $this->pageId !== null
+				? $this->dataLookup->getInvalidPageWikiTitleReason( $this->pageId )
+				: null,
+			'blogPost' => $this->pageId !== null
+				? $this->dataLookup->getInvalidBlogPostWikiTitleReason( $this->pageId )
+				: null,
+			'pageTemplate' => $this->dataLookup->getInvalidPageTemplateTitleReason( $bodyContentId ),
+			default => null,
+		};
+		if ( $titleReason !== null ) {
+			$reasons[] = $titleReason;
+		}
+
+		return implode( "\n", $reasons );
 	}
 
 	/**

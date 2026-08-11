@@ -245,5 +245,59 @@
         <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000030</id></property>
     </object>
 
+    <object class="Page" package="com.atlassian.confluence.pages">
+        <id name="id">10000040</id>
+        <property name="hibernateVersion">1</property>
+        <property name="title">Labels</property>
+        <property name="lowerTitle">labels</property>
+        <property name="version">1</property>
+        <property name="creationDate">2020-01-01 00:00:00.000</property>
+        <property name="lastModificationDate">2020-01-01 00:00:00.000</property>
+        <property name="versionComment"></property>
+        <property name="contentStatus">current</property>
+        <property name="creator" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="lastModifier" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key">000000000000000000000000000000001</id></property>
+        <property name="space" class="Space" package="com.atlassian.confluence.spaces"><id name="id">10000000</id></property>
+        <collection name="labellings" class="java.util.Collection">
+            <element class="Labelling" package="com.atlassian.confluence.labels"><id name="id">40000001</id></element>
+            <element class="Labelling" package="com.atlassian.confluence.labels"><id name="id">40000002</id></element>
+        </collection>
+    </object>
+
+    <object class="BodyContent" package="com.atlassian.confluence.core">
+        <id name="id">20000040</id>
+        <property name="body"><![CDATA[<p>This page should have two labels tick and trick.</p>]]></property>
+        <property name="bodyType">2</property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000040</id></property>
+    </object>
+
+    <object class="Labelling" package="com.atlassian.confluence.labels">
+        <id name="id">40000001</id>
+        <property name="label" class="Label" package="com.atlassian.confluence.labels"><id name="id">40000010</id></property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000040</id></property>
+        <property name="labelableId">10000040</property>
+        <property name="labelableType"><![CDATA[CONTENT]]></property>
+    </object>
+
+    <object class="Labelling" package="com.atlassian.confluence.labels">
+        <id name="id">40000002</id>
+        <property name="label" class="Label" package="com.atlassian.confluence.labels"><id name="id">40000011</id></property>
+        <property name="content" class="Page" package="com.atlassian.confluence.pages"><id name="id">10000040</id></property>
+        <property name="labelableId">10000040</property>
+        <property name="labelableType"><![CDATA[CONTENT]]></property>
+    </object>
+
+    <object class="Label" package="com.atlassian.confluence.labels">
+        <id name="id">40000010</id>
+        <property name="name"><![CDATA[tick]]></property>
+        <property name="namespace"><![CDATA[global]]></property>
+    </object>
+
+    <object class="Label" package="com.atlassian.confluence.labels">
+        <id name="id">40000011</id>
+        <property name="name"><![CDATA[trick]]></property>
+        <property name="namespace"><![CDATA[global]]></property>
+    </object>
+
 </hibernate-generic>
 

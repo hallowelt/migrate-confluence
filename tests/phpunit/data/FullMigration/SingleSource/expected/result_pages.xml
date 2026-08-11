@@ -29,6 +29,21 @@ __NOTOC__
     </revision>
   </page>
   <page>
+    <title>CON:Labels</title>
+    <revision>
+      <timestamp>20200101000000</timestamp>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>This page should have two labels tick and trick.
+
+[[Category:Tick]] [[Category:Trick]]
+__NOTOC__
+
+ &lt;!-- From bodyContent 20000040.mraw --&gt;
+</text>
+    </revision>
+  </page>
+  <page>
     <title>CON:Links_Test_Page</title>
     <revision>
       <timestamp>20200101000000</timestamp>

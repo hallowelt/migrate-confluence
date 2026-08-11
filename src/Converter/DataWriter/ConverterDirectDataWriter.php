@@ -43,4 +43,8 @@ class ConverterDirectDataWriter extends AbstractDirectDataWriter implements ICon
 			$spaceId, $confluenceTitle, $originalAttachmentFilename, $targetAttachmentFilename
 		);
 	}
+
+	public function addRequiredTemplate( string $templateName ): void {
+		$this->db->addRequiredTemplate( $templateName );
+	}
 }

@@ -3,6 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use Exception;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class IncludeMacro extends StructuredMacroProcessorBase {
@@ -17,15 +19,9 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	 */
 	protected int $currentSpaceId;
 
-	/**
-	 * @var string
-	 */
-	protected string $wikiPageTitle = '';
+	private ConversionHelper $conversionHelper;
 
-	/**
-	 * @var DOMElement|null
-	 */
-	protected ?DOMElement $currentNode = null;
+	private bool $isBroken;
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
@@ -34,6 +30,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	public function __construct( DBConversionDataLookup $dataLookup, int $currentSpaceId ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
+		$this->conversionHelper = new ConversionHelper();
 	}
 
 	/**
@@ -46,43 +43,37 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
+	 * @throws \Exception
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
-		$this->currentNode = $node;
-		$this->setwikiPageTitle();
+		$this->isBroken = false;
+		$replacement = '';
 
-		$wikiTextTemplateCall = $this->makeTemplateCall();
-
-		if ( $this->wikiPageTitle === '' ) {
-			$category = $this->getCategoryBrokenMacro( 'Include' );
-			$wikiTextTemplateCall .= $category;
+		$wikiTitle = $this->getWikiPageTitle( $node );
+		if ( !$wikiTitle ) {
+			$this->isBroken = true;
+		} else {
+			$replacement = "{{:" . $wikiTitle . "}}";
 		}
 
-		$wikiTextTemplateCallNode = $this->createTextNode(
+		if ( $this->isBroken ) {
+			$replacement .= $this->getCategoryBrokenMacro( 'Include' );
+		}
+
+		$node->parentNode->replaceChild( $this->createTextNode(
 			$node->ownerDocument,
-			$wikiTextTemplateCall,
+			$replacement,
 			__METHOD__
-		);
-		$node->parentNode->replaceChild( $wikiTextTemplateCallNode, $node );
+		), $node );
 	}
 
 	/**
-	 * @return string
+	 * @throws Exception
 	 */
-	protected function makeTemplateCall(): string {
-		return '{{:' . $this->wikiPageTitle . '}}';
-	}
-
-	/**
-	 * @return void
-	 */
-	private function setwikiPageTitle(): void {
-		if ( $this->currentNode instanceof DOMElement === false ) {
-			return;
-		}
-		$pageEl = $this->currentNode->getElementsByTagName( 'page' )->item( 0 );
+	private function getWikiPageTitle( DOMElement $node ): ?string {
+		$pageEl = $node->getElementsByTagName( 'page' )->item( 0 );
 		if ( $pageEl === null ) {
-			return;
+			return null;
 		}
 
 		$targetSpaceId = $this->currentSpaceId;
@@ -92,10 +83,23 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 		}
 
 		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );
-		$this->wikiPageTitle = $this->dataLookup->getWikiPageTitleForLink(
+
+		$wikiTitle = $this->dataLookup->getWikiPageTitleForLink(
 			$this->currentSpaceId,
 			$targetSpaceId,
 			$targetPageName
-		) ?? '';
+		);
+
+		if ( $wikiTitle ) {
+			return $wikiTitle;
+		}
+
+		// Fallback to confluence page key
+		$this->isBroken = true;
+		if ( empty( $spaceKey ) ) {
+			return $this->conversionHelper->getConfluencePageKeyFromSpaceId( $targetSpaceId, $targetPageName );
+		}
+
+		return $this->conversionHelper->getConfluencePageKeyFromSpaceKey( $spaceKey, $targetPageName );
 	}
 }

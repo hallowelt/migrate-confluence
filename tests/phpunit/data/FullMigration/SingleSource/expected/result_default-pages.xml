@@ -75,7 +75,7 @@
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;This template is used to convert the structured macro "contentbylabel".&lt;/noinclude&gt;
 &lt;includeonly&gt;
-{{#ask:{{#if:{{{conditions|}}}|[[Category:{{#arraymap:{{{conditions|}}}|,|@@|@@|{{!}}{{!}}}}]]|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
+{{#ask:{{#if:{{{conditions|}}}|{{{conditions|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}
 |format=ul
 |template=ContentByLabel/{{{path|pagename}}}
 |limit={{{max|999}}}
@@ -529,6 +529,24 @@ useve=true
 | order=asc
 }}
 &lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:RecentlyUpdatedRow/style.css</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>.recently-updated-icon::before {
+    font-size: 1.2em;
+    vertical-align: -0.22em;
+    margin-right: 0.2em;
+}
+
+.recently-updated-byline {
+    margin-bottom: 0.8em;
+    margin-left: 1.8em;
+    color: #747474;
+}</text>
     </revision>
   </page>
 </mediawiki>

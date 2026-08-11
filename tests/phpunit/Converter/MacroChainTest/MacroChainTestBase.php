@@ -20,9 +20,9 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\Table;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use PHPUnit\Framework\TestCase;
 
 abstract class MacroChainTestBase extends TestCase {

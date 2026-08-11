@@ -5,6 +5,48 @@
 |max=99
 |showSpace=false
 |cql=label = "label_1" and label = "label_2"
-|conditions=[[Category:Label_1]][[Category:Label_2]]
+|conditions=category=Label_1,category=Label_2
+}}
+
+	 {{ContentByLabel
+|showLabels=false
+|max=99
+|showSpace=false
+|cql=label = "label_1" or label = "label_2"
+|conditions=category=Label_1{{!}}Label_2
+}}
+
+	 {{ContentByLabel
+|showLabels=false
+|max=99
+|showSpace=false
+|cql=label = "label_1" and label = "label_2" or label = "label_3"
+|conditions=category=Label_1,category=Label_2{{!}}Label_3
+}}
+
+	 {{ContentByLabel
+|showLabels=false
+|max=99
+|showSpace=false
+|cql=label = "label_1" or label = "label_2" and label = "label_3"
+|conditions=category=Label_1{{!}}Label_2,category=Label_3
+}}
+
+	  [[Category:Broken_macro/contentbylabel]]
+
+	 {{ContentByLabel
+|showLabels=false
+|max=99
+|showSpace=false
+|cql=label = "label_1" or label = "label_2" and not label = "label_3"
+|conditions=category=Label_1{{!}}Label_2,notcategory=Label_3
+}}
+
+	 {{ContentByLabel
+|showLabels=false
+|showSpace=false
+|sort=title
+|cql=label = "o-z" and space = currentSpace()
+|conditions=category=O-z,namespace={{NAMESPACE}}
 }}
 </xml>

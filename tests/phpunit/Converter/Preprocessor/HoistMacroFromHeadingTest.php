@@ -3,12 +3,12 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
 
 class HoistMacroFromHeadingTest extends ProcessorTestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\HoistMacroFromHeading::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading::preprocess
 	 * @dataProvider provideHoistCases
 	 * @param string $input
 	 * @param string $expected

@@ -300,4 +300,11 @@ class DBComposerDataLookup {
 	public function getWikisConfigSpacesForWikiName( string $wikiName ): array {
 		return $this->workspaceDB->getWikisConfigSpacesForWikiName( $wikiName );
 	}
+
+	/*
+	 * @return string[] list of required template names
+	 */
+	public function getRequiredTemplates(): array {
+		return $this->workspaceDB->getRequiredTemplates();
+	}
 }
