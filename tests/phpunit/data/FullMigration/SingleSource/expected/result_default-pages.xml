@@ -531,4 +531,22 @@ useve=true
 &lt;/includeonly&gt;</text>
     </revision>
   </page>
+  <page>
+    <title>Template:RecentlyUpdatedRow/style.css</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>.recently-updated-icon::before {
+    font-size: 1.2em;
+    vertical-align: -0.22em;
+    margin-right: 0.2em;
+}
+
+.recently-updated-byline {
+    margin-bottom: 0.8em;
+    margin-left: 1.8em;
+    color: #747474;
+}</text>
+    </revision>
+  </page>
 </mediawiki>

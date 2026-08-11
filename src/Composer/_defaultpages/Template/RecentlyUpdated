@@ -36,7 +36,8 @@ Uses the [[:Template:RecentlyUpdatedRow|RecentlyUpdatedRow]] template for displa
 </templatedata></noinclude><includeonly>{{#ask:[[{{NAMESPACE}}:+]]{{#if:{{{labels|}}}|[[Category:{{#arraymap:{{{labels|}}}|,|@@|@@|{{!}}{{!}}}}]]}}[[Modification date::+]]
 |?Last editor is
 |?Modification date#ISO
-|format=plainlist
+|format=ul
+|class=list-unstyled
 |limit={{{max|8}}}
 |template=RecentlyUpdatedRow
 |link=none
