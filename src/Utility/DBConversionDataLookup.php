@@ -227,4 +227,28 @@ class DBConversionDataLookup {
 	public function getTemplateTitleFromTemplateId( int $templateId ): ?string {
 		return $this->workspaceDB->getTemplateTitleFromTemplateId( $templateId );
 	}
+
+	/**
+	 * @param int $pageId
+	 * @return string|null
+	 */
+	public function getInvalidPageWikiTitleReason( int $pageId ): ?string {
+		return $this->workspaceDB->getInvalidPageWikiTitleReason( $pageId );
+	}
+
+	/**
+	 * @param int $blogPostId
+	 * @return string|null
+	 */
+	public function getInvalidBlogPostWikiTitleReason( int $blogPostId ): ?string {
+		return $this->workspaceDB->getInvalidBlogPostWikiTitleReason( $blogPostId );
+	}
+
+	/**
+	 * @param int $templateId
+	 * @return string|null
+	 */
+	public function getInvalidPageTemplateTitleReason( int $templateId ): ?string {
+		return $this->workspaceDB->getInvalidPageTemplateTitleReason( $templateId );
+	}
 }

@@ -8,7 +8,7 @@ use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
-class InvaildContents extends ContentProcessorBase {
+class InvalidContents extends ContentProcessorBase {
 
 	/** @var int[] */
 	private array $invalidPageIds = [];
