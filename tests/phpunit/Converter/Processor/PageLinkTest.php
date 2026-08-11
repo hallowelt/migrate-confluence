@@ -102,7 +102,7 @@ class PageLinkTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @param \\HalloWelt\\MigrateConfluence\\Database\\WorkspaceDB $workspaceDB
+	 * @param \HalloWelt\MigrateConfluence\Database\WorkspaceDB $workspaceDB
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 * @return int
