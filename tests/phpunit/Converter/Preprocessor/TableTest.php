@@ -3,13 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Preprocessor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\Table;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use PHPUnit\Framework\TestCase;
 
 class TableTest extends TestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\Table::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table::preprocess
 	 *
 	 * @return void
 	 */

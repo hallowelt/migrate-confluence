@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Preprocessor;
 
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\html\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\HTML\CDATAClosingFixer;
 use PHPUnit\Framework\TestCase;
 
 class CDATAClosingFixerTest extends TestCase {

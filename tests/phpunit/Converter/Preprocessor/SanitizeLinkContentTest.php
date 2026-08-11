@@ -3,13 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Preprocessor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use PHPUnit\Framework\TestCase;
 
 class SanitizeLinkContentTest extends TestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\dom\SanitizeLinkContent::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent::preprocess
 	 * @dataProvider provideExtractCases
 	 * @param string $input
 	 * @param string $expected
