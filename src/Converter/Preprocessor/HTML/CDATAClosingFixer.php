@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Converter\Preprocessor\html;
+namespace HalloWelt\MigrateConfluence\Converter\Preprocessor\HTML;
 
 use HalloWelt\MigrateConfluence\Converter\IHtmlPreprocessor;
 

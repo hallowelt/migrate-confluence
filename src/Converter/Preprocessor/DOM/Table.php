@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Converter\Preprocessor\dom;
+namespace HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM;
 
 use DOMDocument;
 use DOMElement;
