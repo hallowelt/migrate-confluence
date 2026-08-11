@@ -37,11 +37,15 @@ class DefaultPages extends ProcessorBase {
 			$firstSlash = strpos( $namespacePrefix, '/' );
 			if ( $firstSlash !== false ) {
 				$namespacePrefix = substr_replace( $namespacePrefix, ':', $firstSlash, 1 ) . '/';
-			} else {
+			} elseif ( $namespacePrefix !== '' ) {
 				$namespacePrefix .= ':';
 			}
-			/* strip off an optional .wikitext extension */
-			$pageName = $fileObj->getBasename( '.wikitext' );
+			$pageName = $fileObj->getBasename();
+			if ( $namespacePrefix && str_ends_with( $namespacePrefix, '/' ) && $fileObj->getBasename() === 'wikitext' ) {
+				/* Template:SomeName/wikitext => Template:SomeName to allow better structuring of source files */
+				$namespacePrefix = rtrim( $namespacePrefix, '/' );
+				$pageName = '';
+			}
 			$wikiPageName = "$namespacePrefix$pageName";
 			$wikiText = file_get_contents( $fileObj->getPathname() );
 
