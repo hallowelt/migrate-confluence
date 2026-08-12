@@ -71,8 +71,6 @@ class Pages extends ContentProcessorBase {
 			$spaceDescriptions = $this->dataLookup->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
 			$homepageId = $this->dataLookup->getSpaceHomepageIdForSpaceId( $spaceId );
 
-			$properties = $this->dataLookup->getPropertiesForPageId( $pageId );
-
 			if ( $pageId === $homepageId ) {
 				$this->output->writeln(
 					"Page '$pageTitle' is a homepage, adding space description to page content if applicable..."
@@ -94,12 +92,6 @@ class Pages extends ContentProcessorBase {
 					'',
 					true
 				);
-
-				/* support "folder" type pages: if we cannot deduce any other content, render an
-				 * overview page with the "Folder" template. */
-				if ( !$pageContent && isset( $properties['isFolder'] ) && $properties['isFolder'] ) {
-					$pageContent = '{{Folder}}';
-				}
 
 				if ( $homepageId !== null ) {
 					$pageContent .= $this->addSpaceDescriptionToMainPage(

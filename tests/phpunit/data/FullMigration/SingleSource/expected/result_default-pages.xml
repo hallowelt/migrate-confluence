@@ -482,6 +482,173 @@ Parameters:
     </revision>
   </page>
   <page>
+    <title>Template:Folder</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template added by Confluence migration to handle the "folder" pages
+
+Used [[:Template:Folder/Row|template Folder/Row]] to show rows of pages.
+&lt;templatedata&gt;
+{
+	"params": {
+		"spl-cols": {
+			"label": {
+				"en": "Number of colums",
+				"de": "Anzahl Spalten"
+			},
+			"suggestedvalues": [
+				"1",
+				"2",
+				"3"
+			]
+		},
+		"spl-breakinside": {
+			"label": {
+				"en": "Break within a level",
+				"de": "Umbruch innerhalb einer Ebene"
+			},
+			"suggestedvalues": [
+				"avoid",
+				"auto"
+			]
+		},
+		"spl-kidsonly": {
+			"label": {
+				"en": "Show only one sublevel",
+				"de": "Nur eine Ebene anzeigen"
+			},
+			"suggestedvalues": [
+				"no",
+				"yes"
+			]
+		},
+		"spl-parent": {
+			"label": "Parent page (optional)",
+			"suggested": true
+		}
+	},
+	"description": {
+		"en": "Basic portal for the subpages of the current page",
+		"de": "Einfaches Portal für die Unterseiten einer Seite"
+	},
+	"paramOrder": [
+		"spl-parent",
+		"spl-cols",
+		"spl-breakinside",
+		"spl-kidsonly"
+	]
+}
+&lt;/templatedata&gt;
+&lt;/noinclude&gt;&lt;includeonly&gt;&lt;div class="pl-container"&gt;
+&lt;div class="pl-col"&gt;
+== Recent changes ==
+{{#ask:
+[[Modification date::&gt;={{#time:Y-m-d|-30 days}}]] [[{{NAMESPACE}}:+]] [[~{{{spl-parent|{{FULLPAGENAME}}}}}*]]
+|?Modification date#-F[m/d/y]
+|sort=Modification date
+|order=desc
+|limit=5
+|format=ul
+|class=list-unstyled
+|headers=hide
+|template=Folder/Row
+|link=none
+|default=no updated pages in 30 days
+|searchlabel=more...
+}}
+&lt;/div&gt;
+&lt;div class="pl-col"&gt;
+== Newest pages ==
+{{#ask:
+[[Creation date::&gt;={{#time:Y-m-d|-30 days}}]] [[{{NAMESPACE}}:+]] [[~{{{spl-parent|{{FULLPAGENAME}}}}}*]]
+|?Creation date#-F[m/d/y]
+|sort=Creation date
+|order=desc
+|limit=5
+|format=ul
+|class=list-unstyled
+|headers=hide
+|template=Folder/Row
+|link=none
+|default=no new pages in 30 days
+|searchlabel=more...
+}}
+&lt;/div&gt;
+&lt;/div&gt;
+
+==Subpages ({{#subpagecount:{{{spl-parent|{{FULLPAGENAME}}}}}}})==
+&lt;div class="folder-nav col{{{spl-cols|2}}} {{{spl-breakinside|avoid}}}" aria-role="navigation" aria-label="Unterseiten"&gt;
+{{#ifeq:{{SUBPAGENAME}}|{{PAGENAME}}|| &amp;larr; [[{{NAMESPACE}}:{{BASEPAGENAME}}|{{BASEPAGENAME}}]]}}
+{{#subpages:parent={{{spl-parent|{{FULLPAGENAME}}}}}|kidsonly={{{spl-kidsonly|no}}}|default=&lt;span class="default"&gt;no subpages&lt;/span&gt;}}&lt;/div&gt;
+__NOTOC__
+&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Folder/Row</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template added by Confluence migration to handle the "folder" pages
+&lt;/noinclude&gt;&lt;includeonly&gt;[[{{{1}}}|&lt;i class="bi bi-card-text prefix"&gt;&lt;/i&gt;]] [[{{{1}}}|{{SUBPAGENAME:{{{1}}}}}]] &lt;small&gt;{{{2}}}&lt;/small&gt;&lt;br&gt;&lt;div class="byline neutral prefixicon"&gt;&lt;small&gt;{{#invoke:PortalSubpageRoot|main|{{{1}}}}}&lt;/small&gt;&lt;/div&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Folder/style.css</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>/* subpage tree on portal pages */
+.folder-nav {
+    background: var(--folder-nav-bg, #f2f3f9);
+    padding: 1em;
+
+    .folder-nav .subpagelist &gt; ul {
+        margin-top: 1em;
+        margin-bottom: 1em;
+        column-gap: 1.5rem;
+    }
+    .folder-nav.col2 .subpagelist &gt; ul {
+        column-count: 2;
+    }
+    .folder-nav.col3 .subpagelist &gt; ul {
+        column-count: 3;
+    }
+
+    .folder-nav.avoid .subpagelist li {
+        break-inside: avoid;
+    }
+
+    /* avoid empty space if there are no subpages: */
+    .folder-nav .default {
+        display: none;
+        line-height: 0;
+        overflow: hidden;
+    }
+
+    .bi.prefix::before {
+        content: "\f228";
+        font-size: 1.2em;
+        vertical-align: -0.22em !important;
+        margin-right: 0.2em;
+    }
+
+    .byline {
+        margin-bottom: 0.8em;
+    }
+
+    .byline.prefixicon {
+        margin-left: 1.8em;
+    }
+
+    .byline.neutral {
+        color:#747474 !important;
+    }
+}</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:Gliffy</title>
     <revision>
       <model>wikitext</model>
