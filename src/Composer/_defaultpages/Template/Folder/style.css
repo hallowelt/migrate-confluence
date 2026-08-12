@@ -14,11 +14,11 @@
     .folder-nav.col3 .subpagelist > ul {
         column-count: 3;
     }
-    
+
     .folder-nav.avoid .subpagelist li {
         break-inside: avoid;
     }
-    
+
     /* avoid empty space if there are no subpages: */
     .folder-nav .default {
         display: none;
@@ -32,18 +32,17 @@
     	vertical-align: -0.22em!important; 
     	margin-right: 0.2em;
     }
-    
+
     .byline {
         margin-bottom: 0.8em;
     	
     }
-    
+
     .byline.prefixicon {
     	margin-left:1.8em
     }
-    
+
     .byline.neutral  {
     	color:#747474!important;
     }
-    
 }
