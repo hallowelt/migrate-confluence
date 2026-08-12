@@ -1,3 +1,3 @@
-This is Product Name℠ software.
+This is {{SM|body = Product Name}} software.
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

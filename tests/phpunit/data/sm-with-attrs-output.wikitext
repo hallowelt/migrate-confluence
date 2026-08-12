@@ -1,3 +1,3 @@
-This is <span id="sm1" class="brand">Product Name℠</span> software.
+This is {{SM|id = sm1|class = brand|body = Product Name}} software.
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

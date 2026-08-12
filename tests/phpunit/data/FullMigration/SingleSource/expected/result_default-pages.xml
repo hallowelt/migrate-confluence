@@ -127,6 +127,14 @@
     </revision>
   </page>
   <page>
+    <title>Template:TM</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>'''{{{body|}}}'''™</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:TableFilterEnd</title>
     <revision>
       <model>wikitext</model>
@@ -447,6 +455,22 @@
     </revision>
   </page>
   <page>
+    <title>Template:RegTM</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>'''{{{body|}}}'''®</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:SM</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>'''{{{body|}}}'''℠</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:SpaceDetails</title>
     <revision>
       <model>wikitext</model>
@@ -499,6 +523,14 @@ Parameters:
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;Template for confluence macro "viewpdf"
 &lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Copyright</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>'''{{{body|}}}'''©</text>
     </revision>
   </page>
   <page>

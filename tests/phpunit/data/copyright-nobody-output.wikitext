@@ -1,3 +1,3 @@
-Registered brand © mark.
+Registered brand {{Copyright}} mark.
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
