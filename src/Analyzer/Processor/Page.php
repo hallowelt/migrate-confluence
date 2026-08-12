@@ -113,7 +113,7 @@ class Page extends ProcessorBase {
 
 		$this->output->writeln( "Add page '$confluenceTitle' (ID:$pageId)" );
 
-		if ( empty( $bodyContentIds ) && (!isset( $properties['isFolder'] ) || $properties['isFolder'] !== 'true') ) {
+		if ( empty( $bodyContentIds ) && ( !isset( $properties['isFolder'] ) || $properties['isFolder'] !== 'true' ) ) {
 			$warning = "Warning: No body content IDs found for page '$confluenceTitle' (ID:$pageId)";
 			$this->output->writeln( $warning );
 			$this->writer->addLogEntry(
