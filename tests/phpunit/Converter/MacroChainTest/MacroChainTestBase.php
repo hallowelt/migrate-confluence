@@ -23,9 +23,19 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProce
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 abstract class MacroChainTestBase extends TestCase {
+
+	protected DBConversionDataLookup $dataLookup;
+
+	protected function setUp(): void
+	{
+		$workspaceDb = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
+		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
+	}
 
 	/**
 	 * @param IProcessor $processor
@@ -53,7 +63,7 @@ abstract class MacroChainTestBase extends TestCase {
 		$postprocessors = [
 			new RestorePStyleTag(),
 			new RestoreExcerptMacro(),
-			new RestoreExcerptIncludeMacro(),
+			new RestoreExcerptIncludeMacro( $this->dataLookup ),
 			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
@@ -110,7 +120,7 @@ abstract class MacroChainTestBase extends TestCase {
 	 * @param string $html
 	 * @return string
 	 */
-	private function runPandoc( string $html ): string {
+	protected function runPandoc( string $html ): string {
 		$descriptors = [
 			0 => [ 'pipe', 'r' ],
 			1 => [ 'pipe', 'w' ],

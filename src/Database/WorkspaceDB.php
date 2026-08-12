@@ -3596,6 +3596,32 @@ class WorkspaceDB {
 		return $this->fetchDbArray( $result );
 	}
 
+	public function getPage( string $wikiTitle ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM pages WHERE wiki_title = :wiki_title'
+		);
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+		if ( !$data ) {
+			return null;
+		}
+
+		$jsonFields = ['body_content_ids', 'historical_ids', 'properties', 'collection'];
+
+		foreach ($jsonFields as $field) {
+			$data[$field] = json_decode($data[$field], true);
+		}
+
+		return $data;
+	}
+
 	/**
 	 * @param int $attachmentId
 	 * @param int $pageId

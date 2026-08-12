@@ -1,38 +1,38 @@
-<excerpt-block hidden="true">This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.</excerpt-block>
+<excerpt-block name="excerpt-0" hidden="true">This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.</excerpt-block>
 
-<excerpt-inline hidden="true">This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.</excerpt-inline>
+<excerpt-inline name="excerpt-0" hidden="true">This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.</excerpt-inline>
 
-<excerpt-block hidden="false"></excerpt-block>
+<excerpt-block name="excerpt-0" hidden="false"></excerpt-block>
 
 <excerpt-block name="Excerpt Name 1" hidden="false">This content is transcluded from page “excerpt”.</excerpt-block>
 
-<excerpt-block hidden="false">{| class="wikitable relative-table wrapped"
+<excerpt-block name="excerpt-0" hidden="false">{| class="wikitable relative-table wrapped"
 |-
 ! Table Header 1
 |-
 | Table Cell 1
 |}</excerpt-block>
 
-<excerpt-block hidden="false">{| class="wikitable relative-table wrapped"
+<excerpt-block name="excerpt-0" hidden="false">{| class="wikitable relative-table wrapped"
 |-
 ! Table Header 1
 |-
 | Table Cell 1
 |}</excerpt-block>
 
-<excerpt-block hidden="false">First paragraph of the excerpt.
+<excerpt-block name="excerpt-0" hidden="false">First paragraph of the excerpt.
 
 Second paragraph of the excerpt.</excerpt-block>
 
-<excerpt-block hidden="false">Intro text before the heading.
+<excerpt-block name="excerpt-0" hidden="false">Intro text before the heading.
 
 <span id="a-heading-inside-the-excerpt"></span>
 == A heading inside the excerpt ==</excerpt-block>
 
-<excerpt-block hidden="false">* First list item
+<excerpt-block name="excerpt-0" hidden="false">* First list item
 * Second list item</excerpt-block>
 
-<excerpt-block hidden="false">Line one of the excerpt.<br />
+<excerpt-block name="excerpt-0" hidden="false">Line one of the excerpt.<br />
 Line two of the excerpt.</excerpt-block>
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
