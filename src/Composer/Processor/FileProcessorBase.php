@@ -4,14 +4,14 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
-use HalloWelt\MigrateConfluence\Composer\ISpaceDependentProcessor;
+use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikiFileXmlBuilder;
 use Symfony\Component\Console\Output\Output;
 
-abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpaceDependentProcessor {
+abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsDependentProcessor {
 
 	/** @var WikiFileXmlBuilder */
 	protected WikiFileXmlBuilder $builder;
@@ -203,7 +203,7 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 			$basePath .= $this->subDir . '/';
 		}
 		if ( !file_exists( $basePath ) ) {
-			mkdir( $basePath, 0755 );
+			mkdir( $basePath, 0755, true );
 		}
 		return $basePath;
 	}

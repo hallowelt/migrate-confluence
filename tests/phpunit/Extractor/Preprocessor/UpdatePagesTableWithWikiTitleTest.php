@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithWikiTitle;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use PHPUnit\Framework\TestCase;
 
 class UpdatePagesTableWithWikiTitleTest extends TestCase {
@@ -17,12 +18,18 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPage(
 			400, 42, 'Sample page', '', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
 
-		$processor = new UpdatePagesTableWithWikiTitle( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
+		$processor = new UpdatePagesTableWithWikiTitle(
+			$workspaceDB,
+			$dbLog,
+			$writer,
+			new MigrationConfig( [] ),
+			new WikisConfig( $workspaceDB )
+		);
 		$processor->execute();
 
 		$page = $this->findRowById( $workspaceDB->getPages(), 'page_id', 400 );
@@ -38,4 +45,5 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 			'Expected generated wiki_title to use TEST namespace.'
 		);
 	}
+
 }

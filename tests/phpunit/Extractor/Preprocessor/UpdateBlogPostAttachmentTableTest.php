@@ -17,7 +17,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
 		$workspaceDB->addAttachment(
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
@@ -46,7 +46,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
 		$workspaceDB->addAttachment(
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
@@ -81,7 +81,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
 		$workspaceDB->addAttachment(
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
@@ -118,7 +118,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
 		$workspaceDB->addAttachment(
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
@@ -156,7 +156,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
 		$workspaceDB->addAttachment(
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
@@ -193,7 +193,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
 		$workspaceDB->addAttachment(
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []

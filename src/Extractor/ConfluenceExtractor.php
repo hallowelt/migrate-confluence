@@ -33,6 +33,7 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
+use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
@@ -52,6 +53,9 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 
 	/** @var DBLog */
 	private DBLog $dbLog;
+
+	/** @var WikisConfig */
+	private WikisConfig $wikisConfig;
 
 	/**
 	 * @param array $config
@@ -115,6 +119,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		$this->initMigrationConfig();
 		$this->initWorkspaceDB();
 		$this->initDBLog();
+		$this->wikisConfig = new WikisConfig( $this->workspaceDB );
 
 		$writer = new ExtractorDirectDataWriter( $this->workspaceDB );
 
@@ -148,7 +153,8 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		return [
 			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog, $writer ),
 			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog, $writer ),
-			new UpdatePagesTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new UpdatePagesTableWithWikiTitle(
+				$this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig, $this->wikisConfig ),
 			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog, $writer ),
 			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
 			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),

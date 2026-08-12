@@ -42,8 +42,8 @@ class DefaultPages extends ProcessorBase {
 			}
 			$pageName = $fileObj->getBasename();
 			if (
-					$namespacePrefix && str_ends_with( $namespacePrefix, '/' )
-					&& $fileObj->getBasename() === 'wikitext' ) {
+					$namespacePrefix && str_ends_with( $namespacePrefix, '/' ) &&
+					$fileObj->getBasename() === 'wikitext' ) {
 				/* Template:SomeName/wikitext => Template:SomeName to allow better structuring of source files */
 				$namespacePrefix = rtrim( $namespacePrefix, '/' );
 				$pageName = '';

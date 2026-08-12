@@ -51,7 +51,9 @@ class SidebarTest extends TestCase {
 	}
 
 	private function executeSidebar( Sidebar $sidebar, array $spaces ): void {
-		$sidebar->execute( $this->testNamespace, $spaces );
+		$sidebar->setSubDir( $this->testNamespace );
+		$sidebar->setCurrentSpaces( $spaces );
+		$sidebar->execute();
 	}
 
 	private function makeSpace( int $id, string $name ): array {
@@ -86,7 +88,10 @@ class SidebarTest extends TestCase {
 		$dataLookup = $this->createMock( DBComposerDataLookup::class );
 		$dataLookup->expects( $this->never() )->method( 'getPagesForSidebar' );
 
-		$this->makeSidebar( $dataLookup, false )->execute( $this->testNamespace, [] );
+		$sidebar = $this->makeSidebar( $dataLookup, false );
+		$sidebar->setSubDir( $this->testNamespace );
+		$sidebar->setCurrentSpaces( [] );
+		$sidebar->execute();
 
 		$this->assertFileDoesNotExist(
 			$this->tmpDir . '/result/' . $this->testNamespace . '/enhanced-sidebar.xml'

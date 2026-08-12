@@ -1,0 +1,5 @@
+confluence-space-key;wiki-name;wiki-namespace;wiki-root-page;
+PROD;production;;;
+MAR;marketing;;Marketing;
+ADV;marketing;;Advertising;
+EVENT;marketing;Events;;

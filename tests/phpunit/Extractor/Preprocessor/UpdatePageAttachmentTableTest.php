@@ -17,7 +17,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPage(
 			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
@@ -48,7 +48,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPage(
 			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
@@ -85,7 +85,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPage(
 			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
@@ -120,7 +120,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPage(
 			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
@@ -160,7 +160,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPage(
 			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
@@ -199,7 +199,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST:', -1, -1 );
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPage(
 			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
