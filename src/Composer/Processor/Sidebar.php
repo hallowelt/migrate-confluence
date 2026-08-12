@@ -3,10 +3,18 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
+use HalloWelt\MigrateConfluence\Composer\ISpacesDependentProcessor;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
-class Sidebar {
+class Sidebar implements IConfluenceComposerProcessor, ISpacesDependentProcessor {
+
+	/** @var string */
+	private string $subDir = '';
+
+	/** @var array */
+	private array $currentSpaces = [];
 
 	/**
 	 * @param DBComposerDataLookup $dataLookup
@@ -21,17 +29,27 @@ class Sidebar {
 	}
 
 	/**
-	 * @param string $namespace The result sub-directory (e.g. "NS_MAIN", "MY_NS").
-	 * @param array $spaces Spaces belonging to this namespace, each with 'space_id' and 'space_name'.
+	 * @param string $name
 	 * @return void
 	 */
-	public function execute( string $namespace, array $spaces ): void {
+	public function setSubDir( string $name ): void {
+		$this->subDir = $name;
+	}
+
+	public function setCurrentSpaces( array $spaces ): void {
+		$this->currentSpaces = $spaces;
+	}
+
+	/**
+	 * @return void
+	 */
+	public function execute(): void {
 		if ( !$this->migrationConfig->getCreateSidebar() ) {
 			return;
 		}
 
 		$sidebar = [];
-		foreach ( $spaces as $space ) {
+		foreach ( $this->currentSpaces as $space ) {
 			$section = $this->buildSpaceSection( $space );
 			if ( $section !== null ) {
 				$sidebar[] = $section;
@@ -54,10 +72,7 @@ class Sidebar {
 			'application/json'
 		);
 
-		$resultPath = $this->dest . '/result/' . $namespace . '/';
-		if ( !is_dir( $resultPath ) ) {
-			mkdir( $resultPath, 0755, true );
-		}
+		$resultPath = $this->getBasePath();
 		$builder->buildAndSave( $resultPath . 'enhanced-sidebar.xml' );
 	}
 
@@ -181,5 +196,19 @@ class Sidebar {
 			'icon-cls' => '',
 			'children' => $children,
 		];
+	}
+
+	/**
+	 * @return string
+	 */
+	private function getBasePath(): string {
+		$basePath = $this->dest . "/result/";
+		if ( $this->subDir !== '' ) {
+			$basePath .= $this->subDir . '/';
+		}
+		if ( !file_exists( $basePath ) ) {
+			mkdir( $basePath, 0755, true );
+		}
+		return $basePath;
 	}
 }

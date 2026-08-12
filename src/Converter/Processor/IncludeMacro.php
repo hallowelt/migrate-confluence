@@ -75,21 +75,18 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 		if ( $pageEl === null ) {
 			return null;
 		}
+
+		$targetSpaceId = $this->currentSpaceId;
+		$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
+		if ( $spaceKey !== '' ) {
+			$targetSpaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+		}
+
 		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );
 
-		$spaceId = null;
-		$spaceKey = $node->getAttribute( 'ri:space-key' );
-
-		if ( !empty( $spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
-		}
-
-		if ( !$spaceId ) {
-			$spaceId = $this->currentSpaceId;
-		}
-
-		$wikiTitle = $this->dataLookup->getWikiPageTitleFromSpaceId(
+		$wikiTitle = $this->dataLookup->getWikiPageTitleForLink(
 			$this->currentSpaceId,
+			$targetSpaceId,
 			$targetPageName
 		);
 
@@ -100,7 +97,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 		// Fallback to confluence page key
 		$this->isBroken = true;
 		if ( empty( $spaceKey ) ) {
-			return $this->conversionHelper->getConfluencePageKeyFromSpaceId( $spaceId, $targetPageName );
+			return $this->conversionHelper->getConfluencePageKeyFromSpaceId( $targetSpaceId, $targetPageName );
 		}
 
 		return $this->conversionHelper->getConfluencePageKeyFromSpaceKey( $spaceKey, $targetPageName );

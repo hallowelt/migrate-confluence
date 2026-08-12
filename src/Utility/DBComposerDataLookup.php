@@ -291,6 +291,17 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * @return array
+	 */
+	public function getWikisConfigWikiNames(): array {
+		return $this->workspaceDB->getWikisConfigWikiNames();
+	}
+
+	public function getWikisConfigSpacesForWikiName( string $wikiName ): array {
+		return $this->workspaceDB->getWikisConfigSpacesForWikiName( $wikiName );
+	}
+
+	/*
 	 * @return string[] list of required template names
 	 */
 	public function getRequiredTemplates(): array {

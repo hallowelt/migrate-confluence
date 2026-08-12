@@ -8,6 +8,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use PHPUnit\Framework\TestCase;
 
 class SpacesTest extends TestCase {
@@ -23,7 +24,8 @@ class SpacesTest extends TestCase {
 
 		$processor = new Spaces(
 			new AnalyzerDirectDataWriter( $this->workspaceDB ),
-			new MigrationConfig( [] )
+			new MigrationConfig( [] ),
+			new WikisConfig( $this->workspaceDB )
 		);
 
 		$this->executeProcessorForClass( $processor, __DIR__ . '/spaces.xml', 'Space' );
@@ -35,7 +37,7 @@ class SpacesTest extends TestCase {
 		$this->assertSame( 10, $space['space_id'], 'Unexpected space_id value.' );
 		$this->assertSame( 'TEST', $space['space_key'], 'Unexpected space_key value.' );
 		$this->assertSame( 'Test Space', $space['space_name'], 'Unexpected space_name value.' );
-		$this->assertSame( 'TEST:', $space['space_prefix'], 'Unexpected space_prefix value.' );
+		$this->assertSame( 'TEST', $space['namespace_prefix'], 'Unexpected namespace_prefix value.' );
 		$this->assertSame( 100, $space['homepage_id'], 'Unexpected homepage_id value.' );
 		$this->assertSame( 101, $space['description_id'], 'Unexpected description_id value.' );
 	}

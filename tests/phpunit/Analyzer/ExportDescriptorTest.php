@@ -7,6 +7,7 @@ use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Tests\Database\ExportPropertiesQueryHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use PHPUnit\Framework\TestCase;
 use SplFileInfo;
 use Symfony\Component\Console\Output\NullOutput;
@@ -48,7 +49,8 @@ class ExportDescriptorTest extends TestCase {
 		$analyzer = new ConfluenceAnalyzer(
 			new AnalyzerDirectDataWriter( $workspaceDB ),
 			new NullOutput(),
-			new MigrationConfig( [] )
+			new MigrationConfig( [] ),
+			new WikisConfig( $workspaceDB )
 		);
 
 		$analyzer->analyze( new SplFileInfo( $this->tempDir . '/entities.xml' ) );
@@ -76,7 +78,8 @@ class ExportDescriptorTest extends TestCase {
 		$analyzer = new ConfluenceAnalyzer(
 			new AnalyzerDirectDataWriter( $workspaceDB ),
 			new NullOutput(),
-			new MigrationConfig( [] )
+			new MigrationConfig( [] ),
+			new WikisConfig( $workspaceDB )
 		);
 
 		$analyzer->analyze( new SplFileInfo( $this->tempDir . '/entities.xml' ) );
@@ -90,7 +93,8 @@ class ExportDescriptorTest extends TestCase {
 		$analyzer = new ConfluenceAnalyzer(
 			new AnalyzerDirectDataWriter( $workspaceDB ),
 			new NullOutput(),
-			new MigrationConfig( [] )
+			new MigrationConfig( [] ),
+			new WikisConfig( $workspaceDB )
 		);
 
 		$result = $analyzer->analyze( new SplFileInfo( $this->tempDir . '/something-else.xml' ) );

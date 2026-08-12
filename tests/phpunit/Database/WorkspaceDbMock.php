@@ -119,11 +119,11 @@ class WorkspaceDbMock {
 	}
 
 	private function seedDefaultSpaces( WorkspaceDB $workspaceDB ): void {
-		$workspaceDB->addSpace( 0, '', 'General', 'GENERAL:', -1, -1 );
-		$workspaceDB->addSpace( 1, 'MKT', 'Marketing', 'MKT:', -1, -1 );
-		$workspaceDB->addSpace( 23, 'DEVOPS', 'DevOps', 'DEVOPS:', -1, -1 );
-		$workspaceDB->addSpace( 42, 'ABC', 'Some space', 'ABC:', -1, -1 );
-		$workspaceDB->addSpace( 52, 'INF', 'Some other space', 'INF:', -1, -1 );
+		$workspaceDB->addSpace( 0, '', 'General', 'GENERAL', '', '', -1, -1 );
+		$workspaceDB->addSpace( 1, 'MKT', 'Marketing', 'MKT', '', '', -1, -1 );
+		$workspaceDB->addSpace( 23, 'DEVOPS', 'DevOps', 'DEVOPS', '', '', -1, -1 );
+		$workspaceDB->addSpace( 42, 'ABC', 'Some space', 'ABC', '', '', -1, -1 );
+		$workspaceDB->addSpace( 52, 'INF', 'Some other space', 'INF', '', '', -1, -1 );
 	}
 
 	private function seedUsers( WorkspaceDB $workspaceDB ): void {
