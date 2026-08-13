@@ -897,7 +897,7 @@ class WorkspaceDB {
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		return !empty( $data['wiki_name'] ) ? $data['wiki_name'] : null;
+		return $data['wiki_name'];
 	}
 
 	/**
@@ -918,7 +918,7 @@ class WorkspaceDB {
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		return !empty( $data['wiki_namespace'] ) ? $data['wiki_namespace'] : null;
+		return $data['wiki_namespace'];
 	}
 
 	/**
@@ -939,7 +939,7 @@ class WorkspaceDB {
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		return !empty( $data['wiki_root_page'] ) ? $data['wiki_root_page'] : null;
+		return $data['wiki_root_page'];
 	}
 
 	/**
