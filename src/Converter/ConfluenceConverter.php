@@ -361,6 +361,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 		$this->runPostProcessors();
 
+		$this->addFolderTemplateIfApplicable();
+
 		$this->postprocessWikiText();
 
 		$this->checkContentLength( $bodyContentId );
@@ -369,6 +371,26 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->wikiText = $invalidContentCategories->postprocess( $this->wikiText );
 
 		return $this->wikiText;
+	}
+
+	/**
+	 * Add the folder overview to empty folder pages before common output metadata is added.
+	 *
+	 * @return void
+	 */
+	private function addFolderTemplateIfApplicable(): void {
+		if (
+			$this->contentType !== 'page' ||
+			$this->pageId === null ||
+			trim( $this->wikiText ) !== ''
+		) {
+			return;
+		}
+
+		$properties = $this->dataLookup->getPropertiesForPageId( $this->pageId );
+		if ( !empty( $properties['isFolder'] ) ) {
+			$this->wikiText = '{{Folder}}';
+		}
 	}
 
 	/**

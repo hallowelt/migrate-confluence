@@ -22,6 +22,14 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $pageId
+	 * @return array|null The properties of the given page or null, if an error occurred
+	 */
+	public function getPropertiesForPageId( int $pageId ): ?array {
+		return $this->workspaceDB->getPropertiesForPageId( $pageId );
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getSpaceIdToPrefixMap(): array {
