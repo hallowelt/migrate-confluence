@@ -1,9 +1,9 @@
 1 incomplete I have another tasklist :)
 
-2 incomplete Body 1 <span class="placeholder">with placeholder</span>
+2 incomplete Body 1 <!-- with placeholder -->
 
-3 incomplete <span style="color: red;">Body 2</span> <span class="placeholder">with placeholder</span>
+3 incomplete <span style="color: red;">Body 2</span> <!-- with placeholder -->
 
-<span class="placeholder">This is a placeholder</span>
+<!-- This is a placeholder --> <!--  -->
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

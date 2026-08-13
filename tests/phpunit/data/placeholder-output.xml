@@ -9,12 +9,12 @@
 						<ac:task>
 							<ac:task-id>2</ac:task-id>
 							<ac:task-status>incomplete</ac:task-status>
-							<ac:task-body>Body 1 <span class="placeholder">with placeholder</span></ac:task-body>
+							<ac:task-body>Body 1 ###HTMLCOMMENTOPEN###with placeholder###HTMLCOMMENTCLOSE###</ac:task-body>
 						</ac:task>
 						<ac:task>
 							<ac:task-id>3</ac:task-id>
 							<ac:task-status>incomplete</ac:task-status>
-							<ac:task-body><span style="color: red;">Body 2</span> <span class="placeholder">with placeholder</span></ac:task-body>
+							<ac:task-body><span style="color: red;">Body 2</span> ###HTMLCOMMENTOPEN###with placeholder###HTMLCOMMENTCLOSE###</ac:task-body>
 						</ac:task>
 					</ac:task-list>
 				</ac:task-body>
@@ -22,6 +22,7 @@
 		</ac:task-list>
 	</p>
     <p>
-        <span class="placeholder">This is a placeholder</span>
+        ###HTMLCOMMENTOPEN###This is a placeholder###HTMLCOMMENTCLOSE###
+        ###HTMLCOMMENTOPEN######HTMLCOMMENTCLOSE###
     </p>
 </xml>
