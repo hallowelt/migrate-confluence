@@ -124,6 +124,12 @@ class WorkspaceDbMock {
 		$workspaceDB->addSpace( 23, 'DEVOPS', 'DevOps', 'DEVOPS', '', '', -1, -1 );
 		$workspaceDB->addSpace( 42, 'ABC', 'Some space', 'ABC', '', '', -1, -1 );
 		$workspaceDB->addSpace( 52, 'INF', 'Some other space', 'INF', '', '', -1, -1 );
+
+		$workspaceDB->addWikisConfig( '', 'main-wiki', '', '' );
+		$workspaceDB->addWikisConfig( 'MKT', 'shared-wiki', 'MKT', '' );
+		$workspaceDB->addWikisConfig( 'DEVOPS', 'shared-wiki', 'DEVOPS', '' );
+		$workspaceDB->addWikisConfig( 'ABC', 'shared-wiki', 'ABC', '' );
+		$workspaceDB->addWikisConfig( 'INF', 'shared-wiki', 'INF', '' );
 	}
 
 	private function seedUsers( WorkspaceDB $workspaceDB ): void {
