@@ -332,7 +332,7 @@ class DBConversionDataLookup {
 			}
 		}
 
-		if ( empty ( $bodyContent ) ) {
+		if ( empty( $bodyContent ) ) {
 			return null;
 		}
 

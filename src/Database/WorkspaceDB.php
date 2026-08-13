@@ -3613,10 +3613,15 @@ class WorkspaceDB {
 			return null;
 		}
 
-		$jsonFields = ['body_content_ids', 'historical_ids', 'properties', 'collection'];
+		$jsonFields = [
+			'body_content_ids',
+			'historical_ids',
+			'properties',
+			'collection'
+		];
 
-		foreach ($jsonFields as $field) {
-			$data[$field] = json_decode($data[$field], true);
+		foreach ( $jsonFields as $field ) {
+			$data[$field] = json_decode( $data[$field], true );
 		}
 
 		return $data;

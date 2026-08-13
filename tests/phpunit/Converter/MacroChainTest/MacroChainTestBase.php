@@ -31,8 +31,7 @@ abstract class MacroChainTestBase extends TestCase {
 
 	protected DBConversionDataLookup $dataLookup;
 
-	protected function setUp(): void
-	{
+	protected function setUp(): void {
 		$workspaceDb = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
 		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
 	}
