@@ -53,7 +53,7 @@ class WikisConfig {
 	public function getInterwikiPrefixForSpaceKey( string $spaceKey ): string {
 		$prefix = $this->getWikiNameForSpaceKey( $spaceKey );
 		if ( $prefix === null ) {
-			return strtolower( "wiki-$spaceKey" );
+			$prefix = $this->getNamespaceForSpaceKey( $spaceKey );
 		}
 		return strtolower( "wiki-$prefix" );
 	}
