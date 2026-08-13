@@ -918,7 +918,11 @@ class WorkspaceDB {
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		return !empty( $data['wiki_namespace'] ) ? $data['wiki_namespace'] : null;
+		if ( $data === false ) {
+			return null;
+		}
+
+		return $data['wiki_namespace'] ?? '';
 	}
 
 	/**
