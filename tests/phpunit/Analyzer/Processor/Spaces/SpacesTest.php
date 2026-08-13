@@ -21,6 +21,7 @@ class SpacesTest extends TestCase {
 	 */
 	public function testAllDatabaseFieldsAreStored(): void {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
+		$this->workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'TEST', '' );
 
 		$processor = new Spaces(
 			new AnalyzerDirectDataWriter( $this->workspaceDB ),

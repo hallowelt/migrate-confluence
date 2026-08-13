@@ -297,7 +297,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		$map = [];
 		foreach ( $spaces as $space ) {
 			$spaceId = (int)$space['space_id'];
-			$namespace = $space['namespace_prefix'] ?? 'NS_MAIN';
+			$namespace = empty( $space['namespace_prefix'] ) ? 'NS_MAIN' : $space['namespace_prefix'];
 
 			if ( !isset( $map[$namespace] ) ) {
 				$map[$namespace] = [];

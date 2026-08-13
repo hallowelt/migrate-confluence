@@ -259,10 +259,39 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			$migrationConfig = new MigrationConfig( [] );
 		}
 
+		$this->seedWikisConfigForTestSources( $workspaceDB, $config );
+
 		$analyzer = new ConfluenceAnalyzer( $writer, $output, $migrationConfig, new WikisConfig( $workspaceDB ) );
 		$analyzer->analyze( new SplFileInfo( $src . '/entities.xml' ) );
 
 		$this->seedWikisConfigForAnalyzedSpaces( $workspaceDB, $config );
+	}
+
+	/**
+	 * Seed the wiki configuration required while the analyzer creates spaces.
+	 *
+	 * @param WorkspaceDB $workspaceDB
+	 * @param array $config
+	 * @return void
+	 */
+	protected function seedWikisConfigForTestSources( WorkspaceDB $workspaceDB, array $config ): void {
+		$spacePrefixes = [
+			'CON' => 'CON',
+			'SEC' => 'SECOND',
+			'THRD' => '',
+			'ALPHA' => 'ALPHA',
+			'BETA' => 'BETA',
+			'GAMMA' => 'GAMMA',
+		];
+		if ( isset( $config['config']['space-prefix'] ) && is_array( $config['config']['space-prefix'] ) ) {
+			foreach ( $config['config']['space-prefix'] as $spaceKey => $prefix ) {
+				$spacePrefixes[$spaceKey] = trim( (string)$prefix, ':' );
+			}
+		}
+
+		foreach ( $spacePrefixes as $spaceKey => $namespace ) {
+			$workspaceDB->addWikisConfig( $spaceKey, 'full-migration-wiki', $namespace, '' );
+		}
 	}
 
 	/**

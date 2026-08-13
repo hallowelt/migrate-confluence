@@ -19,6 +19,7 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'TEST', '' );
 		$workspaceDB->addPage(
 			400, 42, 'Sample page', '', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
