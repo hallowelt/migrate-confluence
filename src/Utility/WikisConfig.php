@@ -53,7 +53,9 @@ class WikisConfig {
 	public function getInterwikiPrefixForSpaceKey( string $spaceKey ): string {
 		$prefix = $this->getWikiNameForSpaceKey( $spaceKey );
 		if ( $prefix === null ) {
-			return '';
+			// Wiki is not defined for this space
+			// We return a default interwiki prefix based on the space key
+			return strtolower( "wiki-$spaceKey" );;
 		}
 		return strtolower( "wiki-$prefix" );
 	}
