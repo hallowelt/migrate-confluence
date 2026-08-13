@@ -317,4 +317,25 @@ class DBConversionDataLookup {
 	public function getInvalidPageTemplateTitleReason( int $templateId ): ?string {
 		return $this->workspaceDB->getInvalidPageTemplateTitleReason( $templateId );
 	}
+
+	public function getPageByWikiTitle( string $wikiTitle ): ?array {
+		return $this->workspaceDB->getPage( $wikiTitle );
+	}
+
+	public function getConfluencePageBodyContent( array $bodyContentIds ): ?string {
+		$bodyContent = "";
+		foreach ( $bodyContentIds as $bodyContentId ) {
+			$body = $this->workspaceDB->getBodyContentBodyByBodyContentId( $bodyContentId );
+
+			if ( $body ) {
+				$bodyContent .= $body;
+			}
+		}
+
+		if ( empty( $bodyContent ) ) {
+			return null;
+		}
+
+		return $body;
+	}
 }

@@ -1,0 +1,11 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_namespace2">
+    <p>
+        <ac:structured-macro ac:name="excerpt-include">
+            <ac:default-parameter>
+                <ac:link>
+                    <ri:page ri:content-title="Another Confluence page name"/>
+                </ac:link>
+            </ac:default-parameter>
+        </ac:structured-macro>
+    </p>
+</xml>
