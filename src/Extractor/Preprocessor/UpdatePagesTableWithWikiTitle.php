@@ -248,6 +248,11 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$spaceKey = $this->workspaceDB->getSpaceKeyFromSpaceId( $spaceId );
 		$interwikiPrefix = $this->wikisConfig->getInterwikiPrefixForSpaceKey( $spaceKey );
 
+		// No wiki is configured for this space, return the wiki title without interwiki prefix
+		if ( empty( $interwikiPrefix ) ) {
+			return $wikiTitle;
+		}
+
 		return $interwikiPrefix . ':' . $wikiTitle;
 	}
 
