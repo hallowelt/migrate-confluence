@@ -36,11 +36,6 @@ class ConversionHelper {
 	protected function createTextNode(
 		DOMDocument $dom, string $text, string $caller
 	): DOMNode {
-		if ( $dom instanceof DOMDocument === false ) {
-			throw new DOMException(
-				"Trying to createTextNode on invalid DOMDocument in " . $caller
-			);
-		}
 		$textNode = $dom->createTextNode( $text );
 		if ( $textNode instanceof DOMNode === false ) {
 			throw new DOMException(

@@ -123,7 +123,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	private function getProcessors( string $sourceBasePath ): array {
 		return [
 			'BodyContent' => new BodyContents( $this->writer ),
-			'Space' => new Spaces( $this->writer, $this->config, $this->wikis ),
+			'Space' => new Spaces( $this->writer, $this->wikis ),
 			'SpaceDescription' => new SpaceDescription( $this->writer, $this->config ),
 			'Page' => new Page( $this->writer, $this->config ),
 			'BlogPost' => new BlogPost( $this->writer, $this->config ),

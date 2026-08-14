@@ -88,17 +88,9 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor {
 		}
 	}
 
-	/**
-	 * @param DOMElement $node
-	 *
-	 * @return void
-	 */
 	private function doProcessMacro( DOMElement $node ): void {
 		$params = $this->getParams( $node );
-		$macroId = '';
-		if ( $node instanceof DOMElement ) {
-			$macroId = $node->getAttribute( 'ac:macro-id' );
-		}
+		$macroId = $node->getAttribute( 'ac:macro-id' );
 		$templateTitle = $this->findTemplateTitle( $params );
 		$errorMessage = $this->getResolutionError( $params, $templateTitle );
 

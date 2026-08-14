@@ -7,7 +7,6 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Analyzer\Processor\ProcessorTestHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -25,7 +24,6 @@ class SpacesTest extends TestCase {
 
 		$processor = new Spaces(
 			new AnalyzerDirectDataWriter( $this->workspaceDB ),
-			new MigrationConfig( [] ),
 			new WikisConfig( $this->workspaceDB )
 		);
 
