@@ -551,7 +551,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$postProcessors = [
 			new RestorePStyleTag(),
 			new RestoreExcerptMacro(),
-			new RestoreExcerptIncludeMacro(),
+			new RestoreExcerptIncludeMacro( $this->dataLookup ),
 			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),

@@ -1,0 +1,3 @@
+<excerpt-include showpanel="true" excerpt="Second Excerpt" page="ABC:Another_wiki_page"/>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
