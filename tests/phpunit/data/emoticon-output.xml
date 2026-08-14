@@ -1,5 +1,7 @@
 <xml xmlns:ac="sample_namespace">
-    <p>Some sample text with emoticon :)</p>
-    <p>Some text with unknown emoticon [[Category:Broken_emoticon]]</p>
-    <p>Some text with "blue-star" emoticon &#128231;</p>
+    <p>Some sample text with emoticon {{Emoticon|char=🙂|alt=smile}}</p>
+    <p>Some text with unknown emoticon ###HTMLCOMMENTOPEN###&lt;ac:emoticon ac:name="unknown_emoticon"/&gt;###HTMLCOMMENTCLOSE###[[Category:Broken_emoticon]]</p>
+    <p>Some text with "blue-star" emoticon {{Emoticon|char=📧|alt=e-mail}}</p>
+    <p>Some text with legacy "thumbs-up" emoticon {{Emoticon|char=👍|alt=thumbs-up}}</p>
+    <p>Some text with image-only "logo_trello" emoticon ###HTMLCOMMENTOPEN###&lt;ac:emoticon ac:name="logo_trello" ac:emoji-shortname=":logo_trello:" ac:emoji-id="atlassian-logo_trello" ac:emoji-fallback=":logo_trello:"/&gt;###HTMLCOMMENTCLOSE###[[Category:Broken_emoticon]]</p>
 </xml>

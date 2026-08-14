@@ -37,6 +37,50 @@
     </revision>
   </page>
   <page>
+    <title>Template:Emoticon</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template added by Confluence migration to render migrated Confluence emoticons/emoji reactions. Renders the given Unicode character(s) directly (no images), wrapped in a `span` with an accessible label.
+
+&lt;templatedata&gt;
+{
+    "params": {
+        "char": {
+            "label": {
+                "en": "Character",
+                "de": "Zeichen"
+            },
+            "description": {
+                "en": "The Unicode emoticon/emoji character(s) to display.",
+                "de": "Das darzustellende Unicode-Emoticon-/Emoji-Zeichen."
+            },
+            "type": "string",
+            "required": true
+        },
+        "alt": {
+            "label": {
+                "en": "Alternative text",
+                "de": "Alternativtext"
+            },
+            "description": {
+                "en": "Accessible label (aria-label) describing the emoticon. Falls back to the character itself if omitted.",
+                "de": "Barrierefreie Beschreibung (aria-label) des Emoticons. Wird bei fehlender Angabe durch das Zeichen selbst ersetzt."
+            },
+            "type": "string",
+            "suggested": true
+        }
+    },
+    "paramOrder": [
+        "char",
+        "alt"
+    ]
+}
+&lt;/templatedata&gt;
+&lt;/noinclude&gt;&lt;includeonly&gt;&lt;span aria-label="{{{alt|{{{char}}}}}}"&gt;{{{char}}}&lt;/span&gt;&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:Jira</title>
     <revision>
       <model>wikitext</model>

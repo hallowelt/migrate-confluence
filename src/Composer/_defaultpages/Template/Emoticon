@@ -1,0 +1,37 @@
+<noinclude>Template added by Confluence migration to render migrated Confluence emoticons/emoji reactions. Renders the given Unicode character(s) directly (no images), wrapped in a `span` with an accessible label.
+
+<templatedata>
+{
+    "params": {
+        "char": {
+            "label": {
+                "en": "Character",
+                "de": "Zeichen"
+            },
+            "description": {
+                "en": "The Unicode emoticon/emoji character(s) to display.",
+                "de": "Das darzustellende Unicode-Emoticon-/Emoji-Zeichen."
+            },
+            "type": "string",
+            "required": true
+        },
+        "alt": {
+            "label": {
+                "en": "Alternative text",
+                "de": "Alternativtext"
+            },
+            "description": {
+                "en": "Accessible label (aria-label) describing the emoticon. Falls back to the character itself if omitted.",
+                "de": "Barrierefreie Beschreibung (aria-label) des Emoticons. Wird bei fehlender Angabe durch das Zeichen selbst ersetzt."
+            },
+            "type": "string",
+            "suggested": true
+        }
+    },
+    "paramOrder": [
+        "char",
+        "alt"
+    ]
+}
+</templatedata>
+</noinclude><includeonly><span class="emoticon"{{#if:{{{alt|}}}| aria-label="{{{alt}}}"}}>{{{char}}}</span></includeonly>

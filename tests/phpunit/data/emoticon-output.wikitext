@@ -1,7 +1,11 @@
-Some sample text with emoticon :)
+Some sample text with emoticon {{Emoticon|char=🙂|alt=smile}}
 
-Some text with unknown emoticon [[Category:Broken_emoticon]]
+Some text with unknown emoticon <!-- &lt;ac:emoticon ac:name=&quot;unknown_emoticon&quot;/&gt; -->[[Category:Broken_emoticon]]
 
-Some text with &quot;blue-star&quot; emoticon 📧
+Some text with &quot;blue-star&quot; emoticon {{Emoticon|char=📧|alt=e-mail}}
+
+Some text with legacy &quot;thumbs-up&quot; emoticon {{Emoticon|char=👍|alt=thumbs-up}}
+
+Some text with image-only &quot;logo_trello&quot; emoticon <!-- &lt;ac:emoticon ac:name=&quot;logo_trello&quot; ac:emoji-shortname=&quot;:logo_trello:&quot; ac:emoji-id=&quot;atlassian-logo_trello&quot; ac:emoji-fallback=&quot;:logo_trello:&quot;/&gt; -->[[Category:Broken_emoticon]]
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
