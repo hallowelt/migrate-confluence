@@ -186,7 +186,7 @@ abstract class ContentProcessorBase extends ProcessorBase {
 	 * @return string
 	 */
 	protected function wrapSpaceDescription( string $description ): string {
-		$strippedDescription = trim( preg_replace( '/<!-- From bodyContent .*?-->/s', '', (string)$description ) );
+		$strippedDescription = trim( preg_replace( '/<!-- From bodyContent .*?-->/s', '', $description ) );
 		if ( $strippedDescription === '' ) {
 			return '';
 		}

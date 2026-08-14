@@ -220,7 +220,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 						'analyze',
 						__CLASS__,
 						"Could not find unique {$this->getContentLabel()} attachment title for attachment "
-						. "$attachmentId after " . (string)self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
+						. "$attachmentId after " . self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
 					);
 					continue 2;
 				}
@@ -229,7 +229,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					$attachmentSpaceId,
 					$attachmentOrigFilename,
 					$shortContentWikiTitle,
-					"-(" . (string)$counter . ")"
+					"-(" . $counter . ")"
 				);
 
 				if ( empty( $attachmentWikiTitle ) ) {

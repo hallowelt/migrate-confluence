@@ -148,7 +148,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 				return true;
 			}
 		}
-		return $count > 1;
+		return false;
 	}
 
 	/**

@@ -10,9 +10,6 @@ class WikisOptionHelper {
 	public function __construct( private ?string $configFilePath ) {
 	}
 
-	/**
-	 * @return string|null
-	 */
 	public function validateFile(): ?string {
 		$filename = $this->configFilePath;
 
@@ -51,26 +48,7 @@ class WikisOptionHelper {
 		return null;
 	}
 
-	/**
-	 * @return array
-	 */
 	public function getConfig(): array {
 		return $this->wikiConfig;
-	}
-
-	/**
-	 * @return void
-	 */
-	public function showConfig(): void {
-		if ( $this->wikiConfig === [] ) {
-			$error = $this->validateFile();
-			if ( $error !== null ) {
-				echo $error . PHP_EOL;
-				return;
-			}
-		}
-
-		echo 'Loaded config:' . PHP_EOL;
-		var_dump( $this->wikiConfig );
 	}
 }

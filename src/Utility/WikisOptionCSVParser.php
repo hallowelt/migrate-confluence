@@ -8,12 +8,14 @@ class WikisOptionCSVParser {
 
 	/**
 	 * @param string $filename
+	 *
 	 * @return array
+	 * @throws Exception
 	 */
 	public function parseWikiConfigCSV( string $filename ): array {
 		$wikiConfig = [];
 
-		if ( is_string( $filename ) && is_file( realpath( $filename ) ) ) {
+		if ( is_file( realpath( $filename ) ) ) {
 			$resolvedFilename = realpath( $filename );
 			$content = file_get_contents( $resolvedFilename );
 			if ( $content === false ) {

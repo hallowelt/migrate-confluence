@@ -3,19 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use XMLReader;
 
 class Spaces extends ProcessorBase {
 
-	/**
-	 * @param IAnalyzeDataWriter $writer
-	 * @param MigrationConfig $migrationConfig
-	 */
 	public function __construct(
 		private IAnalyzeDataWriter $writer,
-		private MigrationConfig $migrationConfig,
 		private readonly WikisConfig $wikis,
 	) {
 	}
@@ -64,9 +58,6 @@ class Spaces extends ProcessorBase {
 			$this->output->writeln( "Add space $spaceKey (ID:$spaceId)" );
 		}
 
-		// Update property key
-		$properties['key'] = $spaceKey;
-
 		// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
 		$namespacePrefix = '';
 		if ( $spaceKey !== 'GENERAL' ) {
@@ -101,12 +92,7 @@ class Spaces extends ProcessorBase {
 		}
 	}
 
-	/**
-	 * @param string $spaceKey
-	 * @param string $spaceName
-	 * @return string
-	 */
-	private function sanitizeUserSpaceKey( $spaceKey, $spaceName ) {
+	private function sanitizeUserSpaceKey( string $spaceKey, string $spaceName ): string {
 		$spaceKey = substr( $spaceKey, 1, strlen( $spaceKey ) - 1 );
 		if ( is_numeric( $spaceKey ) ) {
 			$spaceKey = $spaceName;

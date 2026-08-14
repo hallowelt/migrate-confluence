@@ -272,9 +272,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			if ( $sidebarProcessor instanceof ISpaceIdsDependentProcessor ) {
 				$sidebarProcessor->setCurrentSpaceIds( $spaceIds );
 			}
-			if ( $sidebarProcessor instanceof ISpacesDependentProcessor ) {
-				$sidebarProcessor->setCurrentSpaces( $spaces );
-			}
+			$sidebarProcessor->setCurrentSpaces( $spaces );
 			$sidebarProcessor->execute();
 
 			$this->writeDeploymentLog( $namespace, $deploymentInfo, $wikiName );

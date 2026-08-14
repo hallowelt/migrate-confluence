@@ -99,7 +99,6 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				continue;
 			}
 
-			$pageId = (int)$page['page_id'];
 			$spaceId = (int)$page['space_id'];
 			$confluenceTitle = (string)$page['confluence_title'];
 

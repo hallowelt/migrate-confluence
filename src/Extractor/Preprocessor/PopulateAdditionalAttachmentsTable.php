@@ -130,7 +130,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 						'analyze',
 						__CLASS__,
 						"Could not find unique {$this->getContentLabel()} attachment title for attachment "
-						. "$attachmentId after " . (string)self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
+						. "$attachmentId after " . self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
 					);
 					continue 2;
 				}
@@ -139,7 +139,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 					$attachmentSpaceId,
 					$attachmentOrigFilename,
 					'',
-					"-(" . (string)$counter . ")"
+					"-(" . $counter . ")"
 				);
 
 				if ( empty( $attachmentWikiTitle ) ) {

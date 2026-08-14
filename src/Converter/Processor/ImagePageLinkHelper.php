@@ -92,7 +92,6 @@ class ImagePageLinkHelper extends ConversionHelper {
 			// TODO: Log if spaceId is null, but we should be able to
 			// resolve the filename without spaceId as well, so we can continue processing
 		} else {
-			$spaceId = $this->currentSpaceId;
 			$this->spaceKey = $this->dataLookup->getSpaceKeyFromSpaceId( $spaceId );
 		}
 

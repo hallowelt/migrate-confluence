@@ -25,7 +25,6 @@ class SpacesTest extends TestCase {
 
 		$processor = new Spaces(
 			new AnalyzerDirectDataWriter( $this->workspaceDB ),
-			new MigrationConfig( [] ),
 			new WikisConfig( $this->workspaceDB )
 		);
 
