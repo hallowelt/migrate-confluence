@@ -33,20 +33,24 @@ class EscapePipesInTemplateBodyTest extends TestCase {
 	public static function provideTestCases(): array {
 		// Note: at postprocessor runtime ###BREAK### markers are still present.
 		$br = "###BREAK###";
+		// Table-open syntax as it appears in the raw (unconverted) input.
 		$tbl = "{| class=\"wikitable\"\n";
+		// Table-open syntax as it must appear once escaped for use inside a
+		// template parameter: `{|` becomes `{{(!}}` (see EscapePipesInTemplateBody).
+		$tblEsc = "{{(!}} class=\"wikitable\"\n";
 		return [
 			'wikitable in body is escaped' => [
 				"{{Info{$br}\n|body = {$br}\n{$tbl}|-\n! Head !! Head\n|-\n| Cell || Cell\n|}}}",
-				"{{Info{$br}\n|body = {$br}\n{$tbl}{{!}}-\n! Head !! Head\n"
+				"{{Info{$br}\n|body = {$br}\n{$tblEsc}{{!}}-\n! Head !! Head\n"
 				. "{{!}}-\n{{!}} Cell {{!}}{{!}} Cell\n{{!}}}}}",
 			],
-			'table open {| is not escaped' => [
+			'table open {| is escaped' => [
 				"{{Info{$br}\n|body = {$br}\n{$tbl}|-\n| A\n|}}}",
-				"{{Info{$br}\n|body = {$br}\n{$tbl}{{!}}-\n{{!}} A\n{{!}}}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tblEsc}{{!}}-\n{{!}} A\n{{!}}}}}",
 			],
 			'caption line |+ is escaped' => [
 				"{{Info{$br}\n|body = {$br}\n{$tbl}|+ Caption\n|-\n| A\n|}}}",
-				"{{Info{$br}\n|body = {$br}\n{$tbl}{{!}}+ Caption\n{{!}}-\n{{!}} A\n{{!}}}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tblEsc}{{!}}+ Caption\n{{!}}-\n{{!}} A\n{{!}}}}}",
 			],
 			'no wikitable in body — unchanged' => [
 				"{{Info{$br}\n|body = {$br}\nJust some text.\n}}",
@@ -62,7 +66,7 @@ class EscapePipesInTemplateBodyTest extends TestCase {
 			],
 			'nested templates in body are handled' => [
 				"{{Info{$br}\n|body = {$br}\n{$tbl}|-\n| {{Bold|text}} || B\n|}}}",
-				"{{Info{$br}\n|body = {$br}\n{$tbl}{{!}}-\n{{!}} {{Bold|text}} {{!}}{{!}} B\n{{!}}}}}",
+				"{{Info{$br}\n|body = {$br}\n{$tblEsc}{{!}}-\n{{!}} {{Bold|text}} {{!}}{{!}} B\n{{!}}}}}",
 			],
 		];
 	}
