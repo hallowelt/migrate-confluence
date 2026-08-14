@@ -3596,7 +3596,7 @@ class WorkspaceDB {
 		return $this->fetchDbArray( $result );
 	}
 
-	public function getPage( string $wikiTitle ): ?array {
+	public function getPageByWikiTitle( string $wikiTitle ): ?array {
 		$transaction = $this->cachedPrepare(
 			'SELECT * FROM pages WHERE wiki_title = :wiki_title'
 		);

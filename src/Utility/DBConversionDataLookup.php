@@ -319,7 +319,7 @@ class DBConversionDataLookup {
 	}
 
 	public function getPageByWikiTitle( string $wikiTitle ): ?array {
-		return $this->workspaceDB->getPage( $wikiTitle );
+		return $this->workspaceDB->getPageByWikiTitle( $wikiTitle );
 	}
 
 	public function getConfluencePageBodyContent( array $bodyContentIds ): ?string {
