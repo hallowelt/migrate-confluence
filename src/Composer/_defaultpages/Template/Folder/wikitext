@@ -1,0 +1,97 @@
+<noinclude>Template added by Confluence migration to handle the "folder" pages
+
+Used [[:Template:Folder/Row|template Folder/Row]] to show rows of pages.
+<templatedata>
+{
+	"params": {
+		"spl-cols": {
+			"label": {
+				"en": "Number of colums",
+				"de": "Anzahl Spalten"
+			},
+			"suggestedvalues": [
+				"1",
+				"2",
+				"3"
+			]
+		},
+		"spl-breakinside": {
+			"label": {
+				"en": "Break within a level",
+				"de": "Umbruch innerhalb einer Ebene"
+			},
+			"suggestedvalues": [
+				"avoid",
+				"auto"
+			]
+		},
+		"spl-kidsonly": {
+			"label": {
+				"en": "Show only one sublevel",
+				"de": "Nur eine Ebene anzeigen"
+			},
+			"suggestedvalues": [
+				"no",
+				"yes"
+			]
+		},
+		"spl-parent": {
+			"label": "Parent page (optional)",
+			"suggested": true
+		}
+	},
+	"description": {
+		"en": "Basic portal for the subpages of the current page",
+		"de": "Einfaches Portal für die Unterseiten einer Seite"
+	},
+	"paramOrder": [
+		"spl-parent",
+		"spl-cols",
+		"spl-breakinside",
+		"spl-kidsonly"
+	]
+}
+</templatedata>
+</noinclude><includeonly><div class="pl-container">
+<div class="pl-col">
+== Recent changes ==
+{{#ask:
+[[Modification date::>={{#time:Y-m-d|-30 days}}]] [[{{NAMESPACE}}:+]] [[~{{{spl-parent|{{FULLPAGENAME}}}}}*]]
+|?Modification date#-F[m/d/y]
+|sort=Modification date
+|order=desc
+|limit=5
+|format=ul
+|class=list-unstyled
+|headers=hide
+|template=Folder/Row
+|link=none
+|default=no updated pages in 30 days
+|searchlabel=more...
+}}
+</div>
+<div class="pl-col">
+== Newest pages ==
+{{#ask:
+[[Creation date::>={{#time:Y-m-d|-30 days}}]] [[{{NAMESPACE}}:+]] [[~{{{spl-parent|{{FULLPAGENAME}}}}}*]]
+|?Creation date#-F[m/d/y]
+|sort=Creation date
+|order=desc
+|limit=5
+|format=ul
+|class=list-unstyled
+|headers=hide
+|template=Folder/Row
+|link=none
+|default=no new pages in 30 days
+|searchlabel=more...
+}}
+</div>
+</div>
+
+==Subpages ({{#subpagecount:{{{spl-parent|{{FULLPAGENAME}}}}}}})==
+<div class="folder-nav col{{{spl-cols|2}}} {{{spl-breakinside|avoid}}}" aria-role="navigation" aria-label="Unterseiten">
+{{#ifeq:{{SUBPAGENAME}}|{{PAGENAME}}|| &larr; [[{{NAMESPACE}}:{{BASEPAGENAME}}|{{BASEPAGENAME}}]]}}
+{{#subpages:parent={{{spl-parent|{{FULLPAGENAME}}}}}|kidsonly={{{spl-kidsonly|no}}}|default=<span class="default">no subpages</span>}}</div>
+__NOTOC__
+</includeonly>
