@@ -8,4 +8,8 @@ Some text with legacy &quot;thumbs-up&quot; emoticon {{Emoticon|char=👍|alt=th
 
 Some text with image-only &quot;logo_trello&quot; emoticon <!-- &lt;ac:emoticon ac:name=&quot;logo_trello&quot; ac:emoji-shortname=&quot;:logo_trello:&quot; ac:emoji-id=&quot;atlassian-logo_trello&quot; ac:emoji-fallback=&quot;:logo_trello:&quot;/&gt; -->[[Category:Broken_emoticon]]
 
+Some text with numbered circle emoticon {{Emoticon|char=17|alt=17 seventeen circle purple|color=#af59e1|shape=circle}}
+
+Some text with numbered square emoticon {{Emoticon|char=4|alt=4 four square green|color=#22a06b|shape=square}}
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

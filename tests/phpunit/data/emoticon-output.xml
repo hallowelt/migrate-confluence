@@ -4,4 +4,6 @@
     <p>Some text with "blue-star" emoticon {{Emoticon|char=📧|alt=e-mail}}</p>
     <p>Some text with legacy "thumbs-up" emoticon {{Emoticon|char=👍|alt=thumbs-up}}</p>
     <p>Some text with image-only "logo_trello" emoticon ###HTMLCOMMENTOPEN###&lt;ac:emoticon ac:name="logo_trello" ac:emoji-shortname=":logo_trello:" ac:emoji-id="atlassian-logo_trello" ac:emoji-fallback=":logo_trello:"/&gt;###HTMLCOMMENTCLOSE###[[Category:Broken_emoticon]]</p>
+    <p>Some text with numbered circle emoticon {{Emoticon|char=17|alt=17 seventeen circle purple|color=#af59e1|shape=circle}}</p>
+    <p>Some text with numbered square emoticon {{Emoticon|char=4|alt=4 four square green|color=#22a06b|shape=square}}</p>
 </xml>

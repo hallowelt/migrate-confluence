@@ -27,6 +27,29 @@ class Emoticon extends ConversionHelper implements IProcessor {
 	private const TEMPLATE_NAME = 'Emoticon';
 
 	/**
+	 * Background colors for Atlassian's numbered circle/square reaction
+	 * icons (`ac:name` like "1_one_circle_yellow" or
+	 * "4_four_square_purple"), which have no Unicode equivalent but can be
+	 * recreated as a colored badge via the Emoticon template's `color`/
+	 * `shape` params. Colors as specified by content owner, not derived from
+	 * the (image-only) source data.
+	 *
+	 * @var array
+	 */
+	private const NUMBERED_ICON_COLORS = [
+		'blue' => '#357de8',
+		'gray' => '#7e828b',
+		'green' => '#22a06b',
+		'lime' => '#6a9a23',
+		'magenta' => '#cd519d',
+		'orange' => '#e06c00',
+		'purple' => '#af59e1',
+		'red' => '#e24a3f',
+		'teal' => '#2999be',
+		'yellow' => '#b38600',
+	];
+
+	/**
 	 * Unicode replacements for the classic Confluence wiki-markup emoticons
 	 * (23 notations, mapping to 22 distinct `ac:name` values, since
 	 * thumbs-up/-down each have an upper- and lowercase notation), plus
@@ -38,7 +61,7 @@ class Emoticon extends ConversionHelper implements IProcessor {
 	 * unambiguous, the missing distinction is appended as plain text (e.g.
 	 * "(yellow)"). Only applies to these bare legacy macros (no
 	 * emoji-fallback attribute); anything with a real ac:emoji-fallback uses
-	 * that value instead (see getReplacementChar()).
+	 * that value instead (see getTemplateParams()).
 	 *
 	 * @var array
 	 */
@@ -117,18 +140,12 @@ class Emoticon extends ConversionHelper implements IProcessor {
 	 */
 	private function getReplacement( DOMElement $node ): string {
 		$name = $node->getAttribute( 'ac:name' );
-		$char = $this->getReplacementChar( $node, $name );
+		$params = $this->getTemplateParams( $node, $name );
 
-		if ( $char === null ) {
+		if ( $params === null ) {
 			// Keep the original markup, like UnhandledMacroConverter does for macros
 			return '###HTMLCOMMENTOPEN###' . $node->ownerDocument->saveXML( $node ) . '###HTMLCOMMENTCLOSE###'
 				. $this->getCategoryBroken( 'emoticon' );
-		}
-
-		$params = '|char=' . $char;
-		$altText = $this->getAltText( $node, $name );
-		if ( $altText !== '' ) {
-			$params .= '|alt=' . $altText;
 		}
 
 		return '{{' . self::TEMPLATE_NAME . $params . '}}';
@@ -138,15 +155,75 @@ class Emoticon extends ConversionHelper implements IProcessor {
 	 * @param DOMElement $node
 	 * @param string $name
 	 *
-	 * @return string|null Unicode replacement, or null if none is available
+	 * @return string|null Template params string (e.g. "|char=X|alt=Y"), or
+	 *   null if the emoticon can't be migrated
 	 */
-	private function getReplacementChar( DOMElement $node, string $name ): ?string {
+	private function getTemplateParams( DOMElement $node, string $name ): ?string {
 		$fallback = $node->getAttribute( 'ac:emoji-fallback' );
 		if ( $this->isUsableFallback( $fallback ) ) {
-			return $fallback;
+			return $this->buildParams( $fallback, $this->getAltText( $node, $name ) );
 		}
 
-		return $this->emoticonMapping[$name] ?? null;
+		$numberedIcon = $this->getNumberedIconParams( $name );
+		if ( $numberedIcon !== null ) {
+			return $this->buildParams(
+				$numberedIcon['char'],
+				$this->getAltText( $node, $name ),
+				$numberedIcon['color'],
+				$numberedIcon['shape']
+			);
+		}
+
+		if ( isset( $this->emoticonMapping[$name] ) ) {
+			return $this->buildParams( $this->emoticonMapping[$name], $this->getAltText( $node, $name ) );
+		}
+
+		return null;
+	}
+
+	/**
+	 * @param string $char
+	 * @param string $altText
+	 * @param string|null $color
+	 * @param string|null $shape
+	 * @return string
+	 */
+	private function buildParams(
+		string $char, string $altText, ?string $color = null, ?string $shape = null
+	): string {
+		$params = '|char=' . $char;
+		if ( $altText !== '' ) {
+			$params .= '|alt=' . $altText;
+		}
+		if ( $color !== null ) {
+			$params .= '|color=' . $color;
+		}
+		if ( $shape !== null ) {
+			$params .= '|shape=' . $shape;
+		}
+		return $params;
+	}
+
+	/**
+	 * Atlassian's numbered circle/square reaction icons follow the pattern
+	 * "<number>_<spelled-out-number>_<circle|square>_<color>", e.g.
+	 * "17_seventeen_circle_purple". These have no Unicode equivalent, but
+	 * can be recreated as a colored badge.
+	 *
+	 * @param string $name
+	 * @return array|null ['char' => number, 'shape' => circle|square, 'color' => hex], or null
+	 */
+	private function getNumberedIconParams( string $name ): ?array {
+		if ( !preg_match( '/^(\d+)_[a-z]+_(circle|square)_([a-z]+)$/', $name, $matches ) ) {
+			return null;
+		}
+		[ , $number, $shape, $colorName ] = $matches;
+		$color = self::NUMBERED_ICON_COLORS[$colorName] ?? null;
+		if ( $color === null ) {
+			return null;
+		}
+
+		return [ 'char' => $number, 'shape' => $shape, 'color' => $color ];
 	}
 
 	/**
