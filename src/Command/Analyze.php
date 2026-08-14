@@ -24,6 +24,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 class Analyze extends BatchFileProcessorBase {
 
@@ -112,6 +113,8 @@ class Analyze extends BatchFileProcessorBase {
 		}
 
 		if ( $isChildProcess ) {
+			$workspaceDB = WorkspaceDB::open( $this->dest );
+			$this->wikisConfig = new WikisConfig( $workspaceDB );
 			$this->dataWriter = new AnalyzerPipeDataWriter( new PipeChannel() );
 
 			try {
@@ -159,6 +162,7 @@ class Analyze extends BatchFileProcessorBase {
 	 * @param SplFileInfo $file
 	 *
 	 * @return bool
+	 * @throws Throwable
 	 */
 	protected function processFile( SplFileInfo $file ): bool {
 		$this->output->writeln( "Analyzing file '{$this->currentFile->getFilename()}'" );
