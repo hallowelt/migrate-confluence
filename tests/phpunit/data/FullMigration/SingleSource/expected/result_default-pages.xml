@@ -447,6 +447,63 @@
     </revision>
   </page>
   <page>
+    <title>Template:Roadmap</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>&lt;noinclude&gt;Template added by Confluence migration to handle Roadmap Planner macros, rendered as a stand-alone SVG image (no HTML overlay: all lane/bar labels and page links are drawn directly into the SVG).
+
+&lt;templatedata&gt;
+{
+    "description": {
+        "en": "Show a roadmap diagram rendered from a Confluence \"Roadmap Planner\" macro as a stand-alone SVG image.",
+        "de": "Ein aus einem Confluence-\"Roadmap Planner\"-Makro erzeugtes Roadmap-Diagramm als eigenst\u00e4ndiges SVG-Bild anzeigen."
+    },
+    "params": {
+        "filename": {
+            "label": {
+                "en": "filename",
+                "de": "Dateiname"
+            },
+            "type": "wiki-file-name",
+            "required": true,
+            "description": {
+                "en": "The name of the generated SVG file to display.",
+                "de": "Der Name der anzuzeigenden, generierten SVG-Datei."
+            }
+        },
+        "source": {
+            "label": {
+                "en": "source",
+                "de": "Quelle"
+            },
+            "type": "string",
+            "required": true,
+            "description": {
+                "en": "URL-encoded JSON with the original roadmap configuration (timeline, lanes, bars, markers) that was used to render the SVG. Kept for reference/reprocessing, not used by this template.",
+                "de": "URL-kodiertes JSON mit der urspr\u00fcnglichen Roadmap-Konfiguration (Zeitachse, Spuren, Balken, Markierungen), aus der das SVG erzeugt wurde. Dient nur als Referenz, wird von dieser Vorlage nicht verwendet."
+            }
+        },
+        "layout": {
+            "label": {
+                "en": "layout",
+                "de": "Layout"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "The \"data-layout\" value of the original roadmap macro. Kept for reference, not used by this template.",
+                "de": "Der \"data-layout\"-Wert des urspr\u00fcnglichen Roadmap-Makros. Dient nur als Referenz, wird von dieser Vorlage nicht verwendet."
+            }
+        }
+    }
+}
+&lt;/templatedata&gt;
+
+Any further parameters the original Confluence macro carried (e.g. "title", "timeline", "maplinks", "pagelinks") are passed through unchanged under their own name, for future use; none of them are needed to display the image.&lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:SpaceDetails</title>
     <revision>
       <model>wikitext</model>

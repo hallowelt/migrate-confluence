@@ -43,6 +43,22 @@ class ConverterPipeDataWriter extends AbstractPipeDataWriter implements IConvert
 		return true;
 	}
 
+	/**
+	 * @param int|null $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $svgFilename
+	 *
+	 * @return bool
+	 */
+	public function addRoadmapSvg(
+		?int $spaceId,
+		string $confluenceTitle,
+		string $svgFilename
+	): bool {
+		$this->send( __FUNCTION__, $spaceId, $confluenceTitle, $svgFilename );
+		return true;
+	}
+
 	public function addRequiredTemplate( string $templateName ): void {
 		$this->send( __FUNCTION__, $templateName );
 	}

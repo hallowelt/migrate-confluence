@@ -40,6 +40,7 @@ class Files extends FileProcessorBase {
 		$this->addPageAttachments();
 		$this->addBlogPostAttachments();
 		$this->addAdditionalAttachments();
+		$this->addGeneratedSvgs();
 
 		$this->writeOutputFile();
 	}
@@ -282,6 +283,61 @@ class Files extends FileProcessorBase {
 					$this->output->writeln( "Attachment file was not found!" );
 				}
 			}
+		}
+	}
+
+	/**
+	 * Add SVG files generated during conversion (e.g. rendered roadmap diagrams).
+	 * Unlike regular attachments these have no Confluence attachment record; the
+	 * Converter step already wrote them to $this->dest . '/images/' and logged
+	 * them via IConverterDataWriter::addRoadmapSvg().
+	 *
+	 * @return void
+	 */
+	private function addGeneratedSvgs(): void {
+		$this->output->writeln( "\nAdding generated SVGs...\n" );
+
+		$generatedSvgs = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$generatedSvgs = array_merge(
+					$generatedSvgs,
+					$this->dataLookup->getRoadmapSvgs( (int)$spaceId )
+				);
+			}
+		} else {
+			$generatedSvgs = $this->dataLookup->getRoadmapSvgs();
+		}
+
+		$uploadPath = $this->getUploadPath();
+
+		foreach ( $generatedSvgs as $generatedSvg ) {
+			$filename = $generatedSvg['svg_filename'];
+
+			if ( $this->skipHelper->skipWikiTitle( $filename ) ) {
+				$this->output->writeln( "Skip generated SVG $filename." );
+				continue;
+			}
+
+			$filePath = $this->dest . '/images/' . $filename;
+			if ( !file_exists( $filePath ) ) {
+				$this->output->writeln( "Generated SVG not found: $filename" );
+				continue;
+			}
+			$this->output->writeln( "Generated SVG: $filename" );
+
+			$svgContent = file_get_contents( $filePath );
+			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $svgContent, $uploadPath );
+
+			$this->builder->addFileRevision(
+				$filename,
+				$this->getRelativeFilePath( $uploadFilePath ),
+				'',
+				'',
+				''
+			);
+
+			$this->deploymentInfo->addFileExtension( 'svg' );
 		}
 	}
 }

@@ -172,6 +172,7 @@ class WorkspaceDB {
 			'labellings',
 			'labels',
 			'gliffy',
+			'roadmap_svgs',
 			'required_templates',
 		];
 
@@ -313,6 +314,7 @@ class WorkspaceDB {
 		$this->createTableLabellings();
 		$this->createTableLabels();
 		$this->createTableGliffy();
+		$this->createTableRoadmapSvgs();
 		$this->createTablePagesMeta();
 		$this->createTableBlogPostsMeta();
 		$this->createTableAttachmentsMeta();
@@ -715,6 +717,24 @@ class WorkspaceDB {
 				confluence_title CHAR,
 				original_attachment_filename CHAR,
 				target_attachment_filename CHAR
+			);'
+		);
+	}
+
+	/**
+	 * Generated SVG files (e.g. rendered roadmap diagrams) that were written to
+	 * disk during conversion and must be picked up by the Composer step so they
+	 * end up in files.xml, even though they have no corresponding Confluence
+	 * attachment record.
+	 *
+	 * @return void
+	 */
+	private function createTableRoadmapSvgs(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS roadmap_svgs (
+				space_id INT,
+				confluence_title CHAR,
+				svg_filename CHAR
 			);'
 		);
 	}
@@ -4825,6 +4845,65 @@ class WorkspaceDB {
 		$transaction->bindValue( ':target_attachment_filename', $targetAttachmentFilename, SQLITE3_TEXT );
 
 		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Registers a SVG file generated during conversion (e.g. a rendered roadmap
+	 * diagram) so the Composer step can add it to files.xml.
+	 *
+	 * @param int|null $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $svgFilename
+	 * @return bool
+	 */
+	public function addRoadmapSvg(
+		?int $spaceId,
+		string $confluenceTitle,
+		string $svgFilename
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO roadmap_svgs (
+				space_id,
+				confluence_title,
+				svg_filename
+			) VALUES (
+				:space_id,
+				:confluence_title,
+				:svg_filename
+			)'
+		);
+
+		if ( $spaceId !== null ) {
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
+		}
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':svg_filename', $svgFilename, SQLITE3_TEXT );
+
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int|null $spaceId
+	 * @return array
+	 */
+	public function getRoadmapSvgs( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			return $this->getAllData( 'roadmap_svgs' );
+		}
+
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM roadmap_svgs WHERE space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
