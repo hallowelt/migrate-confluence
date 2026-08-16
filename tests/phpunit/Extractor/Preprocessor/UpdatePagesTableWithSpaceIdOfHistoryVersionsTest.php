@@ -19,7 +19,9 @@ class UpdatePagesTableWithSpaceIdOfHistoryVersionsTest extends TestCase {
 		$workspaceDB->addPage( 100, 10, 'Original', '', 'current', '', '', '1', -1, -1, [], [], [], [] );
 		$workspaceDB->addPage( 101, null, 'Historical', '', 'historical', '', '', '1', 100, -1, [], [], [], [] );
 
-		$processor = new UpdatePagesTableWithSpaceIdOfHistoryVersions( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdatePagesTableWithSpaceIdOfHistoryVersions(
+			$this->createReader( $workspaceDB ), $dbLog, $writer
+		);
 		$processor->execute();
 
 		$historical = $this->findRowById( $workspaceDB->getPages(), 'page_id', 101 );

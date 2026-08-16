@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Utility;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 
 /**
  * Resolves Confluence file data to a MediaWiki file title.
@@ -13,11 +14,11 @@ use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 class FilenameResolver {
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		protected DBConversionDataLookup $dataLookup,
+		protected IConverterDataReader $reader,
 		protected MigrationConfig $migrationConfig ) {
 	}
 
@@ -30,7 +31,7 @@ class FilenameResolver {
 	 * @throws Exception
 	 */
 	public function resolve( int $spaceId, string $confluencePageTitle, string $filename ): array {
-		$fileTitle = $this->dataLookup->getWikiFileTitleFromSpaceId(
+		$fileTitle = $this->reader->getWikiFileTitleFromSpaceId(
 			$spaceId,
 			$confluencePageTitle,
 			$filename
@@ -54,7 +55,7 @@ class FilenameResolver {
 	 */
 	private function buildFileTitle( int $spaceId, string $confluencePageTitle, string $filename ): string {
 		$filenameBuilder = new FilenameBuilder(
-			$this->dataLookup->getSpaceIdToPrefixMap(),
+			$this->reader->getMapSpaceIdToPrefix(),
 			$this->migrationConfig
 		);
 
@@ -77,9 +78,9 @@ class FilenameResolver {
 	 * @throws Exception
 	 */
 	private function createShortPageWikiTitle( int $spaceId, string $confluencePageTitle ): string {
-		$assocTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluencePageTitle );
+		$assocTitle = $this->reader->getWikiPageTitleFromSpaceId( $spaceId, $confluencePageTitle );
 		if ( !$assocTitle ) {
-			$assocTitle = $this->dataLookup->getWikiBlogPostTitleFromSpaceId( $spaceId, $confluencePageTitle );
+			$assocTitle = $this->reader->getWikiBlogPostTitleFromSpaceId( $spaceId, $confluencePageTitle );
 		}
 
 		if ( !$assocTitle ) {

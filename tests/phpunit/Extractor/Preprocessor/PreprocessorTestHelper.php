@@ -3,6 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDirectDataReader;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
@@ -16,6 +18,10 @@ trait PreprocessorTestHelper {
 
 	private function createDBLog( WorkspaceDB $workspaceDB ): DBLog {
 		return new DBLog( $workspaceDB );
+	}
+
+	private function createReader( WorkspaceDB $workspaceDB ): IExtractorDataReader {
+		return new ExtractorDirectDataReader( $workspaceDB );
 	}
 
 	private function createWriter( WorkspaceDB $workspaceDB ): IExtractorDataWriter {

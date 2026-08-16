@@ -2,16 +2,16 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ViewXlsMacroTest extends ProcessorTestCase {
 	/**
 	 * @var mixed
 	 */
-	private $dataLookup;
+	private $dataReader;
 
 	protected function getInput(): string {
 		return file_get_contents( dirname( __DIR__, 2 ) . '/data/view-xls-macro-input.xml' );
@@ -26,7 +26,7 @@ class ViewXlsMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
+		$this->dataReader = new ConverterDirectDataReader( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		/** SpaceId GENERAL */
 		$this->doTest(
@@ -49,7 +49,7 @@ class ViewXlsMacroTest extends ProcessorTestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new ViewXlsMacro( $this->dataLookup, $spaceId, $pageName, new MigrationConfig( [] ) );
+		$processor = new ViewXlsMacro( $this->dataReader, $spaceId, $pageName, new MigrationConfig( [] ) );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );

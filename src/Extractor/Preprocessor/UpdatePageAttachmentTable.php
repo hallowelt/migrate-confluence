@@ -9,7 +9,7 @@ class UpdatePageAttachmentTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function getContentItems(): array {
-		return $this->workspaceDB->getCurrentPages();
+		return $this->reader->getCurrentPages();
 	}
 
 	/** @inheritDoc */
@@ -19,7 +19,7 @@ class UpdatePageAttachmentTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function checkWikiTitleExists( string $wikiTitle ): bool {
-		return $this->workspaceDB->checkPageAttachmentWikiTitleExists( $wikiTitle );
+		return $this->reader->checkPageAttachmentWikiTitleExists( $wikiTitle );
 	}
 
 	/** @inheritDoc */
@@ -33,6 +33,6 @@ class UpdatePageAttachmentTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function getStoredAttachments(): array {
-		return $this->workspaceDB->getPageAttachments();
+		return $this->reader->getPageAttachments();
 	}
 }

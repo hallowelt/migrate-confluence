@@ -32,7 +32,7 @@ class AttachmentLink extends LinkProcessorBase {
 			$rawPageTitle = $nestedPageEl->getAttribute( 'ri:content-title' );
 		}
 
-		$filenameResolver = new FilenameResolver( $this->dataLookup, $this->migrationConfig );
+		$filenameResolver = new FilenameResolver( $this->reader, $this->migrationConfig );
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =
 			$filenameResolver->resolve( $spaceId, $rawPageTitle, $riFilename );
 
@@ -66,7 +66,7 @@ class AttachmentLink extends LinkProcessorBase {
 		$spaceKey = $pageNode->getAttribute( 'ri:space-key' );
 
 		if ( !empty( $spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+			$spaceId = $this->reader->getSpaceIdFromSpaceKey( $spaceKey );
 		}
 
 		return $spaceId;

@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\DataWriter;
 
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
+use HalloWelt\MediaWiki\Lib\Migration\Database\DataWriter\IDataWriter;
 
 interface IAnalyzeDataWriter extends IDataWriter {
 
@@ -18,8 +18,14 @@ interface IAnalyzeDataWriter extends IDataWriter {
 	 * @return bool
 	 */
 	public function addSpace(
-		int $spaceId, string $spaceKey, string $spaceName,
-		string $namespacePrefix, string $interwikiPrefix, string $rootPage, int $homepageId, int $descriptionId
+		int $spaceId,
+		string $spaceKey,
+		string $spaceName,
+		string $namespacePrefix,
+		string $interwikiPrefix,
+		string $rootPage,
+		int $homepageId,
+		int $descriptionId
 	): bool;
 
 	/**

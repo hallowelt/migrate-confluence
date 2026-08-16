@@ -2,8 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 /**
  * @group full
@@ -36,12 +39,12 @@ class AttachmentLinkMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		$workspaceDb = ( new \HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock() )
+		$workspaceDb = ( new WorkspaceDbMock() )
 			->createWithoutExtNsFileRepoCompat();
-		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
-		$migrationConfig = new \HalloWelt\MigrateConfluence\Utility\MigrationConfig( [] );
+		$dataReader = new ConverterDirectDataReader( $workspaceDb );
+		$migrationConfig = new MigrationConfig( [] );
 
-		return new AttachmentLink( $dataLookup, 42, 'SomePage', $migrationConfig );
+		return new AttachmentLink( $dataReader, 42, 'SomePage', $migrationConfig );
 	}
 
 }

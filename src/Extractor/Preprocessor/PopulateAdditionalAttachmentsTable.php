@@ -20,9 +20,9 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function checkWikiTitleExists( string $wikiTitle ): bool {
-		return ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $wikiTitle )
-			|| $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $wikiTitle )
-			|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $wikiTitle )
+		return ( $this->reader->checkPageAttachmentWikiTitleExists( $wikiTitle )
+			|| $this->reader->checkBlogPostAttachmentWikiTitleExists( $wikiTitle )
+			|| $this->reader->checkAdditionalAttachmentWikiTitleExists( $wikiTitle )
 		);
 	}
 
@@ -35,7 +35,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function getStoredAttachments(): array {
-		return $this->workspaceDB->getAdditionalAttachments();
+		return $this->reader->getAdditionalAttachments();
 	}
 
 	/**
@@ -43,12 +43,12 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 	 */
 	protected function addAttachments(): void {
 		$knownAttachmentIds = [];
-		foreach ( $this->workspaceDB->getPageAttachments() as $pageAttachment ) {
+		foreach ( $this->reader->getPageAttachments() as $pageAttachment ) {
 			if ( isset( $pageAttachment['attachment_id'] ) ) {
 				$knownAttachmentIds[(int)$pageAttachment['attachment_id']] = true;
 			}
 		}
-		foreach ( $this->workspaceDB->getBlogPostAttachments() as $blogPostAttachment ) {
+		foreach ( $this->reader->getBlogPostAttachments() as $blogPostAttachment ) {
 			if ( isset( $blogPostAttachment['attachment_id'] ) ) {
 				$knownAttachmentIds[(int)$blogPostAttachment['attachment_id']] = true;
 			}
@@ -62,7 +62,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 		/** @var array<int,array{containerId:int,origFilename:string,wikiTitle:string}> $collected */
 		$collected = [];
 
-		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
+		foreach ( $this->reader->getAttachments() as $attachment ) {
 			if (
 				!isset( $attachment['attachment_id'] )
 				|| !isset( $attachment['container_id'] )
@@ -193,8 +193,8 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 	 * @return array
 	 */
 	protected function getSpaceIdToPrefixMapWithConfigOverrides(): array {
-		$spaceIdToPrefixMap = $this->workspaceDB->getMapSpaceIdToPrefix();
-		$spaceIdToKeyMap = $this->workspaceDB->getMapSpaceIdToKey();
+		$spaceIdToPrefixMap = $this->reader->getMapSpaceIdToPrefix();
+		$spaceIdToKeyMap = $this->reader->getMapSpaceIdToKey();
 
 		foreach ( $spaceIdToKeyMap as $spaceId => $spaceKey ) {
 			$configPrefix = $this->migrationConfig->getPrefixFromSpaceKeyToPrefixMap( (string)$spaceKey );

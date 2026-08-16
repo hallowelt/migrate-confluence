@@ -19,7 +19,9 @@ class UpdateBlogPostsTableWithSpaceIdOfHistoryVersionsTest extends TestCase {
 		$workspaceDB->addBlogPost( 200, 10, 'Original blog', '', 'current', '', '', '1', -1, [], [], [], [] );
 		$workspaceDB->addBlogPost( 201, null, 'Historical blog', '', 'historical', '', '', '1', 200, [], [], [], [] );
 
-		$processor = new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions(
+			$this->createReader( $workspaceDB ), $dbLog, $writer
+		);
 		$processor->execute();
 
 		$historical = $this->findRowById( $workspaceDB->getBlogPosts(), 'page_id', 201 );

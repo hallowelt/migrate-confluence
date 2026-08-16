@@ -4,8 +4,8 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use Exception;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 
@@ -16,11 +16,11 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 	private bool $isBroken;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param int $currentSpaceId
 	 */
 	public function __construct(
-		private readonly DBConversionDataLookup $dataLookup,
+		private readonly IConverterDataReader $reader,
 		private readonly int $currentSpaceId
 	) {
 		$this->conversionHelper = new ConversionHelper();
@@ -179,14 +179,14 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 		$spaceKey = $el->getAttribute( 'ri:space-key' );
 
 		if ( !empty( $spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+			$spaceId = $this->reader->getSpaceIdFromSpaceKey( $spaceKey );
 		}
 
 		if ( !$spaceId ) {
 			$spaceId = $this->currentSpaceId;
 		}
 
-		$wikiTitle = $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle );
+		$wikiTitle = $this->reader->getWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle );
 		if ( $wikiTitle ) {
 			return $wikiTitle;
 		}

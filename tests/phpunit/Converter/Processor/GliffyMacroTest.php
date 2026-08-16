@@ -3,15 +3,15 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class GliffyMacroTest extends ProcessorTestCase {
 
-	/** @var DBConversionDataLookup */
-	private $dataLookup;
+	/** @var ConverterDirectDataReader */
+	private $dataReader;
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro::process
@@ -19,7 +19,7 @@ class GliffyMacroTest extends ProcessorTestCase {
 	 */
 	public function testProcess() {
 		$workspaceDB = ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat();
-		$this->dataLookup = new DBConversionDataLookup( $workspaceDB );
+		$this->dataReader = new ConverterDirectDataReader( $workspaceDB );
 
 		$this->doTest( 0, 'gliffy-macro-input.xml', 'gliffy-macro-output-1.xml', 3 );
 		$this->doTest( 23, 'gliffy-macro-input.xml', 'gliffy-macro-output-2.xml', 3 );
@@ -43,7 +43,7 @@ class GliffyMacroTest extends ProcessorTestCase {
 		$dataWriter->expects( $this->exactly( $writerMethodCalls ) )->method( 'addGliffy' );
 
 		$processor = new GliffyMacro(
-			$this->dataLookup,
+			$this->dataReader,
 			$spaceId,
 			'SomePage',
 			$dataWriter

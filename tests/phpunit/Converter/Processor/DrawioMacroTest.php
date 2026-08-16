@@ -3,14 +3,14 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class DrawioMacroTest extends ProcessorTestCase {
-	/** @var DBConversionDataLookup */
-	private $dataLookup;
+	/** @var ConverterDirectDataReader */
+	private $dataReader;
 
 	/** @var ConversionDataWriter */
 	private $conversionDataWriter;
@@ -40,7 +40,7 @@ class DrawioMacroTest extends ProcessorTestCase {
 	public function testProcess() {
 		$this->tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-test-' . uniqid();
 		$this->conversionDataWriter = new ConversionDataWriter( $this->tempDir );
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
+		$this->dataReader = new ConverterDirectDataReader( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		$this->doTest( 0, 'drawio-macro-input.xml', 'drawio-macro-output-1.xml' );
 		$this->doTest( 23, 'drawio-macro-input.xml', 'drawio-macro-output-2.xml' );
@@ -75,7 +75,7 @@ class DrawioMacroTest extends ProcessorTestCase {
 		$writerDir = $this->tempDir . '/writer';
 		mkdir( $writerDir, 0755, true );
 		$conversionDataWriter = new ConversionDataWriter( $writerDir );
-		$dataLookup = new DBConversionDataLookup( $db );
+		$dataReader = new ConverterDirectDataReader( $db );
 
 		$macroXml = <<<'XML'
 <xml xmlns:ac="some" xmlns:ri="thing">
@@ -88,7 +88,7 @@ XML;
 		$dom = new DOMDocument();
 		$dom->loadXML( $macroXml );
 
-		$processor = new DrawioMacro( $dataLookup, $conversionDataWriter, 1, 'DiagramPage' );
+		$processor = new DrawioMacro( $dataReader, $conversionDataWriter, 1, 'DiagramPage' );
 		$processor->process( $dom );
 
 		// The PNG file must have been written with a tEXt chunk containing the diagram XML
@@ -127,7 +127,7 @@ XML;
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new DrawioMacro( $this->dataLookup, $this->conversionDataWriter, $spaceId, 'SomePage' );
+		$processor = new DrawioMacro( $this->dataReader, $this->conversionDataWriter, $spaceId, 'SomePage' );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 

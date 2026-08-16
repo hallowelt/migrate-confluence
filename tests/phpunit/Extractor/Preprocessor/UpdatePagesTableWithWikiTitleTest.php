@@ -24,7 +24,7 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 		);
 
 		$processor = new UpdatePagesTableWithWikiTitle(
-			$workspaceDB,
+			$this->createReader( $workspaceDB ),
 			$dbLog,
 			$writer,
 			new MigrationConfig( [] ),

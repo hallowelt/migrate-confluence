@@ -2,10 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Utility\ComposerSkipHelperTest;
 
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDirectDataReader;
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -104,16 +105,16 @@ class ComposerSkipHelperTest extends TestCase {
 	 */
 	private function getSkipHelper( MigrationConfig $migrationConfig ): ComposerSkipHelper {
 		return new ComposerSkipHelper(
-			$this->getComposerDataLookup(),
+			$this->getComposerdataReader(),
 			$migrationConfig
 		);
 	}
 
 	/**
-	 * @return DBComposerDataLookup
+	 * @return IComposerDataReader
 	 */
-	private function getComposerDataLookup(): DBComposerDataLookup {
-		return new DBComposerDataLookup(
+	private function getComposerdataReader(): IComposerDataReader {
+		return new ComposerDirectDataReader(
 			$this->getWorkspaceDB()
 		);
 	}

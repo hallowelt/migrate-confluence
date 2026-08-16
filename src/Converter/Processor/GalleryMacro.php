@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
@@ -14,37 +14,21 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
  */
 class GalleryMacro extends StructuredMacroProcessorBase {
 
-	/** @var DBConversionDataLookup */
-	private DBConversionDataLookup $dataLookup;
-
-	/** @var int */
-	private int $currentSpaceId;
-
-	/** @var string */
-	private string $rawPageTitle;
-
-	/** @var MigrationConfig */
-	private MigrationConfig $config;
-
 	/** @var FilenameResolver */
 	private FilenameResolver $filenameResolver;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $config
 	 */
 	public function __construct(
-		DBConversionDataLookup $dataLookup,
-		int $currentSpaceId,
-		string $rawPageTitle,
-		MigrationConfig $config
+		private IConverterDataReader $reader,
+		private int $currentSpaceId,
+		private string $rawPageTitle,
+		private MigrationConfig $config
 	) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
-		$this->config = $config;
 	}
 
 	/**
@@ -58,7 +42,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 * @inheritDoc
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
-		$this->filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
+		$this->filenameResolver = new FilenameResolver( $this->reader, $this->config );
 
 		$macroName = $node->getAttribute( 'ac:name' );
 
@@ -141,18 +125,18 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		if ( isset( $params['page'] ) && $params['page'] !== '' ) {
 			$allFiles = $this->resolvePageFiles( $params['page'], $includeLabels, $excludeLabels );
 		} elseif ( !empty( $includeLabels ) || !empty( $excludeLabels ) ) {
-			$allAttachments = $this->dataLookup->getAttachmentMetadataForPage(
+			$allAttachments = $this->reader->getAttachmentMetadataForPage(
 				$this->currentSpaceId,
 				$this->rawPageTitle
 			);
 			$allFiles = $this->filterAttachmentsByLabel( $allAttachments, $includeLabels, $excludeLabels );
 		} else {
 			$allFiles = array_merge(
-				$this->dataLookup->getWikiFileTitlesForPage(
+				$this->reader->getWikiFileTitlesForPage(
 					$this->currentSpaceId,
 					$this->rawPageTitle
 				),
-				$this->dataLookup->getWikiFileTitlesForBlogPost(
+				$this->reader->getWikiFileTitlesForBlogPost(
 					$this->currentSpaceId,
 					$this->rawPageTitle
 				)
@@ -207,14 +191,14 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 			if ( !empty( $includeLabels ) || !empty( $excludeLabels ) ) {
 				$pageAttachments = array_merge(
-					$this->dataLookup->getAttachmentMetadataForPage( $spaceId, $pageTitle ),
-					$this->dataLookup->getAttachmentMetadataForBlogPost( $spaceId, $pageTitle )
+					$this->reader->getAttachmentMetadataForPage( $spaceId, $pageTitle ),
+					$this->reader->getAttachmentMetadataForBlogPost( $spaceId, $pageTitle )
 				);
 				$pageFiles = $this->filterAttachmentsByLabel( $pageAttachments, $includeLabels, $excludeLabels );
 			} else {
 				$pageFiles = array_merge(
-					$this->dataLookup->getWikiFileTitlesForPage( $spaceId, $pageTitle ),
-					$this->dataLookup->getWikiFileTitlesForBlogPost( $spaceId, $pageTitle )
+					$this->reader->getWikiFileTitlesForPage( $spaceId, $pageTitle ),
+					$this->reader->getWikiFileTitlesForBlogPost( $spaceId, $pageTitle )
 				);
 			}
 			foreach ( $pageFiles as $file ) {
@@ -362,7 +346,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	 * @return int|null
 	 */
 	private function resolveSpaceId( string $spaceKey ): ?int {
-		return $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+		return $this->reader->getSpaceIdFromSpaceKey( $spaceKey );
 	}
 
 	/**

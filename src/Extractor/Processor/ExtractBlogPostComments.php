@@ -15,7 +15,7 @@ class ExtractBlogPostComments extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$comments = $this->workspaceDB->getCommentsForBlogPosts();
+		$comments = $this->reader->getCommentsForBlogPosts();
 
 		foreach ( $comments as $comment ) {
 			if ( !isset( $comment['comment_id'] ) || !isset( $comment['container_id'] ) ) {

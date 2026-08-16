@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\DataWriter;
 
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
+use HalloWelt\MediaWiki\Lib\Migration\Database\DataWriter\IDataWriter;
 
 interface IExtractorDataWriter extends IDataWriter {
 
@@ -22,6 +22,22 @@ interface IExtractorDataWriter extends IDataWriter {
 	 * @return bool
 	 */
 	public function updatePageWikiTitle( int $pageId, string $wikiTitle ): bool;
+
+	/**
+	 * @param int $pageId
+	 * @param string $interwikiTitle
+	 *
+	 * @return bool
+	 */
+	public function updatePageInterwikiTitle( int $pageId, string $interwikiTitle ): bool;
+
+	/**
+	 * @param int $pageId
+	 * @param int $spaceId
+	 *
+	 * @return bool
+	 */
+	public function updatePageSpaceId( int $pageId, int $spaceId ): bool;
 
 	/**
 	 * @param int $pageId

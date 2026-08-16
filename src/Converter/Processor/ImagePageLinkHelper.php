@@ -3,25 +3,10 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ImagePageLinkHelper extends ConversionHelper {
-
-	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var int
-	 */
-	protected int $currentSpaceId;
-
-	/**
-	 * @var string
-	 */
-	protected string $rawPageTitle;
 
 	/**
 	 * @var bool
@@ -32,15 +17,15 @@ class ImagePageLinkHelper extends ConversionHelper {
 	private string $spaceKey = '';
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle ) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
+	public function __construct(
+		protected IConverterDataReader $reader,
+		protected int $currentSpaceId,
+		protected string $rawPageTitle
+	) {
 	}
 
 	/**
@@ -57,7 +42,7 @@ class ImagePageLinkHelper extends ConversionHelper {
 				$this->currentSpaceId = $this->ensureSpaceId( $page );
 			}
 
-			$targetTitle = $this->dataLookup->getWikiPageTitleForLink(
+			$targetTitle = $this->reader->getWikiPageTitleForLink(
 				$sourceSpaceId,
 				$this->currentSpaceId,
 				$this->rawPageTitle
@@ -88,12 +73,12 @@ class ImagePageLinkHelper extends ConversionHelper {
 		$spaceId = $this->currentSpaceId;
 		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
 		if ( !empty( $this->spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey ) ?? 0;
+			$spaceId = $this->reader->getSpaceIdFromSpaceKey( $this->spaceKey ) ?? 0;
 			// TODO: Log if spaceId is null, but we should be able to
 			// resolve the filename without spaceId as well, so we can continue processing
 		} else {
 			$spaceId = $this->currentSpaceId;
-			$this->spaceKey = $this->dataLookup->getSpaceKeyFromSpaceId( $spaceId );
+			$this->spaceKey = $this->reader->getSpaceKeyFromSpaceId( $spaceId );
 		}
 
 		return $spaceId;

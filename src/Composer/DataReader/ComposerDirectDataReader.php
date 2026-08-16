@@ -1,15 +1,25 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Utility;
+namespace HalloWelt\MigrateConfluence\Composer\DataReader;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
-class DBComposerDataLookup {
+class ComposerDirectDataReader implements IComposerDataReader {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
 	 */
 	public function __construct( private WorkspaceDB $workspaceDB ) {
+	}
+
+	/**
+	 * @param string $step
+	 * @param string $type
+	 *
+	 * @return array
+	 */
+	public function getLogEntriesForStep( string $step, string $type = '' ): array {
+		return $this->workspaceDB->getLogEntriesForStep( $step, $type );
 	}
 
 	/**
@@ -301,7 +311,7 @@ class DBComposerDataLookup {
 		return $this->workspaceDB->getWikisConfigSpacesForWikiName( $wikiName );
 	}
 
-	/*
+	/**
 	 * @return string[] list of required template names
 	 */
 	public function getRequiredTemplates(): array {

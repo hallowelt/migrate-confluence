@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISpacesDependentProcessor;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class Sidebar implements IConfluenceComposerProcessor, ISpacesDependentProcessor {
@@ -17,12 +17,12 @@ class Sidebar implements IConfluenceComposerProcessor, ISpacesDependentProcessor
 	private array $currentSpaces = [];
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param MigrationConfig $migrationConfig
 	 * @param string $dest Destination workspace directory
 	 */
 	public function __construct(
-		private DBComposerDataLookup $dataLookup,
+		private IComposerDataReader $reader,
 		private MigrationConfig $migrationConfig,
 		private string $dest
 	) {
@@ -93,8 +93,8 @@ class Sidebar implements IConfluenceComposerProcessor, ISpacesDependentProcessor
 		$spaceId = (int)$space['space_id'];
 		$spaceName = (string)$space['space_name'];
 
-		$pageEntries = $this->buildPageTree( $this->dataLookup->getPagesForSidebar( $spaceId ) );
-		$blogEntries = $this->buildBlogList( $this->dataLookup->getBlogPostsForSidebar( $spaceId ) );
+		$pageEntries = $this->buildPageTree( $this->reader->getPagesForSidebar( $spaceId ) );
+		$blogEntries = $this->buildBlogList( $this->reader->getBlogPostsForSidebar( $spaceId ) );
 
 		if ( $pageEntries === [] && $blogEntries === [] ) {
 			return null;

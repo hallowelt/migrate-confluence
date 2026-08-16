@@ -2,16 +2,16 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
 class Label extends ProcessorBase {
 
 	/**
-	 * @param IDataWriter $writer
+	 * @param IAnalyzeDataWriter $writer
 	 */
 	public function __construct(
-		private IDataWriter $writer
+		private IAnalyzeDataWriter $writer
 	) {
 	}
 
@@ -42,7 +42,12 @@ class Label extends ProcessorBase {
 			$properties['namespace'] !== 'global'
 		) {
 			// There may be `my` or `team` also
-			$this->logger->warning( 'Missing label property name or namespace' );
+			$this->writer->addLogEntry(
+				'warning',
+				'analyze',
+				__CLASS__,
+				"Label ID $labelId is missing required properties name or namespace."
+			);
 			return;
 		}
 

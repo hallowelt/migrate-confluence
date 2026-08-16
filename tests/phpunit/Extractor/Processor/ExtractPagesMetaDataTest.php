@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -15,7 +15,7 @@ class ExtractPagesMetaDataTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData::execute
 	 */
 	public function testAddsPageMetaWithConfiguredAndLabelCategories(): void {
-		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$dbLog = $this->createMock( DBLog::class );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
@@ -49,7 +49,7 @@ class ExtractPagesMetaDataTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData::execute
 	 */
 	public function testDoesNotLeakLabelCategoriesBetweenPages(): void {
-		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$dbLog = $this->createMock( DBLog::class );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );

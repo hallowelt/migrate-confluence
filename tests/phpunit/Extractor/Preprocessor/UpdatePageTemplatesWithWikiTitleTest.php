@@ -29,7 +29,7 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 			'current'
 		);
 
-		$processor = new UpdatePageTemplatesWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdatePageTemplatesWithWikiTitle( $this->createReader( $workspaceDB ), $dbLog, $writer );
 		$processor->execute();
 
 		$pageTemplate = $this->findRowById( $workspaceDB->getPageTemplates(), 'template_id', 700 );

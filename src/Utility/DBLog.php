@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
+use HalloWelt\MediaWiki\Lib\Migration\Database\DataWriter\IDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use LogicException;
 

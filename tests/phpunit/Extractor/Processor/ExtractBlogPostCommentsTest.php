@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostComments;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -14,7 +14,7 @@ class ExtractBlogPostCommentsTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostComments::execute
 	 */
 	public function testConvertsBlogNamespaceForAllValidComments(): void {
-		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 

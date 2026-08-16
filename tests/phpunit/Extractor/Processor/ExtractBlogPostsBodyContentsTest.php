@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -15,7 +15,7 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents::execute
 	 */
 	public function testExtractsCurrentBlogPostBodyContent(): void {
-		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$workspace = $this->createMock( Workspace::class );
 		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
@@ -42,7 +42,7 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents::execute
 	 */
 	public function testExtractsHistoricalBlogPostBodyContent(): void {
-		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$workspace = $this->createMock( Workspace::class );
 		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );

@@ -10,22 +10,28 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 * @param int $spaceId
 	 * @param string $spaceKey
 	 * @param string $spaceName
-	 * @param string $prefix
+	 * @param string $namespacePrefix
+	 * @param string $interwikiPrefix
+	 * @param string $rootPage
 	 * @param int $homepageId
 	 * @param int $descriptionId
-	 *
 	 * @return bool
 	 */
 	public function addSpace(
 		int $spaceId,
 		string $spaceKey,
 		string $spaceName,
-		string $prefix,
+		string $namespacePrefix,
+		string $interwikiPrefix,
+		string $rootPage,
 		int $homepageId,
 		int $descriptionId
 	): bool {
-		$this->send( __FUNCTION__, $spaceId, $spaceKey, $spaceName, $prefix, $homepageId, $descriptionId );
-
+		$this->send(
+			__FUNCTION__,
+			$spaceId, $spaceKey, $spaceName, $namespacePrefix, $interwikiPrefix,
+			$rootPage, $homepageId, $descriptionId
+		);
 		return true;
 	}
 

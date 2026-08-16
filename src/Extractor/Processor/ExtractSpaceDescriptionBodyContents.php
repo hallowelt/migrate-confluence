@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -13,18 +13,18 @@ use HalloWelt\MigrateConfluence\Utility\DBLog;
 class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IExtractorDataReader $reader
 	 * @param Workspace $workspace
 	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB,
+		IExtractorDataReader $reader,
 		protected Workspace $workspace,
 		DBLog $dbLog,
 		IExtractorDataWriter $writer
 	) {
-		parent::__construct( $workspaceDB, $dbLog, $writer );
+		parent::__construct( $reader, $dbLog, $writer );
 	}
 
 	/**
@@ -32,7 +32,7 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$currentContentIds = [];
-		foreach ( $this->workspaceDB->getCurrentSpaceDescriptions() as $spaceDescription ) {
+		foreach ( $this->reader->getCurrentSpaceDescriptions() as $spaceDescription ) {
 			if ( isset( $spaceDescription['space_description_id'] ) ) {
 				$currentContentIds[] = (int)$spaceDescription['space_description_id'];
 			}
@@ -53,9 +53,9 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 		}
 
 		foreach ( $currentContentIds as $currentContentId ) {
-			$bodyContentIds = $this->workspaceDB->getBodyContentIdsForContentId( $currentContentId );
+			$bodyContentIds = $this->reader->getBodyContentIdsForContentId( $currentContentId );
 			foreach ( $bodyContentIds as $bodyContentId ) {
-				$body = $this->workspaceDB->getBodyContentBodyByBodyContentId( $bodyContentId );
+				$body = $this->reader->getBodyContentBodyByBodyContentId( $bodyContentId );
 				if ( $body === null ) {
 					continue;
 				}

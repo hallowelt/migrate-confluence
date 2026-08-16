@@ -2,8 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Utility\FilenameResolver;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
@@ -16,7 +16,7 @@ class FilenameResolverTest extends TestCase {
 	public function testResolve() {
 		// Test default
 		$filenameResolver = new FilenameResolver(
-			$this->getConversionDataLookupDefault(),
+			$this->getConversiondataReaderDefault(),
 			new MigrationConfig( [] )
 		);
 
@@ -37,7 +37,7 @@ class FilenameResolverTest extends TestCase {
 
 		// Test with ext-ns-file-repo-compat
 		$filenameResolver = new FilenameResolver(
-			$this->getConversionDataLookupExtNsFileRepoCompat(),
+			$this->getConversiondataReaderExtNsFileRepoCompat(),
 			new MigrationConfig(
 				[
 					'ext-ns-file-repo-compat' => true
@@ -62,23 +62,23 @@ class FilenameResolverTest extends TestCase {
 	}
 
 	/**
-	 * @return DBConversionDataLookup
+	 * @return ConverterDirectDataReader
 	 */
-	private function getConversionDataLookupDefault(): DBConversionDataLookup {
-		$dataLookup = new DBConversionDataLookup(
+	private function getConversiondataReaderDefault(): ConverterDirectDataReader {
+		$dataReader = new ConverterDirectDataReader(
 			( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat()
 		);
-		return $dataLookup;
+		return $dataReader;
 	}
 
 	/**
-	 * @return DBConversionDataLookup
+	 * @return ConverterDirectDataReader
 	 */
-	private function getConversionDataLookupExtNsFileRepoCompat(): DBConversionDataLookup {
-		$dataLookup = new DBConversionDataLookup(
+	private function getConversiondataReaderExtNsFileRepoCompat(): ConverterDirectDataReader {
+		$dataReader = new ConverterDirectDataReader(
 			( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat()
 		);
-		return $dataLookup;
+		return $dataReader;
 	}
 
 	/**

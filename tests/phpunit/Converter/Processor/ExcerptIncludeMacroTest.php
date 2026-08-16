@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ExcerptIncludeMacroTest extends ProcessorTestCase {
 	protected function getInput(): string {
@@ -21,7 +21,7 @@ class ExcerptIncludeMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataReader = new ConverterDirectDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$currentSpaceId = 42;
 
 		$input = $this->getInput();
@@ -30,7 +30,7 @@ class ExcerptIncludeMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ExcerptIncludeMacro( $dataLookup, $currentSpaceId );
+		$processor = new ExcerptIncludeMacro( $dataReader, $currentSpaceId );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 

@@ -2,48 +2,35 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
-use HalloWelt\MediaWiki\Lib\CommandLineTools\Commands\BatchFileProcessorBase;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
-use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
-use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
+use Exception;
+use HalloWelt\MediaWiki\Lib\Migration\Command\AnalyzeWorkers as CommandAnalyzeWorkers;
+use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
+use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerPipeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriterAware;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
-use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\IMigrationConfigAware;
+use HalloWelt\MigrateConfluence\IWikisConfigAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use HalloWelt\MigrateConfluence\Utility\WikisOptionHelper;
-use SplFileInfo;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Analyze extends BatchFileProcessorBase {
+class Analyze extends CommandAnalyzeWorkers {
 
-	/** @var ExecutionTime|null */
-	private ?ExecutionTime $executionTime = null;
+	/** @var WorkspaceDB|null */
+	private ?WorkspaceDB $workspaceDB = null;
 
-	/** @var IAnalyzeDataWriter|null */
-	private ?IAnalyzeDataWriter $dataWriter;
-
-	/**
-	 * @var WikisConfig
-	 */
-	private WikisConfig $wikisConfig;
-
-	/**
-	 * @param array $config
-	 */
-	public function __construct( private readonly array $config ) {
-		parent::__construct();
-	}
+	/** @var DBLog|null */
+	private ?DBLog $dbLog = null;
 
 	/**
 	 * @return void
@@ -57,7 +44,7 @@ class Analyze extends BatchFileProcessorBase {
 		$definition->addOption(
 			new InputOption(
 				'config', null, InputOption::VALUE_REQUIRED, 'Specifies the path to the config yaml file'
-			)
+			),
 		);
 		$definition->addOption(
 			new InputOption(
@@ -67,20 +54,13 @@ class Analyze extends BatchFileProcessorBase {
 				'Specifies the path to the csv file containing interwiki configuration'
 			)
 		);
-		$definition->addOption(
-			new InputOption(
-				'workers',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'Number of parallel worker processes to spawn (default: 1, no parallelism)',
-				1
-			)
-		);
-		$definition->addOption(
-			new InputOption(
-				'worker', null, InputOption::VALUE_REQUIRED, '[Internal] Zero-based index of this worker process'
-			)
-		);
+	}
+
+	/**
+	 * @param array $config
+	 */
+	private function __construct( protected array $config ) {
+		parent::__construct();
 	}
 
 	/**
@@ -97,109 +77,173 @@ class Analyze extends BatchFileProcessorBase {
 	 * @param OutputInterface $output
 	 *
 	 * @return int
+	 *
+	 * The shared worker base handles orchestration, so this method only supplies
+	 * the Analyze-specific storage writers and delegates the actual run back to
+	 * the inherited command execution flow.
 	 */
 	protected function execute( InputInterface $input, OutputInterface $output ): int {
-		$this->input = $input;
-		$this->output = $output;
-
-		$workers = (int)$input->getOption( 'workers' );
-		$isChildProcess = $input->hasParameterOption( '--worker' );
-
-		$this->dest = realpath( $input->getOption( 'dest' ) );
-		if ( !is_dir( $this->dest ) ) {
-			$output->writeln( "Destination does not exist" );
-			return Command::FAILURE;
-		}
-
-		if ( $isChildProcess ) {
-			$this->dataWriter = new AnalyzerPipeDataWriter( new PipeChannel() );
-
-			try {
+		return $this->executeWithWorkers(
+			$input,
+			$output,
+			function () use ( $input, $output ): int {
 				return parent::execute( $input, $output );
-			} finally {
-				$this->dataWriter = null;
 			}
-		}
+		);
+	}
 
-		$workspaceDB = WorkspaceDB::create( $this->dest );
-		$this->readWikisConfigFile( $workspaceDB );
-		$this->wikisConfig = new WikisConfig( $workspaceDB );
+	/**
+	 * Build the Analyze command's parent-process writer.
+	 *
+	 * The direct writer is backed by the workspace database and also records the
+	 * command-level log entry that documents which migration version produced the
+	 * current workspace state.
+	 */
+	protected function getDataWriter(): IAnalyzeDataWriter {
+		$this->initWorkspaceDB();
+		$this->initWorkspaceDbLog();
 
-		$dbLog = new DBLog( $workspaceDB );
-		$dbLog->addLogEntry(
+		// Must happen here, not in initAnalyzers(): with --workers > 1 the parent never
+		// runs the analyzer setup, so this is the only place the CSV reaches the DB
+		// before the children start reading it.
+		$this->readWikisConfigFile( $this->workspaceDB );
+
+		$this->dbLog->addLogEntry(
 			'info',
 			'analyze',
 			__CLASS__,
 			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 		);
 
-		if ( $workers > 1 ) {
-			$pool = new WorkerPool( $output, new AnalyzerDirectDataWriter( $workspaceDB ) );
+		return new AnalyzerDirectDataWriter( $this->workspaceDB );
+	}
 
-			$this->executionTime = new ExecutionTime();
-			$result = $pool->run( WorkerPool::baseCommandFromArgv(), $workers );
-			$this->logExecutionTime( $output, $this->dest );
+	/**
+	 * Build the Analyze command's worker-process writer.
+	 *
+	 * Workers do not touch the storage backend directly; they serialize all
+	 * updates into the pipe so the parent process can apply them safely.
+	 */
+	protected function getWorkerDataWriter(): IAnalyzeDataWriter {
+		return new AnalyzerPipeDataWriter( new PipeChannel() );
+	}
 
-			return $result;
-		}
+	/**
+	 * Instantiates analyzer services defined in the command configuration.
+	 *
+	 * @return void
+	 * @throws Exception
+	 */
+	protected function initAnalyzers() {
+		$migrationConfig = $this->getMigrationConfig();
+		$wikisConfig = $this->getWikisConfig();
 
-		$this->dataWriter = new AnalyzerDirectDataWriter( $workspaceDB );
+		$this->analyzers = [];
 
-		$this->executionTime = new ExecutionTime();
-		try {
-			$result = parent::execute( $input, $output );
-			$this->logExecutionTime( $output, $this->dest );
-			return $result;
-		} finally {
-			$this->dataWriter = null;
+		$analyzerFactoryCallbacks = $this->config['analyzers'] ?? [];
+		foreach ( $analyzerFactoryCallbacks as $key => $callback ) {
+			$analyzer = call_user_func_array( $callback, []	);
+			if ( $analyzer instanceof IAnalyzer === false ) {
+				throw new Exception(
+					"Factory callback for analyzer '$key' did not return an "
+					. "IAnalyzer object"
+				);
+			}
+			if ( $analyzer instanceof IOutputAwareInterface ) {
+				$analyzer->setOutput( $this->output );
+			}
+			if ( $analyzer instanceof IAnalyzeDataWriterAware ) {
+				$analyzer->setDataWriter( $this->dataWriter );
+			}
+			if ( $analyzer instanceof IMigrationConfigAware ) {
+				$analyzer->setMigrationConfig( $migrationConfig );
+			}
+			if ( $analyzer instanceof IWikisConfigAware ) {
+				$analyzer->setWikisConfig( $wikisConfig );
+			}
+
+			$this->analyzers[$key] = $analyzer;
 		}
 	}
 
 	/**
-	 * @param SplFileInfo $file
-	 *
 	 * @return bool
 	 */
-	protected function processFile( SplFileInfo $file ): bool {
+	protected function doProcessFile(): bool {
 		$this->output->writeln( "Analyzing file '{$this->currentFile->getFilename()}'" );
+		$success = true;
+		foreach ( $this->analyzers as $analyzer ) {
+			if ( !$analyzer->analyze( $this->currentFile ) ) {
+				$success = false;
+			}
+		}
+		return $success;
+	}
 
-		$analyzer = new ConfluenceAnalyzer(
-			$this->dataWriter,
-			$this->output,
-			$this->getMigrationConfig(),
-			$this->wikisConfig
+	protected function logExecutionTime(): void {
+		$time = $this->getExecutionTime();
+		$this->output->writeln( "\nExecution time: {$time}\n" );
+		if ( $this->workspaceDB === null ) {
+			$this->initWorkspaceDB();
+		}
+
+		$this->dbLog->addLogEntry(
+			'info',
+			'analyze',
+			__CLASS__,
+			"Execution time: {$time}"
 		);
-
-		$analyzer->analyze( $file );
-
-		return true;
 	}
 
 	/**
-	 * @param OutputInterface $output
-	 * @param string|null $dest
+	 * Initializes the workspace database if it hasn't been initialized yet.
 	 *
 	 * @return void
 	 */
-	private function logExecutionTime( OutputInterface $output, ?string $dest = null ): void {
-		$time = $this->executionTime->getHumanReadableTime();
-		$output->writeln( "\nExecution time: {$time}\n" );
-
-		$dest = $dest ?? $this->dest;
-		$workspace = new Workspace( new SplFileInfo( $dest ) );
-		$buckets = new DataBuckets( [ 'execution-time' ] );
-		$buckets->loadFromWorkspace( $workspace );
-		$buckets->addData( 'execution-time', $this->getName(), $time, false, true );
-		$buckets->saveToWorkspace( $workspace );
+	private function initWorkspaceDB(): void {
+		if ( $this->workspaceDB === null ) {
+			if ( $this->isWorkerProcess() ) {
+				$this->workspaceDB = WorkspaceDB::open( $this->dest, true );
+			} else {
+				$this->workspaceDB = WorkspaceDB::create( $this->dest );
+			}
+		}
 	}
 
 	/**
-	 * @return MigrationConfig
+	 * Initializes reusable workspace database and log helper instances.
+	 *
+	 * @return void
 	 */
-	private function getMigrationConfig(): MigrationConfig {
-		$filename = $this->input->getOption( 'config' );
+	private function initWorkspaceDbLog(): void {
+		if ( $this->workspaceDB !== null && $this->dbLog !== null ) {
+			return;
+		}
 
-		$advancedConfig = [];
+		if ( $this->workspaceDB === null ) {
+			$this->initWorkspaceDB();
+		}
+
+		$this->dbLog = new DBLog( $this->workspaceDB );
+	}
+
+	/**
+	 * @return WikisConfig
+	 */
+	private function getWikisConfig(): WikisConfig {
+		if ( $this->workspaceDB === null ) {
+			$this->initWorkspaceDB();
+		}
+		// The CSV is imported by the parent process in getDataWriter().
+		return new WikisConfig( $this->workspaceDB );
+	}
+
+	/**
+	 * @return array
+	 */
+	private function readConfigFile(): array {
+		$config = [];
+		$filename = $this->input->getOption( 'config' );
 		if ( !empty( $filename ) ) {
 			$configOptionHelper = new ConfigOptionHelper( $filename );
 			$validationError = $configOptionHelper->validateFile();
@@ -208,11 +252,19 @@ class Analyze extends BatchFileProcessorBase {
 				$this->output->writeln( $validationError );
 				exit( 1 );
 			} else {
-				$advancedConfig = $configOptionHelper->getConfig();
+				$config = $configOptionHelper->getConfig();
 				$this->output->writeln( 'Config file loaded successfully' );
 			}
 		}
 
+		return $config;
+	}
+
+	/**
+	 * @return MigrationConfig
+	 */
+	private function getMigrationConfig(): MigrationConfig {
+		$advancedConfig = $this->readConfigFile();
 		return new MigrationConfig( $advancedConfig );
 	}
 
@@ -255,32 +307,7 @@ class Analyze extends BatchFileProcessorBase {
 			}
 		);
 
-		if ( !$this->input->hasParameterOption( '--worker' ) ) {
-			return;
-		}
-
-		$workers = (int)$this->input->getOption( 'workers' );
-		$worker = (int)$this->input->getOption( 'worker' );
-
-		$index = 0;
-		$filtered = [];
-		foreach ( $this->files as $path => $file ) {
-			if ( $index % $workers === $worker ) {
-				$filtered[$path] = $file;
-			}
-			$index++;
-		}
-		$this->files = $filtered;
-	}
-
-	/**
-	 * @return array
-	 */
-	protected function makeExtensionWhitelist(): array {
-		if ( isset( $this->config['file-extension-whitelist'] ) ) {
-			return $this->config['file-extension-whitelist'];
-		}
-
-		return [];
+		// Split the filtered file list across workers after the command-specific filter.
+		$this->sliceFilesForCurrentWorker();
 	}
 }

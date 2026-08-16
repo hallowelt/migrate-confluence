@@ -28,7 +28,12 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		);
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
-		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
+		$processor = new PopulateAdditionalAttachmentsTable(
+			$this->createReader( $workspaceDB ),
+			$dbLog,
+			$writer,
+			new MigrationConfig( [] )
+		);
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
@@ -66,9 +71,14 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		);
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
-		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'ext-ns-file-repo-compat' => true
-		] ) );
+		$processor = new PopulateAdditionalAttachmentsTable(
+			$this->createReader( $workspaceDB ),
+			$dbLog,
+			$writer,
+			new MigrationConfig( [
+				'ext-ns-file-repo-compat' => true
+			] )
+		);
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
@@ -106,11 +116,16 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		);
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
-		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST'
-			]
-		] ) );
+		$processor = new PopulateAdditionalAttachmentsTable(
+			$this->createReader( $workspaceDB ),
+			$dbLog,
+			$writer,
+			new MigrationConfig( [
+				'space-prefix' => [
+					'TEST' => 'MYTEST'
+				]
+			] )
+		);
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
@@ -148,12 +163,18 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		);
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
-		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST'
-			],
-			'ext-ns-file-repo-compat' => true
-		] ) );
+		$processor = new PopulateAdditionalAttachmentsTable(
+			$this->createReader( $workspaceDB ),
+			$dbLog,
+			$writer,
+			new MigrationConfig( [
+				'ext-ns-file-repo-compat' => true,
+				'space-prefix' => [
+					'TEST' => 'MYTEST'
+				]
+			] )
+		);
+		$processor->execute();
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
@@ -191,11 +212,16 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		);
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
-		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST:Root/'
-			]
-		] ) );
+		$processor = new PopulateAdditionalAttachmentsTable(
+			$this->createReader( $workspaceDB ),
+			$dbLog,
+			$writer,
+			new MigrationConfig( [
+				'space-prefix' => [
+					'TEST' => 'MYTEST:Root/'
+				]
+			] )
+		);
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
@@ -233,12 +259,17 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		);
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
-		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST:Root/'
-			],
-			'ext-ns-file-repo-compat' => true
-		] ) );
+		$processor = new PopulateAdditionalAttachmentsTable(
+			$this->createReader( $workspaceDB ),
+			$dbLog,
+			$writer,
+			new MigrationConfig( [
+				'space-prefix' => [
+					'TEST' => 'MYTEST:Root/'
+				],
+				'ext-ns-file-repo-compat' => true
+			] )
+		);
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();

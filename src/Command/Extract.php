@@ -4,31 +4,41 @@ namespace HalloWelt\MigrateConfluence\Command;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Extract as CommandExtract;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDirectDataReader;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReaderAware;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriterAware;
+use HalloWelt\MigrateConfluence\IMigrationConfigAware;
+use HalloWelt\MigrateConfluence\IWikisConfigAware;
+use HalloWelt\MigrateConfluence\IWorkspaceAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\WikisConfig;
+use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 
 class Extract extends CommandExtract {
 
-	/**
-	 * @var IExtractor[]
-	 */
+	/** @var IExtractor[] */
 	protected $extractors = [];
 
-	/**
-	 * @var array
-	 */
+	/** @var array */
 	protected $eventhandlers = [];
+
+	/** @var WorkspaceDB|null */
+	protected ?WorkspaceDB $workspaceDB = null;
 
 	/**
 	 * @inheritDoc
 	 */
 	protected function configure(): void {
+		$this->setName( 'extract' );
 		parent::configure();
 		$definition = $this->getDefinition();
 		$definition->addOption(
@@ -43,6 +53,13 @@ class Extract extends CommandExtract {
 
 	/**
 	 * @param array $config
+	 */
+	public function __construct( protected array $config ) {
+		parent::__construct();
+	}
+
+	/**
+	 * @param array $config
 	 *
 	 * @return Extract
 	 */
@@ -51,49 +68,67 @@ class Extract extends CommandExtract {
 	}
 
 	/**
+	 * Instantiates extractor services defined in the command configuration.
+	 *
 	 * @return void
+	 * @throws Exception
 	 */
-	protected function beforeProcessFiles() {
-		$this->readConfigFile( $this->config );
-		parent::beforeProcessFiles();
-		// Explicitly reset the persisted data
-		$this->buckets = new DataBuckets( $this->getBucketKeys() );
-
+	protected function initExtractors() {
+		$this->extractors = [];
 		if ( !isset( $this->config['extractors'] ) ) {
 			throw new Exception( "No 'extractors' key in config" );
 		}
 
+		$this->initWorkspaceDB();
+		$workspace = new Workspace( new SplFileInfo( $this->dest ) );
+		$dataReader = new ExtractorDirectDataReader( $this->workspaceDB );
+		$dataWriter = new ExtractorDirectDataWriter( $this->workspaceDB );
+		$migrationConfig = $this->getMigrationConfig();
+		$wikisConfig = $this->getWikisConfig();
+
 		$extractorFactoryCallbacks = $this->config['extractors'];
 		foreach ( $extractorFactoryCallbacks as $key => $callback ) {
-			$extractor = call_user_func_array(
-				$callback,
-				[ $this->config, $this->workspace, $this->buckets ]
-			);
+			$extractor = call_user_func_array( $callback, [] );
 			if ( $extractor instanceof IExtractor === false ) {
 				throw new Exception(
 					"Factory callback for extractor '$key' did not return an "
 					. "IExtractor object"
 				);
 			}
+
 			if ( $extractor instanceof IOutputAwareInterface ) {
 				$extractor->setOutput( $this->output );
 			}
-			if ( $extractor instanceof IDestinationPathAware ) {
-				$extractor->setDestinationPath( $this->dest );
+			if ( $extractor instanceof IExtractorDataReaderAware ) {
+				$extractor->setDataReader( $dataReader );
 			}
+			if ( $extractor instanceof IExtractorDataWriterAware ) {
+				$extractor->setDataWriter( $dataWriter );
+			}
+			if ( $extractor instanceof IMigrationConfigAware ) {
+				$extractor->setMigrationConfig( $migrationConfig );
+			}
+			if ( $extractor instanceof IWikisConfigAware ) {
+				$extractor->setWikisConfig( $wikisConfig );
+			}
+			if ( $extractor instanceof IWorkspaceAware ) {
+				$extractor->setWorkspace( $workspace );
+			}
+
 			$this->extractors[$key] = $extractor;
+
 			if ( $extractor instanceof IFileProcessorEventHandler ) {
 				$this->eventhandlers[$key] = $extractor;
 			}
+
 		}
 	}
 
 	/**
-	 * @param array &$config
-	 *
-	 * @return void
+	 * @return array
 	 */
-	private function readConfigFile( array &$config ): void {
+	private function readConfigFile(): array {
+		$config = [];
 		$filename = $this->input->getOption( 'config' );
 		if ( !empty( $filename ) ) {
 			$configOptionHelper = new ConfigOptionHelper( $filename );
@@ -103,18 +138,42 @@ class Extract extends CommandExtract {
 				$this->output->writeln( $validationError );
 				exit( 1 );
 			} else {
-				$config['config'] = $configOptionHelper->getConfig();
+				$config = $configOptionHelper->getConfig();
 				$this->output->writeln( 'Config file loaded successfully' );
 			}
+		}
+
+		return $config;
+	}
+
+	/**
+	 * Initializes the workspace database if it hasn't been initialized yet.
+	 *
+	 * @return void
+	 */
+	private function initWorkspaceDB(): void {
+		if ( $this->workspaceDB === null ) {
+			$this->workspaceDB = WorkspaceDB::open( $this->dest );
 		}
 	}
 
 	/**
-	 *
-	 * @inheritDoc
+	 * @return MigrationConfig
 	 */
-	protected function getBucketKeys(): array {
-		return [];
+	private function getMigrationConfig(): MigrationConfig {
+		$advancedConfig = $this->readConfigFile();
+		return new MigrationConfig( $advancedConfig );
+	}
+
+	/**
+	 * @return WikisConfig
+	 */
+	private function getWikisConfig(): WikisConfig {
+		if ( $this->workspaceDB === null ) {
+			$this->initWorkspaceDB();
+		}
+		// The CSV is imported by the parent process in getDataWriter().
+		return new WikisConfig( $this->workspaceDB );
 	}
 
 	/**

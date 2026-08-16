@@ -4,9 +4,9 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
@@ -14,7 +14,7 @@ class BlogPosts extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
@@ -24,7 +24,7 @@ class BlogPosts extends ContentProcessorBase {
 	 */
 	public function __construct(
 		protected Builder $builder,
-		protected DBComposerDataLookup $dataLookup,
+		protected IComposerDataReader $reader,
 		protected Workspace $workspace,
 		protected Output $output,
 		protected string $dest,
@@ -53,8 +53,8 @@ class BlogPosts extends ContentProcessorBase {
 
 	private function addBlogPages(): void {
 		$wikiTitles = $this->collectBySpaceIdsReplaceByKey(
-			fn ( int $spaceId ): array => $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap( $spaceId ),
-			fn (): array => $this->dataLookup->getBlogPostIdWikiBlogPostTitleMap()
+			fn ( int $spaceId ): array => $this->reader->getBlogPostIdWikiBlogPostTitleMap( $spaceId ),
+			fn (): array => $this->reader->getBlogPostIdWikiBlogPostTitleMap()
 		);
 
 		foreach ( $wikiTitles as $blogPostId => $blogPostTitle ) {
@@ -67,7 +67,7 @@ class BlogPosts extends ContentProcessorBase {
 
 			$namespace = $this->getNamespace( $blogPostTitle );
 
-			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $blogPostId );
+			$revisions = $this->reader->getBlogPostRevisionsForBlogPostId( $blogPostId );
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)$revision['revision_timestamp'];
 				if ( !$this->hasValidContentIdsJson( (string)( $revision['body_content_ids'] ?? '' ) ) ) {

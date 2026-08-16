@@ -4,19 +4,19 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use Exception;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 
 class ChildrenMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param int $spaceId
 	 * @param string $wikiPageTitle
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 */
 	public function __construct(
 		private int $spaceId,
 		private string $wikiPageTitle,
-		private DBConversionDataLookup $dataLookup
+		private IConverterDataReader $reader
 	) {
 	}
 
@@ -164,7 +164,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		$spaceId = $this->spaceId;
 		if ( $pageLink->hasAttribute( 'ri:space-key' ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey(
+			$spaceId = $this->reader->getSpaceIdFromSpaceKey(
 				$pageLink->getAttribute( 'ri:space-key' )
 			);
 		}
@@ -180,7 +180,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @throws Exception
 	 */
 	private function resolveWikiTitle( int $spaceId, string $confluenceTitle ): ?string {
-		$wikiTitle = $this->dataLookup->getWikiPageTitleForLink( $this->spaceId, $spaceId, $confluenceTitle );
+		$wikiTitle = $this->reader->getWikiPageTitleForLink( $this->spaceId, $spaceId, $confluenceTitle );
 
 		if ( $wikiTitle === null ) {
 			return null;

@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Tests\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
-use Psr\Log\NullLogger;
 use Symfony\Component\Console\Output\Output;
 use XMLReader;
 
@@ -22,7 +21,6 @@ trait ProcessorTestHelper {
 		string $className
 	): void {
 		$processor->setOutput( $this->makeOutput() );
-		$processor->setLogger( new NullLogger() );
 
 		$xmlReader = new XMLReader();
 		$xmlReader->open( $xmlFile );

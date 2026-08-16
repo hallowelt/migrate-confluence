@@ -5,32 +5,12 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use Exception;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 abstract class LinkProcessorBase extends ConversionHelper implements IProcessor {
-
-	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var int
-	 */
-	protected int $currentSpaceId;
-
-	/**
-	 * @var string
-	 */
-	protected string $rawPageTitle;
-
-	/**
-	 * @var MigrationConfig
-	 */
-	protected MigrationConfig $migrationConfig;
 
 	/**
 	 * @var DOMElement
@@ -38,17 +18,16 @@ abstract class LinkProcessorBase extends ConversionHelper implements IProcessor 
 	private DOMElement $linkNode;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
-		$this->migrationConfig = $migrationConfig;
+	public function __construct(
+		protected IConverterDataReader $reader,
+		protected int $currentSpaceId,
+		protected string $rawPageTitle,
+		protected MigrationConfig $migrationConfig ) {
 	}
 
 	/**

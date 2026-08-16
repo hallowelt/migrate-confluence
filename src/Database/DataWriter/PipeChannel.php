@@ -41,7 +41,23 @@ class PipeChannel {
 		if ( $json === false ) {
 			throw new RuntimeException( 'Failed to encode pipe message: ' . json_last_error_msg() );
 		}
-		fwrite( $this->stream, $json . "\n" );
+		$this->writeAll( $json . "\n" );
+	}
+
+	/**
+	 * fwrite() on a pipe can return a short write; a truncated line corrupts the
+	 * JSON record and the parent silently drops it.
+	 */
+	private function writeAll( string $payload ): void {
+		$length = strlen( $payload );
+		$written = 0;
+		while ( $written < $length ) {
+			$bytes = fwrite( $this->stream, substr( $payload, $written ) );
+			if ( $bytes === false || $bytes === 0 ) {
+				throw new RuntimeException( 'Failed to write to DB pipe on fd ' . self::FILE_DESCRIPTOR );
+			}
+			$written += $bytes;
+		}
 	}
 
 	public function __destruct() {

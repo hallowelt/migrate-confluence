@@ -2,8 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 
 /**
  * @group full
@@ -37,11 +39,11 @@ class PageTreeMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		$workspaceDb = ( new \HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock() )
+		$workspaceDb = ( new WorkspaceDbMock() )
 			->createWithoutExtNsFileRepoCompat();
-		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
+		$dataReader = new ConverterDirectDataReader( $workspaceDb );
 
-		return new PageTreeMacro( $dataLookup, 42, 'SomePage', 'SomePage' );
+		return new PageTreeMacro( $dataReader, 42, 'SomePage', 'SomePage' );
 	}
 
 }

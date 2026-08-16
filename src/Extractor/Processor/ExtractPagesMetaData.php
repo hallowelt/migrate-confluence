@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -11,18 +11,18 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 class ExtractPagesMetaData extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
+	 * @param IExtractorDataReader $reader
 	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB,
+		IExtractorDataReader $reader,
 		DBLog $dbLog,
 		IExtractorDataWriter $writer,
 		protected MigrationConfig $migrationConfig
 	) {
-		parent::__construct( $workspaceDB, $dbLog, $writer );
+		parent::__construct( $reader, $dbLog, $writer );
 	}
 
 	/**
@@ -31,7 +31,7 @@ class ExtractPagesMetaData extends ProcessorBase {
 	public function execute(): void {
 		$configCategories = $this->migrationConfig->getCategories();
 
-		foreach ( $this->workspaceDB->getCurrentPages() as $page ) {
+		foreach ( $this->reader->getCurrentPages() as $page ) {
 			if ( !isset( $page['page_id'] ) || !isset( $page['original_version_id'] ) ) {
 				continue;
 			}
@@ -78,12 +78,12 @@ class ExtractPagesMetaData extends ProcessorBase {
 		array $categories = []
 	): array {
 		foreach ( $labellings as $labellingId ) {
-			$labelling = $this->workspaceDB->getLabellingById( (int)$labellingId );
+			$labelling = $this->reader->getLabellingById( (int)$labellingId );
 			if ( !isset( $labelling['label_id'] ) ) {
 				continue;
 			}
 			$labelId = (int)$labelling['label_id'];
-			$label = $this->workspaceDB->getLabelById( $labelId );
+			$label = $this->reader->getLabelById( $labelId );
 			if ( $label === null || !isset( $label['name'] ) ) {
 				continue;
 			}

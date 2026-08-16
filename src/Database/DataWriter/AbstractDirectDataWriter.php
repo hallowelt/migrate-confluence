@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Database\DataWriter;
 
+use HalloWelt\MediaWiki\Lib\Migration\Database\DataWriter\IDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 
 abstract class AbstractDirectDataWriter implements IDataWriter {

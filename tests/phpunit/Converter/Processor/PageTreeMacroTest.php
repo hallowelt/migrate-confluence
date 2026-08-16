@@ -2,20 +2,20 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class PageTreeMacroTest extends ProcessorTestCase {
-	/** @var DBConversionDataLookup */
-	private $dataLookup;
+	/** @var ConverterDirectDataReader */
+	private $dataReader;
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dataLookup = $this->makeLookup();
+		$this->dataReader = $this->makeLookup();
 		$this->doTest( 'pagetree-macro-input.xml', 'pagetree-macro-output.xml' );
 	}
 
@@ -24,15 +24,15 @@ class PageTreeMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcessWithoutSpaceKey() {
-		$this->dataLookup = $this->makeLookup();
+		$this->dataReader = $this->makeLookup();
 		$this->doTest( 'pagetree-macro-no-spacekey-input.xml', 'pagetree-macro-no-spacekey-output.xml' );
 	}
 
 	/**
-	 * @return DBConversionDataLookup
+	 * @return ConverterDirectDataReader
 	 */
 	private function makeLookup() {
-		return new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		return new ConverterDirectDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 	}
 
 	/**
@@ -44,14 +44,14 @@ class PageTreeMacroTest extends ProcessorTestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new PageTreeMacro( $this->dataLookup, 42, 'Testpage', 'ABC:SomeLinkedPage/Testpage', 'Main Page' );
+		$processor = new PageTreeMacro( $this->dataReader, 42, 'Testpage', 'ABC:SomeLinkedPage/Testpage', 'Main Page' );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
 	 * @return void
 	 */
@@ -69,7 +69,7 @@ class PageTreeMacroTest extends ProcessorTestCase {
 		);
 
 		$processor = new PageTreeMacro(
-			new DBConversionDataLookup( $workspaceDB ),
+			new ConverterDirectDataReader( $workspaceDB ),
 			42,
 			'Testpage',
 			'ABC:SomeLinkedPage/Testpage'
@@ -83,7 +83,7 @@ class PageTreeMacroTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
 	 * @return void
 	 */
@@ -103,7 +103,7 @@ class PageTreeMacroTest extends ProcessorTestCase {
 		);
 
 		$processor = new PageTreeMacro(
-			new DBConversionDataLookup( $workspaceDB ),
+			new ConverterDirectDataReader( $workspaceDB ),
 			42,
 			'Testpage',
 			'ABC:SomeLinkedPage/Testpage'

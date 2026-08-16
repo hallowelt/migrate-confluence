@@ -4,44 +4,24 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ViewFileMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var int
-	 */
-	protected int $currentSpaceId;
-
-	/**
-	 * @var string
-	 */
-	protected string $rawPageTitle;
-
-	/**
-	 * @var MigrationConfig
-	 */
-	protected MigrationConfig $migrationConfig;
-
-	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
-		$this->migrationConfig = $migrationConfig;
+	public function __construct(
+		protected IConverterDataReader $reader,
+		protected int $currentSpaceId,
+		protected string $rawPageTitle,
+		protected MigrationConfig $migrationConfig
+	) {
 	}
 
 	/**
@@ -73,7 +53,7 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		$riFilename = $params['_riFilename'];
 		unset( $params['_riFilename'] );
 
-		$filenameResolver = new FilenameResolver( $this->dataLookup, $this->migrationConfig );
+		$filenameResolver = new FilenameResolver( $this->reader, $this->migrationConfig );
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenLink ] =
 			$filenameResolver->resolve( $this->currentSpaceId, $this->rawPageTitle, $riFilename );
 

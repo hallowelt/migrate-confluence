@@ -6,9 +6,9 @@ use DOMDocument;
 use DOMElement;
 use DOMException;
 use DOMNode;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
@@ -20,18 +20,18 @@ class Image extends ConversionHelper implements IProcessor {
 	protected FilenameResolver $filenameResolver;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private DBConversionDataLookup $dataLookup,
+		private IConverterDataReader $reader,
 		private int $currentSpaceId,
 		private string $rawPageTitle,
 		MigrationConfig $migrationConfig
 	) {
-		$this->filenameResolver = new FilenameResolver( $dataLookup, $migrationConfig );
+		$this->filenameResolver = new FilenameResolver( $reader, $migrationConfig );
 	}
 
 	/**
@@ -252,7 +252,7 @@ class Image extends ConversionHelper implements IProcessor {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			}
 			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				$spaceId = $this->reader->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
 				// TODO: Log if spaceId is null, but we should be able to
 				//resolve the filename without spaceId as well, so we can continue processing
 			}
@@ -300,7 +300,7 @@ class Image extends ConversionHelper implements IProcessor {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			}
 			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				$spaceId = $this->reader->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
 				// TODO: Log if spaceId is null, but we should be able to
 				// resolve the filename without spaceId as well, so we can continue processing
 			}
@@ -314,7 +314,7 @@ class Image extends ConversionHelper implements IProcessor {
 		$link = $linkBody->parentNode;
 
 		$imagePageLinkHelper = new ImagePageLinkHelper(
-			$this->dataLookup,
+			$this->reader,
 			$this->currentSpaceId,
 			$linkPageTitle
 		);
@@ -369,7 +369,7 @@ class Image extends ConversionHelper implements IProcessor {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 			}
 			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				$spaceId = $this->reader->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
 				// TODO: Log if spaceId is null, but we should be able to
 				// resolve the filename without spaceId as well, so we can continue processing
 			}
