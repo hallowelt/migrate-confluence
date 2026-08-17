@@ -232,18 +232,17 @@ class Emoticon extends ConversionHelper implements IProcessor {
 	}
 
 	/**
-	 * Loads src/Converter/_data/emojis.json, generated from Unicode's
+	 * Loads src/Converter/_data/emoji-fe0f-map.json, generated from Unicode's
 	 * official emoji-test.txt (see UTS #51): a map of
 	 * [unqualified/minimally-qualified codepoint sequence] => [the same
 	 * sequence with FE0F variation selector(s) inserted where needed to be
-	 * fully-qualified/renderable as an emoji]. Cached for the lifetime of
-	 * the request; only read from disk on first use.
+	 * fully-qualified/renderable as an emoji].
 	 *
 	 * @return array
 	 */
 	private function getEmojiFe0fMap(): array {
 		if ( self::$emojiFe0fMap === null ) {
-			$path = dirname( __DIR__ ) . '/_data/emojis.json';
+			$path = dirname( __DIR__ ) . '/_data/emoji-fe0f-map.json';
 			self::$emojiFe0fMap = json_decode( file_get_contents( $path ), true ) ?? [];
 		}
 		return self::$emojiFe0fMap;
