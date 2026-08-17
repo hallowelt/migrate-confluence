@@ -63,7 +63,10 @@ class RoadmapMacro extends StructuredMacroProcessorBase {
 
 		if ( !isset( $params['source'] ) || $params['source'] === '' ) {
 			$node->parentNode->replaceChild(
-				$this->createTextNode( $node->ownerDocument, $this->getCategoryBrokenMacro( 'roadmap' ), __METHOD__ ),
+				$this->createTextNode(
+					$node->ownerDocument,
+					sprintf( '{{Textbox|boxtype=warning|text=Missing parameter "source" in roadmap macro.}}%s', $this->getCategoryBrokenMacro( 'roadmap' ) ),
+					__METHOD__ ),
 				$node
 			);
 			return;
@@ -74,7 +77,10 @@ class RoadmapMacro extends StructuredMacroProcessorBase {
 			$svg = $this->renderSvg( $source );
 		} catch ( Throwable $e ) {
 			$node->parentNode->replaceChild(
-				$this->createTextNode( $node->ownerDocument, $this->getCategoryBrokenMacro( 'roadmap' ), __METHOD__ ),
+				$this->createTextNode(
+					$node->ownerDocument,
+					sprintf( '{{Textbox|boxtype=warning|text=%s}}%s', $e->getMessage(), $this->getCategoryBrokenMacro( 'roadmap' ) ),
+					__METHOD__ ),
 				$node
 			);
 			return;
