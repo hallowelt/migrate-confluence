@@ -64,4 +64,4 @@
     ]
 }
 </templatedata>
-</noinclude><includeonly><span class="emoticon"{{#if:{{{alt|}}}| aria-label="{{{alt}}}"}}{{#if:{{{color|}}}| style="display:inline-block;min-width:1.4em;height:1.4em;line-height:1.4em;text-align:center;background-color:{{{color}}};color:#fff;border-radius:{{#ifeq:{{{shape|circle}}}|square|15%|50%}};"}}>{{{char}}}</span></includeonly>
+</noinclude><includeonly><span class="emoticon"{{#if:{{{alt|}}}| aria-label="{{{alt}}}"}}{{#if:{{{color|}}}| style="display:inline-block;min-width:1.4em;height:1.4em;line-height:1.4em;text-align:center;background-color:{{{color}}};color:#fff;border-radius:{{#ifeq:{{{shape|circle}}}|square|none|50%}};"}}>{{{char}}}</span></includeonly>
