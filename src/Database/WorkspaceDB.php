@@ -173,6 +173,7 @@ class WorkspaceDB {
 			'labels',
 			'gliffy',
 			'required_templates',
+			'default_pages_registry',
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -320,6 +321,7 @@ class WorkspaceDB {
 		$this->createTablePageTemplateContents();
 		$this->createTableAttachmentsDescriptions();
 		$this->createTableExportProperties();
+		$this->createTableDefaultPagesRegistry();
 		$this->createTableRequiredTemplates();
 
 		// Indexing tables
@@ -5276,24 +5278,63 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param string $templateName
 	 * @return void
 	 */
-	public function addRequiredTemplate( string $templateName ): void {
-		$stmt = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO required_templates (template_name) VALUES (:template_name)'
+	private function createTableDefaultPagesRegistry(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS default_pages_registry (
+				space_id INT,
+				namespace TEXT,
+				name TEXT,
+				PRIMARY KEY (space_id, namespace, name)
+			);'
 		);
-		$stmt->bindValue( ':template_name', $templateName, SQLITE3_TEXT );
-		$stmt->execute();
 	}
 
 	/**
-	 * @return string[] list of required template names
+	 * Register default pages used for creating new pages in spaces.
+	 *
+	 * @param integer $spaceId
+	 * @param string $defaultPageName
+	 * @param string $defaultPageNamespace
+	 * @return boolean
 	 */
-	public function getRequiredTemplates(): array {
-		$stmt = $this->cachedPrepare( 'SELECT template_name FROM required_templates ORDER BY template_name' );
-		$result = $stmt->execute();
-		$rows = $this->fetchDbArray( $result );
-		return array_column( $rows, 'template_name' );
+	public function registerDefaultPage( int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template' ): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO default_pages_registry (
+				space_id,
+				namespace,
+				name
+			) VALUES (
+				:space_id,
+				:namespace,
+				:name
+			)'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':namespace', $defaultPageNamespace, SQLITE3_TEXT );
+		$transaction->bindValue( ':name', $defaultPageName, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Get all registered default pages for a given space ID.
+	 *
+	 * @param integer $spaceId
+	 * @return array
+	 */
+	public function getRegisteredDefaultPagesForSpace( int $spaceId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT namespace, name FROM default_pages_registry WHERE space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 }

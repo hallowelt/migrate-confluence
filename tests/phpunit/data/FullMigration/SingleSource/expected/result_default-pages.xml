@@ -273,6 +273,14 @@
     </revision>
   </page>
   <page>
+    <title>Template:TagSearch</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text></text>
+    </revision>
+  </page>
+  <page>
     <title>Template:ViewDoc</title>
     <revision>
       <model>wikitext</model>

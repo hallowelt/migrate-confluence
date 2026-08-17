@@ -535,7 +535,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new CreateFromTemplateMacro(
 				$this->dataLookup
 			),
-			new LivesearchMacro( $this->writer )
+			new LivesearchMacro( $this->writer, $this->currentSpace )
 		];
 
 		/** @var IProcessor $processor */

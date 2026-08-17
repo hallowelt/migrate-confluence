@@ -214,9 +214,6 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 			new DefaultPages(
 				$builder, $this->output, $this->dest, $this->migrationConfig
 			),
-			new RequiredTemplates(
-				$this->dataLookup, $builder, $this->output, $this->dest, $this->migrationConfig
-			),
 		];
 	}
 
