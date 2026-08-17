@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
@@ -33,9 +33,9 @@ class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
 		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
 
-		$dataLookup = new DBConversionDataLookup( $workspaceDB );
+		$dataReader = new ConverterDirectDataReader( $workspaceDB );
 
-		$processor = new CreateFromTemplateMacro( $dataLookup );
+		$processor = new CreateFromTemplateMacro( $dataReader );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
@@ -58,9 +58,9 @@ class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
 		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
 
-		$dataLookup = new DBConversionDataLookup( $workspaceDB );
+		$dataReader = new ConverterDirectDataReader( $workspaceDB );
 
-		$processor = new CreateFromTemplateMacro( $dataLookup );
+		$processor = new CreateFromTemplateMacro( $dataReader );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

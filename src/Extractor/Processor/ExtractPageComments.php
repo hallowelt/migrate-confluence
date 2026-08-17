@@ -12,7 +12,7 @@ class ExtractPageComments extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$comments = $this->workspaceDB->getCommentsForPages();
+		$comments = $this->reader->getCommentsForPages();
 
 		foreach ( $comments as $comment ) {
 			if ( !isset( $comment['comment_id'] ) || !isset( $comment['container_id'] ) ) {
@@ -24,7 +24,7 @@ class ExtractPageComments extends ProcessorBase {
 			$wikiTitle = (string)( $comment['wiki_title'] ?? '' );
 
 			if ( $wikiTitle === '' ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,

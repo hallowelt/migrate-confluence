@@ -2,9 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use ReflectionClass;
 
 /**
@@ -14,7 +14,7 @@ class ExcerptIncludeMacroChainTest extends MacroChainTestBase {
 
 	protected function setUp(): void {
 		$workspaceDb = $this->createWorkspaceDb();
-		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
+		$this->dataReader = new ConverterDirectDataReader( $workspaceDb );
 	}
 
 	/**
@@ -143,8 +143,9 @@ class ExcerptIncludeMacroChainTest extends MacroChainTestBase {
 			$this->assertFileExists( $expectedPath, "Missing expected fixture $expectedFixture" );
 			$inputXml = (string)file_get_contents( $inputPath );
 			$expected = $this->applyConfluenceFinalReplacements( (string)file_get_contents( $expectedPath ) );
-			$actual = $this->runChainWithProcessor( new ExcerptIncludeMacro( $this->dataLookup, 42 ), $inputXml );
+			$actual = $this->runChainWithProcessor( new ExcerptIncludeMacro( $this->dataReader, 42 ), $inputXml );
 			$this->assertSame( $expected, $actual, "Mismatch for fixture $inputFixture" );
 		}
 	}
+
 }

@@ -3,10 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesBodyContents;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 
 class ExtractPagesBodyContentsTest extends TestCase {
@@ -15,9 +14,8 @@ class ExtractPagesBodyContentsTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesBodyContents::execute
 	 */
 	public function testExtractsCurrentPageBodyContent(): void {
-		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$workspace = $this->createMock( Workspace::class );
-		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentPages' )->willReturn( [ [ 'page_id' => 12 ] ] );
@@ -29,9 +27,9 @@ class ExtractPagesBodyContentsTest extends TestCase {
 			->with( '102', '<html><body>Page body</body></html>' )
 			->willReturn( '/content/raw/102.mraw' );
 
-		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
+		$writer->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractPagesBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractPagesBodyContents( $workspaceDB, $workspace, $writer );
 		$processor->execute();
 	}
 }

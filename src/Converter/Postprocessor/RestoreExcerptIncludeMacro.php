@@ -4,13 +4,13 @@ namespace HalloWelt\MigrateConfluence\Converter\Postprocessor;
 
 use DOMDocument;
 use DOMXPath;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class RestoreExcerptIncludeMacro implements IPostprocessor {
 
-	public function __construct( private readonly DBConversionDataLookup $dataLookup ) {
+	public function __construct( private readonly IConverterDataReader $reader ) {
 	}
 
 	/**
@@ -50,12 +50,12 @@ class RestoreExcerptIncludeMacro implements IPostprocessor {
 	 * If no fallback can be found, keep it empty
 	 */
 	private function createExcerptNameFallback( string $wikiTitle ): string {
-		$page = $this->dataLookup->getPageByWikiTitle( $wikiTitle );
+		$page = $this->reader->getPageByWikiTitle( $wikiTitle );
 		if ( !$page ) {
 			return "";
 		}
 
-		$bodyContent = $this->dataLookup->getConfluencePageBodyContent( $page['body_content_ids'] );
+		$bodyContent = $this->reader->getConfluencePageBodyContent( $page['body_content_ids'] );
 		if ( !$bodyContent ) {
 			return "";
 		}

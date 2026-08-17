@@ -3,41 +3,44 @@
 namespace HalloWelt\MigrateConfluence\Command;
 
 use Exception;
-use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
-use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
+use HalloWelt\MediaWiki\Lib\Migration\Command\ConvertWorkers as CommandConvertWorkers;
+use HalloWelt\MediaWiki\Lib\Migration\Database\DataReader\IDataReader;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReaderAware;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterPipeDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
-use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
-use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriterAware;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\IMigrationConfigAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
-use SplFileInfo;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Convert extends CommandConvert {
+class Convert extends CommandConvertWorkers {
 
 	/** @var string */
 	private string $wikiTextBasePath = '';
 
-	/** @var IConverterDataWriter|null */
-	private ?IConverterDataWriter $dataWriter;
+	/** @var WorkspaceDB|null */
+	private ?WorkspaceDB $workspaceDB = null;
+
+	/** @var DBLog|null */
+	private ?DBLog $dbLog = null;
 
 	/**
 	 * @return void
 	 */
 	protected function configure(): void {
+		$this->setName( 'convert' );
 		parent::configure();
 		$definition = $this->getDefinition();
 		$definition->addOption(
@@ -48,24 +51,13 @@ class Convert extends CommandConvert {
 				'Specifies the path to the config yaml file'
 			)
 		);
-		$definition->addOption(
-			new InputOption(
-				'workers',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'Number of parallel worker processes to spawn (default: 1, no parallelism)',
-				1
-			)
-		);
-		// Hidden internal option — set automatically by the orchestrator on each child process.
-		$definition->addOption(
-			new InputOption(
-				'worker',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'[Internal] Zero-based index of this worker process'
-			)
-		);
+	}
+
+	/**
+	 * @param array $config
+	 */
+	public function __construct( protected array $config ) {
+		parent::__construct();
 	}
 
 	/**
@@ -81,6 +73,9 @@ class Convert extends CommandConvert {
 	 * Intercept execution: when --workers > 1 and this is not already a spawned worker,
 	 * act as the orchestrator and launch child processes.
 	 *
+	 * Convert follows the same worker orchestration as Analyze, but its storage
+	 * target is the wikitext workspace tree rather than the analysis database.
+	 *
 	 * @param InputInterface $input
 	 * @param OutputInterface $output
 	 *
@@ -88,97 +83,97 @@ class Convert extends CommandConvert {
 	 * @throws Exception
 	 */
 	protected function execute( InputInterface $input, OutputInterface $output ): int {
-		$this->input = $input;
-		$this->output = $output;
-
-		$workers = (int)$input->getOption( 'workers' );
-		$isChildProcess = $input->hasParameterOption( '--worker' );
-
-		$this->dest = realpath( $input->getOption( 'dest' ) );
-		if ( !is_dir( $this->dest ) ) {
-			$output->writeln( "Destination does not exist" );
-			return Command::FAILURE;
-		}
-
-		if ( $isChildProcess ) {
-			$this->dataWriter = new ConverterPipeDataWriter( new PipeChannel() );
-
-			try {
+		return $this->executeWithWorkers(
+			$input,
+			$output,
+			function () use ( $input, $output ): int {
 				return parent::execute( $input, $output );
-			} finally {
-				$this->dataWriter = null;
 			}
-		}
+		);
+	}
 
-		$workspaceDB = WorkspaceDB::open( $this->dest );
+	/**
+	 * Build the Convert command's parent-process writer.
+	 *
+	 * The direct writer is created from the destination workspace database and
+	 * is also responsible for the top-level migration log entry.
+	 */
+	protected function getDataWriter(): IConverterDataWriter {
+		$this->initWorkspaceDB();
+		$this->initWorkspaceDbLog();
 
-		$dbLog = new DBLog( $workspaceDB );
-		$dbLog->addLogEntry(
+		$this->dbLog->addLogEntry(
 			'info',
 			'convert',
 			__CLASS__,
 			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 		);
 
-		if ( $workers > 1 ) {
-			$pool = new WorkerPool( $output, new ConverterDirectDataWriter( $workspaceDB ) );
-
-			$this->executionTime = new ExecutionTime();
-			$result = $pool->run( WorkerPool::baseCommandFromArgv(), $workers );
-			$this->logExecutionTime();
-
-			return $result;
-		}
-
-		$this->dataWriter = new ConverterDirectDataWriter( $workspaceDB );
-
-		try {
-			return parent::execute( $input, $output );
-		} finally {
-			$this->dataWriter = null;
-		}
-	}
-
-	protected function logExecutionTime(): void {
-		if ( $this->input->hasParameterOption( '--worker' ) ) {
-			return;
-		}
-		if ( $this->workspace === null ) {
-			$this->workspace = new Workspace( new SplFileInfo( $this->dest ) );
-			$this->executionTimeBuckets = new DataBuckets( [ 'execution-time' ] );
-			$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
-		}
-		parent::logExecutionTime();
+		return new ConverterDirectDataWriter( $this->workspaceDB );
 	}
 
 	/**
+	 * Build the Convert command's worker-process writer.
+	 *
+	 * The worker-side writer sends structured records back to the parent process
+	 * so the parent can apply all storage mutations in one place.
+	 */
+	protected function getWorkerDataWriter(): IConverterDataWriter {
+		return new ConverterPipeDataWriter( new \HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel() );
+	}
+
+	protected function logExecutionTime(): void {
+		$time = $this->getExecutionTime();
+		$this->output->writeln( "\nExecution time: {$time}\n" );
+		if ( $this->isWorkerProcess() ) {
+			return;
+		}
+		if ( $this->workspaceDB === null ) {
+			$this->initWorkspaceDB();
+		}
+		$this->initWorkspaceDbLog();
+
+		$this->dbLog->addLogEntry(
+			'info',
+			'convert',
+			__CLASS__,
+			"Execution time: {$time}"
+		);
+	}
+
+	/**
+	 * Instantiates converter services defined in the command configuration.
+	 *
+	 * @return void
 	 * @throws Exception
 	 */
-	protected function doProcessFile(): bool {
-		if ( !$this->dataWriter ) {
+	protected function initConverters() {
+		if ( !$this->dataWriter instanceof IConverterDataWriter ) {
 			throw new Exception( 'No data writer is set' );
 		}
 
+		$this->converters = [];
 		$converterFactoryCallbacks = $this->config['converters'];
-
-		$this->wikiTextBasePath = $this->dest . '/content/wikitext';
-		$this->makeTargetPathname();
-		$this->ensureTargetPath();
-
-		$this->readConfigFile( $this->config );
+		$migrationConfig = $this->getMigrationConfig();
+		if ( !$this->dataReader instanceof IConverterDataReader ) {
+			throw new Exception( 'No converter data reader is set' );
+		}
 
 		foreach ( $converterFactoryCallbacks as $key => $callback ) {
-			$converter = call_user_func_array(
-				$callback,
-				[ $this->config, $this->workspace ]
-			);
+			$converter = call_user_func_array( $callback, [] );
 			if ( $converter instanceof IConverter === false ) {
 				throw new Exception(
 					"Factory callback for converter '$key' did not return an "
 					. "IConverter object"
 				);
 			}
-			if ( $converter instanceof ConfluenceConverter ) {
+			if ( $converter instanceof IConverterDataReaderAware ) {
+				$converter->setDataReader( $this->dataReader );
+			}
+			if ( $converter instanceof IMigrationConfigAware ) {
+				$converter->setMigrationConfig( $migrationConfig );
+			}
+			if ( $converter instanceof IConverterDataWriterAware ) {
 				$converter->setDataWriter( $this->dataWriter );
 			}
 			if ( $converter instanceof IOutputAwareInterface ) {
@@ -188,11 +183,36 @@ class Convert extends CommandConvert {
 				$converter->setDestinationPath( $this->dest );
 			}
 
+			$this->converters[$key] = $converter;
+		}
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	protected function doProcessFile(): bool {
+		if ( !$this->dataWriter instanceof IConverterDataWriter ) {
+			throw new Exception( 'No data writer is set' );
+		}
+
+		$this->wikiTextBasePath = $this->dest . '/content/wikitext';
+		$this->makeTargetPathname();
+		$this->ensureTargetPath();
+
+		$success = true;
+		foreach ( $this->converters as $converter ) {
 			$result = $converter->convert( $this->currentFile );
+			if ( $result === null ) {
+				$success = false;
+				$this->output->writeln(
+					"Failed to convert '{$this->currentFile->getFilename()}'"
+				);
+				continue;
+			}
 
 			file_put_contents( $this->targetPathname, $result );
 		}
-		return true;
+		return $success;
 	}
 
 	/**
@@ -201,22 +221,34 @@ class Convert extends CommandConvert {
 	protected function makeFileList(): void {
 		parent::makeFileList();
 
-		if ( !$this->input->hasParameterOption( '--worker' ) ) {
-			return;
-		}
+		// Split the converted files only after the base path mapping is in place.
+		$this->sliceFilesForCurrentWorker();
+	}
 
-		$workers = (int)$this->input->getOption( 'workers' );
-		$worker = (int)$this->input->getOption( 'worker' );
+	/**
+	 * @return MigrationConfig
+	 */
+	private function getMigrationConfig(): MigrationConfig {
+		$advancedConfig = [];
+		$this->readConfigFile( $advancedConfig );
 
-		$index = 0;
-		$filtered = [];
-		foreach ( $this->files as $path => $file ) {
-			if ( $index % $workers === $worker ) {
-				$filtered[$path] = $file;
-			}
-			$index++;
-		}
-		$this->files = $filtered;
+		return new MigrationConfig( $advancedConfig['config'] ?? [] );
+	}
+
+	/**
+	 * The parent uses a readonly connection for conversion lookups, distinct from
+	 * its direct writer connection.
+	 */
+	protected function getDataReader(): ?IDataReader {
+		return new ConverterDirectDataReader( WorkspaceDB::open( $this->dest, true ) );
+	}
+
+	/**
+	 * Each worker gets its own readonly lookup connection. All mutations continue
+	 * through ConverterPipeDataWriter and are replayed by the parent writer.
+	 */
+	protected function getWorkerDataReader(): ?IDataReader {
+		return new ConverterDirectDataReader( WorkspaceDB::open( $this->dest, true ) );
 	}
 
 	/**
@@ -254,6 +286,34 @@ class Convert extends CommandConvert {
 		if ( !file_exists( $baseTargetPath ) ) {
 			mkdir( $baseTargetPath, 0755, true );
 		}
+	}
+
+	/**
+	 * Initializes the workspace database if it hasn't been initialized yet.
+	 *
+	 * @return void
+	 */
+	private function initWorkspaceDB(): void {
+		if ( $this->workspaceDB === null ) {
+			$this->workspaceDB = WorkspaceDB::open( $this->dest );
+		}
+	}
+
+	/**
+	 * Initializes reusable workspace database and log helper instances.
+	 *
+	 * @return void
+	 */
+	private function initWorkspaceDbLog(): void {
+		if ( $this->workspaceDB !== null && $this->dbLog !== null ) {
+			return;
+		}
+
+		if ( $this->workspaceDB === null ) {
+			$this->initWorkspaceDB();
+		}
+
+		$this->dbLog = new DBLog( $this->workspaceDB );
 	}
 
 }

@@ -5,20 +5,25 @@ namespace HalloWelt\MigrateConfluence\Tests;
 use DOMDocument;
 use DOMXPath;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
-use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDirectDataReader;
+use HalloWelt\MigrateConfluence\Composer\DataWriter\ComposerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDirectDataReader;
+use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use PHPUnit\Framework\TestCase;
 use SplFileInfo;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\Output;
 use Symfony\Component\Yaml\Yaml;
 
 class FullMigrationSingleSpaceTest extends TestCase {
@@ -259,9 +264,11 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			$migrationConfig = new MigrationConfig( [] );
 		}
 
-		$this->seedWikisConfigForTestSources( $workspaceDB, $config );
-
-		$analyzer = new ConfluenceAnalyzer( $writer, $output, $migrationConfig, new WikisConfig( $workspaceDB ) );
+		$analyzer = new ConfluenceAnalyzer();
+		$analyzer->setDataWriter( $writer );
+		$analyzer->setOutput( $output );
+		$analyzer->setMigrationConfig( $migrationConfig );
+		$analyzer->setWikisConfig( new WikisConfig( $workspaceDB ) );
 		$analyzer->analyze( new SplFileInfo( $src . '/entities.xml' ) );
 
 		$this->seedWikisConfigForAnalyzedSpaces( $workspaceDB, $config );
@@ -337,10 +344,18 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		Workspace $workspace,
 		array $config
 	): void {
-		$buckets = new DataBuckets( [] );
-
-		$extractor = new ConfluenceExtractor( $config, $workspace, $buckets );
-		$extractor->setDestinationPath( $dest );
+		$workspaceDB = WorkspaceDB::open( $dest );
+		$extractor = new ConfluenceExtractor();
+		$extractor->setWorkspace( $workspace );
+		$extractor->setDataReader( new ExtractorDirectDataReader( $workspaceDB ) );
+		$extractor->setDataWriter( new ExtractorDirectDataWriter( $workspaceDB ) );
+		$migrationConfig = isset( $config['config'] ) ? $config['config'] : [];
+		$extractor->setMigrationConfig( new MigrationConfig( $migrationConfig ) );
+		$extractor->setWikisConfig( new WikisConfig( $workspaceDB ) );
+		$extractor->setOutput( new class extends Output {
+			protected function doWrite( string $message, bool $newline ): void {
+			}
+		} );
 		$extractor->extract( new SplFileInfo( $src . '/entities.xml' ) );
 	}
 
@@ -368,8 +383,11 @@ class FullMigrationSingleSpaceTest extends TestCase {
 
 		$rawFiles = glob( $dest . '/content/raw/*.mraw' );
 		foreach ( $rawFiles as $rawFilePath ) {
-			$converter = new ConfluenceConverter( $config, $workspace );
+			$converter = new ConfluenceConverter();
+			$converter->setDataReader( new ConverterDirectDataReader( WorkspaceDB::open( $dest, true ) ) );
 			$converter->setDataWriter( $writer );
+			$migrationConfig = isset( $config['config'] ) ? $config['config'] : [];
+			$converter->setMigrationConfig( new MigrationConfig( $migrationConfig ) );
 			$converter->setDestinationPath( $dest );
 			$converter->setOutput( $output );
 
@@ -441,10 +459,14 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		array $config,
 		BufferedOutput $output,
 	): void {
-		$buckets = new DataBuckets( [] );
-
-		$composer = new ConfluenceComposer( $config, $workspace, $buckets );
+		$workspaceDB = WorkspaceDB::open( $dest );
+		$composer = new ConfluenceComposer();
 		$composer->setOutput( $output );
+		$composer->setDataReader( new ComposerDirectDataReader( $workspaceDB ) );
+		$composer->setDataWriter( new ComposerDirectDataWriter( $workspaceDB ) );
+		$migrationConfig = isset( $config['config'] ) ? $config['config'] : [];
+		$composer->setMigrationConfig( new MigrationConfig( $migrationConfig ) );
+		$composer->setWorkspace( $workspace );
 		$composer->setDestinationPath( $dest );
 
 		$builder = new Builder();

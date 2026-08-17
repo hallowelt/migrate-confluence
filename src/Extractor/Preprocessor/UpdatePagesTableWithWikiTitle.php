@@ -5,10 +5,9 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
@@ -19,20 +18,18 @@ use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
-	 * @param DBLog $dbLog
+	 * @param IExtractorDataReader $reader
 	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 * @param WikisConfig $wikisConfig
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB,
-		DBLog $dbLog,
+		IExtractorDataReader $reader,
 		IExtractorDataWriter $writer,
 		private MigrationConfig $migrationConfig,
 		private WikisConfig $wikisConfig
 	) {
-		parent::__construct( $workspaceDB, $dbLog, $writer );
+		parent::__construct( $reader, $writer );
 	}
 
 	/**
@@ -52,17 +49,17 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$spaceIdPrefixMap = $this->getSpaceIdPrefixMap();
 		$titleBuilder = new TitleBuilder(
 			$spaceIdPrefixMap,
-			$this->workspaceDB->getMapSpaceIdToHomepageId(),
-			$this->workspaceDB->getMapPageIdtoParentPageId(),
-			$this->workspaceDB->getMapPageIdToConfluenceTitle(),
+			$this->reader->getMapSpaceIdToHomepageId(),
+			$this->reader->getMapPageIdtoParentPageId(),
+			$this->reader->getMapPageIdToConfluenceTitle(),
 			$this->migrationConfig->getMainPageName()
 		);
 
-		$pages = $this->workspaceDB->getPages();
+		$pages = $this->reader->getPages();
 		$pageIdToWikiTitleMap = [];
 		foreach ( $pages as $page ) {
 			if ( !isset( $page['page_id'] ) ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -74,7 +71,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			$pageId = (int)$page['page_id'];
 
 			if ( !isset( $page['space_id'] ) || !isset( $page['confluence_title'] ) ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -85,7 +82,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 			// historical versions
 			if ( (int)$page['original_version_id'] !== -1 ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'info',
 					'extract',
 					__CLASS__,
@@ -110,7 +107,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 			} catch ( Exception $ex ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -121,7 +118,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleBuilder delivers empty wiki title for page $confluenceTitle (page id $pageId)";
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -135,7 +132,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
-			$this->dbLog->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'extract',
 				__CLASS__,
@@ -153,7 +150,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for page id $pageId";
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -169,7 +166,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			$this->writer->updatePageWikiTitle( (int)$pageId, $wikiTitle );
 
 			$interwikiTitle = $this->getInterwikiTitle( (int)$pageId, $wikiTitle );
-			$this->workspaceDB->updatePageInterwikiTitle( (int)$pageId, $interwikiTitle );
+			$this->writer->updatePageInterwikiTitle( (int)$pageId, $interwikiTitle );
 		}
 	}
 
@@ -178,9 +175,9 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 	 */
 	private function getSpaceIdPrefixMap(): array {
 		$spaceIdPrefixMap = [];
-		foreach ( $this->workspaceDB->getSpaces() as $space ) {
+		foreach ( $this->reader->getSpaces() as $space ) {
 			if ( !isset( $space['space_id'] ) || !isset( $space['space_key'] ) ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -243,8 +240,8 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 	 * @return string
 	 */
 	private function getInterwikiTitle( int $pageId, string $wikiTitle ): string {
-		$spaceId = $this->workspaceDB->getSpaceIdForPageId( $pageId );
-		$spaceKey = $this->workspaceDB->getSpaceKeyFromSpaceId( $spaceId );
+		$spaceId = $this->reader->getSpaceIdForPageId( $pageId );
+		$spaceKey = $this->reader->getSpaceKeyFromSpaceId( $spaceId );
 		$interwikiPrefix = $this->wikisConfig->getInterwikiPrefixForSpaceKey( $spaceKey );
 
 		return $interwikiPrefix . ':' . $wikiTitle;
@@ -255,7 +252,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 	 */
 	private function checkWikiTitles(): void {
 		$titles = [];
-		foreach ( $this->workspaceDB->getPages() as $page ) {
+		foreach ( $this->reader->getPages() as $page ) {
 			$title = '';
 			$pageId = $page['page_id'];
 			if ( isset( $page['wiki_title'] ) && $page['wiki_title'] !== '' ) {

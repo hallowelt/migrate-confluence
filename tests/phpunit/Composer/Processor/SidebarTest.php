@@ -2,8 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Composer\Processor;
 
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Composer\Processor\Sidebar;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -28,12 +28,12 @@ class SidebarTest extends TestCase {
 	}
 
 	private function makeSidebar(
-		DBComposerDataLookup $dataLookup,
+		IComposerDataReader $dataReader,
 		bool $createSidebar = true
 	): Sidebar {
 		$config = $this->createMock( MigrationConfig::class );
 		$config->method( 'getCreateSidebar' )->willReturn( $createSidebar );
-		return new Sidebar( $dataLookup, $config, $this->tmpDir );
+		return new Sidebar( $dataReader, $config, $this->tmpDir );
 	}
 
 	/**
@@ -85,10 +85,10 @@ class SidebarTest extends TestCase {
 	 * create-sidebar: false
 	 */
 	public function testCreateSidebarFalseWritesNoFile(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->expects( $this->never() )->method( 'getPagesForSidebar' );
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->expects( $this->never() )->method( 'getPagesForSidebar' );
 
-		$sidebar = $this->makeSidebar( $dataLookup, false );
+		$sidebar = $this->makeSidebar( $dataReader, false );
 		$sidebar->setSubDir( $this->testNamespace );
 		$sidebar->setCurrentSpaces( [] );
 		$sidebar->execute();
@@ -102,16 +102,16 @@ class SidebarTest extends TestCase {
 	 * Single space
 	 */
 	public function testSingleSpacePagesAndBlogs(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )->with( 1 )->willReturn( [
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )->with( 1 )->willReturn( [
 			$this->makePage( 10, 'PageA', -1, 100 ),
 			$this->makePage( 20, 'PageB', -1, 200 ),
 		] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )->with( 1 )->willReturn( [
+		$dataReader->method( 'getBlogPostsForSidebar' )->with( 1 )->willReturn( [
 			$this->makeBlog( 30, 'Blog:Post1' ),
 		] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		// Top level: space name heading
@@ -129,13 +129,13 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testSingleSpaceNoBlogPosts(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )->willReturn( [
 			$this->makePage( 10, 'PageA' ),
 		] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
+		$dataReader->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		// Space heading, no Pages/Blogs sub-heading — entries directly as children
@@ -146,13 +146,13 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testSingleSpaceNoPagesOnlyBlogs(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )->willReturn( [] );
+		$dataReader->method( 'getBlogPostsForSidebar' )->willReturn( [
 			$this->makeBlog( 30, 'Blog:Post1' ),
 		] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		// Space heading, blog entry directly as child (no Blogs sub-heading)
@@ -163,15 +163,15 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testSingleSpacePagesSortedByPosition(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )->willReturn( [
 			$this->makePage( 10, 'Second', -1, 200 ),
 			$this->makePage( 20, 'First', -1, 100 ),
 			$this->makePage( 30, 'Third', -1, 300 ),
 		] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
+		$dataReader->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		// Only pages → direct children of space section
@@ -182,15 +182,15 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testSingleSpaceNestedPages(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )->willReturn( [
 			$this->makePage( 10, 'Parent', -1, 100 ),
 			$this->makePage( 20, 'Child', 10, 100 ),
 			$this->makePage( 30, 'Grandchild', 20, 100 ),
 		] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
+		$dataReader->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		// Only pages → direct children of space section
@@ -211,26 +211,26 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testSingleSpaceLeafPageHasNoChildrenKey(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )->willReturn( [
 			$this->makePage( 10, 'Leaf', -1, 0 ),
 		] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
+		$dataReader->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		$this->assertArrayNotHasKey( 'children', $sidebar[0]['children'][0] );
 	}
 
 	public function testDisplayTextUsesConfluenceTitle(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )->willReturn( [
 			$this->makePage( 10, 'MyNamespace:My_Page~1', -1, 0, 'My Page with a Very Long Original Title' ),
 		] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
+		$dataReader->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		$link = $sidebar[0]['children'][0];
@@ -239,13 +239,13 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testDisplayTextUsesConfluenceTitleForBlogs(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )->willReturn( [] );
+		$dataReader->method( 'getBlogPostsForSidebar' )->willReturn( [
 			$this->makeBlog( 30, 'NS:Blog_post~1', 'My Blog Post Title' ),
 		] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		$link = $sidebar[0]['children'][0];
@@ -254,13 +254,13 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testDisplayTextMatchesWikiTitleWhenNotMangled(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )->willReturn( [
 			$this->makePage( 10, 'Spalten', -1, 0, 'Spalten' ),
 		] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
+		$dataReader->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		$link = $sidebar[0]['children'][0];
@@ -272,19 +272,19 @@ class SidebarTest extends TestCase {
 	 * Multi-space (within same namespace)
 	 */
 	public function testMultiSpaceCreatesSpaceHeadings(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )
 			->willReturnMap( [
 				[ 1, [ $this->makePage( 10, 'NS_A:PageA' ) ] ],
 				[ 2, [ $this->makePage( 20, 'NS_B:PageB' ) ] ],
 			] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )
+		$dataReader->method( 'getBlogPostsForSidebar' )
 			->willReturnMap( [
 				[ 1, [] ],
 				[ 2, [] ],
 			] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [
 			$this->makeSpace( 1, 'Space A' ),
 			$this->makeSpace( 2, 'Space B' ),
 		] );
@@ -300,19 +300,19 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testMultiSpaceWithBlogsInOneSpace(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )
 			->willReturnMap( [
 				[ 1, [ $this->makePage( 10, 'PageA' ) ] ],
 				[ 2, [] ],
 			] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )
+		$dataReader->method( 'getBlogPostsForSidebar' )
 			->willReturnMap( [
 				[ 1, [] ],
 				[ 2, [ $this->makeBlog( 30, 'Blog:Post1' ) ] ],
 			] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [
 			$this->makeSpace( 1, 'Space A' ),
 			$this->makeSpace( 2, 'Space B' ),
 		] );
@@ -325,17 +325,17 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testMultiSpaceBothPagesAndBlogsGetSubHeadings(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )
 			->willReturnMap( [
 				[ 1, [ $this->makePage( 10, 'PageA' ) ] ],
 			] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )
+		$dataReader->method( 'getBlogPostsForSidebar' )
 			->willReturnMap( [
 				[ 1, [ $this->makeBlog( 30, 'Blog:Post1' ) ] ],
 			] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [
 			$this->makeSpace( 1, 'Space A' ),
 		] );
 		$sidebar = $this->readSidebarJson();
@@ -347,19 +347,19 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testMultiSpaceEmptySpaceIsSkipped(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )
 			->willReturnMap( [
 				[ 1, [ $this->makePage( 10, 'PageA' ) ] ],
 				[ 2, [] ],
 			] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )
+		$dataReader->method( 'getBlogPostsForSidebar' )
 			->willReturnMap( [
 				[ 1, [] ],
 				[ 2, [] ],
 			] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [
 			$this->makeSpace( 1, 'Space A' ),
 			$this->makeSpace( 2, 'Empty Space' ),
 		] );
@@ -370,8 +370,8 @@ class SidebarTest extends TestCase {
 	}
 
 	public function testMultiSpacePagesSortedByPosition(): void {
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
-		$dataLookup->method( 'getPagesForSidebar' )
+		$dataReader = $this->createMock( IComposerDataReader::class );
+		$dataReader->method( 'getPagesForSidebar' )
 			->willReturnMap( [
 				[ 1, [
 					$this->makePage( 10, 'Second', -1, 200 ),
@@ -379,9 +379,9 @@ class SidebarTest extends TestCase {
 				] ],
 				[ 2, [] ],
 			] );
-		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
+		$dataReader->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [
+		$this->executeSidebar( $this->makeSidebar( $dataReader ), [
 			$this->makeSpace( 1, 'Space A' ),
 			$this->makeSpace( 2, 'Space B' ),
 		] );

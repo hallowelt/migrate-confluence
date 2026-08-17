@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class UserLinkTest extends ProcessorTestCase {
@@ -22,10 +22,10 @@ class UserLinkTest extends ProcessorTestCase {
 
 		$currentSpaceId = 42;
 		$currentRawPagename = 'SomePage';
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataReader = new ConverterDirectDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
 		$processor = new UserLink(
-			$dataLookup,
+			$dataReader,
 			$currentSpaceId,
 			$currentRawPagename,
 			new MigrationConfig( [] )

@@ -4,8 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -22,7 +22,7 @@ class ConfluenceConverterTest extends TestCase {
 		);
 
 		$converter = new ConfluenceConverter( [], $this->createMock( Workspace::class ) );
-		$this->setProperty( $converter, 'dataLookup', new DBConversionDataLookup( $database ) );
+		$this->setProperty( $converter, 'dataReader', new ConverterDirectDataReader( $database ) );
 		$this->setProperty( $converter, 'contentType', 'page' );
 		$this->setProperty( $converter, 'pageId', 1 );
 		$this->setProperty( $converter, 'wikiText', '' );

@@ -2,23 +2,25 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ViewFileMacroTest extends ProcessorTestCase {
 	/**
 	 * @var mixed
 	 */
-	private $dataLookup;
+	private $dataReader;
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
+		$this->dataReader = new ConverterDirectDataReader(
+			( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat()
+		);
 
 		/** SpaceId GENERAL */
 		$this->doTest(
@@ -36,7 +38,9 @@ class ViewFileMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcessBrokenMacro() {
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$this->dataReader = new ConverterDirectDataReader(
+			( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat()
+		);
 
 		// Macros with no params at all, or with a name param but no ri:filename attribute,
 		// must be replaced with the broken-macro category marker.
@@ -50,7 +54,9 @@ class ViewFileMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcessUnmappedFilename() {
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$this->dataReader = new ConverterDirectDataReader(
+			( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat()
+		);
 
 		// ri:filename is present but not found in the migration map: the macro must still
 		// render using the expected wiki filename (red link) and append Broken_attachment_link.
@@ -69,7 +75,7 @@ class ViewFileMacroTest extends ProcessorTestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new ViewFileMacro( $this->dataLookup, $spaceId, $pageName, new MigrationConfig( [] ) );
+		$processor = new ViewFileMacro( $this->dataReader, $spaceId, $pageName, new MigrationConfig( [] ) );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );

@@ -2,10 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ChildrenMacroTest extends StructuredMacroProcessorTestBase {
 	protected function getInput(): string {
@@ -17,12 +17,12 @@ class ChildrenMacroTest extends StructuredMacroProcessorTestBase {
 	}
 
 	protected function getProcessorToTest(): IProcessor {
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
-		return new ChildrenMacro( 42, 'ABC:Some_page', $dataLookup );
+		$dataReader = new ConverterDirectDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		return new ChildrenMacro( 42, 'ABC:Some_page', $dataReader );
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro::process
 	 * @return void
 	 */
@@ -39,14 +39,14 @@ class ChildrenMacroTest extends StructuredMacroProcessorTestBase {
 			. '</ac:link></ac:parameter></ac:structured-macro></xml>'
 		);
 
-		$processor = new ChildrenMacro( 42, 'ABC:Some_page', new DBConversionDataLookup( $workspaceDB ) );
+		$processor = new ChildrenMacro( 42, 'ABC:Some_page', new ConverterDirectDataReader( $workspaceDB ) );
 		$processor->process( $dom );
 
 		$this->assertSame( '{{SubpageList|page=DEVOPS:Page Title3}}', trim( $dom->documentElement->textContent ) );
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro::process
 	 * @return void
 	 */
@@ -65,7 +65,7 @@ class ChildrenMacroTest extends StructuredMacroProcessorTestBase {
 			. '</ac:link></ac:parameter></ac:structured-macro></xml>'
 		);
 
-		$processor = new ChildrenMacro( 42, 'ABC:Some_page', new DBConversionDataLookup( $workspaceDB ) );
+		$processor = new ChildrenMacro( 42, 'ABC:Some_page', new ConverterDirectDataReader( $workspaceDB ) );
 		$processor->process( $dom );
 
 		$this->assertSame(

@@ -4,9 +4,9 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
@@ -14,7 +14,7 @@ class Pages extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
@@ -24,7 +24,7 @@ class Pages extends ContentProcessorBase {
 	 */
 	public function __construct(
 		protected Builder $builder,
-		protected DBComposerDataLookup $dataLookup,
+		protected IComposerDataReader $reader,
 		protected Workspace $workspace,
 		protected Output $output,
 		protected string $dest,
@@ -53,8 +53,8 @@ class Pages extends ContentProcessorBase {
 
 	private function addContentPages(): void {
 		$wikiTitles = $this->collectBySpaceIdsReplaceByKey(
-			fn ( int $spaceId ): array => $this->dataLookup->getPageIdWikiPageTitleMap( $spaceId ),
-			fn (): array => $this->dataLookup->getPageIdWikiPageTitleMap()
+			fn ( int $spaceId ): array => $this->reader->getPageIdWikiPageTitleMap( $spaceId ),
+			fn (): array => $this->reader->getPageIdWikiPageTitleMap()
 		);
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
@@ -67,17 +67,17 @@ class Pages extends ContentProcessorBase {
 
 			$namespace = $this->getNamespace( $pageTitle );
 
-			$spaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
-			$spaceDescriptions = $this->dataLookup->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
-			$homepageId = $this->dataLookup->getSpaceHomepageIdForSpaceId( $spaceId );
+			$spaceId = $this->reader->getSpaceIdForPageId( $pageId );
+			$spaceDescriptions = $this->reader->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
+			$homepageId = $this->reader->getSpaceHomepageIdForSpaceId( $spaceId );
 
 			if ( $pageId === $homepageId ) {
 				$this->output->writeln(
 					"Page '$pageTitle' is a homepage, adding space description to page content if applicable..."
 				);
-				$revisions = $this->dataLookup->getPageRevisionsForPageId( $homepageId );
+				$revisions = $this->reader->getPageRevisionsForPageId( $homepageId );
 			} else {
-				$revisions = $this->dataLookup->getPageRevisionsForPageId( $pageId );
+				$revisions = $this->reader->getPageRevisionsForPageId( $pageId );
 			}
 
 			foreach ( $revisions as $revision ) {

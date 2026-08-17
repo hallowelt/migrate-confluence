@@ -2,9 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use Symfony\Component\Console\Output\Output;
 
 abstract class ProcessorBase implements IExtractorProcessor {
@@ -13,13 +12,11 @@ abstract class ProcessorBase implements IExtractorProcessor {
 	protected ?Output $output = null;
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
-	 * @param DBLog $dbLog
+	 * @param IExtractorDataReader $reader
 	 * @param IExtractorDataWriter $writer
 	 */
 	public function __construct(
-		protected WorkspaceDB $workspaceDB,
-		protected DBLog $dbLog,
+		protected IExtractorDataReader $reader,
 		protected IExtractorDataWriter $writer
 	) {
 	}

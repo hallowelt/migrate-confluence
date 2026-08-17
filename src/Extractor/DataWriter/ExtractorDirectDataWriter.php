@@ -29,6 +29,26 @@ class ExtractorDirectDataWriter extends AbstractDirectDataWriter implements IExt
 
 	/**
 	 * @param int $pageId
+	 * @param string $interwikiTitle
+	 *
+	 * @return bool
+	 */
+	public function updatePageInterwikiTitle( int $pageId, string $interwikiTitle ): bool {
+		return $this->db->updatePageInterwikiTitle( $pageId, $interwikiTitle );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @param int $spaceId
+	 *
+	 * @return bool
+	 */
+	public function updatePageSpaceId( int $pageId, int $spaceId ): bool {
+		return $this->db->updatePageSpaceId( $pageId, $spaceId );
+	}
+
+	/**
+	 * @param int $pageId
 	 * @param string $wikiTitle
 	 * @param string $text
 	 *

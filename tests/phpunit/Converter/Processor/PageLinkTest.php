@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class PageLinkTest extends ProcessorTestCase {
@@ -22,10 +22,10 @@ class PageLinkTest extends ProcessorTestCase {
 
 		$currentSpaceId = 42;
 		$currentRawPagename = 'SomePage';
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataReader = new ConverterDirectDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
 		$processor = new PageLink(
-			$dataLookup,
+			$dataReader,
 			$currentSpaceId,
 			$currentRawPagename,
 			new MigrationConfig( [] )
@@ -39,7 +39,7 @@ class PageLinkTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageLink::process
 	 * @return void
 	 */
@@ -57,7 +57,7 @@ class PageLinkTest extends ProcessorTestCase {
 		);
 
 		$processor = new PageLink(
-			new DBConversionDataLookup( $workspaceDB ),
+			new ConverterDirectDataReader( $workspaceDB ),
 			42,
 			'SomePage',
 			new MigrationConfig( [] )
@@ -69,7 +69,7 @@ class PageLinkTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageLink::process
 	 * @return void
 	 */
@@ -90,7 +90,7 @@ class PageLinkTest extends ProcessorTestCase {
 		);
 
 		$processor = new PageLink(
-			new DBConversionDataLookup( $workspaceDB ),
+			new ConverterDirectDataReader( $workspaceDB ),
 			42,
 			'SomePage',
 			new MigrationConfig( [] )

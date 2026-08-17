@@ -3,44 +3,23 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 
 class DrawioMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var ConversionDataWriter
-	 */
-	protected ConversionDataWriter $conversionDataWriter;
-
-	/**
-	 * @var int
-	 */
-	protected int $currentSpaceId;
-
-	/**
-	 * @var string
-	 */
-	protected string $rawPageTitle;
-
-	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
-		int $currentSpaceId, string $rawPageTitle ) {
-		$this->dataLookup = $dataLookup;
-		$this->conversionDataWriter = $conversionDataWriter;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
+	public function __construct(
+		protected IConverterDataReader $reader,
+		protected ConversionDataWriter $conversionDataWriter,
+		protected int $currentSpaceId,
+		protected string $rawPageTitle ) {
 	}
 
 	/**
@@ -120,7 +99,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 */
 	private function getFilename( string $diagramName ): string {
 		$spaceId = $this->currentSpaceId;
-		$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
+		$filename = $this->reader->getWikiFileTitleFromSpaceId(
 			$spaceId,
 			$this->rawPageTitle,
 			$diagramName
@@ -141,7 +120,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		if ( strtolower( $this->getFileExtension( $filename ) ) !== 'png' ) {
 			// find png — the image file has the same name as the data file plus ".png"
 			$drawioDataFilename = $originalFilename;
-			$drawioImageFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
+			$drawioImageFilename = $this->reader->getWikiFileTitleFromSpaceId(
 				$spaceId,
 				$this->rawPageTitle,
 				$diagramName . '.png'
@@ -150,7 +129,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 			// find data
 			$drawioImageFilename = $filename;
 			$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.png' ) );
-			$drawioDataFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
+			$drawioDataFilename = $this->reader->getWikiFileTitleFromSpaceId(
 				$spaceId,
 				$this->rawPageTitle,
 				$diagramName
@@ -158,7 +137,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 			// Maybe png = PNG
 			if ( $drawioDataFilename === '' ) {
 				$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.PNG' ) );
-				$drawioDataFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
+				$drawioDataFilename = $this->reader->getWikiFileTitleFromSpaceId(
 					$spaceId,
 					$this->rawPageTitle,
 					$diagramName
@@ -203,10 +182,10 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		$drawIoFileHandler = new DrawIOFileHandler();
 
 		// Need to make sure that file is really DrawIO file with diagram data
-		$dataFileContent = $this->dataLookup->getAttachmentContent( $drawioDataFilename );
+		$dataFileContent = $this->reader->getAttachmentContent( $drawioDataFilename );
 
 		// PNG image file found, "bake" diagram data into it and replace file content
-		$imageFileContent = $this->dataLookup->getAttachmentContent( $drawioImageFilename );
+		$imageFileContent = $this->reader->getAttachmentContent( $drawioImageFilename );
 		if ( $dataFileContent === null || $imageFileContent === null ) {
 			echo ( "Drawio error $this->rawPageTitle: $drawioImageFilename, $drawioDataFilename" );
 			return;

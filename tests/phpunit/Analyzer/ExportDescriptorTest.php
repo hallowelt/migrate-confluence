@@ -46,12 +46,11 @@ class ExportDescriptorTest extends TestCase {
 
 		$workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
-		$analyzer = new ConfluenceAnalyzer(
-			new AnalyzerDirectDataWriter( $workspaceDB ),
-			new NullOutput(),
-			new MigrationConfig( [] ),
-			new WikisConfig( $workspaceDB )
-		);
+		$analyzer = new ConfluenceAnalyzer();
+		$analyzer->setDataWriter( new AnalyzerDirectDataWriter( $workspaceDB ) );
+		$analyzer->setOutput( new NullOutput() );
+		$analyzer->setMigrationConfig( new MigrationConfig( [] ) );
+		$analyzer->setWikisConfig( new WikisConfig( $workspaceDB ) );
 
 		$analyzer->analyze( new SplFileInfo( $this->tempDir . '/entities.xml' ) );
 
@@ -75,12 +74,11 @@ class ExportDescriptorTest extends TestCase {
 
 		$workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
-		$analyzer = new ConfluenceAnalyzer(
-			new AnalyzerDirectDataWriter( $workspaceDB ),
-			new NullOutput(),
-			new MigrationConfig( [] ),
-			new WikisConfig( $workspaceDB )
-		);
+		$analyzer = new ConfluenceAnalyzer();
+		$analyzer->setDataWriter( new AnalyzerDirectDataWriter( $workspaceDB ) );
+		$analyzer->setOutput( new NullOutput() );
+		$analyzer->setMigrationConfig( new MigrationConfig( [] ) );
+		$analyzer->setWikisConfig( new WikisConfig( $workspaceDB ) );
 
 		$analyzer->analyze( new SplFileInfo( $this->tempDir . '/entities.xml' ) );
 
@@ -88,18 +86,24 @@ class ExportDescriptorTest extends TestCase {
 	}
 
 	public function testNonEntitiesXmlFileIsIgnored(): void {
+		$filePath = $this->tempDir . '/something-else.xml';
+		file_put_contents( $filePath, '<root />' );
+
 		$workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 
-		$analyzer = new ConfluenceAnalyzer(
-			new AnalyzerDirectDataWriter( $workspaceDB ),
-			new NullOutput(),
-			new MigrationConfig( [] ),
-			new WikisConfig( $workspaceDB )
-		);
+		$analyzer = new ConfluenceAnalyzer();
+		$analyzer->setDataWriter( new AnalyzerDirectDataWriter( $workspaceDB ) );
+		$analyzer->setOutput( new NullOutput() );
+		$analyzer->setMigrationConfig( new MigrationConfig( [] ) );
+		$analyzer->setWikisConfig( new WikisConfig( $workspaceDB ) );
 
-		$result = $analyzer->analyze( new SplFileInfo( $this->tempDir . '/something-else.xml' ) );
+		try {
+			$result = $analyzer->analyze( new SplFileInfo( $filePath ) );
 
-		$this->assertTrue( $result );
-		$this->assertCount( 0, $this->queryExportProperties( $workspaceDB ) );
+			$this->assertTrue( $result );
+			$this->assertCount( 0, $this->queryExportProperties( $workspaceDB ) );
+		} finally {
+			unlink( $filePath );
+		}
 	}
 }

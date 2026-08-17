@@ -5,10 +5,9 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
@@ -27,18 +26,16 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	protected const UNKNOWN_EXTENSION = '.unknown';
 
 	/**
-	 * @param WorkspaceDB $workspaceDB
-	 * @param DBLog $dbLog
+	 * @param IExtractorDataReader $reader
 	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		WorkspaceDB $workspaceDB,
-		DBLog $dbLog,
+		IExtractorDataReader $reader,
 		IExtractorDataWriter $writer,
 		protected MigrationConfig $migrationConfig,
 	) {
-		parent::__construct( $workspaceDB, $dbLog, $writer );
+		parent::__construct( $reader, $writer );
 	}
 
 	/**
@@ -111,14 +108,14 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			}
 
 			if ( $wikiTitle === '' ) {
-				$pageTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $contentId );
+				$pageTitle = $this->reader->getWikiPageTitleFromPageId( $contentId );
 				if ( $pageTitle !== null ) {
 					$wikiTitle = $pageTitle;
 				}
 			}
 
 			if ( $wikiTitle === '' ) {
-				$blogPostTitle = $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $contentId );
+				$blogPostTitle = $this->reader->getWikiBlogPostTitleFromBlogPostId( $contentId );
 				if ( $blogPostTitle !== null ) {
 					$wikiTitle = $blogPostTitle;
 				}
@@ -143,7 +140,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		/** @var array<int,array{containerId:int,origFilename:string,wikiTitle:string}> $collected */
 		$collected = [];
 
-		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
+		foreach ( $this->reader->getAttachments() as $attachment ) {
 			if (
 				!isset( $attachment['attachment_id'] )
 				|| !isset( $attachment['space_id'] )
@@ -186,7 +183,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					$shortContentWikiTitle,
 				);
 			} catch ( Exception $fallbackEx ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'analyze',
 					__CLASS__,
@@ -198,7 +195,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			if ( empty( $attachmentWikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -215,7 +212,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			$counter = 1;
 			while ( $exists ) {
 				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
-					$this->dbLog->addLogEntry(
+					$this->writer->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
@@ -236,7 +233,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 					$message = "TitleCompressor delivers empty wiki title for "
 					 . "attachment id $attachmentId while uncolliding";
 
-					$this->dbLog->addLogEntry(
+					$this->writer->addLogEntry(
 						'error',
 						'extract',
 						__CLASS__,
@@ -288,8 +285,8 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 * @return array
 	 */
 	protected function getSpaceIdToPrefixMapWithConfigOverrides(): array {
-		$spaceIdToPrefixMap = $this->workspaceDB->getMapSpaceIdToPrefix();
-		$spaceIdToKeyMap = $this->workspaceDB->getMapSpaceIdToKey();
+		$spaceIdToPrefixMap = $this->reader->getMapSpaceIdToPrefix();
+		$spaceIdToKeyMap = $this->reader->getMapSpaceIdToKey();
 
 		foreach ( $spaceIdToKeyMap as $spaceId => $spaceKey ) {
 			$configPrefix = $this->migrationConfig->getPrefixFromSpaceKeyToPrefixMap( (string)$spaceKey );

@@ -2,8 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
+use HalloWelt\MediaWiki\Lib\Migration\AnalyzerBase;
 use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
+use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriterAware;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
@@ -16,41 +19,73 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\PageTemplates;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
+use HalloWelt\MigrateConfluence\IMigrationConfigAware;
+use HalloWelt\MigrateConfluence\IWikisConfigAware;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
+use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
 use XMLReader;
 
-class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
+class ConfluenceAnalyzer extends AnalyzerBase implements
+	IOutputAwareInterface,
+	IAnalyzeDataWriterAware,
+	IMigrationConfigAware,
+	IWikisConfigAware
+{
 
-	/** @var LoggerInterface|NullLogger */
-	private LoggerInterface|NullLogger $logger;
+	/** @var OutputInterface|null */
+	private ?OutputInterface $output = null;
+
+	/** @var IAnalyzeDataWriter|null */
+	private ?IAnalyzeDataWriter $dataWriter = null;
+
+	/** @var MigrationConfig|null */
+	private ?MigrationConfig $migrationConfig = null;
+
+	/** @var WikisConfig|null */
+	private ?WikisConfig $wikisConfig = null;
 
 	/**
-	 * @param IAnalyzeDataWriter $writer
-	 * @param OutputInterface $output
-	 * @param MigrationConfig $config
+	 * Factory used by command-level analyzer callback configuration.
+	 *
+	 * @return IAnalyzer
 	 */
-	public function __construct(
-		private readonly IAnalyzeDataWriter $writer,
-		private readonly OutputInterface $output,
-		private readonly MigrationConfig $config,
-		private readonly WikisConfig $wikis,
-	) {
-		$this->logger = new NullLogger();
+	public static function factory(): IAnalyzer {
+		return new static();
 	}
 
 	/**
-	 * @param LoggerInterface $logger
-	 *
+	 * @param OutputInterface $output
 	 * @return void
 	 */
-	public function setLogger( LoggerInterface $logger ): void {
-		$this->logger = $logger;
+	public function setOutput( OutputInterface $output ): void {
+		$this->output = $output;
+	}
+
+	/**
+	 * @param IAnalyzeDataWriter $writer
+	 * @return void
+	 */
+	public function setDataWriter( IAnalyzeDataWriter $writer ): void {
+		$this->dataWriter = $writer;
+	}
+
+	/**
+	 * @param MigrationConfig $migrationConfig
+	 * @return void
+	 */
+	public function setMigrationConfig( MigrationConfig $migrationConfig ): void {
+		$this->migrationConfig = $migrationConfig;
+	}
+
+	/**
+	 * @param WikisConfig $wikisConfig
+	 * @return void
+	 */
+	public function setWikisConfig( WikisConfig $wikisConfig ): void {
+		$this->wikisConfig = $wikisConfig;
 	}
 
 	/**
@@ -59,6 +94,25 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	 * @return bool
 	 */
 	public function analyze( SplFileInfo $file ): bool {
+		if ( $this->output === null ) {
+			throw new RuntimeException( 'OutputInterface not set' );
+		}
+		if ( $this->dataWriter === null ) {
+			throw new RuntimeException( 'DataWriter not set' );
+		}
+		if ( $this->migrationConfig === null ) {
+			throw new RuntimeException( 'MigrationConfig not set' );
+		}
+		if ( $this->wikisConfig === null ) {
+			throw new RuntimeException( 'WikisConfig not set' );
+		}
+		if ( !$file->isFile() ) {
+			throw new RuntimeException( "File does not exist: {$file->getPathname()}" );
+		}
+		if ( !$file->isReadable() ) {
+			throw new RuntimeException( "File is not readable: {$file->getPathname()}" );
+		}
+
 		if ( $file->getFilename() !== 'entities.xml' ) {
 			return true;
 		}
@@ -70,13 +124,13 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 
 		$processors = $this->getProcessors( $file->getPath() );
 
-		$this->writer->beginTransaction();
+		$this->dataWriter->beginTransaction();
 		try {
 			$this->processExportDescriptor( $file );
 			$this->processFile( $sourcePath, $processors );
-			$this->writer->commitTransaction();
+			$this->dataWriter->commitTransaction();
 		} catch ( \Throwable $e ) {
-			$this->writer->rollbackTransaction();
+			$this->dataWriter->rollbackTransaction();
 			throw $e;
 		}
 
@@ -105,7 +159,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			$props[trim( $key )] = trim( $value );
 		}
 
-		$this->writer->addExportProperties(
+		$this->dataWriter->addExportProperties(
 			$props['spaceKey'] ?? '',
 			$props['source'] ?? '',
 			$props['createdByVersionNumber'] ?? '',
@@ -122,18 +176,18 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	 */
 	private function getProcessors( string $sourceBasePath ): array {
 		return [
-			'BodyContent' => new BodyContents( $this->writer ),
-			'Space' => new Spaces( $this->writer, $this->wikis ),
-			'SpaceDescription' => new SpaceDescription( $this->writer, $this->config ),
-			'Page' => new Page( $this->writer, $this->config ),
-			'BlogPost' => new BlogPost( $this->writer, $this->config ),
-			'Attachment' => new Attachments( $this->writer, $this->config, $sourceBasePath ),
-			'Comment' => new Comments( $this->writer ),
-			'Label' => new Label( $this->writer ),
-			'Labelling' => new Labelling( $this->writer ),
-			'ContentProperty' => new ContentProperty( $this->writer ),
-			'ConfluenceUserImpl' => new Users( $this->writer ),
-			'PageTemplate' => new PageTemplates( $this->writer ),
+			'BodyContent' => new BodyContents( $this->dataWriter ),
+			'Space' => new Spaces( $this->dataWriter, $this->wikisConfig ),
+			'SpaceDescription' => new SpaceDescription( $this->dataWriter, $this->migrationConfig ),
+			'Page' => new Page( $this->dataWriter, $this->migrationConfig ),
+			'BlogPost' => new BlogPost( $this->dataWriter, $this->migrationConfig ),
+			'Attachment' => new Attachments( $this->dataWriter, $this->migrationConfig, $sourceBasePath ),
+			'Comment' => new Comments( $this->dataWriter ),
+			'Label' => new Label( $this->dataWriter ),
+			'Labelling' => new Labelling( $this->dataWriter ),
+			'ContentProperty' => new ContentProperty( $this->dataWriter ),
+			'ConfluenceUserImpl' => new Users( $this->dataWriter ),
+			'PageTemplate' => new PageTemplates( $this->dataWriter ),
 		];
 	}
 
@@ -146,7 +200,6 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 		foreach ( $processors as $processor ) {
 			if ( $processor instanceof IAnalyzerProcessor ) {
 				$processor->setOutput( $this->output );
-				$processor->setLogger( $this->logger );
 			}
 		}
 	}

@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikiFileXmlBuilder;
@@ -35,14 +35,14 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	protected ?array $currentSpaceIds = null;
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		protected DBComposerDataLookup $dataLookup,
+		protected IComposerDataReader $reader,
 		protected Workspace $workspace,
 		protected Output $output,
 		protected string $dest,
@@ -131,7 +131,7 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	 * @return bool
 	 */
 	protected function skipAttachmentId( int $attachmentId, string $title ): bool {
-		if ( $this->dataLookup->isAttachmentInvalid( $attachmentId ) ) {
+		if ( $this->reader->isAttachmentInvalid( $attachmentId ) ) {
 			$this->output->writeln( "Attachment $title skipped due to invalid title or content" );
 			return true;
 		}

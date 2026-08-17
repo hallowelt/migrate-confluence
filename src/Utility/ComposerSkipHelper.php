@@ -2,14 +2,16 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
+
 class ComposerSkipHelper {
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private DBComposerDataLookup $dataLookup,
+		private IComposerDataReader $reader,
 		private MigrationConfig $migrationConfig
 	) {
 	}
@@ -20,7 +22,7 @@ class ComposerSkipHelper {
 	 * @return bool
 	 */
 	public function skipPage( string $wikiTitle ): bool {
-		if ( $this->dataLookup->isPageInvalid( $wikiTitle ) ) {
+		if ( $this->reader->isPageInvalid( $wikiTitle ) ) {
 			return true;
 		}
 
@@ -33,7 +35,7 @@ class ComposerSkipHelper {
 	 * @return bool
 	 */
 	public function skipBlogPost( string $wikiTitle ): bool {
-		if ( $this->dataLookup->isBlogPostInvalid( $wikiTitle ) ) {
+		if ( $this->reader->isBlogPostInvalid( $wikiTitle ) ) {
 			return true;
 		}
 
@@ -46,7 +48,7 @@ class ComposerSkipHelper {
 	 * @return bool
 	 */
 	public function skipTemplate( string $wikiTitle ): bool {
-		if ( $this->dataLookup->isPageTemplateInvalid( $wikiTitle ) ) {
+		if ( $this->reader->isPageTemplateInvalid( $wikiTitle ) ) {
 			return true;
 		}
 

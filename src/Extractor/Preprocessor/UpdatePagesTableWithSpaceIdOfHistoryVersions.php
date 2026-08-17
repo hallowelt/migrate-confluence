@@ -15,7 +15,7 @@ class UpdatePagesTableWithSpaceIdOfHistoryVersions extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$pageIdToSpaceIdMap = [];
-		$pages = $this->workspaceDB->getPages();
+		$pages = $this->reader->getPages();
 
 		foreach ( $pages as $page ) {
 			if ( !isset( $page['page_id'] ) || !array_key_exists( 'space_id', $page ) ) {
@@ -53,7 +53,7 @@ class UpdatePagesTableWithSpaceIdOfHistoryVersions extends ProcessorBase {
 			}
 			$originalSpaceId = (int)$pageIdToSpaceIdMap[$originalVersionId];
 
-			$this->workspaceDB->updatePageSpaceId( $pageId, $originalSpaceId );
+			$this->writer->updatePageSpaceId( $pageId, $originalSpaceId );
 			$this->writeln(
 				"Updated space_id for historical page ID $pageId with space_id: $originalSpaceId"
 			);

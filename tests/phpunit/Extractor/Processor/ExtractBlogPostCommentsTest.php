@@ -2,10 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostComments;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 
 class ExtractBlogPostCommentsTest extends TestCase {
@@ -14,8 +13,7 @@ class ExtractBlogPostCommentsTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostComments::execute
 	 */
 	public function testConvertsBlogNamespaceForAllValidComments(): void {
-		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$dbLog = $this->createMock( DBLog::class );
+		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCommentsForBlogPosts' )->willReturn( [
@@ -38,9 +36,9 @@ class ExtractBlogPostCommentsTest extends TestCase {
 				[ 201, 41, 'Blog_Talk:TEST/Entry_2' ]
 			);
 
-		$dbLog->expects( $this->never() )->method( 'addLogEntry' );
+		$writer->expects( $this->never() )->method( 'addLogEntry' );
 
-		$processor = new ExtractBlogPostComments( $workspaceDB, $dbLog, $writer );
+		$processor = new ExtractBlogPostComments( $workspaceDB, $writer );
 		$processor->execute();
 	}
 }

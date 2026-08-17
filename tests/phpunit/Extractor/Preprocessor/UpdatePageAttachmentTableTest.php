@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDirectDataReader;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
@@ -14,7 +15,6 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithEmptyMigrationConfig(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -25,7 +25,11 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
+		$processor = new UpdatePageAttachmentTable(
+			new ExtractorDirectDataReader( $workspaceDB ),
+			$writer,
+			new MigrationConfig( [] )
+		);
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
@@ -45,7 +49,6 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepo(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -56,9 +59,13 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'ext-ns-file-repo-compat' => true
-		] ) );
+		$processor = new UpdatePageAttachmentTable(
+			new ExtractorDirectDataReader( $workspaceDB ),
+			$writer,
+			new MigrationConfig( [
+				'ext-ns-file-repo-compat' => true
+			] )
+		);
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
@@ -82,7 +89,6 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithSpaceMapping(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -93,11 +99,15 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST'
-			]
-		] ) );
+		$processor = new UpdatePageAttachmentTable(
+			new ExtractorDirectDataReader( $workspaceDB ),
+			$writer,
+			new MigrationConfig( [
+				'space-prefix' => [
+					'TEST' => 'MYTEST'
+				]
+			] )
+		);
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
@@ -117,7 +127,6 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepoAndSpaceMapping(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -128,12 +137,16 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST'
-			],
-			'ext-ns-file-repo-compat' => true
-		] ) );
+		$processor = new UpdatePageAttachmentTable(
+			new ExtractorDirectDataReader( $workspaceDB ),
+			$writer,
+			new MigrationConfig( [
+				'space-prefix' => [
+					'TEST' => 'MYTEST'
+				],
+				'ext-ns-file-repo-compat' => true
+			] )
+		);
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
@@ -157,7 +170,6 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithSpaceMappingAndRootpages(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -168,11 +180,15 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST:Root/'
-			]
-		] ) );
+		$processor = new UpdatePageAttachmentTable(
+			new ExtractorDirectDataReader( $workspaceDB ),
+			$writer,
+			new MigrationConfig( [
+				'space-prefix' => [
+					'TEST' => 'MYTEST:Root/'
+				]
+			] )
+		);
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();
@@ -196,7 +212,6 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	 */
 	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepoAndSpaceMappingAndRootpages(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -207,12 +222,16 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST:Root/'
-			],
-			'ext-ns-file-repo-compat' => true
-		] ) );
+		$processor = new UpdatePageAttachmentTable(
+			new ExtractorDirectDataReader( $workspaceDB ),
+			$writer,
+			new MigrationConfig( [
+				'space-prefix' => [
+					'TEST' => 'MYTEST:Root/'
+				],
+				'ext-ns-file-repo-compat' => true
+			] )
+		);
 		$processor->execute();
 
 		$pageAttachments = $workspaceDB->getPageAttachments();

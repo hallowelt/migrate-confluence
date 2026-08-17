@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
@@ -18,7 +18,7 @@ class InvalidContents extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
@@ -26,7 +26,7 @@ class InvalidContents extends ContentProcessorBase {
 	 */
 	public function __construct(
 		protected Builder $builder,
-		protected DBComposerDataLookup $dataLookup,
+		protected IComposerDataReader $reader,
 		protected Workspace $workspace,
 		protected Output $output,
 		protected string $dest,
@@ -59,8 +59,8 @@ class InvalidContents extends ContentProcessorBase {
 	 */
 	private function addInvalidPages(): void {
 		$invalidPages = $this->collectBySpaceIdsAppend(
-			fn ( int $spaceId ): array => $this->dataLookup->getInvalidPages( $spaceId ),
-			fn (): array => $this->dataLookup->getInvalidPages()
+			fn ( int $spaceId ): array => $this->reader->getInvalidPages( $spaceId ),
+			fn (): array => $this->reader->getInvalidPages()
 		);
 
 		foreach ( $invalidPages as $invalidPage ) {
@@ -73,12 +73,12 @@ class InvalidContents extends ContentProcessorBase {
 			$this->invalidPageIds[$pageId] = $pageId;
 			$this->output->writeln( "Processing skipped invalid page '$wikiTitle' ..." );
 
-			$spaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
+			$spaceId = $this->reader->getSpaceIdForPageId( $pageId );
 			$spaceDescriptions = [];
 			$homepageId = null;
 			if ( $spaceId !== null ) {
-				$spaceDescriptions = $this->dataLookup->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
-				$homepageId = $this->dataLookup->getSpaceHomepageIdForSpaceId( $spaceId );
+				$spaceDescriptions = $this->reader->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
+				$homepageId = $this->reader->getSpaceHomepageIdForSpaceId( $spaceId );
 			}
 
 			if ( $homepageId !== null && $pageId === $homepageId ) {
@@ -87,7 +87,7 @@ class InvalidContents extends ContentProcessorBase {
 				);
 			}
 
-			$revisions = $this->dataLookup->getPageRevisionsForPageId( $pageId );
+			$revisions = $this->reader->getPageRevisionsForPageId( $pageId );
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)( $revision['revision_timestamp'] ?? '' );
 				if ( !$this->hasValidContentIdsJson( (string)( $revision['body_content_ids'] ?? '' ) ) ) {
@@ -117,8 +117,8 @@ class InvalidContents extends ContentProcessorBase {
 	 */
 	private function addInvalidBlogPosts(): void {
 		$invalidBlogPosts = $this->collectBySpaceIdsAppend(
-			fn ( int $spaceId ): array => $this->dataLookup->getInvalidBlogPosts( $spaceId ),
-			fn (): array => $this->dataLookup->getInvalidBlogPosts()
+			fn ( int $spaceId ): array => $this->reader->getInvalidBlogPosts( $spaceId ),
+			fn (): array => $this->reader->getInvalidBlogPosts()
 		);
 
 		foreach ( $invalidBlogPosts as $invalidBlogPost ) {
@@ -131,7 +131,7 @@ class InvalidContents extends ContentProcessorBase {
 			$this->invalidBlogPostIds[$blogPostId] = $blogPostId;
 			$this->output->writeln( "Processing skipped invalid blog post '$wikiTitle' ..." );
 
-			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $blogPostId );
+			$revisions = $this->reader->getBlogPostRevisionsForBlogPostId( $blogPostId );
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)( $revision['revision_timestamp'] ?? '' );
 				if ( !$this->hasValidContentIdsJson( (string)( $revision['body_content_ids'] ?? '' ) ) ) {
@@ -156,12 +156,12 @@ class InvalidContents extends ContentProcessorBase {
 
 		$comments = $this->collectBySpaceIdsAppend(
 			fn ( int $spaceId ): array => array_merge(
-				$this->dataLookup->getCommentsForPages( $spaceId ),
-				$this->dataLookup->getCommentsForBlogPosts( $spaceId )
+				$this->reader->getCommentsForPages( $spaceId ),
+				$this->reader->getCommentsForBlogPosts( $spaceId )
 			),
 			fn (): array => array_merge(
-				$this->dataLookup->getCommentsForPages(),
-				$this->dataLookup->getCommentsForBlogPosts()
+				$this->reader->getCommentsForPages(),
+				$this->reader->getCommentsForBlogPosts()
 			)
 		);
 
@@ -169,7 +169,7 @@ class InvalidContents extends ContentProcessorBase {
 			return;
 		}
 
-		$userkeyToUsernameMap = $this->buildUserkeyToUsernameMap( $this->dataLookup );
+		$userkeyToUsernameMap = $this->buildUserkeyToUsernameMap( $this->reader );
 		$talkTitleToComments = [];
 
 		foreach ( $comments as $comment ) {
@@ -244,8 +244,8 @@ class InvalidContents extends ContentProcessorBase {
 	 */
 	private function addInvalidPageTemplates(): void {
 		$invalidPageTemplates = $this->collectBySpaceIdsAppend(
-			fn ( int $spaceId ): array => $this->dataLookup->getInvalidPageTemplates( $spaceId ),
-			fn (): array => $this->dataLookup->getInvalidPageTemplates()
+			fn ( int $spaceId ): array => $this->reader->getInvalidPageTemplates( $spaceId ),
+			fn (): array => $this->reader->getInvalidPageTemplates()
 		);
 
 		foreach ( $invalidPageTemplates as $invalidPageTemplate ) {
@@ -257,7 +257,7 @@ class InvalidContents extends ContentProcessorBase {
 
 			$this->output->writeln( "Processing skipped invalid template '$wikiTitle' ..." );
 
-			$revisions = $this->dataLookup->getPageTemplateRevisionsForTemplateId( $templateId );
+			$revisions = $this->reader->getPageTemplateRevisionsForTemplateId( $templateId );
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)( $revision['revision_timestamp'] ?? '' );
 				if ( !$this->hasValidContentIdsJson( (string)( $revision['template_content_ids'] ?? '' ) ) ) {

@@ -29,7 +29,7 @@ class PageLink extends LinkProcessorBase {
 		$rawPageTitle = $node->getAttribute( 'ri:content-title' );
 		$spaceId = $this->ensureSpaceId( $node );
 
-		$targetTitle = $this->dataLookup->getWikiPageTitleForLink(
+		$targetTitle = $this->reader->getWikiPageTitleForLink(
 			$this->currentSpaceId,
 			$spaceId,
 			$rawPageTitle
@@ -66,7 +66,7 @@ class PageLink extends LinkProcessorBase {
 		$this->spaceKey = $node->getAttribute( 'ri:space-key' );
 
 		if ( !empty( $this->spaceKey ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $this->spaceKey ) ?? 0;
+			$spaceId = $this->reader->getSpaceIdFromSpaceKey( $this->spaceKey ) ?? 0;
 			// TODO: Log if spaceId is null,
 			// but we should be able to resolve the filename without spaceId as well,
 			// so we can continue processing
@@ -84,7 +84,7 @@ class PageLink extends LinkProcessorBase {
 	private function generateConfluenceKey( int $spaceId, string $rawPageTitle ): string {
 		$spaceKey = $this->spaceKey;
 		if ( empty( $spaceKey ) ) {
-			$spaceKey = $this->dataLookup->getSpaceKeyFromSpaceId( $spaceId );
+			$spaceKey = $this->reader->getSpaceKeyFromSpaceId( $spaceId );
 		}
 
 		if ( empty( $spaceKey ) ) {

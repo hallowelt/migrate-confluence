@@ -3,16 +3,16 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ImageTest extends ProcessorTestCase {
 	/**
-	 * @var DBConversionDataLookup
+	 * @var ConverterDirectDataReader
 	 */
-	private DBConversionDataLookup $dataLookup;
+	private ConverterDirectDataReader $dataReader;
 
 	/**
 	 * @var string
@@ -26,7 +26,7 @@ class ImageTest extends ProcessorTestCase {
 	public function testProcess() {
 		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
+		$this->dataReader = new ConverterDirectDataReader( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		/** SpaceId GENERAL */
 		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-1-general.xml', 0, 'SomePage' );
@@ -44,9 +44,9 @@ class ImageTest extends ProcessorTestCase {
 	public function testUrlImageInExternalLink() {
 		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataReader = new ConverterDirectDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(
-			$dataLookup,
+			$dataReader,
 			'image-url-external-link-input.xml',
 			'image-url-external-link-output.xml',
 			42,
@@ -62,24 +62,26 @@ class ImageTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	private function doTest( $input, $output, $spaceId, $rawPageTitle ): void {
-		$this->doTestWith( $this->dataLookup, $input, $output, $spaceId, $rawPageTitle );
+		$this->doTestWith( $this->dataReader, $input, $output, $spaceId, $rawPageTitle );
 	}
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConverterDirectDataReader $dataReader
 	 * @param string $input
 	 * @param string $output
 	 * @param int $spaceId
 	 * @param string $rawPageTitle
 	 * @return void
 	 */
-	private function doTestWith( DBConversionDataLookup $dataLookup, $input, $output, $spaceId, $rawPageTitle ): void {
+	private function doTestWith(
+		ConverterDirectDataReader $dataReader, $input, $output, $spaceId, $rawPageTitle
+	): void {
 		$input = file_get_contents( "$this->dir/$input" );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new Image( $dataLookup, $spaceId, $rawPageTitle, new MigrationConfig( [] ) );
+		$processor = new Image( $dataReader, $spaceId, $rawPageTitle, new MigrationConfig( [] ) );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

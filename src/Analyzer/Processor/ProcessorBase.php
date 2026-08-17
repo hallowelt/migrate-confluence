@@ -3,7 +3,6 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use XMLReader;
 
@@ -15,9 +14,6 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	/** @var OutputInterface */
 	protected OutputInterface $output;
 
-	/** @var LoggerInterface */
-	protected LoggerInterface $logger;
-
 	/** @var XMLReader */
 	protected XMLReader $xmlReader;
 
@@ -26,14 +22,6 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	 */
 	public function setOutput( OutputInterface $output ): void {
 		$this->output = $output;
-	}
-
-	/**
-	 * @param LoggerInterface $logger
-	 * @return void
-	 */
-	public function setLogger( LoggerInterface $logger ): void {
-		$this->logger = $logger;
 	}
 
 	/**

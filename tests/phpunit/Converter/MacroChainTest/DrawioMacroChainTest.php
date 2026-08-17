@@ -2,8 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 
 /**
  * @group full
@@ -36,17 +39,17 @@ class DrawioMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		$workspaceDb = ( new \HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock() )
+		$workspaceDb = ( new WorkspaceDbMock() )
 			->createWithoutExtNsFileRepoCompat();
-		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
+		$dataReader = new ConverterDirectDataReader( $workspaceDb );
 		$tmpBase = getenv( 'TMPDIR' ) ?: sys_get_temp_dir();
 		$writerPath = $tmpBase . '/macro-chain-writer';
 		if ( !is_dir( $writerPath ) ) {
 			mkdir( $writerPath, 0755, true );
 		}
-		$conversionDataWriter = new \HalloWelt\MigrateConfluence\Utility\ConversionDataWriter( $writerPath );
+		$dataWriter = new ConversionDataWriter( $writerPath );
 
-		return new DrawioMacro( $dataLookup, $conversionDataWriter, 42, 'SomePage' );
+		return new DrawioMacro( $dataReader, $dataWriter, 42, 'SomePage' );
 	}
 
 }

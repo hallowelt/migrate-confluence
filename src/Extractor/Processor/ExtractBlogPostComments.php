@@ -15,7 +15,7 @@ class ExtractBlogPostComments extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$comments = $this->workspaceDB->getCommentsForBlogPosts();
+		$comments = $this->reader->getCommentsForBlogPosts();
 
 		foreach ( $comments as $comment ) {
 			if ( !isset( $comment['comment_id'] ) || !isset( $comment['container_id'] ) ) {
@@ -27,7 +27,7 @@ class ExtractBlogPostComments extends ProcessorBase {
 			$wikiTitle = (string)( $comment['wiki_title'] ?? '' );
 
 			if ( $wikiTitle === '' ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,

@@ -8,9 +8,12 @@ use DOMNodeList;
 use DOMXPath;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
+use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
-use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReaderAware;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriterAware;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
@@ -89,29 +92,35 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ViewPptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
+use HalloWelt\MigrateConfluence\IMigrationConfigAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use HalloWelt\MigrateConfluence\Utility\TranslatableString;
+use RuntimeException;
 use SplFileInfo;
-use Symfony\Component\Console\Output\Output;
+use Symfony\Component\Console\Output\OutputInterface;
 
-class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware {
+class ConfluenceConverter extends PandocHTML implements
+	IOutputAwareInterface,
+	IDestinationPathAware,
+	IConverterDataReaderAware,
+	IConverterDataWriterAware,
+	IMigrationConfigAware
+{
 
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
 
-	/** @var WorkspaceDB */
-	private WorkspaceDB $workspaceDB;
+	/** @var IConverterDataReader|null */
+	private ?IConverterDataReader $dataReader = null;
+
+	/** @var IConverterDataWriter|null */
+	private ?IConverterDataWriter $dataWriter;
 
 	/** @var string */
 	private string $dest;
-
-	/** @var DBConversionDataLookup */
-	private DBConversionDataLookup $dataLookup;
 
 	/** @var ConversionDataWriter|null */
 	private ?ConversionDataWriter $conversionDataWriter = null;
@@ -137,8 +146,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var SplFileInfo|null */
 	private ?SplFileInfo $preprocessedFile = null;
 
-	/** @var Output|null */
-	private ?Output $output = null;
+	/** @var OutputInterface|null */
+	private ?OutputInterface $output = null;
 
 	/** @var string */
 	private string $contentType = '';
@@ -149,15 +158,11 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var TocMacroUsage */
 	private TocMacroUsage $tocMacroUsage;
 
-	/** @var IConverterDataWriter */
-	private IConverterDataWriter $writer;
-
 	/**
-	 * @param array $config
-	 * @param Workspace $workspace
+	 * @return IConverter
 	 */
-	public function __construct( $config, Workspace $workspace ) {
-		parent::__construct( $config, $workspace );
+	public static function factory(): IConverter {
+		return new static();
 	}
 
 	/**
@@ -166,7 +171,23 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return void
 	 */
 	public function setDataWriter( IConverterDataWriter $dataWriter ): void {
-		$this->writer = $dataWriter;
+		$this->dataWriter = $dataWriter;
+	}
+
+	/**
+	 * @param IConverterDataReader $reader
+	 * @return void
+	 */
+	public function setDataReader( IConverterDataReader $reader ): void {
+		$this->dataReader = $reader;
+	}
+
+	/**
+	 * @param MigrationConfig $migrationConfig
+	 * @return void
+	 */
+	public function setMigrationConfig( MigrationConfig $migrationConfig ): void {
+		$this->migrationConfig = $migrationConfig;
 	}
 
 	/**
@@ -178,9 +199,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	}
 
 	/**
-	 * @param Output $output
+	 * @param OutputInterface $output
 	 */
-	public function setOutput( Output $output ): void {
+	public function setOutput( OutputInterface $output ): void {
 		$this->output = $output;
 	}
 
@@ -190,15 +211,19 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return string
 	 */
 	public function convert( SplFileInfo $file ): string {
-		$this->workspaceDB = WorkspaceDB::open( $this->dest, true );
-
-		if ( isset( $this->config['config'] ) ) {
-			$this->migrationConfig = new MigrationConfig( $this->config['config'] );
-		} else {
-			$this->migrationConfig = new MigrationConfig( [] );
+		if ( $this->dataReader === null ) {
+			throw new RuntimeException( 'Data reader is not set' );
+		}
+		if ( !isset( $this->dataWriter ) ) {
+			throw new RuntimeException( 'Data writer is not set' );
+		}
+		if ( !isset( $this->migrationConfig ) ) {
+			throw new RuntimeException( 'Migration config is not set' );
+		}
+		if ( $this->output === null ) {
+			throw new RuntimeException( 'Output is not set' );
 		}
 
-		$this->dataLookup = new DBConversionDataLookup( $this->workspaceDB );
 		$this->conversionDataWriter = new ConversionDataWriter( $this->dest );
 
 		// Indicates usage of toc-macro
@@ -223,12 +248,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			// This is the content of a page template
 			$bodyContentId = $this->getBodyContentIdFromPageTemplateFilename();
 			$this->contentType = 'pageTemplate';
-			$this->currentSpace = $this->workspaceDB->getSpaceIdFromTemplateId( $bodyContentId );
+			$this->currentSpace = $this->dataReader->getSpaceIdFromTemplateId( $bodyContentId );
 
-			$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTemplateTitleFromPageTemplateId(
+			$this->confluencePageTitle = $this->dataReader->getConfluencePageTemplateTitleFromPageTemplateId(
 				$bodyContentId
 			) ?? '';
-			$this->wikiPageTitle = $this->workspaceDB->getWikiPageTemplateTitleFromPageTemplateId( $bodyContentId )
+			$this->wikiPageTitle = $this->dataReader->getWikiPageTemplateTitleFromPageTemplateId( $bodyContentId )
 				?? 'not_current_revision_for_page_template_' . $bodyContentId;
 
 			if ( $this->currentSpace === null ) {
@@ -252,7 +277,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			}
 
 			// Test to which type of content the contentId belongs
-			if ( $this->workspaceDB->spaceDescriptionIdExists( $contentId ) ) {
+			if ( $this->dataReader->spaceDescriptionIdExists( $contentId ) ) {
 				$this->contentType = 'spaceDescription';
 				$this->currentSpace = $this->getSpaceIdFromSpaceDescriptionId( $contentId );
 				if ( !$this->currentSpace ) {
@@ -265,30 +290,30 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				}
 				$this->pageId = $this->getSpaceHomepageId( $this->currentSpace );
 
-				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId )
+				$this->confluencePageTitle = $this->dataReader->getConfluencePageTitleFromPageId( $this->pageId )
 					?? '';
-				$this->wikiPageTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $this->pageId )
+				$this->wikiPageTitle = $this->dataReader->getWikiPageTitleFromPageId( $this->pageId )
 					?? 'not_current_revision_' . $this->pageId;
-			} elseif ( $this->workspaceDB->pageIdExists( $contentId ) ) {
+			} elseif ( $this->dataReader->pageIdExists( $contentId ) ) {
 				$this->contentType = 'page';
 				$this->currentSpace = $this->getSpaceIdFromPageId( $contentId );
 				$this->pageId = $contentId;
 
-				$this->confluencePageTitle = $this->workspaceDB->getConfluencePageTitleFromPageId( $this->pageId )
+				$this->confluencePageTitle = $this->dataReader->getConfluencePageTitleFromPageId( $this->pageId )
 					?? '';
-				$this->wikiPageTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $this->pageId )
+				$this->wikiPageTitle = $this->dataReader->getWikiPageTitleFromPageId( $this->pageId )
 					?? 'not_current_revision_' . $this->pageId;
-			} elseif ( $this->workspaceDB->blogPostIdExists( $contentId ) ) {
+			} elseif ( $this->dataReader->blogPostIdExists( $contentId ) ) {
 				$this->contentType = 'blogPost';
 				$this->currentSpace = $this->getSpaceIdFromBlogPostId( $contentId );
 				$this->pageId = $contentId;
 
-				$this->confluencePageTitle = $this->workspaceDB->getConfluenceBlogPostTitleFromBlogPostId(
+				$this->confluencePageTitle = $this->dataReader->getConfluenceBlogPostTitleFromBlogPostId(
 					$this->pageId
 				) ?? '';
-				$this->wikiPageTitle = $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $this->pageId )
+				$this->wikiPageTitle = $this->dataReader->getWikiBlogPostTitleFromBlogPostId( $this->pageId )
 					?? 'not_current_revision_' . $this->pageId;
-			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
+			} elseif ( $this->dataReader->commentIdExists( $contentId ) ) {
 				$this->contentType = 'comment';
 				$this->pageId = $contentId;
 				// Comment body content: convert with minimal context (no page-specific macros expected)
@@ -382,7 +407,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			return;
 		}
 
-		$properties = $this->dataLookup->getPropertiesForPageId( $this->pageId );
+		$properties = $this->dataReader->getPropertiesForPageId( $this->pageId );
 		if ( !empty( $properties['isFolder'] ) ) {
 			$this->wikiText = '{{Folder}}';
 		}
@@ -414,49 +439,49 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new ChildrenMacro(
 				$this->currentSpace,
 				$this->wikiPageTitle,
-				$this->dataLookup
+				$this->dataReader
 			),
 			new PageTreeMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->wikiPageTitle
 			),
 			new RecentlyUpdatedMacro( $this->wikiPageTitle ),
 			new IncludeMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace
 			),
 			new ExcerptMacro(),
-			new ExcerptIncludeMacro( $this->dataLookup, $this->currentSpace ),
+			new ExcerptIncludeMacro( $this->dataReader, $this->currentSpace ),
 			new Emoticon(),
-			new PreserveTasksReportMacro( $this->dataLookup ),
+			new PreserveTasksReportMacro( $this->dataReader ),
 			new Image(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new AttachmentLink(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new AnchorLink(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new PageLink(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new UserLink(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
@@ -465,21 +490,21 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new NoFormatMacro(),
 			new TaskListMacro(),
 			new DrawioMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->conversionDataWriter,
 				$this->currentSpace,
 				$this->confluencePageTitle
 			),
 			new GliffyMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->writer
+				$this->dataWriter
 			),
 			new ContentByLabelMacro( $this->wikiPageTitle ),
 			new AttachmentsMacro(),
 			new GalleryMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
@@ -491,37 +516,37 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new JiraMacro(),
 			new MarkdownMacro(),
 			new ViewFileMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new ViewDocMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new ViewXlsMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new ViewPptMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new ViewPdfMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new MultimediaMacro(
-				$this->dataLookup,
+				$this->dataReader,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
@@ -533,9 +558,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new LocalTabGroupMacro(),
 			new LoremIpsumMacro(),
 			new CreateFromTemplateMacro(
-				$this->dataLookup
+				$this->dataReader
 			),
-			new LivesearchMacro( $this->writer )
+			new LivesearchMacro( $this->dataWriter )
 		];
 
 		/** @var IProcessor $processor */
@@ -551,7 +576,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$postProcessors = [
 			new RestorePStyleTag(),
 			new RestoreExcerptMacro(),
-			new RestoreExcerptIncludeMacro( $this->dataLookup ),
+			new RestoreExcerptIncludeMacro( $this->dataReader ),
 			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
@@ -602,7 +627,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return int|null
 	 */
 	private function getContentIdFromBodyContentId( int $bodyContentId ): ?int {
-		$map = $this->workspaceDB->getContentIdForBodyContentId( $bodyContentId );
+		$map = $this->dataReader->getContentIdForBodyContentId( $bodyContentId );
 		return $map;
 	}
 
@@ -611,7 +636,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return int|null
 	 */
 	private function getSpaceIdFromSpaceDescriptionId( int $spaceDescId ): ?int {
-		return $this->workspaceDB->getSpaceIdForDescriptionId( $spaceDescId );
+		return $this->dataReader->getSpaceIdForDescriptionId( $spaceDescId );
 	}
 
 	/**
@@ -619,7 +644,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return int|null
 	 */
 	private function getSpaceHomepageId( int $spaceId ): ?int {
-		return $this->workspaceDB->getSpaceHomepageIdForSpaceId( $spaceId );
+		return $this->dataReader->getSpaceHomepageIdForSpaceId( $spaceId );
 	}
 
 	/**
@@ -627,7 +652,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return int|null
 	 */
 	private function getSpaceIdFromPageId( int $pageId ): ?int {
-		return $this->workspaceDB->getSpaceIdForPageId( $pageId );
+		return $this->dataReader->getSpaceIdForPageId( $pageId );
 	}
 
 	/**
@@ -635,7 +660,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return int|null
 	 */
 	private function getSpaceIdFromBlogPostId( int $blogPostId ): ?int {
-		return $this->workspaceDB->getSpaceIdForBlogPostId( $blogPostId );
+		return $this->dataReader->getSpaceIdForBlogPostId( $blogPostId );
 	}
 
 	/**
@@ -722,9 +747,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	private function getMetaData(): array {
 		$row = null;
 		if ( $this->contentType === 'page' ) {
-			$row = $this->workspaceDB->getPageMetaByPageId( $this->pageId );
+			$row = $this->dataReader->getPageMetaByPageId( $this->pageId );
 		} elseif ( $this->contentType === 'blogPost' ) {
-			$row = $this->workspaceDB->getBlogPostMetaByPageId( $this->pageId );
+			$row = $this->dataReader->getBlogPostMetaByPageId( $this->pageId );
 		}
 		if ( $row === null ) {
 			return [];
@@ -830,13 +855,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$wikiText = '';
 
 		$linkProcessor = new AttachmentLink(
-			$this->dataLookup,
+			$this->dataReader,
 			$this->currentSpace,
 			$this->confluencePageTitle,
 			$this->migrationConfig
 		);
 
-		$pageAttachments = $this->dataLookup->getPageAttachmentsForPageId( $this->pageId );
+		$pageAttachments = $this->dataReader->getPageAttachmentsForPageId( $this->pageId );
 		if ( !empty( $pageAttachments ) ) {
 			$mediaExludeList = $this->buildMediaExcludeList( $this->wikiText );
 
@@ -919,12 +944,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		if ( $exceed >= 512 ) {
 			$this->bodyLengthInvalidReason = InvalidContentCategories::REASON_BODY_TOO_LONG;
 			if ( str_starts_with( $this->rawFile->getFilename(), 'pt_' ) ) {
-				$this->writer->addInvalidPageTemplateContent(
+				$this->dataWriter->addInvalidPageTemplateContent(
 					$bodyContentId,
 					InvalidContentCategories::REASON_BODY_TOO_LONG
 				);
 			} else {
-				$this->writer->addInvalidBodyContent(
+				$this->dataWriter->addInvalidBodyContent(
 					$bodyContentId,
 					InvalidContentCategories::REASON_BODY_TOO_LONG
 				);
@@ -954,12 +979,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		// its bodyContentId (== templateId) instead.
 		$titleReason = match ( $this->contentType ) {
 			'page' => $this->pageId !== null
-				? $this->dataLookup->getInvalidPageWikiTitleReason( $this->pageId )
+				? $this->dataReader->getInvalidPageWikiTitleReason( $this->pageId )
 				: null,
 			'blogPost' => $this->pageId !== null
-				? $this->dataLookup->getInvalidBlogPostWikiTitleReason( $this->pageId )
+				? $this->dataReader->getInvalidBlogPostWikiTitleReason( $this->pageId )
 				: null,
-			'pageTemplate' => $this->dataLookup->getInvalidPageTemplateTitleReason( $bodyContentId ),
+			'pageTemplate' => $this->dataReader->getInvalidPageTemplateTitleReason( $bodyContentId ),
 			default => null,
 		};
 		if ( $titleReason !== null ) {
@@ -976,7 +1001,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 * @return void
 	 */
 	private function addNonBlockingLogEntry( string $message, string $type = 'warning' ): void {
-		$this->writer->addLogEntry(
+		$this->dataWriter->addLogEntry(
 			$type,
 			'convert',
 			__CLASS__,

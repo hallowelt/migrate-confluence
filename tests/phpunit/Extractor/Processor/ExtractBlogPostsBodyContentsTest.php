@@ -3,10 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 
 class ExtractBlogPostsBodyContentsTest extends TestCase {
@@ -15,9 +14,8 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents::execute
 	 */
 	public function testExtractsCurrentBlogPostBodyContent(): void {
-		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$workspace = $this->createMock( Workspace::class );
-		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getBlogPosts' )->willReturn( [ [ 'page_id' => 13 ] ] );
@@ -29,9 +27,9 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 			->with( '103', '<html><body>Blog body</body></html>' )
 			->willReturn( '/content/raw/103.mraw' );
 
-		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
+		$writer->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractBlogPostsBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractBlogPostsBodyContents( $workspaceDB, $workspace, $writer );
 		$processor->execute();
 	}
 
@@ -42,9 +40,8 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents::execute
 	 */
 	public function testExtractsHistoricalBlogPostBodyContent(): void {
-		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$workspace = $this->createMock( Workspace::class );
-		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		// Both the current version (page_id=20) and a historical draft (page_id=19)
@@ -68,7 +65,7 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 			->method( 'saveRawContent' )
 			->willReturn( '/content/raw/x.mraw' );
 
-		$processor = new ExtractBlogPostsBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractBlogPostsBodyContents( $workspaceDB, $workspace, $writer );
 		$processor->execute();
 	}
 }

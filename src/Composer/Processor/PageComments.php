@@ -4,9 +4,9 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
@@ -18,7 +18,7 @@ class PageComments extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
@@ -28,7 +28,7 @@ class PageComments extends ContentProcessorBase {
 	 */
 	public function __construct(
 		protected Builder $builder,
-		protected DBComposerDataLookup $dataLookup,
+		protected IComposerDataReader $reader,
 		protected Workspace $workspace,
 		protected Output $output,
 		protected string $dest,
@@ -98,7 +98,7 @@ class PageComments extends ContentProcessorBase {
 	 * @return string|null
 	 */
 	protected function getWikiTitle( int $pageId ): ?string {
-		return $this->dataLookup->getWikiPageTitleFromPageId( $pageId );
+		return $this->reader->getWikiPageTitleFromPageId( $pageId );
 	}
 
 	/**
@@ -106,7 +106,7 @@ class PageComments extends ContentProcessorBase {
 	 * @return string|null
 	 */
 	protected function getTalkTitle( int $pageId ): ?string {
-		return $this->dataLookup->getWikiPageCommentTitleFromPageId( $pageId );
+		return $this->reader->getWikiPageCommentTitleFromPageId( $pageId );
 	}
 
 	/**
@@ -118,11 +118,11 @@ class PageComments extends ContentProcessorBase {
 			foreach ( $this->currentSpaceIds as $spaceId ) {
 				$comments = array_merge(
 					$comments,
-					$this->dataLookup->getCommentsForPages( (int)$spaceId )
+					$this->reader->getCommentsForPages( (int)$spaceId )
 				);
 			}
 		} else {
-			$comments = $this->dataLookup->getCommentsForPages();
+			$comments = $this->reader->getCommentsForPages();
 		}
 		return $comments;
 	}
@@ -201,7 +201,7 @@ class PageComments extends ContentProcessorBase {
 	 */
 	protected function getUserKeyToUsernameMap(): array {
 		$userkeyToUsernameMap = [];
-		$users = $this->dataLookup->getUsers();
+		$users = $this->reader->getUsers();
 		foreach ( $users as $user ) {
 			$userKey = $user['user_key'];
 			$username = $user['wiki_user_name'];

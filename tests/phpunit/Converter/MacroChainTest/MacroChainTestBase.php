@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro;
@@ -24,16 +25,15 @@ use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 abstract class MacroChainTestBase extends TestCase {
 
-	protected DBConversionDataLookup $dataLookup;
+	protected ConverterDirectDataReader $dataReader;
 
 	protected function setUp(): void {
 		$workspaceDb = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
-		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
+		$this->dataReader = new ConverterDirectDataReader( $workspaceDb );
 	}
 
 	/**
@@ -62,7 +62,7 @@ abstract class MacroChainTestBase extends TestCase {
 		$postprocessors = [
 			new RestorePStyleTag(),
 			new RestoreExcerptMacro(),
-			new RestoreExcerptIncludeMacro( $this->dataLookup ),
+			new RestoreExcerptIncludeMacro( $this->dataReader ),
 			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),

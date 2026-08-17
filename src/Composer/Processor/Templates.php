@@ -4,9 +4,9 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
@@ -14,7 +14,7 @@ class Templates extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
@@ -24,7 +24,7 @@ class Templates extends ContentProcessorBase {
 	 */
 	public function __construct(
 		protected Builder $builder,
-		protected DBComposerDataLookup $dataLookup,
+		protected IComposerDataReader $reader,
 		protected Workspace $workspace,
 		protected Output $output,
 		protected string $dest,
@@ -47,8 +47,8 @@ class Templates extends ContentProcessorBase {
 	 */
 	public function execute(): void {
 		$wikiTitles = $this->collectBySpaceIdsReplaceByKey(
-			fn ( int $spaceId ): array => $this->dataLookup->getPageTemplateIdWikiTitleMap( $spaceId ),
-			fn (): array => $this->dataLookup->getPageTemplateIdWikiTitleMap()
+			fn ( int $spaceId ): array => $this->reader->getPageTemplateIdWikiTitleMap( $spaceId ),
+			fn (): array => $this->reader->getPageTemplateIdWikiTitleMap()
 		);
 
 		foreach ( $wikiTitles as $templateId => $pageTitle ) {
@@ -61,7 +61,7 @@ class Templates extends ContentProcessorBase {
 
 			$namespace = $this->getNamespace( $pageTitle );
 
-			$revisions = $this->dataLookup->getPageTemplateRevisionsForTemplateId( $templateId );
+			$revisions = $this->reader->getPageTemplateRevisionsForTemplateId( $templateId );
 
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)$revision['revision_timestamp'];

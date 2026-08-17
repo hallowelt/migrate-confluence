@@ -4,18 +4,16 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMText;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 
 class TasksReportMacro extends StructuredMacroProcessorBase {
 
-	/** @var DBConversionDataLookup */
-	protected DBConversionDataLookup $dataLookup;
-
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup ) {
-		$this->dataLookup = $dataLookup;
+	public function __construct(
+		private IConverterDataReader $reader
+	) {
 	}
 
 	/**
@@ -108,7 +106,7 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 			return '';
 		}
 		$key = $user->getAttribute( 'ri:userkey' );
-		$username = $this->dataLookup->getUsernameFromUserKey( $key ) ?? $key;
+		$username = $this->reader->getUsernameFromUserKey( $key ) ?? $key;
 		return $username;
 	}
 }

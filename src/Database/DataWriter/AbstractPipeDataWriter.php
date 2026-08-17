@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Database\DataWriter;
 
+use HalloWelt\MediaWiki\Lib\Migration\Database\DataWriter\IDataWriter;
+
 abstract class AbstractPipeDataWriter implements IDataWriter {
 
 	public function __construct( protected PipeChannel $channel ) {
@@ -16,15 +18,17 @@ abstract class AbstractPipeDataWriter implements IDataWriter {
 		$this->send( __FUNCTION__, $type, $step, $caller, $text );
 	}
 
+	/**
+	 * Transaction control is not forwarded: all workers share one connection in the
+	 * parent, so one worker's COMMIT/ROLLBACK would apply to every other worker's
+	 * in-flight records.
+	 */
 	public function beginTransaction(): void {
-		$this->send( __FUNCTION__ );
 	}
 
 	public function commitTransaction(): void {
-		$this->send( __FUNCTION__ );
 	}
 
 	public function rollbackTransaction(): void {
-		$this->send( __FUNCTION__ );
 	}
 }

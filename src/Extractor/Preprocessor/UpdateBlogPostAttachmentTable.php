@@ -9,7 +9,7 @@ class UpdateBlogPostAttachmentTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function getContentItems(): array {
-		return $this->workspaceDB->getCurrentBlogPosts();
+		return $this->reader->getCurrentBlogPosts();
 	}
 
 	/** @inheritDoc */
@@ -19,7 +19,7 @@ class UpdateBlogPostAttachmentTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function checkWikiTitleExists( string $wikiTitle ): bool {
-		return $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $wikiTitle );
+		return $this->reader->checkBlogPostAttachmentWikiTitleExists( $wikiTitle );
 	}
 
 	/** @inheritDoc */
@@ -33,6 +33,6 @@ class UpdateBlogPostAttachmentTable extends AttachmentTableUpdaterBase {
 
 	/** @inheritDoc */
 	protected function getStoredAttachments(): array {
-		return $this->workspaceDB->getBlogPostAttachments();
+		return $this->reader->getBlogPostAttachments();
 	}
 }

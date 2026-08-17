@@ -10,7 +10,7 @@ class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
 	 * @return void
 	 */
 	public function execute(): void {
-		foreach ( $this->workspaceDB->getCurrentAttachments() as $attachment ) {
+		foreach ( $this->reader->getCurrentAttachments() as $attachment ) {
 			if ( !isset( $attachment['attachment_id'] ) || !isset( $attachment['original_version_id'] ) ) {
 				continue;
 			}
@@ -37,7 +37,7 @@ class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
 				]
 			);
 
-			$this->dbLog->addLogEntry(
+			$this->writer->addLogEntry(
 				'info',
 				'extract',
 				__METHOD__,

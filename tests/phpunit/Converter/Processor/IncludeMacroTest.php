@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class IncludeMacroTest extends ProcessorTestCase {
 	protected function getInput(): string {
@@ -21,7 +21,7 @@ class IncludeMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataReader = new ConverterDirectDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$currentSpaceId = 42;
 
 		$input = $this->getInput();
@@ -30,7 +30,7 @@ class IncludeMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new IncludeMacro( $dataLookup, $currentSpaceId );
+		$processor = new IncludeMacro( $dataReader, $currentSpaceId );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 
@@ -38,7 +38,7 @@ class IncludeMacroTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro::process
 	 * @return void
 	 */
@@ -55,14 +55,14 @@ class IncludeMacroTest extends ProcessorTestCase {
 			. '</ac:parameter></ac:structured-macro></xml>'
 		);
 
-		$processor = new IncludeMacro( new DBConversionDataLookup( $workspaceDB ), 42 );
+		$processor = new IncludeMacro( new ConverterDirectDataReader( $workspaceDB ), 42 );
 		$processor->process( $dom );
 
 		$this->assertSame( '{{:DEVOPS:Page_Title3}}', trim( $dom->documentElement->textContent ) );
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro::process
 	 * @return void
 	 */
@@ -81,7 +81,7 @@ class IncludeMacroTest extends ProcessorTestCase {
 			. '</ac:parameter></ac:structured-macro></xml>'
 		);
 
-		$processor = new IncludeMacro( new DBConversionDataLookup( $workspaceDB ), 42 );
+		$processor = new IncludeMacro( new ConverterDirectDataReader( $workspaceDB ), 42 );
 		$processor->process( $dom );
 
 		$this->assertSame( '{{:wiki-devops:DEVOPS:Page_Title3}}', trim( $dom->documentElement->textContent ) );

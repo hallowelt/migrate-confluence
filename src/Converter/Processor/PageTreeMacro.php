@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use Exception;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 
 /**
  * Partially converting pagetree macro
@@ -22,13 +22,13 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
 	 */
 	public function __construct(
-		private DBConversionDataLookup $dataLookup,
+		private IConverterDataReader $reader,
 		private int $spaceId,
 		private string $confluenceTitle,
 		private string $wikiTitle
@@ -101,7 +101,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 			$this->params['content-title'] = '{{FULLPAGENAME}}';
 
 			if ( isset( $this->params['space-key'] ) ) {
-				$this->params['space-key'] = $this->dataLookup->getSpacePrefixFromSpaceKey(
+				$this->params['space-key'] = $this->reader->getSpacePrefixFromSpaceKey(
 					$this->params['space-key']
 				);
 			}
@@ -152,7 +152,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 			case '@home':
 				$params['content-title'] = '';
 				// Main Page
-				$targetTitle = $this->dataLookup->getSpaceMainPageWikiTitleForSpaceId( $this->spaceId );
+				$targetTitle = $this->reader->getSpaceMainPageWikiTitleForSpaceId( $this->spaceId );
 				if ( $targetTitle === null ) {
 					$params['broken-macro'] = true;
 					break;
@@ -191,7 +191,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				$params['content-title'] = '';
 				// all pages in namespace
 				if ( isset( $params['space-key'] ) ) {
-					$params['space-key'] = $this->dataLookup->getNamespaceFromSpaceKey( $params['space-key'] );
+					$params['space-key'] = $this->reader->getNamespaceFromSpaceKey( $params['space-key'] );
 				} else {
 					$params['space-key'] = '{{NAMESPACE}}';
 				}
@@ -201,13 +201,13 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 			default:
 				// create new content-title from space key and content title
 				if ( isset( $params['space-key'] ) ) {
-					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $params['space-key'] ) ?? 0;
+					$spaceId = $this->reader->getSpaceIdFromSpaceKey( $params['space-key'] ) ?? 0;
 					// TODO: Log if spaceId is null, but we should be able to
 					// resolve the filename without spaceId as well, so we can continue processing
 				} else {
 					$spaceId = $this->spaceId;
 				}
-				$text = $this->dataLookup->getWikiPageTitleForLink(
+				$text = $this->reader->getWikiPageTitleForLink(
 					$this->spaceId,
 					$spaceId,
 					$params['content-title']
@@ -218,7 +218,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 				}
 				$params['content-title'] = $text;
 				if ( isset( $params['space-key'] ) ) {
-					$params['space-key'] = $this->dataLookup->getNamespaceFromSpaceKey( $params['space-key'] );
+					$params['space-key'] = $this->reader->getNamespaceFromSpaceKey( $params['space-key'] );
 				}
 				break;
 		}

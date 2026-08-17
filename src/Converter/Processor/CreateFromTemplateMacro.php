@@ -6,9 +6,9 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 // phpcs:disable Generic.Files.LineLength.TooLong
 
@@ -43,15 +43,9 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor {
 	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
 
 	/**
-	 * @var DBConversionDataLookup
+	 * @param IConverterDataReader $reader
 	 */
-	private DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @param DBConversionDataLookup $dataLookup
-	 */
-	public function __construct( DBConversionDataLookup $dataLookup ) {
-		$this->dataLookup = $dataLookup;
+	public function __construct( private readonly IConverterDataReader $reader ) {
 	}
 
 	/**
@@ -128,7 +122,7 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor {
 			return null;
 		}
 
-		return $this->dataLookup->getTemplateTitleFromTemplateId( (int)$params['templateId'] );
+		return $this->reader->getTemplateTitleFromTemplateId( (int)$params['templateId'] );
 	}
 
 	/**

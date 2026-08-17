@@ -3,31 +3,31 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
 class RequiredTemplates extends ProcessorBase {
 
-	/** @var DBComposerDataLookup */
-	private DBComposerDataLookup $dataLookup;
+	/** @var IComposerDataReader */
+	private IComposerDataReader $reader;
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param Builder $builder
 	 * @param Output $output
 	 * @param string $dest
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		DBComposerDataLookup $dataLookup,
+		IComposerDataReader $reader,
 		Builder $builder,
 		Output $output,
 		string $dest,
 		MigrationConfig $migrationConfig
 	) {
 		parent::__construct( $builder, $output, $dest, $migrationConfig );
-		$this->dataLookup = $dataLookup;
+		$this->reader = $reader;
 	}
 
 	/**
@@ -41,7 +41,7 @@ class RequiredTemplates extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
-		$requiredTemplates = $this->dataLookup->getRequiredTemplates();
+		$requiredTemplates = $this->reader->getRequiredTemplates();
 
 		if ( empty( $requiredTemplates ) ) {
 			return;

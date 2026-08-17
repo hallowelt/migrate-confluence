@@ -29,12 +29,12 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 	 * @throws Exception
 	 */
 	private function updateWikiTitles(): void {
-		$pageTemplates = $this->workspaceDB->getPageTemplates();
+		$pageTemplates = $this->reader->getPageTemplates();
 		$templateIdToWikiTitleMap = [];
 
 		foreach ( $pageTemplates as $pageTemplate ) {
 			if ( !isset( $pageTemplate['template_id'] ) ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -48,7 +48,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 			if ( !isset( $pageTemplate['space_id'] ) || !isset( $pageTemplate['confluence_title'] ) ) {
 				$message = "Skipping page template $templateId while updating wiki titles: ";
 				$message .= "missing space_id or confluence_title";
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -72,7 +72,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 				$wikiTitle = $this->buildTemplateTitle( $confluenceTitle, $spaceId );
 				$templateIdToWikiTitleMap[$templateId] = $wikiTitle;
 			} catch ( InvalidTitleException $e ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -91,7 +91,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 				$message = "TitleBuilder delivers empty wiki title for";
 				$message .= " page template $confluenceTitle (template id $templateId)";
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -103,7 +103,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 		}
 
 		if ( $templateIdToWikiTitleMap === [] ) {
-			$this->dbLog->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'extract',
 				__CLASS__,
@@ -121,7 +121,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for page template id $templateId";
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -142,7 +142,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 	 */
 	private function checkWikiTitles(): void {
 		$titles = [];
-		foreach ( $this->workspaceDB->getPageTemplates() as $pageTemplate ) {
+		foreach ( $this->reader->getPageTemplates() as $pageTemplate ) {
 			$title = '';
 			$templateId = $pageTemplate['template_id'];
 			if ( isset( $pageTemplate['wiki_title'] ) && $pageTemplate['wiki_title'] !== '' ) {
@@ -200,10 +200,10 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 	 * @throws InvalidTitleException
 	 */
 	private function buildTemplateTitle( string $name, ?int $spaceId ): string {
-		$builder = new GenericTitleBuilder( $this->workspaceDB->getMapSpaceIdToPrefix() );
+		$builder = new GenericTitleBuilder( $this->reader->getMapSpaceIdToPrefix() );
 		$builder->setNamespace( GenericTitleBuilder::NS_TEMPLATE );
 
-		$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();
+		$spaces = $this->reader->getMapSpaceIdToPrefix();
 		if ( isset( $spaces[$spaceId] ) ) {
 			$spacePrefix = $spaces[$spaceId];
 			$colonPos = strpos( $spacePrefix, ':' );

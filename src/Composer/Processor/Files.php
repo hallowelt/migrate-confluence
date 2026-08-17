@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\Output;
 class Files extends FileProcessorBase {
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
@@ -22,7 +22,7 @@ class Files extends FileProcessorBase {
 	 * @param ComposerSkipHelper $skipHelper
 	 */
 	public function __construct(
-		protected DBComposerDataLookup $dataLookup,
+		protected IComposerDataReader $reader,
 		protected Workspace $workspace,
 		protected Output $output,
 		protected string $dest,
@@ -30,7 +30,7 @@ class Files extends FileProcessorBase {
 		protected ComposerDeploymentInfo $deploymentInfo,
 		protected ComposerSkipHelper $skipHelper
 	) {
-		parent::__construct( $dataLookup, $workspace, $output, $dest, $migrationConfig );
+		parent::__construct( $reader, $workspace, $output, $dest, $migrationConfig );
 	}
 
 	/**
@@ -57,15 +57,15 @@ class Files extends FileProcessorBase {
 			foreach ( $this->currentSpaceIds as $spaceId ) {
 				$pageAttachments = array_merge(
 					$pageAttachments,
-					$this->dataLookup->getPageAttachments( (int)$spaceId )
+					$this->reader->getPageAttachments( (int)$spaceId )
 				);
 			}
 		} else {
-			$pageAttachments = $this->dataLookup->getPageAttachments();
+			$pageAttachments = $this->reader->getPageAttachments();
 		}
 
 		foreach ( $pageAttachments as $pageAttachment ) {
-			$assocPageTitle = $this->dataLookup->getWikiPageTitleFromPageId(
+			$assocPageTitle = $this->reader->getWikiPageTitleFromPageId(
 				$pageAttachment['page_id']
 			);
 			$this->processAttachment( $pageAttachment, $assocPageTitle );
@@ -85,15 +85,15 @@ class Files extends FileProcessorBase {
 			foreach ( $this->currentSpaceIds as $spaceId ) {
 				$blogPostAttachments = array_merge(
 					$blogPostAttachments,
-					$this->dataLookup->getBlogPostAttachments( (int)$spaceId )
+					$this->reader->getBlogPostAttachments( (int)$spaceId )
 				);
 			}
 		} else {
-			$blogPostAttachments = $this->dataLookup->getBlogPostAttachments();
+			$blogPostAttachments = $this->reader->getBlogPostAttachments();
 		}
 
 		foreach ( $blogPostAttachments as $blogPostAttachment ) {
-			$assocPageTitle = $this->dataLookup->getWikiBlogPostTitleFromBlogPostId(
+			$assocPageTitle = $this->reader->getWikiBlogPostTitleFromBlogPostId(
 				$blogPostAttachment['blog_post_id']
 			);
 			$this->processAttachment( $blogPostAttachment, $assocPageTitle );
@@ -132,9 +132,9 @@ class Files extends FileProcessorBase {
 		}
 
 		$uploadPath = $this->getUploadPath();
-		$pageText = $this->dataLookup->getAttachmentDescription( (int)$attachmentId );
+		$pageText = $this->reader->getAttachmentDescription( (int)$attachmentId );
 
-		$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
+		$attachments = $this->reader->getAttachmentRevisionsForAttachmentId( $attachmentId );
 		foreach ( $attachments as $attachment ) {
 			if ( isset( $attachment['attachment_reference'] ) ) {
 				$timestamp = $attachment['revision_timestamp'];
@@ -197,11 +197,11 @@ class Files extends FileProcessorBase {
 			foreach ( $this->currentSpaceIds as $spaceId ) {
 				$additionalAttachments = array_merge(
 					$additionalAttachments,
-					$this->dataLookup->getAdditionalAttachments( (int)$spaceId )
+					$this->reader->getAdditionalAttachments( (int)$spaceId )
 				);
 			}
 		} else {
-			$additionalAttachments = $this->dataLookup->getAdditionalAttachments();
+			$additionalAttachments = $this->reader->getAdditionalAttachments();
 		}
 
 		$uploadPath = $this->getUploadPath();
@@ -223,7 +223,7 @@ class Files extends FileProcessorBase {
 
 			$filename = $this->generalizeFilename( $attachmentPageTitle );
 
-			$attachments = $this->dataLookup->getAttachmentRevisionsForAttachmentId( $attachmentId );
+			$attachments = $this->reader->getAttachmentRevisionsForAttachmentId( $attachmentId );
 			foreach ( $attachments as $attachment ) {
 
 				$drawIoFileHandler = new DrawIOFileHandler();
@@ -265,7 +265,7 @@ class Files extends FileProcessorBase {
 					 * we need target wiki user info (or be sure that we import the user ourselfs).
 					 */
 
-					$pageText = $this->dataLookup->getAttachmentDescription( (int)$attachmentId );
+					$pageText = $this->reader->getAttachmentDescription( (int)$attachmentId );
 
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					$this->builder->addFileRevision(

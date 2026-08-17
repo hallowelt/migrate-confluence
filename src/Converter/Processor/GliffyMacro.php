@@ -3,19 +3,19 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class GliffyMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param IConverterDataWriter $dataWriter
 	 */
 	public function __construct(
-		private DBConversionDataLookup $dataLookup,
+		private IConverterDataReader $reader,
 		private int $currentSpaceId,
 		private string $rawPageTitle,
 		private IConverterDataWriter $dataWriter
@@ -71,7 +71,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 				$name .= '.png';
 			}
 
-			$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
+			$filename = $this->reader->getWikiFileTitleFromSpaceId(
 				$this->currentSpaceId,
 				$this->rawPageTitle,
 				$name
@@ -82,7 +82,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 				foreach ( $fallbackExtensions as $ext ) {
 					$name = $params['name'] . $ext;
 
-					$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
+					$filename = $this->reader->getWikiFileTitleFromSpaceId(
 						$this->currentSpaceId,
 						$this->rawPageTitle,
 						$name

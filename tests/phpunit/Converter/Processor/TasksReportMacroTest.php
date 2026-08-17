@@ -3,15 +3,15 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConverterDirectDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class TasksReportMacroTest extends ProcessorTestCase {
 	/**
 	 * @var mixed
 	 */
-	private $dataLookup;
+	private $dataReader;
 
 	/**
 	 * @var string
@@ -25,14 +25,16 @@ class TasksReportMacroTest extends ProcessorTestCase {
 	public function testProcess() {
 		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$this->dataReader = new ConverterDirectDataReader(
+			( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat()
+		);
 
 		$input = $this->getInput();
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new TasksReportMacro( $this->dataLookup );
+		$processor = new TasksReportMacro( $this->dataReader );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

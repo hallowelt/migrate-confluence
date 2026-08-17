@@ -4,32 +4,24 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use Exception;
+use HalloWelt\MigrateConfluence\Converter\DataReader\IConverterDataReader;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class IncludeMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var int
-	 */
-	protected int $currentSpaceId;
-
+	/** @var ConversionHelper */
 	private ConversionHelper $conversionHelper;
 
+	/** @var bool */
 	private bool $isBroken;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param IConverterDataReader $reader
 	 * @param int $currentSpaceId
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup, int $currentSpaceId ) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpaceId = $currentSpaceId;
+	public function __construct(
+		protected IConverterDataReader $reader,
+		protected int $currentSpaceId ) {
 		$this->conversionHelper = new ConversionHelper();
 	}
 
@@ -79,12 +71,12 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 		$targetSpaceId = $this->currentSpaceId;
 		$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
 		if ( $spaceKey !== '' ) {
-			$targetSpaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+			$targetSpaceId = $this->reader->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
 		}
 
 		$targetPageName = $pageEl->getAttribute( 'ri:content-title' );
 
-		$wikiTitle = $this->dataLookup->getWikiPageTitleForLink(
+		$wikiTitle = $this->reader->getWikiPageTitleForLink(
 			$this->currentSpaceId,
 			$targetSpaceId,
 			$targetPageName

@@ -20,7 +20,7 @@ class BlogPostComments extends PageComments {
 	 * @return string|null
 	 */
 	protected function getWikiTitle( int $pageId ): ?string {
-		return $this->dataLookup->getWikiBlogPostTitleFromBlogPostId( $pageId );
+		return $this->reader->getWikiBlogPostTitleFromBlogPostId( $pageId );
 	}
 
 	/**
@@ -28,7 +28,7 @@ class BlogPostComments extends PageComments {
 	 * @return string|null
 	 */
 	protected function getTalkTitle( int $pageId ): ?string {
-		return $this->dataLookup->getWikiBlogPostCommentsFromBlogPostId( $pageId );
+		return $this->reader->getWikiBlogPostCommentsFromBlogPostId( $pageId );
 	}
 
 	/**
@@ -40,11 +40,11 @@ class BlogPostComments extends PageComments {
 			foreach ( $this->currentSpaceIds as $spaceId ) {
 				$comments = array_merge(
 					$comments,
-					$this->dataLookup->getCommentsForBlogPosts( (int)$spaceId )
+					$this->reader->getCommentsForBlogPosts( (int)$spaceId )
 				);
 			}
 		} else {
-			$comments = $this->dataLookup->getCommentsForBlogPosts();
+			$comments = $this->reader->getCommentsForBlogPosts();
 		}
 
 		return $comments;

@@ -30,8 +30,8 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 	 * @throws Exception
 	 */
 	private function updateWikiTitles(): void {
-		$spaceIdToPrefixMap = $this->workspaceDB->getMapSpaceIdToPrefix();
-		$blogPosts = $this->workspaceDB->getBlogPosts();
+		$spaceIdToPrefixMap = $this->reader->getMapSpaceIdToPrefix();
+		$blogPosts = $this->reader->getBlogPosts();
 		$pageIdToWikiTitleMap = [];
 
 		foreach ( $blogPosts as $blogPost ) {
@@ -68,7 +68,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 			} catch ( Exception $ex ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -79,7 +79,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -93,7 +93,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
-			$this->dbLog->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'extract',
 				__CLASS__,
@@ -111,7 +111,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -133,7 +133,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 	 */
 	private function checkWikiTitles(): void {
 		$titles = [];
-		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
+		foreach ( $this->reader->getBlogPosts() as $blogPost ) {
 			$title = '';
 			$pageId = $blogPost['page_id'];
 			if ( isset( $blogPost['wiki_title'] ) && $blogPost['wiki_title'] !== '' ) {

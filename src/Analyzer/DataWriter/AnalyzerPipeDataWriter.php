@@ -6,6 +6,17 @@ use HalloWelt\MigrateConfluence\Database\DataWriter\AbstractPipeDataWriter;
 
 class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeDataWriter {
 
+	/**
+	 * @param int $spaceId
+	 * @param string $spaceKey
+	 * @param string $spaceName
+	 * @param string $namespacePrefix
+	 * @param string $interwikiPrefix
+	 * @param string $rootPage
+	 * @param int $homepageId
+	 * @param int $descriptionId
+	 * @return bool
+	 */
 	public function addSpace(
 		int $spaceId,
 		string $spaceKey,

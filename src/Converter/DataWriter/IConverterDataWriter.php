@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\DataWriter;
 
-use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
+use HalloWelt\MediaWiki\Lib\Migration\Database\DataWriter\IDataWriter;
 
 interface IConverterDataWriter extends IDataWriter {
 

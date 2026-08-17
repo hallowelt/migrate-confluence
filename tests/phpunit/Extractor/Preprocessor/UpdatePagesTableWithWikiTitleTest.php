@@ -15,7 +15,6 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 	 */
 	public function testBuildsWikiTitleForCurrentTopLevelPage(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -25,8 +24,7 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 		);
 
 		$processor = new UpdatePagesTableWithWikiTitle(
-			$workspaceDB,
-			$dbLog,
+			$this->createReader( $workspaceDB ),
 			$writer,
 			new MigrationConfig( [] ),
 			new WikisConfig( $workspaceDB )

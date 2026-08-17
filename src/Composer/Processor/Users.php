@@ -2,8 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MigrateConfluence\Composer\DataReader\IComposerDataReader;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\WikiUserXmlBuilder;
 use Symfony\Component\Console\Output\Output;
 
@@ -12,8 +12,8 @@ class Users implements IConfluenceComposerProcessor {
 	/** @var WikiUserXmlBuilder */
 	private WikiUserXmlBuilder $builder;
 
-	/** @var DBComposerDataLookup */
-	private DBComposerDataLookup $dataLookup;
+	/** @var IComposerDataReader */
+	private IComposerDataReader $reader;
 
 	/** @var Output */
 	private Output $output;
@@ -27,15 +27,15 @@ class Users implements IConfluenceComposerProcessor {
 	private string $subDir = '';
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param IComposerDataReader $reader
 	 * @param Output $output
 	 * @param string $dest
 	 */
 	public function __construct(
-		DBComposerDataLookup $dataLookup, Output $output, string $dest
+		IComposerDataReader $reader, Output $output, string $dest
 	) {
 		$this->builder = new WikiUserXmlBuilder();
-		$this->dataLookup = $dataLookup;
+		$this->reader = $reader;
 		$this->output = $output;
 		$this->dest = $dest;
 	}
@@ -52,7 +52,7 @@ class Users implements IConfluenceComposerProcessor {
 	 * @return void
 	 */
 	public function execute(): void {
-		$users = $this->dataLookup->getUsers();
+		$users = $this->reader->getUsers();
 
 		foreach ( $users as $user ) {
 			$wikiUsername = $user['wiki_user_name'];
