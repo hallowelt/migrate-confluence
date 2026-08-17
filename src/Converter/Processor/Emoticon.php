@@ -60,7 +60,7 @@ class Emoticon extends ConversionHelper implements IProcessor {
 	 * thumbs-up/-down each have an upper- and lowercase notation), plus
 	 * "heart" and "broken-heart" which also occur as bare `ac:name` values.
 	 *
-	 * ponytail: Unicode has no colour-specific star or "bulb off" glyph, so
+	 * Unicode has no colour-specific star or "bulb off" glyph, so
 	 * yellow-star/red-star/green-star/blue-star and light-on/light-off would
 	 * all render the same generic glyph. To keep the rendered page
 	 * unambiguous, the missing distinction is appended as plain text (e.g.
