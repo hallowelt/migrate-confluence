@@ -38,7 +38,7 @@ class FullMigrationMultiSpaceTest extends FullMigrationSingleSpaceTest {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverter
-	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
+	 * @covers \HalloWelt\MigrateConfluence\Composer\WikiBasedComposer
 	 */
 	public function testMigration(): void {
 		$spaces = [ 'space_alpha', 'space_beta', 'space_gamma' ];

@@ -9,7 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
-use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
+use HalloWelt\MigrateConfluence\Composer\WikiBasedComposer;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
@@ -63,7 +63,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverter
-	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
+	 * @covers \HalloWelt\MigrateConfluence\Composer\WikiBasedComposer
 	 */
 	public function testMigration(): void {
 		$src = $this->tempDir . '/single-source/input';
@@ -443,7 +443,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	): void {
 		$buckets = new DataBuckets( [] );
 
-		$composer = new ConfluenceComposer( $config, $workspace, $buckets );
+		$composer = new WikiBasedComposer( $config, $workspace, $buckets );
 		$composer->setOutput( $output );
 		$composer->setDestinationPath( $dest );
 

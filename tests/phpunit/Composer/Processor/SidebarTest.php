@@ -29,11 +29,12 @@ class SidebarTest extends TestCase {
 
 	private function makeSidebar(
 		DBComposerDataLookup $dataLookup,
-		bool $createSidebar = true
+		bool $createSidebar = true,
+		array $currentSpaces = []
 	): Sidebar {
 		$config = $this->createMock( MigrationConfig::class );
 		$config->method( 'getCreateSidebar' )->willReturn( $createSidebar );
-		return new Sidebar( $dataLookup, $config, $this->tmpDir );
+		return new Sidebar( $dataLookup, $config, $this->tmpDir, $currentSpaces );
 	}
 
 	/**
@@ -50,9 +51,9 @@ class SidebarTest extends TestCase {
 		return $data;
 	}
 
-	private function executeSidebar( Sidebar $sidebar, array $spaces ): void {
+	private function executeSidebar( DBComposerDataLookup $dataLookup, array $spaces ): void {
+		$sidebar = $this->makeSidebar( $dataLookup, true, $spaces );
 		$sidebar->setSubDir( $this->testNamespace );
-		$sidebar->setCurrentSpaces( $spaces );
 		$sidebar->execute();
 	}
 
@@ -90,7 +91,6 @@ class SidebarTest extends TestCase {
 
 		$sidebar = $this->makeSidebar( $dataLookup, false );
 		$sidebar->setSubDir( $this->testNamespace );
-		$sidebar->setCurrentSpaces( [] );
 		$sidebar->execute();
 
 		$this->assertFileDoesNotExist(
@@ -111,7 +111,7 @@ class SidebarTest extends TestCase {
 			$this->makeBlog( 30, 'Blog:Post1' ),
 		] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $dataLookup, [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		// Top level: space name heading
@@ -135,7 +135,7 @@ class SidebarTest extends TestCase {
 		] );
 		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $dataLookup, [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		// Space heading, no Pages/Blogs sub-heading — entries directly as children
@@ -152,7 +152,7 @@ class SidebarTest extends TestCase {
 			$this->makeBlog( 30, 'Blog:Post1' ),
 		] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $dataLookup, [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		// Space heading, blog entry directly as child (no Blogs sub-heading)
@@ -171,7 +171,7 @@ class SidebarTest extends TestCase {
 		] );
 		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $dataLookup, [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		// Only pages → direct children of space section
@@ -190,7 +190,7 @@ class SidebarTest extends TestCase {
 		] );
 		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $dataLookup, [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		// Only pages → direct children of space section
@@ -217,7 +217,7 @@ class SidebarTest extends TestCase {
 		] );
 		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $dataLookup, [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		$this->assertArrayNotHasKey( 'children', $sidebar[0]['children'][0] );
@@ -230,7 +230,7 @@ class SidebarTest extends TestCase {
 		] );
 		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $dataLookup, [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		$link = $sidebar[0]['children'][0];
@@ -245,7 +245,7 @@ class SidebarTest extends TestCase {
 			$this->makeBlog( 30, 'NS:Blog_post~1', 'My Blog Post Title' ),
 		] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $dataLookup, [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		$link = $sidebar[0]['children'][0];
@@ -260,7 +260,7 @@ class SidebarTest extends TestCase {
 		] );
 		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [ $this->makeSpace( 1, 'Space A' ) ] );
+		$this->executeSidebar( $dataLookup, [ $this->makeSpace( 1, 'Space A' ) ] );
 		$sidebar = $this->readSidebarJson();
 
 		$link = $sidebar[0]['children'][0];
@@ -284,7 +284,7 @@ class SidebarTest extends TestCase {
 				[ 2, [] ],
 			] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [
+		$this->executeSidebar( $dataLookup, [
 			$this->makeSpace( 1, 'Space A' ),
 			$this->makeSpace( 2, 'Space B' ),
 		] );
@@ -312,7 +312,7 @@ class SidebarTest extends TestCase {
 				[ 2, [ $this->makeBlog( 30, 'Blog:Post1' ) ] ],
 			] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [
+		$this->executeSidebar( $dataLookup, [
 			$this->makeSpace( 1, 'Space A' ),
 			$this->makeSpace( 2, 'Space B' ),
 		] );
@@ -335,7 +335,7 @@ class SidebarTest extends TestCase {
 				[ 1, [ $this->makeBlog( 30, 'Blog:Post1' ) ] ],
 			] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [
+		$this->executeSidebar( $dataLookup, [
 			$this->makeSpace( 1, 'Space A' ),
 		] );
 		$sidebar = $this->readSidebarJson();
@@ -359,7 +359,7 @@ class SidebarTest extends TestCase {
 				[ 2, [] ],
 			] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [
+		$this->executeSidebar( $dataLookup, [
 			$this->makeSpace( 1, 'Space A' ),
 			$this->makeSpace( 2, 'Empty Space' ),
 		] );
@@ -381,7 +381,7 @@ class SidebarTest extends TestCase {
 			] );
 		$dataLookup->method( 'getBlogPostsForSidebar' )->willReturn( [] );
 
-		$this->executeSidebar( $this->makeSidebar( $dataLookup ), [
+		$this->executeSidebar( $dataLookup, [
 			$this->makeSpace( 1, 'Space A' ),
 			$this->makeSpace( 2, 'Space B' ),
 		] );
