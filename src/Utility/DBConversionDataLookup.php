@@ -30,6 +30,14 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $pageId
+	 * @return string|null The wiki title the given Confluence page ID was migrated to, or null
+	 */
+	public function getWikiPageTitleFromPageId( int $pageId ): ?string {
+		return $this->workspaceDB->getWikiPageTitleFromPageId( $pageId );
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getSpaceIdToPrefixMap(): array {

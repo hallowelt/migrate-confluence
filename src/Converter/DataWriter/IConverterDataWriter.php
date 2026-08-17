@@ -21,6 +21,19 @@ interface IConverterDataWriter extends IDataWriter {
 		string $targetAttachmentFilename
 	): bool;
 
+	/**
+	 * @param int|null $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $svgFilename
+	 *
+	 * @return bool
+	 */
+	public function addRoadmapSvg(
+		?int $spaceId,
+		string $confluenceTitle,
+		string $svgFilename
+	): bool;
+
 	public function addRequiredTemplate( string $templateName ): void;
 
 	/**

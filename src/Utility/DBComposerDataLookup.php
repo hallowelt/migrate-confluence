@@ -132,6 +132,17 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * SVG files generated during conversion (e.g. rendered roadmap diagrams),
+	 * to be added to files.xml even though they have no Confluence attachment record.
+	 *
+	 * @param int|null $spaceId
+	 * @return array
+	 */
+	public function getRoadmapSvgs( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getRoadmapSvgs( $spaceId );
+	}
+
+	/**
 	 * @param int|null $spaceId
 	 * @return array
 	 */

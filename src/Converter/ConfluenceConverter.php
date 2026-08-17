@@ -74,6 +74,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\RoadmapMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\StatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
@@ -475,6 +476,13 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->writer
+			),
+			new RoadmapMacro(
+				$this->dataLookup,
+				$this->conversionDataWriter,
+				$this->writer,
+				$this->currentSpace,
+				$this->confluencePageTitle
 			),
 			new ContentByLabelMacro( $this->wikiPageTitle ),
 			new AttachmentsMacro(),
