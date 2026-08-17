@@ -35,7 +35,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @inheritDoc
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
 		$this->isBroken = false;

@@ -29,9 +29,16 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	): bool {
 		$this->send(
 			__FUNCTION__,
-			$spaceId, $spaceKey, $spaceName, $namespacePrefix, $interwikiPrefix,
-			$rootPage, $homepageId, $descriptionId
+			$spaceId,
+			$spaceKey,
+			$spaceName,
+			$namespacePrefix,
+			$interwikiPrefix,
+			$rootPage,
+			$homepageId,
+			$descriptionId
 		);
+
 		return true;
 	}
 

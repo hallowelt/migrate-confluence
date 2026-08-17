@@ -23,6 +23,7 @@ use HalloWelt\MigrateConfluence\Utility\WikisOptionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 class Analyze extends CommandAnalyzeWorkers {
 
@@ -168,6 +169,7 @@ class Analyze extends CommandAnalyzeWorkers {
 
 	/**
 	 * @return bool
+	 * @throws Throwable
 	 */
 	protected function doProcessFile(): bool {
 		$this->output->writeln( "Analyzing file '{$this->currentFile->getFilename()}'" );

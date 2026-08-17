@@ -177,7 +177,7 @@ class ConfluenceAnalyzer extends AnalyzerBase implements
 	private function getProcessors( string $sourceBasePath ): array {
 		return [
 			'BodyContent' => new BodyContents( $this->dataWriter ),
-			'Space' => new Spaces( $this->dataWriter, $this->migrationConfig, $this->wikisConfig ),
+			'Space' => new Spaces( $this->dataWriter, $this->wikisConfig ),
 			'SpaceDescription' => new SpaceDescription( $this->dataWriter, $this->migrationConfig ),
 			'Page' => new Page( $this->dataWriter, $this->migrationConfig ),
 			'BlogPost' => new BlogPost( $this->dataWriter, $this->migrationConfig ),

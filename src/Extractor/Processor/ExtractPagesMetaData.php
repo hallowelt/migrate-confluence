@@ -5,24 +5,21 @@ namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ExtractPagesMetaData extends ProcessorBase {
 
 	/**
 	 * @param IExtractorDataReader $reader
-	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
 		IExtractorDataReader $reader,
-		DBLog $dbLog,
 		IExtractorDataWriter $writer,
 		protected MigrationConfig $migrationConfig
 	) {
-		parent::__construct( $reader, $dbLog, $writer );
+		parent::__construct( $reader, $writer );
 	}
 
 	/**
@@ -58,7 +55,7 @@ class ExtractPagesMetaData extends ProcessorBase {
 				]
 			);
 
-			$this->dbLog->addLogEntry(
+			$this->writer->addLogEntry(
 				'info',
 				'extract',
 				__METHOD__,

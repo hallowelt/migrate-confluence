@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
@@ -12,6 +13,8 @@ use DOMText;
  * @see https://confluence.atlassian.com/doc/excerpt-macro-148062.html
  */
 class ExcerptMacro extends StructuredMacroProcessorBase {
+
+	public const EXCERPT_NAME_FALLBACK_PREFIX = 'excerpt-';
 
 	/**
 	 * Block-level content nodes. VE turns each into a paragraph/heading whose
@@ -41,11 +44,18 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 	 */
 	private const INLINE_SPLITTERS = [ 'br', 'img', 'ac:image', 'ac:emoticon', 'time' ];
 
+	private int $excerptMacroCount = 0;
+
 	/**
 	 * @inheritDoc
 	 */
 	protected function getMacroName(): string {
 		return 'excerpt';
+	}
+
+	public function process( DOMDocument $dom ): void {
+		parent::process( $dom );
+		$this->excerptMacroCount++;
 	}
 
 	/**
@@ -101,6 +111,10 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 
 		$parent = $node->parentNode;
 
+		if ( empty( $excerptName ) ) {
+			$excerptName = $this->generateExcerptName();
+		}
+
 		$openTag = $this->createTextNode(
 			$node->ownerDocument,
 			"#####EXCERPT{$layout}OPEN|$excerptName|$hidden#####",
@@ -148,7 +162,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 				return true;
 			}
 		}
-		return $count > 1;
+		return false;
 	}
 
 	/**
@@ -250,5 +264,14 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 				$this->walkInline( $child, $splitters, $hasText );
 			}
 		}
+	}
+
+	/**
+	 * If no name given, generate one by convention: excerpt-<excerpt-count>
+	 *
+	 * @return string
+	 */
+	private function generateExcerptName(): string {
+		return self::EXCERPT_NAME_FALLBACK_PREFIX . $this->excerptMacroCount;
 	}
 }

@@ -8,7 +8,6 @@ use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
@@ -20,19 +19,17 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 	/**
 	 * @param IExtractorDataReader $reader
-	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 * @param WikisConfig $wikisConfig
 	 */
 	public function __construct(
 		IExtractorDataReader $reader,
-		DBLog $dbLog,
 		IExtractorDataWriter $writer,
 		private MigrationConfig $migrationConfig,
 		private WikisConfig $wikisConfig
 	) {
-		parent::__construct( $reader, $dbLog, $writer );
+		parent::__construct( $reader, $writer );
 	}
 
 	/**
@@ -62,7 +59,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$pageIdToWikiTitleMap = [];
 		foreach ( $pages as $page ) {
 			if ( !isset( $page['page_id'] ) ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -74,7 +71,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			$pageId = (int)$page['page_id'];
 
 			if ( !isset( $page['space_id'] ) || !isset( $page['confluence_title'] ) ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -85,7 +82,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 			// historical versions
 			if ( (int)$page['original_version_id'] !== -1 ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'info',
 					'extract',
 					__CLASS__,
@@ -99,7 +96,6 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				continue;
 			}
 
-			$pageId = (int)$page['page_id'];
 			$spaceId = (int)$page['space_id'];
 			$confluenceTitle = (string)$page['confluence_title'];
 
@@ -111,7 +107,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 			} catch ( Exception $ex ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,
@@ -122,7 +118,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleBuilder delivers empty wiki title for page $confluenceTitle (page id $pageId)";
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -136,7 +132,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
-			$this->dbLog->addLogEntry(
+			$this->writer->addLogEntry(
 				'warning',
 				'extract',
 				__CLASS__,
@@ -154,7 +150,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for page id $pageId";
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -181,7 +177,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$spaceIdPrefixMap = [];
 		foreach ( $this->reader->getSpaces() as $space ) {
 			if ( !isset( $space['space_id'] ) || !isset( $space['space_key'] ) ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'warning',
 					'extract',
 					__CLASS__,

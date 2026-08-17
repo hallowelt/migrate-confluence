@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -16,7 +15,6 @@ class ExtractPagesMetaDataTest extends TestCase {
 	 */
 	public function testAddsPageMetaWithConfiguredAndLabelCategories(): void {
 		$workspaceDB = $this->createMock( IExtractorDataReader::class );
-		$dbLog = $this->createMock( DBLog::class );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
@@ -39,9 +37,9 @@ class ExtractPagesMetaDataTest extends TestCase {
 				[ 'categories' => [ 'ConfiguredCategory', 'LabelCategory' ] ]
 			);
 
-		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
+		$writer->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractPagesMetaData( $workspaceDB, $dbLog, $writer, $migrationConfig );
+		$processor = new ExtractPagesMetaData( $workspaceDB, $writer, $migrationConfig );
 		$processor->execute();
 	}
 
@@ -50,7 +48,6 @@ class ExtractPagesMetaDataTest extends TestCase {
 	 */
 	public function testDoesNotLeakLabelCategoriesBetweenPages(): void {
 		$workspaceDB = $this->createMock( IExtractorDataReader::class );
-		$dbLog = $this->createMock( DBLog::class );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
@@ -79,7 +76,7 @@ class ExtractPagesMetaDataTest extends TestCase {
 				[ 'categories' => [ 'LabelCategory' ] ]
 			);
 
-		$processor = new ExtractPagesMetaData( $workspaceDB, $dbLog, $writer, $migrationConfig );
+		$processor = new ExtractPagesMetaData( $workspaceDB, $writer, $migrationConfig );
 		$processor->execute();
 	}
 }

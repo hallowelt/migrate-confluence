@@ -8,16 +8,11 @@ use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 
 trait PreprocessorTestHelper {
 
 	private function createWorkspaceDB(): WorkspaceDB {
 		return ( new WorkspaceDbMock() )->createEmpty();
-	}
-
-	private function createDBLog( WorkspaceDB $workspaceDB ): DBLog {
-		return new DBLog( $workspaceDB );
 	}
 
 	private function createReader( WorkspaceDB $workspaceDB ): IExtractorDataReader {

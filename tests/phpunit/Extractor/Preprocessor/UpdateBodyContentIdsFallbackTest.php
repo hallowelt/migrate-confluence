@@ -13,7 +13,6 @@ class UpdateBodyContentIdsFallbackTest extends TestCase {
 	 */
 	public function testFillsMissingBodyContentIdsForAllSupportedTables(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addPage( 300, 10, 'Page', '', 'current', '', '', '1', -1, -1, [], [], [], [] );
@@ -26,7 +25,7 @@ class UpdateBodyContentIdsFallbackTest extends TestCase {
 		$workspaceDB->addBodyContent( 1302, 302, 'Comment', [ 'content' => '302' ] );
 		$workspaceDB->addBodyContent( 1303, 303, 'SpaceDescription', [ 'content' => '303' ] );
 
-		$processor = new UpdateBodyContentIdsFallback( $this->createReader( $workspaceDB ), $dbLog, $writer );
+		$processor = new UpdateBodyContentIdsFallback( $this->createReader( $workspaceDB ), $writer );
 		$processor->execute();
 
 		$page = $this->findRowById( $workspaceDB->getPages(), 'page_id', 300 );

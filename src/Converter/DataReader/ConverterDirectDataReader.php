@@ -25,6 +25,14 @@ class ConverterDirectDataReader implements IConverterDataReader {
 	}
 
 	/**
+	 * @param int $pageId
+	 * @return array|null
+	 */
+	public function getPropertiesForPageId( int $pageId ): ?array {
+		return $this->db->getPropertiesForPageId( $pageId );
+	}
+
+	/**
 	 * @param string $spaceKey
 	 * @return int|null
 	 */
@@ -298,6 +306,34 @@ class ConverterDirectDataReader implements IConverterDataReader {
 		}
 
 		return $content;
+	}
+
+	/**
+	 * @param string $wikiTitle
+	 * @return array|null
+	 */
+	public function getPageByWikiTitle( string $wikiTitle ): ?array {
+		return $this->db->getPageByWikiTitle( $wikiTitle );
+	}
+
+	/**
+	 * @param array $bodyContentIds
+	 * @return string|null
+	 */
+	public function getConfluencePageBodyContent( array $bodyContentIds ): ?string {
+		$bodyContent = '';
+		foreach ( $bodyContentIds as $bodyContentId ) {
+			$body = $this->db->getBodyContentBodyByBodyContentId( $bodyContentId );
+			if ( $body ) {
+				$bodyContent .= $body;
+			}
+		}
+
+		if ( $bodyContent === '' ) {
+			return null;
+		}
+
+		return $bodyContent;
 	}
 
 	/** @param int $spaceId @return string|null */

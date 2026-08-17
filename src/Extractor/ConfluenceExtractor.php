@@ -32,7 +32,6 @@ use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyC
 use HalloWelt\MigrateConfluence\IMigrationConfigAware;
 use HalloWelt\MigrateConfluence\IWikisConfigAware;
 use HalloWelt\MigrateConfluence\IWorkspaceAware;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
@@ -57,16 +56,13 @@ class ConfluenceExtractor extends ExtractorBase implements
 	private ?Output $output = null;
 
 	/** @var IExtractorDataWriter|null */
-	private ?IExtractorDataWriter $writer = null;
+	private ?IExtractorDataWriter $dataWriter = null;
 
 	/** @var IExtractorDataReader|null */
-	private ?IExtractorDataReader $reader = null;
+	private ?IExtractorDataReader $dataReader = null;
 
 	/** @var MigrationConfig|null */
 	private ?MigrationConfig $migrationConfig = null;
-
-	/** @var DBLog */
-	private DBLog $dbLog;
 
 	/** @var WikisConfig|null */
 	private ?WikisConfig $wikisConfig = null;
@@ -88,7 +84,7 @@ class ConfluenceExtractor extends ExtractorBase implements
 	 * @return void
 	 */
 	public function setDataWriter( IExtractorDataWriter $writer ): void {
-		$this->writer = $writer;
+		$this->dataWriter = $writer;
 	}
 
 	/**
@@ -96,7 +92,7 @@ class ConfluenceExtractor extends ExtractorBase implements
 	 * @return void
 	 */
 	public function setDataReader( IExtractorDataReader $reader ): void {
-		$this->reader = $reader;
+		$this->dataReader = $reader;
 	}
 
 	/**
@@ -119,8 +115,7 @@ class ConfluenceExtractor extends ExtractorBase implements
 	 * @return void
 	 */
 	private function initDBLog(): void {
-		$this->dbLog = new DBLog( $this->writer );
-		$this->dbLog->addLogEntry(
+		$this->dataWriter->addLogEntry(
 			'info',
 			'extract',
 			__CLASS__,
@@ -136,10 +131,10 @@ class ConfluenceExtractor extends ExtractorBase implements
 		if ( $this->workspace === null ) {
 			throw new RuntimeException( "Workspace is not set" );
 		}
-		if ( $this->reader === null ) {
+		if ( $this->dataReader === null ) {
 			throw new RuntimeException( "Data reader is not set" );
 		}
-		if ( $this->writer === null ) {
+		if ( $this->dataWriter === null ) {
 			throw new RuntimeException( "Data writer is not set" );
 		}
 		if ( $this->migrationConfig === null ) {
@@ -186,17 +181,19 @@ class ConfluenceExtractor extends ExtractorBase implements
 	 */
 	private function getPreprocessors(): array {
 		return [
-			new UpdateBodyContentIdsFallback( $this->reader, $this->dbLog, $this->writer ),
-			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->reader, $this->dbLog, $this->writer ),
+			new UpdateBodyContentIdsFallback( $this->dataReader, $this->dataWriter ),
+			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->dataReader, $this->dataWriter ),
 			new UpdatePagesTableWithWikiTitle(
-				$this->reader, $this->dbLog, $this->writer, $this->migrationConfig, $this->wikisConfig ),
-			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->reader, $this->dbLog, $this->writer ),
-			new UpdateBlogPostsTableWithWikiTitle( $this->reader, $this->dbLog, $this->writer ),
-			new UpdatePageTemplatesWithWikiTitle( $this->reader, $this->dbLog, $this->writer ),
-			new UpdatePageAttachmentTable( $this->reader, $this->dbLog, $this->writer, $this->migrationConfig ),
-			new UpdateBlogPostAttachmentTable( $this->reader, $this->dbLog, $this->writer, $this->migrationConfig ),
+				$this->dataReader, $this->dataWriter, $this->migrationConfig, $this->wikisConfig ),
+			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->dataReader, $this->dataWriter ),
+			new UpdateBlogPostsTableWithWikiTitle( $this->dataReader, $this->dataWriter ),
+			new UpdatePageTemplatesWithWikiTitle( $this->dataReader, $this->dataWriter ),
+			new UpdatePageAttachmentTable( $this->dataReader, $this->dataWriter, $this->migrationConfig ),
+			new UpdateBlogPostAttachmentTable(
+				$this->dataReader, $this->dataWriter, $this->migrationConfig
+			),
 			new PopulateAdditionalAttachmentsTable(
-				$this->reader, $this->dbLog, $this->writer, $this->migrationConfig
+				$this->dataReader, $this->dataWriter, $this->migrationConfig
 			),
 		];
 	}
@@ -206,17 +203,21 @@ class ConfluenceExtractor extends ExtractorBase implements
 	 */
 	private function getProcessors(): array {
 		return [
-			new ExtractSpaceDescriptionBodyContents( $this->reader, $this->workspace, $this->dbLog, $this->writer ),
-			new ExtractPagesBodyContents( $this->reader, $this->workspace, $this->dbLog, $this->writer ),
-			new ExtractBlogPostsBodyContents( $this->reader, $this->workspace, $this->dbLog, $this->writer ),
-			new ExtractCommentsBodyContents( $this->reader, $this->workspace, $this->dbLog, $this->writer ),
-			new ExtractPageTemplateContents( $this->reader, $this->workspace, $this->dbLog, $this->writer ),
-			new ExtractPagesMetaData( $this->reader, $this->dbLog, $this->writer, $this->migrationConfig ),
-			new ExtractBlogPostsMetaData( $this->reader, $this->dbLog, $this->writer, $this->migrationConfig ),
-			new ExtractAttachmentsMetaData( $this->reader, $this->dbLog, $this->writer, $this->migrationConfig ),
-			new BuildAttachmentDescriptions( $this->reader, $this->dbLog, $this->writer ),
-			new ExtractPageComments( $this->reader, $this->dbLog, $this->writer ),
-			new ExtractBlogPostComments( $this->reader, $this->dbLog, $this->writer ),
+			new ExtractSpaceDescriptionBodyContents(
+				$this->dataReader, $this->workspace, $this->dataWriter
+			),
+			new ExtractPagesBodyContents( $this->dataReader, $this->workspace, $this->dataWriter ),
+			new ExtractBlogPostsBodyContents( $this->dataReader, $this->workspace, $this->dataWriter ),
+			new ExtractCommentsBodyContents( $this->dataReader, $this->workspace, $this->dataWriter ),
+			new ExtractPageTemplateContents( $this->dataReader, $this->workspace, $this->dataWriter ),
+			new ExtractPagesMetaData( $this->dataReader, $this->dataWriter, $this->migrationConfig ),
+			new ExtractBlogPostsMetaData( $this->dataReader, $this->dataWriter, $this->migrationConfig ),
+			new ExtractAttachmentsMetaData(
+				$this->dataReader, $this->dataWriter, $this->migrationConfig
+			),
+			new BuildAttachmentDescriptions( $this->dataReader, $this->dataWriter ),
+			new ExtractPageComments( $this->dataReader, $this->dataWriter ),
+			new ExtractBlogPostComments( $this->dataReader, $this->dataWriter ),
 		];
 	}
 
@@ -224,28 +225,28 @@ class ConfluenceExtractor extends ExtractorBase implements
 	 * @return void
 	 */
 	private function checkTitles(): void {
-		if ( !empty( $this->reader->getLogEntriesForStep( 'analyze' ) ) ) {
+		if ( !empty( $this->dataReader->getLogEntriesForStep( 'analyze' ) ) ) {
 			$this->writeln( "\n\nWARNINGS / ERRORS:\n" );
 			$this->writeln(
 				"\nPlease check logging table in workspaceDB for details about invalid titles and filenames\n\n"
 			);
 		}
 
-		if ( !empty( $this->reader->getInvalidPageWikiTitles() ) ) {
+		if ( !empty( $this->dataReader->getInvalidPageWikiTitles() ) ) {
 			$this->writeln( "\n\INVALID PAGE TITLES DETECTED:\n" );
 			$this->writeln(
 				"\nPlease check page_invalid_titles table in workspaceDB for details\n\n"
 			);
 		}
 
-		if ( !empty( $this->reader->getInvalidBlogPostWikiTitles() ) ) {
+		if ( !empty( $this->dataReader->getInvalidBlogPostWikiTitles() ) ) {
 			$this->writeln( "\n\INVALID BLOG POST TITLES DETECTED:\n" );
 			$this->writeln(
 				"\nPlease check blog_post_invalid_titles table in workspaceDB for details\n\n"
 			);
 		}
 
-		if ( !empty( $this->reader->getInvalidAttachmentTitles() ) ) {
+		if ( !empty( $this->dataReader->getInvalidAttachmentTitles() ) ) {
 			$this->writeln( "\n\INVALID ATTACHMENT TITLES DETECTED:\n" );
 			$this->writeln(
 				"\nPlease check invalid_attachment_titles table in workspaceDB for details\n\n"

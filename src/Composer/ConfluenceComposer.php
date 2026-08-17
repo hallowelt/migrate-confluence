@@ -53,10 +53,10 @@ class ConfluenceComposer extends ComposerBase implements
 	private string $dest = '';
 
 	/** @var IComposerDataReader */
-	private IComposerDataReader $reader;
+	private IComposerDataReader $dataReader;
 
 	/** @var IComposerDataWriter */
-	private IComposerDataWriter $writer;
+	private IComposerDataWriter $dataWriter;
 
 	private ?Workspace $workspace = null;
 
@@ -79,18 +79,34 @@ class ConfluenceComposer extends ComposerBase implements
 		$this->output = $output;
 	}
 
+	/**
+	 * @param IComposerDataReader $reader
+	 * @return void
+	 */
 	public function setDataReader( IComposerDataReader $reader ): void {
-		$this->reader = $reader;
+		$this->dataReader = $reader;
 	}
 
+	/**
+	 * @param IComposerDataWriter $writer
+	 * @return void
+	 */
 	public function setDataWriter( IComposerDataWriter $writer ): void {
-		$this->writer = $writer;
+		$this->dataWriter = $writer;
 	}
 
+	/**
+	 * @param MigrationConfig $migrationConfig
+	 * @return void
+	 */
 	public function setMigrationConfig( MigrationConfig $migrationConfig ): void {
 		$this->migrationConfig = $migrationConfig;
 	}
 
+	/**
+	 * @param Workspace $workspace
+	 * @return void
+	 */
 	public function setWorkspace( Workspace $workspace ): void {
 		$this->workspace = $workspace;
 	}
@@ -110,10 +126,10 @@ class ConfluenceComposer extends ComposerBase implements
 		if ( $this->output === null ) {
 			throw new \RuntimeException( 'Output is not set' );
 		}
-		if ( !isset( $this->reader ) ) {
+		if ( !isset( $this->dataReader ) ) {
 			throw new \RuntimeException( 'Data reader is not set' );
 		}
-		if ( !isset( $this->writer ) ) {
+		if ( !isset( $this->dataWriter ) ) {
 			throw new \RuntimeException( 'Data writer is not set' );
 		}
 		if ( !isset( $this->migrationConfig ) ) {
@@ -125,7 +141,7 @@ class ConfluenceComposer extends ComposerBase implements
 
 		$this->logMigrateConfluenceToolVersion();
 
-		$this->skipHelper = new ComposerSkipHelper( $this->reader, $this->migrationConfig );
+		$this->skipHelper = new ComposerSkipHelper( $this->dataReader, $this->migrationConfig );
 
 		// Run shared content processors
 		$sharedProcessors = $this->initProcessorsForSharedContent(
@@ -138,12 +154,12 @@ class ConfluenceComposer extends ComposerBase implements
 		}
 
 		// Run space dependent processors for each space
-		$wikiNames = $this->reader->getWikisConfigWikiNames();
+		$wikiNames = $this->dataReader->getWikisConfigWikiNames();
 		if ( $wikiNames === [] ) {
 			// If no wikis are configured, we will process all spaces and group them by namespace
 			$this->output->writeln( "Data is not assigned to any wikis." );
 
-			$spaces = $this->reader->getSpaces();
+			$spaces = $this->dataReader->getSpaces();
 			if ( $spaces === [] ) {
 				$this->output->writeln( "No spaces found." );
 			}
@@ -157,7 +173,7 @@ class ConfluenceComposer extends ComposerBase implements
 			$this->copySharedDirectoryToWikiDirectories( $wikiNames );
 
 			foreach ( $wikiNames as $wikiName ) {
-				$spaces = $this->reader->getWikisConfigSpacesForWikiName( $wikiName );
+				$spaces = $this->dataReader->getWikisConfigSpacesForWikiName( $wikiName );
 				if ( $spaces === [] ) {
 					$this->output->writeln( "No spaces found for wiki '$wikiName'." );
 					continue;
@@ -299,7 +315,7 @@ class ConfluenceComposer extends ComposerBase implements
 
 			// Add enhanced sidebar to the namespace directory, not shared. It is a namespace-scoped feature.
 			$sidebarProcessor = new Sidebar(
-				$this->reader, $this->migrationConfig, $this->dest
+				$this->dataReader, $this->migrationConfig, $this->dest
 			);
 			if ( $wikiName !== '' ) {
 				$sidebarProcessor->setSubDir( $wikiName );
@@ -309,9 +325,7 @@ class ConfluenceComposer extends ComposerBase implements
 			if ( $sidebarProcessor instanceof ISpaceIdsDependentProcessor ) {
 				$sidebarProcessor->setCurrentSpaceIds( $spaceIds );
 			}
-			if ( $sidebarProcessor instanceof ISpacesDependentProcessor ) {
-				$sidebarProcessor->setCurrentSpaces( $spaces );
-			}
+			$sidebarProcessor->setCurrentSpaces( $spaces );
 			$sidebarProcessor->execute();
 
 			$this->writeDeploymentLog( $namespace, $deploymentInfo, $wikiName );
@@ -334,7 +348,7 @@ class ConfluenceComposer extends ComposerBase implements
 		$map = [];
 		foreach ( $spaces as $space ) {
 			$spaceId = (int)$space['space_id'];
-			$namespace = $space['namespace_prefix'] ?? 'NS_MAIN';
+			$namespace = empty( $space['namespace_prefix'] ) ? 'NS_MAIN' : $space['namespace_prefix'];
 
 			if ( !isset( $map[$namespace] ) ) {
 				$map[$namespace] = [];
@@ -356,13 +370,13 @@ class ConfluenceComposer extends ComposerBase implements
 	): array {
 		return [
 			new DefaultFiles(
-				$this->reader, $this->workspace, $this->output, $this->dest, $this->migrationConfig
+				$this->dataReader, $this->workspace, $this->output, $this->dest, $this->migrationConfig
 			),
 			new DefaultPages(
 				$builder, $this->output, $this->dest, $this->migrationConfig
 			),
 			new RequiredTemplates(
-				$this->reader, $builder, $this->output, $this->dest, $this->migrationConfig
+				$this->dataReader, $builder, $this->output, $this->dest, $this->migrationConfig
 			),
 		];
 	}
@@ -378,40 +392,40 @@ class ConfluenceComposer extends ComposerBase implements
 	): array {
 		return [
 			new Files(
-				$this->reader, $this->workspace,
+				$this->dataReader, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo, $skipHelper
 			),
 			new Pages(
-				$builder, $this->reader, $this->workspace,
+				$builder, $this->dataReader, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo, $skipHelper
 			),
 			new BlogPosts(
-				$builder, $this->reader, $this->workspace,
+				$builder, $this->dataReader, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo, $skipHelper
 			),
 			new Templates(
-				$builder, $this->reader, $this->workspace,
+				$builder, $this->dataReader, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo, $skipHelper
 			),
 			new PageComments(
-				$builder, $this->reader, $this->workspace,
+				$builder, $this->dataReader, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo, $skipHelper
 			),
 			new BlogPostComments(
-				$builder, $this->reader, $this->workspace,
+				$builder, $this->dataReader, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,
 				$deploymentInfo, $skipHelper
 			),
 			new Users(
-				$this->reader, $this->output, $this->dest
+				$this->dataReader, $this->output, $this->dest
 			),
 			new InvalidContents(
-				$builder, $this->reader, $this->workspace,
+				$builder, $this->dataReader, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig
 			),
 		];
@@ -480,7 +494,7 @@ class ConfluenceComposer extends ComposerBase implements
 	 * @return void
 	 */
 	private function writeLogContent( string $type ): void {
-		$data = $this->reader->getLogEntriesForStep( 'compose', $type );
+		$data = $this->dataReader->getLogEntriesForStep( 'compose', $type );
 		$content = '';
 		foreach ( $data as $item ) {
 			$content .= $item['caller'] . ': ' . $item['text'] . "\n";
@@ -498,7 +512,7 @@ class ConfluenceComposer extends ComposerBase implements
 	private function writeInvalidPagesLog( array $spaceIds, string $namespace = '', string $wikiName = '' ): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
-			$data = array_merge( $data, $this->reader->getInvalidPages( (int)$spaceId ) );
+			$data = array_merge( $data, $this->dataReader->getInvalidPages( (int)$spaceId ) );
 		}
 		$content = "page_id;space_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
@@ -523,7 +537,7 @@ class ConfluenceComposer extends ComposerBase implements
 	private function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '', string $wikiName = '' ): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
-			$data = array_merge( $data, $this->reader->getInvalidBlogPosts( (int)$spaceId ) );
+			$data = array_merge( $data, $this->dataReader->getInvalidBlogPosts( (int)$spaceId ) );
 		}
 		$content = "blog_post_id;space_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
@@ -550,7 +564,7 @@ class ConfluenceComposer extends ComposerBase implements
 	): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
-			$data = array_merge( $data, $this->reader->getInvalidPageTemplates( (int)$spaceId ) );
+			$data = array_merge( $data, $this->dataReader->getInvalidPageTemplates( (int)$spaceId ) );
 		}
 		$content = "template_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
@@ -576,7 +590,7 @@ class ConfluenceComposer extends ComposerBase implements
 	): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
-			$data = array_merge( $data, $this->reader->getInvalidAttachments( (int)$spaceId ) );
+			$data = array_merge( $data, $this->dataReader->getInvalidAttachments( (int)$spaceId ) );
 		}
 		$content = "attachment_id;page_id;confluence_title;wiki_title;text\n";
 		foreach ( $data as $item ) {
@@ -615,7 +629,7 @@ class ConfluenceComposer extends ComposerBase implements
 	 * @return void
 	 */
 	private function logMigrateConfluenceToolVersion(): void {
-		$this->writer->addLogEntry(
+		$this->dataWriter->addLogEntry(
 			'info',
 			'compose',
 			__CLASS__,

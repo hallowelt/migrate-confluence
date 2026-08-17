@@ -6,7 +6,6 @@ use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 
 class ExtractPageTemplateContentsTest extends TestCase {
@@ -17,7 +16,6 @@ class ExtractPageTemplateContentsTest extends TestCase {
 	public function testExtractsNonEmptyTemplateContentsAsRawFiles(): void {
 		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$workspace = $this->createMock( Workspace::class );
-		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentPageTemplateContents' )->willReturn( [
@@ -29,7 +27,7 @@ class ExtractPageTemplateContentsTest extends TestCase {
 			->method( 'saveRawContent' )
 			->with( 'pt_20', '<html><body>Template content</body></html>' );
 
-		$processor = new ExtractPageTemplateContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractPageTemplateContents( $workspaceDB, $workspace, $writer );
 		$processor->execute();
 	}
 }

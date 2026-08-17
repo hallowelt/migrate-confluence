@@ -6,7 +6,6 @@ use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 
 /**
  */
@@ -15,16 +14,14 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 	/**
 	 * @param IExtractorDataReader $reader
 	 * @param Workspace $workspace
-	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 */
 	public function __construct(
 		IExtractorDataReader $reader,
 		protected Workspace $workspace,
-		DBLog $dbLog,
 		IExtractorDataWriter $writer
 	) {
-		parent::__construct( $reader, $dbLog, $writer );
+		parent::__construct( $reader, $writer );
 	}
 
 	/**
@@ -63,7 +60,7 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 				$bodyContentHTML = $this->normalizeBodyContentHTML( $body );
 				$targetFileName = $this->workspace->saveRawContent( (string)$bodyContentId, $bodyContentHTML );
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'info', 'extract', __METHOD__, "Extract body content to $targetFileName"
 				);
 			}

@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsMetaData;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -16,7 +15,6 @@ class ExtractBlogPostsMetaDataTest extends TestCase {
 	 */
 	public function testAddsBlogPostMetaFromLabellingCategories(): void {
 		$workspaceDB = $this->createMock( IExtractorDataReader::class );
-		$dbLog = $this->createMock( DBLog::class );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
@@ -36,9 +34,9 @@ class ExtractBlogPostsMetaDataTest extends TestCase {
 			->method( 'addBlogPostMeta' )
 			->with( 40, [ 'categories' => [ 'BlogLabel' ] ] );
 
-		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
+		$writer->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractBlogPostsMetaData( $workspaceDB, $dbLog, $writer, $migrationConfig );
+		$processor = new ExtractBlogPostsMetaData( $workspaceDB, $writer, $migrationConfig );
 		$processor->execute();
 	}
 }

@@ -6,7 +6,6 @@ use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractCommentsBodyContents;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 
 class ExtractCommentsBodyContentsTest extends TestCase {
@@ -17,7 +16,6 @@ class ExtractCommentsBodyContentsTest extends TestCase {
 	public function testExtractsOnlyPageAndBlogPostComments(): void {
 		$workspaceDB = $this->createMock( IExtractorDataReader::class );
 		$workspace = $this->createMock( Workspace::class );
-		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentComments' )->willReturn( [
@@ -54,9 +52,9 @@ class ExtractCommentsBodyContentsTest extends TestCase {
 			)
 			->willReturnOnConsecutiveCalls( '/content/raw/104.mraw', '/content/raw/105.mraw' );
 
-		$dbLog->expects( $this->exactly( 2 ) )->method( 'addLogEntry' );
+		$writer->expects( $this->exactly( 2 ) )->method( 'addLogEntry' );
 
-		$processor = new ExtractCommentsBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractCommentsBodyContents( $workspaceDB, $workspace, $writer );
 		$processor->execute();
 	}
 }

@@ -22,6 +22,13 @@ interface IConverterDataReader extends IDataReader {
 	public function getMapSpaceIdToPrefix(): array;
 
 	/**
+	 * @param int $pageId
+	 *
+	 * @return array|null
+	 */
+	public function getPropertiesForPageId( int $pageId ): ?array;
+
+	/**
 	 * @param string $spaceKey
 	 *
 	 * @return int|null
@@ -326,4 +333,18 @@ interface IConverterDataReader extends IDataReader {
 	 * @return string|null
 	 */
 	public function getAttachmentContent( string $attachmentTargetFileTitle ): ?string;
+
+	/**
+	 * @param string $wikiTitle
+	 *
+	 * @return array|null
+	 */
+	public function getPageByWikiTitle( string $wikiTitle ): ?array;
+
+	/**
+	 * @param array $bodyContentIds
+	 *
+	 * @return string|null
+	 */
+	public function getConfluencePageBodyContent( array $bodyContentIds ): ?string;
 }

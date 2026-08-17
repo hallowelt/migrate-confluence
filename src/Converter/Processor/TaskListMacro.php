@@ -70,13 +70,11 @@ class TaskListMacro extends ConversionHelper implements IProcessor {
 			}
 		}
 
-		if ( $node instanceof DOMElement ) {
-			$txt = $this->createTextNode( $macroReplacement->ownerDocument, "\n[x] ", __METHOD__ );
-			if ( $macroReplacement->getAttribute( 'data-task-status' ) === 'incomplete' ) {
-				$txt = $this->createTextNode( $macroReplacement->ownerDocument, "\n[] ", __METHOD__ );
-			}
-			$macroReplacement->prepend( $txt );
+		$txt = $this->createTextNode( $macroReplacement->ownerDocument, "\n[x] ", __METHOD__ );
+		if ( $macroReplacement->getAttribute( 'data-task-status' ) === 'incomplete' ) {
+			$txt = $this->createTextNode( $macroReplacement->ownerDocument, "\n[] ", __METHOD__ );
 		}
+		$macroReplacement->prepend( $txt );
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}

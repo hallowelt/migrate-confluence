@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Extractor;
 
 use HalloWelt\MigrateConfluence\Extractor\DataReader\IExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use Symfony\Component\Console\Output\Output;
 
 abstract class ProcessorBase implements IExtractorProcessor {
@@ -14,12 +13,10 @@ abstract class ProcessorBase implements IExtractorProcessor {
 
 	/**
 	 * @param IExtractorDataReader $reader
-	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 */
 	public function __construct(
 		protected IExtractorDataReader $reader,
-		protected DBLog $dbLog,
 		protected IExtractorDataWriter $writer
 	) {
 	}

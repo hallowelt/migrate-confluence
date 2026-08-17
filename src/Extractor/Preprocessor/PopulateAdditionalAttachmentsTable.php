@@ -96,7 +96,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 					''
 				);
 			} catch ( Exception $ex ) {
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'analyze',
 					__CLASS__,
@@ -108,7 +108,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 			if ( empty( $attachmentWikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
 
-				$this->dbLog->addLogEntry(
+				$this->writer->addLogEntry(
 					'error',
 					'extract',
 					__CLASS__,
@@ -125,12 +125,12 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 			$counter = 1;
 			while ( $exists ) {
 				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
-					$this->dbLog->addLogEntry(
+					$this->writer->addLogEntry(
 						'warning',
 						'analyze',
 						__CLASS__,
 						"Could not find unique {$this->getContentLabel()} attachment title for attachment "
-						. "$attachmentId after " . (string)self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
+						. "$attachmentId after " . self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
 					);
 					continue 2;
 				}
@@ -139,14 +139,14 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 					$attachmentSpaceId,
 					$attachmentOrigFilename,
 					'',
-					"-(" . (string)$counter . ")"
+					"-(" . $counter . ")"
 				);
 
 				if ( empty( $attachmentWikiTitle ) ) {
 					$message = "TitleCompressor delivers empty wiki title for "
 					. "attachment id $attachmentId while uncolliding";
 
-					$this->dbLog->addLogEntry(
+					$this->writer->addLogEntry(
 						'error',
 						'extract',
 						__CLASS__,

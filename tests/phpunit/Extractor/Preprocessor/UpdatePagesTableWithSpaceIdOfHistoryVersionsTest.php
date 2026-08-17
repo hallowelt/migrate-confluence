@@ -13,14 +13,13 @@ class UpdatePagesTableWithSpaceIdOfHistoryVersionsTest extends TestCase {
 	 */
 	public function testUpdatesHistoricalPageSpaceIdFromOriginalVersion(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addPage( 100, 10, 'Original', '', 'current', '', '', '1', -1, -1, [], [], [], [] );
 		$workspaceDB->addPage( 101, null, 'Historical', '', 'historical', '', '', '1', 100, -1, [], [], [], [] );
 
 		$processor = new UpdatePagesTableWithSpaceIdOfHistoryVersions(
-			$this->createReader( $workspaceDB ), $dbLog, $writer
+			$this->createReader( $workspaceDB ), $writer
 		);
 		$processor->execute();
 

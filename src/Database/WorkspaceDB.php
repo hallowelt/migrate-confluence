@@ -897,7 +897,7 @@ class WorkspaceDB {
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		return !empty( $data['wiki_name'] ) ? $data['wiki_name'] : null;
+		return isset( $data['wiki_name'] ) ? $data['wiki_name'] : null;
 	}
 
 	/**
@@ -918,7 +918,7 @@ class WorkspaceDB {
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		return !empty( $data['wiki_namespace'] ) ? $data['wiki_namespace'] : null;
+		return isset( $data['wiki_namespace'] ) ? $data['wiki_namespace'] : null;
 	}
 
 	/**
@@ -939,7 +939,7 @@ class WorkspaceDB {
 		$data = $result->fetchArray( SQLITE3_ASSOC );
 		$result->finalize();
 
-		return !empty( $data['wiki_root_page'] ) ? $data['wiki_root_page'] : null;
+		return isset( $data['wiki_root_page'] ) ? $data['wiki_root_page'] : null;
 	}
 
 	/**
@@ -2931,6 +2931,35 @@ class WorkspaceDB {
 
 	/**
 	 * @param int $pageId
+	 * @return array|null
+	 */
+	public function getPropertiesForPageId( int $pageId ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT properties FROM pages WHERE page_id = :page_id LIMIT 1'
+		);
+		$transaction->bindValue( ':page_id', $pageId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || !isset( $data['properties'] ) ) {
+			return null;
+		}
+
+		$data = json_decode( $data['properties'], true );
+		if ( !is_array( $data ) ) {
+			return null;
+		}
+		return $data;
+	}
+
+	/**
+	 * @param int $pageId
 	 * @return int|null The space_id for the given page_id, or null if not found.
 	 */
 	public function getSpaceIdForPageId( int $pageId ): ?int {
@@ -3594,6 +3623,37 @@ class WorkspaceDB {
 		}
 
 		return $this->fetchDbArray( $result );
+	}
+
+	public function getPageByWikiTitle( string $wikiTitle ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM pages WHERE wiki_title = :wiki_title'
+		);
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+		if ( !$data ) {
+			return null;
+		}
+
+		$jsonFields = [
+			'body_content_ids',
+			'historical_ids',
+			'properties',
+			'collection'
+		];
+
+		foreach ( $jsonFields as $field ) {
+			$data[$field] = json_decode( $data[$field], true );
+		}
+
+		return $data;
 	}
 
 	/**
