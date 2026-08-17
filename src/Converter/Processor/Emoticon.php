@@ -8,7 +8,7 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
 /**
- * Confluence stores emoticons/emoji reactions in two shapes:
+ * Confluence stores emoticons/emoji reactions in three shapes:
  *
  * 1. Legacy wiki-markup emoticons, only carrying `ac:name`, e.g.
  *    <ac:emoticon ac:name="smile" />
@@ -18,9 +18,14 @@ use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
  *      ac:emoji-id="1f4e7" ac:emoji-fallback="&#128231;" />
  *    `ac:name` for these is often the generic placeholder "blue-star",
  *    but may also be a descriptive slug (e.g. "thumbs-up", "heart").
+ * 3. Another shape (seen in Data Center exports), carrying
+ *    `ac:name` (the emoji's full lower-case English name, e.g.
+ *    "winking face") and `ac:emoji-id`, but no `ac:emoji-fallback`, e.g.
+ *    <ac:emoticon ac:name="winking face" ac:emoji-id="1f609" />
+ *    These are resolved generically from `ac:emoji-id` (see
+ *    emojiIdToChar()), not via the static table below.
  *
  * @see https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
- * @see standard.json, atlassian.json (emoji reference data shipped with this tool)
  */
 class Emoticon extends ConversionHelper implements IProcessor {
 
@@ -117,6 +122,16 @@ class Emoticon extends ConversionHelper implements IProcessor {
 	];
 
 	/**
+	 * Lazily-loaded, process-wide cache for the FE0F-qualification map (see
+	 * getEmojiFe0fMap()). Loaded at most once, and only if an emoticon
+	 * actually needs it (i.e. carries `ac:emoji-id` with no usable
+	 * `ac:emoji-fallback`).
+	 *
+	 * @var array|null
+	 */
+	private static ?array $emojiFe0fMap = null;
+
+	/**
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
@@ -164,6 +179,11 @@ class Emoticon extends ConversionHelper implements IProcessor {
 			return $this->buildParams( $fallback, $this->getAltText( $node, $name ) );
 		}
 
+		$char = $this->emojiIdToChar( $node->getAttribute( 'ac:emoji-id' ) );
+		if ( $char !== null ) {
+			return $this->buildParams( $char, $this->getAltText( $node, $name ) );
+		}
+
 		$numberedIcon = $this->getNumberedIconParams( $name );
 		if ( $numberedIcon !== null ) {
 			return $this->buildParams(
@@ -179,6 +199,54 @@ class Emoticon extends ConversionHelper implements IProcessor {
 		}
 
 		return null;
+	}
+
+	/**
+	 * General-purpose emoji-id to Unicode converter. `ac:emoji-id` is a
+	 * hyphen-joined lowercase hex codepoint sequence, e.g. "1f609" or
+	 * "1f468-200d-1f4bb" (a ZWJ sequence). Some sequences are only valid
+	 * emoji when a codepoint is followed by the FE0F variation selector
+	 * (e.g. "26a0" needs to render as "26a0-fe0f" to display as an emoji
+	 * instead of a plain text glyph), which `ac:emoji-id` typically omits.
+	 * getEmojiFe0fMap() supplies the correct, fully-qualified sequence for
+	 * those cases.
+	 *
+	 * @param string $emojiId
+	 * @return string|null Unicode character(s), or null if $emojiId is
+	 *   empty or not a hex codepoint sequence (e.g. Atlassian's non-Unicode
+	 *   custom icon ids like "atlassian-logo_trello")
+	 */
+	private function emojiIdToChar( string $emojiId ): ?string {
+		$emojiId = strtolower( $emojiId );
+		if ( $emojiId === '' || !preg_match( '/^[0-9a-f]+(-[0-9a-f]+)*$/', $emojiId ) ) {
+			return null;
+		}
+
+		$sequence = $this->getEmojiFe0fMap()[$emojiId] ?? $emojiId;
+
+		$char = '';
+		foreach ( explode( '-', $sequence ) as $codepoint ) {
+			$char .= mb_chr( hexdec( $codepoint ), 'UTF-8' );
+		}
+		return $char;
+	}
+
+	/**
+	 * Loads src/Converter/_data/emojis.json, generated from Unicode's
+	 * official emoji-test.txt (see UTS #51): a map of
+	 * [unqualified/minimally-qualified codepoint sequence] => [the same
+	 * sequence with FE0F variation selector(s) inserted where needed to be
+	 * fully-qualified/renderable as an emoji]. Cached for the lifetime of
+	 * the request; only read from disk on first use.
+	 *
+	 * @return array
+	 */
+	private function getEmojiFe0fMap(): array {
+		if ( self::$emojiFe0fMap === null ) {
+			$path = dirname( __DIR__ ) . '/_data/emojis.json';
+			self::$emojiFe0fMap = json_decode( file_get_contents( $path ), true ) ?? [];
+		}
+		return self::$emojiFe0fMap;
 	}
 
 	/**
