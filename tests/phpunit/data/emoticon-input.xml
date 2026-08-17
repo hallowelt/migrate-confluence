@@ -2,4 +2,10 @@
     <p>Some sample text with emoticon <ac:emoticon ac:name="smile" /></p>
     <p>Some text with unknown emoticon <ac:emoticon ac:name="unknown_emoticon" /></p>
     <p>Some text with "blue-star" emoticon <ac:emoticon ac:name="blue-star" ac:emoji-shortname=":e-mail:" ac:emoji-id="1f4e7" ac:emoji-fallback="&#128231;"></ac:emoticon></p>
+    <p>Some text with legacy "thumbs-up" emoticon <ac:emoticon ac:name="thumbs-up" /></p>
+    <p>Some text with image-only "logo_trello" emoticon <ac:emoticon ac:name="logo_trello" ac:emoji-shortname=":logo_trello:" ac:emoji-id="atlassian-logo_trello" ac:emoji-fallback=":logo_trello:" /></p>
+    <p>Some text with numbered circle emoticon <ac:emoticon ac:name="17_seventeen_circle_purple" ac:emoji-shortname=":17_seventeen_circle_purple:" ac:emoji-id="atlassian-17_seventeen_circle_purple" ac:emoji-fallback=":17_seventeen_circle_purple:" /></p>
+    <p>Some text with numbered square emoticon <ac:emoticon ac:name="4_four_square_green" ac:emoji-shortname=":4_four_square_green:" ac:emoji-id="atlassian-4_four_square_green" ac:emoji-fallback=":4_four_square_green:" /></p>
+    <p>Some text with emoji-id-only "envelope" emoticon <ac:emoticon ac:name="envelope" ac:emoji-id="2709" /></p>
+    <p>Some text with emoji-id-only ZWJ "man technologist" emoticon <ac:emoticon ac:name="man technologist" ac:emoji-id="1f468-200d-1f4bb" /></p>
 </xml>
