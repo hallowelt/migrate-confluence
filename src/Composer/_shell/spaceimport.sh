@@ -4,7 +4,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./src/Composer/_shell/import.sh --wiki-root=/path/to/wiki-root --src=/path/to/result/<namespace>
+Usage: ./spaceimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<namespace>]
 
 Runs MediaWiki imports from a result namespace directory.
 Supports both single-file output (e.g. pages.xml) and split output
@@ -12,17 +12,18 @@ Supports both single-file output (e.g. pages.xml) and split output
 
 Options:
   --wiki-root=PATH Path to the MediaWiki root directory
+  --src=PATH       Path to the result namespace directory (defaults to this script's directory)
   --add-default    Also import default-files*.xml and default-pages*.xml
+  --shared         Import shared default files/pages and required templates only
   --sfr=WIKI       Import into the WIKI wiki
 
 Import order:
   1) files*.xml
   2) blogs*.xml
   3) comments*.xml (or page-talk*.xml + blog-talk*.xml if comments*.xml is absent)
-  4) required_templates*.xml (if present)
-  5) templates*.xml
-  6) pages*.xml
-  7) enhanced-sidebar.xml (if present)
+  4) templates*.xml
+  5) pages*.xml
+  6) enhanced-sidebar.xml (if present)
 
 When --add-default is set, these are included:
   - default-files*.xml (before files*.xml)
@@ -37,7 +38,9 @@ EOF
 src=""
 sfr=""
 add_default=0
+shared=0
 wiki_root=""
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 for arg in "$@"; do
   case "$arg" in
@@ -54,6 +57,9 @@ for arg in "$@"; do
       ;;
     --add-default)
       add_default=1
+      ;;
+    --shared)
+      shared=1
       ;;
     -h|--help)
       usage
@@ -74,9 +80,7 @@ if [[ -z "$wiki_root" ]]; then
 fi
 
 if [[ -z "$src" ]]; then
-  echo "Error: --src is required" >&2
-  usage >&2
-  exit 1
+  src="$script_dir"
 fi
 
 if [[ ! -d "$src" ]]; then
@@ -182,6 +186,13 @@ run_group() {
   done
 }
 
+if [[ "$shared" -eq 1 ]]; then
+  run_group "default-files" "files" "optional"
+  run_group "default-pages" "dump" "optional"
+  echo "Shared import completed successfully."
+  exit 0
+fi
+
 if [[ "$add_default" -eq 1 ]]; then
   run_group "default-files" "files" "optional"
 fi
@@ -197,7 +208,6 @@ else
   run_group "blog-talk" "dump" "required"
 fi
 
-run_group "required_templates" "dump" "optional"
 run_group "templates" "dump" "required"
 if [[ "$add_default" -eq 1 ]]; then
   run_group "default-pages" "dump" "optional"
