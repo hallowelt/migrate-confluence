@@ -17,7 +17,8 @@ $config = [
 		'HalloWelt\MigrateConfluence\Converter\ConfluenceConverter::factory'
 	],
 	'composers' => [
-		'HalloWelt\MigrateConfluence\Composer\ConfluenceComposer::factory'
+		'HalloWelt\MigrateConfluence\Composer\NamespaceBasedComposer::factory',
+		'HalloWelt\MigrateConfluence\Composer\WikiBasedComposer::factory'
 	],
 	'command-overrides' => [
 		'analyze' => [

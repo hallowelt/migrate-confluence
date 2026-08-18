@@ -4,7 +4,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./src/Composer/_shell/import.sh --wiki-root=/path/to/wiki-root --src=/path/to/result/<namespace>
+Usage: ./spaceimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<namespace>] [--sfr=<wiki-instance>]
 
 Runs MediaWiki imports from a result namespace directory.
 Supports both single-file output (e.g. pages.xml) and split output
@@ -12,21 +12,21 @@ Supports both single-file output (e.g. pages.xml) and split output
 
 Options:
   --wiki-root=PATH Path to the MediaWiki root directory
-  --add-default    Also import default-files*.xml and default-pages*.xml
-  --sfr=WIKI       Import into the WIKI wiki
+  --src=PATH       Result namespace directory (defaults to this script's directory)
+  --add-default    Also import default-files*.xml and default-pages*.xml from _shared
+  --sfr=NAME       MediaWiki wiki instance passed to the import maintenance scripts
 
 Import order:
   1) files*.xml
   2) blogs*.xml
   3) comments*.xml (or page-talk*.xml + blog-talk*.xml if comments*.xml is absent)
-  4) required_templates*.xml (if present)
-  5) templates*.xml
-  6) pages*.xml
-  7) enhanced-sidebar.xml (if present)
+  4) templates*.xml
+  5) pages*.xml
+  6) enhanced-sidebar.xml (if present)
 
 When --add-default is set, these are included:
-  - default-files*.xml (before files*.xml)
-  - default-pages*.xml (before pages*.xml)
+  - _shared/default-files*.xml (before files*.xml)
+  - _shared/default-pages*.xml (before pages*.xml)
 
 Notes:
 - Run this script from the MediaWiki root directory.
@@ -38,6 +38,7 @@ src=""
 sfr=""
 add_default=0
 wiki_root=""
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 for arg in "$@"; do
   case "$arg" in
@@ -48,8 +49,6 @@ for arg in "$@"; do
       src="${arg#*=}"
       ;;
     --sfr=*)
-      # the flag has the same name for the PHP scripts, so we keep the whole
-      # argument including the --sfr= part
       sfr="${arg}"
       ;;
     --add-default)
@@ -74,9 +73,7 @@ if [[ -z "$wiki_root" ]]; then
 fi
 
 if [[ -z "$src" ]]; then
-  echo "Error: --src is required" >&2
-  usage >&2
-  exit 1
+  src="$script_dir"
 fi
 
 if [[ ! -d "$src" ]]; then
@@ -102,17 +99,18 @@ if [[ ! -f "$wiki_root/extensions/BlueSpiceDistributionConnector/maintenance/imp
 fi
 
 collect_xml_files() {
-  local base="$1"
+  local source_dir="$1"
+  local base="$2"
   local files=()
   local split_candidates=()
   local split_files=()
 
-  if [[ -f "$src/$base.xml" ]]; then
-    files+=("$src/$base.xml")
+  if [[ -f "$source_dir/$base.xml" ]]; then
+    files+=("$source_dir/$base.xml")
   fi
 
   shopt -s nullglob
-  split_candidates=("$src/$base"-*.xml)
+  split_candidates=("$source_dir/$base"-*.xml)
   shopt -u nullglob
 
   for file in "${split_candidates[@]}"; do
@@ -132,7 +130,7 @@ collect_xml_files() {
 run_import_dump_file() {
   local file="$1"
   local args=()
-  if [[ $sfr ]]; then
+  if [[ -n "$sfr" ]]; then
     args+=("$sfr")
   fi
   args+=("$file")
@@ -142,7 +140,7 @@ run_import_dump_file() {
 run_import_files_file() {
   local file="$1"
   local args=()
-  if [[ $sfr ]]; then
+  if [[ -n "$sfr" ]]; then
     args+=("$sfr")
   fi
   args+=("--src=$file")
@@ -150,12 +148,13 @@ run_import_files_file() {
 }
 
 run_group() {
-  local base="$1"
-  local mode="$2"
-  local required="$3"
+  local source_dir="$1"
+  local base="$2"
+  local mode="$3"
+  local required="$4"
   local files=()
 
-  readarray -t files < <(collect_xml_files "$base")
+  readarray -t files < <(collect_xml_files "$source_dir" "$base")
 
   if (( ${#files[@]} == 0 )); then
     if [[ "$required" == "required" ]]; then
@@ -183,26 +182,27 @@ run_group() {
 }
 
 if [[ "$add_default" -eq 1 ]]; then
-  run_group "default-files" "files" "optional"
+  shared_dir="$src/_shared"
+  if [[ -d "$shared_dir" ]]; then
+    echo "==> Importing shared default data from $shared_dir"
+    run_group "$shared_dir" "default-files" "files" "optional"
+    run_group "$shared_dir" "default-pages" "dump" "optional"
+  fi
 fi
-run_group "files" "files" "required"
-run_group "blogs" "dump" "required"
+run_group "$src" "files" "files" "required"
+run_group "$src" "blogs" "dump" "required"
 
 comment_files=()
-collect_xml_files "comments" comment_files
+readarray -t comment_files < <(collect_xml_files "$src" "comments")
 if (( ${#comment_files[@]} > 0 )); then
-  run_group "comments" "dump" "required"
+  run_group "$src" "comments" "dump" "required"
 else
-  run_group "page-talk" "dump" "required"
-  run_group "blog-talk" "dump" "required"
+  run_group "$src" "page-talk" "dump" "required"
+  run_group "$src" "blog-talk" "dump" "required"
 fi
 
-run_group "required_templates" "dump" "optional"
-run_group "templates" "dump" "required"
-if [[ "$add_default" -eq 1 ]]; then
-  run_group "default-pages" "dump" "optional"
-fi
-run_group "pages" "dump" "required"
+run_group "$src" "templates" "dump" "required"
+run_group "$src" "pages" "dump" "required"
 
 sidebar_file="$src/enhanced-sidebar.xml"
 if [[ -f "$sidebar_file" ]]; then

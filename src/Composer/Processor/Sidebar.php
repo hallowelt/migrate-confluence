@@ -4,17 +4,14 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
-use HalloWelt\MigrateConfluence\Composer\ISpacesDependentProcessor;
+use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
-class Sidebar implements IConfluenceComposerProcessor, ISpacesDependentProcessor {
+class Sidebar implements IConfluenceComposerProcessor, ISubDirAware {
 
 	/** @var string */
 	private string $subDir = '';
-
-	/** @var array */
-	private array $currentSpaces = [];
 
 	/**
 	 * @param DBComposerDataLookup $dataLookup
@@ -24,7 +21,8 @@ class Sidebar implements IConfluenceComposerProcessor, ISpacesDependentProcessor
 	public function __construct(
 		private DBComposerDataLookup $dataLookup,
 		private MigrationConfig $migrationConfig,
-		private string $dest
+		private string $dest,
+		private array $currentSpaces = []
 	) {
 	}
 
@@ -34,10 +32,6 @@ class Sidebar implements IConfluenceComposerProcessor, ISpacesDependentProcessor
 	 */
 	public function setSubDir( string $name ): void {
 		$this->subDir = $name;
-	}
-
-	public function setCurrentSpaces( array $spaces ): void {
-		$this->currentSpaces = $spaces;
 	}
 
 	/**

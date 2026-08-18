@@ -28,8 +28,9 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param IConverterDataWriter $writer
+	 * @param int $currentSpace
 	 */
-	public function __construct( private IConverterDataWriter $writer ) {
+	public function __construct( private IConverterDataWriter $writer, private int $currentSpace ) {
 	}
 
 	/**
@@ -105,7 +106,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		}
 
 		if ( $found ) {
-			$this->writer->addRequiredTemplate( self::TEMPLATE_NAME );
+			$this->writer->registerDefaultPage( $this->currentSpace, self::TEMPLATE_NAME );
 		}
 	}
 
@@ -141,7 +142,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 			$node
 		);
 
-		$this->writer->addRequiredTemplate( self::TEMPLATE_NAME );
+		$this->writer->registerDefaultPage( $this->currentSpace, self::TEMPLATE_NAME );
 	}
 
 	/**

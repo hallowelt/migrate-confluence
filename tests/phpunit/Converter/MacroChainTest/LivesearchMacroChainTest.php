@@ -37,7 +37,10 @@ class LivesearchMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new LivesearchMacro( $this->createMock( ConverterDirectDataWriter::class ) );
+		return new LivesearchMacro(
+			$this->createMock( ConverterDirectDataWriter::class ),
+			42
+		);
 	}
 
 }

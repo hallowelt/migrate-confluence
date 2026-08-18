@@ -3,11 +3,12 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
+use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\WikiUserXmlBuilder;
 use Symfony\Component\Console\Output\Output;
 
-class Users implements IConfluenceComposerProcessor {
+class Users implements IConfluenceComposerProcessor, ISubDirAware {
 
 	/** @var WikiUserXmlBuilder */
 	private WikiUserXmlBuilder $builder;
