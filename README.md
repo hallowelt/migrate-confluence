@@ -95,11 +95,21 @@ Important: If you re-run the scripts you will need to clean up the "workspace" d
 #### Import helper script
 To simplify imports there is a helper script at `src/Composer/_shell/spaceimport.sh`.
 
-Run it with the MediaWiki root path and pass the result namespace directory with `--src`:
+Run it with the required MediaWiki root path and, optionally, the result
+namespace directory:
 
 ```bash
 ./src/Composer/_shell/spaceimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/ABC
 ```
+
+Use `--add-default` to import default data from the `_shared` directory within
+the result directory.
+
+Both helper scripts accept optional `--sfr=<wiki-instance>` to import into a
+named MediaWiki wiki instance. The option is forwarded to both import
+maintenance scripts. When `--src` is omitted, they use the directory where the
+script is located as the result directory.
+
 
 The script imports files in this order:
 
@@ -120,10 +130,12 @@ If the composer output is grouped by wiki name, use `src/Composer/_shell/wikiimp
 Example:
 
 ```bash
-./src/Composer/_shell/wikiimport.sh --wiki-root=/tmp/mediawiki --wiki=MyWiki
+./src/Composer/_shell/wikiimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/MyWiki --sfr=MyWiki
 ```
 
-The script uses `<wiki-root>/result` by default as the result root. You can override it with `--src` if the result directory lives elsewhere.
+`--src`, when supplied, must point to the result directory for the wiki. Omit
+`--sfr` when importing into the default wiki; otherwise it is forwarded to both
+import maintenance scripts.
 
 ### Additional Features
 

@@ -4,27 +4,28 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./wikiimport.sh --wiki-root=/path/to/wiki-root --src=/path/to/result/<wiki> [--wiki=<wiki-name>]
+Usage: ./wikiimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<wiki>] [--sfr=<wiki-instance>]
 
 Imports shared output and every namespace directory inside the selected wiki
 result directory.
 
 Options:
   --wiki-root=PATH Path to the MediaWiki root directory
-  --wiki=NAME      Target wiki name (defaults to the source directory name)
-  --src=PATH       Wiki result directory containing namespace directories and the sidebar
-  --add-default  Also import default-files*.xml and default-pages*.xml if present
+  --src=PATH       Wiki result directory (defaults to this script's directory)
+  --sfr=NAME       MediaWiki wiki instance passed to the import maintenance scripts
+  --add-default    Also import default-files*.xml and default-pages*.xml from _shared
 
 Notes:
-- Shared output is imported once from --src/_shared when present.
+- When --add-default is set, shared output is imported once from --src/_shared.
 - Each namespace directory under --src is imported independently.
 EOF
 }
 
 src=""
-wiki=""
+sfr=""
 wiki_root=""
 add_default=0
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 for arg in "$@"; do
   case "$arg" in
@@ -34,8 +35,8 @@ for arg in "$@"; do
     --src=*)
       src="${arg#*=}"
       ;;
-    --wiki=*)
-      wiki="${arg#*=}"
+    --sfr=*)
+      sfr="$arg"
       ;;
     --add-default)
       add_default=1
@@ -59,14 +60,10 @@ if [[ -z "$wiki_root" ]]; then
 fi
 
 if [[ -z "$src" ]]; then
-  echo "Error: --src is required" >&2
-  usage >&2
-  exit 1
+  src="$script_dir"
 fi
 
-if [[ -z "$wiki" ]]; then
-  wiki="$(basename "${src%/}")"
-fi
+wiki_name="$(basename "${src%/}")"
 
 if [[ ! -d "$wiki_root" ]]; then
   echo "Error: --wiki-root directory does not exist: $wiki_root" >&2
@@ -128,14 +125,20 @@ collect_xml_files() {
 run_import_dump_file() {
   local file="$1"
   local args=()
-  args+=("--sfr=$wiki")
+  if [[ -n "$sfr" ]]; then
+    args+=("$sfr")
+  fi
   args+=("$file")
   ( cd "$wiki_root" && php maintenance/importDump.php "${args[@]}" )
 }
 
 run_import_files_file() {
   local file="$1"
-  local args=("--sfr=$wiki" "--src=$file")
+  local args=()
+  if [[ -n "$sfr" ]]; then
+    args+=("$sfr")
+  fi
+  args+=("--src=$file")
   ( cd "$wiki_root" && php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php "${args[@]}" )
 }
 
@@ -174,9 +177,6 @@ import_shared_directory() {
 import_namespace_directory() {
   local source_dir="$1"
 
-  if [[ "$add_default" -eq 1 ]]; then
-    run_group "$source_dir" "default-files" "files" "optional"
-  fi
   run_group "$source_dir" "files" "files" "required"
   run_group "$source_dir" "blogs" "dump" "required"
 
@@ -190,14 +190,11 @@ import_namespace_directory() {
   fi
 
   run_group "$source_dir" "templates" "dump" "required"
-  if [[ "$add_default" -eq 1 ]]; then
-    run_group "$source_dir" "default-pages" "dump" "optional"
-  fi
   run_group "$source_dir" "pages" "dump" "required"
   run_group "$source_dir" "enhanced-sidebar" "dump" "optional"
 }
 
-if [[ -d "$shared_dir" ]]; then
+if [[ "$add_default" -eq 1 && -d "$shared_dir" ]]; then
   echo "==> Importing shared output from $shared_dir"
   import_shared_directory "$shared_dir"
 fi
@@ -225,7 +222,7 @@ for namespace_dir in "${namespace_dirs[@]}"; do
   if [[ "$namespace_name" == "_shared" ]]; then
     continue
   fi
-  echo "==> Importing wiki '$wiki' namespace '$namespace_name' from $namespace_dir"
+  echo "==> Importing wiki '$wiki_name' namespace '$namespace_name' from $namespace_dir"
 
   if ! import_namespace_directory "${namespace_dir%/}"; then
     echo "Error: import failed for namespace directory $namespace_dir" >&2
@@ -233,4 +230,4 @@ for namespace_dir in "${namespace_dirs[@]}"; do
   fi
 done
 
-echo "Wiki import completed for '$wiki'."
+echo "Wiki import completed for '$wiki_name'."
