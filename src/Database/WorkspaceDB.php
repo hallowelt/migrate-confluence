@@ -322,7 +322,6 @@ class WorkspaceDB {
 		$this->createTableAttachmentsDescriptions();
 		$this->createTableExportProperties();
 		$this->createTableDefaultPagesRegistry();
-		$this->createTableRequiredTemplates();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -5269,17 +5268,6 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createTableRequiredTemplates(): void {
-		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS required_templates (
-				template_name TEXT PRIMARY KEY
-			);'
-		);
-	}
-
-	/**
-	 * @return void
-	 */
 	private function createTableDefaultPagesRegistry(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS default_pages_registry (
@@ -5294,10 +5282,10 @@ class WorkspaceDB {
 	/**
 	 * Register default pages used for creating new pages in spaces.
 	 *
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @param string $defaultPageName
 	 * @param string $defaultPageNamespace
-	 * @return boolean
+	 * @return bool
 	 */
 	public function registerDefaultPage( int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template' ): bool {
 		$transaction = $this->cachedPrepare(
@@ -5321,7 +5309,7 @@ class WorkspaceDB {
 	/**
 	 * Get all registered default pages for a given space ID.
 	 *
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @return array
 	 */
 	public function getRegisteredDefaultPagesForSpace( int $spaceId ): array {

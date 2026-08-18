@@ -44,10 +44,10 @@ class ConverterPipeDataWriter extends AbstractPipeDataWriter implements IConvert
 	}
 
 	/**
-	 * @param integer $spaceId
+	 * @param int $spaceId
 	 * @param string $defaultPageName
 	 * @param string $defaultPageNamespace
-	 * @return boolean
+	 * @return bool
 	 */
 	public function registerDefaultPage(
 		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'

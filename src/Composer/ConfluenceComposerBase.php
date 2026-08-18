@@ -15,7 +15,6 @@ use HalloWelt\MigrateConfluence\Composer\Processor\Files;
 use HalloWelt\MigrateConfluence\Composer\Processor\InvalidContents;
 use HalloWelt\MigrateConfluence\Composer\Processor\PageComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
-use HalloWelt\MigrateConfluence\Composer\Processor\RequiredTemplates;
 use HalloWelt\MigrateConfluence\Composer\Processor\Templates;
 use HalloWelt\MigrateConfluence\Composer\Processor\Users;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;

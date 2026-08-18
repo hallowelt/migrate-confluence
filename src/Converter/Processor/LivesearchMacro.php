@@ -28,7 +28,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param IConverterDataWriter $writer
-	 * @param integer $currentSpace
+	 * @param int $currentSpace
 	 */
 	public function __construct( private IConverterDataWriter $writer, private int $currentSpace ) {
 	}
