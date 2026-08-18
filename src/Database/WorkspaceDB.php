@@ -5287,7 +5287,9 @@ class WorkspaceDB {
 	 * @param string $defaultPageNamespace
 	 * @return bool
 	 */
-	public function registerDefaultPage( int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template' ): bool {
+	public function registerDefaultPage(
+		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'
+	): bool {
 		$transaction = $this->cachedPrepare(
 			'INSERT OR IGNORE INTO default_pages_registry (
 				space_id,
