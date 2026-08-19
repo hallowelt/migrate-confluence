@@ -13,7 +13,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./spaceimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<namespace>] [--add-default] [--sfr=<wiki-instance>]
+Usage: ./spaceimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<namespace>] [--add-default] [--dry] [--sfr=<wiki-instance>]
 
 Runs MediaWiki imports for a single namespace directory of the migration result.
 Supports both single-file output (e.g. pages.xml) and split output
@@ -23,6 +23,7 @@ Options:
   --wiki-root=PATH  Path to the MediaWiki root directory
   --src=PATH        Namespace directory to import (defaults to this script's directory)
   --add-default     Also import default-files*.xml and default-pages*.xml from <src>/../_shared
+  --dry             Dry run, only print the import commands instead of running them
   --sfr=NAME        MediaWiki wiki instance passed to the import maintenance scripts
 
 Import order:
@@ -47,6 +48,7 @@ EOF
 src=""
 sfr=""
 add_default=0
+dry=0
 wiki_root=""
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -64,6 +66,9 @@ for arg in "$@"; do
       ;;
     --add-default)
       add_default=1
+      ;;
+    --dry)
+      dry=1
       ;;
     -h|--help)
       usage
@@ -159,6 +164,10 @@ run_import_dump_file() {
     args+=("$sfr")
   fi
   args+=("$file")
+  if (( dry == 1 )); then
+    echo "DRY RUN: cd $wiki_root && php maintenance/importDump.php ${args[*]}"
+    return 0
+  fi
   ( cd "$wiki_root" && php maintenance/importDump.php "${args[@]}" )
 }
 
@@ -170,6 +179,10 @@ run_import_files_file() {
     args+=("$sfr")
   fi
   args+=("--src=$file")
+  if (( dry == 1 )); then
+    echo "DRY RUN: cd $wiki_root && php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php ${args[*]}"
+    return 0
+  fi
   ( cd "$wiki_root" && php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php "${args[@]}" )
 }
 
@@ -250,4 +263,8 @@ if [[ -f "$src/user.xml" ]]; then
   echo "Note: user.xml exists at $src/user.xml and is intentionally ignored."
 fi
 
-echo "Import completed successfully."
+if (( dry == 1 )); then
+  echo "Dry run completed, no data was imported."
+else
+  echo "Import completed successfully."
+fi
