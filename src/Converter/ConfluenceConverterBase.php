@@ -75,7 +75,6 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\StatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro as PreserveTasksReportMacro;
@@ -396,12 +395,10 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	}
 
 	/**
-	 * @param DOMDocument $dom
-	 *
-	 * @return void
+	 * @return array
 	 */
-	protected function runProcessors( DOMDocument $dom ): void {
-		$processors = [
+	protected function getDefaultProcessors( ): array {
+		return [
 			new Layout(),
 			new LayoutSection(),
 			new LayoutCell(),
@@ -413,7 +410,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new InfoMacro(),
 			new NoteMacro(),
 			new WarningMacro(),
-			new StatusMacro(),
 			new TocMacro( $this->tocMacroUsage ),
 			new PanelMacro(),
 			new ColumnMacro(),
@@ -544,6 +540,19 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			),
 			new LivesearchMacro( $this->writer, $this->currentSpace )
 		];
+	}
+
+	protected function getProcessors() {
+		return $this->getDefaultProcessors();
+	}
+
+	/**
+	 * @param DOMDocument $dom
+	 *
+	 * @return void
+	 */
+	protected function runProcessors( DOMDocument $dom ): void {
+		$processors = $this->getProcessors();
 
 		/** @var IProcessor $processor */
 		foreach ( $processors as $processor ) {
@@ -552,10 +561,9 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	}
 
 	/**
-	 * @return void
 	 */
-	protected function runPostProcessors(): void {
-		$postProcessors = [
+	protected function getDefaultPostProcessors() {
+		return [
 			new RestorePStyleTag(),
 			new RestoreExcerptMacro(),
 			new RestoreExcerptIncludeMacro( $this->dataLookup ),
@@ -573,6 +581,19 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new RemoveMultipleLinebreaks(),
 			new AddDisplayTitle( $this->confluencePageTitle, $this->wikiPageTitle ),
 		];
+	}
+
+	/**
+	 */
+	protected function getPostProcessors() {
+		return $this->getDefaultPostProcessors();
+	}
+
+	/**
+	 * @return void
+	 */
+	protected function runPostProcessors(): void {
+		$postProcessors = $this->getPostProcessors();
 
 		/** @var IPostprocessor $postProcessor */
 		foreach ( $postProcessors as $postProcessor ) {
