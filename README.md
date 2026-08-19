@@ -90,52 +90,79 @@ Important: If you re-run the scripts you will need to clean up the "workspace" d
 3. Make sure you have the target namespaces set up properly. See `workspace/deployment.log` for a list of required namespaces.
 4. Make sure [`$wgFileExtensions`](https://www.mediawiki.org/wiki/Manual:$wgFileExtensions) is set up properly. See `workspace/deployment.log` for reference.
 5. Use `php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php --src=/tmp/result/files.xml` to first import all attachment files and images
-6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages. Use the same command to import `blogs.xml`, `comments.xml` and `templates.xml`, but not `user.xml`. This file can not be imported and is just for making user data available.
+6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages. Use the same command to import `blogs.xml`, `page-talk.xml`, `blog-talk.xml` and `templates.xml`, but not `user.xml`. This file can not be imported and is just for making user data available.
 
-#### Import helper script
-To simplify imports there is a helper script at `src/Composer/_shell/spaceimport.sh`.
+#### Import helper scripts
 
-Run it with the required MediaWiki root path and, optionally, the result
-namespace directory:
+Two helper scripts in `src/Composer/_shell/` automate these imports:
 
-```bash
-./src/Composer/_shell/spaceimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/ABC
+* `spaceimport.sh` imports a single namespace directory
+* `wikiimport.sh` imports all namespace directories of one wiki
+
+Both handle split output as well, e.g. `pages-00000001.xml`,
+`pages-00000002.xml`, ...
+
+Common options:
+
+| Option | Description |
+| --- | --- |
+| `--wiki-root=PATH` | Required. Path to the MediaWiki root directory. |
+| `--src=PATH` | Directory to import. Defaults to the directory the script is located in. |
+| `--add-default` | Also import `default-files*.xml` and `default-pages*.xml` from the `_shared` directory. |
+| `--dry` | Dry run. Only print the import commands so you can verify the paths. |
+| `--sfr=NAME` | MediaWiki wiki instance, forwarded to both import maintenance scripts. Omit it for the default wiki. |
+
+Import order per namespace directory:
+
+1. `default-files*.xml` from `_shared` (only with `--add-default`)
+2. `files*.xml`
+3. `blogs*.xml`
+4. `page-talk*.xml`
+5. `blog-talk*.xml`
+6. `templates*.xml`
+7. `default-pages*.xml` from `_shared` (only with `--add-default`)
+8. `pages*.xml`
+9. `enhanced-sidebar*.xml`, containing the `MediaWiki:Sidebar.json` page for a sidebar that reflects the Confluence space navigation
+
+Only `pages*.xml` is mandatory, all other groups are skipped with a note when
+they are missing. `user.xml` is intentionally ignored.
+
+##### spaceimport.sh
+
+Expects the namespace based composer output:
+
+```
+result/<namespace>/{files,blogs,page-talk,blog-talk,templates,pages}.xml
+result/_shared/{default-files,default-pages}.xml
 ```
 
-Use `--add-default` to import default data from the `_shared` directory within
-the result directory.
+`--src` points to the namespace directory, the `_shared` directory is expected
+next to it:
 
-Both helper scripts accept optional `--sfr=<wiki-instance>` to import into a
-named MediaWiki wiki instance. The option is forwarded to both import
-maintenance scripts. When `--src` is omitted, they use the directory where the
-script is located as the result directory.
+```bash
+./src/Composer/_shell/spaceimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/ABC --add-default
+```
 
+##### wikiimport.sh
 
-The script imports files in this order:
+Expects the wiki based composer output:
 
-1. `files.xml`
-2. `blogs.xml`
-3. `comments.xml`
-4. `templates.xml`
-5. `pages.xml`
-6. if it exists, `enhanced-sidebar.xml`, containing the `MediaWiki:Sidebar.json` page for a sidebar that reflects the Confluence space navigation (one file per namespace result folder)
+```
+result/<wiki-name>/<namespace>/{files,blogs,page-talk,blog-talk,templates,pages}.xml
+result/<wiki-name>/_shared/{default-files,default-pages}.xml
+```
 
-`user.xml` is intentionally ignored.
+`--src` points to the wiki directory, every namespace directory inside it is
+imported and the `_shared` data is imported once per wiki:
+
+```bash
+./src/Composer/_shell/wikiimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/MyWiki --sfr=MyWiki --add-default
+```
+
+If `--add-default` is used but no `_shared` directory exists, both scripts print
+a warning and continue.
 
 You may need to run `php maintenance/rebuildall.php` and update your MediaWiki search index afterwards.
-
-#### Wiki import helper
-If the composer output is grouped by wiki name, use `src/Composer/_shell/wikiimport.sh` to import every namespace directory for a single wiki.
-
-Example:
-
-```bash
-./src/Composer/_shell/wikiimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/MyWiki --sfr=MyWiki
-```
-
-`--src`, when supplied, must point to the result directory for the wiki. Omit
-`--sfr` when importing into the default wiki; otherwise it is forwarded to both
-import maintenance scripts.
 
 ### Additional Features
 
