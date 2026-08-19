@@ -397,7 +397,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	/**
 	 * @return array
 	 */
-	protected function getDefaultProcessors( ): array {
+	protected function getDefaultProcessors(): array {
 		return [
 			new Layout(),
 			new LayoutSection(),
@@ -542,7 +542,12 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		];
 	}
 
-	protected function getProcessors() {
+	/**
+	 * get a list of processors
+	 *
+	 * This method is meant to be overridden in subclasses.
+	 */
+	protected function getProcessors(): array {
 		return $this->getDefaultProcessors();
 	}
 
@@ -562,7 +567,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 
 	/**
 	 */
-	protected function getDefaultPostProcessors() {
+	protected function getDefaultPostProcessors(): array {
 		return [
 			new RestorePStyleTag(),
 			new RestoreExcerptMacro(),
@@ -585,7 +590,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 
 	/**
 	 */
-	protected function getPostProcessors() {
+	protected function getPostProcessors(): array {
 		return $this->getDefaultPostProcessors();
 	}
 
