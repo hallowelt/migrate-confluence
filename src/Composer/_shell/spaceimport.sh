@@ -1,38 +1,48 @@
 #!/usr/bin/env bash
 
+# Imports the migration output of a single namespace directory into a MediaWiki
+# installation.
+#
+# Expected layout of the migration output:
+#   result/<namespace>/{files,blogs,page-talk,blog-talk,templates,pages}.xml
+#   result/_shared/{default-files,default-pages}.xml
+#
+# The files in "result/_shared" are only imported when --add-default is set.
+
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./spaceimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<namespace>] [--sfr=<wiki-instance>]
+Usage: ./spaceimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<namespace>] [--add-default] [--sfr=<wiki-instance>]
 
-Runs MediaWiki imports from a result namespace directory.
+Runs MediaWiki imports for a single namespace directory of the migration result.
 Supports both single-file output (e.g. pages.xml) and split output
 (e.g. pages-00000001.xml, pages-00000002.xml, ...).
 
 Options:
-  --wiki-root=PATH Path to the MediaWiki root directory
-  --src=PATH       Result namespace directory (defaults to this script's directory)
-  --add-default    Also import default-files*.xml and default-pages*.xml from _shared
-  --sfr=NAME       MediaWiki wiki instance passed to the import maintenance scripts
+  --wiki-root=PATH  Path to the MediaWiki root directory
+  --src=PATH        Namespace directory to import (defaults to this script's directory)
+  --add-default     Also import default-files*.xml and default-pages*.xml from <src>/../_shared
+  --sfr=NAME        MediaWiki wiki instance passed to the import maintenance scripts
 
 Import order:
-  1) files*.xml
-  2) blogs*.xml
-  3) comments*.xml (or page-talk*.xml + blog-talk*.xml if comments*.xml is absent)
-  4) templates*.xml
-  5) pages*.xml
-  6) enhanced-sidebar.xml (if present)
-
-When --add-default is set, these are included:
-  - _shared/default-files*.xml (before files*.xml)
-  - _shared/default-pages*.xml (before pages*.xml)
+  1) _shared/default-files*.xml  (only with --add-default)
+  2) files*.xml
+  3) blogs*.xml
+  4) page-talk*.xml
+  5) blog-talk*.xml
+  6) templates*.xml
+  7) _shared/default-pages*.xml  (only with --add-default)
+  8) pages*.xml
+  9) enhanced-sidebar*.xml
 
 Notes:
-- Run this script from the MediaWiki root directory.
+- Only pages*.xml is mandatory, all other groups are skipped when missing.
 - user.xml is intentionally ignored.
 EOF
 }
+
+# --- Argument parsing --------------------------------------------------------
 
 src=""
 sfr=""
@@ -49,6 +59,7 @@ for arg in "$@"; do
       src="${arg#*=}"
       ;;
     --sfr=*)
+      # Passed through unchanged, the maintenance scripts expect "--sfr=<name>"
       sfr="${arg}"
       ;;
     --add-default)
@@ -72,13 +83,22 @@ if [[ -z "$wiki_root" ]]; then
   exit 1
 fi
 
+# Without --src the script assumes it lives inside the namespace directory.
 if [[ -z "$src" ]]; then
   src="$script_dir"
 fi
+src="${src%/}"
 
 if [[ ! -d "$src" ]]; then
   echo "Error: --src directory does not exist: $src" >&2
   exit 1
+fi
+
+# "_shared" is a sibling of the namespace directory: result/_shared
+shared_dir="$(cd "$src/.." && pwd)/_shared"
+
+if [[ "$add_default" -eq 1 && ! -d "$shared_dir" ]]; then
+  echo "Warning: --add-default is set but the shared directory does not exist: $shared_dir" >&2
 fi
 
 if [[ ! -d "$wiki_root" ]]; then
@@ -98,6 +118,8 @@ if [[ ! -f "$wiki_root/extensions/BlueSpiceDistributionConnector/maintenance/imp
   exit 1
 fi
 
+# Lists all XML files belonging to one group, in import order:
+# "<base>.xml" first, followed by the numbered split files "<base>-<number>.xml".
 collect_xml_files() {
   local source_dir="$1"
   local base="$2"
@@ -125,10 +147,11 @@ collect_xml_files() {
   fi
 
   if (( ${#files[@]} > 0 )); then
-    printf "%q\n" "${files[@]}"
+    printf '%s\n' "${files[@]}"
   fi
 }
 
+# Imports a wiki page XML dump.
 run_import_dump_file() {
   local file="$1"
   local args=()
@@ -139,6 +162,7 @@ run_import_dump_file() {
   ( cd "$wiki_root" && php maintenance/importDump.php "${args[@]}" )
 }
 
+# Imports a file (media) XML dump.
 run_import_files_file() {
   local file="$1"
   local args=()
@@ -149,6 +173,8 @@ run_import_files_file() {
   ( cd "$wiki_root" && php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php "${args[@]}" )
 }
 
+# Imports one group of XML files.
+#   $1 directory, $2 file base name, $3 mode ("files"|"dump"), $4 "required"|"optional"
 run_group() {
   local source_dir="$1"
   local base="$2"
@@ -156,14 +182,14 @@ run_group() {
   local required="$4"
   local files=()
 
-  readarray -t files < <(collect_xml_files "$source_dir" "$base")
+  mapfile -t files < <(collect_xml_files "$source_dir" "$base")
 
   if (( ${#files[@]} == 0 )); then
     if [[ "$required" == "required" ]]; then
-      echo "Error: required file group missing: $base.xml or $base-<number>.xml" >&2
+      echo "Error: required file group missing in $source_dir: $base.xml or $base-<number>.xml" >&2
       exit 1
     fi
-    echo "Note: no $base.xml or split variants found, skipping optional group."
+    echo "Note: no $base.xml found in $source_dir, skipping."
     return 0
   fi
 
@@ -183,37 +209,42 @@ run_group() {
   done
 }
 
-if [[ "$add_default" -eq 1 ]]; then
-  shared_dir="$src/_shared"
-  if [[ -d "$shared_dir" ]]; then
-    echo "==> Importing shared default data from $shared_dir"
-    run_group "$shared_dir" "default-files" "files" "optional"
-    run_group "$shared_dir" "default-pages" "dump" "optional"
+# Imports a group from the shared directory, but only with --add-default.
+run_default_group() {
+  local base="$1"
+  local mode="$2"
+
+  if (( add_default == 0 )); then
+    return 0
   fi
-fi
-run_group "$src" "files" "files" "required"
-run_group "$src" "blogs" "dump" "required"
 
-comment_files=()
-readarray -t comment_files < <(collect_xml_files "$src" "comments")
-if (( ${#comment_files[@]} > 0 )); then
-  run_group "$src" "comments" "dump" "required"
-else
-  run_group "$src" "page-talk" "dump" "required"
-  run_group "$src" "blog-talk" "dump" "required"
-fi
+  if [[ ! -d "$shared_dir" ]]; then
+    echo "Warning: shared directory not found, skipping $base: $shared_dir" >&2
+    return 0
+  fi
 
-run_group "$src" "templates" "dump" "required"
+  run_group "$shared_dir" "$base" "$mode" "optional"
+}
+
+# --- Import ------------------------------------------------------------------
+
+echo "==> Importing namespace directory $src"
+
+# Media first, so that pages referencing them already find their files.
+run_default_group "default-files" "files"
+run_group "$src" "files" "files" "optional"
+
+run_group "$src" "blogs" "dump" "optional"
+run_group "$src" "page-talk" "dump" "optional"
+run_group "$src" "blog-talk" "dump" "optional"
+run_group "$src" "templates" "dump" "optional"
+
+# Default pages are imported directly before the migrated pages, so migrated
+# content wins in case of a title collision.
+run_default_group "default-pages" "dump"
 run_group "$src" "pages" "dump" "required"
 
-sidebar_file="$src/enhanced-sidebar.xml"
-if [[ -f "$sidebar_file" ]]; then
-  echo "==> Importing sidebar from $sidebar_file"
-  if ! run_import_dump_file "$sidebar_file"; then
-    echo "Error: import failed for $sidebar_file" >&2
-    exit 1
-  fi
-fi
+run_group "$src" "enhanced-sidebar" "dump" "optional"
 
 if [[ -f "$src/user.xml" ]]; then
   echo "Note: user.xml exists at $src/user.xml and is intentionally ignored."
