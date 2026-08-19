@@ -31,8 +31,9 @@ class StatusMacro extends StructuredMacroProcessorBase {
 			'light' => 'false',
 		];
 		foreach ( $node->childNodes as $childNode ) {
-			if ( $childNode instanceof DOMElement === false ||
-			     $childNode->nodeName !== 'ac:parameter' ) {
+			if (
+					$childNode instanceof DOMElement === false ||
+					$childNode->nodeName !== 'ac:parameter' ) {
 				continue;
 			}
 
