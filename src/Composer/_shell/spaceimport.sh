@@ -124,7 +124,9 @@ collect_xml_files() {
     files+=("${split_files[@]}")
   fi
 
-  printf "%q\n" "${files[@]}"
+  if (( ${#files[@]} > 0 )); then
+    printf "%q\n" "${files[@]}"
+  fi
 }
 
 run_import_dump_file() {
