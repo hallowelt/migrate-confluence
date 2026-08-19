@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter;
 
 use HalloWelt\MigrateConfluence\Converter\Processor\BluespiceGalaxy\StatusMacro;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\BluespiceGalaxy\RestoreStatusMacro;
 
 class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
 	protected const PROFILE_NAME = 'bluespice-galaxy';
@@ -13,6 +14,15 @@ class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
 	protected function getProcessors(): array {
 		$processors = $this->getDefaultProcessors();
 		$processors[] = new StatusMacro();
+		return $processors;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	protected function getPostProcessors(): array {
+		$processors = $this->getDefaultPostProcessors();
+		$processors[] = new RestoreStatusMacro();
 		return $processors;
 	}
 }
