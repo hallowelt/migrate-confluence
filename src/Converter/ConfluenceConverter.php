@@ -108,6 +108,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
 
+	/** @var PlaceholderManager */
+	private PlaceholderManager $placeholderManager;
+
 	/** @var string */
 	private string $dest;
 
@@ -159,6 +162,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 */
 	public function __construct( $config, Workspace $workspace ) {
 		parent::__construct( $config, $workspace );
+		$this->placeholderManager = PlaceholderManager::getInstance();
 	}
 
 	/**
@@ -531,7 +535,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new PreservePStyleTag(),
 			new TableFilterMacro(),
 			new LocalTabMacro(),
-			new LocalTabGroupMacro(),
+			new LocalTabGroupMacro(
+				$this->placeholderManager
+			),
 			new LoremIpsumMacro(),
 			new CreateFromTemplateMacro(
 				$this->dataLookup
@@ -806,8 +812,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			},
 			$this->wikiText
 		);
-		$placeholderManager = PlaceholderManager::getInstance();
-		$this->wikiText = $placeholderManager->replacePlaceholders( $this->wikiText );
+		$this->wikiText = $this->placeholderManager->replacePlaceholders( $this->wikiText );
 
 		if ( $this->contentType !== 'spaceDescription' && $this->contentType !== 'pageTemplate' ) {
 			$this->wikiText .= $this->addAdditionalAttachments();
