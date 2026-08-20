@@ -162,7 +162,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 */
 	public function __construct( $config, Workspace $workspace ) {
 		parent::__construct( $config, $workspace );
-		$this->placeholderManager = PlaceholderManager::getInstance();
+		$this->placeholderManager = new PlaceholderManager();
 	}
 
 	/**
