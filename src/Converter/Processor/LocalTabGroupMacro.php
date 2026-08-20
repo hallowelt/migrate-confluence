@@ -22,7 +22,8 @@ class LocalTabGroupMacro extends MacroProcessorBase implements IUsesPlaceholder 
 	/**
 	 * @param PlaceholderManager $placeholderManager
 	 */
-	public function __construct( private PlaceholderManager $placeholderManager ) {}
+	public function __construct( private PlaceholderManager $placeholderManager ) {
+	}
 
 	/**
 	 *

@@ -12,7 +12,6 @@ use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro as RestoreCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
@@ -23,10 +22,8 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\InvalidContentCategories
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMacro;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro as RestoreTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
@@ -38,7 +35,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro as PreserveCodeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ContentByLabelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
@@ -78,7 +75,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\StatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro as PreserveTasksReportMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
@@ -344,7 +341,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 
 		$this->runProcessors( $dom );
 
-		$unhandledMacroProcessor = new UnhandledMacroConverter();
+		$unhandledMacroProcessor = new UnhandledMacroConverter( $this->placeholderManager );
 		$unhandledMacroProcessor->process( $dom );
 
 		$xpath = new DOMXPath( $dom );
@@ -358,6 +355,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		);
 
 		$this->wikiText = parent::doConvert( $this->preprocessedFile );
+
+		/* replace placeholders as soon as possible again, so that postprocessors can work on the final wiki text */
+		$this->wikiText = $this->placeholderManager->replacePlaceholders( $this->wikiText );
 
 		$this->runPostProcessors();
 
@@ -404,7 +404,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new LayoutSection(),
 			new LayoutCell(),
 			new AnchorMacro(),
-			new Placeholder(),
+			new Placeholder(
+				$this->placeholderManager
+			),
 			new InlineCommentMarker(),
 			new PreserveTimeTag(),
 			new TipMacro(),
@@ -432,10 +434,19 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->dataLookup,
 				$this->currentSpace
 			),
-			new ExcerptMacro(),
-			new ExcerptIncludeMacro( $this->dataLookup, $this->currentSpace ),
+			new ExcerptMacro(
+				$this->placeholderManager
+			),
+			new ExcerptIncludeMacro(
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->placeholderManager
+			),
 			new Emoticon(),
-			new PreserveTasksReportMacro( $this->dataLookup ),
+			new TasksReportMacro(
+				$this->dataLookup,
+				$this->placeholderManager
+			),
 			new Image(
 				$this->dataLookup,
 				$this->currentSpace,
@@ -466,7 +477,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
-			new PreserveCodeMacro(),
+			new CodeMacro(
+				$this->placeholderManager
+			),
 			new NoFormatMacro(),
 			new TaskListMacro(),
 			new DrawioMacro(
@@ -540,7 +553,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			),
 			new LoremIpsumMacro(),
 			new CreateFromTemplateMacro(
-				$this->dataLookup
+				$this->dataLookup,
+				$this->placeholderManager
 			),
 			new LivesearchMacro( $this->writer, $this->currentSpace )
 		];
@@ -557,15 +571,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	private function runPostProcessors(): void {
 		$postProcessors = [
 			new RestorePStyleTag(),
-			new RestoreExcerptMacro(),
 			new RestoreExcerptIncludeMacro( $this->dataLookup ),
 			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
-			new RestoreCodeMacro(),
 			new NestedHeadings(),
 			new FixEmptyListItemWrapper(),
-			new RestoreTasksReportMacro(),
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
 			new FixMultilineTable(),
@@ -795,24 +806,19 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		// On Windows the CR would be encoded as "&#xD;" in the MediaWiki-XML, which is ulgy and unnecessary
 		$this->wikiText = str_replace( "\r", '', $this->wikiText );
 		$this->wikiText = str_replace( "###BREAK###", "\n", $this->wikiText );
-		$this->wikiText = str_replace( '###HTMLCOMMENTOPEN###', '<!-- ', $this->wikiText );
-		$this->wikiText = str_replace( '###HTMLCOMMENTCLOSE###', ' -->', $this->wikiText );
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
 		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
 		$this->wikiText = str_replace( " preserve-attr-data-", " data-", $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
-				"#&lt;subpages(.*?)/&gt;#si",
 				"#&lt;img(.*?)/&gt;#s",
-				"#&lt;excerpt-include(.*?)/&gt;#si",
 			],
 			static function ( $aMatches ) {
 				return html_entity_decode( $aMatches[0] );
 			},
 			$this->wikiText
 		);
-		$this->wikiText = $this->placeholderManager->replacePlaceholders( $this->wikiText );
 
 		if ( $this->contentType !== 'spaceDescription' && $this->contentType !== 'pageTemplate' ) {
 			$this->wikiText .= $this->addAdditionalAttachments();

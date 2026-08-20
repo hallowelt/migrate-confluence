@@ -4,18 +4,19 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMText;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
-class TasksReportMacro extends StructuredMacroProcessorBase {
-
-	/** @var DBConversionDataLookup */
-	protected DBConversionDataLookup $dataLookup;
+class TasksReportMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup ) {
-		$this->dataLookup = $dataLookup;
+	public function __construct(
+		protected readonly DBConversionDataLookup $dataLookup,
+		private readonly PlaceholderManager $placeholderManager
+	) {
 	}
 
 	/**
@@ -36,8 +37,7 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 			}
 		}
 
-		$taskreport = $node->ownerDocument->createElement( 'div' );
-		$taskreport->setAttribute( 'class', 'PRESERVETASKSREPORT' );
+		$taskreport = $node->ownerDocument->createElement( 'taskreport' );
 		$taskreport->setAttribute( 'status', 'unchecked' );
 
 		foreach ( $paramNodes as $paramNode ) {
@@ -88,6 +88,9 @@ class TasksReportMacro extends StructuredMacroProcessorBase {
 			}
 		}
 
+		$taskreport = $node->ownerDocument->createTextNode(
+			$this->placeholderManager->getPlaceholder(
+			$taskreport->ownerDocument->saveXML( $taskreport ) ) );
 		$node->parentNode->replaceChild( $taskreport, $node );
 	}
 

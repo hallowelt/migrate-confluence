@@ -2,4 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter;
 
-interface IUsesPlaceholder {}
+/**
+ * marker for processors that need the placeholder manager
+ */
+interface IUsesPlaceholder {
+}
