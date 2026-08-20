@@ -10,7 +10,7 @@ use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Composer\WikiBasedComposer;
-use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
+use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceGalaxy;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor;
@@ -62,7 +62,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor
-	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverter
+	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceGalaxy
 	 * @covers \HalloWelt\MigrateConfluence\Composer\WikiBasedComposer
 	 */
 	public function testMigration(): void {
@@ -368,7 +368,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 
 		$rawFiles = glob( $dest . '/content/raw/*.mraw' );
 		foreach ( $rawFiles as $rawFilePath ) {
-			$converter = new ConfluenceConverter( $config, $workspace );
+			$converter = new ConfluenceConverterBlueSpiceGalaxy( $config, $workspace );
 			$converter->setDataWriter( $writer );
 			$converter->setDestinationPath( $dest );
 			$converter->setOutput( $output );
