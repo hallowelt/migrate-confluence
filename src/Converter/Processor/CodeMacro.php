@@ -13,7 +13,7 @@ use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
  *
  * @see HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro
  */
-class CodeMacro extends StructuredMacroProcessorBase {
+class CodeMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
 
 	public function __construct(
 		private readonly PlaceholderManager $placeholderManager
@@ -35,7 +35,9 @@ class CodeMacro extends StructuredMacroProcessorBase {
 		$macroReplacement = $node->ownerDocument->createElement( 'syntaxhighlight' );
 
 		$this->processParamElements( $node, $macroReplacement );
-		$brokenCat = $this->processPlainTextBody( $node, $macroReplacement )? '' : '[[Category:Broken_macro/code/empty]]';
+		$brokenCat = $this->processPlainTextBody( $node, $macroReplacement ) ?
+			'' :
+			'[[Category:Broken_macro/code/empty]]';
 
 		$macroReplacement = $node->ownerDocument->createTextNode(
 			$this->placeholderManager->getPlaceholder(

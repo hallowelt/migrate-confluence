@@ -122,7 +122,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase implements IUsesPlacehol
 			$excerptName = $this->generateExcerptName();
 		}
 
-		$tag = $node->ownerDocument->createElement('excerpt-'.$layout);
+		$tag = $node->ownerDocument->createElement( 'excerpt-' . $layout );
 		$tag->setAttribute( 'name', $excerptName );
 		if ( $hidden ) {
 			$tag->setAttribute( 'hidden', $hidden );
