@@ -14,8 +14,6 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMacro;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
@@ -38,11 +36,11 @@ abstract class MacroChainTestBase extends TestCase {
 	}
 
 	/**
-	 * @param IProcessor $processor
+	 * @param IProcessor|IProcessor[] $processor one processor, or several to run in sequence
 	 * @param string $inputXml
 	 * @return string
 	 */
-	protected function runChainWithProcessor( IProcessor $processor, string $inputXml ): string {
+	protected function runChainWithProcessor( $processor, string $inputXml ): string {
 		$inputXml = ltrim( $inputXml );
 		$dom = new DOMDocument();
 		$dom->loadXML( $inputXml );
@@ -56,15 +54,15 @@ abstract class MacroChainTestBase extends TestCase {
 			$preprocessor->preprocess( $dom );
 		}
 
-		$processor->process( $dom );
+		foreach ( is_array( $processor ) ? $processor : [ $processor ] as $singleProcessor ) {
+			$singleProcessor->process( $dom );
+		}
 
 		$wikiText = $this->runPandoc( $dom->saveHTML() );
 		$wikiText = $this->placeholderManager->replacePlaceholders( $wikiText );
 
 		$postprocessors = [
-			new RestorePStyleTag(),
 			new RestoreExcerptIncludeMacro( $this->dataLookup ),
-			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
 			new NestedHeadings(),

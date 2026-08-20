@@ -22,8 +22,6 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\InvalidContentCategories
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMacro;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
@@ -408,7 +406,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->placeholderManager
 			),
 			new InlineCommentMarker(),
-			new PreserveTimeTag(),
+			new PreserveTimeTag(
+				$this->placeholderManager
+			),
 			new TipMacro(),
 			new InfoMacro(),
 			new NoteMacro(),
@@ -545,7 +545,9 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->migrationConfig
 			),
 			new WidgetMacro(),
-			new PreservePStyleTag(),
+			new PreservePStyleTag(
+				$this->placeholderManager
+			),
 			new TableFilterMacro(),
 			new LocalTabMacro(),
 			new LocalTabGroupMacro(
@@ -570,9 +572,7 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 	 */
 	private function runPostProcessors(): void {
 		$postProcessors = [
-			new RestorePStyleTag(),
 			new RestoreExcerptIncludeMacro( $this->dataLookup ),
-			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
 			new NestedHeadings(),
