@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
@@ -15,33 +14,33 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMacro;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptMacro;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestorePStyleTag;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreTimeTag;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\TasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use PHPUnit\Framework\TestCase;
 
 abstract class MacroChainTestBase extends TestCase {
 
 	protected DBConversionDataLookup $dataLookup;
 
+	protected PlaceholderManager $placeholderManager;
+
 	protected function setUp(): void {
 		$workspaceDb = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
 		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
+		$this->placeholderManager = new PlaceholderManager();
 	}
 
 	/**
-	 * @param IProcessor $processor
+	 * @param IProcessor|IProcessor[] $processor one processor, or several to run in sequence
 	 * @param string $inputXml
 	 * @return string
 	 */
-	protected function runChainWithProcessor( IProcessor $processor, string $inputXml ): string {
+	protected function runChainWithProcessor( $processor, string $inputXml ): string {
 		$inputXml = ltrim( $inputXml );
 		$dom = new DOMDocument();
 		$dom->loadXML( $inputXml );
@@ -55,21 +54,19 @@ abstract class MacroChainTestBase extends TestCase {
 			$preprocessor->preprocess( $dom );
 		}
 
-		$processor->process( $dom );
+		foreach ( is_array( $processor ) ? $processor : [ $processor ] as $singleProcessor ) {
+			$singleProcessor->process( $dom );
+		}
 
 		$wikiText = $this->runPandoc( $dom->saveHTML() );
+		$wikiText = $this->placeholderManager->replacePlaceholders( $wikiText );
 
 		$postprocessors = [
-			new RestorePStyleTag(),
-			new RestoreExcerptMacro(),
 			new RestoreExcerptIncludeMacro( $this->dataLookup ),
-			new RestoreTimeTag(),
 			new FixLineBreakInHeadings(),
 			new FixImagesWithExternalUrl(),
-			new CodeMacro(),
 			new NestedHeadings(),
 			new FixEmptyListItemWrapper(),
-			new TasksReportMacro(),
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
 			new FixMultilineTable(),
@@ -93,8 +90,6 @@ abstract class MacroChainTestBase extends TestCase {
 	protected function applyConfluenceFinalReplacements( string $wikiText ): string {
 		$wikiText = str_replace( "\r", '', $wikiText );
 		$wikiText = str_replace( '###BREAK###', "\n", $wikiText );
-		$wikiText = str_replace( '###HTMLCOMMENTOPEN###', '<!-- ', $wikiText );
-		$wikiText = str_replace( '###HTMLCOMMENTCLOSE###', ' -->', $wikiText );
 		$wikiText = str_replace( "\n {{", "\n{{", $wikiText );
 		$wikiText = str_replace( "\n }}", "\n}}", $wikiText );
 		$wikiText = str_replace( "\n- ", "\n* ", $wikiText );
@@ -102,8 +97,6 @@ abstract class MacroChainTestBase extends TestCase {
 
 		$wikiText = preg_replace_callback(
 			[
-				"#&lt;headertabs /&gt;#si",
-				"#&lt;subpages(.*?)/&gt;#si",
 				"#&lt;img(.*?)/&gt;#s"
 			],
 			static function ( $matches ) {

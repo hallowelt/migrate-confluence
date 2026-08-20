@@ -1,36 +1,36 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_namespace2">
     <p>
-        #####EXCERPTINCLUDE|false|ABC:Some_MediaWiki_page_name|#####
+        convert:placeholder=0
     </p>
     <p>
-        #####EXCERPTINCLUDE|true|ABC:Some_MediaWiki_page_name|#####
+        convert:placeholder=1
     </p>
     <p>
-        #####EXCERPTINCLUDE|true|ABC:Some_MediaWiki_page_name|#####
+        convert:placeholder=2
     </p>
     <p>
-        #####EXCERPTINCLUDE|true|ABC:Some_MediaWiki_page_name|Excerpt Name 1#####
+        convert:placeholder=3
     </p>
     <p>
-        #####EXCERPTINCLUDE|true|ABC:Some_MediaWiki_page_name|Excerpt Name 2#####
+        convert:placeholder=4
     </p>
     <p>
-        #####EXCERPTINCLUDE|true|ABC:Some_MediaWiki_page_name|#####
+        convert:placeholder=5
     </p>
     <p>
-        #####EXCERPTINCLUDE|true|ABC:Some_MediaWiki_page_name|#####
+        convert:placeholder=6
     </p>
     <p>
-        #####EXCERPTINCLUDE|true|Confluence_page---42---Page_doesnt_exist|#####[[Category:Broken_macro/excerpt-include]]
+        convert:placeholder=7[[Category:Broken_macro/excerpt-include]]
     </p>
     <p>
-        #####EXCERPTINCLUDE|true||#####[[Category:Broken_macro/excerpt-include]]
+        convert:placeholder=8[[Category:Broken_macro/excerpt-include]]
     </p>
     <p>
-        #####EXCERPTINCLUDE|true||#####[[Category:Broken_macro/excerpt-include]]
+        convert:placeholder=9[[Category:Broken_macro/excerpt-include]]
     </p>
     <p>
-        #####EXCERPTINCLUDE|true||Excerpt Name 2#####[[Category:Broken_macro/excerpt-include]]
+        convert:placeholder=10[[Category:Broken_macro/excerpt-include]]
     </p>
 </xml>

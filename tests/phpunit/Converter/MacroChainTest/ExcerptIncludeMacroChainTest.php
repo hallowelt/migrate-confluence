@@ -13,6 +13,7 @@ use ReflectionClass;
 class ExcerptIncludeMacroChainTest extends MacroChainTestBase {
 
 	protected function setUp(): void {
+		parent::setUp();
 		$workspaceDb = $this->createWorkspaceDb();
 		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
 	}
@@ -143,7 +144,8 @@ class ExcerptIncludeMacroChainTest extends MacroChainTestBase {
 			$this->assertFileExists( $expectedPath, "Missing expected fixture $expectedFixture" );
 			$inputXml = (string)file_get_contents( $inputPath );
 			$expected = $this->applyConfluenceFinalReplacements( (string)file_get_contents( $expectedPath ) );
-			$actual = $this->runChainWithProcessor( new ExcerptIncludeMacro( $this->dataLookup, 42 ), $inputXml );
+			$processor = new ExcerptIncludeMacro( $this->dataLookup, 42, $this->placeholderManager );
+			$actual = $this->runChainWithProcessor( $processor, $inputXml );
 			$this->assertSame( $expected, $actual, "Mismatch for fixture $inputFixture" );
 		}
 	}

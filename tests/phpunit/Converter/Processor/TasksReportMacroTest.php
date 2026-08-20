@@ -6,6 +6,7 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class TasksReportMacroTest extends ProcessorTestCase {
 	/**
@@ -32,7 +33,7 @@ class TasksReportMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new TasksReportMacro( $this->dataLookup );
+		$processor = new TasksReportMacro( $this->dataLookup, new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

@@ -4,10 +4,12 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use Exception;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
-class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
+class ExcerptIncludeMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
 
 	/** @var ConversionHelper */
 	private ConversionHelper $conversionHelper;
@@ -21,7 +23,8 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 	 */
 	public function __construct(
 		private readonly DBConversionDataLookup $dataLookup,
-		private readonly int $currentSpaceId
+		private readonly int $currentSpaceId,
+		private readonly PlaceholderManager $placeholderManager
 	) {
 		$this->conversionHelper = new ConversionHelper();
 	}
@@ -47,7 +50,7 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 		$targetPage = $this->findPageParameter( $node );
 		$options = $this->findOptionsParameters( $node );
 
-		$page = $targetPage ?? '';
+		$page = htmlspecialchars( $targetPage ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 		$showpanel = ( $options['nopanel'] === "true" ) ? "false" : "true";
 		$excerpt = $options['name'] ?? '';
 
@@ -55,7 +58,8 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 
 		$placeholder = $this->createTextNode(
 			$node->ownerDocument,
-			"#####EXCERPTINCLUDE|$showpanel|$page|$excerpt#####",
+			$this->placeholderManager->getPlaceholder(
+				"<excerpt-include showpanel=\"$showpanel\" page=\"$page\" excerpt=\"$excerpt\"/>" ),
 			__METHOD__
 		);
 		$parent->insertBefore( $placeholder, $node );
