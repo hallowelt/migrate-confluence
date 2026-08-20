@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  *
@@ -35,8 +36,12 @@ class LocalTabGroupMacro extends MacroProcessorBase {
 		$this->macroParams( $node, $macroReplacement );
 		$this->macroBody( $node, $macroReplacement );
 		// Append the "<headertabs />" tag
+		$placeholderManager = PlaceholderManager::getInstance();
 		$macroReplacement->appendChild(
-			$this->createTextNode( $node->ownerDocument, '<headertabs />', __METHOD__ )
+			$this->createTextNode(
+				$node->ownerDocument,
+				$placeholderManager->getPlaceholder( '<headertabs />' ),
+				__METHOD__ )
 		);
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );

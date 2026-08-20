@@ -94,6 +94,7 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use HalloWelt\MigrateConfluence\Utility\TranslatableString;
 use SplFileInfo;
@@ -796,7 +797,6 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 		$this->wikiText = str_replace( " preserve-attr-data-", " data-", $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
-				"#&lt;headertabs /&gt;#si",
 				"#&lt;subpages(.*?)/&gt;#si",
 				"#&lt;img(.*?)/&gt;#s",
 				"#&lt;excerpt-include(.*?)/&gt;#si",
@@ -806,6 +806,8 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			},
 			$this->wikiText
 		);
+		$placeholderManager = PlaceholderManager::getInstance();
+		$this->wikiText = $placeholderManager->replacePlaceholders( $this->wikiText );
 
 		if ( $this->contentType !== 'spaceDescription' && $this->contentType !== 'pageTemplate' ) {
 			$this->wikiText .= $this->addAdditionalAttachments();
