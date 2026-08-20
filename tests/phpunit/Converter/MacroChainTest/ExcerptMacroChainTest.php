@@ -36,7 +36,7 @@ class ExcerptMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new ExcerptMacro();
+		return new ExcerptMacro( $this->placeholderManager );
 	}
 
 }

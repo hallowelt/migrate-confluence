@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\UnhandledMacroConverter;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use PHPUnit\Framework\TestCase;
 
 class UnhandledMacroConverterTest extends TestCase {
@@ -19,7 +20,7 @@ class UnhandledMacroConverterTest extends TestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new UnhandledMacroConverter();
+		$processor = new UnhandledMacroConverter( new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
