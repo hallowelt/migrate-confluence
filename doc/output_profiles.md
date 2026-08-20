@@ -8,12 +8,11 @@ You can configure the output profile in `config.yaml` with the key `profile`:
 
 ```yaml
 config:
-    profile: bluespice-classic
+    profile: mediawiki
 ```
 
-Currently the tool supports three output profiles:
+Currently the tool supports two output profiles:
 
 * `bluespice-galaxy` (default): migrate into a BlueSpice Galaxy instance
-* `bluespice-classic`: migrate into a BlueSpice instance
-* `mediawiki`: migrate into a stock MediaWiki instance (still needs some
-    extensions to work properly!)
+* `mediawiki`: migrate into a stock MediaWiki instance with the set of
+    extensions listed in the README.md

@@ -15,7 +15,6 @@ $config = [
 	],
 	'converters' => [
 		'HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceGalaxy::factory',
-		'HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceClassic::factory',
 		'HalloWelt\MigrateConfluence\Converter\ConfluenceConverterMediaWiki::factory'
 	],
 	'composers' => [
