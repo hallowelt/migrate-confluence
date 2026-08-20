@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceClassic;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
-use HalloWelt\MigrateConfluence\Converter\Processor\StatusMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
@@ -34,14 +33,22 @@ class ConfluenceConverterBlueSpiceClassicTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceClassic::getProcessors
 	 */
-	public function testGetProcessorsAppendsStatusMacro(): void {
+	public function testGetProcessorsExtendsDefaultProcessors(): void {
 		$converter = new ConfluenceConverterBlueSpiceClassic( [], $this->createMock( Workspace::class ) );
 		$this->initMinimalPropertiesForProcessors( $converter );
 
 		$processors = ( new ReflectionMethod( ConfluenceConverterBlueSpiceClassic::class, 'getProcessors' ) )
 			->invoke( $converter );
+		$defaultProcessors = ( new ReflectionMethod(
+			ConfluenceConverterBlueSpiceClassic::class, 'getDefaultProcessors'
+		) )
+			->invoke( $converter );
 
-		$this->assertInstanceOf( StatusMacro::class, end( $processors ) );
+		// The profile is expected to add to, not replace, the default processor list.
+		$this->assertGreaterThan( count( $defaultProcessors ), count( $processors ) );
+		$defaultClasses = array_map( 'get_class', $defaultProcessors );
+		$leadingClasses = array_map( 'get_class', array_slice( $processors, 0, count( $defaultProcessors ) ) );
+		$this->assertSame( $defaultClasses, $leadingClasses );
 	}
 
 	private function initMinimalPropertiesForProcessors( ConfluenceConverterBlueSpiceClassic $converter ): void {
