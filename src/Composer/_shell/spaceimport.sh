@@ -248,14 +248,15 @@ run_default_group "default-files" "files"
 run_group "$src" "files" "files" "optional"
 
 run_group "$src" "blogs" "dump" "optional"
-run_group "$src" "page-talk" "dump" "optional"
-run_group "$src" "blog-talk" "dump" "optional"
 run_group "$src" "templates" "dump" "optional"
 
 # Default pages are imported directly before the migrated pages, so migrated
 # content wins in case of a title collision.
 run_default_group "default-pages" "dump"
 run_group "$src" "pages" "dump" "required"
+
+run_group "$src" "page-talk" "dump" "optional"
+run_group "$src" "blog-talk" "dump" "optional"
 
 run_group "$src" "enhanced-sidebar" "dump" "optional"
 
