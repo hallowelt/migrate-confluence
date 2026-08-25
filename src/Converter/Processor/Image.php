@@ -66,7 +66,11 @@ class Image extends ConversionHelper implements IProcessor {
 				$pageLinkReplacementNode,
 				$linkNode
 			);
-		} elseif ( $this->isImageWithExternalLink( $node ) ) {
+
+			return;
+		}
+
+		if ( $this->isImageWithExternalLink( $node ) ) {
 			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node );
 
 			$linkNode = $node->parentNode;
@@ -85,29 +89,31 @@ class Image extends ConversionHelper implements IProcessor {
 					$linkNode
 				);
 			}
-		} else {
-			$replacementNode = $this->createTextNode(
-				$node->ownerDocument,
-				$this->getCategoryBroken( 'image' ),
-				__METHOD__
-			);
 
-			foreach ( $node->childNodes as $childNode ) {
-				if ( $childNode instanceof DOMElement === false ) {
-					continue;
-				}
-				if ( $childNode->nodeName === 'ri:url' ) {
-					$replacementNode = $this->makeImageUrlReplacement( $childNode );
-				} elseif ( $childNode->nodeName === 'ri:attachment' ) {
-					$replacementNode = $this->makeImageAttachmentReplacement( $childNode );
-				}
-			}
-
-			$node->parentNode->replaceChild(
-				$replacementNode,
-				$node
-			);
+			return;
 		}
+
+		$replacementNode = $this->createTextNode(
+			$node->ownerDocument,
+			$this->getCategoryBroken( 'image' ),
+			__METHOD__
+		);
+
+		foreach ( $node->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
+			if ( $childNode->nodeName === 'ri:url' ) {
+				$replacementNode = $this->makeImageUrlReplacement( $childNode );
+			} elseif ( $childNode->nodeName === 'ri:attachment' ) {
+				$replacementNode = $this->makeImageAttachmentReplacement( $childNode );
+			}
+		}
+
+		$node->parentNode->replaceChild(
+			$replacementNode,
+			$node
+		);
 	}
 
 	/**
