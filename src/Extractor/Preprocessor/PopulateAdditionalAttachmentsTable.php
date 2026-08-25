@@ -73,7 +73,26 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 				continue;
 			}
 
-			$attachmentSpaceId = (int)$attachment['space_id'];
+			$containerId = (int)$attachment['container_id'];
+			$attachmentSpaceId = isset( $attachment['space_id'] ) && $attachment['space_id'] !== ''
+				? (int)$attachment['space_id']
+				: null;
+			if ( $attachmentSpaceId === null && $containerId > 0 ) {
+				// Older Confluence exports don't carry a "space" property on the attachment
+				// itself; fall back to the space of the container page/blog post.
+				$attachmentSpaceId = $this->workspaceDB->getSpaceIdByContentId( $containerId );
+			}
+
+			if ( $attachmentSpaceId === null ) {
+				$this->dbLog->addLogEntry(
+					'warning',
+					'extract',
+					__CLASS__,
+					"Could not resolve a space for attachment ID $attachmentId; skipping."
+				);
+				continue;
+			}
+
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
 			$this->writeln(
@@ -93,7 +112,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 			}
 
 			$collected[$attachmentId] = [
-				'containerId' => (int)$attachment['container_id'],
+				'containerId' => $containerId,
 				'origFilename' => (string)$attachment['filename'],
 				'wikiTitle' => $attachmentWikiTitle,
 			];

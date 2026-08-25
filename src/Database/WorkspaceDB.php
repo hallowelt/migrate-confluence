@@ -29,6 +29,9 @@ class WorkspaceDB {
 	/** @var bool tracks whether a transaction is currently open */
 	private bool $inTransaction = false;
 
+	/** @var array<int,int|null> In-request cache for getSpaceIdByContentId() */
+	private array $spaceIdByContentIdCache = [];
+
 	/**
 	 * @param string $dest
 	 *
@@ -3237,6 +3240,29 @@ class WorkspaceDB {
 		}
 
 		return (int)$data['space_id'];
+	}
+
+	/**
+	 * Resolves the space_id of a content item (page or blog post) by its content id.
+	 * Used as a fallback to determine an attachment's namespace when the attachment
+	 * itself does not carry a "space" property (older Confluence export format).
+	 *
+	 * @param int $contentId
+	 * @return int|null The space_id, or null if no page or blog post with that id has one.
+	 */
+	public function getSpaceIdByContentId( int $contentId ): ?int {
+		if ( array_key_exists( $contentId, $this->spaceIdByContentIdCache ) ) {
+			return $this->spaceIdByContentIdCache[$contentId];
+		}
+
+		$spaceId = $this->getSpaceIdForPageId( $contentId );
+		if ( $spaceId === null ) {
+			$spaceId = $this->getSpaceIdForBlogPostId( $contentId );
+		}
+
+		$this->spaceIdByContentIdCache[$contentId] = $spaceId;
+
+		return $spaceId;
 	}
 
 	/**
