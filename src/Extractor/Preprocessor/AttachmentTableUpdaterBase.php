@@ -149,7 +149,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		$collected = [];
 
 		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
-			if ( !$this->hasRequiredAttachmentFields( $attachment ) || $attachment['content_status'] !== 'current' ) {
+			if ( !$this->isValid( $attachment ) ) {
 				continue;
 			}
 
@@ -205,16 +205,21 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	}
 
 	/**
-	 * Checks that an attachment row has all fields required to build a wiki title.
-	 *
-	 * @param array $attachment
-	 * @return bool
+	 * Checks that an attachment row has all fields and values required to build a wiki title.
 	 */
-	protected function hasRequiredAttachmentFields( array $attachment ): bool {
-		return isset( $attachment['attachment_id'] )
-			&& isset( $attachment['filename'] )
-			&& isset( $attachment['container_id'] )
-			&& isset( $attachment['content_status'] );
+	protected function isValid( array $attachment ): bool {
+		/**
+		 * Older formats dont have a contentStatus property,
+		 * but its safe to treat a missing contentStatus as current because
+		 * the analyzer already checks drops those.
+		 */
+		if ( isset( $attachment['content_status'] ) && $attachment['content_status'] !== 'current' ) {
+			return false;
+		}
+
+		return isset( $attachment['attachment_id'] ) &&
+			isset( $attachment['filename'] ) &&
+			isset( $attachment['container_id'] );
 	}
 
 	/**

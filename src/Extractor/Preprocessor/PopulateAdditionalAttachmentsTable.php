@@ -64,7 +64,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 		$collected = [];
 
 		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
-			if ( !$this->hasRequiredAttachmentFields( $attachment ) || $attachment['content_status'] !== 'current' ) {
+			if ( !$this->isValid( $attachment ) ) {
 				continue;
 			}
 

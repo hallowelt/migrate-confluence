@@ -72,7 +72,7 @@ class Attachments extends ProcessorBase {
 			$containerContentId = (int)$properties['content'];
 		}
 
-		$contentStatus = '';
+		$contentStatus = null;
 		if ( isset( $properties['contentStatus'] ) ) {
 			$contentStatus = $properties['contentStatus'];
 		}

@@ -233,11 +233,6 @@ class Image extends ConversionHelper implements IProcessor {
 		return $replacementNode;
 	}
 
-	/**
-	 * @param DOMElement $node
-	 *
-	 * @return DOMNode
-	 */
 	private function makeImageAttachmentReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node->parentNode );
 
@@ -253,14 +248,13 @@ class Image extends ConversionHelper implements IProcessor {
 			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
 				$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			}
-			$spaceKey = '';
+
 			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
-			}
-			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
-				// TODO: Log if spaceId is null, but we should be able to
-				//resolve the filename without spaceId as well, so we can continue processing
+
+				if ( !empty( $spaceKey ) ) {
+					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				}
 			}
 		}
 
@@ -280,10 +274,6 @@ class Image extends ConversionHelper implements IProcessor {
 		);
 	}
 
-	/**
-	 * @param DOMElement $node
-	 * @return DOMNode
-	 */
 	private function makeImagePageLinkReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node );
 
@@ -301,14 +291,13 @@ class Image extends ConversionHelper implements IProcessor {
 			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
 				$linkPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			}
-			$spaceKey = '';
+
 			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
-			}
-			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
-				// TODO: Log if spaceId is null, but we should be able to
-				// resolve the filename without spaceId as well, so we can continue processing
+
+				if ( !empty( $spaceKey ) ) {
+					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				}
 			}
 		}
 
@@ -340,20 +329,14 @@ class Image extends ConversionHelper implements IProcessor {
 
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 
-		$replacementNode = $this->makeImageLinkWithDebugInfo(
+		return $this->makeImageLinkWithDebugInfo(
 			$node->ownerDocument,
 			$params,
 			$confluenceFileKey,
 			$brokenPageLinkInfo
 		);
-
-		return $replacementNode;
 	}
 
-	/**
-	 * @param DOMElement $node
-	 * @return DOMNode
-	 */
 	private function makeImageExternalLinkReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node );
 
@@ -370,14 +353,13 @@ class Image extends ConversionHelper implements IProcessor {
 			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
 				$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			}
-			$spaceKey = '';
+
 			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
-			}
-			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
-				// TODO: Log if spaceId is null, but we should be able to
-				// resolve the filename without spaceId as well, so we can continue processing
+
+				if ( !empty( $spaceKey ) ) {
+					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				}
 			}
 		}
 
@@ -405,14 +387,12 @@ class Image extends ConversionHelper implements IProcessor {
 
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";
 
-		$replacementNode = $this->makeImageLinkWithDebugInfo(
+		return $this->makeImageLinkWithDebugInfo(
 			$node->ownerDocument,
 			$params,
 			$confluenceFileKey,
 			$brokenLinkInfo
 		);
-
-		return $replacementNode;
 	}
 
 	/**
