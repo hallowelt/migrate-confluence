@@ -1,3 +1,0 @@
-[[File:Some test file]]
-
-[[File:https://server.unit.test/image_1234.png|x150px]]
