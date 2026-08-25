@@ -64,8 +64,12 @@ class Attachments extends ProcessorBase {
 		}
 
 		$containerContentId = -1;
-		if ( isset( $properties['containerContent'] ) ) {
+		if ( isset( $properties['containerContent'] ) && $properties['containerContent'] !== '' ) {
 			$containerContentId = (int)$properties['containerContent'];
+		} elseif ( isset( $properties['content'] ) && $properties['content'] !== '' ) {
+			// Older Confluence exports reference the owning page via the "content"
+			// property instead of "containerContent".
+			$containerContentId = (int)$properties['content'];
 		}
 
 		$contentStatus = '';
