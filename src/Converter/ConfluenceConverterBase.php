@@ -41,6 +41,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro as PreserveCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ContentByLabelMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\CopyrightMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
@@ -74,11 +75,14 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\RegTmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\SmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro as PreserveTasksReportMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewDocMacro;
@@ -491,6 +495,10 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new DetailsMacro(),
 			new DetailsSummaryMacro(),
 			new AlignMacro(),
+			new TmMacro(),
+			new RegTmMacro(),
+			new CopyrightMacro(),
+			new SmMacro(),
 			new JiraMacro(),
 			new MarkdownMacro(),
 			new ViewFileMacro(
