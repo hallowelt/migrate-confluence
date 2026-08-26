@@ -1,7 +1,19 @@
-Some sample text with emoticon :)
+Some sample text with emoticon {{Emoticon|char=🙂|alt=smile}}
 
-Some text with unknown emoticon [[Category:Broken_emoticon]]
+Some text with unknown emoticon <!-- &lt;ac:emoticon ac:name=&quot;unknown_emoticon&quot;/&gt; -->[[Category:Broken_emoticon]]
 
-Some text with &quot;blue-star&quot; emoticon 📧
+Some text with &quot;blue-star&quot; emoticon {{Emoticon|char=📧|alt=e-mail}}
+
+Some text with legacy &quot;thumbs-up&quot; emoticon {{Emoticon|char=👍|alt=thumbs-up}}
+
+Some text with image-only &quot;logo_trello&quot; emoticon <!-- &lt;ac:emoticon ac:name=&quot;logo_trello&quot; ac:emoji-shortname=&quot;:logo_trello:&quot; ac:emoji-id=&quot;atlassian-logo_trello&quot; ac:emoji-fallback=&quot;:logo_trello:&quot;/&gt; -->[[Category:Broken_emoticon]]
+
+Some text with numbered circle emoticon {{Emoticon|char=17|alt=17 seventeen circle purple|color=#af59e1|shape=circle}}
+
+Some text with numbered square emoticon {{Emoticon|char=4|alt=4 four square green|color=#22a06b|shape=square}}
+
+Some text with emoji-id-only &quot;envelope&quot; emoticon {{Emoticon|char=✉️|alt=envelope}}
+
+Some text with emoji-id-only ZWJ &quot;man technologist&quot; emoticon {{Emoticon|char=👨‍💻|alt=man technologist}}
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

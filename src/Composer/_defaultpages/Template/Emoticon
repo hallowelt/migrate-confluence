@@ -1,0 +1,67 @@
+<noinclude>Template added by Confluence migration to render migrated Confluence emoticons/emoji reactions. Renders the given Unicode character(s) directly (no images), wrapped in a `span` with an accessible label. For Atlassian's numbered circle/square icons (no Unicode equivalent), `color` and `shape` render a colored badge instead, with `char` as the number.
+
+<templatedata>
+{
+    "params": {
+        "char": {
+            "label": {
+                "en": "Character",
+                "de": "Zeichen"
+            },
+            "description": {
+                "en": "The Unicode emoticon/emoji character(s) to display, or the number to show inside a colored circle/square badge.",
+                "de": "Das darzustellende Unicode-Emoticon-/Emoji-Zeichen, oder die Zahl innerhalb eines farbigen Kreis-/Quadrat-Symbols."
+            },
+            "type": "string",
+            "required": true
+        },
+        "alt": {
+            "label": {
+                "en": "Alternative text",
+                "de": "Alternativtext"
+            },
+            "description": {
+                "en": "Accessible label (aria-label) describing the emoticon. Falls back to the character itself if omitted.",
+                "de": "Barrierefreie Beschreibung (aria-label) des Emoticons. Wird bei fehlender Angabe durch das Zeichen selbst ersetzt."
+            },
+            "type": "string",
+            "suggested": true
+        },
+        "color": {
+            "label": {
+                "en": "Background color",
+                "de": "Hintergrundfarbe"
+            },
+            "description": {
+                "en": "CSS color for a numbered circle/square badge. If set, `char` is rendered in white on this background instead of as plain text.",
+                "de": "CSS-Farbe für ein nummeriertes Kreis-/Quadrat-Symbol. Falls gesetzt, wird `char` weiß auf diesem Hintergrund dargestellt statt als reiner Text."
+            },
+            "type": "string",
+            "suggested": true
+        },
+        "shape": {
+            "label": {
+                "en": "Badge shape",
+                "de": "Symbolform"
+            },
+            "description": {
+                "en": "\"circle\" (default) or \"square\", only relevant when `color` is set.",
+                "de": "\"circle\" (Standard) oder \"square\", nur relevant wenn `color` gesetzt ist."
+            },
+            "type": "string",
+            "suggestedvalues": [
+                "circle",
+                "square"
+            ],
+            "suggested": true
+        }
+    },
+    "paramOrder": [
+        "char",
+        "alt",
+        "color",
+        "shape"
+    ]
+}
+</templatedata>
+</noinclude><includeonly><span class="emoticon"{{#if:{{{alt|}}}| aria-label="{{{alt}}}"}}{{#if:{{{color|}}}| style="display:inline-block;min-width:1.4em;height:1.4em;line-height:1.4em;text-align:center;background-color:{{{color}}};color:#fff;border-radius:{{#ifeq:{{{shape|circle}}}|square|none|50%}};"}}>{{{char}}}</span></includeonly>
