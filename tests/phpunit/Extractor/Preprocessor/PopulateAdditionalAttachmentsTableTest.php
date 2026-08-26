@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateAttachmentsTableWithSpaceIdFallback;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -269,10 +270,13 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		// Older Confluence export format: no "space" property on the orphan attachment itself,
-		// but its container page (800) is known and has a space.
+		// but its container page (800) is known and has a space. attachments.space_id is
+		// backfilled from the container by UpdateAttachmentsTableWithSpaceIdFallback, which
+		// runs earlier in the extract pipeline (see ConfluenceExtractor::getPreprocessors()).
 		$workspaceDB->addAttachment(
 			803, null, 'orphan.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/e', [], [], []
 		);
+		( new UpdateAttachmentsTableWithSpaceIdFallback( $workspaceDB, $dbLog, $writer ) )->execute();
 
 		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
 		$processor->execute();

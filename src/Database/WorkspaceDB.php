@@ -3567,6 +3567,25 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Update the space_id of an attachment. Used as a fallback for older Confluence
+	 * exports where an attachment does not carry its own "space" property; the
+	 * value is resolved from the attachment's container page/blog post instead.
+	 *
+	 * @param int $attachmentId
+	 * @param int $spaceId
+	 * @return bool
+	 */
+	public function updateAttachmentSpaceId( int $attachmentId, int $spaceId ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE attachments SET space_id = :space_id WHERE attachment_id = :attachment_id'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getCurrentAttachments(): array {
@@ -4025,7 +4044,8 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT pa.* FROM page_attachments pa
 			JOIN attachments a ON pa.attachment_id = a.attachment_id
-			WHERE a.space_id = :space_id'
+			JOIN pages p ON pa.page_id = p.page_id
+			WHERE COALESCE( a.space_id, p.space_id ) = :space_id'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 
@@ -4048,7 +4068,8 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT bpa.* FROM blog_post_attachments bpa
 			JOIN attachments a ON bpa.attachment_id = a.attachment_id
-			WHERE a.space_id = :space_id'
+			JOIN blog_posts bp ON bpa.blog_post_id = bp.page_id
+			WHERE COALESCE( a.space_id, bp.space_id ) = :space_id'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 
@@ -4071,7 +4092,9 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT aa.* FROM additional_attachments aa
 			JOIN attachments a ON aa.attachment_id = a.attachment_id
-			WHERE a.space_id = :space_id'
+			LEFT JOIN pages p ON a.container_id = p.page_id
+			LEFT JOIN blog_posts bp ON a.container_id = bp.page_id
+			WHERE COALESCE( a.space_id, p.space_id, bp.space_id ) = :space_id'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 
