@@ -14,7 +14,8 @@ $config = [
 		'HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor::factory'
 	],
 	'converters' => [
-		'HalloWelt\MigrateConfluence\Converter\ConfluenceConverter::factory'
+		'HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceGalaxy::factory',
+		'HalloWelt\MigrateConfluence\Converter\ConfluenceConverterMediaWiki::factory'
 	],
 	'composers' => [
 		'HalloWelt\MigrateConfluence\Composer\NamespaceBasedComposer::factory',

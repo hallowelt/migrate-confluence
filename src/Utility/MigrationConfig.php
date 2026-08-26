@@ -105,4 +105,11 @@ class MigrationConfig {
 	public function getCreateSidebar(): bool {
 		return $this->get( 'create-sidebar', true );
 	}
+
+	/**
+	 * @return string
+	 */
+	public function getProfile(): string {
+		return strtolower( $this->get( 'profile', 'bluespice-galaxy' ) );
+	}
 }
