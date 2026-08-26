@@ -3,23 +3,23 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
-use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\RegTmMacro;
 
 /**
  * @group full
  */
-class DrawioMacroChainTest extends MacroChainTestBase {
-
-	private ?string $clearDir = null;
+class RegTmMacroChainTest extends MacroChainTestBase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RegTmMacro::process
 	 * @return void
 	 */
 	public function testMacroChain(): void {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$fixtures = [
-			'drawio-macro-input.xml' => 'drawio-macro-output.wikitext',
+			'reg-tm-standard-input.xml' => 'reg-tm-standard-output.wikitext',
+			'reg-tm-with-attrs-input.xml' => 'reg-tm-with-attrs-output.wikitext',
+			'reg-tm-nobody-input.xml' => 'reg-tm-nobody-output.wikitext',
 		];
 
 		foreach ( $fixtures as $inputFixture => $expectedFixture ) {
@@ -32,28 +32,13 @@ class DrawioMacroChainTest extends MacroChainTestBase {
 			$actual = $this->runChainWithProcessor( $this->createProcessor(), $inputXml );
 			$this->assertSame( $expected, $actual, "Mismatch for fixture $inputFixture" );
 		}
-
-		if ( $this->clearDir !== null && is_dir( $this->clearDir ) ) {
-			rmdir( $this->clearDir );
-		}
 	}
 
 	/**
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		$workspaceDb = ( new \HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock() )
-			->createWithoutExtNsFileRepoCompat();
-		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
-		$tmpBase = getenv( 'TMPDIR' ) ?: sys_get_temp_dir();
-		$writerPath = $tmpBase . '/macro-chain-writer';
-		if ( !is_dir( $writerPath ) ) {
-			mkdir( $writerPath, 0755, true );
-			$this->clearDir = $writerPath;
-		}
-		$conversionDataWriter = new \HalloWelt\MigrateConfluence\Utility\ConversionDataWriter( $writerPath );
-
-		return new DrawioMacro( $dataLookup, $conversionDataWriter, 42, 'SomePage' );
+		return new RegTmMacro();
 	}
 
 }

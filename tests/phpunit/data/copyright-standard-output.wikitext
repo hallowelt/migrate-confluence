@@ -1,0 +1,3 @@
+This is {{Copyright|body = Product Name}} software.
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

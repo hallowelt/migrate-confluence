@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>This is <ac:structured-macro ac:name="copyright" ac:schema-version="1" ac:macro-id="12361"><ac:parameter ac:name="id">cr1</ac:parameter><ac:parameter ac:name="class">brand</ac:parameter><ac:rich-text-body>Product Name</ac:rich-text-body></ac:structured-macro> software.</p>
+</xml>
