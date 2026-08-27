@@ -13,14 +13,14 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./spaceimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<namespace>] [--add-default] [--dry] [--sfr=<wiki-instance>]
+Usage: ./spaceimport.sh [--wiki-root=/path/to/wiki-root] [--src=/path/to/result/<namespace>] [--add-default] [--dry] [--sfr=<wiki-instance>]
 
 Runs MediaWiki imports for a single namespace directory of the migration result.
 Supports both single-file output (e.g. pages.xml) and split output
 (e.g. pages-00000001.xml, pages-00000002.xml, ...).
 
 Options:
-  --wiki-root=PATH  Path to the MediaWiki root directory
+  --wiki-root=PATH  Path to the MediaWiki root directory (default: /app/bluespice/w)
   --src=PATH        Namespace directory to import (defaults to this script's directory)
   --add-default     Also import default-files*.xml and default-pages*.xml from <src>/../_shared
   --dry             Dry run, only print the import commands instead of running them
@@ -30,8 +30,8 @@ Import order:
   1) _shared/default-files*.xml  (only with --add-default)
   2) _shared/default-pages*.xml  (only with --add-default)
   3) files*.xml
-  4) templates*.xml
-  5) blogs*.xml
+  4) blogs*.xml
+  5) templates*.xml
   6) pages*.xml
   7) page-talk*.xml
   8) blog-talk*.xml
@@ -49,7 +49,7 @@ src=""
 sfr=""
 add_default=0
 dry=0
-wiki_root=""
+wiki_root="/app/bluespice/w"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 for arg in "$@"; do
@@ -83,7 +83,7 @@ for arg in "$@"; do
 done
 
 if [[ -z "$wiki_root" ]]; then
-  echo "Error: --wiki-root is required" >&2
+  echo "Error: --wiki-root must not be empty" >&2
   usage >&2
   exit 1
 fi
@@ -250,8 +250,8 @@ run_default_group "default-files" "files"
 run_default_group "default-pages" "dump"
 
 run_group "$src" "files" "files" "optional"
-run_group "$src" "templates" "dump" "optional"
 run_group "$src" "blogs" "dump" "optional"
+run_group "$src" "templates" "dump" "optional"
 run_group "$src" "pages" "dump" "required"
 run_group "$src" "page-talk" "dump" "optional"
 run_group "$src" "blog-talk" "dump" "optional"
