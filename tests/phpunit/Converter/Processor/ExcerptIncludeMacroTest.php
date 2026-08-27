@@ -6,6 +6,7 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class ExcerptIncludeMacroTest extends ProcessorTestCase {
 	protected function getInput(): string {
@@ -30,7 +31,7 @@ class ExcerptIncludeMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ExcerptIncludeMacro( $dataLookup, $currentSpaceId );
+		$processor = new ExcerptIncludeMacro( $dataLookup, $currentSpaceId, new PlaceholderManager() );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 

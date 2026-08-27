@@ -36,7 +36,7 @@ class LocalTabGroupMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new LocalTabGroupMacro();
+		return new LocalTabGroupMacro( $this->placeholderManager );
 	}
 
 }
