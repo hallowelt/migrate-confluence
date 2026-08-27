@@ -28,13 +28,13 @@ Options:
 
 Import order:
   1) _shared/default-files*.xml  (only with --add-default)
-  2) files*.xml
-  3) blogs*.xml
-  4) page-talk*.xml
-  5) blog-talk*.xml
-  6) templates*.xml
-  7) _shared/default-pages*.xml  (only with --add-default)
-  8) pages*.xml
+  2) _shared/default-pages*.xml  (only with --add-default)
+  3) files*.xml
+  4) templates*.xml
+  5) blogs*.xml
+  6) pages*.xml
+  7) page-talk*.xml
+  8) blog-talk*.xml
   9) enhanced-sidebar*.xml
 
 Notes:
@@ -245,19 +245,16 @@ echo "==> Importing namespace directory $src"
 
 # Media first, so that pages referencing them already find their files.
 run_default_group "default-files" "files"
-run_group "$src" "files" "files" "optional"
-
-run_group "$src" "blogs" "dump" "optional"
-run_group "$src" "templates" "dump" "optional"
-
-# Default pages are imported directly before the migrated pages, so migrated
+# Default pages are imported before the migrated pages, so migrated
 # content wins in case of a title collision.
 run_default_group "default-pages" "dump"
-run_group "$src" "pages" "dump" "required"
 
+run_group "$src" "files" "files" "optional"
+run_group "$src" "templates" "dump" "optional"
+run_group "$src" "blogs" "dump" "optional"
+run_group "$src" "pages" "dump" "required"
 run_group "$src" "page-talk" "dump" "optional"
 run_group "$src" "blog-talk" "dump" "optional"
-
 run_group "$src" "enhanced-sidebar" "dump" "optional"
 
 if [[ -f "$src/user.xml" ]]; then
