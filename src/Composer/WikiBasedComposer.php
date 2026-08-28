@@ -35,6 +35,7 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 		$this->output->writeln( "Data is assigned to some wikis." );
 		$this->copySharedDirectoryToWikiDirectories( $wikiNames );
 
+		$fileExtensionsPerWiki = [];
 		foreach ( $wikiNames as $wikiName ) {
 			$spaces = $this->dataLookup->getWikisConfigSpacesForWikiName( $wikiName );
 			if ( $spaces === [] ) {
@@ -43,7 +44,7 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 			}
 
 			$spacesMap = $this->buildSpacesMap( $spaces );
-			$this->storeMigrationResult( $spacesMap, $builder, $wikiName );
+			$fileExtensionsPerWiki[$wikiName] = $this->storeMigrationResult( $spacesMap, $builder, $wikiName );
 
 			$sidebarProcessor = new Sidebar(
 				$this->dataLookup, $this->migrationConfig, $this->dest, $spaces
@@ -55,15 +56,16 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 		}
 
 		$this->writeUserReadableDBLog( $this->dbLog );
+		$this->writeManifest( $fileExtensionsPerWiki );
 	}
 
 	/**
 	 * @param array $spacesMap
 	 * @param Builder $builder
 	 * @param string $wikiName
-	 * @return void
+	 * @return array The file extensions collected for this wiki
 	 */
-	private function storeMigrationResult( array $spacesMap, Builder $builder, string $wikiName = '' ): void {
+	private function storeMigrationResult( array $spacesMap, Builder $builder, string $wikiName = '' ): array {
 		$deploymentInfo = new ComposerDeploymentInfo();
 
 		// Run processors for each namespace
@@ -114,6 +116,8 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 		$this->addWikiImportHelper( $wikiName );
 
 		$this->writeDeploymentLog( $deploymentInfo, $wikiName );
+
+		return $deploymentInfo->getFileExtensions();
 	}
 
 	/**
@@ -132,5 +136,72 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 			$sourcePath = __DIR__ . '/_shell/wikiimport.sh';
 			$this->copyShellScript( $sourcePath, $targetDir . '/wikiimport.sh' );
 		}
+	}
+
+	/**
+	 * Writes a "manifest.json" file to the result directory, describing the deployable
+	 * wikis produced by a multi-wiki (wiki-based) migration run.
+	 *
+	 * @param array $fileExtensionsPerWiki Map of wiki name to the file extensions used in that wiki
+	 * @return void
+	 */
+	private function writeManifest( array $fileExtensionsPerWiki ): void {
+		if ( $fileExtensionsPerWiki === [] ) {
+			return;
+		}
+
+		$wikis = [];
+		foreach ( $fileExtensionsPerWiki as $wikiName => $fileExtensions ) {
+			$scripts = [];
+			foreach ( $this->getManifestScriptTemplates() as $scriptTemplate ) {
+				$scripts[] = str_replace( '<instance_id>', $wikiName, $scriptTemplate );
+			}
+
+			$wikis[] = [
+				'sfr' => $wikiName,
+				'file_extensions' => $fileExtensions,
+				'scripts' => $scripts,
+			];
+		}
+
+		$manifest = [
+			'source_system' => 'confluence',
+			'package_id' => $this->makePackageId(),
+			'target' => [
+				'wikis' => $wikis,
+			],
+		];
+
+		file_put_contents(
+			$this->dest . '/result/manifest.json',
+			json_encode( $manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) . "\n"
+		);
+	}
+
+	/**
+	 * @return string[]
+	 */
+	private function getManifestScriptTemplates(): array {
+		return [
+			'./result/<instance_id>/wikiimport.sh --sfr=<instance_id> --add-defaults',
+			'php /app/bluespice/w/maintenance/rebuildall.php --sfr=<instance_id>',
+		];
+	}
+
+	/**
+	 * Builds a package id from the name of the parent directory of the workspace
+	 * (the migration project directory) and the current date, e.g.
+	 * "customer-x-2026-08-10-v1". Falls back to "migration" if the parent
+	 * directory name cannot be determined.
+	 *
+	 * @return string
+	 */
+	private function makePackageId(): string {
+		$parentDirName = basename( dirname( rtrim( $this->dest, '/' ) ) );
+		if ( $parentDirName === '' || $parentDirName === '.' || $parentDirName === '/' || $parentDirName === false ) {
+			$parentDirName = 'migration';
+		}
+
+		return $parentDirName . '-' . date( 'Y-m-d' );
 	}
 }
