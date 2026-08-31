@@ -330,6 +330,22 @@ class DBConversionDataLookup {
 		return $this->workspaceDB->getPageByWikiTitle( $wikiTitle );
 	}
 
+	/**
+	 * @param int $pageId
+	 * @return string|null
+	 */
+	public function getConfluencePageTitleFromPageId( int $pageId ): ?string {
+		return $this->workspaceDB->getConfluencePageTitleFromPageId( $pageId );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @return int|null
+	 */
+	public function getSpaceIdForPageId( int $pageId ): ?int {
+		return $this->workspaceDB->getSpaceIdForPageId( $pageId );
+	}
+
 	public function getConfluencePageBodyContent( array $bodyContentIds ): ?string {
 		$bodyContent = "";
 		foreach ( $bodyContentIds as $bodyContentId ) {

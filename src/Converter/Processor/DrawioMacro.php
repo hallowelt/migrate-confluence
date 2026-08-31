@@ -79,13 +79,16 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param array $params
+	 * @param int|null $spaceId Space to look up the diagram's attachments in. Defaults to the current space.
+	 * @param string|null $rawPageTitle Confluence page title to look up the diagram's attachments on.
+	 *   Defaults to the current page.
 	 * @return string
 	 */
-	protected function makeParamsString( array $params ): string {
+	protected function makeParamsString( array $params, ?int $spaceId = null, ?string $rawPageTitle = null ): string {
 		$paramsString = '';
 
 		if ( isset( $params['diagramName'] ) ) {
-			$filename = $this->getFilename( $params['diagramName'] );
+			$filename = $this->getFilename( $params['diagramName'], $spaceId, $rawPageTitle );
 			$params['diagramName'] = $filename;
 		} else {
 			return '';
@@ -126,13 +129,18 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param string $diagramName
+	 * @param int|null $spaceId Space to look up the diagram's attachments in. Defaults to the current space.
+	 * @param string|null $rawPageTitle Confluence page title to look up the diagram's attachments on.
+	 *   Defaults to the current page.
 	 * @return string
 	 */
-	protected function getFilename( string $diagramName ): string {
-		$spaceId = $this->currentSpaceId;
+	protected function getFilename( string $diagramName, ?int $spaceId = null, ?string $rawPageTitle = null ): string {
+		$spaceId ??= $this->currentSpaceId;
+		$rawPageTitle ??= $this->rawPageTitle;
+
 		$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 			$spaceId,
-			$this->rawPageTitle,
+			$rawPageTitle,
 			$diagramName
 		) ?? '';
 		$originalFilename = $filename;
@@ -153,7 +161,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 			$drawioDataFilename = $originalFilename;
 			$drawioImageFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 				$spaceId,
-				$this->rawPageTitle,
+				$rawPageTitle,
 				$diagramName . '.png'
 			) ?? '';
 		} else {
@@ -162,7 +170,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 			$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.png' ) );
 			$drawioDataFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 				$spaceId,
-				$this->rawPageTitle,
+				$rawPageTitle,
 				$diagramName
 			) ?? '';
 			// Maybe png = PNG
@@ -170,7 +178,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 				$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.PNG' ) );
 				$drawioDataFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 					$spaceId,
-					$this->rawPageTitle,
+					$rawPageTitle,
 					$diagramName
 				) ?? '';
 			}

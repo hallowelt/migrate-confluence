@@ -54,6 +54,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
+use HalloWelt\MigrateConfluence\Converter\Processor\IncDrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarker;
@@ -476,6 +477,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 				$this->confluencePageTitle
 			),
 			new DrawioSketchMacro(
+				$this->dataLookup,
+				$this->conversionDataWriter,
+				$this->currentSpace,
+				$this->confluencePageTitle
+			),
+			new IncDrawioMacro(
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
