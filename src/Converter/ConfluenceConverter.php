@@ -46,6 +46,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\DrawioSketchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
@@ -469,6 +470,12 @@ class ConfluenceConverter extends PandocHTML implements IOutputAwareInterface, I
 			new NoFormatMacro(),
 			new TaskListMacro(),
 			new DrawioMacro(
+				$this->dataLookup,
+				$this->conversionDataWriter,
+				$this->currentSpace,
+				$this->confluencePageTitle
+			),
+			new DrawioSketchMacro(
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,

@@ -37,6 +37,14 @@
     </revision>
   </page>
   <page>
+    <title>Template:DrawioSketch</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>{{#tag:drawio-sketch||filename={{{diagramName}}}}}</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:Jira</title>
     <revision>
       <model>wikitext</model>

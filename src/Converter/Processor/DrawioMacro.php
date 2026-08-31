@@ -52,6 +52,15 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
+	 * Name of the wiki template used to render this macro.
+	 *
+	 * @return string
+	 */
+	protected function getTemplateName(): string {
+		return 'Drawio';
+	}
+
+	/**
 	 * @inheritDoc
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
@@ -59,9 +68,10 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 
 		if ( isset( $params['diagramName'] ) ) {
 			$paramsString = $this->makeParamsString( $params );
+			$templateName = $this->getTemplateName();
 
 			$node->parentNode->replaceChild(
-				$this->createTextNode( $node->ownerDocument, "{{Drawio$paramsString}}", __METHOD__ ),
+				$this->createTextNode( $node->ownerDocument, "{{{$templateName}{$paramsString}}}", __METHOD__ ),
 				$node
 			);
 		}
@@ -71,7 +81,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 * @param array $params
 	 * @return string
 	 */
-	private function makeParamsString( array $params ): string {
+	protected function makeParamsString( array $params ): string {
 		$paramsString = '';
 
 		if ( isset( $params['diagramName'] ) ) {
@@ -93,7 +103,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 *
 	 * @return array
 	 */
-	private function getMacroParams( DOMElement $macro ): array {
+	protected function getMacroParams( DOMElement $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode instanceof DOMElement === false ) {
@@ -118,7 +128,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 * @param string $diagramName
 	 * @return string
 	 */
-	private function getFilename( string $diagramName ): string {
+	protected function getFilename( string $diagramName ): string {
 		$spaceId = $this->currentSpaceId;
 		$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 			$spaceId,
@@ -178,7 +188,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 * @param string $filename
 	 * @return string
 	 */
-	private function getFileExtension( string $filename ): string {
+	protected function getFileExtension( string $filename ): string {
 		$filenameParts = explode( '.', $filename );
 		$fileextension = array_pop( $filenameParts );
 
@@ -190,7 +200,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 * @param string $drawioImageFilename
 	 * @return void
 	 */
-	private function bakeDrawIODataInPNG( string $drawioDataFilename, string $drawioImageFilename ): void {
+	protected function bakeDrawIODataInPNG( string $drawioDataFilename, string $drawioImageFilename ): void {
 		// Diagram file could be not an '.png' image, but just a text file with diagram XML
 		// In that case it may have '.drawio' extension, or may not have extension at all
 		// Anyway, in case with DrawIO diagram there should be a corresponding '.png' image:
