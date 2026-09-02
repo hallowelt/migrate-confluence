@@ -2,10 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Utility\ComposerSkipHelperTest;
 
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDataReader;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -110,10 +110,10 @@ class ComposerSkipHelperTest extends TestCase {
 	}
 
 	/**
-	 * @return DBComposerDataLookup
+	 * @return ComposerDataReader
 	 */
-	private function getComposerDataLookup(): DBComposerDataLookup {
-		return new DBComposerDataLookup(
+	private function getComposerDataLookup(): ComposerDataReader {
+		return new ComposerDataReader(
 			$this->getWorkspaceDB()
 		);
 	}

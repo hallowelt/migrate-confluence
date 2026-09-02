@@ -7,6 +7,7 @@ use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDataReader;
 use HalloWelt\MigrateConfluence\Composer\Processor\BlogPostComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\BlogPosts;
 use HalloWelt\MigrateConfluence\Composer\Processor\DefaultFiles;
@@ -21,7 +22,6 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
@@ -35,7 +35,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	/** @var string */
 	protected string $dest = '';
 
-	protected DBComposerDataLookup $dataLookup;
+	protected ComposerDataReader $dataLookup;
 
 	/** @var ComposerSkipHelper */
 	protected ComposerSkipHelper $skipHelper;
@@ -83,7 +83,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 */
 	public function buildXML( Builder $builder ): void {
 		$this->workspaceDB = WorkspaceDB::open( $this->dest );
-		$this->dataLookup = new DBComposerDataLookup( $this->workspaceDB );
+		$this->dataLookup = new ComposerDataReader( $this->workspaceDB );
 		$this->dbLog = new DBLog( $this->workspaceDB );
 		$this->logMigrateConfluenceToolVersion( $this->dbLog );
 		$this->skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );

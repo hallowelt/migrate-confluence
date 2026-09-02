@@ -11,7 +11,7 @@ class ExtractPageTemplateContents extends ExtractSpaceDescriptionBodyContents {
 	 * @return void
 	 */
 	public function execute(): void {
-		foreach ( $this->workspaceDB->getCurrentPageTemplateContents() as $templateContent ) {
+		foreach ( $this->dataReader->getCurrentPageTemplateContents() as $templateContent ) {
 			$content = $templateContent['content'] ?? '';
 			if ( $content === '' ) {
 				continue;

@@ -2,9 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewPdfMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ViewPdfMacroTest extends ProcessorTestCase {
@@ -26,7 +26,7 @@ class ViewPdfMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
+		$this->dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		/** SpaceId GENERAL */
 		$this->doTest(

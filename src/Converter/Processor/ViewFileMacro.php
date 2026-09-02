@@ -4,16 +4,16 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ViewFileMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var DBConversionDataLookup
+	 * @var ConversionDataReader
 	 */
-	protected DBConversionDataLookup $dataLookup;
+	protected ConversionDataReader $dataLookup;
 
 	/**
 	 * @var int
@@ -31,12 +31,12 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 	protected MigrationConfig $migrationConfig;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup,
+	public function __construct( ConversionDataReader $dataLookup,
 		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;

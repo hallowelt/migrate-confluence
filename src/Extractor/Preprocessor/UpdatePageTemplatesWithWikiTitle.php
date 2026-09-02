@@ -29,7 +29,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 	 * @throws Exception
 	 */
 	private function updateWikiTitles(): void {
-		$pageTemplates = $this->workspaceDB->getPageTemplates();
+		$pageTemplates = $this->dataReader->getPageTemplates();
 		$templateIdToWikiTitleMap = [];
 
 		foreach ( $pageTemplates as $pageTemplate ) {
@@ -142,7 +142,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 	 */
 	private function checkWikiTitles(): void {
 		$titles = [];
-		foreach ( $this->workspaceDB->getPageTemplates() as $pageTemplate ) {
+		foreach ( $this->dataReader->getPageTemplates() as $pageTemplate ) {
 			$title = '';
 			$templateId = $pageTemplate['template_id'];
 			if ( isset( $pageTemplate['wiki_title'] ) && $pageTemplate['wiki_title'] !== '' ) {
@@ -200,10 +200,10 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 	 * @throws InvalidTitleException
 	 */
 	private function buildTemplateTitle( string $name, ?int $spaceId ): string {
-		$builder = new GenericTitleBuilder( $this->workspaceDB->getMapSpaceIdToPrefix() );
+		$builder = new GenericTitleBuilder( $this->dataReader->getMapSpaceIdToPrefix() );
 		$builder->setNamespace( GenericTitleBuilder::NS_TEMPLATE );
 
-		$spaces = $this->workspaceDB->getMapSpaceIdToPrefix();
+		$spaces = $this->dataReader->getMapSpaceIdToPrefix();
 		if ( isset( $spaces[$spaceId] ) ) {
 			$spacePrefix = $spaces[$spaceId];
 			$colonPos = strpos( $spacePrefix, ':' );

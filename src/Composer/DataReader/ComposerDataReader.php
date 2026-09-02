@@ -1,22 +1,16 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Utility;
+namespace HalloWelt\MigrateConfluence\Composer\DataReader;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Database\DataReader\AbstractDataReader;
 
-class DBComposerDataLookup {
-
-	/**
-	 * @param WorkspaceDB $workspaceDB
-	 */
-	public function __construct( private WorkspaceDB $workspaceDB ) {
-	}
+class ComposerDataReader extends AbstractDataReader {
 
 	/**
 	 * @return array
 	 */
 	public function getSpaces(): array {
-		return $this->workspaceDB->getSpaces();
+		return $this->db->getSpaces();
 	}
 
 	/**
@@ -24,7 +18,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getPageIdWikiPageTitleMap( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getPageIdWikiPageTitleMap( $spaceId );
+		return $this->db->getPageIdWikiPageTitleMap( $spaceId );
 	}
 
 	/**
@@ -32,7 +26,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getBlogPostIdWikiBlogPostTitleMap( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getBlogPostIdWikiBlogPostTitleMap( $spaceId );
+		return $this->db->getBlogPostIdWikiBlogPostTitleMap( $spaceId );
 	}
 
 	/**
@@ -40,7 +34,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getPageRevisionsForPageId( int $pageId ): array {
-		return $this->workspaceDB->getPageRevisionsForPageId( $pageId );
+		return $this->db->getPageRevisionsForPageId( $pageId );
 	}
 
 	/**
@@ -48,7 +42,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getBlogPostRevisionsForBlogPostId( int $pageId ): array {
-		return $this->workspaceDB->getBlogPostRevisionsForBlogPostId( $pageId );
+		return $this->db->getBlogPostRevisionsForBlogPostId( $pageId );
 	}
 
 	/**
@@ -56,7 +50,7 @@ class DBComposerDataLookup {
 	 * @return int|null The space_id for the given page_id, or null if not found.
 	 */
 	public function getSpaceIdForPageId( int $pageId ): ?int {
-		return $this->workspaceDB->getSpaceIdForPageId( $pageId );
+		return $this->db->getSpaceIdForPageId( $pageId );
 	}
 
 	/**
@@ -64,7 +58,7 @@ class DBComposerDataLookup {
 	 * @return int|null The page_id of the space homepage for the given space_id, or null if not found.
 	 */
 	public function getSpaceHomepageIdForSpaceId( int $spaceId ): ?int {
-		return $this->workspaceDB->getSpaceHomepageIdForSpaceId( $spaceId );
+		return $this->db->getSpaceHomepageIdForSpaceId( $spaceId );
 	}
 
 	/**
@@ -73,7 +67,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getSpaceDescriptionRevisionsForSpaceId( int $spaceId ): array {
-		return $this->workspaceDB->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
+		return $this->db->getSpaceDescriptionRevisionsForSpaceId( $spaceId );
 	}
 
 	/**
@@ -81,7 +75,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getCommentsForPages( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getCommentsForPages( $spaceId );
+		return $this->db->getCommentsForPages( $spaceId );
 	}
 
 	/**
@@ -89,14 +83,14 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getCommentsForBlogPosts( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getCommentsForBlogPosts( $spaceId );
+		return $this->db->getCommentsForBlogPosts( $spaceId );
 	}
 
 	/**
 	 * @return array
 	 */
 	public function getUsers(): array {
-		return $this->workspaceDB->getUsers();
+		return $this->db->getUsers();
 	}
 
 	/**
@@ -104,7 +98,7 @@ class DBComposerDataLookup {
 	 * @return string|null
 	 */
 	public function getUsernameFromUserKey( string $userKey ): ?string {
-		return $this->workspaceDB->getUsernameFromUserKey( $userKey );
+		return $this->db->getUsernameFromUserKey( $userKey );
 	}
 
 	/**
@@ -112,7 +106,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getPageAttachments( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getPageAttachments( $spaceId );
+		return $this->db->getPageAttachments( $spaceId );
 	}
 
 	/**
@@ -120,7 +114,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getBlogPostAttachments( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getBlogPostAttachments( $spaceId );
+		return $this->db->getBlogPostAttachments( $spaceId );
 	}
 
 	/**
@@ -128,7 +122,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getAdditionalAttachments( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getAdditionalAttachments( $spaceId );
+		return $this->db->getAdditionalAttachments( $spaceId );
 	}
 
 	/**
@@ -136,7 +130,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getPageTemplateIdWikiTitleMap( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getPageTemplateIdWikiTitleMap( $spaceId );
+		return $this->db->getPageTemplateIdWikiTitleMap( $spaceId );
 	}
 
 	/**
@@ -144,7 +138,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getPageTemplateRevisionsForTemplateId( int $templateId ): array {
-		return $this->workspaceDB->getPageTemplateRevisionsForTemplateId( $templateId );
+		return $this->db->getPageTemplateRevisionsForTemplateId( $templateId );
 	}
 
 	/**
@@ -156,7 +150,7 @@ class DBComposerDataLookup {
 	 * @return string|null
 	 */
 	public function getWikiPageTitleFromPageId( int $pageId ): ?string {
-		return $this->workspaceDB->getWikiPageTitleFromPageId( $pageId );
+		return $this->db->getWikiPageTitleFromPageId( $pageId );
 	}
 
 	/**
@@ -166,7 +160,7 @@ class DBComposerDataLookup {
 	 * @return string|null
 	 */
 	public function getWikiPageCommentTitleFromPageId( int $pageId ): ?string {
-		return $this->workspaceDB->getWikiPageCommentTitleFromPageId( $pageId );
+		return $this->db->getWikiPageCommentTitleFromPageId( $pageId );
 	}
 
 	/**
@@ -178,7 +172,7 @@ class DBComposerDataLookup {
 	 * @return string|null
 	 */
 	public function getWikiBlogPostTitleFromBlogPostId( int $blogPostId ): ?string {
-		return $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $blogPostId );
+		return $this->db->getWikiBlogPostTitleFromBlogPostId( $blogPostId );
 	}
 
 	/**
@@ -188,7 +182,7 @@ class DBComposerDataLookup {
 	 * @return string|null
 	 */
 	public function getWikiBlogPostCommentsFromBlogPostId( int $blogPostId ): ?string {
-		return $this->workspaceDB->getWikiBlogPostCommentTitleFromBlogPostId( $blogPostId );
+		return $this->db->getWikiBlogPostCommentTitleFromBlogPostId( $blogPostId );
 	}
 
 	/**
@@ -196,7 +190,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getAttachmentRevisionsForAttachmentId( int $attachmentId ): array {
-		return $this->workspaceDB->getAttachmentRevisionsForAttachmentId( $attachmentId );
+		return $this->db->getAttachmentRevisionsForAttachmentId( $attachmentId );
 	}
 
 	/**
@@ -205,7 +199,7 @@ class DBComposerDataLookup {
 	 * @return bool
 	 */
 	public function isPageInvalid( string $wikiTitle ): bool {
-		return $this->workspaceDB->isPageInvalid( $wikiTitle );
+		return $this->db->isPageInvalid( $wikiTitle );
 	}
 
 	/**
@@ -214,7 +208,7 @@ class DBComposerDataLookup {
 	 * @return bool
 	 */
 	public function isBlogPostInvalid( string $wikiTitle ): bool {
-		return $this->workspaceDB->isBlogPostInvalid( $wikiTitle );
+		return $this->db->isBlogPostInvalid( $wikiTitle );
 	}
 
 	/**
@@ -222,7 +216,7 @@ class DBComposerDataLookup {
 	 * @return bool
 	 */
 	public function isAttachmentInvalid( int $attachmentId ): bool {
-		return $this->workspaceDB->isAttachmentInvalid( $attachmentId );
+		return $this->db->isAttachmentInvalid( $attachmentId );
 	}
 
 	/**
@@ -231,7 +225,7 @@ class DBComposerDataLookup {
 	 * @return bool
 	 */
 	public function isPageTemplateInvalid( string $wikiTitle ): bool {
-		return $this->workspaceDB->isPageTemplateInvalid( $wikiTitle );
+		return $this->db->isPageTemplateInvalid( $wikiTitle );
 	}
 
 	/**
@@ -239,7 +233,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getInvalidPages( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getInvalidPages( $spaceId );
+		return $this->db->getInvalidPages( $spaceId );
 	}
 
 	/**
@@ -247,7 +241,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getInvalidBlogPosts( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getInvalidBlogPosts( $spaceId );
+		return $this->db->getInvalidBlogPosts( $spaceId );
 	}
 
 	/**
@@ -255,7 +249,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getInvalidAttachments( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getInvalidAttachments( $spaceId );
+		return $this->db->getInvalidAttachments( $spaceId );
 	}
 
 	/**
@@ -263,7 +257,7 @@ class DBComposerDataLookup {
 	 * @return array
 	 */
 	public function getInvalidPageTemplates( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getInvalidPageTemplates( $spaceId );
+		return $this->db->getInvalidPageTemplates( $spaceId );
 	}
 
 	/**
@@ -271,7 +265,7 @@ class DBComposerDataLookup {
 	 * @return array Each entry: ['page_id', 'wiki_title', 'confluence_title', 'parent_page_id', 'position']
 	 */
 	public function getPagesForSidebar( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getPagesForSidebar( $spaceId );
+		return $this->db->getPagesForSidebar( $spaceId );
 	}
 
 	/**
@@ -279,7 +273,7 @@ class DBComposerDataLookup {
 	 * @return array Each entry: ['page_id', 'wiki_title', 'confluence_title']
 	 */
 	public function getBlogPostsForSidebar( ?int $spaceId = null ): array {
-		return $this->workspaceDB->getBlogPostsForSidebar( $spaceId );
+		return $this->db->getBlogPostsForSidebar( $spaceId );
 	}
 
 	/**
@@ -287,17 +281,17 @@ class DBComposerDataLookup {
 	 * @return string
 	 */
 	public function getAttachmentDescription( int $attachmentId ): string {
-		return $this->workspaceDB->getAttachmentDescription( $attachmentId );
+		return $this->db->getAttachmentDescription( $attachmentId );
 	}
 
 	/**
 	 * @return array
 	 */
 	public function getWikisConfigWikiNames(): array {
-		return $this->workspaceDB->getWikisConfigWikiNames();
+		return $this->db->getWikisConfigWikiNames();
 	}
 
 	public function getWikisConfigSpacesForWikiName( string $wikiName ): array {
-		return $this->workspaceDB->getWikisConfigSpacesForWikiName( $wikiName );
+		return $this->db->getWikisConfigSpacesForWikiName( $wikiName );
 	}
 }

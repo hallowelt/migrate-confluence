@@ -15,7 +15,7 @@ class UpdatePagesTableWithSpaceIdOfHistoryVersions extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$pageIdToSpaceIdMap = [];
-		$pages = $this->workspaceDB->getPages();
+		$pages = $this->dataReader->getPages();
 
 		foreach ( $pages as $page ) {
 			if ( !isset( $page['page_id'] ) || !array_key_exists( 'space_id', $page ) ) {

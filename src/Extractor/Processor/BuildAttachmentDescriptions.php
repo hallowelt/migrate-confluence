@@ -16,9 +16,9 @@ class BuildAttachmentDescriptions extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$tables = [
-			$this->workspaceDB->getPageAttachments(),
-			$this->workspaceDB->getBlogPostAttachments(),
-			$this->workspaceDB->getAdditionalAttachments(),
+			$this->dataReader->getPageAttachments(),
+			$this->dataReader->getBlogPostAttachments(),
+			$this->dataReader->getAdditionalAttachments(),
 		];
 
 		foreach ( $tables as $rows ) {
@@ -57,7 +57,7 @@ class BuildAttachmentDescriptions extends ProcessorBase {
 		$description = "Original file name: <nowiki>$quotedFileName</nowiki>\n"
 			. "{{DISPLAYTITLE:$quotedFileName|noerror}}";
 
-		$metaData = $this->workspaceDB->getAttachmentMetaById( $attachmentId );
+		$metaData = $this->dataReader->getAttachmentMetaById( $attachmentId );
 		foreach ( $metaData['categories'] ?? [] as $category ) {
 			$description .= "\n[[Category:" . ucfirst( $category ) . "]]";
 		}

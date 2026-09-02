@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -16,6 +17,7 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 	 */
 	public function testExtractsCurrentBlogPostBodyContent(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$dataReader = new ExtractorDataReader( $workspaceDB );
 		$workspace = $this->createMock( Workspace::class );
 		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
@@ -31,7 +33,7 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 
 		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractBlogPostsBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractBlogPostsBodyContents( $workspaceDB, $workspace, $dbLog, $writer, $dataReader );
 		$processor->execute();
 	}
 
@@ -43,6 +45,7 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 	 */
 	public function testExtractsHistoricalBlogPostBodyContent(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$dataReader = new ExtractorDataReader( $workspaceDB );
 		$workspace = $this->createMock( Workspace::class );
 		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
@@ -68,7 +71,7 @@ class ExtractBlogPostsBodyContentsTest extends TestCase {
 			->method( 'saveRawContent' )
 			->willReturn( '/content/raw/x.mraw' );
 
-		$processor = new ExtractBlogPostsBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractBlogPostsBodyContents( $workspaceDB, $workspace, $dbLog, $writer, $dataReader );
 		$processor->execute();
 	}
 }

@@ -2,25 +2,15 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
-use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Database\DataReader\AbstractDataReader;
 
-class WikisConfig {
-
-	/** @var WorkspaceDB */
-	private WorkspaceDB $workspaceDB;
-
-	/**
-	 * @param WorkspaceDB $workspaceDB
-	 */
-	public function __construct( WorkspaceDB $workspaceDB ) {
-		$this->workspaceDB = $workspaceDB;
-	}
+class WikisConfig extends AbstractDataReader {
 
 	/**
 	 * @return string|null
 	 */
 	public function getWikiNameForSpaceKey( string $spaceKey ): ?string {
-		$name = $this->workspaceDB->getWikisConfigWikiNameForSpaceKey( $spaceKey );
+		$name = $this->db->getWikisConfigWikiNameForSpaceKey( $spaceKey );
 		return $name;
 	}
 
@@ -28,7 +18,7 @@ class WikisConfig {
 	 * @return string
 	 */
 	public function getNamespaceForSpaceKey( string $spaceKey ): string {
-		$namespace = $this->workspaceDB->getWikisConfigNamespaceForSpaceKey( $spaceKey );
+		$namespace = $this->db->getWikisConfigNamespaceForSpaceKey( $spaceKey );
 		if ( $namespace === null ) {
 			return $spaceKey;
 		}
@@ -39,7 +29,7 @@ class WikisConfig {
 	 * @return string
 	 */
 	public function getRootPageForSpaceKey( string $spaceKey ): string {
-		$root = $this->workspaceDB->getWikisConfigRootPageForSpaceKey( $spaceKey );
+		$root = $this->db->getWikisConfigRootPageForSpaceKey( $spaceKey );
 		if ( $root === null ) {
 			return '';
 		}

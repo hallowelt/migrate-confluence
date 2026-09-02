@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
@@ -20,6 +21,10 @@ trait PreprocessorTestHelper {
 
 	private function createWriter( WorkspaceDB $workspaceDB ): IExtractorDataWriter {
 		return new ExtractorDirectDataWriter( $workspaceDB );
+	}
+
+	private function createDataReader( WorkspaceDB $workspaceDB ): ExtractorDataReader {
+		return new ExtractorDataReader( $workspaceDB );
 	}
 
 	private function findRowById( array $rows, string $idField, int|string $idValue ): ?array {

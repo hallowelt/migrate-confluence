@@ -5,17 +5,17 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use Exception;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 abstract class LinkProcessorBase extends ConversionHelper implements IProcessor {
 
 	/**
-	 * @var DBConversionDataLookup
+	 * @var ConversionDataReader
 	 */
-	protected DBConversionDataLookup $dataLookup;
+	protected ConversionDataReader $dataLookup;
 
 	/**
 	 * @var int
@@ -38,12 +38,12 @@ abstract class LinkProcessorBase extends ConversionHelper implements IProcessor 
 	private DOMElement $linkNode;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup,
+	public function __construct( ConversionDataReader $dataLookup,
 		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;

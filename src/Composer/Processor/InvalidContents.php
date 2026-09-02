@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDataReader;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
@@ -18,7 +18,7 @@ class InvalidContents extends ContentProcessorBase {
 
 	/**
 	 * @param Builder $builder
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param ComposerDataReader $dataLookup
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
@@ -26,7 +26,7 @@ class InvalidContents extends ContentProcessorBase {
 	 */
 	public function __construct(
 		protected Builder $builder,
-		protected DBComposerDataLookup $dataLookup,
+		protected ComposerDataReader $dataLookup,
 		protected Workspace $workspace,
 		protected Output $output,
 		protected string $dest,

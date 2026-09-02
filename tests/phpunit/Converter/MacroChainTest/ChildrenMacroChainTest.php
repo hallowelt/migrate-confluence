@@ -38,7 +38,7 @@ class ChildrenMacroChainTest extends MacroChainTestBase {
 	private function createProcessor(): IProcessor {
 		$workspaceDb = ( new \HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock() )
 			->createWithoutExtNsFileRepoCompat();
-		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
+		$dataLookup = new \HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader( $workspaceDb );
 
 		return new ChildrenMacro( 42, 'SomePage', $dataLookup );
 	}

@@ -17,6 +17,7 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'TEST', '' );
@@ -28,6 +29,7 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 			$workspaceDB,
 			$dbLog,
 			$writer,
+			$dataReader,
 			new MigrationConfig( [] ),
 			new WikisConfig( $workspaceDB )
 		);

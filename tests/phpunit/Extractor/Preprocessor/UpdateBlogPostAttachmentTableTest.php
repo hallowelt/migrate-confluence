@@ -16,6 +16,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
@@ -23,7 +24,9 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
 		);
 
-		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
+		$processor = new UpdateBlogPostAttachmentTable(
+			$workspaceDB, $dbLog, $writer, $dataReader, new MigrationConfig( [] )
+		);
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
@@ -45,6 +48,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
@@ -52,9 +56,10 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
 		);
 
-		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
+		$processor = new UpdateBlogPostAttachmentTable(
+			$workspaceDB, $dbLog, $writer, $dataReader, new MigrationConfig( [
 			'ext-ns-file-repo-compat' => true
-		] ) );
+			] ) );
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
@@ -80,6 +85,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
@@ -87,11 +93,12 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
 		);
 
-		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
+		$processor = new UpdateBlogPostAttachmentTable(
+			$workspaceDB, $dbLog, $writer, $dataReader, new MigrationConfig( [
 			'space-prefix' => [
 				'TEST' => 'MYTEST'
 			]
-		] ) );
+			] ) );
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
@@ -117,6 +124,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
@@ -124,12 +132,13 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
 		);
 
-		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
+		$processor = new UpdateBlogPostAttachmentTable(
+			$workspaceDB, $dbLog, $writer, $dataReader, new MigrationConfig( [
 			'space-prefix' => [
 				'TEST' => 'MYTEST'
 			],
 			'ext-ns-file-repo-compat' => true
-		] ) );
+			] ) );
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
@@ -155,6 +164,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
@@ -162,11 +172,12 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
 		);
 
-		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
+		$processor = new UpdateBlogPostAttachmentTable(
+			$workspaceDB, $dbLog, $writer, $dataReader, new MigrationConfig( [
 			'space-prefix' => [
 				'TEST' => 'MYTEST:Root/'
 			]
-		] ) );
+			] ) );
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();
@@ -192,6 +203,7 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 700, 1000, 'Blog', 'Blog:TEST/Blog', 'current', '', '', '1', -1, [], [], [], [] );
@@ -199,12 +211,13 @@ class UpdateBlogPostAttachmentTableTest extends TestCase {
 			701, 1000, 'image.png', 'png', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
 		);
 
-		$processor = new UpdateBlogPostAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
+		$processor = new UpdateBlogPostAttachmentTable(
+			$workspaceDB, $dbLog, $writer, $dataReader, new MigrationConfig( [
 			'space-prefix' => [
 				'TEST' => 'MYTEST:Root/'
 			],
 			'ext-ns-file-repo-compat' => true
-		] ) );
+			] ) );
 		$processor->execute();
 
 		$blogPostAttachments = $workspaceDB->getBlogPostAttachments();

@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -17,14 +18,16 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 	 * @param Workspace $workspace
 	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
+	 * @param ExtractorDataReader $dataReader
 	 */
 	public function __construct(
 		WorkspaceDB $workspaceDB,
 		protected Workspace $workspace,
 		DBLog $dbLog,
-		IExtractorDataWriter $writer
+		IExtractorDataWriter $writer,
+		ExtractorDataReader $dataReader
 	) {
-		parent::__construct( $workspaceDB, $dbLog, $writer );
+		parent::__construct( $workspaceDB, $dbLog, $writer, $dataReader );
 	}
 
 	/**
@@ -32,7 +35,7 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$currentContentIds = [];
-		foreach ( $this->workspaceDB->getCurrentSpaceDescriptions() as $spaceDescription ) {
+		foreach ( $this->dataReader->getCurrentSpaceDescriptions() as $spaceDescription ) {
 			if ( isset( $spaceDescription['space_description_id'] ) ) {
 				$currentContentIds[] = (int)$spaceDescription['space_description_id'];
 			}
@@ -53,9 +56,9 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 		}
 
 		foreach ( $currentContentIds as $currentContentId ) {
-			$bodyContentIds = $this->workspaceDB->getBodyContentIdsForContentId( $currentContentId );
+			$bodyContentIds = $this->dataReader->getBodyContentIdsForContentId( $currentContentId );
 			foreach ( $bodyContentIds as $bodyContentId ) {
-				$body = $this->workspaceDB->getBodyContentBodyByBodyContentId( $bodyContentId );
+				$body = $this->dataReader->getBodyContentBodyByBodyContentId( $bodyContentId );
 				if ( $body === null ) {
 					continue;
 				}

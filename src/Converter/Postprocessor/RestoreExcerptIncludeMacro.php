@@ -4,13 +4,13 @@ namespace HalloWelt\MigrateConfluence\Converter\Postprocessor;
 
 use DOMDocument;
 use DOMXPath;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class RestoreExcerptIncludeMacro implements IPostprocessor {
 
-	public function __construct( private readonly DBConversionDataLookup $dataLookup ) {
+	public function __construct( private readonly ConversionDataReader $dataLookup ) {
 	}
 
 	/**

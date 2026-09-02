@@ -30,8 +30,8 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 	 * @throws Exception
 	 */
 	private function updateWikiTitles(): void {
-		$spaceIdToPrefixMap = $this->workspaceDB->getMapSpaceIdToPrefix();
-		$blogPosts = $this->workspaceDB->getBlogPosts();
+		$spaceIdToPrefixMap = $this->dataReader->getMapSpaceIdToPrefix();
+		$blogPosts = $this->dataReader->getBlogPosts();
 		$pageIdToWikiTitleMap = [];
 
 		foreach ( $blogPosts as $blogPost ) {
@@ -133,7 +133,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 	 */
 	private function checkWikiTitles(): void {
 		$titles = [];
-		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
+		foreach ( $this->dataReader->getBlogPosts() as $blogPost ) {
 			$title = '';
 			$pageId = $blogPost['page_id'];
 			if ( isset( $blogPost['wiki_title'] ) && $blogPost['wiki_title'] !== '' ) {

@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDataReader;
 
 abstract class ContentProcessorBase extends ProcessorBase {
 
@@ -93,10 +93,10 @@ abstract class ContentProcessorBase extends ProcessorBase {
 	}
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param ComposerDataReader $dataLookup
 	 * @return array
 	 */
-	protected function buildUserkeyToUsernameMap( DBComposerDataLookup $dataLookup ): array {
+	protected function buildUserkeyToUsernameMap( ComposerDataReader $dataLookup ): array {
 		$userkeyToUsernameMap = [];
 		$users = $dataLookup->getUsers();
 		foreach ( $users as $user ) {

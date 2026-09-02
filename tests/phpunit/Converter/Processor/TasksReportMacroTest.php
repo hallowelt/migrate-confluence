@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class TasksReportMacroTest extends ProcessorTestCase {
 	/**
@@ -25,7 +25,7 @@ class TasksReportMacroTest extends ProcessorTestCase {
 	public function testProcess() {
 		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$this->dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
 		$input = $this->getInput();
 

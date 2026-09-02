@@ -3,13 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class DrawioMacroTest extends ProcessorTestCase {
-	/** @var DBConversionDataLookup */
+	/** @var ConversionDataReader */
 	private $dataLookup;
 
 	/** @var ConversionDataWriter */
@@ -40,7 +40,7 @@ class DrawioMacroTest extends ProcessorTestCase {
 	public function testProcess() {
 		$this->tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-test-' . uniqid();
 		$this->conversionDataWriter = new ConversionDataWriter( $this->tempDir );
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
+		$this->dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		$this->doTest( 0, 'drawio-macro-input.xml', 'drawio-macro-output-1.xml' );
 		$this->doTest( 23, 'drawio-macro-input.xml', 'drawio-macro-output-2.xml' );
@@ -75,7 +75,7 @@ class DrawioMacroTest extends ProcessorTestCase {
 		$writerDir = $this->tempDir . '/writer';
 		mkdir( $writerDir, 0755, true );
 		$conversionDataWriter = new ConversionDataWriter( $writerDir );
-		$dataLookup = new DBConversionDataLookup( $db );
+		$dataLookup = new ConversionDataReader( $db );
 
 		$macroXml = <<<'XML'
 <xml xmlns:ac="some" xmlns:ri="thing">

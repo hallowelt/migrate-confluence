@@ -2,9 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use ReflectionClass;
 
 /**
@@ -14,7 +14,7 @@ class ExcerptIncludeMacroChainTest extends MacroChainTestBase {
 
 	protected function setUp(): void {
 		$workspaceDb = $this->createWorkspaceDb();
-		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
+		$this->dataLookup = new ConversionDataReader( $workspaceDb );
 	}
 
 	/**

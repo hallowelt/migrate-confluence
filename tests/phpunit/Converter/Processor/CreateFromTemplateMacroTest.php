@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
@@ -33,7 +33,7 @@ class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
 		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
 
-		$dataLookup = new DBConversionDataLookup( $workspaceDB );
+		$dataLookup = new ConversionDataReader( $workspaceDB );
 
 		$processor = new CreateFromTemplateMacro( $dataLookup );
 		$processor->process( $dom );
@@ -58,7 +58,7 @@ class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
 		$workspaceDB = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
 
-		$dataLookup = new DBConversionDataLookup( $workspaceDB );
+		$dataLookup = new ConversionDataReader( $workspaceDB );
 
 		$processor = new CreateFromTemplateMacro( $dataLookup );
 		$processor->process( $dom );

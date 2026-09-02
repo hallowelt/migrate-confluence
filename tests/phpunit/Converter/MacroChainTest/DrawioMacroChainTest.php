@@ -44,7 +44,7 @@ class DrawioMacroChainTest extends MacroChainTestBase {
 	private function createProcessor(): IProcessor {
 		$workspaceDb = ( new \HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock() )
 			->createWithoutExtNsFileRepoCompat();
-		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
+		$dataLookup = new \HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader( $workspaceDb );
 		$tmpBase = getenv( 'TMPDIR' ) ?: sys_get_temp_dir();
 		$writerPath = $tmpBase . '/macro-chain-writer';
 		if ( !is_dir( $writerPath ) ) {

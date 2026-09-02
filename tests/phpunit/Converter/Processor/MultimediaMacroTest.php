@@ -2,9 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\MultimediaMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -19,7 +19,7 @@ class MultimediaMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
+		$this->dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		/** SpaceId GENERAL */
 		$this->doTest(
@@ -37,7 +37,7 @@ class MultimediaMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcessBrokenMacro() {
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$this->dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
 		// Macros with no params at all, or with a name param but no ri:filename attribute,
 		// must be replaced with the broken-macro category marker.
@@ -51,7 +51,7 @@ class MultimediaMacroTest extends TestCase {
 	 * @return void
 	 */
 	public function testProcessUnmappedFilename() {
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$this->dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
 		// ri:filename is present but not found in the migration map: the macro must still
 		// render using the expected wiki filename (red link) and append Broken_attachment_link.

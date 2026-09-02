@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class AttachmentLinkTest extends ProcessorTestCase {
@@ -35,7 +35,7 @@ class AttachmentLinkTest extends ProcessorTestCase {
 
 		$currentSpaceId = 42;
 		$currentRawPagename = 'SomePage';
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
 		$processor = new AttachmentLink(
 			$dataLookup,

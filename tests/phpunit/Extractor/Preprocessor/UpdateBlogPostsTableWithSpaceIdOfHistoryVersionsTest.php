@@ -15,11 +15,12 @@ class UpdateBlogPostsTableWithSpaceIdOfHistoryVersionsTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addBlogPost( 200, 10, 'Original blog', '', 'current', '', '', '1', -1, [], [], [], [] );
 		$workspaceDB->addBlogPost( 201, null, 'Historical blog', '', 'historical', '', '', '1', 200, [], [], [], [] );
 
-		$processor = new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $workspaceDB, $dbLog, $writer, $dataReader );
 		$processor->execute();
 
 		$historical = $this->findRowById( $workspaceDB->getBlogPosts(), 'page_id', 201 );

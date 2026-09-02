@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
@@ -14,8 +14,8 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
  */
 class GalleryMacro extends StructuredMacroProcessorBase {
 
-	/** @var DBConversionDataLookup */
-	private DBConversionDataLookup $dataLookup;
+	/** @var ConversionDataReader */
+	private ConversionDataReader $dataLookup;
 
 	/** @var int */
 	private int $currentSpaceId;
@@ -30,13 +30,13 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	private FilenameResolver $filenameResolver;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $config
 	 */
 	public function __construct(
-		DBConversionDataLookup $dataLookup,
+		ConversionDataReader $dataLookup,
 		int $currentSpaceId,
 		string $rawPageTitle,
 		MigrationConfig $config

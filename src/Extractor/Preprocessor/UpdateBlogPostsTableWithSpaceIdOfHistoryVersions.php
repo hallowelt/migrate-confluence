@@ -17,7 +17,7 @@ class UpdateBlogPostsTableWithSpaceIdOfHistoryVersions extends ProcessorBase {
 		$pageIdToSpaceIdMap = [];
 		$pendingUpdates = [];
 
-		foreach ( $this->workspaceDB->getBlogPosts() as $blogPost ) {
+		foreach ( $this->dataReader->getBlogPosts() as $blogPost ) {
 			if ( !isset( $blogPost['page_id'] ) || !array_key_exists( 'space_id', $blogPost ) ) {
 				continue;
 			}

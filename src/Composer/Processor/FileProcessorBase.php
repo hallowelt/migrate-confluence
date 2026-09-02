@@ -3,10 +3,10 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDataReader;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikiFileXmlBuilder;
@@ -36,14 +36,14 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	protected ?array $currentSpaceIds = null;
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param ComposerDataReader $dataLookup
 	 * @param Workspace $workspace
 	 * @param Output $output
 	 * @param string $dest
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		protected DBComposerDataLookup $dataLookup,
+		protected ComposerDataReader $dataLookup,
 		protected Workspace $workspace,
 		protected Output $output,
 		protected string $dest,

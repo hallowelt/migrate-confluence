@@ -15,6 +15,7 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPageTemplate(
@@ -29,7 +30,7 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 			'current'
 		);
 
-		$processor = new UpdatePageTemplatesWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdatePageTemplatesWithWikiTitle( $workspaceDB, $dbLog, $writer, $dataReader );
 		$processor->execute();
 
 		$pageTemplate = $this->findRowById( $workspaceDB->getPageTemplates(), 'template_id', 700 );

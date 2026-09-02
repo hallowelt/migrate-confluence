@@ -4,15 +4,15 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use Exception;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class IncludeMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var DBConversionDataLookup
+	 * @var ConversionDataReader
 	 */
-	protected DBConversionDataLookup $dataLookup;
+	protected ConversionDataReader $dataLookup;
 
 	/**
 	 * @var int
@@ -24,10 +24,10 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 	private bool $isBroken;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 * @param int $currentSpaceId
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup, int $currentSpaceId ) {
+	public function __construct( ConversionDataReader $dataLookup, int $currentSpaceId ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->conversionHelper = new ConversionHelper();

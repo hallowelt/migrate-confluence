@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class AnchorLinkTest extends ProcessorTestCase {
@@ -20,7 +20,7 @@ class AnchorLinkTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 
 		$processor = new AnchorLink( $dataLookup, 42, 'SomePage', new MigrationConfig( [] ) );
 		$processor->process( $dom );
@@ -37,7 +37,7 @@ class AnchorLinkTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testMakeLink( array $linkParts, string $expected ) {
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$processor = new AnchorLink( $dataLookup, 42, 'SomePage', new MigrationConfig( [] ) );
 		$this->assertSame( $expected, $processor->makeLink( $linkParts ) );
 	}

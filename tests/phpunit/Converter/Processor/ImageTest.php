@@ -3,16 +3,16 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ImageTest extends ProcessorTestCase {
 	/**
-	 * @var DBConversionDataLookup
+	 * @var ConversionDataReader
 	 */
-	private DBConversionDataLookup $dataLookup;
+	private ConversionDataReader $dataLookup;
 
 	/**
 	 * @var string
@@ -26,7 +26,7 @@ class ImageTest extends ProcessorTestCase {
 	public function testProcess() {
 		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
-		$this->dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
+		$this->dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat() );
 
 		/** SpaceId GENERAL */
 		$this->doTest( 'image-attachment-input-1.xml', 'image-attachment-output-1-general.xml', 0, 'SomePage' );
@@ -44,7 +44,7 @@ class ImageTest extends ProcessorTestCase {
 	public function testUrlImageInExternalLink() {
 		$this->dir = dirname( __DIR__, 2 ) . '/data';
 
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(
 			$dataLookup,
 			'image-url-external-link-input.xml',
@@ -66,14 +66,14 @@ class ImageTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 * @param string $input
 	 * @param string $output
 	 * @param int $spaceId
 	 * @param string $rawPageTitle
 	 * @return void
 	 */
-	private function doTestWith( DBConversionDataLookup $dataLookup, $input, $output, $spaceId, $rawPageTitle ): void {
+	private function doTestWith( ConversionDataReader $dataLookup, $input, $output, $spaceId, $rawPageTitle ): void {
 		$input = file_get_contents( "$this->dir/$input" );
 
 		$dom = new DOMDocument();

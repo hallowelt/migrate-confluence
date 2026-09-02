@@ -3,15 +3,15 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\ImagePageLinkHelper;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use PHPUnit\Framework\TestCase;
 
 class ImagePageLinkHelperTest extends TestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ImagePageLinkHelper::getLinkTarget
 	 * @return void
 	 */
@@ -28,14 +28,14 @@ class ImagePageLinkHelperTest extends TestCase {
 		);
 
 		$linkNode = $dom->getElementsByTagName( 'link' )->item( 0 );
-		$helper = new ImagePageLinkHelper( new DBConversionDataLookup( $workspaceDB ), 42, 'SomePage' );
+		$helper = new ImagePageLinkHelper( new ConversionDataReader( $workspaceDB ), 42, 'SomePage' );
 
 		$this->assertSame( 'DEVOPS:Page_Title3', $helper->getLinkTarget( $linkNode ) );
 		$this->assertFalse( $helper->isBrokenLink() );
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ImagePageLinkHelper::getLinkTarget
 	 * @return void
 	 */
@@ -54,7 +54,7 @@ class ImagePageLinkHelperTest extends TestCase {
 		);
 
 		$linkNode = $dom->getElementsByTagName( 'link' )->item( 0 );
-		$helper = new ImagePageLinkHelper( new DBConversionDataLookup( $workspaceDB ), 42, 'SomePage' );
+		$helper = new ImagePageLinkHelper( new ConversionDataReader( $workspaceDB ), 42, 'SomePage' );
 
 		$this->assertSame( 'wiki-devops:DEVOPS:Page_Title3', $helper->getLinkTarget( $linkNode ) );
 		$this->assertFalse( $helper->isBrokenLink() );

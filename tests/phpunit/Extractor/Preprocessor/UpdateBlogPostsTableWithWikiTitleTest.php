@@ -15,11 +15,12 @@ class UpdateBlogPostsTableWithWikiTitleTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addBlogPost( 500, 42, 'Sample blog', '', 'current', '', '', '1', -1, [], [], [], [] );
 
-		$processor = new UpdateBlogPostsTableWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdateBlogPostsTableWithWikiTitle( $workspaceDB, $dbLog, $writer, $dataReader );
 		$processor->execute();
 
 		$blogPost = $this->findRowById( $workspaceDB->getBlogPosts(), 'page_id', 500 );

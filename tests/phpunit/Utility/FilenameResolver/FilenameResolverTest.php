@@ -2,8 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Utility\FilenameResolver;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
@@ -62,20 +62,20 @@ class FilenameResolverTest extends TestCase {
 	}
 
 	/**
-	 * @return DBConversionDataLookup
+	 * @return ConversionDataReader
 	 */
-	private function getConversionDataLookupDefault(): DBConversionDataLookup {
-		$dataLookup = new DBConversionDataLookup(
+	private function getConversionDataLookupDefault(): ConversionDataReader {
+		$dataLookup = new ConversionDataReader(
 			( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat()
 		);
 		return $dataLookup;
 	}
 
 	/**
-	 * @return DBConversionDataLookup
+	 * @return ConversionDataReader
 	 */
-	private function getConversionDataLookupExtNsFileRepoCompat(): DBConversionDataLookup {
-		$dataLookup = new DBConversionDataLookup(
+	private function getConversionDataLookupExtNsFileRepoCompat(): ConversionDataReader {
+		$dataLookup = new ConversionDataReader(
 			( new WorkspaceDbMock() )->createWithExtNsFileRepoCompat()
 		);
 		return $dataLookup;

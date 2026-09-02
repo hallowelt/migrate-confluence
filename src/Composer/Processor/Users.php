@@ -2,9 +2,9 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDataReader;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\WikiUserXmlBuilder;
 use Symfony\Component\Console\Output\Output;
 
@@ -13,8 +13,8 @@ class Users implements IConfluenceComposerProcessor, ISubDirAware {
 	/** @var WikiUserXmlBuilder */
 	private WikiUserXmlBuilder $builder;
 
-	/** @var DBComposerDataLookup */
-	private DBComposerDataLookup $dataLookup;
+	/** @var ComposerDataReader */
+	private ComposerDataReader $dataLookup;
 
 	/** @var Output */
 	private Output $output;
@@ -28,12 +28,12 @@ class Users implements IConfluenceComposerProcessor, ISubDirAware {
 	private string $subDir = '';
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param ComposerDataReader $dataLookup
 	 * @param Output $output
 	 * @param string $dest
 	 */
 	public function __construct(
-		DBComposerDataLookup $dataLookup, Output $output, string $dest
+		ComposerDataReader $dataLookup, Output $output, string $dest
 	) {
 		$this->builder = new WikiUserXmlBuilder();
 		$this->dataLookup = $dataLookup;

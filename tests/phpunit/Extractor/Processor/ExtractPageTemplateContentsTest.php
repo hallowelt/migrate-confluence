@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -16,6 +17,7 @@ class ExtractPageTemplateContentsTest extends TestCase {
 	 */
 	public function testExtractsNonEmptyTemplateContentsAsRawFiles(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$dataReader = new ExtractorDataReader( $workspaceDB );
 		$workspace = $this->createMock( Workspace::class );
 		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
@@ -29,7 +31,7 @@ class ExtractPageTemplateContentsTest extends TestCase {
 			->method( 'saveRawContent' )
 			->with( 'pt_20', '<html><body>Template content</body></html>' );
 
-		$processor = new ExtractPageTemplateContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractPageTemplateContents( $workspaceDB, $workspace, $dbLog, $writer, $dataReader );
 		$processor->execute();
 	}
 }

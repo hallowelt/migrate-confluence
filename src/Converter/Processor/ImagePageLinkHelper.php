@@ -3,15 +3,15 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ImagePageLinkHelper extends ConversionHelper {
 
 	/**
-	 * @var DBConversionDataLookup
+	 * @var ConversionDataReader
 	 */
-	protected DBConversionDataLookup $dataLookup;
+	protected ConversionDataReader $dataLookup;
 
 	/**
 	 * @var int
@@ -32,11 +32,11 @@ class ImagePageLinkHelper extends ConversionHelper {
 	private string $spaceKey = '';
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup,
+	public function __construct( ConversionDataReader $dataLookup,
 		int $currentSpaceId, string $rawPageTitle ) {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;

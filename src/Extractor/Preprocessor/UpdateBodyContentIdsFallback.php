@@ -31,7 +31,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 	 * @return void
 	 */
 	private function updatePagesTable(): void {
-		$pages = $this->workspaceDB->getPages();
+		$pages = $this->dataReader->getPages();
 		foreach ( $pages as $page ) {
 			if ( !isset( $page['page_id'] ) || !isset( $page['body_content_ids'] ) ) {
 				continue;
@@ -43,7 +43,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 			}
 
 			$pageId = (int)$page['page_id'];
-			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
+			$foundIds = $this->dataReader->getBodyContentIdsForContentId( $pageId );
 			if ( empty( $foundIds ) ) {
 				continue;
 			}
@@ -61,7 +61,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 	 * @return void
 	 */
 	private function updateBlogPostsTable(): void {
-		$blogPosts = $this->workspaceDB->getBlogPosts();
+		$blogPosts = $this->dataReader->getBlogPosts();
 		foreach ( $blogPosts as $blogPost ) {
 			if ( !isset( $blogPost['page_id'] ) || !isset( $blogPost['body_content_ids'] ) ) {
 				continue;
@@ -73,7 +73,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 			}
 
 			$pageId = (int)$blogPost['page_id'];
-			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
+			$foundIds = $this->dataReader->getBodyContentIdsForContentId( $pageId );
 			if ( empty( $foundIds ) ) {
 				continue;
 			}
@@ -90,7 +90,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 	 * @return void
 	 */
 	private function updateCommentsTable(): void {
-		$comments = $this->workspaceDB->getComments();
+		$comments = $this->dataReader->getComments();
 		foreach ( $comments as $comment ) {
 			if ( !isset( $comment['comment_id'] ) || !isset( $comment['body_content_ids'] ) ) {
 				continue;
@@ -102,7 +102,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 			}
 
 			$commentId = (int)$comment['comment_id'];
-			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $commentId );
+			$foundIds = $this->dataReader->getBodyContentIdsForContentId( $commentId );
 
 			if ( empty( $foundIds ) ) {
 				continue;
@@ -120,7 +120,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 	 * @return void
 	 */
 	private function updateSpaceDescriptionsTable(): void {
-		$spaceDescriptions = $this->workspaceDB->getSpaceDescriptions();
+		$spaceDescriptions = $this->dataReader->getSpaceDescriptions();
 		foreach ( $spaceDescriptions as $spaceDesc ) {
 			if ( !isset( $spaceDesc['space_description_id'] ) || !isset( $spaceDesc['body_content_ids'] ) ) {
 				continue;
@@ -132,7 +132,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 			}
 
 			$spaceDescriptionId = (int)$spaceDesc['space_description_id'];
-			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $spaceDescriptionId );
+			$foundIds = $this->dataReader->getBodyContentIdsForContentId( $spaceDescriptionId );
 			if ( empty( $foundIds ) ) {
 				continue;
 			}

@@ -4,10 +4,10 @@ namespace HalloWelt\MigrateConfluence\Tests\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDataReader;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -35,7 +35,7 @@ class PagesTest extends TestCase {
 	 */
 	public function testAddSpaceDescriptionUsesNewestRevisionNotNewerThanPageRevision() {
 		$builder = $this->createMock( Builder::class );
-		$dataLookup = $this->createMock( DBComposerDataLookup::class );
+		$dataLookup = $this->createMock( ComposerDataReader::class );
 		$workspace = $this->createMock( Workspace::class );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 

@@ -7,6 +7,7 @@ use HalloWelt\MediaWiki\Lib\Migration\ExtractorBase;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable;
@@ -51,6 +52,9 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/** @var WorkspaceDB */
 	private WorkspaceDB $workspaceDB;
 
+	/** @var ExtractorDataReader */
+	private ExtractorDataReader $dataReader;
+
 	/** @var DBLog */
 	private DBLog $dbLog;
 
@@ -85,6 +89,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	private function initWorkspaceDB(): void {
 		$this->workspaceDB = WorkspaceDB::open( $this->dest );
+		$this->dataReader = new ExtractorDataReader( $this->workspaceDB );
 	}
 
 	/**
@@ -151,16 +156,22 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	private function getPreprocessors( IExtractorDataWriter $writer ): array {
 		return [
-			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog, $writer ),
-			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog, $writer, $this->dataReader ),
+			new UpdatePagesTableWithSpaceIdOfHistoryVersions(
+				$this->workspaceDB, $this->dbLog, $writer, $this->dataReader ),
 			new UpdatePagesTableWithWikiTitle(
-				$this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig, $this->wikisConfig ),
-			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog, $writer ),
-			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
-			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
-			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
-			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
-			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+				$this->workspaceDB, $this->dbLog, $writer, $this->dataReader,
+				$this->migrationConfig, $this->wikisConfig ),
+			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions(
+				$this->workspaceDB, $this->dbLog, $writer, $this->dataReader ),
+			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer, $this->dataReader ),
+			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer, $this->dataReader ),
+			new UpdatePageAttachmentTable(
+				$this->workspaceDB, $this->dbLog, $writer, $this->dataReader, $this->migrationConfig ),
+			new UpdateBlogPostAttachmentTable(
+				$this->workspaceDB, $this->dbLog, $writer, $this->dataReader, $this->migrationConfig ),
+			new PopulateAdditionalAttachmentsTable(
+				$this->workspaceDB, $this->dbLog, $writer, $this->dataReader, $this->migrationConfig ),
 		];
 	}
 
@@ -169,17 +180,25 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	private function getProcessors( IExtractorDataWriter $writer ): array {
 		return [
-			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
-			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
-			new ExtractBlogPostsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
-			new ExtractCommentsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
-			new ExtractPageTemplateContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
-			new ExtractPagesMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
-			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
-			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
-			new BuildAttachmentDescriptions( $this->workspaceDB, $this->dbLog, $writer ),
-			new ExtractPageComments( $this->workspaceDB, $this->dbLog, $writer ),
-			new ExtractBlogPostComments( $this->workspaceDB, $this->dbLog, $writer ),
+			new ExtractSpaceDescriptionBodyContents(
+				$this->workspaceDB, $this->workspace, $this->dbLog, $writer, $this->dataReader ),
+			new ExtractPagesBodyContents(
+				$this->workspaceDB, $this->workspace, $this->dbLog, $writer, $this->dataReader ),
+			new ExtractBlogPostsBodyContents(
+				$this->workspaceDB, $this->workspace, $this->dbLog, $writer, $this->dataReader ),
+			new ExtractCommentsBodyContents(
+				$this->workspaceDB, $this->workspace, $this->dbLog, $writer, $this->dataReader ),
+			new ExtractPageTemplateContents(
+				$this->workspaceDB, $this->workspace, $this->dbLog, $writer, $this->dataReader ),
+			new ExtractPagesMetaData(
+				$this->workspaceDB, $this->dbLog, $writer, $this->dataReader, $this->migrationConfig ),
+			new ExtractBlogPostsMetaData(
+				$this->workspaceDB, $this->dbLog, $writer, $this->dataReader, $this->migrationConfig ),
+			new ExtractAttachmentsMetaData(
+				$this->workspaceDB, $this->dbLog, $writer, $this->dataReader, $this->migrationConfig ),
+			new BuildAttachmentDescriptions( $this->workspaceDB, $this->dbLog, $writer, $this->dataReader ),
+			new ExtractPageComments( $this->workspaceDB, $this->dbLog, $writer, $this->dataReader ),
+			new ExtractBlogPostComments( $this->workspaceDB, $this->dbLog, $writer, $this->dataReader ),
 		];
 	}
 
@@ -194,21 +213,21 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			);
 		}
 
-		if ( !empty( $this->workspaceDB->getInvalidPageWikiTitles() ) ) {
+		if ( !empty( $this->dataReader->getInvalidPageWikiTitles() ) ) {
 			$this->writeln( "\n\INVALID PAGE TITLES DETECTED:\n" );
 			$this->writeln(
 				"\nPlease check page_invalid_titles table in workspaceDB for details\n\n"
 			);
 		}
 
-		if ( !empty( $this->workspaceDB->getInvalidBlogPostWikiTitles() ) ) {
+		if ( !empty( $this->dataReader->getInvalidBlogPostWikiTitles() ) ) {
 			$this->writeln( "\n\INVALID BLOG POST TITLES DETECTED:\n" );
 			$this->writeln(
 				"\nPlease check blog_post_invalid_titles table in workspaceDB for details\n\n"
 			);
 		}
 
-		if ( !empty( $this->workspaceDB->getInvalidAttachmentTitles() ) ) {
+		if ( !empty( $this->dataReader->getInvalidAttachmentTitles() ) ) {
 			$this->writeln( "\n\INVALID ATTACHMENT TITLES DETECTED:\n" );
 			$this->writeln(
 				"\nPlease check invalid_attachment_titles table in workspaceDB for details\n\n"

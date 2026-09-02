@@ -41,7 +41,7 @@ class GalleryMacroChainTest extends MacroChainTestBase {
 	private function createProcessor(): IProcessor {
 		$workspaceDb = ( new \HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock() )
 			->createWithoutExtNsFileRepoCompat();
-		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
+		$dataLookup = new \HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader( $workspaceDb );
 		$migrationConfig = new \HalloWelt\MigrateConfluence\Utility\MigrationConfig( [] );
 
 		return new GalleryMacro( $dataLookup, 42, 'SomePage', $migrationConfig );

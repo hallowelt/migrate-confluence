@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use Exception;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 
 /**
  * Partially converting pagetree macro
@@ -22,13 +22,13 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
 	 */
 	public function __construct(
-		private DBConversionDataLookup $dataLookup,
+		private ConversionDataReader $dataLookup,
 		private int $spaceId,
 		private string $confluenceTitle,
 		private string $wikiTitle

@@ -6,9 +6,9 @@ use DOMDocument;
 use DOMElement;
 use DOMException;
 use DOMNode;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
@@ -20,13 +20,13 @@ class Image extends ConversionHelper implements IProcessor {
 	protected FilenameResolver $filenameResolver;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private DBConversionDataLookup $dataLookup,
+		private ConversionDataReader $dataLookup,
 		private int $currentSpaceId,
 		private string $rawPageTitle,
 		MigrationConfig $migrationConfig

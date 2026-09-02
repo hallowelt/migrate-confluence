@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDataReader;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
-use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class Sidebar implements IConfluenceComposerProcessor, ISubDirAware {
@@ -14,12 +14,12 @@ class Sidebar implements IConfluenceComposerProcessor, ISubDirAware {
 	private string $subDir = '';
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param ComposerDataReader $dataLookup
 	 * @param MigrationConfig $migrationConfig
 	 * @param string $dest Destination workspace directory
 	 */
 	public function __construct(
-		private DBComposerDataLookup $dataLookup,
+		private ComposerDataReader $dataLookup,
 		private MigrationConfig $migrationConfig,
 		private string $dest,
 		private array $currentSpaces = []

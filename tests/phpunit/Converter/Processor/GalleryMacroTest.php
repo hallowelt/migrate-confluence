@@ -3,9 +3,9 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class GalleryMacroTest extends ProcessorTestCase {
@@ -15,7 +15,7 @@ class GalleryMacroTest extends ProcessorTestCase {
 	 */
 	public function testProcess() {
 		$dir = dirname( __DIR__, 2 ) . '/data';
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ) );
 
 		$dom = new DOMDocument();
@@ -43,7 +43,7 @@ class GalleryMacroTest extends ProcessorTestCase {
 		// approved.png:   [approved]              → excluded (AND: missing 'featured')
 		// hero.jpg:       [featured, approved]    → included ✓
 		// rejected.png:   [featured, approved, draft] → excluded (has 'draft')
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ) );
 
 		$dom = new DOMDocument();
@@ -65,7 +65,7 @@ class GalleryMacroTest extends ProcessorTestCase {
 	public function testProcessPageParam() {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ) );
 
 		$dom = new DOMDocument();
@@ -87,7 +87,7 @@ class GalleryMacroTest extends ProcessorTestCase {
 	public function testProcessBrokenMacro() {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$dataLookup = new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage without attachments', new MigrationConfig( [] ) );
 
 		$dom = new DOMDocument();

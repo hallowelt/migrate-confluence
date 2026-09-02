@@ -4,19 +4,19 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use Exception;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 
 class ChildrenMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param int $spaceId
 	 * @param string $wikiPageTitle
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 */
 	public function __construct(
 		private int $spaceId,
 		private string $wikiPageTitle,
-		private DBConversionDataLookup $dataLookup
+		private ConversionDataReader $dataLookup
 	) {
 	}
 

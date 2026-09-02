@@ -2,12 +2,12 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class PageTreeMacroTest extends ProcessorTestCase {
-	/** @var DBConversionDataLookup */
+	/** @var ConversionDataReader */
 	private $dataLookup;
 
 	/**
@@ -29,10 +29,10 @@ class PageTreeMacroTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @return DBConversionDataLookup
+	 * @return ConversionDataReader
 	 */
 	private function makeLookup() {
-		return new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		return new ConversionDataReader( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 	}
 
 	/**
@@ -51,7 +51,7 @@ class PageTreeMacroTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
 	 * @return void
 	 */
@@ -69,7 +69,7 @@ class PageTreeMacroTest extends ProcessorTestCase {
 		);
 
 		$processor = new PageTreeMacro(
-			new DBConversionDataLookup( $workspaceDB ),
+			new ConversionDataReader( $workspaceDB ),
 			42,
 			'Testpage',
 			'ABC:SomeLinkedPage/Testpage'
@@ -83,7 +83,7 @@ class PageTreeMacroTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup::getWikiPageTitleForLink
+	 * @covers HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader::getWikiPageTitleForLink
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro::process
 	 * @return void
 	 */
@@ -103,7 +103,7 @@ class PageTreeMacroTest extends ProcessorTestCase {
 		);
 
 		$processor = new PageTreeMacro(
-			new DBConversionDataLookup( $workspaceDB ),
+			new ConversionDataReader( $workspaceDB ),
 			42,
 			'Testpage',
 			'ABC:SomeLinkedPage/Testpage'

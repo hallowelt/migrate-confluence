@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Utility;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 
 /**
  * Resolves Confluence file data to a MediaWiki file title.
@@ -13,11 +14,11 @@ use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
 class FilenameResolver {
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		protected DBConversionDataLookup $dataLookup,
+		protected ConversionDataReader $dataLookup,
 		protected MigrationConfig $migrationConfig ) {
 	}
 

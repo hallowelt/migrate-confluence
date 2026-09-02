@@ -2,14 +2,16 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
+use HalloWelt\MigrateConfluence\Composer\DataReader\ComposerDataReader;
+
 class ComposerSkipHelper {
 
 	/**
-	 * @param DBComposerDataLookup $dataLookup
+	 * @param ComposerDataReader $dataLookup
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
-		private DBComposerDataLookup $dataLookup,
+		private ComposerDataReader $dataLookup,
 		private MigrationConfig $migrationConfig
 	) {
 	}

@@ -15,6 +15,7 @@ class UpdateBodyContentIdsFallbackTest extends TestCase {
 		$workspaceDB = $this->createWorkspaceDB();
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
+		$dataReader = $this->createDataReader( $workspaceDB );
 
 		$workspaceDB->addPage( 300, 10, 'Page', '', 'current', '', '', '1', -1, -1, [], [], [], [] );
 		$workspaceDB->addBlogPost( 301, 10, 'Blog', '', 'current', '', '', '1', -1, [], [], [], [] );
@@ -26,7 +27,7 @@ class UpdateBodyContentIdsFallbackTest extends TestCase {
 		$workspaceDB->addBodyContent( 1302, 302, 'Comment', [ 'content' => '302' ] );
 		$workspaceDB->addBodyContent( 1303, 303, 'SpaceDescription', [ 'content' => '303' ] );
 
-		$processor = new UpdateBodyContentIdsFallback( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdateBodyContentIdsFallback( $workspaceDB, $dbLog, $writer, $dataReader );
 		$processor->execute();
 
 		$page = $this->findRowById( $workspaceDB->getPages(), 'page_id', 300 );

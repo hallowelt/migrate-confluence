@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesBodyContents;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -16,6 +17,7 @@ class ExtractPagesBodyContentsTest extends TestCase {
 	 */
 	public function testExtractsCurrentPageBodyContent(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$dataReader = new ExtractorDataReader( $workspaceDB );
 		$workspace = $this->createMock( Workspace::class );
 		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
@@ -31,7 +33,7 @@ class ExtractPagesBodyContentsTest extends TestCase {
 
 		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractPagesBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractPagesBodyContents( $workspaceDB, $workspace, $dbLog, $writer, $dataReader );
 		$processor->execute();
 	}
 }

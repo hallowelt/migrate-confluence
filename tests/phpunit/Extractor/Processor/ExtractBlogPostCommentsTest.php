@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
+use HalloWelt\MigrateConfluence\Extractor\DataReader\ExtractorDataReader;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostComments;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
@@ -15,6 +16,7 @@ class ExtractBlogPostCommentsTest extends TestCase {
 	 */
 	public function testConvertsBlogNamespaceForAllValidComments(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
+		$dataReader = new ExtractorDataReader( $workspaceDB );
 		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
@@ -40,7 +42,7 @@ class ExtractBlogPostCommentsTest extends TestCase {
 
 		$dbLog->expects( $this->never() )->method( 'addLogEntry' );
 
-		$processor = new ExtractBlogPostComments( $workspaceDB, $dbLog, $writer );
+		$processor = new ExtractBlogPostComments( $workspaceDB, $dbLog, $writer, $dataReader );
 		$processor->execute();
 	}
 }

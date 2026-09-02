@@ -3,16 +3,16 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataReader\ConversionDataReader;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 
 class DrawioMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var DBConversionDataLookup
+	 * @var ConversionDataReader
 	 */
-	protected DBConversionDataLookup $dataLookup;
+	protected ConversionDataReader $dataLookup;
 
 	/**
 	 * @var ConversionDataWriter
@@ -30,12 +30,12 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	protected string $rawPageTitle;
 
 	/**
-	 * @param DBConversionDataLookup $dataLookup
+	 * @param ConversionDataReader $dataLookup
 	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
+	public function __construct( ConversionDataReader $dataLookup, ConversionDataWriter $conversionDataWriter,
 		int $currentSpaceId, string $rawPageTitle ) {
 		$this->dataLookup = $dataLookup;
 		$this->conversionDataWriter = $conversionDataWriter;
