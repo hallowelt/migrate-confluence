@@ -12,14 +12,14 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./wikiimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<wiki-name>] [--add-default] [--dry] [--sfr=<wiki-instance>]
+Usage: ./wikiimport.sh [--wiki-root=/path/to/wiki-root] [--src=/path/to/result/<wiki-name>] [--add-default] [--dry] [--sfr=<wiki-instance>]
 
 Imports every namespace directory inside the selected wiki result directory.
 Supports both single-file output (e.g. pages.xml) and split output
 (e.g. pages-00000001.xml, pages-00000002.xml, ...).
 
 Options:
-  --wiki-root=PATH  Path to the MediaWiki root directory
+  --wiki-root=PATH  Path to the MediaWiki root directory (default: /app/bluespice/w)
   --src=PATH        Wiki result directory (defaults to this script's directory)
   --add-default     Also import default-files*.xml and default-pages*.xml from <src>/_shared
   --dry             Dry run, only print the import commands instead of running them
@@ -27,13 +27,13 @@ Options:
 
 Import order per namespace directory:
   1) _shared/default-files*.xml  (only with --add-default, once per wiki)
-  2) files*.xml
-  3) blogs*.xml
-  4) page-talk*.xml
-  5) blog-talk*.xml
-  6) templates*.xml
-  7) _shared/default-pages*.xml  (only with --add-default, once per wiki)
-  8) pages*.xml
+  2) _shared/default-pages*.xml  (only with --add-default, once per wiki)
+  3) files*.xml
+  4) blogs*.xml
+  5) templates*.xml
+  6) pages*.xml
+  7) page-talk*.xml
+  8) blog-talk*.xml
   9) enhanced-sidebar*.xml
 
 Notes:
@@ -46,7 +46,7 @@ EOF
 
 src=""
 sfr=""
-wiki_root=""
+wiki_root="/app/bluespice/w"
 add_default=0
 dry=0
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -82,7 +82,7 @@ for arg in "$@"; do
 done
 
 if [[ -z "$wiki_root" ]]; then
-  echo "Error: --wiki-root is required" >&2
+  echo "Error: --wiki-root must not be empty" >&2
   usage >&2
   exit 1
 fi
@@ -209,9 +209,15 @@ run_group() {
   for file in "${files[@]}"; do
     echo "==> Importing $base from $file"
     if [[ "$mode" == "files" ]]; then
-      run_import_files_file "$file"
+      if ! run_import_files_file "$file"; then
+        echo "Error: import failed for $file" >&2
+        return 1
+      fi
     else
-      run_import_dump_file "$file"
+      if ! run_import_dump_file "$file"; then
+        echo "Error: import failed for $file" >&2
+        return 1
+      fi
     fi
   done
 }
@@ -237,13 +243,16 @@ run_default_group() {
 import_namespace_directory() {
   local source_dir="$1"
 
-  run_group "$source_dir" "files" "files" "optional"
-  run_group "$source_dir" "blogs" "dump" "optional"
-  run_group "$source_dir" "page-talk" "dump" "optional"
-  run_group "$source_dir" "blog-talk" "dump" "optional"
-  run_group "$source_dir" "templates" "dump" "optional"
-  run_group "$source_dir" "pages" "dump" "required"
-  run_group "$source_dir" "enhanced-sidebar" "dump" "optional"
+  # Explicit checks are required here: this function is invoked as the
+  # condition of an "if" statement, which suspends "set -e" for its whole
+  # call tree, so a failing run_group would otherwise go unnoticed.
+  run_group "$source_dir" "files" "files" "optional" || return 1
+  run_group "$source_dir" "blogs" "dump" "optional" || return 1
+  run_group "$source_dir" "templates" "dump" "optional" || return 1
+  run_group "$source_dir" "pages" "dump" "required" || return 1
+  run_group "$source_dir" "page-talk" "dump" "optional" || return 1
+  run_group "$source_dir" "blog-talk" "dump" "optional" || return 1
+  run_group "$source_dir" "enhanced-sidebar" "dump" "optional" || return 1
 
   if [[ -f "$source_dir/user.xml" ]]; then
     echo "Note: user.xml exists at $source_dir/user.xml and is intentionally ignored."
