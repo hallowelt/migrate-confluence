@@ -301,9 +301,11 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
 				$this->contentType = 'comment';
 				$this->pageId = $contentId;
-				$this->currentSpace = $this->dataLookup->getSpaceIdForCommentBodyContentId( $bodyContentId );
-				$this->wikiPageTitle = '';
-				$this->confluencePageTitle = '';
+				$this->currentSpace = $this->dataLookup->getSpaceIdForBodyContentId( $bodyContentId );
+				$this->wikiPageTitle = $this->dataLookup->getWikiTitleForBodyContentId( $bodyContentId ) ?? '';
+				$this->confluencePageTitle = $this->dataLookup->getConfluenceTitleForBodyContentId(
+					$bodyContentId
+				) ?? '';
 			}
 
 			if ( $this->contentType !== 'pageTemplate' && $this->pageId === -1 ) {

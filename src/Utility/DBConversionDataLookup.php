@@ -54,8 +54,24 @@ class DBConversionDataLookup {
 	 * @param int $bodyContentId
 	 * @return int|null
 	 */
-	public function getSpaceIdForCommentBodyContentId( int $bodyContentId ): ?int {
-		return $this->workspaceDB->getSpaceIdForCommentBodyContentId( $bodyContentId );
+	public function getSpaceIdForBodyContentId( int $bodyContentId ): ?int {
+		return $this->workspaceDB->getSpaceIdForBodyContentId( $bodyContentId );
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getWikiTitleForBodyContentId( int $bodyContentId ): ?string {
+		return $this->workspaceDB->getWikiTitleForBodyContentId( $bodyContentId );
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getConfluenceTitleForBodyContentId( int $bodyContentId ): ?string {
+		return $this->workspaceDB->getConfluenceTitleForBodyContentId( $bodyContentId );
 	}
 
 	/**

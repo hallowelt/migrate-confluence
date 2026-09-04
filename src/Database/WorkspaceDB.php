@@ -3379,12 +3379,12 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * Get the space ID of the page or blog post containing a comment body content.
+	 * Get the space ID of the page or blog post body content.
 	 *
 	 * @param int $bodyContentId
 	 * @return int|null
 	 */
-	public function getSpaceIdForCommentBodyContentId( int $bodyContentId ): ?int {
+	public function getSpaceIdForBodyContentId( int $bodyContentId ): ?int {
 		$transaction = $this->cachedPrepare(
 			'SELECT COALESCE( p.space_id, bp.space_id ) AS space_id
 			FROM body_contents bc
@@ -3409,6 +3409,60 @@ class WorkspaceDB {
 		}
 
 		return (int)$data['space_id'];
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getWikiTitleForBodyContentId( int $bodyContentId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.wiki_title, bp.wiki_title ) AS wiki_title
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return $data === false || $data['wiki_title'] === null ? null : (string)$data['wiki_title'];
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getConfluenceTitleForBodyContentId( int $bodyContentId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.confluence_title, bp.confluence_title ) AS confluence_title
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return $data === false || $data['confluence_title'] === null ? null : (string)$data['confluence_title'];
 	}
 
 	/**
