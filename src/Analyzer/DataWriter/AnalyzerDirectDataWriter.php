@@ -193,31 +193,13 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 		return $this->db->addBodyContentBody( $bodyContentId, $body );
 	}
 
-	/**
-	 * @param int $attachmentId
-	 * @param int|null $spaceId
-	 * @param string $filename
-	 * @param string $fileExtension
-	 * @param int $containerContentId
-	 * @param string $contentStatus
-	 * @param string $version
-	 * @param string $revisionTimestamp
-	 * @param string $lastModifier
-	 * @param int $originalVersionId
-	 * @param string $attachmentReference
-	 * @param array $historicalIds
-	 * @param array $properties
-	 * @param array $collection
-	 *
-	 * @return bool
-	 */
 	public function addAttachment(
 		int $attachmentId,
 		?int $spaceId,
 		string $filename,
 		string $fileExtension,
 		int $containerContentId,
-		string $contentStatus,
+		?string $contentStatus,
 		string $version,
 		string $revisionTimestamp,
 		string $lastModifier,
