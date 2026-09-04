@@ -12,7 +12,7 @@ class ConfluenceConverterMediaWiki extends ConfluenceConverterBase {
 	 */
 	protected function getProcessors(): array {
 		$processors = $this->getDefaultProcessors();
-		$processors[] = new StatusMacro();
+		$processors[] = new StatusMacro( $this->writer, $this->currentSpace );
 		return $processors;
 	}
 }

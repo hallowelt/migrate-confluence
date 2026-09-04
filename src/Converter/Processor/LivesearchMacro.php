@@ -108,6 +108,11 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 		if ( $found ) {
 			$this->writer->registerDefaultPage( $this->currentSpace, self::TEMPLATE_NAME );
 		}
+
+		$this->writer->registerDefaultPage(
+			$this->currentSpace,
+			self::TEMPLATE_NAME
+		);
 	}
 
 	/**

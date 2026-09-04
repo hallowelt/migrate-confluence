@@ -3,14 +3,20 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 
 class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 
 	/**
+	 * @param IConverterDataWriter $writer
+	 * @param int $currentSpaceId
 	 * @param string $wikiTitle
 	 */
-	public function __construct( private string $wikiTitle ) {
-	}
+	public function __construct(
+		private IConverterDataWriter $writer,
+		private int $currentSpaceId,
+		private string $wikiTitle
+	) {}
 
 	/**
 	 *
@@ -37,6 +43,11 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 				__METHOD__
 			),
 			$node
+		);
+
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			'RecentlyUpdated'
 		);
 	}
 }

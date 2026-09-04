@@ -3379,6 +3379,39 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Get the space ID of the page or blog post containing a comment body content.
+	 *
+	 * @param int $bodyContentId
+	 * @return int|null
+	 */
+	public function getSpaceIdForCommentBodyContentId( int $bodyContentId ): ?int {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.space_id, bp.space_id ) AS space_id
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || $data['space_id'] === null ) {
+			return null;
+		}
+
+		return (int)$data['space_id'];
+	}
+
+	/**
 	 * @param int $bodyContentId
 	 * @param string $body
 	 * @return bool True on success, false on error.
@@ -5273,8 +5306,7 @@ class WorkspaceDB {
 			'CREATE TABLE IF NOT EXISTS default_pages_registry (
 				space_id INT,
 				namespace TEXT,
-				name TEXT,
-				PRIMARY KEY (space_id, namespace, name)
+				name TEXT
 			);'
 		);
 	}
@@ -5291,7 +5323,7 @@ class WorkspaceDB {
 		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'
 	): bool {
 		$transaction = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO default_pages_registry (
+			'INSERT INTO default_pages_registry (
 				space_id,
 				namespace,
 				name
@@ -5309,16 +5341,19 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * Get all registered default pages for a given space ID.
+	 * Get registered default pages for a given space ID and namespace.
 	 *
 	 * @param int $spaceId
+	 * @param string $namespace
 	 * @return array
 	 */
-	public function getRegisteredDefaultPagesForSpace( int $spaceId ): array {
+	public function getRegisteredDefaultPagesForSpaceId( int $spaceId, string $namespace = 'Template' ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT namespace, name FROM default_pages_registry WHERE space_id = :space_id'
+			'SELECT DISTINCT name FROM default_pages_registry
+				WHERE space_id = :space_id AND namespace = :namespace'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':namespace', $namespace, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {

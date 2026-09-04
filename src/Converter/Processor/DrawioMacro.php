@@ -3,11 +3,15 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 
 class DrawioMacro extends StructuredMacroProcessorBase {
+
+	/** @var IConverterDataWriter */
+	protected IConverterDataWriter $writer;
 
 	/**
 	 * @var DBConversionDataLookup
@@ -30,13 +34,17 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	protected string $rawPageTitle;
 
 	/**
+	 * Undocumented function
+	 *
+	 * @param IConverterDataWriter $writer
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
+	public function __construct( IConverterDataWriter $writer, DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
 		int $currentSpaceId, string $rawPageTitle ) {
+		$this->writer = $writer;
 		$this->dataLookup = $dataLookup;
 		$this->conversionDataWriter = $conversionDataWriter;
 		$this->currentSpaceId = $currentSpaceId;
@@ -65,6 +73,11 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 				$node
 			);
 		}
+
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			'Drawio'
+		);
 	}
 
 	/**

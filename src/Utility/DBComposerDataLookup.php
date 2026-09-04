@@ -148,6 +148,15 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * @param int $spaceId
+	 * @param string $namespace
+	 * @return array
+	 */
+	public function getRegisteredDefaultPagesForSpaceId( int $spaceId, string $namespace = 'Template' ): array {
+		return $this->workspaceDB->getRegisteredDefaultPagesForSpaceId( $spaceId, $namespace );
+	}
+
+	/**
 	 * Get the wiki page title for a given page ID.
 	 * If the page has an original version, recursively look up the original version
 	 * until the original version is reached and return its wiki title.

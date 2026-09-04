@@ -301,8 +301,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
 				$this->contentType = 'comment';
 				$this->pageId = $contentId;
-				// Comment body content: convert with minimal context (no page-specific macros expected)
-				$this->currentSpace = 0;
+				$this->currentSpace = $this->dataLookup->getSpaceIdForCommentBodyContentId( $bodyContentId );
 				$this->wikiPageTitle = '';
 				$this->confluencePageTitle = '';
 			}
@@ -408,28 +407,37 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new LayoutCell(),
 			new AnchorMacro(),
 			new Placeholder(),
-			new InlineCommentMarker(),
+			new InlineCommentMarker(
+				$this->writer,
+				$this->currentSpace
+			),
 			new PreserveTimeTag(),
-			new TipMacro(),
-			new InfoMacro(),
-			new NoteMacro(),
-			new WarningMacro(),
+			new TipMacro( $this->writer, $this->currentSpace ),
+			new InfoMacro( $this->writer, $this->currentSpace ),
+			new NoteMacro( $this->writer, $this->currentSpace ),
+			new WarningMacro( $this->writer, $this->currentSpace ),
 			new TocMacro( $this->tocMacroUsage ),
-			new PanelMacro(),
-			new ColumnMacro(),
+			new PanelMacro( $this->writer, $this->currentSpace ),
+			new ColumnMacro( $this->writer, $this->currentSpace ),
 			new SectionMacro(),
 			new ChildrenMacro(
+				 $this->writer,
 				$this->currentSpace,
 				$this->wikiPageTitle,
 				$this->dataLookup
 			),
 			new PageTreeMacro(
+				 $this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->wikiPageTitle
 			),
-			new RecentlyUpdatedMacro( $this->wikiPageTitle ),
+			new RecentlyUpdatedMacro(
+				$this->writer,
+				$this->currentSpace,
+				$this->wikiPageTitle
+			),
 			new IncludeMacro(
 				$this->dataLookup,
 				$this->currentSpace
@@ -472,6 +480,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new NoFormatMacro(),
 			new TaskListMacro(),
 			new DrawioMacro(
+				$this->writer,
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
@@ -483,7 +492,11 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->confluencePageTitle,
 				$this->writer
 			),
-			new ContentByLabelMacro( $this->wikiPageTitle ),
+			new ContentByLabelMacro(
+				 $this->writer,
+				 $this->currentSpace,
+				 $this->wikiPageTitle
+			),
 			new AttachmentsMacro(),
 			new GalleryMacro(
 				$this->dataLookup,
@@ -491,14 +504,14 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
-			new ExpandMacro(),
-			new DetailsMacro(),
+			new ExpandMacro( $this->writer, $this->currentSpace ),
+			new DetailsMacro( $this->writer, $this->currentSpace ),
 			new DetailsSummaryMacro(),
 			new AlignMacro(),
-			new TmMacro(),
-			new RegTmMacro(),
-			new CopyrightMacro(),
-			new SmMacro(),
+			new TmMacro( $this->writer, $this->currentSpace ),
+			new RegTmMacro( $this->writer, $this->currentSpace ),
+			new CopyrightMacro( $this->writer, $this->currentSpace ),
+			new SmMacro( $this->writer, $this->currentSpace ),
 			new JiraMacro(),
 			new MarkdownMacro(),
 			new ViewFileMacro(
@@ -539,10 +552,10 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			),
 			new WidgetMacro(),
 			new PreservePStyleTag(),
-			new TableFilterMacro(),
+			new TableFilterMacro( $this->writer, $this->currentSpace ),
 			new LocalTabMacro(),
 			new LocalTabGroupMacro(),
-			new LoremIpsumMacro(),
+			new LoremIpsumMacro( $this->writer, $this->currentSpace ),
 			new CreateFromTemplateMacro(
 				$this->dataLookup
 			),

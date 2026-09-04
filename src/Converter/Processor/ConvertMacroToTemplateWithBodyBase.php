@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
@@ -17,6 +18,15 @@ use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
  * </ac:structured-macro>
  */
 abstract class ConvertMacroToTemplateWithBodyBase extends ConversionHelper implements IProcessor {
+
+	/**
+	 * @param IConverterDataWriter $writer
+	 * @param int $currentSpace
+	 */
+	public function __construct(
+		private IConverterDataWriter $writer,
+		private int $currentSpace
+	){}
 
 	/**
 	 * @inheritDoc
@@ -91,6 +101,16 @@ abstract class ConvertMacroToTemplateWithBodyBase extends ConversionHelper imple
 			$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
 
 			$parentNode->removeChild( $actualMacro );
+
+			$this->writer->registerDefaultPage(
+				$this->currentSpace,
+				$this->getWikiTextTemplateStartName()
+			);
+
+			$this->writer->registerDefaultPage(
+				$this->currentSpace,
+				$this->getWikiTextTemplateEndName()
+			);
 		}
 	}
 

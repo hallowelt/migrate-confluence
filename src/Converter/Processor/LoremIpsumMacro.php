@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 
 /**
  * <ac:structured-macro ac:name="loremipsum">
@@ -12,6 +13,15 @@ use DOMElement;
  * See https://confluence.atlassian.com/conf59/loremipsum-macro-792499139.html
  */
 class LoremIpsumMacro extends StructuredMacroProcessorBase {
+
+	/**
+	 * @param IConverterDataWriter $writer
+	 * @param int $currentSpaceId
+	 */
+	public function __construct(
+		private IConverterDataWriter $writer,
+		private int $currentSpaceId,
+	) {}
 
 	/**
 	 *
@@ -65,6 +75,11 @@ class LoremIpsumMacro extends StructuredMacroProcessorBase {
 				__METHOD__
 			),
 			$node
+		);
+
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			$this->getWikiTextTemplateName()
 		);
 	}
 

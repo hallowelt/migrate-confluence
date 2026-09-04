@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
@@ -10,6 +11,16 @@ use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
  *
  */
 class InlineCommentMarker extends ConversionHelper implements IProcessor {
+
+	/**
+	 * @param IConverterDataWriter $writer
+	 * @param int $currentSpaceId
+	 */
+	public function __construct(
+		private IConverterDataWriter $writer,
+		private int $currentSpaceId
+	) {}
+
 	/**
 	 * @inheritDoc
 	 */
@@ -29,6 +40,11 @@ class InlineCommentMarker extends ConversionHelper implements IProcessor {
 					__METHOD__
 				),
 				$macroNode
+			);
+
+			$this->writer->registerDefaultPage(
+				$this->currentSpaceId,
+				'InlineComment'
 			);
 		}
 	}

@@ -51,6 +51,14 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $bodyContentId
+	 * @return int|null
+	 */
+	public function getSpaceIdForCommentBodyContentId( int $bodyContentId ): ?int {
+		return $this->workspaceDB->getSpaceIdForCommentBodyContentId( $bodyContentId );
+	}
+
+	/**
 	 * @param int $spaceId
 	 * @return string|null
 	 */

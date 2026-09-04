@@ -4,21 +4,22 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use Exception;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class ChildrenMacro extends StructuredMacroProcessorBase {
-
 	/**
+	 * @param IConverterDataWriter $writer
 	 * @param int $spaceId
 	 * @param string $wikiPageTitle
 	 * @param DBConversionDataLookup $dataLookup
 	 */
 	public function __construct(
+		private IConverterDataWriter $writer,
 		private int $spaceId,
 		private string $wikiPageTitle,
 		private DBConversionDataLookup $dataLookup
-	) {
-	}
+	) {}
 
 	/**
 	 * @inheritDoc
@@ -65,6 +66,11 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 		$textNode = $this->createTextNode( $node->ownerDocument, $wikiText, __METHOD__ );
 
 		$node->parentNode->replaceChild( $textNode, $node );
+
+		$this->writer->registerDefaultPage(
+			$this->spaceId,
+			'SubpageList'
+		);
 	}
 
 	/**
