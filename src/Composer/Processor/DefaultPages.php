@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
 class DefaultPages extends ProcessorBase {
@@ -51,7 +52,8 @@ class DefaultPages extends ProcessorBase {
 
 		$registeredDefaultPages = [];
 		foreach ( $this->currentSpaceIds as $currentSpaceId ) {
-			foreach ( $this->dataLookup->getRegisteredDefaultPagesForSpaceId( $currentSpaceId ) as $namespace => $pageNames ) {
+			$registeredDefaultPagesForSpace = $this->dataLookup->getRegisteredDefaultPagesForSpaceId( $currentSpaceId );
+			foreach ( $registeredDefaultPagesForSpace as $namespace => $pageNames ) {
 				$registeredDefaultPages[$namespace] = array_values( array_unique( array_merge(
 					$registeredDefaultPages[$namespace] ?? [],
 					$pageNames
@@ -117,12 +119,14 @@ class DefaultPages extends ProcessorBase {
 	 * - Sibling files in that directory are subpages of the registered default page,
 	 *   e.g. `Template/Folder/style.css` => `Template:Folder/Style.css`.
 	 *
-	 * @param \SplFileInfo $fileObj
+	 * @param SplFileInfo $fileObj
 	 * @param string $basepath
 	 * @param array<string,bool> $directoriesWithWikitext
 	 * @return array{namespace:string,registered_name:string,wiki_title:string}
 	 */
-	private function getDefaultPageForFile( \SplFileInfo $fileObj, string $basepath, array $directoriesWithWikitext ): array {
+	private function getDefaultPageForFile(
+		SplFileInfo $fileObj, string $basepath, array $directoriesWithWikitext
+	): array {
 		$relativeFilePath = str_replace( $basepath, '', $fileObj->getPathname() );
 		$pathParts = explode( '/', $relativeFilePath );
 		$namespace = array_shift( $pathParts ) ?? '';

@@ -88,7 +88,13 @@ XML;
 		$dom = new DOMDocument();
 		$dom->loadXML( $macroXml );
 
-		$processor = new DrawioMacro( $this->createConverterDataWriter(), $dataLookup, $conversionDataWriter, 1, 'DiagramPage' );
+		$processor = new DrawioMacro(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			$conversionDataWriter,
+			1,
+			'DiagramPage'
+		);
 		$processor->process( $dom );
 
 		// The PNG file must have been written with a tEXt chunk containing the diagram XML
@@ -111,7 +117,11 @@ XML;
 			}
 			$i += 12 + $length;
 		}
-		$this->assertGreaterThanOrEqual( 1, $chunks, 'PNG must contain at least one mxfile tEXt chunk' );
+		$this->assertGreaterThanOrEqual(
+			1,
+			$chunks,
+			'PNG must contain at least one mxfile tEXt chunk'
+		);
 	}
 
 	/**

@@ -5476,7 +5476,7 @@ class WorkspaceDB {
 	 * Get registered default files for a given space ID and namespace.
 	 *
 	 * @param int $spaceId
-	 * @return array
+	 * @return string[]
 	 */
 	public function getRegisteredDefaultFilesForSpaceId( int $spaceId ): array {
 		$transaction = $this->cachedPrepare(
@@ -5490,6 +5490,12 @@ class WorkspaceDB {
 			return [];
 		}
 
-		return $this->fetchDbArray( $result );
+		$rows = $this->fetchDbArray( $result );
+		$defaultFiles = [];
+		foreach ( $rows as $row ) {
+			$defaultFiles[] = $row['name'];
+		}
+
+		return $defaultFiles;
 	}
 }

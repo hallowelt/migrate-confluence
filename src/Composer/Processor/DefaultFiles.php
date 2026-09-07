@@ -22,6 +22,15 @@ class DefaultFiles extends FileProcessorBase {
 	}
 
 	/**
+	 * Store default file binaries next to default-files.xml in a dedicated directory.
+	 *
+	 * @return string
+	 */
+	protected function getUploadPath(): string {
+		return 'result/' . $this->subDir . '/default-images';
+	}
+
+	/**
 	 * @return void
 	 */
 	private function addDefaultFiles(): void {

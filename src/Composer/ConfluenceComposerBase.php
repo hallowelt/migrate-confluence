@@ -99,93 +99,6 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	abstract protected function doBuildXML( Builder $builder ): void;
 
 	/**
-	 * @param string[] $wikiNames
-	 * @return void
-	 */
-	protected function copySharedDirectoryToWikiDirectories( array $wikiNames ): void {
-		$sharedPath = $this->dest . '/result/_shared';
-		if ( !is_dir( $sharedPath ) ) {
-			return;
-		}
-
-		foreach ( $wikiNames as $wikiName ) {
-			$wikiSharedPath = $this->dest . '/result/' . $wikiName . '/_shared';
-			$this->copyDirectoryRecursively( $sharedPath, $wikiSharedPath );
-		}
-
-		$this->deleteDirectoryRecursively( $sharedPath );
-	}
-
-	/**
-	 * @param string $sourcePath
-	 * @param string $targetPath
-	 * @return void
-	 */
-	protected function copyDirectoryRecursively( string $sourcePath, string $targetPath ): void {
-		if ( !is_dir( $targetPath ) && !mkdir( $targetPath, 0755, true ) && !is_dir( $targetPath ) ) {
-			throw new \RuntimeException( 'Failed to create target directory: ' . $targetPath );
-		}
-
-		$sourceItems = scandir( $sourcePath );
-		if ( $sourceItems === false ) {
-			throw new \RuntimeException( 'Failed to read source directory: ' . $sourcePath );
-		}
-
-		foreach ( $sourceItems as $item ) {
-			if ( $item === '.' || $item === '..' ) {
-				continue;
-			}
-
-			$currentSourcePath = $sourcePath . '/' . $item;
-			$currentTargetPath = $targetPath . '/' . $item;
-
-			if ( is_dir( $currentSourcePath ) ) {
-				$this->copyDirectoryRecursively( $currentSourcePath, $currentTargetPath );
-				continue;
-			}
-
-			if ( !copy( $currentSourcePath, $currentTargetPath ) ) {
-				throw new \RuntimeException( 'Failed to copy shared file: ' . $currentSourcePath );
-			}
-
-			$sourcePerms = fileperms( $currentSourcePath );
-			if ( $sourcePerms !== false ) {
-				chmod( $currentTargetPath, $sourcePerms & 0777 );
-			}
-		}
-	}
-
-	/**
-	 * @param string $path
-	 * @return void
-	 */
-	protected function deleteDirectoryRecursively( string $path ): void {
-		$items = scandir( $path );
-		if ( $items === false ) {
-			throw new \RuntimeException( 'Failed to read directory for deletion: ' . $path );
-		}
-
-		foreach ( $items as $item ) {
-			if ( $item === '.' || $item === '..' ) {
-				continue;
-			}
-
-			$currentPath = $path . '/' . $item;
-			if ( is_dir( $currentPath ) ) {
-				$this->deleteDirectoryRecursively( $currentPath );
-			} else {
-				if ( !unlink( $currentPath ) ) {
-					throw new \RuntimeException( 'Failed to remove file: ' . $currentPath );
-				}
-			}
-		}
-
-		if ( !rmdir( $path ) ) {
-			throw new \RuntimeException( 'Failed to remove directory: ' . $path );
-		}
-	}
-
-	/**
 	 * @param array $spaces
 	 * @return array
 	 */
@@ -212,7 +125,29 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 		Builder $builder
 	): array {
 		return [
+			new DefaultFiles(
+				$this->dataLookup, $this->workspace, $this->output, $this->dest, $this->migrationConfig
+			),
+			new DefaultPages(
+				$builder, $this->output, $this->dest, $this->migrationConfig, $this->dataLookup
+			),
 		];
+	}
+
+	/**
+	 * @param Builder $builder
+	 * @param string $subDir
+	 * @param int[] $spaceIds
+	 * @return void
+	 */
+	protected function runSharedContentProcessors( Builder $builder, string $subDir, array $spaceIds ): void {
+		foreach ( $this->initProcessorsForSharedContent( $builder ) as $processor ) {
+			$processor->setSubDir( $subDir );
+			if ( $processor instanceof ISpaceIdsDependentProcessor ) {
+				$processor->setCurrentSpaceIds( $spaceIds );
+			}
+			$processor->execute();
+		}
 	}
 
 	/**
@@ -223,12 +158,6 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 		Builder $builder, ComposerDeploymentInfo $deploymentInfo
 	): array {
 		return [
-			new DefaultFiles(
-				$this->dataLookup, $this->workspace, $this->output, $this->dest, $this->migrationConfig
-			),
-			new DefaultPages(
-				$builder, $this->output, $this->dest, $this->migrationConfig, $this->dataLookup
-			),
 			new Files(
 				$this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,

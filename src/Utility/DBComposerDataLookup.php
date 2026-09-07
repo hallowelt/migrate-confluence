@@ -158,7 +158,7 @@ class DBComposerDataLookup {
 
 	/**
 	 * @param int $spaceId
-	 * @return array
+	 * @return string[]
 	 */
 	public function getRegisteredDefaultFilesForSpaceId( int $spaceId ): array {
 		return $this->workspaceDB->getRegisteredDefaultFilesForSpaceId( $spaceId );
