@@ -33,12 +33,26 @@ class DefaultFiles extends FileProcessorBase {
 
 		$uploadPath = $this->getUploadPath();
 
+		$registeredDefaultFiles = [];
+		foreach ( $this->currentSpaceIds as $currentSpaceId ) {
+			$registeredDefaultFiles = array_merge(
+				$registeredDefaultFiles,
+				$this->dataLookup->getRegisteredDefaultFilesForSpaceId( $currentSpaceId )
+			);
+		}
+
 		foreach ( $files as $fileObj ) {
 			if ( $fileObj->isDir() ) {
 				continue;
 			}
 			$file = $fileObj->getPathname();
 			$filename = basename( $file );
+
+			if ( !in_array( $filename, $registeredDefaultFiles, true ) ) {
+				// Add only files that are really used.
+				continue;
+			}
+
 			$attachmentPageTitle = $filename;
 			$data = file_get_contents( $file );
 

@@ -207,12 +207,6 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 		Builder $builder
 	): array {
 		return [
-			new DefaultFiles(
-				$this->dataLookup, $this->workspace, $this->output, $this->dest, $this->migrationConfig
-			),
-			new DefaultPages(
-				$builder, $this->output, $this->dest, $this->migrationConfig
-			),
 		];
 	}
 
@@ -224,6 +218,12 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 		Builder $builder, ComposerDeploymentInfo $deploymentInfo
 	): array {
 		return [
+			new DefaultFiles(
+				$this->dataLookup, $this->workspace, $this->output, $this->dest, $this->migrationConfig
+			),
+			new DefaultPages(
+				$builder, $this->output, $this->dest, $this->migrationConfig
+			),
 			new Files(
 				$this->dataLookup, $this->workspace,
 				$this->output, $this->dest, $this->migrationConfig,

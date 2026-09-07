@@ -2,7 +2,29 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use Symfony\Component\Console\Output\Output;
+
 class DefaultPages extends ProcessorBase {
+
+	/**
+	 * @param Builder $builder
+	 * @param Output $output
+	 * @param string $dest
+	 * @param MigrationConfig $migrationConfig
+	 * @param DBComposerDataLookup $dataLookup
+	 */
+	public function __construct(
+		protected Builder $builder,
+		protected Output $output,
+		protected string $dest,
+		protected MigrationConfig $migrationConfig,
+		protected DBComposerDataLookup $dataLookup,
+	) {
+		parent::__construct( $builder, $output, $dest, $migrationConfig );
+	}
 
 	/**
 	 * @return string
@@ -26,6 +48,14 @@ class DefaultPages extends ProcessorBase {
 			\RecursiveIteratorIterator::LEAVES_ONLY
 		);
 
+		$registeredDefaultPages = [];
+		foreach ( $this->currentSpaceIds as $currentSpaceId ) {
+			$registeredDefaultPages = array_merge(
+				$registeredDefaultPages,
+				$this->dataLookup->getRegisteredDefaultPagesForSpaceId( $currentSpaceId )
+			);
+		}
+
 		foreach ( $files as $fileObj ) {
 			if ( $fileObj->isDir() ) {
 				continue;
@@ -48,6 +78,14 @@ class DefaultPages extends ProcessorBase {
 				$namespacePrefix = rtrim( $namespacePrefix, '/' );
 				$pageName = '';
 			}
+
+			if ( !isset( $registeredDefaultPages[$namespacePrefix] )
+				|| !in_array( $pageName, $registeredDefaultPages[$namespacePrefix], true )
+			) {
+				// Add only default pages that are really used.
+				continue;
+			}
+
 			$wikiPageName = "$namespacePrefix$pageName";
 			$wikiText = file_get_contents( $fileObj->getPathname() );
 

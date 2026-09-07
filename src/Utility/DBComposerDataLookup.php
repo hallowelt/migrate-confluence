@@ -152,8 +152,16 @@ class DBComposerDataLookup {
 	 * @param string $namespace
 	 * @return array
 	 */
-	public function getRegisteredDefaultPagesForSpaceId( int $spaceId, string $namespace = 'Template' ): array {
+	public function getRegisteredDefaultPagesForSpaceId( int $spaceId, string $namespace = '*' ): array {
 		return $this->workspaceDB->getRegisteredDefaultPagesForSpaceId( $spaceId, $namespace );
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @return array
+	 */
+	public function getRegisteredDefaultFilesForSpaceId( int $spaceId ): array {
+		return $this->workspaceDB->getRegisteredDefaultFilesForSpaceId( $spaceId );
 	}
 
 	/**

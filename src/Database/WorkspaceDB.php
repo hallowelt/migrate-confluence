@@ -5433,26 +5433,42 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * Get registered default pages for a given space ID and namespace.
+	 * Get registered default pages for a given space ID grouped by namespace.
 	 *
 	 * @param int $spaceId
-	 * @param string $namespace
+	 * @param string $namespace Use '*' to return all namespaces.
 	 * @return array
 	 */
-	public function getRegisteredDefaultPagesForSpaceId( int $spaceId, string $namespace = 'Template' ): array {
-		$transaction = $this->cachedPrepare(
-			'SELECT DISTINCT name FROM default_pages_registry
-				WHERE space_id = :space_id AND namespace = :namespace'
-		);
+	public function getRegisteredDefaultPagesForSpaceId( int $spaceId, string $namespace = '*' ): array {
+		if ( $namespace === '*' ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT DISTINCT namespace, name FROM default_pages_registry
+					WHERE space_id = :space_id
+					ORDER BY namespace, name'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT DISTINCT namespace, name FROM default_pages_registry
+					WHERE space_id = :space_id AND namespace = :namespace
+					ORDER BY name'
+			);
+			$transaction->bindValue( ':namespace', $namespace, SQLITE3_TEXT );
+		}
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':namespace', $namespace, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
 			return [];
 		}
 
-		return $this->fetchDbArray( $result );
+		$rows = $this->fetchDbArray( $result );
+		$defaultPages = [];
+		foreach ( $rows as $row ) {
+			$pageNamespace = $row['namespace'];
+			$defaultPages[$pageNamespace][] = $row['name'];
+		}
+
+		return $defaultPages;
 	}
 
 	/**
