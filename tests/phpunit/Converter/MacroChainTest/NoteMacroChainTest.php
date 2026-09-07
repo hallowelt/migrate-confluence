@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
 
@@ -52,7 +53,7 @@ XML
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new NoteMacro();
+		return new NoteMacro( $this->createMock( IConverterDataWriter::class ), 1 );
 	}
 
 }

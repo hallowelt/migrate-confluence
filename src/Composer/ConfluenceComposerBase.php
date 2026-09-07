@@ -35,6 +35,11 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	/** @var string */
 	protected string $dest = '';
 
+	/** @var Workspace|null */
+	protected $workspace = null;
+
+	protected Output $output;
+
 	protected DBComposerDataLookup $dataLookup;
 
 	/** @var ComposerSkipHelper */

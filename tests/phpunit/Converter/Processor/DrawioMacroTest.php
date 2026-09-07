@@ -88,7 +88,7 @@ XML;
 		$dom = new DOMDocument();
 		$dom->loadXML( $macroXml );
 
-		$processor = new DrawioMacro( $dataLookup, $conversionDataWriter, 1, 'DiagramPage' );
+		$processor = new DrawioMacro( $this->createConverterDataWriter(), $dataLookup, $conversionDataWriter, 1, 'DiagramPage' );
 		$processor->process( $dom );
 
 		// The PNG file must have been written with a tEXt chunk containing the diagram XML
@@ -127,7 +127,9 @@ XML;
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new DrawioMacro( $this->dataLookup, $this->conversionDataWriter, $spaceId, 'SomePage' );
+		$processor = new DrawioMacro(
+			$this->createConverterDataWriter(), $this->dataLookup, $this->conversionDataWriter, $spaceId, 'SomePage'
+		);
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 

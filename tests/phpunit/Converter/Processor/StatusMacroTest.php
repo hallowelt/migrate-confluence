@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\StatusMacro;
 
 class StatusMacroTest extends ProcessorTestCase {
@@ -15,7 +16,7 @@ class StatusMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $this->getInput() );
 
-		$processor = new StatusMacro();
+		$processor = new StatusMacro( $this->createMock( IConverterDataWriter::class ), 1 );
 		$processor->process( $dom );
 
 		$output = $dom->saveXML( $dom->documentElement );

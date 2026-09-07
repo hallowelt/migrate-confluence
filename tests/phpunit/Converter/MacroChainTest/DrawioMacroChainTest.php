@@ -53,7 +53,7 @@ class DrawioMacroChainTest extends MacroChainTestBase {
 		}
 		$conversionDataWriter = new \HalloWelt\MigrateConfluence\Utility\ConversionDataWriter( $writerPath );
 
-		return new DrawioMacro( $dataLookup, $conversionDataWriter, 42, 'SomePage' );
+		return new DrawioMacro( $this->createConverterDataWriter(), $dataLookup, $conversionDataWriter, 42, 'SomePage' );
 	}
 
 }

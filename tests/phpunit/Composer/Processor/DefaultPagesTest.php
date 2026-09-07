@@ -27,7 +27,6 @@ class DefaultPagesTest extends TestCase {
 		$fileObj = new SplFileInfo( $basepath . $relativeFilePath );
 
 		$method = new ReflectionMethod( DefaultPages::class, 'getDefaultPageForFile' );
-		$method->setAccessible( true );
 		$processor = ( new ReflectionClass( DefaultPages::class ) )->newInstanceWithoutConstructor();
 
 		$this->assertSame(

@@ -157,8 +157,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 		$expectedTemplatesFile = $this->dataDir . '/expected/result_default-pages.xml';
 		$expectedTemplates = $this->extractPages( $expectedTemplatesFile );
 
-		$actualTemplatesFile = $this->tempDir
-			. '/single-source/workspace/result/full-migration-wiki/_shared/default-pages.xml';
+		$actualTemplatesFile = $resultRoot . '/default-pages.xml';
 		$this->assertFileExists( $actualTemplatesFile );
 		$actualTemplates = $this->extractPages( $actualTemplatesFile );
 
