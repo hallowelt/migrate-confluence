@@ -21,7 +21,8 @@ class LoremIpsumMacro extends StructuredMacroProcessorBase {
 	public function __construct(
 		private IConverterDataWriter $writer,
 		private int $currentSpaceId,
-	) {}
+	) {
+	}
 
 	/**
 	 *

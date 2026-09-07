@@ -16,7 +16,8 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 		private IConverterDataWriter $writer,
 		private int $currentSpaceId,
 		private string $wikiTitle
-	) {}
+	) {
+	}
 
 	/**
 	 *

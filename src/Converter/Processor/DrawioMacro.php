@@ -42,8 +42,10 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
-	public function __construct( IConverterDataWriter $writer, DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
-		int $currentSpaceId, string $rawPageTitle ) {
+	public function __construct(
+		IConverterDataWriter $writer, DBConversionDataLookup $dataLookup,
+		ConversionDataWriter $conversionDataWriter,	int $currentSpaceId, string $rawPageTitle
+	) {
 		$this->writer = $writer;
 		$this->dataLookup = $dataLookup;
 		$this->conversionDataWriter = $conversionDataWriter;

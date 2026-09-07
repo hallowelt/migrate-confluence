@@ -26,7 +26,8 @@ abstract class ConvertMacroToTemplateWithBodyBase extends ConversionHelper imple
 	public function __construct(
 		private IConverterDataWriter $writer,
 		private int $currentSpace
-	){}
+	) {
+	}
 
 	/**
 	 * @inheritDoc

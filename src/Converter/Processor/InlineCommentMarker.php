@@ -19,7 +19,8 @@ class InlineCommentMarker extends ConversionHelper implements IProcessor {
 	public function __construct(
 		private IConverterDataWriter $writer,
 		private int $currentSpaceId
-	) {}
+	) {
+	}
 
 	/**
 	 * @inheritDoc

@@ -26,7 +26,8 @@ abstract class ConvertMacroToTemplateBase extends ConversionHelper implements IP
 	public function __construct(
 		private IConverterDataWriter $writer,
 		private int $currentSpace
-	){}
+	) {
+	}
 
 	/**
 	 * @inheritDoc

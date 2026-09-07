@@ -9,13 +9,16 @@ use HalloWelt\MigrateConfluence\Utility\CQLParser\DplCQLParser;
 class ContentByLabelMacro extends StructuredMacroProcessorBase {
 
 	/**
+	 * @param IConverterDataWriter $writer
+	 * @param int $spaceId
 	 * @param string $currentWikiTitle
 	 */
 	public function __construct(
 		private IConverterDataWriter $writer,
 		private int $spaceId,
 		private string $currentWikiTitle
-	) {}
+	) {
+	}
 
 	/**
 	 * @inheritDoc

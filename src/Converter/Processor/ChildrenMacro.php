@@ -19,7 +19,8 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 		private int $spaceId,
 		private string $wikiPageTitle,
 		private DBConversionDataLookup $dataLookup
-	) {}
+	) {
+	}
 
 	/**
 	 * @inheritDoc

@@ -174,6 +174,7 @@ class WorkspaceDB {
 			'gliffy',
 			'required_templates',
 			'default_pages_registry',
+			'default_files_registry',
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -5366,6 +5367,18 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return void
+	 */
+	private function createTableDefaultFilesRegistry(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS default_files_registry (
+				space_id INT,
+				name TEXT
+			);'
+		);
+	}
+
+	/**
 	 * Register default pages used for creating new pages in spaces.
 	 *
 	 * @param int $spaceId
@@ -5395,6 +5408,31 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Register default files used for creating new pages in spaces.
+	 *
+	 * @param int $spaceId
+	 * @param string $defaultFileName
+	 * @return bool
+	 */
+	public function registerDefaultFile(
+		int $spaceId, string $defaultFileName
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO default_files_registry (
+				space_id,
+				name
+			) VALUES (
+				:space_id,
+				:name
+			)'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':name', $defaultFileName, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
 	 * Get registered default pages for a given space ID and namespace.
 	 *
 	 * @param int $spaceId
@@ -5408,6 +5446,27 @@ class WorkspaceDB {
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':namespace', $namespace, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * Get registered default files for a given space ID and namespace.
+	 *
+	 * @param int $spaceId
+	 * @return array
+	 */
+	public function getRegisteredDefaultFilesForSpaceId( int $spaceId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT DISTINCT name FROM default_files_registry
+				WHERE space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
