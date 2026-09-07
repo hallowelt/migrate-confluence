@@ -21,23 +21,24 @@ Example:
 
 ```text
 workspace/result/
-  CON/
-    default-files.xml
-    default-pages.xml
-    default-images/
-    files.xml
-    pages.xml
-    templates.xml
-    page-talk.xml
-    blog-talk.xml
-    users.xml
-    invalid_pages.log
-    invalid_blog_posts.log
-    invalid_attachments.log
-    invalid_page_templates.log
-    deployment.txt
-    spaceimport.sh
-    images/
+	CON/
+		default-images/
+		images/
+		blog-talk.xml
+		blogs.xml
+		default-files.xml
+		default-pages.xml
+		deployment.txt
+		files.xml
+		invalid_attachments.log
+		invalid_blog_posts.log
+		invalid_page_templates.log
+		invalid_pages.log
+		page-talk.xml
+		pages.xml
+		spaceimport.sh
+		templates.xml
+		users.xml
 ```
 
 The namespace directory name is the target MediaWiki namespace. If a namespace contains
@@ -65,10 +66,11 @@ For example, if namespace `CON` contains spaces `10` and `20`, then
 
 The namespace directory also contains the regular import XML files for that namespace:
 
-- `pages.xml`: current page content
 - `files.xml`: page and blog post attachments
-- `templates.xml`: Confluence page templates
+- `blogs.xml`: blog post content
+- `pages.xml`: current page content
 - `page-talk.xml`: page comments
+- `templates.xml`: Confluence page templates
 - `blog-talk.xml`: blog post comments
 - `users.xml`: exported user metadata for lookup/reference
 
@@ -85,37 +87,41 @@ Example:
 
 ```text
 workspace/result/
-  full-migration-wiki/
-    _shared/
-      default-files.xml
-      default-pages.xml
-      default-images/
-    CON/
-      files.xml
-      pages.xml
-      templates.xml
-      page-talk.xml
-      blog-talk.xml
-      users.xml
-      invalid_pages.log
-      invalid_blog_posts.log
-      invalid_attachments.log
-      invalid_page_templates.log
-      spaceimport.sh
-    DEVOPS/
-      files.xml
-      pages.xml
-      templates.xml
-      page-talk.xml
-      blog-talk.xml
-      users.xml
-      invalid_pages.log
-      invalid_blog_posts.log
-      invalid_attachments.log
-      invalid_page_templates.log
-      spaceimport.sh
-    deployment.txt
-    wikiimport.sh
+	full-migration-wiki/
+		_shared/
+			default-images/
+			default-files.xml
+			default-pages.xml
+		CON/
+			images/
+			blog-talk.xml
+			blogs.xml
+			files.xml
+			invalid_attachments.log
+			invalid_blog_posts.log
+			invalid_page_templates.log
+			invalid_pages.log
+			page-talk.xml
+			pages.xml
+			spaceimport.sh
+			templates.xml
+			users.xml
+		DEVOPS/
+			images/
+			blog-talk.xml
+			blogs.xml
+			files.xml
+			invalid_attachments.log
+			invalid_blog_posts.log
+			invalid_page_templates.log
+			invalid_pages.log
+			page-talk.xml
+			pages.xml
+			spaceimport.sh
+			templates.xml
+			users.xml
+		deployment.txt
+		wikiimport.sh
 ```
 
 The first-level directory is the target wiki name from the wiki mapping configuration.
@@ -151,6 +157,8 @@ Each namespace directory below the wiki contains only namespace-local migration 
 ```text
 workspace/result/<wiki-name>/<namespace>/pages.xml
 workspace/result/<wiki-name>/<namespace>/files.xml
+workspace/result/<wiki-name>/<namespace>/images/
+workspace/result/<wiki-name>/<namespace>/blogs.xml
 workspace/result/<wiki-name>/<namespace>/templates.xml
 workspace/result/<wiki-name>/<namespace>/page-talk.xml
 workspace/result/<wiki-name>/<namespace>/blog-talk.xml
