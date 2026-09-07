@@ -41,7 +41,9 @@ class Files extends FileProcessorBase {
 		$this->addBlogPostAttachments();
 		$this->addAdditionalAttachments();
 
-		$this->writeOutputFile();
+		if ( $this->numOfRevisions > 0 ) {
+			$this->writeOutputFile();
+		}
 	}
 
 	/**
