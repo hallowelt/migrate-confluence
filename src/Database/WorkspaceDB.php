@@ -323,6 +323,7 @@ class WorkspaceDB {
 		$this->createTableAttachmentsDescriptions();
 		$this->createTableExportProperties();
 		$this->createTableDefaultPagesRegistry();
+		$this->createTableDefaultFilesRegistry();
 
 		// Indexing tables
 		$this->createIndexes();
