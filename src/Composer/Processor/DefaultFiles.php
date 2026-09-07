@@ -35,6 +35,10 @@ class DefaultFiles extends FileProcessorBase {
 	 */
 	private function addDefaultFiles(): void {
 		$basepath = dirname( __DIR__ ) . '/_defaultfiles/';
+		if ( !is_dir( $basepath ) ) {
+			return;
+		}
+
 		$files = new RecursiveIteratorIterator(
 			new RecursiveDirectoryIterator( $basepath ),
 			RecursiveIteratorIterator::LEAVES_ONLY
@@ -48,6 +52,10 @@ class DefaultFiles extends FileProcessorBase {
 				$registeredDefaultFiles,
 				$this->dataLookup->getRegisteredDefaultFilesForSpaceId( $currentSpaceId )
 			);
+		}
+		$registeredDefaultFiles = array_unique( $registeredDefaultFiles );
+		if ( $registeredDefaultFiles === [] ) {
+			return;
 		}
 
 		foreach ( $files as $fileObj ) {
@@ -69,14 +77,15 @@ class DefaultFiles extends FileProcessorBase {
 				$filename, $data, $uploadPath
 			);
 
-			// XML containing files is supported by MediaWiki dumpBackup but can not be imported
-			$this->builder->addFileRevision(
+			$this->addFileRevision(
 				$attachmentPageTitle,
 				$this->getRelativeFilePath( $uploadFilePath ),
 				'',
 				''
 			);
 		}
-		$this->writeOutputFile();
+		if ( $this->numOfRevisions > 0 ) {
+			$this->writeOutputFile();
+		}
 	}
 }
