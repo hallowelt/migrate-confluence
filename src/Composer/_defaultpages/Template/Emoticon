@@ -15,6 +15,18 @@
             "type": "string",
             "required": true
         },
+        "missing": {
+            "label": {
+                "en": "missing representation",
+                "de": "fehlende Darstellung"
+            },
+            "description": {
+                "en": "Whether the emoticon could be determined from original data.",
+                "de": "Gibt an, ob das Emoticon aus den Ursprungsdaten bestimmt werden konnte."
+            }
+            "type": "boolean",
+            "suggested": false
+        }
         "alt": {
             "label": {
                 "en": "Alternative text",
@@ -64,4 +76,4 @@
     ]
 }
 </templatedata>
-</noinclude><includeonly><span class="emoticon"{{#if:{{{alt|}}}| aria-label="{{{alt}}}"}}{{#if:{{{color|}}}| style="display:inline-block;min-width:1.4em;height:1.4em;line-height:1.4em;text-align:center;background-color:{{{color}}};color:#fff;border-radius:{{#ifeq:{{{shape|circle}}}|square|none|50%}};"}}>{{{char}}}</span></includeonly>
+</noinclude><includeonly><span class="emoticon{{#if:{{{missing|}}}| missing-emoticon}}"{{#if:{{{alt|}}}| aria-label="{{{alt}}}"}}{{#if:{{{color|}}}| style="display:inline-block;min-width:1.4em;height:1.4em;line-height:1.4em;text-align:center;background-color:{{{color}}};color:#fff;border-radius:{{#ifeq:{{{shape|circle}}}|square|none|50%}};"}}>{{{char}}}</span></includeonly>

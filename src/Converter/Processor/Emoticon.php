@@ -156,24 +156,24 @@ class Emoticon extends ConversionHelper implements IProcessor {
 	private function getReplacement( DOMElement $node ): string {
 		$name = $node->getAttribute( 'ac:name' );
 		$params = $this->getTemplateParams( $node, $name );
+		$append = '';
 
-		if ( $params === null ) {
-			// Keep the original markup, like UnhandledMacroConverter does for macros
-			return '###HTMLCOMMENTOPEN###' . $node->ownerDocument->saveXML( $node ) . '###HTMLCOMMENTCLOSE###'
-				. $this->getCategoryBroken( 'emoticon' );
+		if ( !$params ) {
+			$append = $this->getCategoryBroken( 'emoticon' );
+			$params = '|missing=1|char=' . $name;
 		}
 
-		return '{{' . self::TEMPLATE_NAME . $params . '}}';
+		return '{{' . self::TEMPLATE_NAME . $params . '}}' . $append;
 	}
 
 	/**
 	 * @param DOMElement $node
 	 * @param string $name
 	 *
-	 * @return string|null Template params string (e.g. "|char=X|alt=Y"), or
-	 *   null if the emoticon can't be migrated
+	 * @return string Template params string (e.g. "|char=X|alt=Y"), or
+	 *   the empty string if the emoticon can't be migrated
 	 */
-	private function getTemplateParams( DOMElement $node, string $name ): ?string {
+	private function getTemplateParams( DOMElement $node, string $name ): string {
 		$fallback = $node->getAttribute( 'ac:emoji-fallback' );
 		if ( $this->isUsableFallback( $fallback ) ) {
 			return $this->buildParams( $fallback, $this->getAltText( $node, $name ) );
@@ -198,7 +198,7 @@ class Emoticon extends ConversionHelper implements IProcessor {
 			return $this->buildParams( $this->emoticonMapping[$name], $this->getAltText( $node, $name ) );
 		}
 
-		return null;
+		return '';
 	}
 
 	/**
