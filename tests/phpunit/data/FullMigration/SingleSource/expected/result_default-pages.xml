@@ -127,6 +127,14 @@
     </revision>
   </page>
   <page>
+    <title>Template:TM</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>'''{{{body|}}}'''™</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:TableFilterEnd</title>
     <revision>
       <model>wikitext</model>
@@ -270,6 +278,14 @@
 	}
 }
 &lt;/templatedata&gt;&lt;/noinclude&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:TagSearch</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text></text>
     </revision>
   </page>
   <page>
@@ -504,6 +520,22 @@ Any further parameters the original Confluence macro carried (e.g. "title", "tim
     </revision>
   </page>
   <page>
+    <title>Template:RegTM</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>'''{{{body|}}}'''®</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:SM</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>'''{{{body|}}}'''℠</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:SpaceDetails</title>
     <revision>
       <model>wikitext</model>
@@ -723,6 +755,14 @@ __NOTOC__
       <format>text/x-wiki</format>
       <text>&lt;noinclude&gt;Template for confluence macro "viewpdf"
 &lt;/noinclude&gt;&lt;includeonly&gt;[[File:{{{filename}}}]]&lt;/includeonly&gt;</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:Copyright</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text>'''{{{body|}}}'''©</text>
     </revision>
   </page>
   <page>

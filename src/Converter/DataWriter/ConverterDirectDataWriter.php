@@ -59,7 +59,15 @@ class ConverterDirectDataWriter extends AbstractDirectDataWriter implements ICon
 		return $this->db->addRoadmapSvg( $spaceId, $confluenceTitle, $svgFilename );
 	}
 
-	public function addRequiredTemplate( string $templateName ): void {
-		$this->db->addRequiredTemplate( $templateName );
+	/**
+	 * @param int $spaceId
+	 * @param string $defaultPageName
+	 * @param string $defaultPageNamespace
+	 * @return bool
+	 */
+	public function registerDefaultPage(
+		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'
+	): bool {
+		return $this->db->registerDefaultPage( $spaceId, $defaultPageName, $defaultPageNamespace );
 	}
 }

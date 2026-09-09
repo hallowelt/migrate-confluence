@@ -19,7 +19,10 @@ class LivesearchMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new LivesearchMacro( $this->createMock( ConverterDirectDataWriter::class ) );
+		$processor = new LivesearchMacro(
+			$this->createMock( ConverterDirectDataWriter::class ),
+			42
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

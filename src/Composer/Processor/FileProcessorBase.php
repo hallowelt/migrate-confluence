@@ -5,13 +5,14 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
+use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikiFileXmlBuilder;
 use Symfony\Component\Console\Output\Output;
 
-abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsDependentProcessor {
+abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsDependentProcessor, ISubDirAware {
 
 	/** @var WikiFileXmlBuilder */
 	protected WikiFileXmlBuilder $builder;

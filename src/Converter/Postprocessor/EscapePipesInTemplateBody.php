@@ -97,7 +97,10 @@ class EscapePipesInTemplateBody implements IPostprocessor {
 	 * Replace pipe characters that are part of wikitable syntax with `{{!}}`.
 	 *
 	 * Rules:
-	 *  - `{|`  (table open)  — left as-is; the `{` makes it unambiguous
+	 *  - `{|`  (table open) — becomes `{{(!}}`; a plain `{` in front of `{{!}}`
+	 *    would form an ambiguous `{{{` sequence that MediaWiki misparses as
+	 *    the start of a `{{{parameter}}}` placeholder, so the dedicated
+	 *    `{{(!}}` magic word/template is used instead.
 	 *  - `||`  (inline cell separator) — both pipes become `{{!}}{{!}}`
 	 *  - `|`   at the start of a line (row sep, cell, caption, close) — becomes `{{!}}`
 	 */
@@ -105,6 +108,7 @@ class EscapePipesInTemplateBody implements IPostprocessor {
 		$lines = explode( "\n", $body );
 		foreach ( $lines as &$line ) {
 			if ( strpos( $line, '{|' ) === 0 ) {
+				$line = '{{(!}}' . substr( $line, 2 );
 				continue;
 			}
 			// Replace inline cell separator first so the leading-pipe check still works.
