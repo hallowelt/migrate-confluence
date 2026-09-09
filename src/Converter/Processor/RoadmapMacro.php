@@ -60,35 +60,21 @@ class RoadmapMacro extends StructuredMacroProcessorBase {
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->getMacroParams( $node );
+		$templateParams = [];
+		$append = '';
+		$svg = null;
 
 		if ( !isset( $params['source'] ) || $params['source'] === '' ) {
-			$node->parentNode->replaceChild(
-				$this->createTextNode(
-					$node->ownerDocument,
-					sprintf(
-						'{{Textbox|boxtype=warning|text=Missing parameter "source" in roadmap macro.}}%s',
-						$this->getCategoryBrokenMacro( 'roadmap' ) ),
-					__METHOD__ ),
-				$node
-			);
-			return;
-		}
-
-		try {
-			$source = $this->decodeSource( $params['source'] );
-			$svg = $this->renderSvg( $source );
-		} catch ( Throwable $e ) {
-			$node->parentNode->replaceChild(
-				$this->createTextNode(
-					$node->ownerDocument,
-					sprintf(
-						'{{Textbox|boxtype=warning|text=%s}}%s',
-						$e->getMessage(),
-						$this->getCategoryBrokenMacro( 'roadmap' ) ),
-					__METHOD__ ),
-				$node
-			);
-			return;
+			$append = $this->getCategoryBrokenMacro( 'roadmap' );
+			$templateParams['warning'] = 'Missing parameter "source" in roadmap macro.';
+		} else {
+			try {
+				$source = $this->decodeSource( $params['source'] );
+				$svg = $this->renderSvg( $source );
+			} catch ( Throwable $e ) {
+				$append = $this->getCategoryBrokenMacro( 'roadmap' );
+				$templateParams['warning'] = $e->getMessage();
+			}
 		}
 
 		$macroId = $node->getAttribute( 'ac:macro-id' );
@@ -100,15 +86,13 @@ class RoadmapMacro extends StructuredMacroProcessorBase {
 		}
 		$filename = "Roadmap-$macroId.svg";
 
-		$this->conversionDataWriter->replaceConfluenceFileContent( $filename, $svg );
-		$this->dataWriter->addRoadmapSvg( $this->currentSpaceId, $this->rawPageTitle, $filename );
+		if ( $svg ) {
+			$this->conversionDataWriter->replaceConfluenceFileContent( $filename, $svg );
+			$this->dataWriter->addRoadmapSvg( $this->currentSpaceId, $this->rawPageTitle, $filename );
+			$templateParams['filename'] = $filename;
+		}
 
-		$templateParams = [
-			'filename' => $filename,
-			'source' => $params['source'],
-			'layout' => $node->getAttribute( 'data-layout' ),
-		];
-		unset( $params['source'] );
+		$templateParams['layout'] = $node->getAttribute( 'data-layout' );
 		foreach ( $params as $key => $value ) {
 			if ( $value !== '' ) {
 				$templateParams[$key] = $value;
@@ -121,7 +105,7 @@ class RoadmapMacro extends StructuredMacroProcessorBase {
 		}
 
 		$node->parentNode->replaceChild(
-			$this->createTextNode( $node->ownerDocument, "{{Roadmap$paramsString}}", __METHOD__ ),
+			$this->createTextNode( $node->ownerDocument, "{{Roadmap$paramsString}}$append", __METHOD__ ),
 			$node
 		);
 	}

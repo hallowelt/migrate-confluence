@@ -42,9 +42,24 @@
                 "en": "The \"data-layout\" value of the original roadmap macro. Kept for reference, not used by this template.",
                 "de": "Der \"data-layout\"-Wert des urspr\u00fcnglichen Roadmap-Makros. Dient nur als Referenz, wird von dieser Vorlage nicht verwendet."
             }
+        },
+        "warning": {
+            "label": {
+                "en": "warning",
+                "de": "Warnung"
+            },
+            "description": {
+                "en": "Print the warning, if given.",
+                "de": "Gib die Warnung aus, falls angegeben."
+            }
+            "type": "string",
+            "suggested": false
         }
     }
 }
 </templatedata>
 
-Any further parameters the original Confluence macro carried (e.g. "title", "timeline", "maplinks", "pagelinks") are passed through unchanged under their own name, for future use; none of them are needed to display the image.</noinclude><includeonly>[[File:{{{filename}}}]]</includeonly>
+Any further parameters the original Confluence macro carried (e.g. "title", "timeline", "maplinks", "pagelinks") are passed through unchanged under their own name, for future use; none of them are needed to display the image.</noinclude><includeonly>{{#if: {{{warning|}}}
+  | {{Textbox|boxtype=warning|text={{{warning}}}}} }}{{#if: {{{filename|}}}
+  | [[File:{{{filename}}}]]
+}}</includeonly>
