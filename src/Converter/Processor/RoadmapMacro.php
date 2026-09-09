@@ -92,9 +92,12 @@ class RoadmapMacro extends StructuredMacroProcessorBase {
 			$templateParams['filename'] = $filename;
 		}
 
+		if ( isset( $params['source'] ) && $params['source'] !== '' ) {
+			$templateParams['source'] = $params['source'];
+		}
 		$templateParams['layout'] = $node->getAttribute( 'data-layout' );
 		foreach ( $params as $key => $value ) {
-			if ( $value !== '' ) {
+			if ( $key !== 'source' && $value !== '' ) {
 				$templateParams[$key] = $value;
 			}
 		}
