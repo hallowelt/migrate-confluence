@@ -97,8 +97,12 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 */
 	abstract protected function getStoredAttachments(): array;
 
+	/**
+	 * @throws Exception
+	 */
 	protected function addAttachments(): void {
 		$contentIdToWikiTitleMap = [];
+		$contentIdToSpaceIdMap = [];
 		foreach ( $this->getContentItems() as $item ) {
 			if ( !isset( $item['page_id'] ) ) {
 				continue;
@@ -129,6 +133,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			}
 
 			$contentIdToWikiTitleMap[$contentId] = $wikiTitle;
+			$contentIdToSpaceIdMap[$contentId] = isset( $item['space_id'] ) ? (int)$item['space_id'] : 0;
 		}
 
 		if ( $contentIdToWikiTitleMap === [] ) {
@@ -144,17 +149,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		$collected = [];
 
 		foreach ( $this->workspaceDB->getAttachments() as $attachment ) {
-			if (
-				!isset( $attachment['attachment_id'] )
-				|| !isset( $attachment['space_id'] )
-				|| !isset( $attachment['filename'] )
-				|| !isset( $attachment['container_id'] )
-				|| !isset( $attachment['content_status'] )
-			) {
-				continue;
-			}
-
-			if ( $attachment['content_status'] !== 'current' ) {
+			if ( !$this->isValid( $attachment ) ) {
 				continue;
 			}
 
@@ -164,7 +159,10 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			}
 
 			$attachmentId = (int)$attachment['attachment_id'];
-			$attachmentSpaceId = (int)$attachment['space_id'];
+			// The attachment's own "space" property is absent in older Confluence exports.
+			// The attachment always belongs to its container page's space, so inherit it
+			// from there rather than relying on the attachment's own space_id.
+			$attachmentSpaceId = $contentIdToSpaceIdMap[$containerId];
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
 			$this->writeln(
@@ -179,77 +177,16 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			$contentWikiTitleParts = explode( '/', $contentWikiTitle );
 			$shortContentWikiTitle = end( $contentWikiTitleParts );
 
-			try {
-				$attachmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
-					$attachmentSpaceId,
-					$attachmentOrigFilename,
-					$shortContentWikiTitle,
-				);
-			} catch ( Exception $fallbackEx ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'analyze',
-					__CLASS__,
-					"Could not build target filename for attachment $attachmentId: "
-					. $fallbackEx->getMessage()
-				);
-			}
-
-			if ( empty( $attachmentWikiTitle ) ) {
-				$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
-
-				$this->dbLog->addLogEntry(
-					'error',
-					'extract',
-					__CLASS__,
-					$message
-				);
-
-				throw new Exception(
-					$message
-				);
-			}
-
-			// Uncollide file title
-			$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
-			$counter = 1;
-			while ( $exists ) {
-				if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
-					$this->dbLog->addLogEntry(
-						'warning',
-						'analyze',
-						__CLASS__,
-						"Could not find unique {$this->getContentLabel()} attachment title for attachment "
-						. "$attachmentId after " . self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
-					);
-					continue 2;
-				}
-
-				$attachmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
-					$attachmentSpaceId,
-					$attachmentOrigFilename,
-					$shortContentWikiTitle,
-					"-(" . $counter . ")"
-				);
-
-				if ( empty( $attachmentWikiTitle ) ) {
-					$message = "TitleCompressor delivers empty wiki title for "
-					 . "attachment id $attachmentId while uncolliding";
-
-					$this->dbLog->addLogEntry(
-						'error',
-						'extract',
-						__CLASS__,
-						$message
-					);
-
-					throw new Exception(
-						$message
-					);
-				}
-
-				$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
-				$counter++;
+			$attachmentWikiTitle = $this->buildUniqueAttachmentWikiTitle(
+				$filenameBuilder,
+				$attachmentId,
+				$attachmentSpaceId,
+				$attachmentOrigFilename,
+				$shortContentWikiTitle,
+				'warning'
+			);
+			if ( $attachmentWikiTitle === null ) {
+				continue;
 			}
 
 			$file = new SplFileInfo( $attachmentWikiTitle );
@@ -264,6 +201,132 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			];
 		}
 
+		$this->finalizeAndStoreAttachments( $collected );
+	}
+
+	/**
+	 * Checks that an attachment row has all fields and values required to build a wiki title.
+	 */
+	protected function isValid( array $attachment ): bool {
+		/**
+		 * Older formats dont have a contentStatus property,
+		 * but its safe to treat a missing contentStatus as current because
+		 * the analyzer already checks drops those.
+		 */
+		if ( isset( $attachment['content_status'] ) && $attachment['content_status'] !== 'current' ) {
+			return false;
+		}
+
+		return isset( $attachment['attachment_id'] ) &&
+			isset( $attachment['filename'] ) &&
+			isset( $attachment['container_id'] );
+	}
+
+	/**
+	 * Builds a wiki title for an attachment and resolves title collisions by appending
+	 * a counter suffix, delegating to `checkWikiTitleExists()`.
+	 *
+	 * @param FilenameBuilder $filenameBuilder
+	 * @param int $attachmentId
+	 * @param int $attachmentSpaceId
+	 * @param string $attachmentOrigFilename
+	 * @param string $contextTitle
+	 * @param string $logLevelOnBuildFailure Log level used when FilenameBuilder throws.
+	 * @return string|null Null if no unique title could be found after MAX_UNCOLLIDE_ATTEMPTS.
+	 * @throws Exception If the FilenameBuilder yields an empty title.
+	 */
+	protected function buildUniqueAttachmentWikiTitle(
+		FilenameBuilder $filenameBuilder,
+		int $attachmentId,
+		int $attachmentSpaceId,
+		string $attachmentOrigFilename,
+		string $contextTitle,
+		string $logLevelOnBuildFailure = 'warning'
+	): ?string {
+		try {
+			$attachmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+				$attachmentSpaceId,
+				$attachmentOrigFilename,
+				$contextTitle
+			);
+		} catch ( Exception $ex ) {
+			$this->dbLog->addLogEntry(
+				$logLevelOnBuildFailure,
+				'analyze',
+				static::class,
+				"Could not build target filename for attachment $attachmentId: "
+				. $ex->getMessage()
+			);
+			$attachmentWikiTitle = null;
+		}
+
+		if ( empty( $attachmentWikiTitle ) ) {
+			$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
+
+			$this->dbLog->addLogEntry(
+				'error',
+				'extract',
+				static::class,
+				$message
+			);
+
+			throw new Exception(
+				$message
+			);
+		}
+
+		// Uncollide file title
+		$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
+		$counter = 1;
+		while ( $exists ) {
+			if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
+				$this->dbLog->addLogEntry(
+					'warning',
+					'analyze',
+					static::class,
+					"Could not find unique {$this->getContentLabel()} attachment title for attachment "
+					. "$attachmentId after " . self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
+				);
+				return null;
+			}
+
+			$attachmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
+				$attachmentSpaceId,
+				$attachmentOrigFilename,
+				$contextTitle,
+				"-(" . $counter . ")"
+			);
+
+			if ( empty( $attachmentWikiTitle ) ) {
+				$message = "TitleCompressor delivers empty wiki title for "
+				 . "attachment id $attachmentId while uncolliding";
+
+				$this->dbLog->addLogEntry(
+					'error',
+					'extract',
+					static::class,
+					$message
+				);
+
+				throw new Exception(
+					$message
+				);
+			}
+
+			$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
+			$counter++;
+		}
+
+		return $attachmentWikiTitle;
+	}
+
+	/**
+	 * Compresses collected wiki titles and persists each attachment via `storeAttachment()`.
+	 *
+	 * @param array<int,array{containerId:int,origFilename:string,wikiTitle:string}> $collected
+	 * @return void
+	 */
+	protected function finalizeAndStoreAttachments( array $collected ): void {
 		$collected = $this->compressWikiTitles( $collected );
 
 		foreach ( $collected as $attachmentId => $data ) {

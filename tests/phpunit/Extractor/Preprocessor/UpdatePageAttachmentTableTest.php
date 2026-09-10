@@ -231,4 +231,39 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		);
 	}
 
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
+	 */
+	public function testOlderFormatAttachmentWithoutSpaceInheritsContainerPageSpace(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		// Older Confluence export format: no "space" property on the attachment itself.
+		$workspaceDB->addAttachment(
+			601, null, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
+		$processor->execute();
+
+		$pageAttachments = $workspaceDB->getPageAttachments();
+		$this->assertCount(
+			1,
+			$pageAttachments,
+			'Attachment without its own space_id must not be dropped.'
+		);
+		$actualTargetFilename = (string)$pageAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'TEST_Page-file.txt';
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			"Expected the attachment to inherit the container page's space/prefix."
+		);
+	}
+
 }

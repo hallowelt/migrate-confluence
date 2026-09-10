@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateAttachmentsTableWithSpaceIdFallback;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -255,5 +256,77 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 			$actualTargetFilename,
 			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable::execute
+	 */
+	public function testOrphanAttachmentWithoutSpaceFallsBackToContainerPageSpace(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+
+		// Older Confluence export format: no "space" property on the orphan attachment itself,
+		// but its container page (800) is known and has a space. attachments.space_id is
+		// backfilled from the container by UpdateAttachmentsTableWithSpaceIdFallback, which
+		// runs earlier in the extract pipeline (see ConfluenceExtractor::getPreprocessors()).
+		$workspaceDB->addAttachment(
+			803, null, 'orphan.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/e', [], [], []
+		);
+		( new UpdateAttachmentsTableWithSpaceIdFallback( $workspaceDB, $dbLog, $writer ) )->execute();
+
+		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
+		$processor->execute();
+
+		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
+		$this->assertCount(
+			1,
+			$additionalAttachments,
+			'Orphan attachment without space_id but with a resolvable container must not be dropped.'
+		);
+		$actualTargetFilename = (string)$additionalAttachments[0]['target_attachment_filename'];
+		$expectedTargetFilename = 'TEST_orphan.pdf';
+		$this->assertSame(
+			$expectedTargetFilename,
+			$actualTargetFilename,
+			'Expected the orphan attachment to inherit the space of its container page.'
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable::execute
+	 */
+	public function testOrphanAttachmentWithoutSpaceAndUnresolvableContainerIsSkippedAndLogged(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createWriter( $workspaceDB );
+
+		// No space property and no known container (container_id -1, no page/blog post for it).
+		$workspaceDB->addAttachment(
+			804, null, 'unassignable.pdf', 'pdf', -1, 'current', '1', '', '', -1, '/tmp/f', [], [], []
+		);
+
+		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
+		$processor->execute();
+
+		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
+		$this->assertCount(
+			0,
+			$additionalAttachments,
+			'Attachment with no resolvable space must be skipped.'
+		);
+
+		$logEntries = $workspaceDB->getLogEntriesForStep( 'extract', 'warning' );
+		$found = false;
+		foreach ( $logEntries as $entry ) {
+			if ( str_contains( $entry['text'], '804' ) ) {
+				$found = true;
+				break;
+			}
+		}
+		$this->assertTrue( $found, 'Expected a warning log entry about the unresolvable attachment.' );
 	}
 }
