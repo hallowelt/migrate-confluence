@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\CopyrightMacro;
 
@@ -38,7 +39,7 @@ class CopyrightMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new CopyrightMacro();
+		return new CopyrightMacro( $this->createMock( IConverterDataWriter::class ), 1 );
 	}
 
 }

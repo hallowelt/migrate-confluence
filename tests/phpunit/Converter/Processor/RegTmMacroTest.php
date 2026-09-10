@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\RegTmMacro;
 
 class RegTmMacroTest extends ProcessorTestCase {
@@ -18,7 +19,7 @@ class RegTmMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->load( $inputFile );
 
-		$processor = new RegTmMacro();
+		$processor = new RegTmMacro( $this->createMock( IConverterDataWriter::class ), 1 );
 		$processor->process( $dom );
 
 		$expectedDom = new DOMDocument();

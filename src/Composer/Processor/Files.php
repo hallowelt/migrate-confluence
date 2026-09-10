@@ -42,7 +42,9 @@ class Files extends FileProcessorBase {
 		$this->addAdditionalAttachments();
 		$this->addGeneratedSvgs();
 
-		$this->writeOutputFile();
+		if ( $this->numOfRevisions > 0 ) {
+			$this->writeOutputFile();
+		}
 	}
 
 	/**

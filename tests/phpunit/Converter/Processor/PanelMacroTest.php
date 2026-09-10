@@ -16,6 +16,6 @@ class PanelMacroTest extends StructuredMacroProcessorTestBase {
 	}
 
 	protected function getProcessorToTest(): IProcessor {
-		return new PanelMacro();
+		return new PanelMacro( $this->createConverterDataWriter(), 1 );
 	}
 }
