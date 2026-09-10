@@ -36,7 +36,7 @@ class UnhandledMacroConverterMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new UnhandledMacroConverter();
+		return new UnhandledMacroConverter( $this->placeholderManager );
 	}
 
 }

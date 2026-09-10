@@ -40,7 +40,7 @@ class CreateFromTemplateMacroChainTest extends MacroChainTestBase {
 			->createWithoutExtNsFileRepoCompat();
 		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
 
-		return new CreateFromTemplateMacro( $dataLookup );
+		return new CreateFromTemplateMacro( $dataLookup, $this->placeholderManager );
 	}
 
 }

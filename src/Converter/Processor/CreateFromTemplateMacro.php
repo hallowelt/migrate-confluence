@@ -7,8 +7,10 @@ use DOMElement;
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 // phpcs:disable Generic.Files.LineLength.TooLong
 
@@ -37,21 +39,14 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
  *    <ac:parameter ac:name="buttonLabel">Create File List</ac:parameter>
  * </ac:structured-macro>
  */
-class CreateFromTemplateMacro extends ConversionHelper implements IProcessor {
+class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IUsesPlaceholder {
 
 	/** @var string */
 	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
 
 	/**
-	 * @var DBConversionDataLookup
 	 */
-	private DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @param DBConversionDataLookup $dataLookup
-	 */
-	public function __construct( DBConversionDataLookup $dataLookup ) {
-		$this->dataLookup = $dataLookup;
+	public function __construct( private readonly DBConversionDataLookup $dataLookup, private readonly PlaceholderManager $placeholderManager ) {
 	}
 
 	/**
@@ -105,11 +100,12 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor {
 		$wikiText = $wikiTemplate->render();
 
 		if ( $errorMessage !== null ) {
-			$wikiText .= sprintf(
-				"###HTMLCOMMENTOPEN### %s ###HTMLCOMMENTCLOSE###\n%s",
+			$wikiText .= $this->placeholderManager->getPlaceholder(
+				sprintf(
+				 "<!-- %s -->\n%s",
 				$errorMessage,
 				$this->getBrokenMacroCategory()
-			);
+			) );
 		}
 
 		$node->parentNode->replaceChild(

@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor\BluespiceGalaxy;
 
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroProcessorBase;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  * Convert into <status>
@@ -14,6 +15,11 @@ use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroProcessorBase
  * </ac:structured-macro>
  */
 class StatusMacro extends StructuredMacroProcessorBase {
+
+	public function __construct(
+		private readonly PlaceholderManager $placeholderManager
+	) {
+	}
 
 	/**
 	 * @inheritDoc
@@ -57,11 +63,13 @@ class StatusMacro extends StructuredMacroProcessorBase {
 
 		$statusTag = $this->createTextNode(
 			$node->ownerDocument,
-			sprintf(
-				'#####STATUSOPEN color="%s" light="%s"#####%s#####STATUSCLOSE#####',
-				$params['color'] ?? '',
-				$params['light'] ?? 'false',
-				$params['title'] ?? $params['color'] ?? ''
+			$this->placeholderManager->getPlaceholder(
+				sprintf(
+					'<status color="%s" light="%s">%s</status>',
+					$params['color'] ?? '',
+					$params['light'] ?? 'false',
+					$params['title'] ?? $params['color'] ?? ''
+				)
 			),
 			__METHOD__
 		);

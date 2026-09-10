@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class LocalTabGroupMacroTest extends ProcessorTestCase {
 
@@ -26,7 +27,7 @@ class LocalTabGroupMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new LocalTabGroupMacro();
+		$processor = new LocalTabGroupMacro( new PlaceholderManager() );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 
