@@ -1,6 +1,0 @@
-<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<strong>Some data as bar chart</strong><barchart showvalues="true">
-A, 55
-B, 45
-</barchart>
-</xml>

@@ -1,0 +1,8 @@
+'''Some data as scatter chart'''[[Category:Broken_chart/scatter]]
+<div class="ac-chart">
+
+<!-- &lt;ac:structured-macro ac:name=&quot;chart&quot; ac:schema-version=&quot;1&quot;&gt; &lt;ac:parameter ac:name=&quot;type&quot;&gt;scatter&lt;/ac:parameter&gt; &lt;ac:parameter ac:name=&quot;title&quot;&gt;Some data as scatter chart&lt;/ac:parameter&gt; &lt;ac:rich-text-body&gt; &lt;table&gt; &lt;tbody&gt; &lt;tr&gt; &lt;th&gt;Name&lt;/th&gt; &lt;th&gt;Share&lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;A&lt;/td&gt; &lt;td&gt;55&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;B&lt;/td&gt; &lt;td&gt;45&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt; &lt;/ac:rich-text-body&gt; &lt;/ac:structured-macro&gt; -->[[Category:Broken_macro/chart]]
+
+</div>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

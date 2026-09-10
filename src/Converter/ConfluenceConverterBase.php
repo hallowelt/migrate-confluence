@@ -37,6 +37,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ChartMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro as PreserveCodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
@@ -97,6 +98,7 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use HalloWelt\MigrateConfluence\Utility\TranslatableString;
 use SplFileInfo;
@@ -157,6 +159,9 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	/** @var IConverterDataWriter */
 	protected IConverterDataWriter $writer;
 
+	/** @var PlaceholderManager */
+	protected PlaceholderManager $placeholderManager;
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -168,6 +173,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		} else {
 			$this->migrationConfig = new MigrationConfig( [] );
 		}
+		$this->placeholderManager = new PlaceholderManager();
 	}
 
 	/**
@@ -546,7 +552,8 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new CreateFromTemplateMacro(
 				$this->dataLookup
 			),
-			new LivesearchMacro( $this->writer, $this->currentSpace )
+			new LivesearchMacro( $this->writer, $this->currentSpace ),
+			new ChartMacro( $this->placeholderManager ),
 		];
 	}
 

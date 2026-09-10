@@ -1,10 +1,10 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy;
+namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  * Convert into <status>
@@ -72,6 +72,12 @@ class ChartMacro extends StructuredMacroProcessorBase {
 	private ?ConversionHelper $helper = null;
 
 	/**
+	 * @param PlaceholderManager $placeholderManager
+	 */
+	public function __construct( private PlaceholderManager $placeholderManager ) {
+	}
+
+	/**
 	 * @inheritDoc
 	 */
 	protected function getMacroName(): string {
@@ -82,7 +88,7 @@ class ChartMacro extends StructuredMacroProcessorBase {
 	 * @inheritDoc
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
-		$params = $this->getMacroParams( $node, $node );
+		$params = $this->getMacroParams( $node );
 
 		if ( !isset( $params['type'] )
 			|| !in_array( $params['type'], $this->allowedChartTypes, true )
@@ -244,12 +250,20 @@ class ChartMacro extends StructuredMacroProcessorBase {
 
 		$replacement = $node->ownerDocument->createElement( $type );
 		$replacement->setAttribute( 'showvalues', 'true' );
-		$item = $node->ownerDocument->createTextNode( "\n" );
-		$replacement->appendChild( $item );
+		$placeholderOpen = $this->placeholderManager->getPlaceholder(
+				"<$type showvalues=\"true\">\n"
+		);
+		$placeholderClose = $this->placeholderManager->getPlaceholder(
+				"</$type>\n"
+		);
+		$item = $node->ownerDocument->createTextNode( "###BREAK###$placeholderOpen" );
+		$node->parentNode->insertBefore( $item, $node );
 		foreach ( $data as $key => $value ) {
-			$item = $node->ownerDocument->createTextNode( "$key, $value\n" );
-			$replacement->appendChild( $item );
+			$item = $node->ownerDocument->createTextNode( "$key, $value###BREAK###" );
+			$node->parentNode->insertBefore( $item, $node );
 		}
+		$item = $node->ownerDocument->createTextNode( "$placeholderClose" );
+		$node->parentNode->insertBefore( $item, $node );
 		$node->parentNode->replaceChild( $replacement, $node );
 	}
 

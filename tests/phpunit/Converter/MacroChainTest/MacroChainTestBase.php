@@ -25,15 +25,21 @@ use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use PHPUnit\Framework\TestCase;
 
 abstract class MacroChainTestBase extends TestCase {
 
+	/** @var DBConversionDataLookup */
 	protected DBConversionDataLookup $dataLookup;
+
+	/** @var PlaceholderManager */
+	protected PlaceholderManager $placeholderManager;
 
 	protected function setUp(): void {
 		$workspaceDb = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
 		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
+		$this->placeholderManager = new PlaceholderManager();
 	}
 
 	/**
@@ -56,6 +62,8 @@ abstract class MacroChainTestBase extends TestCase {
 		}
 
 		$processor->process( $dom );
+
+		$this->runUnhandledMacroProcessor( $dom );
 
 		$wikiText = $this->runPandoc( $dom->saveHTML() );
 
@@ -80,6 +88,8 @@ abstract class MacroChainTestBase extends TestCase {
 		foreach ( $postprocessors as $postprocessor ) {
 			$wikiText = $postprocessor->postprocess( $wikiText );
 		}
+
+		$wikiText = $this->placeholderManager->replacePlaceholders( $wikiText );
 
 		return $this->applyConfluenceFinalReplacements( $wikiText );
 	}
@@ -148,5 +158,12 @@ abstract class MacroChainTestBase extends TestCase {
 		);
 
 		return (string)$output;
+	}
+
+	/**
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	protected function runUnhandledMacroProcessor( DOMDocument $dom ): void {
 	}
 }

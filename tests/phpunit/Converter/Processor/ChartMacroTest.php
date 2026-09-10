@@ -1,15 +1,16 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor\BlueSpiceGalaxy\ChartMacro;
+namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor\ChartMacro;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ChartMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ChartMacro;
 use HalloWelt\MigrateConfluence\Tests\Converter\Processor\ProcessorTestCase;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class ChartMacroTest extends ProcessorTestCase {
 
 		/**
-		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ChartMacro::process
+		 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ChartMacro::process
 		 * @return void
 		 */
 	public function testProcess() {
@@ -26,15 +27,18 @@ class ChartMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	private function doTest( string $type ) {
-		$input = file_get_contents( __DIR__ . "/$type-input.xml" );
+		$dir = dirname( __DIR__, 2 ) . '/data';
+		$input = file_get_contents( $dir . "/chart-macro-$type-input.xml" );
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ChartMacro();
+		$placeholderManager = new PlaceholderManager();
+
+		$processor = new ChartMacro( $placeholderManager );
 		$processor->process( $dom );
 		$actual = $dom->saveXML( $dom->documentElement );
 
-		$output = file_get_contents( __DIR__ . "/$type-output.xml" );
+		$output = file_get_contents( $dir . "/chart-macro-$type-output.xml" );
 		$expectedDom = new DOMDocument();
 		$expectedDom->loadXML( $output );
 		$expected = $expectedDom->saveXML( $expectedDom->documentElement );

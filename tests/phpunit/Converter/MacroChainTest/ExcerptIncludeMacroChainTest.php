@@ -13,6 +13,7 @@ use ReflectionClass;
 class ExcerptIncludeMacroChainTest extends MacroChainTestBase {
 
 	protected function setUp(): void {
+		parent::setUp();
 		$workspaceDb = $this->createWorkspaceDb();
 		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
 	}
