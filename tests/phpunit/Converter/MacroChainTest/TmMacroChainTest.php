@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\TmMacro;
 
@@ -38,7 +39,7 @@ class TmMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new TmMacro();
+		return new TmMacro( $this->createMock( IConverterDataWriter::class ), 1 );
 	}
 
 }

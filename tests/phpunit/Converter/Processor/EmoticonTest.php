@@ -8,7 +8,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 class EmoticonTest extends ProcessorTestCase {
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\EmoticonProcessor::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Emoticon::process
 	 * @return void
 	 */
 	public function testProcess() {
@@ -18,7 +18,7 @@ class EmoticonTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new Emoticon();
+		$processor = new Emoticon( $this->createConverterDataWriter(), 1 );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

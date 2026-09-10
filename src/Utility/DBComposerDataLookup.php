@@ -132,6 +132,17 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * SVG files generated during conversion (e.g. rendered roadmap diagrams),
+	 * to be added to files.xml even though they have no Confluence attachment record.
+	 *
+	 * @param int|null $spaceId
+	 * @return array
+	 */
+	public function getRoadmapSvgs( ?int $spaceId = null ): array {
+		return $this->workspaceDB->getRoadmapSvgs( $spaceId );
+	}
+
+	/**
 	 * @param int|null $spaceId
 	 * @return array
 	 */
@@ -145,6 +156,23 @@ class DBComposerDataLookup {
 	 */
 	public function getPageTemplateRevisionsForTemplateId( int $templateId ): array {
 		return $this->workspaceDB->getPageTemplateRevisionsForTemplateId( $templateId );
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $namespace
+	 * @return array
+	 */
+	public function getRegisteredDefaultPagesForSpaceId( int $spaceId, string $namespace = '*' ): array {
+		return $this->workspaceDB->getRegisteredDefaultPagesForSpaceId( $spaceId, $namespace );
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @return string[]
+	 */
+	public function getRegisteredDefaultFilesForSpaceId( int $spaceId ): array {
+		return $this->workspaceDB->getRegisteredDefaultFilesForSpaceId( $spaceId );
 	}
 
 	/**
