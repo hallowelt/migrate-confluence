@@ -158,9 +158,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	/** @var IConverterDataWriter */
 	protected IConverterDataWriter $writer;
 
-	/** @var PlaceholderManager */
-	protected PlaceholderManager $placeholderManager;
-
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace

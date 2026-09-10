@@ -50,7 +50,7 @@ class ChartMacroChainTest extends MacroChainTestBase {
 	 * @return void
 	 */
 	protected function runUnhandledMacroProcessor( \DOMDocument $dom ): void {
-		$unhandledMacroProcessor = new UnhandledMacroConverter();
+		$unhandledMacroProcessor = new UnhandledMacroConverter( $this->placeholderManager );
 		$unhandledMacroProcessor->process( $dom );
 	}
 
