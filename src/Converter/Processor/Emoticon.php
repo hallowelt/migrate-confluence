@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
@@ -132,6 +133,16 @@ class Emoticon extends ConversionHelper implements IProcessor {
 	private static ?array $emojiFe0fMap = null;
 
 	/**
+	 * @param IConverterDataWriter $writer
+	 * @param int $currentSpaceId
+	 */
+	public function __construct(
+		private IConverterDataWriter $writer,
+		private int $currentSpaceId
+	) {
+	}
+
+	/**
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
@@ -145,6 +156,13 @@ class Emoticon extends ConversionHelper implements IProcessor {
 		foreach ( $processableNodes as $processableNode ) {
 			$replacement = $this->getReplacement( $processableNode );
 			$this->replaceEmoticon( $processableNode, $replacement );
+		}
+
+		if ( count( $processableNodes ) > 0 ) {
+			$this->writer->registerDefaultPage(
+				$this->currentSpaceId,
+				self::TEMPLATE_NAME
+			);
 		}
 	}
 

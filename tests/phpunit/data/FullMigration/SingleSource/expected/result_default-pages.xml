@@ -5,6 +5,7 @@
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
+        <text>&lt;noinclude&gt;Template added by Confluence migration to handle the "livesearch" macro.
 
     &lt;templatedata&gt;
     {
