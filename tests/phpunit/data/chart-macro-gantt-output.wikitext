@@ -1,0 +1,29 @@
+'''Some data as gantt chart'''[[Category:Broken_chart/gantt]]
+<div class="ac-chart">
+
+<!--<ac:structured-macro ac:name="chart" ac:schema-version="1">
+		<ac:parameter ac:name="type">gantt</ac:parameter>
+		<ac:parameter ac:name="title">Some data as gantt chart</ac:parameter>
+		<ac:rich-text-body>
+			<table>
+				<tbody>
+					<tr>
+						<th>Name</th>
+						<th>Share</th>
+					</tr>
+					<tr>
+						<td>A</td>
+						<td>55</td>
+					</tr>
+					<tr>
+						<td>B</td>
+						<td>45</td>
+					</tr>
+				</tbody>
+			</table>
+		</ac:rich-text-body>
+	</ac:structured-macro>-->[[Category:Broken_macro/chart]]
+
+</div>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

@@ -32,6 +32,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ChartMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
@@ -169,6 +170,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		} else {
 			$this->migrationConfig = new MigrationConfig( [] );
 		}
+		$this->placeholderManager = new PlaceholderManager();
 	}
 
 	/**
@@ -595,7 +597,8 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->dataLookup,
 				$this->placeholderManager
 			),
-			new LivesearchMacro( $this->writer, $this->currentSpace )
+			new LivesearchMacro( $this->writer, $this->currentSpace ),
+			new ChartMacro( $this->placeholderManager ),
 		];
 	}
 

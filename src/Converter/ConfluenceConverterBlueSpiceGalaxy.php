@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Converter;
 
-use HalloWelt\MigrateConfluence\Converter\Processor\BluespiceGalaxy\StatusMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\StatusMacro;
 
 class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
 	protected const PROFILE_NAME = 'bluespice-galaxy';
