@@ -5,10 +5,11 @@ namespace HalloWelt\MigrateConfluence\Composer\Processor;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
+use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
-abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsDependentProcessor {
+abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsDependentProcessor, ISubDirAware {
 
 	/** @var bool */
 	protected bool $multiXmlOutputEnabled = false;

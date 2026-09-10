@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
 
@@ -36,7 +37,7 @@ class InfoMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new InfoMacro();
+		return new InfoMacro( $this->createMock( IConverterDataWriter::class ), 1 );
 	}
 
 }

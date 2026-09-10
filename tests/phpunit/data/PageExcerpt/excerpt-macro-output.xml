@@ -1,21 +1,21 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace">
     <p>
-        #####EXCERPTBLOCKOPEN||true#####
+        #####EXCERPTBLOCKOPEN|excerpt-0|true#####
                 <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
                     macro.
                 </p>
             #####EXCERPTBLOCKCLOSE#####
     </p>
     <p>
-        #####EXCERPTINLINEOPEN||true#####
+        #####EXCERPTINLINEOPEN|excerpt-0|true#####
                 <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
                     macro.
                 </p>
             #####EXCERPTINLINECLOSE#####
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN||false##########EXCERPTBLOCKCLOSE#####
+        #####EXCERPTBLOCKOPEN|excerpt-0|false##########EXCERPTBLOCKCLOSE#####
     </p>
     <p>
         #####EXCERPTBLOCKOPEN|Excerpt Name 1|false#####
@@ -23,7 +23,7 @@
             #####EXCERPTBLOCKCLOSE#####
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN||false#####
+        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
                 <table class="relative-table wrapped">
                     <colgroup><col/></colgroup>
                     <tbody>
@@ -34,7 +34,7 @@
             #####EXCERPTBLOCKCLOSE#####
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN||false#####
+        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
                 <table class="relative-table wrapped">
                     <colgroup><col/></colgroup>
                     <tbody>
@@ -45,19 +45,19 @@
             #####EXCERPTBLOCKCLOSE#####
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN||false#####
+        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
                 <p>First paragraph of the excerpt.</p>
                 <p>Second paragraph of the excerpt.</p>
             #####EXCERPTBLOCKCLOSE#####
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN||false#####
+        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
                 <p>Intro text before the heading.</p>
                 <h2>A heading inside the excerpt</h2>
             #####EXCERPTBLOCKCLOSE#####
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN||false#####
+        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
                 <ul>
                     <li>First list item</li>
                     <li>Second list item</li>
@@ -65,7 +65,7 @@
             #####EXCERPTBLOCKCLOSE#####
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN||false#####
+        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
                 <p>Line one of the excerpt.<br/>Line two of the excerpt.</p>
             #####EXCERPTBLOCKCLOSE#####
     </p>

@@ -27,7 +27,9 @@ class WikiFileXmlBuilderTest extends TestCase {
 			);
 		}
 
-		$tmpPath = tempnam( sys_get_temp_dir(), 'wiki-file-xmlbuilder-' ) . '.xml';
+		$tmpPath = tempnam( sys_get_temp_dir(), 'wiki-file-xmlbuilder-' );
+		rename( $tmpPath, $tmpPath . '.xml' );
+		$tmpPath = $tmpPath . '.xml';
 		try {
 			$builder->buildAndSave( $tmpPath );
 			$actual = file_get_contents( $tmpPath );
@@ -52,11 +54,15 @@ class WikiFileXmlBuilderTest extends TestCase {
 			"Original file name: <nowiki>Long File Name.pdf</nowiki>\n{{DISPLAYTITLE:Long File Name.pdf|noerror}}"
 		);
 
-		$tmpPath = tempnam( sys_get_temp_dir(), 'wiki-file-xmlbuilder-' ) . '.xml';
+		$tmpPath = tempnam( sys_get_temp_dir(), 'wiki-file-xmlbuilder-' );
+		rename( $tmpPath, $tmpPath . '.xml' );
+		$tmpPath = $tmpPath . '.xml';
 		$builder->buildAndSave( $tmpPath );
 
 		$actual = file_get_contents( $tmpPath );
 		$expected = file_get_contents( __DIR__ . '/expected-file-xml-with-text.xml' );
+
+		unlink( $tmpPath );
 
 		$this->assertEquals( $expected, $actual );
 	}

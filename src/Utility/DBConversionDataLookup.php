@@ -51,6 +51,30 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $bodyContentId
+	 * @return int|null
+	 */
+	public function getSpaceIdForBodyContentId( int $bodyContentId ): ?int {
+		return $this->workspaceDB->getSpaceIdForBodyContentId( $bodyContentId );
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getWikiTitleForBodyContentId( int $bodyContentId ): ?string {
+		return $this->workspaceDB->getWikiTitleForBodyContentId( $bodyContentId );
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getConfluenceTitleForBodyContentId( int $bodyContentId ): ?string {
+		return $this->workspaceDB->getConfluenceTitleForBodyContentId( $bodyContentId );
+	}
+
+	/**
 	 * @param int $spaceId
 	 * @return string|null
 	 */
@@ -324,5 +348,26 @@ class DBConversionDataLookup {
 	 */
 	public function getInvalidPageTemplateTitleReason( int $templateId ): ?string {
 		return $this->workspaceDB->getInvalidPageTemplateTitleReason( $templateId );
+	}
+
+	public function getPageByWikiTitle( string $wikiTitle ): ?array {
+		return $this->workspaceDB->getPageByWikiTitle( $wikiTitle );
+	}
+
+	public function getConfluencePageBodyContent( array $bodyContentIds ): ?string {
+		$bodyContent = "";
+		foreach ( $bodyContentIds as $bodyContentId ) {
+			$body = $this->workspaceDB->getBodyContentBodyByBodyContentId( $bodyContentId );
+
+			if ( $body ) {
+				$bodyContent .= $body;
+			}
+		}
+
+		if ( empty( $bodyContent ) ) {
+			return null;
+		}
+
+		return $body;
 	}
 }

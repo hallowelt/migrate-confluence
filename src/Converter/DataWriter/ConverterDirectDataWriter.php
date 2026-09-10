@@ -44,7 +44,26 @@ class ConverterDirectDataWriter extends AbstractDirectDataWriter implements ICon
 		);
 	}
 
-	public function addRequiredTemplate( string $templateName ): void {
-		$this->db->addRequiredTemplate( $templateName );
+	/**
+	 * @param int $spaceId
+	 * @param string $defaultPageName
+	 * @param string $defaultPageNamespace
+	 * @return bool
+	 */
+	public function registerDefaultPage(
+		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'
+	): bool {
+		return $this->db->registerDefaultPage( $spaceId, $defaultPageName, $defaultPageNamespace );
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $defaultFileName
+	 * @return bool
+	 */
+	public function registerDefaultFile(
+		int $spaceId, string $defaultFileName
+	): bool {
+		return $this->db->registerDefaultFile( $spaceId, $defaultFileName );
 	}
 }

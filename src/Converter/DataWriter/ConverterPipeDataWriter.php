@@ -43,7 +43,28 @@ class ConverterPipeDataWriter extends AbstractPipeDataWriter implements IConvert
 		return true;
 	}
 
-	public function addRequiredTemplate( string $templateName ): void {
-		$this->send( __FUNCTION__, $templateName );
+	/**
+	 * @param int $spaceId
+	 * @param string $defaultPageName
+	 * @param string $defaultPageNamespace
+	 * @return bool
+	 */
+	public function registerDefaultPage(
+		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'
+	): bool {
+		$this->send( __FUNCTION__, $spaceId, $defaultPageName, $defaultPageNamespace );
+		return true;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $defaultFileName
+	 * @return bool
+	 */
+	public function registerDefaultFile(
+		int $spaceId, string $defaultFileName
+	): bool {
+		$this->send( __FUNCTION__, $spaceId, $defaultFileName );
+		return true;
 	}
 }

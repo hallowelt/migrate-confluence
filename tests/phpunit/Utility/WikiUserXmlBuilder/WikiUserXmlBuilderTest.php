@@ -22,7 +22,9 @@ class WikiUserXmlBuilderTest extends TestCase {
 			$builder->addUser( $wikiUsername, $propertiesJson );
 		}
 
-		$tmpPath = tempnam( sys_get_temp_dir(), 'wiki-user-xmlbuilder-' ) . '.xml';
+		$tmpPath = tempnam( sys_get_temp_dir(), 'wiki-user-xmlbuilder-' );
+		rename( $tmpPath, $tmpPath . '.xml' );
+		$tmpPath = $tmpPath . '.xml';
 		try {
 			$builder->buildAndSave( $tmpPath );
 			$actual = file_get_contents( $tmpPath );

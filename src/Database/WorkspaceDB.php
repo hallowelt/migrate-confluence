@@ -173,6 +173,8 @@ class WorkspaceDB {
 			'labels',
 			'gliffy',
 			'required_templates',
+			'default_pages_registry',
+			'default_files_registry',
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -320,7 +322,8 @@ class WorkspaceDB {
 		$this->createTablePageTemplateContents();
 		$this->createTableAttachmentsDescriptions();
 		$this->createTableExportProperties();
-		$this->createTableRequiredTemplates();
+		$this->createTableDefaultPagesRegistry();
+		$this->createTableDefaultFilesRegistry();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -3378,6 +3381,93 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Get the space ID of the page or blog post body content.
+	 *
+	 * @param int $bodyContentId
+	 * @return int|null
+	 */
+	public function getSpaceIdForBodyContentId( int $bodyContentId ): ?int {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.space_id, bp.space_id ) AS space_id
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || $data['space_id'] === null ) {
+			return null;
+		}
+
+		return (int)$data['space_id'];
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getWikiTitleForBodyContentId( int $bodyContentId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.wiki_title, bp.wiki_title ) AS wiki_title
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return $data === false || $data['wiki_title'] === null ? null : (string)$data['wiki_title'];
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getConfluenceTitleForBodyContentId( int $bodyContentId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.confluence_title, bp.confluence_title ) AS confluence_title
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return $data === false || $data['confluence_title'] === null ? null : (string)$data['confluence_title'];
+	}
+
+	/**
 	 * @param int $bodyContentId
 	 * @param string $body
 	 * @return bool True on success, false on error.
@@ -3623,6 +3713,37 @@ class WorkspaceDB {
 		}
 
 		return $this->fetchDbArray( $result );
+	}
+
+	public function getPageByWikiTitle( string $wikiTitle ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM pages WHERE wiki_title = :wiki_title'
+		);
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+		if ( !$data ) {
+			return null;
+		}
+
+		$jsonFields = [
+			'body_content_ids',
+			'historical_ids',
+			'properties',
+			'collection'
+		];
+
+		foreach ( $jsonFields as $field ) {
+			$data[$field] = json_decode( $data[$field], true );
+		}
+
+		return $data;
 	}
 
 	/**
@@ -5236,33 +5357,145 @@ class WorkspaceDB {
 	/**
 	 * @return void
 	 */
-	private function createTableRequiredTemplates(): void {
+	private function createTableDefaultPagesRegistry(): void {
 		$this->db->exec(
-			'CREATE TABLE IF NOT EXISTS required_templates (
-				template_name TEXT PRIMARY KEY
+			'CREATE TABLE IF NOT EXISTS default_pages_registry (
+				space_id INT,
+				namespace TEXT,
+				name TEXT
 			);'
 		);
 	}
 
 	/**
-	 * @param string $templateName
 	 * @return void
 	 */
-	public function addRequiredTemplate( string $templateName ): void {
-		$stmt = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO required_templates (template_name) VALUES (:template_name)'
+	private function createTableDefaultFilesRegistry(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS default_files_registry (
+				space_id INT,
+				name TEXT
+			);'
 		);
-		$stmt->bindValue( ':template_name', $templateName, SQLITE3_TEXT );
-		$stmt->execute();
 	}
 
 	/**
-	 * @return string[] list of required template names
+	 * Register default pages used for creating new pages in spaces.
+	 *
+	 * @param int $spaceId
+	 * @param string $defaultPageName
+	 * @param string $defaultPageNamespace
+	 * @return bool
 	 */
-	public function getRequiredTemplates(): array {
-		$stmt = $this->cachedPrepare( 'SELECT template_name FROM required_templates ORDER BY template_name' );
-		$result = $stmt->execute();
+	public function registerDefaultPage(
+		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO default_pages_registry (
+				space_id,
+				namespace,
+				name
+			) VALUES (
+				:space_id,
+				:namespace,
+				:name
+			)'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':namespace', $defaultPageNamespace, SQLITE3_TEXT );
+		$transaction->bindValue( ':name', $defaultPageName, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Register default files used for creating new pages in spaces.
+	 *
+	 * @param int $spaceId
+	 * @param string $defaultFileName
+	 * @return bool
+	 */
+	public function registerDefaultFile(
+		int $spaceId, string $defaultFileName
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO default_files_registry (
+				space_id,
+				name
+			) VALUES (
+				:space_id,
+				:name
+			)'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':name', $defaultFileName, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Get registered default pages for a given space ID grouped by namespace.
+	 *
+	 * @param int $spaceId
+	 * @param string $namespace Use '*' to return all namespaces.
+	 * @return array
+	 */
+	public function getRegisteredDefaultPagesForSpaceId( int $spaceId, string $namespace = '*' ): array {
+		if ( $namespace === '*' ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT DISTINCT namespace, name FROM default_pages_registry
+					WHERE space_id = :space_id
+					ORDER BY namespace, name'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT DISTINCT namespace, name FROM default_pages_registry
+					WHERE space_id = :space_id AND namespace = :namespace
+					ORDER BY name'
+			);
+			$transaction->bindValue( ':namespace', $namespace, SQLITE3_TEXT );
+		}
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
 		$rows = $this->fetchDbArray( $result );
-		return array_column( $rows, 'template_name' );
+		$defaultPages = [];
+		foreach ( $rows as $row ) {
+			$pageNamespace = $row['namespace'];
+			$defaultPages[$pageNamespace][] = $row['name'];
+		}
+
+		return $defaultPages;
+	}
+
+	/**
+	 * Get registered default files for a given space ID and namespace.
+	 *
+	 * @param int $spaceId
+	 * @return string[]
+	 */
+	public function getRegisteredDefaultFilesForSpaceId( int $spaceId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT DISTINCT name FROM default_files_registry
+				WHERE space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		$rows = $this->fetchDbArray( $result );
+		$defaultFiles = [];
+		foreach ( $rows as $row ) {
+			$defaultFiles[] = $row['name'];
+		}
+
+		return $defaultFiles;
 	}
 }

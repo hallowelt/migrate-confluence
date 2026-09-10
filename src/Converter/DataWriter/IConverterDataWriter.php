@@ -21,7 +21,15 @@ interface IConverterDataWriter extends IDataWriter {
 		string $targetAttachmentFilename
 	): bool;
 
-	public function addRequiredTemplate( string $templateName ): void;
+	/**
+	 * @param int $spaceId
+	 * @param string $defaultPageName
+	 * @param string $defaultPageNamespace
+	 * @return bool
+	 */
+	public function registerDefaultPage(
+		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'
+	): bool;
 
 	/**
 	 * @param int $bodyContentId
