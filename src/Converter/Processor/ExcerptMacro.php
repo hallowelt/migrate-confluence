@@ -6,13 +6,15 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  * Converts the Confluence excerpt macro to a BlueSpice <excerpt-block> or <excerpt-inline> element.
  *
  * @see https://confluence.atlassian.com/doc/excerpt-macro-148062.html
  */
-class ExcerptMacro extends StructuredMacroProcessorBase {
+class ExcerptMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
 
 	public const EXCERPT_NAME_FALLBACK_PREFIX = 'excerpt-';
 
@@ -46,6 +48,11 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 
 	private int $excerptMacroCount = 0;
 
+	public function __construct(
+		private readonly PlaceholderManager $placeholderManager
+	) {
+	}
+
 	/**
 	 * @inheritDoc
 	 */
@@ -67,8 +74,8 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 	 * Placeholders use pipe-separated values to avoid HTML attribute quote encoding issues.
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
-		$hidden = 'false';
-		$layout = 'BLOCK';
+		$hidden = '';
+		$layout = 'block';
 		$excerptName = "";
 		$richTextBody = null;
 
@@ -96,7 +103,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 			}
 
 			if ( $name === 'atlassian-macro-output-type' ) {
-				$layout = strtoupper( trim( $childNode->nodeValue ) );
+				$layout = strtolower( trim( $childNode->nodeValue ) );
 			}
 		}
 
@@ -105,8 +112,8 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 		// excerpt is more permissive, so an INLINE output-type may wrap several blocks.
 		// If that is the case, force BLOCK layout, otherwise the migrated page throws
 		// 'page-excerpts-ve-excerpt-inline-error-multi-node' when opened in VE.
-		if ( $layout === 'INLINE' && $richTextBody !== null && $this->bodyIsMultiLeaf( $richTextBody ) ) {
-			$layout = 'BLOCK';
+		if ( $layout === 'inline' && $richTextBody !== null && $this->bodyIsMultiLeaf( $richTextBody ) ) {
+			$layout = 'block';
 		}
 
 		$parent = $node->parentNode;
@@ -115,28 +122,28 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 			$excerptName = $this->generateExcerptName();
 		}
 
-		$openTag = $this->createTextNode(
-			$node->ownerDocument,
-			"#####EXCERPT{$layout}OPEN|$excerptName|$hidden#####",
-			__METHOD__
-		);
-		$parent->insertBefore( $openTag, $node );
+		$tag = $node->ownerDocument->createElement( 'excerpt-' . $layout );
+		$tag->setAttribute( 'name', $excerptName );
+		if ( $hidden ) {
+			$tag->setAttribute( 'hidden', $hidden );
+		}
 
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:rich-text-body' ) {
 				foreach ( iterator_to_array( $childNode->childNodes ) as $bodyChild ) {
-					$parent->insertBefore( $bodyChild->cloneNode( true ), $node );
+					$tag->appendChild( $bodyChild->cloneNode( true ) );
 				}
 			}
 		}
 
-		$closeTag = $this->createTextNode(
-			$node->ownerDocument,
-			"#####EXCERPT{$layout}CLOSE#####",
-			__METHOD__
-		);
-		$parent->insertBefore( $closeTag, $node );
-
+		$parent->insertBefore(
+			$this->createTextNode(
+				$node->ownerDocument,
+				$this->placeholderManager->getPlaceholder(
+					$tag->ownerDocument->saveXML( $tag )
+				),
+				__METHOD__ ),
+			$node );
 		$parent->removeChild( $node );
 	}
 

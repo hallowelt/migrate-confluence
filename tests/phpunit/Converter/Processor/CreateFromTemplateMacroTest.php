@@ -6,6 +6,7 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
@@ -35,7 +36,7 @@ class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
 		$dataLookup = new DBConversionDataLookup( $workspaceDB );
 
-		$processor = new CreateFromTemplateMacro( $dataLookup );
+		$processor = new CreateFromTemplateMacro( $dataLookup, new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
@@ -60,7 +61,7 @@ class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
 		$dataLookup = new DBConversionDataLookup( $workspaceDB );
 
-		$processor = new CreateFromTemplateMacro( $dataLookup );
+		$processor = new CreateFromTemplateMacro( $dataLookup, new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

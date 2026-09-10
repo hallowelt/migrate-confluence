@@ -9,5 +9,5 @@
 					</p>
 				</ac:rich-text-body>
 			</ac:macro>
-		&lt;headertabs /&gt;</div>
+		convert:placeholder=0</div>
 </xml>

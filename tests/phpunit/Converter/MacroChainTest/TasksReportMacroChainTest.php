@@ -40,7 +40,7 @@ class TasksReportMacroChainTest extends MacroChainTestBase {
 			->createWithoutExtNsFileRepoCompat();
 		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
 
-		return new TasksReportMacro( $dataLookup );
+		return new TasksReportMacro( $dataLookup, $this->placeholderManager );
 	}
 
 }

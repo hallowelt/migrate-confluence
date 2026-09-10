@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class ExcerptMacroTest extends ProcessorTestCase {
 
@@ -26,7 +27,7 @@ class ExcerptMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ExcerptMacro();
+		$processor = new ExcerptMacro( new PlaceholderManager() );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 

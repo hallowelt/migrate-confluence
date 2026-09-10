@@ -1,72 +1,33 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace">
     <p>
-        #####EXCERPTBLOCKOPEN|excerpt-0|true#####
-                <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
-                    macro.
-                </p>
-            #####EXCERPTBLOCKCLOSE#####
+        convert:placeholder=0
     </p>
     <p>
-        #####EXCERPTINLINEOPEN|excerpt-0|true#####
-                <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
-                    macro.
-                </p>
-            #####EXCERPTINLINECLOSE#####
+        convert:placeholder=1
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN|excerpt-0|false##########EXCERPTBLOCKCLOSE#####
+        convert:placeholder=2
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN|Excerpt Name 1|false#####
-                <p local-id="176212f6efc1">This content is transcluded from page &#x201C;excerpt&#x201D;.</p>
-            #####EXCERPTBLOCKCLOSE#####
+        convert:placeholder=3
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
-                <table class="relative-table wrapped">
-                    <colgroup><col/></colgroup>
-                    <tbody>
-                        <tr><th>Table Header 1</th></tr>
-                        <tr><td>Table Cell 1</td></tr>
-                    </tbody>
-                </table>
-            #####EXCERPTBLOCKCLOSE#####
+        convert:placeholder=4
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
-                <table class="relative-table wrapped">
-                    <colgroup><col/></colgroup>
-                    <tbody>
-                        <tr><th>Table Header 1</th></tr>
-                        <tr><td>Table Cell 1</td></tr>
-                    </tbody>
-                </table>
-            #####EXCERPTBLOCKCLOSE#####
+        convert:placeholder=5
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
-                <p>First paragraph of the excerpt.</p>
-                <p>Second paragraph of the excerpt.</p>
-            #####EXCERPTBLOCKCLOSE#####
+        convert:placeholder=6
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
-                <p>Intro text before the heading.</p>
-                <h2>A heading inside the excerpt</h2>
-            #####EXCERPTBLOCKCLOSE#####
+        convert:placeholder=7
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
-                <ul>
-                    <li>First list item</li>
-                    <li>Second list item</li>
-                </ul>
-            #####EXCERPTBLOCKCLOSE#####
+        convert:placeholder=8
     </p>
     <p>
-        #####EXCERPTBLOCKOPEN|excerpt-0|false#####
-                <p>Line one of the excerpt.<br/>Line two of the excerpt.</p>
-            #####EXCERPTBLOCKCLOSE#####
+        convert:placeholder=9
     </p>
 </xml>
