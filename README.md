@@ -81,6 +81,15 @@ The migrate confluence tool is available as [docker image](https://hub.docker.co
 
 Important: If you re-run the scripts you will need to clean up the "workspace" directory!
 
+### Deployment manifest
+
+For multi-wiki deployments (i.e. when a `wikis` config is set up and processed by
+`WikiBasedComposer`), the `compose` step also writes a `manifest.json` file to the
+`result` directory (e.g. `/tmp/confluence/workspace/result/manifest.json`). It lists
+every target wiki with its `sfr` instance id, the file extensions used by its
+content and the import/rebuild scripts to run, so it can be consumed by automated
+deployment tooling.
+
 ### Import into MediaWiki
 
 > **Note:** For the file import you need the extension [BlueSpiceDistributionConnector](https://www.mediawiki.org/wiki/Extension:DistributionConnector) with minimum version 5.1.9 or 5.2.5 installed. See your wiki’s [Special:Version](https://en.wiki5.bluespice.com/wiki/Special:Version) page to check the requirement.
