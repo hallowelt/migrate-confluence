@@ -37,9 +37,15 @@ class RoadmapMacroChainTest extends MacroChainTestBase {
 			$this->assertSame( $expected, $actual, "Mismatch for fixture $inputFixture" );
 		}
 
-		if ( $this->clearDir !== null && is_dir( $this->clearDir ) ) {
-			rmdir( $this->clearDir );
-		}
+		$svgPath = $this->clearDir . '/images/Roadmap-5a90a69a-e83b-4107-9d59-b30f28e5a62e.svg';
+		$this->assertFileExists( $svgPath, 'Roadmap macro did not write the SVG file' );
+		$svg = (string)file_get_contents( $svgPath );
+		$this->assertStringStartsWith( '<svg', $svg );
+		$this->assertStringContainsString( '</svg>', $svg );
+
+		unlink( $svgPath );
+		rmdir( $this->clearDir . '/images' );
+		rmdir( $this->clearDir );
 	}
 
 	/**
@@ -53,8 +59,8 @@ class RoadmapMacroChainTest extends MacroChainTestBase {
 		$writerPath = $tmpBase . '/macro-chain-writer';
 		if ( !is_dir( $writerPath ) ) {
 			mkdir( $writerPath, 0755, true );
-			$this->clearDir = $writerPath;
 		}
+		$this->clearDir = $writerPath;
 		$conversionDataWriter = new ConversionDataWriter( $writerPath );
 
 		return new RoadmapMacro( $dataLookup, $conversionDataWriter, $dataWriter, 42, 'SomePage' );
