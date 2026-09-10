@@ -24,7 +24,7 @@ class InlineCommentMarkerTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new InlineCommentMarker();
+		$processor = new InlineCommentMarker( $this->createConverterDataWriter(), 1 );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use Exception;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 /**
@@ -22,12 +23,14 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
+	 * @param IConverterDataWriter $writer
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $spaceId
 	 * @param string $confluenceTitle
 	 * @param string $wikiTitle
 	 */
 	public function __construct(
+		private IConverterDataWriter $writer,
 		private DBConversionDataLookup $dataLookup,
 		private int $spaceId,
 		private string $confluenceTitle,
@@ -61,6 +64,11 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 
 		$macroReplacement = $this->createTextNode( $node->ownerDocument, $template, __METHOD__ );
 		$node->parentNode->replaceChild( $macroReplacement, $node );
+
+		$this->writer->registerDefaultPage(
+			$this->spaceId,
+			'PageTree'
+		);
 	}
 
 	/**
