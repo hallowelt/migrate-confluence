@@ -8,40 +8,9 @@ The migrate confluence tool is available as [docker image](https://hub.docker.co
 
 ## Workflow
 
-### Export "space" from Confluence
+### Export Spaces from Confluence
 
-1. Create an export of your confluence space (one export xml for each space).
-
-    Step 1:
-
-    ![Export 1][c001]
-
-    Step 2:
-
-    ![Export 2][c002]
-
-    Step 3:
-
-    ![Export 3][c003]
-
-2. Save it to a location that is accessbile by this tool (e.g. `/tmp/confluence/Confluence-export.zip`)
-3. Create the input directory (e.g. `/tmp/confluence/input`)
-
-    ```
-	cd /tmp/confluence
-	mkdir input
-	```
-4. Extract the ZIP file to the `input` folder or a child folder therein, e.g. `/tmp/confluence/input/Confluence-export`.
-
-	The folder should contain the files `entities.xml` and `exportDescriptor.properties` as well as the folder `attachments`.
-
-	```
-	unzip Confluence-export.zip -d input
-	```
-
-[c001]: doc/images/Confluence_export_space_001.png
-[c002]: doc/images/Confluence_export_space_002.png
-[c003]: doc/images/Confluence_export_space_003.png
+See the section “Preparation” in [`doc/index.md`](doc/index.md) for a documentation of the export process.
 
 ### Migrate the contents
 
