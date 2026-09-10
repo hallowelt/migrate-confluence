@@ -90,52 +90,83 @@ Important: If you re-run the scripts you will need to clean up the "workspace" d
 3. Make sure you have the target namespaces set up properly. See `workspace/deployment.log` for a list of required namespaces.
 4. Make sure [`$wgFileExtensions`](https://www.mediawiki.org/wiki/Manual:$wgFileExtensions) is set up properly. See `workspace/deployment.log` for reference.
 5. Use `php extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php --src=/tmp/result/files.xml` to first import all attachment files and images
-6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages. Use the same command to import `blogs.xml`, `comments.xml` and `templates.xml`, but not `user.xml`. This file can not be imported and is just for making user data available.
+6. Use `php maintenance/importDump.php /tmp/result/pages.xml` to import the actual pages. Use the same command to import `blogs.xml`, `page-talk.xml`, `blog-talk.xml` and `templates.xml`, but not `user.xml`. This file can not be imported and is just for making user data available.
 
-#### Import helper script
-To simplify imports there is a helper script at `src/Composer/_shell/spaceimport.sh`.
+#### Import helper scripts
 
-Run it with the required MediaWiki root path and, optionally, the result
-namespace directory:
+For a detailed description of the composer modes and their output directory
+layout, see [Composer Output Structure](doc/composer_output_structure.md).
 
-```bash
-./src/Composer/_shell/spaceimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/ABC
+Two helper scripts in `src/Composer/_shell/` automate these imports:
+
+* `spaceimport.sh` imports a single namespace directory
+* `wikiimport.sh` imports all namespace directories of one wiki
+
+Both handle split output as well, e.g. `pages-00000001.xml`,
+`pages-00000002.xml`, ...
+
+Common options:
+
+| Option | Description |
+| --- | --- |
+| `--wiki-root=PATH` | Required. Path to the MediaWiki root directory. |
+| `--src=PATH` | Directory to import. Defaults to the directory the script is located in. |
+| `--add-default` | Also import `default-files*.xml` and `default-pages*.xml`. For wiki-based output they are read from `_shared`; for namespace-based output they are read from the namespace directory. |
+| `--dry` | Dry run. Only print the import commands so you can verify the paths. |
+| `--sfr=NAME` | MediaWiki wiki instance, forwarded to both import maintenance scripts. Omit it for the default wiki. |
+
+Import order per namespace directory:
+
+1. `default-files*.xml` (only with `--add-default`)
+2. `default-pages*.xml` (only with `--add-default`)
+3. `files*.xml`
+4. `templates*.xml`
+5. `pages*.xml`
+6. `page-talk*.xml`
+7. `blogs*.xml`
+8. `blog-talk*.xml`
+9. `enhanced-sidebar*.xml`, containing the `MediaWiki:Sidebar.json` page for a sidebar that reflects the Confluence space navigation
+
+Only `pages*.xml` is mandatory, all other groups are skipped with a note when
+they are missing. `user.xml` is intentionally ignored.
+
+##### spaceimport.sh
+
+Expects the namespace based composer output:
+
+```
+result/<namespace>/{default-files,default-pages,files,templates,pages,page-talk,blogs,blog-talk}.xml
+result/<namespace>/default-images/*
 ```
 
-Use `--add-default` to import default data from the `_shared` directory within
-the result directory.
+`--src` points to the namespace directory. Default files and pages are imported
+from the same directory when `--add-default` is used:
 
-Both helper scripts accept optional `--sfr=<wiki-instance>` to import into a
-named MediaWiki wiki instance. The option is forwarded to both import
-maintenance scripts. When `--src` is omitted, they use the directory where the
-script is located as the result directory.
+```bash
+./src/Composer/_shell/spaceimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/ABC --add-default
+```
 
+##### wikiimport.sh
 
-The script imports files in this order:
+Expects the wiki based composer output:
 
-1. `files.xml`
-2. `blogs.xml`
-3. `comments.xml`
-4. `templates.xml`
-5. `pages.xml`
-6. if it exists, `enhanced-sidebar.xml`, containing the `MediaWiki:Sidebar.json` page for a sidebar that reflects the Confluence space navigation (one file per namespace result folder)
+```
+result/<wiki-name>/<namespace>/{files,templates,pages,page-talk,blogs,blog-talk}.xml
+result/<wiki-name>/_shared/{default-files,default-pages}.xml
+result/<wiki-name>/_shared/default-images/*
+```
 
-`user.xml` is intentionally ignored.
+`--src` points to the wiki directory, every namespace directory inside it is
+imported and the `_shared` data is imported once per wiki:
+
+```bash
+./src/Composer/_shell/wikiimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/MyWiki --sfr=MyWiki --add-default
+```
+
+If `--add-default` is used but no `_shared` directory exists, both scripts print
+a warning and continue.
 
 You may need to run `php maintenance/rebuildall.php` and update your MediaWiki search index afterwards.
-
-#### Wiki import helper
-If the composer output is grouped by wiki name, use `src/Composer/_shell/wikiimport.sh` to import every namespace directory for a single wiki.
-
-Example:
-
-```bash
-./src/Composer/_shell/wikiimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/MyWiki --sfr=MyWiki
-```
-
-`--src`, when supplied, must point to the result directory for the wiki. Omit
-`--sfr` when importing into the default wiki; otherwise it is forwarded to both
-import maintenance scripts.
 
 ### Additional Features
 
@@ -201,14 +232,7 @@ The list of included templates is in `./src/Composer/_defaultpages/Template/`. I
 - (and more)
 
 #### Included upload files
-
-The import will always upload the following files:
-
-- `Icon-info.svg`
-- `Icon-note.svg`
-- `Icon-tip.svg`
-- `Icon-warning.svg`
-
+The migrate-confluence tool may add default files if they are required (e.g. in wiki templates).
 Be aware that existing files with this name will not be overwritten. This might influence the depiction on result pages.
 
 If you want to update these and other images during the import, consider the the `--overwrite` flag of the `importFiles.php` script.

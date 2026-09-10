@@ -36,7 +36,7 @@ class PanelMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new PanelMacro();
+		return new PanelMacro( $this->createConverterDataWriter(), 1 );
 	}
 
 }

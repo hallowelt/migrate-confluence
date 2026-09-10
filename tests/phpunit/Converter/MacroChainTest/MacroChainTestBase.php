@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
@@ -28,6 +29,13 @@ abstract class MacroChainTestBase extends TestCase {
 	protected DBConversionDataLookup $dataLookup;
 
 	protected PlaceholderManager $placeholderManager;
+
+	/**
+	 * @return IConverterDataWriter
+	 */
+	protected function createConverterDataWriter(): IConverterDataWriter {
+		return $this->createMock( IConverterDataWriter::class );
+	}
 
 	protected function setUp(): void {
 		$workspaceDb = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();

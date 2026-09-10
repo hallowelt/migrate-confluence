@@ -20,20 +20,9 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 			return;
 		}
 
-		// Run shared content processors
-		$sharedProcessors = $this->initProcessorsForSharedContent(
-			$builder
-		);
-
-		foreach ( $sharedProcessors as $processor ) {
-			$processor->setSubDir( '_shared' );
-			$processor->execute();
-		}
-
 		// Run space dependent processors for each space
 		// If wikis are configured, we will process spaces grouped by wiki name
 		$this->output->writeln( "Data is assigned to some wikis." );
-		$this->copySharedDirectoryToWikiDirectories( $wikiNames );
 
 		foreach ( $wikiNames as $wikiName ) {
 			$spaces = $this->dataLookup->getWikisConfigSpacesForWikiName( $wikiName );
@@ -41,6 +30,12 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 				$this->output->writeln( "No spaces found for wiki '$wikiName'." );
 				continue;
 			}
+
+			$this->runSharedContentProcessors(
+				$builder,
+				$wikiName . '/_shared',
+				array_map( 'intval', array_column( $spaces, 'space_id' ) )
+			);
 
 			$spacesMap = $this->buildSpacesMap( $spaces );
 			$this->storeMigrationResult( $spacesMap, $builder, $wikiName );

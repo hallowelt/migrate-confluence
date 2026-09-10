@@ -24,7 +24,7 @@ class ExpandMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ExpandMacro();
+		$processor = new ExpandMacro( $this->createConverterDataWriter(), 1 );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

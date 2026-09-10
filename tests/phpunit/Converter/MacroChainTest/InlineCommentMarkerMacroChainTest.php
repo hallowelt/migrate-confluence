@@ -36,7 +36,7 @@ class InlineCommentMarkerMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new InlineCommentMarker();
+		return new InlineCommentMarker( $this->createConverterDataWriter(), 1 );
 	}
 
 }
