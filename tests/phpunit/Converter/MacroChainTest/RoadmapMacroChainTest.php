@@ -14,6 +14,8 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
  */
 class RoadmapMacroChainTest extends MacroChainTestBase {
 
+	private ?string $clearDir = null;
+
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RoadmapMacro::process
 	 * @return void
@@ -34,6 +36,10 @@ class RoadmapMacroChainTest extends MacroChainTestBase {
 			$actual = $this->runChainWithProcessor( $this->createProcessor(), $inputXml );
 			$this->assertSame( $expected, $actual, "Mismatch for fixture $inputFixture" );
 		}
+
+		if ( $this->clearDir !== null && is_dir( $this->clearDir ) ) {
+			rmdir( $this->clearDir );
+		}
 	}
 
 	/**
@@ -47,6 +53,7 @@ class RoadmapMacroChainTest extends MacroChainTestBase {
 		$writerPath = $tmpBase . '/macro-chain-writer';
 		if ( !is_dir( $writerPath ) ) {
 			mkdir( $writerPath, 0755, true );
+			$this->clearDir = $writerPath;
 		}
 		$conversionDataWriter = new ConversionDataWriter( $writerPath );
 

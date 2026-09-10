@@ -111,6 +111,11 @@ class RoadmapMacro extends StructuredMacroProcessorBase {
 			$this->createTextNode( $node->ownerDocument, "{{Roadmap$paramsString}}$append", __METHOD__ ),
 			$node
 		);
+
+		$this->dataWriter->registerDefaultPage(
+			$this->currentSpaceId,
+			'Roadmap'
+		);
 	}
 
 	/**
