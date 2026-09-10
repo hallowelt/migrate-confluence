@@ -1,6 +1,6 @@
 # Configuration
 
-The migration tool is controlled by two separate input files, both optional:
+The migration tool is controlled by two separate optional input files:
 
 * a **YAML config file** (`--config`), evaluated by `MigrationConfig`, that
   controls general migration behavior.
@@ -8,7 +8,7 @@ The migration tool is controlled by two separate input files, both optional:
   maps Confluence space keys to target wiki/namespace/root-page settings.
 
 The `--wikis` CSV is read once, during `analyze`, and persisted into the
-workspace DB (`wikis_config` table); later steps read it back from there,
+workspace DB. Later steps read it back from there,
 so `--wikis` does not need to be repeated. The `--config` YAML file is
 **not** persisted: it must be passed again with `--config` on every
 command (`analyze`, `extract`, `convert`, `compose`) that needs it.
@@ -43,21 +43,42 @@ config:
 * Type: string
 * Default: `Main Page`
 
-Wiki title to use as the migration's main page. Confluence space
-homepages are matched against this to decide whether a page becomes the
-wiki main page or an ordinary page.
+Wiki title to use for the target wiki’s main page. This option allows import
+into internationalized MediaWiki installations, where the main page is not
+called `Main Page`.
+
+**Example:** To migrate into a German-language wiki set the option like this:
+
+```yaml
+config:
+    mainpage: "Startseite"
+```
 
 ### `space-prefix`
 
 * Type: map of `space-key: prefix`
 * Default: `{}`
 
-Overrides the namespace prefix used when building attachment/file titles
-for a given Confluence space key. The prefix is normally derived from the
-space's own namespace mapping (see `WikisConfig`/wikis-config CSV below);
-use this option only to override that value for attachment file titles
-specifically. A prefix without a trailing colon gets one appended
-automatically (e.g. `MYTEST` is treated as `MYTEST:`).
+If migrating several Confluence spaces into the same wiki this option
+configures, which Confluence space is mapped to which MediaWiki namespace.
+
+**Example:** You want to import the spaces `Apple` and `Car`. Their
+contents should be placed into the MW namespaces `Fruit:` and `Vehicle:`.
+Set the config value like this:
+
+```yaml
+config:
+    space-prefix:
+        Apple: "Fruit"
+        Car: "Vehicle"
+```
+
+For multi-wiki migrations the prefix is normally derived from the
+space's namespace mapping in the wikis-config file and should not be
+set here again.
+
+A namespace prefix without a trailing colon gets one appended
+automatically (e.g. `Fruit` is treated as `Fruit:`).
 
 ### `categories`
 
@@ -75,8 +96,9 @@ page in addition to the categories derived from Confluence labels.
 When `true`, restores the namespace prefix (e.g. `MyNamespace:`) on file
 titles that would otherwise have it flattened to a dash by filesystem-safe
 filename sanitization (`MyNamespace-file.png` -> `MyNamespace:file.png`).
-Enable this if the target wiki uses the `ExtendedNamespaceFileRepo`
-extension (or similar) that expects namespaced file titles.
+Enable this if the target wiki uses the [`ExtendedNamespaceFileRepo`
+extension](https://www.mediawiki.org/wiki/Extension:NSFileRepo) that expects
+namespaced file titles.
 
 ### `include-history`
 
@@ -96,6 +118,21 @@ Maximum number of pages to write into a single composed import XML file
 before starting a new one. Use this to split very large migrations into
 several smaller XML files.
 
+**Example:** A config setting like this:
+
+```yaml
+config:
+    composer-page-per-xml-limit: 100
+```
+
+for a migration of 300 pages will split the output into three files:
+
+```
+pages-000001.xml
+pages-000002.xml
+pages-000003.xml
+```
+
 ### `composer-skip-namespace`
 
 * Type: list of strings
@@ -103,6 +140,11 @@ several smaller XML files.
 
 Wiki namespaces to exclude entirely from the compose step. Use `NS_MAIN`
 to skip the main namespace.
+
+This setting is useful, if you do migrations of spaces in 2 steps while keeping
+cross-space links intact. Migrate all spaces together up until the `compose` step,
+then ignore all namespaces but one. This allows you to create imports for single
+namespaces from Confluence spaces that are migrated in a second step.
 
 ### `composer-skip-titles`
 
@@ -122,13 +164,17 @@ Confluence page comments (e.g. `Talk:Page Title`, or
 `NamespacePrefix_Talk:Page Title` for pages already in a custom
 namespace).
 
+**Deprecated.** This setting will be removed in future versions. We expect the `*_Talk`
+namespaces to always be available as aliases, even in non-English wikis.
+
 ### `create-sidebar`
 
 * Type: bool
 * Default: `true`
 
-Whether to generate a MediaWiki sidebar page from the migrated Confluence
-spaces. Set to `false` to skip sidebar generation entirely.
+Whether to generate a BlueSpice extended sidebar page from the migrated Confluence
+spaces. Set to `false` to skip sidebar generation entirely. See
+[the BlueSpice documentation](https://en.wiki.bluespice.com/wiki/Manual:Extension/MenuEditor#Enhanced_MediaWiki_sidebar) about this feature.
 
 ### `profile`
 
@@ -142,19 +188,19 @@ depending on the feature set of the target wiki. Supported values:
 * `mediawiki` - migrate into a stock MediaWiki instance with the
   extension set documented in the project `README.md`.
 
-See `doc/output_profiles.md` for details.
+See [`doc/output_profiles.md`](./output_profiles.md) for details.
 
 ## Wikis-config CSV file (`--wikis`)
 
 The wikis-config CSV maps each Confluence space key to the target wiki's
-namespace and root page. It is used by `WikisConfig` to determine, per
-space, the wiki namespace prefix, the root page pages get nested under, and
+namespace and root page. It is used to determine, per Confluence
+space, the wiki namespace prefix, the root page other pages get nested under, and
 the interwiki prefix used when a space is split into a separate wiki
 (`wiki-<wiki-name>`).
 
 Format rules:
 
-* Fields are separated by `;` (semicolon), not comma.
+* Fields are separated by `;` (semicolon).
 * One row per Confluence space.
 * An optional header row starting with `confluence-space-key` is ignored.
 * Lines starting with `#`, and empty lines, are ignored (comments).
@@ -162,7 +208,7 @@ Format rules:
 * Columns, in order: `confluence-space-key`, `wiki-name`, `wiki-namespace`,
   `wiki-root-page`.
 
-Example (`doc/interwiki.sample.csv`):
+Example:
 
 ```csv
 confluence-space-key;wiki-name;wiki-namespace;wiki-root-page;
@@ -184,9 +230,7 @@ space keys can share the same `wiki-name` to merge several Confluence
 spaces into one target wiki (see `MAR`/`ADV` above, both mapped to
 `marketing`). Also used to build the interwiki prefix `wiki-<wiki-name>`
 (lower-cased) that is used for interwiki-style page references between
-spaces mapped to different wikis. Non-alphanumeric characters
-(spaces, `:`, `;`, `,`, `#`, `+`, `?`, `*`, `~`, `"`, `'`) are replaced
-with `_`.
+spaces mapped to different wikis.
 
 ### `wiki-namespace`
 
