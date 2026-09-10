@@ -232,7 +232,7 @@ The list of included templates is in `./src/Composer/_defaultpages/Template/`. I
 - (and more)
 
 #### Included upload files
-
+The migrate-confluence tool may add default files if they are required (e.g. in wiki templates).
 Be aware that existing files with this name will not be overwritten. This might influence the depiction on result pages.
 
 If you want to update these and other images during the import, consider the the `--overwrite` flag of the `importFiles.php` script.
