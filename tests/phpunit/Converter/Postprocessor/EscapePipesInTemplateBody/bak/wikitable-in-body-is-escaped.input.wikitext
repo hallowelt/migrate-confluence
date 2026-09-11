@@ -1,0 +1,6 @@
+{{Info###BREAK###|body = ###BREAK###{| class="wikitable"
+|-
+! Head !! Head
+|-
+| Cell || Cell
+|}}}

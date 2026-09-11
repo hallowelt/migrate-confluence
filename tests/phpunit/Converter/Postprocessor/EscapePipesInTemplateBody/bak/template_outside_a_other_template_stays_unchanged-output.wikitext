@@ -1,0 +1,13 @@
+{{SomeTemplate###BREAK###|body = test###BREAK###}}
+
+{{SomeTemplate###BREAK###|body = ###BREAK###test###BREAK###}}
+
+{{SomeTemplate###BREAK###|test}}
+
+{{SomeTemplate###BREAK###|###BREAK###test###BREAK###}}
+
+{{SomeTemplate|body = test}}
+
+{{SomeTemplate
+|body = test
+}}

@@ -1,0 +1,13 @@
+{{Info###BREAK###{{Bold|text}}}}
+
+{{Info###BREAK###
+{| class="wikitable"
+|-
+| {{Bold|text}} || B
+|}}}
+
+{{Info###BREAK###
+{| class="wikitable"
+|-
+| {{Bold|text}} || B
+|}}}
