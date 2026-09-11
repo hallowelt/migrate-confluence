@@ -6,6 +6,10 @@ This is a command line tool to convert the contents of a Confluence space into a
 
 The migrate confluence tool is available as [docker image](https://hub.docker.com/r/bluespice/migrate-confluence).
 
+## Documentation
+
+See [`doc/index.md`](doc/index.md) for an overview of available documentation.
+
 ## Workflow
 
 1. Export spaces from Confluence: See [`doc/how_to_export_confluence_spaces.md`](doc/how_to_export_confluence_spaces.md) for a documentation of the export process.
@@ -15,7 +19,7 @@ The migrate confluence tool is available as [docker image](https://hub.docker.co
 
 ## Config file
 
-It is possible to use a yaml file to configure the commands. See [`doc/configuration.md`](doc/configuration.md) for details.
+It is possible to use a yaml file to configure the behavior of the tool. See [`doc/configuration.md`](doc/configuration.md) for details.
 
 ## TODO
 * Remove line breaks and arbitrary formatting (e.g. `<b>`) from headings
