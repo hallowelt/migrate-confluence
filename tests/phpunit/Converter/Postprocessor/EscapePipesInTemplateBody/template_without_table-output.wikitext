@@ -1,0 +1,13 @@
+{{Info###BREAK###|body = ###BREAK###Just some text.}}
+
+{{Info###BREAK###|body = ###BREAK###{{Some|Test}}}}
+
+{{Info###BREAK###|###BREAK###Just some text.}}
+
+{{Info###BREAK###|###BREAK###{{Some|Test}}}}
+
+{{Info###BREAK###|###BREAK###
+Just some text.}}
+
+{{Info###BREAK###|###BREAK###
+{{Some|Test}}}}

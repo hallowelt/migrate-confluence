@@ -5,14 +5,15 @@ namespace HalloWelt\MigrateConfluence\Converter\Postprocessor;
 use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
 
 /**
- * When a wikitable is nested inside a template's `body` parameter, every `|`
- * in the table is misinterpreted as a template-parameter separator.
+ * When a wikitable is nested inside a template, every `|` in the table is
+ * misinterpreted as a template-parameter separator.
  * This postprocessor replaces those pipe characters with `{{!}}` so that
  * MediaWiki renders them correctly.
  *
  * It runs while `###BREAK###` markers are still present (before they are
  * replaced with newlines in `postprocessWikiText`), because the body-parameter
- * boundary is identified by `|body = ###BREAK###`.
+ * boundary is identified by `|body = ###BREAK###` when a body parameter is
+ * present.
  */
 class EscapePipesInTemplateBody implements IPostprocessor {
 
@@ -56,12 +57,30 @@ class EscapePipesInTemplateBody implements IPostprocessor {
 			if ( substr( $text, $i, 2 ) === '{{' ) {
 				$depth++;
 				$i += 2;
-			} elseif ( substr( $text, $i, 2 ) === '}}' ) {
-				$depth--;
-				if ( $depth === 0 ) {
-					return $i;
+			} elseif ( $text[$i] === '}' ) {
+				// A run of closing braces may be longer than 2, e.g. when a
+				// wikitable's `|}` close is immediately followed by the
+				// template's `}}` close (`|}}}`). An odd-length run starts
+				// with a stray literal `}` that isn't part of any pair, so
+				// pairs are matched against the tail of the run.
+				$runStart = $i;
+				$runLen = 0;
+				while ( $i < $len && $text[$i] === '}' ) {
+					$runLen++;
+					$i++;
 				}
-				$i += 2;
+				$pairStart = $runStart;
+				if ( $runLen % 2 !== 0 ) {
+					$pairStart++;
+					$runLen--;
+				}
+				$pairs = intdiv( $runLen, 2 );
+				for ( $p = 0; $p < $pairs; $p++ ) {
+					$depth--;
+					if ( $depth === 0 ) {
+						return $pairStart + $p * 2;
+					}
+				}
 			} else {
 				$i++;
 			}
@@ -70,27 +89,34 @@ class EscapePipesInTemplateBody implements IPostprocessor {
 	}
 
 	/**
-	 * If the template has a `body` parameter whose value contains a wikitable,
-	 * escape the table's pipe characters with `{{!}}`.
+	 * If the template contains a wikitable, escape the table's pipe characters
+	 * with `{{!}}`.
 	 */
 	private function processTemplate( string $template ): string {
-		// Locate the body parameter marker: "|body = ###BREAK###\n"
-		if ( !preg_match( '/\|body\s*=\s*###BREAK###\n/s', $template, $matches, PREG_OFFSET_CAPTURE ) ) {
+		// Locate the body parameter marker, with or without a real linebreak.
+		if ( preg_match( '/\|body\s*=\s*###BREAK###\n?/s', $template, $matches, PREG_OFFSET_CAPTURE ) ) {
+			$matchStart = $matches[0][1];
+			$matchText = $matches[0][0];
+			$markerEnd = $matchStart + strlen( $matchText );
+			// Ensure the marker always reads `body =`, regardless of the original spacing.
+			$normalizedMarker = preg_replace( '/body\s*=/', 'body =', $matchText, 1 );
+			$before = substr( $template, 0, $matchStart ) . $normalizedMarker;
+			$body = substr( $template, $markerEnd, strlen( $template ) - $markerEnd - 2 );
+			if ( strpos( $body, '{|' ) === false ) {
+				return $template;
+			}
+
+			return $before . $this->escapeWikitablePipes( $body ) . '}}';
+		}
+
+		$tableStart = strpos( $template, '{|' );
+		if ( $tableStart === false ) {
 			return $template;
 		}
 
-		$markerEnd = $matches[0][1] + strlen( $matches[0][0] );
-		$before = substr( $template, 0, $markerEnd );
-		// Everything between the body marker and the closing }} is body content.
-		// The closing }} was already verified by findMatchingClose.
-		$body = substr( $template, $markerEnd, strlen( $template ) - $markerEnd - 2 );
-		$closing = '}}';
-
-		if ( strpos( $body, '{|' ) === false ) {
-			return $template;
-		}
-
-		return $before . $this->escapeWikitablePipes( $body ) . $closing;
+		return substr( $template, 0, $tableStart ) .
+			$this->escapeWikitablePipes( substr( $template, $tableStart, strlen( $template ) - $tableStart - 2 ) ) .
+			'}}';
 	}
 
 	/**
@@ -107,8 +133,10 @@ class EscapePipesInTemplateBody implements IPostprocessor {
 	private function escapeWikitablePipes( string $body ): string {
 		$lines = explode( "\n", $body );
 		foreach ( $lines as &$line ) {
-			if ( strpos( $line, '{|' ) === 0 ) {
-				$line = '{{(!}}' . substr( $line, 2 );
+			// The table open may be preceded by whitespace, e.g. when it follows
+			// the body marker on the same line; that whitespace must be kept.
+			if ( preg_match( '/^(\s*)\{\|/', $line, $tableMatches ) ) {
+				$line = $tableMatches[1] . '{{(!}}' . substr( $line, strlen( $tableMatches[0] ) );
 				continue;
 			}
 			// Replace inline cell separator first so the leading-pipe check still works.

@@ -1,0 +1,10 @@
+{{SomeTemplate###BREAK###|test}}
+
+{{SomeTemplate###BREAK###|###BREAK###test###BREAK###}}
+
+{{SomeTemplate
+|test}}
+
+{{SomeTemplate
+|test
+}}
