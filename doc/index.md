@@ -12,8 +12,12 @@ please open an issue first with the intended changes that you’d like to provid
 
 ## Contents:
 
-* **Preparation:** [Exporting spaces from Confluence](./how_to_export_confluence_spaces.md)
-* **Running the Migration:** [Usage](./usage.md)
-* **Importing the result:** [Importing the migrated data](./how_to_import_the_result.md)
-* **Evaluating the migration:** [Evaluating the migration](./how_to_evaluate_the_result.md)
-* **Tool configuration:** [Configuration](./configuration.md)
+* **Tool usage:**
+    * Preparation: [Exporting spaces from Confluence](./how_to_export_confluence_spaces.md)
+    * Running the Migration: [Usage](./usage.md)
+    * Importing the result: [Importing the migrated data](./how_to_import_the_result.md)
+    * Evaluating the result: [Evaluating the migration](./how_to_evaluate_the_result.md)
+* **Tool behaviour:**
+    * [Configuration](./configuration.md)
+    * [Output profiles](./output_profiles.md)
+    * [Structure of output files](./composer_output_structure.md)
