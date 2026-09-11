@@ -11,17 +11,13 @@ The migrate confluence tool is available as [docker image](https://hub.docker.co
 1. Export spaces from Confluence: See [`doc/how_to_export_confluence_spaces.md`](doc/how_to_export_confluence_spaces.md) for a documentation of the export process.
 2. Run the tool on the exported data: See [`doc/usage.md`](doc/usage.md) for how to invoke the software. The result is a set of file to import into MediaWiki.
 3. Import into MediaWiki: See [`doc/how_to_import_the_result.md`](doc/how_to_import_the_result.md) to get the data into your wiki.
-4. Manual post-import maintenance: See ['doc/how_to_evaluate_the_result.md`](doc/how_to_evaluate_the_result.md) for tips how to check the faithfulness of the migration result.
+4. Manual post-import maintenance: See [`doc/how_to_evaluate_the_result.md`](doc/how_to_evaluate_the_result.md) for tips how to check the faithfulness of the migration result.
 
-## Additional Features
-
-### Config file
+## Config file
 
 It is possible to use a yaml file to configure the commands. See [`doc/configuration.md`](doc/configuration.md) for details.
 
-
-
-# TODO
+## TODO
 * Remove line breaks and arbitrary formatting (e.g. `<b>`) from headings
 * Mask external images (`<img />`)
 * Merge multiple `<code>` lines into `<pre>`
