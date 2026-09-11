@@ -36,7 +36,10 @@ class PreserveTimeTag implements IProcessor, IUsesPlaceholder {
 			foreach ( $element->childNodes as $child ) {
 				if ( $child->nodeType === XML_ELEMENT_NODE ) {
 					$content .= $dom->saveHTML( $child );
-				} elseif ( $child->nodeType === XML_TEXT_NODE && $child->nodeValue && $child->nodeValue !== $datetime ) {
+				} elseif (
+						$child->nodeType === XML_TEXT_NODE &&
+						$child->nodeValue &&
+						$child->nodeValue !== $datetime ) {
 					$content .= $dom->saveHTML( $child );
 				}
 			}
