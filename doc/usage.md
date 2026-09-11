@@ -73,6 +73,11 @@ If the configuration file is placed in, e.g., `/tmp/confluence/config.yaml`, it
 can be applied by adding the option `--config=/data/config.yaml` to the commands
 above.
 
+## Output Profiles
+
+To fine-tune the migration result for different MediaWiki flavors the tool supports so-called
+output profiles. See [Output Profiles](./output_profiles.md) for a description.
+
 ## Parallel convert
 
 For large Confluence spaces the `convert` step can be slow. You can speed it up by running multiple worker processes in parallel using the `--workers` option.
