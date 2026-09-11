@@ -75,5 +75,20 @@
 <ac:task-status>incomplete</ac:task-status>
 <ac:task-body><span class="placeholder-inline-tasks"><ac:link><ri:user ri:userkey="567"/></ac:link> convert:placeholder=1 Testaufgabe 2</span></ac:task-body>
 </ac:task>
+<ac:task>
+<ac:task-id>18</ac:task-id>
+<ac:task-status>incomplete</ac:task-status>
+<ac:task-body>convert:placeholder=2 Testaufgabe 3</ac:task-body>
+</ac:task>
+<ac:task>
+<ac:task-id>19</ac:task-id>
+<ac:task-status>incomplete</ac:task-status>
+<ac:task-body>convert:placeholder=3 Testaufgabe 4</ac:task-body>
+</ac:task>
+<ac:task>
+<ac:task-id>20</ac:task-id>
+<ac:task-status>incomplete</ac:task-status>
+<ac:task-body>convert:placeholder=4 Testaufgabe 5</ac:task-body>
+</ac:task>
 </ac:task-list>
 </xml>
