@@ -35,4 +35,27 @@ class UsersTest extends TestCase {
 		$this->assertSame( 'johndoe@example.org', $properties['lowerName'], 'Unexpected properties.lowerName value.' );
 		$this->assertSame( 'user-key-1', $properties['key'], 'Unexpected properties.key value.' );
 	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\Users::doExecute
+	 */
+	public function testPrePopulatedUsermapOverridesComputedUsername(): void {
+		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
+		// Simulate a --usermap CSV pre-population: real user_key is not known
+		// yet, so the confluence username is used as a placeholder user_key.
+		$this->workspaceDB->addUser( 'johndoe@example.org', 'NewAccountName', '', [], 'johndoe@example.org' );
+
+		$processor = new Users( new AnalyzerDirectDataWriter( $this->workspaceDB ) );
+		$this->executeProcessorForClass( $processor, __DIR__ . '/user.xml', 'ConfluenceUserImpl' );
+
+		$users = $this->workspaceDB->getUsers();
+		$this->assertCount( 1, $users, 'Placeholder row should be adopted, not duplicated.' );
+
+		$user = $users[0];
+		$this->assertSame( 'user-key-1', $user['user_key'], 'Placeholder row should be adopted to the real user_key.' );
+		$this->assertSame(
+			'NewAccountName', $user['wiki_user_name'], 'Pre-populated username should not be clobbered.'
+		);
+		$this->assertSame( 'john@example.org', $user['email'], 'Email from entities.xml should still be stored.' );
+	}
 }

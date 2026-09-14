@@ -16,6 +16,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\UsermapOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use HalloWelt\MigrateConfluence\Utility\WikisOptionHelper;
@@ -66,6 +67,14 @@ class Analyze extends BatchFileProcessorBase {
 				null,
 				InputOption::VALUE_REQUIRED,
 				'Specifies the path to the csv file containing interwiki configuration'
+			)
+		);
+		$definition->addOption(
+			new InputOption(
+				'usermap',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'Specifies the path to the csv file mapping Confluence usernames to MediaWiki usernames'
 			)
 		);
 		$definition->addOption(
@@ -126,6 +135,9 @@ class Analyze extends BatchFileProcessorBase {
 
 		$workspaceDB = WorkspaceDB::create( $this->dest );
 		$this->readWikisConfigFile( $workspaceDB );
+		if ( $this->getMigrationConfig()->getComposerAddUserinfo() ) {
+			$this->readUsermapFile( $workspaceDB );
+		}
 		$this->wikisConfig = new WikisConfig( $workspaceDB );
 
 		$dbLog = new DBLog( $workspaceDB );
@@ -241,6 +253,37 @@ class Analyze extends BatchFileProcessorBase {
 					$wikiConfig['wiki-name'],
 					$wikiConfig['wiki-namespace'],
 					$wikiConfig['wiki-root-page']
+				);
+			}
+		}
+	}
+
+	/**
+	 * @param WorkspaceDB $workspaceDB
+	 *
+	 * @return void
+	 */
+	private function readUsermapFile( WorkspaceDB $workspaceDB ): void {
+		$filename = $this->input->getOption( 'usermap' );
+		if ( !empty( $filename ) ) {
+			$usermapOptionHelper = new UsermapOptionHelper( $filename );
+			$validationError = $usermapOptionHelper->validateFile();
+			if ( $validationError !== null ) {
+				$this->output->writeln( $validationError );
+				exit( 1 );
+			}
+
+			foreach ( $usermapOptionHelper->getConfig() as $mapping ) {
+				// The real user_key is not known yet at this point (it is only
+				// present in entities.xml); use the confluence username as a
+				// placeholder key, matched and adopted later in
+				// WorkspaceDB::addUser() once the real user_key is known.
+				$workspaceDB->addUser(
+					$mapping['confluence-username'],
+					$mapping['wiki-username'],
+					'',
+					[],
+					$mapping['confluence-username']
 				);
 			}
 		}

@@ -63,7 +63,8 @@ class Users extends ProcessorBase {
 			$userKey,
 			$mediaWikiUsername,
 			$properties['email'],
-			$properties
+			$properties,
+			strtolower( $properties['lowerName'] )
 		);
 
 		if ( !$status ) {

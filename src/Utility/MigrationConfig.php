@@ -107,6 +107,13 @@ class MigrationConfig {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function getComposerAddUserinfo(): bool {
+		return $this->get( 'composer-add-userinfo', false );
+	}
+
+	/**
 	 * @return string
 	 */
 	public function getProfile(): string {
