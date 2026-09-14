@@ -3,6 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  *
@@ -15,7 +17,13 @@ use DOMElement;
  * </ac:rich-text-body>
  * </ac:macro>
  */
-class LocalTabGroupMacro extends MacroProcessorBase {
+class LocalTabGroupMacro extends MacroProcessorBase implements IUsesPlaceholder {
+
+	/**
+	 * @param PlaceholderManager $placeholderManager
+	 */
+	public function __construct( private PlaceholderManager $placeholderManager ) {
+	}
 
 	/**
 	 *
@@ -36,7 +44,10 @@ class LocalTabGroupMacro extends MacroProcessorBase {
 		$this->macroBody( $node, $macroReplacement );
 		// Append the "<headertabs />" tag
 		$macroReplacement->appendChild(
-			$this->createTextNode( $node->ownerDocument, '<headertabs />', __METHOD__ )
+			$this->createTextNode(
+				$node->ownerDocument,
+				$this->placeholderManager->getPlaceholder( '<headertabs />' ),
+				__METHOD__ )
 		);
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );

@@ -1,13 +1,14 @@
 <span id="the-menu"></span>
 ====== The menu ======
 
-<syntaxhighlight lang="sql" collapse="true">
+<syntaxhighlight lang="sql" data-collapse="true">
 		SELECT * FROM menu;
 		</syntaxhighlight>
+
 <span id="json-test"></span>
 ====== JSON test ======
 
-<syntaxhighlight lang="json" collapse="true">
+<syntaxhighlight lang="json" data-collapse="true">
 		{
 			"name": "test",
 			"version": "null"

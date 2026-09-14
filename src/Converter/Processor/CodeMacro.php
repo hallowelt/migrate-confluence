@@ -4,6 +4,8 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMException;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  * Unfortunately `pandoc` eats <syntaxhighlight> tags.
@@ -11,7 +13,12 @@ use DOMException;
  *
  * @see HalloWelt\MigrateConfluence\Converter\Postprocessor\CodeMacro
  */
-class CodeMacro extends StructuredMacroProcessorBase {
+class CodeMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
+
+	public function __construct(
+		private readonly PlaceholderManager $placeholderManager
+	) {
+	}
 
 	/**
 	 *
@@ -25,12 +32,16 @@ class CodeMacro extends StructuredMacroProcessorBase {
 	 * @inheritDoc
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
-		$macroReplacement = $node->ownerDocument->createElement( 'div' );
-		$macroReplacement->setAttribute( 'class', 'PRESERVESYNTAXHIGHLIGHT' );
+		$macroReplacement = $node->ownerDocument->createElement( 'syntaxhighlight' );
 
 		$this->processParamElements( $node, $macroReplacement );
-		$this->processPlainTextBody( $node, $macroReplacement );
+		$brokenCat = $this->processPlainTextBody( $node, $macroReplacement ) ?
+			'' :
+			'[[Category:Broken_macro/code/empty]]';
 
+		$macroReplacement = $node->ownerDocument->createTextNode(
+			$this->placeholderManager->getPlaceholder(
+			$macroReplacement->ownerDocument->saveXML( $macroReplacement ) . $brokenCat ) );
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}
 
@@ -71,23 +82,18 @@ class CodeMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @param DOMElement $node
 	 * @param DOMElement $replacementNode
-	 * @return void
+	 * @return bool if there was any content in the element
 	 */
-	private function processPlainTextBody( DOMElement $node, DOMElement $replacementNode ): void {
+	private function processPlainTextBody( DOMElement $node, DOMElement $replacementNode ): bool {
 		$hasPlaintextEls = false;
 		$plaintextEls = $node->getElementsByTagName( 'plain-text-body' );
 		foreach ( $plaintextEls as $plaintextEl ) {
-
-			$code = base64_encode( $plaintextEl->nodeValue );
-
 			$replacementNode->appendChild(
-				$this->createTextNode( $replacementNode->ownerDocument, $code, __METHOD__ )
+				$this->createTextNode( $replacementNode->ownerDocument, $plaintextEl->nodeValue, __METHOD__ )
 			);
 			$hasPlaintextEls = true;
 		}
 
-		if ( !$hasPlaintextEls ) {
-			$replacementNode->setAttribute( 'data-broken-macro', 'Broken_macro/code/empty' );
-		}
+		return $hasPlaintextEls;
 	}
 }

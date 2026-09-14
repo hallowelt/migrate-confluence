@@ -94,6 +94,9 @@ Important: If you re-run the scripts you will need to clean up the "workspace" d
 
 #### Import helper scripts
 
+For a detailed description of the composer modes and their output directory
+layout, see [Composer Output Structure](doc/composer_output_structure.md).
+
 Two helper scripts in `src/Composer/_shell/` automate these imports:
 
 * `spaceimport.sh` imports a single namespace directory
@@ -108,20 +111,20 @@ Common options:
 | --- | --- |
 | `--wiki-root=PATH` | Required. Path to the MediaWiki root directory. |
 | `--src=PATH` | Directory to import. Defaults to the directory the script is located in. |
-| `--add-default` | Also import `default-files*.xml` and `default-pages*.xml` from the `_shared` directory. |
+| `--add-default` | Also import `default-files*.xml` and `default-pages*.xml`. For wiki-based output they are read from `_shared`; for namespace-based output they are read from the namespace directory. |
 | `--dry` | Dry run. Only print the import commands so you can verify the paths. |
 | `--sfr=NAME` | MediaWiki wiki instance, forwarded to both import maintenance scripts. Omit it for the default wiki. |
 
 Import order per namespace directory:
 
-1. `default-files*.xml` from `_shared` (only with `--add-default`)
-2. `files*.xml`
-3. `blogs*.xml`
-4. `page-talk*.xml`
-5. `blog-talk*.xml`
-6. `templates*.xml`
-7. `default-pages*.xml` from `_shared` (only with `--add-default`)
-8. `pages*.xml`
+1. `default-files*.xml` (only with `--add-default`)
+2. `default-pages*.xml` (only with `--add-default`)
+3. `files*.xml`
+4. `templates*.xml`
+5. `pages*.xml`
+6. `page-talk*.xml`
+7. `blogs*.xml`
+8. `blog-talk*.xml`
 9. `enhanced-sidebar*.xml`, containing the `MediaWiki:Sidebar.json` page for a sidebar that reflects the Confluence space navigation
 
 Only `pages*.xml` is mandatory, all other groups are skipped with a note when
@@ -132,12 +135,12 @@ they are missing. `user.xml` is intentionally ignored.
 Expects the namespace based composer output:
 
 ```
-result/<namespace>/{files,blogs,page-talk,blog-talk,templates,pages}.xml
-result/_shared/{default-files,default-pages}.xml
+result/<namespace>/{default-files,default-pages,files,templates,pages,page-talk,blogs,blog-talk}.xml
+result/<namespace>/default-images/*
 ```
 
-`--src` points to the namespace directory, the `_shared` directory is expected
-next to it:
+`--src` points to the namespace directory. Default files and pages are imported
+from the same directory when `--add-default` is used:
 
 ```bash
 ./src/Composer/_shell/spaceimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/ABC --add-default
@@ -148,8 +151,9 @@ next to it:
 Expects the wiki based composer output:
 
 ```
-result/<wiki-name>/<namespace>/{files,blogs,page-talk,blog-talk,templates,pages}.xml
+result/<wiki-name>/<namespace>/{files,templates,pages,page-talk,blogs,blog-talk}.xml
 result/<wiki-name>/_shared/{default-files,default-pages}.xml
+result/<wiki-name>/_shared/default-images/*
 ```
 
 `--src` points to the wiki directory, every namespace directory inside it is
@@ -228,14 +232,7 @@ The list of included templates is in `./src/Composer/_defaultpages/Template/`. I
 - (and more)
 
 #### Included upload files
-
-The import will always upload the following files:
-
-- `Icon-info.svg`
-- `Icon-note.svg`
-- `Icon-tip.svg`
-- `Icon-warning.svg`
-
+The migrate-confluence tool may add default files if they are required (e.g. in wiki templates).
 Be aware that existing files with this name will not be overwritten. This might influence the depiction on result pages.
 
 If you want to update these and other images during the import, consider the the `--overwrite` flag of the `importFiles.php` script.

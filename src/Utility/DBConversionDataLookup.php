@@ -30,6 +30,14 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $pageId
+	 * @return string|null The wiki title the given Confluence page ID was migrated to, or null
+	 */
+	public function getWikiPageTitleFromPageId( int $pageId ): ?string {
+		return $this->workspaceDB->getWikiPageTitleFromPageId( $pageId );
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getSpaceIdToPrefixMap(): array {
@@ -48,6 +56,30 @@ class DBConversionDataLookup {
 		}
 
 		return $this->workspaceDB->getSpaceIdFromSpaceKey( $spaceKey );
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return int|null
+	 */
+	public function getSpaceIdForBodyContentId( int $bodyContentId ): ?int {
+		return $this->workspaceDB->getSpaceIdForBodyContentId( $bodyContentId );
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getWikiTitleForBodyContentId( int $bodyContentId ): ?string {
+		return $this->workspaceDB->getWikiTitleForBodyContentId( $bodyContentId );
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getConfluenceTitleForBodyContentId( int $bodyContentId ): ?string {
+		return $this->workspaceDB->getConfluenceTitleForBodyContentId( $bodyContentId );
 	}
 
 	/**
