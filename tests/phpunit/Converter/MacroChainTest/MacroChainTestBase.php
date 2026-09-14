@@ -26,8 +26,10 @@ use PHPUnit\Framework\TestCase;
 
 abstract class MacroChainTestBase extends TestCase {
 
+	/** @var DBConversionDataLookup */
 	protected DBConversionDataLookup $dataLookup;
 
+	/** @var PlaceholderManager */
 	protected PlaceholderManager $placeholderManager;
 
 	/**
@@ -66,6 +68,8 @@ abstract class MacroChainTestBase extends TestCase {
 			$singleProcessor->process( $dom );
 		}
 
+		$this->runUnhandledMacroProcessor( $dom );
+
 		$wikiText = $this->runPandoc( $dom->saveHTML() );
 		$wikiText = $this->placeholderManager->replacePlaceholders( $wikiText );
 
@@ -85,6 +89,8 @@ abstract class MacroChainTestBase extends TestCase {
 		foreach ( $postprocessors as $postprocessor ) {
 			$wikiText = $postprocessor->postprocess( $wikiText );
 		}
+
+		$wikiText = $this->placeholderManager->replacePlaceholders( $wikiText );
 
 		return $this->applyConfluenceFinalReplacements( $wikiText );
 	}
@@ -149,5 +155,12 @@ abstract class MacroChainTestBase extends TestCase {
 		);
 
 		return (string)$output;
+	}
+
+	/**
+	 * @param DOMDocument $dom
+	 * @return void
+	 */
+	protected function runUnhandledMacroProcessor( DOMDocument $dom ): void {
 	}
 }
