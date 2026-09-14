@@ -21,8 +21,6 @@ options are optional; omitted options fall back to their default.
 ```yaml
 config:
     mainpage: My Main Page
-    space-prefix:
-        MYSPACE: My_Namespace:
     categories:
         - My Category 1
         - My Category 2
@@ -53,32 +51,6 @@ called `Main Page`.
 config:
     mainpage: "Startseite"
 ```
-
-### `space-prefix`
-
-* Type: map of `space-key: prefix`
-* Default: `{}`
-
-If migrating several Confluence spaces into the same wiki this option
-configures, which Confluence space is mapped to which MediaWiki namespace.
-
-**Example:** You want to import the spaces `Apple` and `Car`. Their
-contents should be placed into the MW namespaces `Fruit:` and `Vehicle:`.
-Set the config value like this:
-
-```yaml
-config:
-    space-prefix:
-        Apple: "Fruit"
-        Car: "Vehicle"
-```
-
-For multi-wiki migrations the prefix is normally derived from the
-space's namespace mapping in the wikis-config file and should not be
-set here again.
-
-A namespace prefix without a trailing colon gets one appended
-automatically (e.g. `Fruit` is treated as `Fruit:`).
 
 ### `categories`
 
