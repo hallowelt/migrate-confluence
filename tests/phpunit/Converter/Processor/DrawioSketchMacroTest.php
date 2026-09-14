@@ -59,7 +59,9 @@ class DrawioSketchMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new DrawioSketchMacro( $this->dataLookup, $this->conversionDataWriter, $spaceId, 'SomePage' );
+		$processor = new DrawioSketchMacro(
+			$this->createConverterDataWriter(), $this->dataLookup, $this->conversionDataWriter, $spaceId, 'SomePage'
+		);
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 

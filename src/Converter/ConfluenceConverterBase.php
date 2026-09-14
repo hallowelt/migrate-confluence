@@ -513,12 +513,14 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->confluencePageTitle
 			),
 			new DrawioSketchMacro(
+				$this->writer,
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
 				$this->confluencePageTitle
 			),
 			new IncDrawioMacro(
+				$this->writer,
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,

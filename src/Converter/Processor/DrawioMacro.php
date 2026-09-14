@@ -88,7 +88,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 
 		$this->writer->registerDefaultPage(
 			$this->currentSpaceId,
-			'Drawio'
+			$this->getTemplateName()
 		);
 	}
 

@@ -65,7 +65,9 @@ XML;
 
 		// The macro is being processed as if it appeared on space 42's "SomePage", which has
 		// no "drawio.png" attachment of its own - the diagram must come from space 23 instead.
-		$processor = new IncDrawioMacro( $dataLookup, $conversionDataWriter, 42, 'SomePage' );
+		$processor = new IncDrawioMacro(
+			$this->createConverterDataWriter(), $dataLookup, $conversionDataWriter, 42, 'SomePage'
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->documentElement->textContent;
@@ -106,7 +108,9 @@ XML;
 		$dom = new DOMDocument();
 		$dom->loadXML( $macroXml );
 
-		$processor = new IncDrawioMacro( $dataLookup, $conversionDataWriter, 23, 'SomePage' );
+		$processor = new IncDrawioMacro(
+			$this->createConverterDataWriter(), $dataLookup, $conversionDataWriter, 23, 'SomePage'
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->documentElement->textContent;
