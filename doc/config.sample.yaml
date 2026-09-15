@@ -10,4 +10,4 @@ config:
         ext-ns-file-repo-compat: true
         composer-page-per-xml-limit: 100,
         ns-talk-prefix: Talk
-        composer-add-userinfo: true
+        add-userinfo: true

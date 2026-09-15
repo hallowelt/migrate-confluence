@@ -134,7 +134,7 @@ class Analyze extends BatchFileProcessorBase {
 
 		$workspaceDB = WorkspaceDB::create( $this->dest );
 		$this->readWikisConfigFile( $workspaceDB );
-		if ( $this->getMigrationConfig()->getComposerAddUserinfo() ) {
+		if ( $this->getMigrationConfig()->getAddUserinfo() ) {
 			$this->readUsermapFile( $workspaceDB );
 		}
 		$this->wikisConfig = new WikisConfig( $workspaceDB );

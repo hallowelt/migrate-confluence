@@ -277,7 +277,7 @@ author information. Enable it with the config option
 
 ```yaml
 config:
-    composer-add-userinfo: true
+    add-userinfo: true
 ```
 
 This adds the corresponding user’s name to each page/blog post revision.
@@ -301,7 +301,7 @@ f09b6c77-6860-4efe-a589-adcc002dfb3f,jdoe,John.Doe
 a04f3bc4-7999-4a59-bac5-d395f97e14d2,old.login@example.org,Jane_Doe
 ```
 
-The mapping is only read when `composer-add-userinfo` is enabled. Column 1
+The mapping is only read when `add-userinfo` is enabled. Column 1
 is the internal Confluence user key, column 2
 is the Confluence username (the `name`/`lowerName` property of the
 `ConfluenceUserImpl` object), column 3 is the MediaWiki username to use

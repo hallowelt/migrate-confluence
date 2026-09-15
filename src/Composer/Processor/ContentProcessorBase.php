@@ -113,14 +113,14 @@ abstract class ContentProcessorBase extends ProcessorBase {
 
 	/**
 	 * Resolve the wiki username to record as revision contributor, or '' if
-	 * the `composer-add-userinfo` setting is disabled or no user key is given.
+	 * the `add-userinfo` setting is disabled or no user key is given.
 	 *
 	 * @param DBComposerDataLookup $dataLookup
 	 * @param string $userKey
 	 * @return string
 	 */
 	protected function resolveRevisionUsername( DBComposerDataLookup $dataLookup, string $userKey ): string {
-		if ( !$this->migrationConfig->getComposerAddUserinfo() || $userKey === '' ) {
+		if ( !$this->migrationConfig->getAddUserinfo() || $userKey === '' ) {
 			return '';
 		}
 		return $dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
