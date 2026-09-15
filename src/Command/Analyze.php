@@ -14,12 +14,11 @@ use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
+use HalloWelt\MigrateConfluence\Utility\CSVParser;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
-use HalloWelt\MigrateConfluence\Utility\UsermapOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
-use HalloWelt\MigrateConfluence\Utility\WikisOptionHelper;
 use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -240,14 +239,50 @@ class Analyze extends BatchFileProcessorBase {
 	private function readWikisConfigFile( WorkspaceDB $workspaceDB ): void {
 		$filename = $this->input->getOption( 'wikis' );
 		if ( !empty( $filename ) ) {
-			$wikiConfigOptionHelper = new WikisOptionHelper( $filename );
-			$validationError = $wikiConfigOptionHelper->validateFile();
-			if ( $validationError !== null ) {
-				$this->output->writeln( $validationError );
+			$csvParser = new CSVParser(
+				$filename,
+				static function ( array $data, int $rowNumber ): ?array {
+					if ( $rowNumber === 0 && preg_match( '/^confluence.space.key$/i', $data[0] ?? '' ) ) {
+						// Skip the header line
+						return null;
+					}
+
+					// phpcs:ignore Squiz.PHP.InnerFunctions.NotAllowed
+					function sanitize( string $text ): string {
+						return preg_replace( '#_+#', '_',
+							str_replace(
+								[ ' ', ':', ';', ',', '#', '+', '?', '*', '~', '"', "'" ],
+								'_',
+								trim( $text )
+							) );
+					}
+
+					$record = [
+						'space-key' => trim( $data[0] ?? '' ),
+						'wiki-name' => sanitize( $data[1] ?? '' ),
+						'wiki-namespace' => sanitize( $data[2] ?? '' ),
+						'wiki-root-page' => trim( $data[3] ?? '' ),
+					];
+					if ( empty( $record['space-key'] ) ) {
+						throw new \Exception( "Space key must not be empty (row $rowNumber)" );
+					}
+					if ( $record['wiki-namespace'] && preg_match( '#^\d#', $record['wiki-namespace'] ) ) {
+						throw new \Exception(
+							"Wiki namespace must not start with a digit: " .
+							"'{$record['wiki-namespace']}' (row $rowNumber)" );
+					}
+					return $record;
+				},
+				$this->getMigrationConfig()
+			);
+			$error = '';
+			$isValid = $csvParser->validateFile( $error );
+			if ( !$isValid ) {
+				$this->output->writeln( $error );
 				exit( 1 );
 			}
 
-			foreach ( $wikiConfigOptionHelper->getConfig() as $wikiConfig ) {
+			foreach ( $csvParser->getRecords() as $wikiConfig ) {
 				$workspaceDB->addWikisConfig(
 					$wikiConfig['space-key'],
 					$wikiConfig['wiki-name'],
@@ -266,24 +301,42 @@ class Analyze extends BatchFileProcessorBase {
 	private function readUsermapFile( WorkspaceDB $workspaceDB ): void {
 		$filename = $this->input->getOption( 'usermap' );
 		if ( !empty( $filename ) ) {
-			$usermapOptionHelper = new UsermapOptionHelper( $filename );
-			$validationError = $usermapOptionHelper->validateFile();
-			if ( $validationError !== null ) {
-				$this->output->writeln( $validationError );
+			$csvParser = new CSVParser(
+				$filename,
+				static function ( array $data, int $rowNumber ): ?array {
+					$confluenceUsername = trim( $data[0] ?? '' );
+					if ( $rowNumber === 0 && preg_match( '/^confluence.username$/i', $confluenceUsername ) ) {
+						// Skip the header line
+						return null;
+					}
+
+					// Confluence usernames are matched case-insensitively against
+					// the `lowerName` property from entities.xml.
+					return [
+						'confluence-username' => strtolower( $confluenceUsername ),
+						'wiki-username' => trim( $data[1] ?? '' ),
+					];
+				},
+				$this->getMigrationConfig()
+			);
+			$error = '';
+			$isValid = $csvParser->validateFile( $error );
+			if ( !$isValid ) {
+				$this->output->writeln( $error );
 				exit( 1 );
 			}
 
-			foreach ( $usermapOptionHelper->getConfig() as $mapping ) {
+			foreach ( $csvParser->getRecords() as $record ) {
 				// The real user_key is not known yet at this point (it is only
 				// present in entities.xml); use the confluence username as a
 				// placeholder key, matched and adopted later in
 				// WorkspaceDB::addUser() once the real user_key is known.
 				$workspaceDB->addUser(
-					$mapping['confluence-username'],
-					$mapping['wiki-username'],
+					$record['confluence-username'],
+					$record['wiki-username'],
 					'',
 					[],
-					$mapping['confluence-username']
+					$record['confluence-username']
 				);
 			}
 		}
