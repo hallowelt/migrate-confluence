@@ -293,17 +293,18 @@ wiki, provide a mapping via the `analyze` step's `--usermap` option:
 analyze --src=... --dest=... --usermap=/path/to/usermap.csv
 ```
 
-The CSV file has two columns. A header starting with `confluence-username` is recognized and skipped.
+The CSV file has three columns. A header starting with `confluence-userkey` is recognized and skipped.
 
 ```csv
-confluence-username,mediawiki-username
-jdoe,John.Doe
-old.login@example.org,Jane_Doe
+confluence-userkey,confluence-username,mediawiki-username
+f09b6c77-6860-4efe-a589-adcc002dfb3f,jdoe,John.Doe
+a04f3bc4-7999-4a59-bac5-d395f97e14d2,old.login@example.org,Jane_Doe
 ```
 
 The mapping is only read when `composer-add-userinfo` is enabled. Column 1
+is the internal Confluence user key, column 2
 is the Confluence username (the `name`/`lowerName` property of the
-`ConfluenceUserImpl` object), column 2 is the MediaWiki username to use
+`ConfluenceUserImpl` object), column 3 is the MediaWiki username to use
 instead of the automatically derived one. Users without a matching row keep
 the automatically derived username. All other user data is read from the
 Confluence export data.

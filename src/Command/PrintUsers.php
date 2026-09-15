@@ -29,7 +29,7 @@ class PrintUsers extends BatchFileProcessorBase {
 	protected function configure(): void {
 		$this->setName( 'printusers' );
 		$this->setDescription(
-			'Recursively searches --src for entities.xml files and prints a usermap CSV to stdout'
+			'Recursively search --src for entities.xml files and print a usermap CSV'
 		);
 		parent::configure();
 	}
@@ -53,7 +53,7 @@ class PrintUsers extends BatchFileProcessorBase {
 		} else {
 			$this->out = fopen( 'php://stdout', 'w' );
 		}
-		fputcsv( $this->out, [ 'confluence-username', 'wiki-username' ] );
+		fputcsv( $this->out, [ 'confluence-userkey', 'confluence-username', 'wiki-username' ] );
 
 		// Keep stdout as pure CSV; send the base class' progress output to stderr.
 		$errOutput = new StreamOutput( fopen( 'php://stderr', 'w' ), $output->getVerbosity() );
@@ -121,19 +121,22 @@ class PrintUsers extends BatchFileProcessorBase {
 	 * @return void
 	 */
 	private function printUser( XMLReader $xmlReader ): void {
+		$userKey = '';
 		$lowerName = '';
 		$node = $xmlReader->expand();
 		foreach ( $node->childNodes as $child ) {
-			if ( $child->nodeName === 'property' && $child->getAttribute( 'name' ) === 'lowerName' ) {
+			if ( $child->nodeName === 'id' && $child->getAttribute( 'name' ) === 'key' ) {
+				$userKey = trim( $child->textContent );
+			} elseif ( $child->nodeName === 'property' && $child->getAttribute( 'name' ) === 'lowerName' ) {
 				$lowerName = trim( $child->textContent );
 			}
 		}
 
-		if ( $lowerName === '' || isset( $this->seen[$lowerName] ) ) {
+		if ( $userKey === '' || isset( $this->seen[$userKey] ) ) {
 			return;
 		}
-		$this->seen[$lowerName] = true;
+		$this->seen[$userKey] = true;
 
-		fputcsv( $this->out, [ $lowerName, Users::makeMWUserName( $lowerName ) ] );
+		fputcsv( $this->out, [ $userKey, $lowerName, Users::makeMWUserName( $lowerName ) ] );
 	}
 }

@@ -4270,22 +4270,6 @@ class WorkspaceDB {
 		array $properties,
 		string $confluenceUsername = ''
 	): bool {
-		if ( $confluenceUsername !== '' ) {
-			/* When `$confluenceUsername` is given and a row was pre-populated for it
-			 * (with `user_key` set to the confluence username as a placeholder, since
-			 * the real user_key is not known until entities.xml is parsed), that row
-			 * is adopted, i.e. its `user_key` is updated to the real one, before the
-			 * insert/update below runs. This way a pre-populated `wiki_user_name` is
-			 * preserved on the correctly keyed row.  */
-			$adopt = $this->cachedPrepare(
-				'UPDATE users SET user_key = :user_key
-				WHERE confluence_username = :confluence_username AND user_key != :user_key'
-			);
-			$adopt->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
-			$adopt->bindValue( ':confluence_username', $confluenceUsername, SQLITE3_TEXT );
-			$adopt->execute();
-		}
-
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO users (

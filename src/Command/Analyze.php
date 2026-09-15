@@ -304,17 +304,18 @@ class Analyze extends BatchFileProcessorBase {
 			$csvParser = new CSVParser(
 				$filename,
 				static function ( array $data, int $rowNumber ): ?array {
-					$confluenceUsername = trim( $data[0] ?? '' );
-					if ( $rowNumber === 0 && preg_match( '/^confluence.username$/i', $confluenceUsername ) ) {
+					$confluenceUserkey = trim( $data[0] ?? '' );
+					if ( $rowNumber === 0 && preg_match( '/^confluence.userkey$/i', $confluenceUserkey ) ) {
 						// Skip the header line
 						return null;
 					}
 
-					// Confluence usernames are matched case-insensitively against
-					// the `lowerName` property from entities.xml.
 					return [
-						'confluence-username' => strtolower( $confluenceUsername ),
-						'wiki-username' => trim( $data[1] ?? '' ),
+						'confluence-userkey' => $confluenceUserkey,
+						// Confluence usernames are matched case-insensitively against
+						// the `lowerName` property from entities.xml.
+						'confluence-username' => strtolower( trim( $data[1] ?? '' ) ),
+						'wiki-username' => trim( $data[2] ?? '' ),
 					];
 				},
 				$this->getMigrationConfig()
@@ -327,12 +328,8 @@ class Analyze extends BatchFileProcessorBase {
 			}
 
 			foreach ( $csvParser->getRecords() as $record ) {
-				// The real user_key is not known yet at this point (it is only
-				// present in entities.xml); use the confluence username as a
-				// placeholder key, matched and adopted later in
-				// WorkspaceDB::addUser() once the real user_key is known.
 				$workspaceDB->addUser(
-					$record['confluence-username'],
+					$record['confluence-userkey'],
 					$record['wiki-username'],
 					'',
 					[],
