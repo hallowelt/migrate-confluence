@@ -43,7 +43,7 @@ class UsersTest extends TestCase {
 		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
 		// Simulate a --usermap CSV pre-population: real user_key is not known
 		// yet, so the confluence username is used as a placeholder user_key.
-		$this->workspaceDB->addUser( 'johndoe@example.org', 'NewAccountName', '', [], 'johndoe@example.org' );
+		$this->workspaceDB->addUser( 'user-key-1', 'NewAccountName', '', [], 'johndoe@example.org' );
 
 		$processor = new Users( new AnalyzerDirectDataWriter( $this->workspaceDB ) );
 		$this->executeProcessorForClass( $processor, __DIR__ . '/user.xml', 'ConfluenceUserImpl' );
