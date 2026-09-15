@@ -89,7 +89,7 @@ class Users extends ProcessorBase {
 	 * @return string
 	 * @throws InvalidTitleException
 	 */
-	private function makeMWUserName( string $userName ): string {
+	public static function makeMWUserName( string $userName ): string {
 		// Email adresses are no valid MW usernames. We just use the first part
 		// While this could lead to collisions it is very unlikly
 		$usernameParts = explode( '@', $userName, 2 );
