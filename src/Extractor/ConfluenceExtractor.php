@@ -10,6 +10,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PrepareComments;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithSpaceIdOfHistoryVersions;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithWikiTitle;
@@ -20,15 +21,15 @@ use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithWikiT
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageTemplatesWithWikiTitle;
 use HalloWelt\MigrateConfluence\Extractor\Processor\BuildAttachmentDescriptions;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractAttachmentsMetaData;
-use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostComments;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractCommentsBodyContents;
-use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageComments;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesBodyContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyContents;
+use HalloWelt\MigrateConfluence\Extractor\Processor\UpdateBlogPostCommentsTableWithWikiTitle;
+use HalloWelt\MigrateConfluence\Extractor\Processor\UpdatePageCommentsTableWithWikiTitle;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -161,6 +162,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
+			new PrepareComments( $this->workspaceDB, $this->dbLog, $writer ),
 		];
 	}
 
@@ -178,8 +180,8 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 			new BuildAttachmentDescriptions( $this->workspaceDB, $this->dbLog, $writer ),
-			new ExtractPageComments( $this->workspaceDB, $this->dbLog, $writer ),
-			new ExtractBlogPostComments( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdatePageCommentsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdateBlogPostCommentsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
 		];
 	}
 

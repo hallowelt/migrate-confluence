@@ -1,1 +1,62 @@
-<includeonly><span style="display:inline-block;padding:0.2em;background-color:yellow">{{{1|N/A}}}</span></includeonly>
+<noinclude>Template added by Confluence migration to handle inline comments
+
+Usage: <code><nowiki>{{InlineComment|text=original text|comment=comment text|answers=answers to comment text|status=status}}</nowiki></code>
+
+The parameters must be passed by name, because the comment HTML contains "=" characters.
+
+The original text is rendered inline. If the status is <code>active</code>, it is highlighted with a yellow background. Comment text and answers are kept in a hidden container.
+
+<templatedata>
+{
+    "params": {
+        "text": {
+            "label": {
+                "en": "Original text",
+                "de": "Originaltext"
+            },
+            "description": {
+                "en": "The text the comment was attached to",
+                "de": "Der Text, an dem der Kommentar haengt"
+            },
+            "type": "string",
+            "required": true
+        },
+        "comment": {
+            "label": {
+                "en": "Comment text",
+                "de": "Kommentartext"
+            },
+            "type": "string"
+        },
+        "answers": {
+            "label": {
+                "en": "Answers",
+                "de": "Antworten"
+            },
+            "description": {
+                "en": "Answers to the comment text",
+                "de": "Antworten auf den Kommentartext"
+            },
+            "type": "string"
+        },
+        "status": {
+            "label": {
+                "en": "Status",
+                "de": "Status"
+            },
+            "suggestedvalues": [
+                "active",
+                "resolved"
+            ],
+            "type": "string"
+        }
+    },
+    "paramOrder": [
+        "text",
+        "comment",
+        "answers",
+        "status"
+    ]
+}
+</templatedata>
+</noinclude><includeonly><span class="inline-comment inline-comment-{{lc:{{#if:{{{status|}}}|{{{status}}}|unknown}}}}"{{#ifeq:{{lc:{{{status|}}}}}|active| style="background-color:#fff0b3;"}}>{{{text|}}}</span><div class="inline-comment-details" style="display:none;"><div class="inline-comment-text">{{{comment|}}}</div>{{#if:{{{answers|}}}|<div class="inline-comment-answers">{{{answers}}}</div>}}</div></includeonly>

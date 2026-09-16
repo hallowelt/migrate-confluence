@@ -38,6 +38,22 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $containerId
+	 * @return array
+	 */
+	public function getInlineCommentsForContentId( int $containerId ): array {
+		return $this->workspaceDB->getInlineCommentsForContentId( $containerId );
+	}
+
+	/**
+	 * @param string $markerRef
+	 * @return array|null
+	 */
+	public function getInlineCommentsForMarkerRef( string $markerRef ): ?array {
+		return $this->workspaceDB->getInlineCommentsForMarkerRef( $markerRef );
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getSpaceIdToPrefixMap(): array {

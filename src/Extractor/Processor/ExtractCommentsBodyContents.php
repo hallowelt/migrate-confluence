@@ -10,6 +10,8 @@ class ExtractCommentsBodyContents extends ExtractSpaceDescriptionBodyContents {
 	 * @return void
 	 */
 	public function execute(): void {
+		$this->extractPageCommentsBodyContents();
+		$this->extractPageBlogPostBodyContents();
 		$currentContentIds = [];
 		foreach ( $this->workspaceDB->getCurrentComments() as $comment ) {
 			if ( !isset( $comment['comment_id'] )
@@ -30,4 +32,16 @@ class ExtractCommentsBodyContents extends ExtractSpaceDescriptionBodyContents {
 		$this->doExtractBodyContent( $currentContentIds );
 	}
 
+	/**
+	 * @return void
+	 */
+	private function extractPageCommentsBodyContents(): void {
+	}
+
+	/**
+	 * @return void
+	 */
+	private function extractPageBlogPostBodyContents(): void {
+		$this->workspaceDB->getPageComments();
+	}
 }

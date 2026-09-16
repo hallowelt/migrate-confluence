@@ -269,6 +269,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 * @param string $created
 	 * @param string $modified
 	 * @param array $properties
+	 * @param array $collection
 	 *
 	 * @return bool
 	 */
@@ -281,7 +282,8 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 		array $bodyContentIds,
 		string $created,
 		string $modified,
-		array $properties
+		array $properties,
+		array $collection
 	): bool {
 		$this->send(
 			__FUNCTION__,
@@ -293,7 +295,8 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 			$bodyContentIds,
 			$created,
 			$modified,
-			$properties
+			$properties,
+			$collection
 		);
 
 		return true;

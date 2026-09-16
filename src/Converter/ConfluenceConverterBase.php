@@ -299,7 +299,10 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				) ?? '';
 				$this->wikiPageTitle = $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $this->pageId )
 					?? 'not_current_revision_' . $this->pageId;
-			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
+			} elseif (
+				$this->workspaceDB->pageCommentIdExists( $contentId ) ||
+				$this->workspaceDB->blogPostCommentIdExists( $contentId )
+			) {
 				$this->contentType = 'comment';
 				$this->pageId = $contentId;
 				$this->currentSpace = $this->dataLookup->getSpaceIdForBodyContentId( $bodyContentId );
@@ -408,16 +411,18 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	 */
 	protected function getDefaultProcessors(): array {
 		return [
+			// Inline comment marker has to be the first processor.
+			new InlineCommentMarker(
+				$this->writer,
+				$this->currentSpace,
+				$this->dataLookup
+			),
 			new Layout(),
 			new LayoutSection(),
 			new LayoutCell(),
 			new AnchorMacro(),
 			new Placeholder(
 				$this->placeholderManager
-			),
-			new InlineCommentMarker(
-				$this->writer,
-				$this->currentSpace
 			),
 			new PreserveTimeTag(
 				$this->placeholderManager

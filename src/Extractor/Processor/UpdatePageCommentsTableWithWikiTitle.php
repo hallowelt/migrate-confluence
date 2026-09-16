@@ -4,26 +4,21 @@ namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 
-/**
- */
-class ExtractPageComments extends ProcessorBase {
+class UpdatePageCommentsTableWithWikiTitle extends ProcessorBase {
 
 	/**
 	 * @return void
 	 */
 	public function execute(): void {
-		$comments = $this->workspaceDB->getCommentsForPages();
-
-		foreach ( $comments as $comment ) {
-			if ( !isset( $comment['comment_id'] ) || !isset( $comment['container_id'] ) ) {
+		foreach ( $this->workspaceDB->getPageComments() as $comment ) {
+			if ( !isset( $comment['comment_id'] ) || !isset( $comment['page_id'] ) ) {
 				continue;
 			}
 
 			$commentId = (int)$comment['comment_id'];
-			$pageId = (int)$comment['container_id'];
-			$wikiTitle = (string)( $comment['wiki_title'] ?? '' );
-
-			if ( $wikiTitle === '' ) {
+			$pageId = (int)$comment['page_id'];
+			$wikiTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $pageId );
+			if ( $wikiTitle === null || $wikiTitle === '' ) {
 				$this->dbLog->addLogEntry(
 					'warning',
 					'extract',
@@ -42,11 +37,8 @@ class ExtractPageComments extends ProcessorBase {
 				$talkTitle = 'Talk:' . $wikiTitle;
 			}
 
-			$this->writer->addPageComment( $commentId, $pageId, $talkTitle );
-
-			$this->writeln(
-				"Added page comment ID $commentId for page ID $pageId with title '$talkTitle'"
-			);
+			$this->workspaceDB->updatePageCommentWikiTitle( $commentId, $talkTitle );
+			$this->writeln( "Updated wiki title for page comment ID $commentId with title '$talkTitle'" );
 		}
 	}
 }
