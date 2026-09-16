@@ -46,7 +46,14 @@ The migrate confluence tool is available as [docker image](https://hub.docker.co
 ### Migrate the contents
 
 1. Create the "workspace" directory (e.g. `/tmp/confluence/workspace/`)
-2. From the main directory (e.g. `/tmp/confluence`), run the migration commands
+2. From the main directory (e.g. `/tmp/confluence`), run the full migration command
+
+	```
+	docker run --rm -v $(pwd):/data bluespice/migrate-confluence:latest migrate --src=/data/input --dest=/data/workspace
+	```
+
+	The `migrate` command runs `analyze`, `extract`, `convert` and `compose` in order. It accepts `--config`, `--wikis`, `--workers` and `--cmd`; `--cmd` runs a shell command after all migration steps finished successfully.
+3. Alternatively, run the migration commands manually
 	1. Run
 		
 		```
