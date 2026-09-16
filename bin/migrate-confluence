@@ -6,6 +6,7 @@ require __DIR__.'/../vendor/autoload.php';
 use HalloWelt\MediaWiki\Lib\Migration\CliApp;
 use HalloWelt\MigrateConfluence\Command\CheckResult;
 use HalloWelt\MigrateConfluence\Command\GetVersion;
+use HalloWelt\MigrateConfluence\Command\PrintUsers;
 use HalloWelt\MigrateConfluence\Command\ValidateConfig;
 
 $config = [
@@ -41,4 +42,5 @@ $application = new CliApp( $config );
 $application->add( new CheckResult() );
 $application->add( new GetVersion() );
 $application->add( new ValidateConfig() );
+$application->add( new PrintUsers() );
 $application->run();

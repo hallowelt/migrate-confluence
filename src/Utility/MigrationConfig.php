@@ -107,9 +107,23 @@ class MigrationConfig {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function getAddUserinfo(): bool {
+		return $this->get( 'add-userinfo', false );
+	}
+
+	/**
 	 * @return string
 	 */
 	public function getProfile(): string {
 		return strtolower( $this->get( 'profile', 'bluespice-galaxy' ) );
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getCSVSeparator(): string {
+		return $this->get( 'csv-separator', ',' );
 	}
 }
