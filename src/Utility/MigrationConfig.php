@@ -30,13 +30,6 @@ class MigrationConfig {
 	}
 
 	/**
-	 * @return array
-	 */
-	public function getSpaceKeyToPrefixMap(): array {
-		return $this->get( 'space-prefix', [] );
-	}
-
-	/**
 	 * @param string $spaceKey
 	 * @return string|null
 	 */

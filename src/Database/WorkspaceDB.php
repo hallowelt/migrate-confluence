@@ -2020,7 +2020,11 @@ class WorkspaceDB {
 	 */
 	public function getMapSpaceIdToPrefix(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT space_id, namespace_prefix, root_page FROM spaces'
+			'SELECT s.space_id,
+				COALESCE( wc.wiki_namespace, s.namespace_prefix ) AS namespace_prefix,
+				COALESCE( wc.wiki_root_page, s.root_page ) AS root_page
+			FROM spaces s
+			LEFT JOIN wikis_config wc ON wc.space_key = s.space_key'
 		);
 
 		$result = $transaction->execute();
