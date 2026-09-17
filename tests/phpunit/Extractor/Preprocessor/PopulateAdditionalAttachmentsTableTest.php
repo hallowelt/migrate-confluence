@@ -96,6 +96,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', '' );
 		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
@@ -106,11 +107,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		);
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
-		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST'
-			]
-		] ) );
+		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
@@ -138,6 +135,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', '' );
 		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
@@ -149,9 +147,6 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
 		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST'
-			],
 			'ext-ns-file-repo-compat' => true
 		] ) );
 		$processor->execute();
@@ -181,6 +176,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', 'Root' );
 		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
@@ -191,11 +187,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		);
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
-		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST:Root/'
-			]
-		] ) );
+		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
 		$processor->execute();
 
 		$additionalAttachments = $workspaceDB->getAdditionalAttachments();
@@ -223,6 +215,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', 'Root' );
 		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
@@ -234,9 +227,6 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$workspaceDB->addPageAttachment( 801, 800, 'known.pdf', 'TEST_Page-known.pdf' );
 
 		$processor = new PopulateAdditionalAttachmentsTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [
-			'space-prefix' => [
-				'TEST' => 'MYTEST:Root/'
-			],
 			'ext-ns-file-repo-compat' => true
 		] ) );
 		$processor->execute();
