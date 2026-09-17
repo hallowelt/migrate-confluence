@@ -1,0 +1,6 @@
+{{Info|{{Bold|text}}}}
+
+{{Info|{| class="wikitable"
+|-
+| {{Bold|text}} || B
+|}}}

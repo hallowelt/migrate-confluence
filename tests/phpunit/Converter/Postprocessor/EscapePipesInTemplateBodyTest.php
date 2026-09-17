@@ -20,10 +20,14 @@ class EscapePipesInTemplateBodyTest extends TestCase {
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody::postprocess
 	 * @dataProvider provideTestCases
-	 * @param string $input
-	 * @param string $expected
+	 * @param string $inputPath
+	 * @param string $expectedPath
 	 */
-	public function testPostprocess( string $input, string $expected ): void {
+	public function testPostprocess( string $inputPath, string $expectedPath ): void {
+		$input = file_get_contents( $inputPath );
+		$expected = file_get_contents( $expectedPath );
+		$this->assertIsString( $input );
+		$this->assertIsString( $expected );
 		$this->assertEquals( $expected, $this->postprocessor->postprocess( $input ) );
 	}
 
@@ -31,42 +35,31 @@ class EscapePipesInTemplateBodyTest extends TestCase {
 	 * @return array
 	 */
 	public static function provideTestCases(): array {
-		// Note: at postprocessor runtime ###BREAK### markers are still present.
-		$br = "###BREAK###";
-		// Table-open syntax as it appears in the raw (unconverted) input.
-		$tbl = "{| class=\"wikitable\"\n";
-		// Table-open syntax as it must appear once escaped for use inside a
-		// template parameter: `{|` becomes `{{(!}}` (see EscapePipesInTemplateBody).
-		$tblEsc = "{{(!}} class=\"wikitable\"\n";
+		$fixtureDir = __DIR__ . '/EscapePipesInTemplateBody';
 		return [
-			'wikitable in body is escaped' => [
-				"{{Info{$br}\n|body = {$br}\n{$tbl}|-\n! Head !! Head\n|-\n| Cell || Cell\n|}}}",
-				"{{Info{$br}\n|body = {$br}\n{$tblEsc}{{!}}-\n! Head !! Head\n"
-				. "{{!}}-\n{{!}} Cell {{!}}{{!}} Cell\n{{!}}}}}",
+			'temlate with body attrib and with linebreak has escaped table (1)' => [
+				"$fixtureDir/temlate_with_body_with_linebreak-input.wikitext",
+				"$fixtureDir/temlate_with_body_with_linebreak-output.wikitext",
 			],
-			'table open {| is escaped' => [
-				"{{Info{$br}\n|body = {$br}\n{$tbl}|-\n| A\n|}}}",
-				"{{Info{$br}\n|body = {$br}\n{$tblEsc}{{!}}-\n{{!}} A\n{{!}}}}}",
+			'temlate with body attrib and without linebreak has escaped table (2)' => [
+				"$fixtureDir/temlate_with_body_without_linebreak-input.wikitext",
+				"$fixtureDir/temlate_with_body_without_linebreak-output.wikitext",
 			],
-			'caption line |+ is escaped' => [
-				"{{Info{$br}\n|body = {$br}\n{$tbl}|+ Caption\n|-\n| A\n|}}}",
-				"{{Info{$br}\n|body = {$br}\n{$tblEsc}{{!}}+ Caption\n{{!}}-\n{{!}} A\n{{!}}}}}",
+			'temlate without body attrib and with linebreak has escaped table (3)' => [
+				"$fixtureDir/temlate_without_body_with_linebreak-input.wikitext",
+				"$fixtureDir/temlate_without_body_with_linebreak-output.wikitext",
 			],
-			'no wikitable in body — unchanged' => [
-				"{{Info{$br}\n|body = {$br}\nJust some text.\n}}",
-				"{{Info{$br}\n|body = {$br}\nJust some text.\n}}",
+			'temlate without body attrib and without linebreak has escaped table (4)' => [
+				"$fixtureDir/temlate_without_body_without_linebreak-input.wikitext",
+				"$fixtureDir/temlate_without_body_without_linebreak-output.wikitext",
 			],
-			'template without body param — unchanged' => [
-				"{{SomeTemplate{$br}\n|param = value{$br}\n}}",
-				"{{SomeTemplate{$br}\n|param = value{$br}\n}}",
+			'template without table stays unchanged (5)' => [
+				"$fixtureDir/template_without_table-input.wikitext",
+				"$fixtureDir/template_without_table-output.wikitext",
 			],
-			'wikitable outside template — unchanged' => [
-				"{| class=\"wikitable\"\n|-\n| A || B\n|}",
-				"{| class=\"wikitable\"\n|-\n| A || B\n|}",
-			],
-			'nested templates in body are handled' => [
-				"{{Info{$br}\n|body = {$br}\n{$tbl}|-\n| {{Bold|text}} || B\n|}}}",
-				"{{Info{$br}\n|body = {$br}\n{$tblEsc}{{!}}-\n{{!}} {{Bold|text}} {{!}}{{!}} B\n{{!}}}}}",
+			'table outside template stays unchanged (6)' => [
+				"$fixtureDir/wikitable_outside_template-input.wikitext",
+				"$fixtureDir/wikitable_outside_template-output.wikitext",
 			],
 		];
 	}

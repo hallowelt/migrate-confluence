@@ -231,6 +231,7 @@ interface IAnalyzeDataWriter extends IDataWriter {
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
+	 * @param string $confluenceUsername
 	 *
 	 * @return bool
 	 */
@@ -238,7 +239,8 @@ interface IAnalyzeDataWriter extends IDataWriter {
 		string $userKey,
 		string $wikiUsername,
 		string $email,
-		array $properties
+		array $properties,
+		string $confluenceUsername = ''
 	): bool;
 
 	/**
