@@ -136,7 +136,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		}
 
 		$filenameBuilder = new FilenameBuilder(
-			$this->getSpaceIdToPrefixMap(),
+			$this->getMapSpaceIdToPrefix(),
 			$this->migrationConfig
 		);
 
@@ -286,7 +286,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 *
 	 * @return array
 	 */
-	protected function getSpaceIdToPrefixMap(): array {
+	protected function getMapSpaceIdToPrefix(): array {
 		return $this->workspaceDB->getMapSpaceIdToPrefix();
 	}
 
