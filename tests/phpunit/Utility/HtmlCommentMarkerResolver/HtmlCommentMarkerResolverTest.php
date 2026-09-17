@@ -14,7 +14,7 @@ class HtmlCommentMarkerResolverTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver::resolve
 	 */
 	public function testResolvesASinglePairIntoAnHtmlComment(): void {
-		$input = 'before ###HTMLCOMMENTOPEN### some debug text ###HTMLCOMMENTCLOSE### after';
+		$input = 'before <!-- some debug text --> after';
 		$expected = 'before <!--  some debug text  --> after';
 
 		$this->assertSame( $expected, HtmlCommentMarkerResolver::resolve( $input ) );
@@ -24,8 +24,8 @@ class HtmlCommentMarkerResolverTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver::resolve
 	 */
 	public function testResolvesMultipleIndependentPairs(): void {
-		$input = '###HTMLCOMMENTOPEN###a###HTMLCOMMENTCLOSE### text '
-			. '###HTMLCOMMENTOPEN###b###HTMLCOMMENTCLOSE###';
+		$input = '<!--a--> text '
+			. '<!--b-->';
 		$expected = '<!-- a --> text <!-- b -->';
 
 		$this->assertSame( $expected, HtmlCommentMarkerResolver::resolve( $input ) );
@@ -41,9 +41,9 @@ class HtmlCommentMarkerResolverTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver::resolve
 	 */
 	public function testFlattensNestedMarkerPairsIntoASingleComment(): void {
-		$input = 'before ###HTMLCOMMENTOPEN### outer start '
-			. '{{Foo}}###HTMLCOMMENTOPEN### Template could not be found (templateId: 123) ###HTMLCOMMENTCLOSE###'
-			. "\n[[Category:Broken_macro/create-from-template]] outer end ###HTMLCOMMENTCLOSE###"
+		$input = 'before <!-- outer start '
+			. '{{Foo}}<!-- Template could not be found (templateId: 123) -->'
+			. "\n[[Category:Broken_macro/create-from-template]] outer end -->"
 			. '[[Category:Broken_macro/scroll-ignore]] after';
 
 		$expected = 'before <!--  outer start {{Foo}} Template could not be found (templateId: 123) '
@@ -73,7 +73,7 @@ class HtmlCommentMarkerResolverTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver::resolve
 	 */
 	public function testDanglingOpenMarkerIsClosedDefensively(): void {
-		$input = 'before ###HTMLCOMMENTOPEN### unterminated debug text';
+		$input = 'before <!-- unterminated debug text';
 		$expected = 'before <!--  unterminated debug text -->';
 
 		$this->assertSame( $expected, HtmlCommentMarkerResolver::resolve( $input ) );
