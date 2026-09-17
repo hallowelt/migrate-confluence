@@ -94,6 +94,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
@@ -889,6 +890,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		// On Windows the CR would be encoded as "&#xD;" in the MediaWiki-XML, which is ulgy and unnecessary
 		$this->wikiText = str_replace( "\r", '', $this->wikiText );
 		$this->wikiText = str_replace( "###BREAK###", "\n", $this->wikiText );
+		$this->wikiText = HtmlCommentMarkerResolver::resolve( $this->wikiText );
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
 		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
