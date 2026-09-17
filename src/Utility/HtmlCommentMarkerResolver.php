@@ -8,9 +8,9 @@ namespace HalloWelt\MigrateConfluence\Utility;
  */
 class HtmlCommentMarkerResolver {
 
-	public const OPEN_MARKER = '###HTMLCOMMENTOPEN###';
+	public const OPEN_MARKER = '<!--';
 
-	public const CLOSE_MARKER = '###HTMLCOMMENTCLOSE###';
+	public const CLOSE_MARKER = '-->';
 
 	public static function resolve( string $text ): string {
 		$parts = preg_split(
