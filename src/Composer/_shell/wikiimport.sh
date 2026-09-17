@@ -3,8 +3,9 @@
 # Imports the migration output of one wiki into a MediaWiki installation.
 #
 # Expected layout of the migration output:
-#   result/<wiki-name>/<namespace>/{files,blogs,page-talk,blog-talk,templates,pages}.xml
+#   result/<wiki-name>/<namespace>/{files,pages,page-talk,blogs,blog-talk,templates}.xml
 #   result/<wiki-name>/_shared/{default-files,default-pages}.xml
+#   result/<wiki-name>/_shared/default-images/*
 #
 # The files in "_shared" are only imported when --add-default is set.
 
@@ -29,10 +30,10 @@ Import order per namespace directory:
   1) _shared/default-files*.xml  (only with --add-default, once per wiki)
   2) _shared/default-pages*.xml  (only with --add-default, once per wiki)
   3) files*.xml
-  4) blogs*.xml
-  5) templates*.xml
-  6) pages*.xml
-  7) page-talk*.xml
+  4) templates*.xml
+  5) pages*.xml
+  6) page-talk*.xml
+  7) blogs*.xml
   8) blog-talk*.xml
   9) enhanced-sidebar*.xml
 
@@ -247,10 +248,10 @@ import_namespace_directory() {
   # condition of an "if" statement, which suspends "set -e" for its whole
   # call tree, so a failing run_group would otherwise go unnoticed.
   run_group "$source_dir" "files" "files" "optional" || return 1
-  run_group "$source_dir" "blogs" "dump" "optional" || return 1
   run_group "$source_dir" "templates" "dump" "optional" || return 1
   run_group "$source_dir" "pages" "dump" "required" || return 1
   run_group "$source_dir" "page-talk" "dump" "optional" || return 1
+  run_group "$source_dir" "blogs" "dump" "optional" || return 1
   run_group "$source_dir" "blog-talk" "dump" "optional" || return 1
   run_group "$source_dir" "enhanced-sidebar" "dump" "optional" || return 1
 
@@ -264,16 +265,6 @@ import_namespace_directory() {
 # Default media are imported once per wiki, before any namespace content, so
 # that pages referencing them already find their files.
 run_default_group "default-files" "files"
-
-# The wiki wide sidebar lives next to the namespace directories.
-sidebar_file="$src/enhanced-sidebar.xml"
-if [[ -f "$sidebar_file" ]]; then
-  echo "==> Importing wiki sidebar from $sidebar_file"
-  if ! run_import_dump_file "$sidebar_file"; then
-    echo "Error: import failed for wiki sidebar $sidebar_file" >&2
-    exit 1
-  fi
-fi
 
 # Default pages are imported before the migrated pages, so migrated content
 # wins in case of a title collision.
@@ -303,6 +294,16 @@ for namespace_dir in "${namespace_dirs[@]}"; do
     exit 1
   fi
 done
+
+# The wiki wide sidebar lives next to the namespace directories.
+sidebar_file="$src/enhanced-sidebar.xml"
+if [[ -f "$sidebar_file" ]]; then
+  echo "==> Importing wiki sidebar from $sidebar_file"
+  if ! run_import_dump_file "$sidebar_file"; then
+    echo "Error: import failed for wiki sidebar $sidebar_file" >&2
+    exit 1
+  fi
+fi
 
 if (( dry == 1 )); then
   echo "Dry run completed for '$wiki_name', no data was imported."

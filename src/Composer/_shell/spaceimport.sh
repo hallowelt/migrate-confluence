@@ -4,10 +4,10 @@
 # installation.
 #
 # Expected layout of the migration output:
-#   result/<namespace>/{files,blogs,page-talk,blog-talk,templates,pages}.xml
-#   result/_shared/{default-files,default-pages}.xml
+#   result/<namespace>/{default-files,default-pages,files,pages,page-talk,blogs,blog-talk,templates}.xml
+#   result/<namespace>/default-images/*
 #
-# The files in "result/_shared" are only imported when --add-default is set.
+# The default files and pages are only imported when --add-default is set.
 
 set -euo pipefail
 
@@ -22,18 +22,18 @@ Supports both single-file output (e.g. pages.xml) and split output
 Options:
   --wiki-root=PATH  Path to the MediaWiki root directory (default: /app/bluespice/w)
   --src=PATH        Namespace directory to import (defaults to this script's directory)
-  --add-default     Also import default-files*.xml and default-pages*.xml from <src>/../_shared
+  --add-default     Also import default-files*.xml and default-pages*.xml from <src>
   --dry             Dry run, only print the import commands instead of running them
   --sfr=NAME        MediaWiki wiki instance passed to the import maintenance scripts
 
 Import order:
-  1) _shared/default-files*.xml  (only with --add-default)
-  2) _shared/default-pages*.xml  (only with --add-default)
+  1) default-files*.xml  (only with --add-default)
+  2) default-pages*.xml  (only with --add-default)
   3) files*.xml
-  4) blogs*.xml
-  5) templates*.xml
-  6) pages*.xml
-  7) page-talk*.xml
+  4) templates*.xml
+  5) pages*.xml
+  6) page-talk*.xml
+  7) blogs*.xml
   8) blog-talk*.xml
   9) enhanced-sidebar*.xml
 
@@ -97,13 +97,6 @@ src="${src%/}"
 if [[ ! -d "$src" ]]; then
   echo "Error: --src directory does not exist: $src" >&2
   exit 1
-fi
-
-# "_shared" is a sibling of the namespace directory: result/_shared
-shared_dir="$(cd "$src/.." && pwd)/_shared"
-
-if [[ "$add_default" -eq 1 && ! -d "$shared_dir" ]]; then
-  echo "Warning: --add-default is set but the shared directory does not exist: $shared_dir" >&2
 fi
 
 if [[ ! -d "$wiki_root" ]]; then
@@ -222,7 +215,7 @@ run_group() {
   done
 }
 
-# Imports a group from the shared directory, but only with --add-default.
+# Imports a default group from the namespace directory, but only with --add-default.
 run_default_group() {
   local base="$1"
   local mode="$2"
@@ -231,12 +224,7 @@ run_default_group() {
     return 0
   fi
 
-  if [[ ! -d "$shared_dir" ]]; then
-    echo "Warning: shared directory not found, skipping $base: $shared_dir" >&2
-    return 0
-  fi
-
-  run_group "$shared_dir" "$base" "$mode" "optional"
+  run_group "$src" "$base" "$mode" "optional"
 }
 
 # --- Import ------------------------------------------------------------------
@@ -250,10 +238,11 @@ run_default_group "default-files" "files"
 run_default_group "default-pages" "dump"
 
 run_group "$src" "files" "files" "optional"
-run_group "$src" "blogs" "dump" "optional"
+
 run_group "$src" "templates" "dump" "optional"
 run_group "$src" "pages" "dump" "required"
 run_group "$src" "page-talk" "dump" "optional"
+run_group "$src" "blogs" "dump" "optional"
 run_group "$src" "blog-talk" "dump" "optional"
 run_group "$src" "enhanced-sidebar" "dump" "optional"
 

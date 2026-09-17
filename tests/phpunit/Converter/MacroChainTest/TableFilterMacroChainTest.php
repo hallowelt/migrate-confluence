@@ -36,7 +36,7 @@ class TableFilterMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new TableFilterMacro();
+		return new TableFilterMacro( $this->createConverterDataWriter(), 1 );
 	}
 
 }

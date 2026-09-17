@@ -37,7 +37,7 @@ class FullMigrationMultiSpaceTest extends FullMigrationSingleSpaceTest {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor
-	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverter
+	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceGalaxy
 	 * @covers \HalloWelt\MigrateConfluence\Composer\WikiBasedComposer
 	 */
 	public function testMigration(): void {
