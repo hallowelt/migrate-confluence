@@ -55,7 +55,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 		}
 
 		$filenameBuilder = new FilenameBuilder(
-			$this->getSpaceIdToPrefixMap(),
+			$this->getMapSpaceIdToPrefix(),
 			$this->migrationConfig
 		);
 
