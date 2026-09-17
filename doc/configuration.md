@@ -49,7 +49,7 @@ called `Main Page`.
 
 ```yaml
 config:
-    mainpage: "Startseite"
+    mainpage: "Hauptseite"
 ```
 
 ### `categories`
@@ -113,10 +113,7 @@ pages-000003.xml
 Wiki namespaces to exclude entirely from the compose step. Use `NS_MAIN`
 to skip the main namespace.
 
-This setting is useful, if you do migrations of spaces in 2 steps while keeping
-cross-space links intact. Migrate all spaces together up until the `compose` step,
-then ignore all namespaces but one. This allows you to create imports for single
-namespaces from Confluence spaces that are migrated in a second step.
+Use this to skip namespaces because they should not be part of the result.
 
 ### `composer-skip-titles`
 
@@ -144,7 +141,7 @@ namespaces to always be available as aliases, even in non-English wikis.
 * Type: bool
 * Default: `true`
 
-Whether to generate a BlueSpice extended sidebar page from the migrated Confluence
+Whether to generate a BlueSpice enhanced sidebar page from the migrated Confluence
 spaces. Set to `false` to skip sidebar generation entirely. See
 [the BlueSpice documentation](https://en.wiki.bluespice.com/wiki/Manual:Extension/MenuEditor#Enhanced_MediaWiki_sidebar) about this feature.
 
@@ -162,6 +159,14 @@ depending on the feature set of the target wiki. Supported values:
 
 See [`doc/output_profiles.md`](./output_profiles.md) for details.
 
+### `csv-delimiter`
+
+* Type: string
+* Default: `,`
+
+Change the CSV delimiter character for CSV files read by the tool. The default
+is the comma as used as default by Excel.
+
 ## Wikis-config CSV file (`--wikis`)
 
 The wikis-config CSV maps each Confluence space key to the target wiki's
@@ -172,22 +177,22 @@ the interwiki prefix used when a space is split into a separate wiki
 
 Format rules:
 
-* Fields are separated by `;` (semicolon).
+* Fields are separated by `,` (comma).
 * One row per Confluence space.
 * An optional header row starting with `confluence-space-key` is ignored.
 * Lines starting with `#`, and empty lines, are ignored (comments).
-* A trailing `;` at the end of a line is ignored.
+* A trailing `,` at the end of a line is ignored.
 * Columns, in order: `confluence-space-key`, `wiki-name`, `wiki-namespace`,
   `wiki-root-page`.
 
 Example:
 
 ```csv
-confluence-space-key;wiki-name;wiki-namespace;wiki-root-page;
-PROD;production;;;
-MAR;marketing;;Marketing;
-ADV;marketing;;Advertising;
-EVENT;marketing;Events;;
+confluence-space-key,wiki-name,wiki-namespace,wiki-root-page,
+PROD,production,,,
+MAR,marketing,,Marketing,
+ADV,marketing,,Advertising,
+EVENT,marketing,Events,,
 ```
 
 ### `confluence-space-key`
@@ -207,7 +212,7 @@ spaces mapped to different wikis.
 ### `wiki-namespace`
 
 Optional. The MediaWiki namespace pages of this space are migrated into.
-If empty, the space key itself is used as namespace. Must not start with
+If empty, the pages are placed in the main namespace. Must not start with
 a digit. Same character sanitization as `wiki-name` applies.
 
 ### `wiki-root-page`
