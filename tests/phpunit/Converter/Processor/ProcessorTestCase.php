@@ -4,9 +4,17 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use DOMNode;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use PHPUnit\Framework\TestCase;
 
 abstract class ProcessorTestCase extends TestCase {
+
+	/**
+	 * @return IConverterDataWriter
+	 */
+	protected function createConverterDataWriter(): IConverterDataWriter {
+		return $this->createMock( IConverterDataWriter::class );
+	}
 
 	/**
 	 * Asserts that two DOMDocuments are equal, ignoring whitespace-only text nodes

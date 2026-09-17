@@ -16,6 +16,6 @@ class ColumnMacroTest extends StructuredMacroProcessorTestBase {
 	}
 
 	protected function getProcessorToTest(): IProcessor {
-		return new ColumnMacro();
+		return new ColumnMacro( $this->createConverterDataWriter(), 1 );
 	}
 }

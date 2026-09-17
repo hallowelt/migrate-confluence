@@ -327,11 +327,18 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
+	 * @param string $confluenceUsername
 	 *
 	 * @return bool
 	 */
-	public function addUser( string $userKey, string $wikiUsername, string $email, array $properties ): bool {
-		return $this->db->addUser( $userKey, $wikiUsername, $email, $properties );
+	public function addUser(
+		string $userKey,
+		string $wikiUsername,
+		string $email,
+		array $properties,
+		string $confluenceUsername = ''
+	): bool {
+		return $this->db->addUser( $userKey, $wikiUsername, $email, $properties, $confluenceUsername );
 	}
 
 	/**

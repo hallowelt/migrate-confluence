@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class CodeMacroTest extends ProcessorTestCase {
 
@@ -18,7 +19,7 @@ class CodeMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->load( $inputFile );
 
-		$codeMacroProcessor = new CodeMacro();
+		$codeMacroProcessor = new CodeMacro( new PlaceholderManager() );
 		$codeMacroProcessor->process( $dom );
 
 		$expectedDom = new DOMDocument();

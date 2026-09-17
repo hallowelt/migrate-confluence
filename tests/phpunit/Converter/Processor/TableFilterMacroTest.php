@@ -24,7 +24,7 @@ class TableFilterMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new TableFilterMacro();
+		$processor = new TableFilterMacro( $this->createConverterDataWriter(), 1 );
 		$processor->process( $dom );
 
 		$expectedDom = new DOMDocument();

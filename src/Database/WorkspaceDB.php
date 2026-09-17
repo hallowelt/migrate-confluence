@@ -172,8 +172,10 @@ class WorkspaceDB {
 			'labellings',
 			'labels',
 			'gliffy',
+			'roadmap_svgs',
 			'required_templates',
 			'default_pages_registry',
+			'default_files_registry',
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -314,6 +316,7 @@ class WorkspaceDB {
 		$this->createTableLabellings();
 		$this->createTableLabels();
 		$this->createTableGliffy();
+		$this->createTableRoadmapSvgs();
 		$this->createTablePagesMeta();
 		$this->createTableBlogPostsMeta();
 		$this->createTableAttachmentsMeta();
@@ -322,6 +325,7 @@ class WorkspaceDB {
 		$this->createTableAttachmentsDescriptions();
 		$this->createTableExportProperties();
 		$this->createTableDefaultPagesRegistry();
+		$this->createTableDefaultFilesRegistry();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -613,6 +617,7 @@ class WorkspaceDB {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS users (
 				user_key CHAR PRIMARY KEY,
+				confluence_username CHAR,
 				wiki_user_name CHAR,
 				email CHAR,
 				properties BLOB
@@ -716,6 +721,24 @@ class WorkspaceDB {
 				confluence_title CHAR,
 				original_attachment_filename CHAR,
 				target_attachment_filename CHAR
+			);'
+		);
+	}
+
+	/**
+	 * Generated SVG files (e.g. rendered roadmap diagrams) that were written to
+	 * disk during conversion and must be picked up by the Composer step so they
+	 * end up in files.xml, even though they have no corresponding Confluence
+	 * attachment record.
+	 *
+	 * @return void
+	 */
+	private function createTableRoadmapSvgs(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS roadmap_svgs (
+				space_id INT,
+				confluence_title CHAR,
+				svg_filename CHAR
 			);'
 		);
 	}
@@ -2873,7 +2896,7 @@ class WorkspaceDB {
 	 */
 	public function getPageRevisionsForPageId( int $pageId ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT revision_timestamp, version, body_content_ids FROM pages
+			'SELECT revision_timestamp, version, body_content_ids, last_modifier FROM pages
 			WHERE ( page_id = :page_id OR original_version_id = :page_id )
 			AND content_status = :content_status
 			ORDER BY revision_timestamp ASC'
@@ -3183,7 +3206,7 @@ class WorkspaceDB {
 	 */
 	public function getBlogPostRevisionsForBlogPostId( int $blogPostId ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT revision_timestamp, version, body_content_ids FROM blog_posts
+			'SELECT revision_timestamp, version, body_content_ids, last_modifier FROM blog_posts
 			WHERE page_id = :page_id OR original_version_id = :page_id
 			ORDER BY revision_timestamp ASC'
 		);
@@ -3376,6 +3399,93 @@ class WorkspaceDB {
 		// TODO: Add a error if there are more then one page_id's for this body_content_id
 
 		return $contentId;
+	}
+
+	/**
+	 * Get the space ID of the page or blog post body content.
+	 *
+	 * @param int $bodyContentId
+	 * @return int|null
+	 */
+	public function getSpaceIdForBodyContentId( int $bodyContentId ): ?int {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.space_id, bp.space_id ) AS space_id
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || $data['space_id'] === null ) {
+			return null;
+		}
+
+		return (int)$data['space_id'];
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getWikiTitleForBodyContentId( int $bodyContentId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.wiki_title, bp.wiki_title ) AS wiki_title
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return $data === false || $data['wiki_title'] === null ? null : (string)$data['wiki_title'];
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getConfluenceTitleForBodyContentId( int $bodyContentId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.confluence_title, bp.confluence_title ) AS confluence_title
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return $data === false || $data['confluence_title'] === null ? null : (string)$data['confluence_title'];
 	}
 
 	/**
@@ -4142,34 +4252,52 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Inserts a user row, or updates an existing one (e.g. pre-populated from
+	 * a --usermap CSV file). The `wiki_user_name` of an existing row is kept
+	 * as-is; `email` and `properties` are always updated to the given values.
+	 *
 	 * @param string $userKey
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
+	 * @param string $confluenceUsername
 	 * @return bool
 	 */
 	public function addUser(
 		string $userKey,
 		string $wikiUsername,
 		string $email,
-		array $properties
+		array $properties,
+		string $confluenceUsername = ''
 	): bool {
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO users (
+			'INSERT INTO users (
 				user_key,
+				confluence_username,
 				wiki_user_name,
 				email,
 				properties
 			) VALUES (
 				:user_key,
+				:confluence_username,
 				:wiki_user_name,
 				:email,
 				:properties
-			)'
+			)
+			ON CONFLICT( user_key ) DO UPDATE SET
+				confluence_username = excluded.confluence_username,
+				wiki_user_name = CASE
+					WHEN users.wiki_user_name IS NOT NULL AND users.wiki_user_name != \'\'
+					THEN users.wiki_user_name
+					ELSE excluded.wiki_user_name
+				END,
+				email = excluded.email,
+				properties = excluded.properties'
 		);
 
 		$transaction->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_username', $confluenceUsername, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_user_name', $wikiUsername, SQLITE3_TEXT );
 		$transaction->bindValue( ':email', $email, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
@@ -4860,6 +4988,65 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Registers a SVG file generated during conversion (e.g. a rendered roadmap
+	 * diagram) so the Composer step can add it to files.xml.
+	 *
+	 * @param int|null $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $svgFilename
+	 * @return bool
+	 */
+	public function addRoadmapSvg(
+		?int $spaceId,
+		string $confluenceTitle,
+		string $svgFilename
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO roadmap_svgs (
+				space_id,
+				confluence_title,
+				svg_filename
+			) VALUES (
+				:space_id,
+				:confluence_title,
+				:svg_filename
+			)'
+		);
+
+		if ( $spaceId !== null ) {
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
+		}
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':svg_filename', $svgFilename, SQLITE3_TEXT );
+
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int|null $spaceId
+	 * @return array
+	 */
+	public function getRoadmapSvgs( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			return $this->getAllData( 'roadmap_svgs' );
+		}
+
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM roadmap_svgs WHERE space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
 	 * Returns target file titles with their full metadata for all attachments on a page.
 	 * The returned array is keyed by confluence file key. Each value contains 'targetTitle'
 	 * plus any additional metadata fields (e.g. 'labels', 'mediaType', etc.).
@@ -5273,8 +5460,19 @@ class WorkspaceDB {
 			'CREATE TABLE IF NOT EXISTS default_pages_registry (
 				space_id INT,
 				namespace TEXT,
-				name TEXT,
-				PRIMARY KEY (space_id, namespace, name)
+				name TEXT
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableDefaultFilesRegistry(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS default_files_registry (
+				space_id INT,
+				name TEXT
 			);'
 		);
 	}
@@ -5291,7 +5489,7 @@ class WorkspaceDB {
 		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'
 	): bool {
 		$transaction = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO default_pages_registry (
+			'INSERT INTO default_pages_registry (
 				space_id,
 				namespace,
 				name
@@ -5309,14 +5507,79 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * Get all registered default pages for a given space ID.
+	 * Register default files used for creating new pages in spaces.
 	 *
 	 * @param int $spaceId
+	 * @param string $defaultFileName
+	 * @return bool
+	 */
+	public function registerDefaultFile(
+		int $spaceId, string $defaultFileName
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO default_files_registry (
+				space_id,
+				name
+			) VALUES (
+				:space_id,
+				:name
+			)'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':name', $defaultFileName, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Get registered default pages for a given space ID grouped by namespace.
+	 *
+	 * @param int $spaceId
+	 * @param string $namespace Use '*' to return all namespaces.
 	 * @return array
 	 */
-	public function getRegisteredDefaultPagesForSpace( int $spaceId ): array {
+	public function getRegisteredDefaultPagesForSpaceId( int $spaceId, string $namespace = '*' ): array {
+		if ( $namespace === '*' ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT DISTINCT namespace, name FROM default_pages_registry
+					WHERE space_id = :space_id
+					ORDER BY namespace, name'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT DISTINCT namespace, name FROM default_pages_registry
+					WHERE space_id = :space_id AND namespace = :namespace
+					ORDER BY name'
+			);
+			$transaction->bindValue( ':namespace', $namespace, SQLITE3_TEXT );
+		}
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		$rows = $this->fetchDbArray( $result );
+		$defaultPages = [];
+		foreach ( $rows as $row ) {
+			$pageNamespace = $row['namespace'];
+			$defaultPages[$pageNamespace][] = $row['name'];
+		}
+
+		return $defaultPages;
+	}
+
+	/**
+	 * Get registered default files for a given space ID and namespace.
+	 *
+	 * @param int $spaceId
+	 * @return string[]
+	 */
+	public function getRegisteredDefaultFilesForSpaceId( int $spaceId ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT namespace, name FROM default_pages_registry WHERE space_id = :space_id'
+			'SELECT DISTINCT name FROM default_files_registry
+				WHERE space_id = :space_id'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 
@@ -5325,6 +5588,12 @@ class WorkspaceDB {
 			return [];
 		}
 
-		return $this->fetchDbArray( $result );
+		$rows = $this->fetchDbArray( $result );
+		$defaultFiles = [];
+		foreach ( $rows as $row ) {
+			$defaultFiles[] = $row['name'];
+		}
+
+		return $defaultFiles;
 	}
 }

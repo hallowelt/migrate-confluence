@@ -1,0 +1,3 @@
+This is {{RegTM|id = reg1|class = brand|body = Product Name}} software.
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

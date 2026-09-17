@@ -10,6 +10,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
  */
 class DrawioMacroChainTest extends MacroChainTestBase {
 
+	private ?string $clearDir = null;
+
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro::process
 	 * @return void
@@ -30,6 +32,10 @@ class DrawioMacroChainTest extends MacroChainTestBase {
 			$actual = $this->runChainWithProcessor( $this->createProcessor(), $inputXml );
 			$this->assertSame( $expected, $actual, "Mismatch for fixture $inputFixture" );
 		}
+
+		if ( $this->clearDir !== null && is_dir( $this->clearDir ) ) {
+			rmdir( $this->clearDir );
+		}
 	}
 
 	/**
@@ -43,10 +49,17 @@ class DrawioMacroChainTest extends MacroChainTestBase {
 		$writerPath = $tmpBase . '/macro-chain-writer';
 		if ( !is_dir( $writerPath ) ) {
 			mkdir( $writerPath, 0755, true );
+			$this->clearDir = $writerPath;
 		}
 		$conversionDataWriter = new \HalloWelt\MigrateConfluence\Utility\ConversionDataWriter( $writerPath );
 
-		return new DrawioMacro( $dataLookup, $conversionDataWriter, 42, 'SomePage' );
+		return new DrawioMacro(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			$conversionDataWriter,
+			42,
+			'SomePage'
+		);
 	}
 
 }

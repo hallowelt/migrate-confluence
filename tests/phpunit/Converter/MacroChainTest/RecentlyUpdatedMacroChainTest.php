@@ -36,7 +36,7 @@ class RecentlyUpdatedMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new RecentlyUpdatedMacro( 'SomePage' );
+		return new RecentlyUpdatedMacro( $this->createConverterDataWriter(), 1, 'SomePage' );
 	}
 
 }

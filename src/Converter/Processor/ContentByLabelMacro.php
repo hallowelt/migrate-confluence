@@ -3,14 +3,21 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\CQLParser\DplCQLParser;
 
 class ContentByLabelMacro extends StructuredMacroProcessorBase {
 
 	/**
+	 * @param IConverterDataWriter $writer
+	 * @param int $spaceId
 	 * @param string $currentWikiTitle
 	 */
-	public function __construct( private string $currentWikiTitle ) {
+	public function __construct(
+		private IConverterDataWriter $writer,
+		private int $spaceId,
+		private string $currentWikiTitle
+	) {
 	}
 
 	/**
@@ -94,6 +101,11 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 		}
 
 		$node->parentNode->replaceChild( $textNode, $node );
+
+		$this->writer->registerDefaultPage(
+			$this->spaceId,
+			'ContentByLabel'
+		);
 	}
 
 	/**
