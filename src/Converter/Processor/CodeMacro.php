@@ -32,17 +32,25 @@ class CodeMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder
 	 * @inheritDoc
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
-		$macroReplacement = $node->ownerDocument->createElement( 'syntaxhighlight' );
+		$replacementElement = $node->ownerDocument->createElement( 'syntaxhighlight' );
+		$replacementElement->appendChild(
+			$replacementElement->ownerDocument->createTextNode( '###CONTENT###' )
+		);
 
-		$this->processParamElements( $node, $macroReplacement );
-		$brokenCat = $this->processPlainTextBody( $node, $macroReplacement ) ?
+		$this->processParamElements( $node, $replacementElement );
+		/* HTML in syntaxhighlight must not be quoted, therefore we must embed any text verbatim */
+		$plainTextContent = $this->processPlainTextBody( $node );
+		$replacementSource = str_replace(
+			'###CONTENT###',
+			$plainTextContent,
+			$replacementElement->ownerDocument->saveXML( $replacementElement, LIBXML_NOEMPTYTAG ) );
+		$replacementSource .= $plainTextContent !== '' ?
 			'' :
 			'[[Category:Broken_macro/code/empty]]';
 
-		$macroReplacement = $node->ownerDocument->createTextNode(
-			$this->placeholderManager->getPlaceholder(
-			$macroReplacement->ownerDocument->saveXML( $macroReplacement ) . $brokenCat ) );
-		$node->parentNode->replaceChild( $macroReplacement, $node );
+		$node->parentNode->replaceChild( $node->ownerDocument->createTextNode(
+			$this->placeholderManager->getPlaceholder( $replacementSource ) ),
+			$node );
 	}
 
 	/**
@@ -81,19 +89,15 @@ class CodeMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder
 
 	/**
 	 * @param DOMElement $node
-	 * @param DOMElement $replacementNode
-	 * @return bool if there was any content in the element
+	 * @return string the content
 	 */
-	private function processPlainTextBody( DOMElement $node, DOMElement $replacementNode ): bool {
-		$hasPlaintextEls = false;
+	private function processPlainTextBody( DOMElement $node ): string {
+		$content = '';
 		$plaintextEls = $node->getElementsByTagName( 'plain-text-body' );
 		foreach ( $plaintextEls as $plaintextEl ) {
-			$replacementNode->appendChild(
-				$this->createTextNode( $replacementNode->ownerDocument, $plaintextEl->nodeValue, __METHOD__ )
-			);
-			$hasPlaintextEls = true;
+			$content .= $plaintextEl->nodeValue;
 		}
 
-		return $hasPlaintextEls;
+		return $content;
 	}
 }
