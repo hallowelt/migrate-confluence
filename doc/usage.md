@@ -78,6 +78,15 @@ above.
 To fine-tune the migration result for different MediaWiki flavors the tool supports so-called
 output profiles. See [Output Profiles](./output_profiles.md) for a description.
 
+## Author Info
+
+The tool will usually not migrate author infos, with the exception of comments.
+Every page and blog post will be owned by the special user `Imported>Unknown user`.
+
+If you want to retain the author information, you can provide settings to the
+tool. There are some caveats, though.
+See [Add Revision Author Info](./how_to_add_author_info.md) for details.
+
 ## Parallel convert
 
 For large Confluence spaces the `convert` step can be slow. You can speed it up by running multiple worker processes in parallel using the `--workers` option.

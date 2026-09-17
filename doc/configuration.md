@@ -34,6 +34,8 @@ config:
     ns-talk-prefix: Talk
     create-sidebar: true
     profile: mediawiki
+    csv-delimiter: ","
+    add-userinfo: false
 ```
 
 ### `mainpage`
@@ -166,6 +168,15 @@ See [`doc/output_profiles.md`](./output_profiles.md) for details.
 
 Change the CSV delimiter character for CSV files read by the tool. The default
 is the comma as used as default by Excel.
+
+### `add-userinfo`
+
+* Type: bool
+* Default: `false`
+
+Add the author information to migrated data. There are some things to consider,
+if you want to enable this feature.
+See [Add Revision Author Info](./how_to_add_author_info.md) for details.
 
 ## Wikis-config CSV file (`--wikis`)
 
