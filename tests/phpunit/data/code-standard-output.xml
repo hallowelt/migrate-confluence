@@ -2,4 +2,5 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 	<h6>The menu</h6>convert:placeholder=0
 	<h6>JSON test</h6>convert:placeholder=1
+	<h6>HTML test</h6>convert:placeholder=2
 </xml>

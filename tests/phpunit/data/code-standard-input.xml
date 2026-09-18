@@ -19,4 +19,12 @@
 		}]]>
 		</ac:plain-text-body>
 	</ac:structured-macro>
+	<ac:structured-macro ac:name="code" ac:schema-version="1" ac:macro-id="12346">
+		<ac:parameter ac:name="language">html</ac:parameter>
+		<ac:parameter ac:name="title">HTML test</ac:parameter>
+		<ac:plain-text-body>
+			<![CDATA[<p class="important-message">This is HTML that should<br>
+<strong>not</strong> be quoted!</p>]]>
+		</ac:plain-text-body>
+	</ac:structured-macro>
 </xml>

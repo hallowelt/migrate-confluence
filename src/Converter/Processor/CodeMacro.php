@@ -46,7 +46,7 @@ class CodeMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder
 			$replacementElement->ownerDocument->saveXML( $replacementElement, LIBXML_NOEMPTYTAG ) );
 		$replacementSource .= $plainTextContent !== '' ?
 			'' :
-			'[[Category:Broken_macro/code/empty]]';
+			$this->getCategoryBrokenMacro( 'code/empty' );
 
 		$node->parentNode->replaceChild( $node->ownerDocument->createTextNode(
 			$this->placeholderManager->getPlaceholder( $replacementSource ) ),
