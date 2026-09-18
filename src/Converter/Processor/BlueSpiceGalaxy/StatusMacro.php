@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Converter\Processor\BluespiceGalaxy;
+namespace HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy;
 
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroProcessorBase;
