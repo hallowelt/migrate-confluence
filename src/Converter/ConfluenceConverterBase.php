@@ -312,13 +312,13 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				) ?? '';
 			}
 
-			if ( $this->contentType !== 'pageTemplate' && $this->pageId === -1 ) {
+			if ( $this->contentType !== 'pageTemplate' && $this->pageId === null ) {
 				$this->addNonBlockingLogEntry(
-					"No context page id found for bodyContentId $bodyContentId",
+					"No context content id found for bodyContentId $bodyContentId",
 					'error'
 				);
 
-				return '<-- No context page id found -->';
+				return '<-- No context content id found -->';
 			}
 
 			if ( $this->currentSpace === null ) {

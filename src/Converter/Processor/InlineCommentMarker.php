@@ -85,6 +85,11 @@ class InlineCommentMarker extends ConversionHelper implements IProcessor {
 
 			$replacement .= '}}';
 
+			$this->writer->registerDefaultPage(
+				$this->currentSpaceId,
+				'InlineComment'
+			);
+
 			$macroNode->parentNode->replaceChild(
 				$this->createTextNode(
 					$macroNode->ownerDocument,

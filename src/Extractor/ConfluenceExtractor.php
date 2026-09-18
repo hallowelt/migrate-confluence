@@ -127,7 +127,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		$this->buckets->loadFromWorkspace( $this->workspace );
 
 		// preparation
-		$preprocessors = $this->getPreprocessors( $writer );
+		$preprocessors = $this->getPreProcessors( $writer );
 		foreach ( $preprocessors as $processor ) {
 			if ( $this->output ) {
 				$processor->setOutput( $this->output );
@@ -135,14 +135,18 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			$processor->execute();
 		}
 
-		// Perform validity checks
-		$this->checkTitles();
-
-		// extraction
 		$processors = $this->getProcessors( $writer );
 		foreach ( $processors as $processor ) {
 			$processor->execute();
 		}
+
+		$postprocessors = $this->getPostProcessors( $writer );
+		foreach ( $postprocessors as $postprocessor ) {
+			$postprocessor->execute();
+		}
+
+		// Perform validity checks
+		$this->checkTitles();
 
 		return true;
 	}
@@ -150,7 +154,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	/**
 	 * @return array
 	 */
-	private function getPreprocessors( IExtractorDataWriter $writer ): array {
+	private function getPreProcessors( IExtractorDataWriter $writer ): array {
 		return [
 			new UpdateBodyContentIdsFallback( $this->workspaceDB, $this->dbLog, $writer ),
 			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog, $writer ),
@@ -171,17 +175,26 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	private function getProcessors( IExtractorDataWriter $writer ): array {
 		return [
+			new UpdatePageCommentsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdateBlogPostCommentsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
 			new ExtractSpaceDescriptionBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
 			new ExtractPagesBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
 			new ExtractBlogPostsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
-			new ExtractCommentsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
+
 			new ExtractPageTemplateContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
 			new ExtractPagesMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 			new ExtractBlogPostsMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 			new ExtractAttachmentsMetaData( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 			new BuildAttachmentDescriptions( $this->workspaceDB, $this->dbLog, $writer ),
-			new UpdatePageCommentsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
-			new UpdateBlogPostCommentsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
+		];
+	}
+
+	/**
+	 * @return array
+	 */
+	private function getPostProcessors( IExtractorDataWriter $writer ): array {
+		return [
+			new ExtractCommentsBodyContents( $this->workspaceDB, $this->workspace, $this->dbLog, $writer ),
 		];
 	}
 

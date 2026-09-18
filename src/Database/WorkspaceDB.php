@@ -4811,9 +4811,12 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getCommentsForPages( ?int $spaceId = null ): array {
+		// INNER JOIN page_comments to exclude inline comments, which are not classified as
+		// page-level comments by CommentsHelper/PrepareComments even though their container is a page.
 		if ( $spaceId === null ) {
 			$transaction = $this->cachedPrepare(
 				'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
+				INNER JOIN page_comments pc ON pc.comment_id = c.comment_id
 				LEFT JOIN pages p ON p.page_id = c.container_id
 				 WHERE c.content_class = :content_class
 				 AND c.content_status = :content_status
@@ -4822,6 +4825,7 @@ class WorkspaceDB {
 		} else {
 			$transaction = $this->cachedPrepare(
 				'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
+				INNER JOIN page_comments pc ON pc.comment_id = c.comment_id
 				LEFT JOIN pages p ON p.page_id = c.container_id
 				WHERE c.content_class = :content_class
 				 AND c.content_status = :content_status
@@ -4850,9 +4854,12 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getCommentsForBlogPosts( ?int $spaceId = null ): array {
+		// INNER JOIN blog_post_comments to exclude inline comments, which are not classified as
+		// blog-post-level comments by CommentsHelper/PrepareComments even though their container is a blog post.
 		if ( $spaceId === null ) {
 			$transaction = $this->cachedPrepare(
 				'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
+				INNER JOIN blog_post_comments bpc ON bpc.comment_id = c.comment_id
 				LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
 				WHERE c.content_class = :content_class
 				AND c.content_status = :content_status
@@ -4861,6 +4868,7 @@ class WorkspaceDB {
 		} else {
 			$transaction = $this->cachedPrepare(
 				'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
+				INNER JOIN blog_post_comments bpc ON bpc.comment_id = c.comment_id
 				LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
 				WHERE c.content_class = :content_class
 				AND c.content_status = :content_status

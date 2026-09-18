@@ -34,7 +34,7 @@ class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
 			->willReturn( '/content/raw/101.mraw' );
 
 		$class = 'HalloWelt\\MigrateConfluence\\Extractor\\Processor\\';
-		$class .= 'ExtractSpaceDescriptionBodyContents::doExtractBodyContent';
+		$class .= 'ExtractSpaceDescriptionBodyContents::extractBodyContentIds';
 
 		$dbLog->expects( $this->once() )
 			->method( 'addLogEntry' )
