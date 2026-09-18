@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarker;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 /**
  * @group full
@@ -36,7 +37,15 @@ class InlineCommentMarkerMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new InlineCommentMarker( $this->createConverterDataWriter(), 1 );
+		$dataLookup = $this->createMock( DBConversionDataLookup::class );
+		$dataLookup->method( 'getInlineCommentsForMarkerRef' )->willReturn( [
+			'original_text' => 'with inline comment marker',
+			'comment_text' => 'Some comment',
+			'status' => 'resolved',
+			'children' => [],
+		] );
+
+		return new InlineCommentMarker( $this->createConverterDataWriter(), 1, $dataLookup );
 	}
 
 }

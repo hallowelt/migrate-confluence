@@ -303,7 +303,10 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				) ?? '';
 				$this->wikiPageTitle = $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $this->pageId )
 					?? 'not_current_revision_' . $this->pageId;
-			} elseif ( $this->workspaceDB->commentIdExists( $contentId ) ) {
+			} elseif (
+				$this->workspaceDB->pageCommentIdExists( $contentId ) ||
+				$this->workspaceDB->blogPostCommentIdExists( $contentId )
+			) {
 				$this->contentType = 'comment';
 				$this->pageId = $contentId;
 				$this->currentSpace = $this->dataLookup->getSpaceIdForBodyContentId( $bodyContentId );
@@ -313,13 +316,13 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				) ?? '';
 			}
 
-			if ( $this->contentType !== 'pageTemplate' && $this->pageId === -1 ) {
+			if ( $this->contentType !== 'pageTemplate' && $this->pageId === null ) {
 				$this->addNonBlockingLogEntry(
-					"No context page id found for bodyContentId $bodyContentId",
+					"No context content id found for bodyContentId $bodyContentId",
 					'error'
 				);
 
-				return '<-- No context page id found -->';
+				return '<-- No context content id found -->';
 			}
 
 			if ( $this->currentSpace === null ) {
@@ -412,16 +415,18 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	 */
 	protected function getDefaultProcessors(): array {
 		return [
+			// Inline comment marker has to be the first processor.
+			new InlineCommentMarker(
+				$this->writer,
+				$this->currentSpace,
+				$this->dataLookup
+			),
 			new Layout(),
 			new LayoutSection(),
 			new LayoutCell(),
 			new AnchorMacro(),
 			new Placeholder(
 				$this->placeholderManager
-			),
-			new InlineCommentMarker(
-				$this->writer,
-				$this->currentSpace
 			),
 			new PreserveTimeTag(
 				$this->placeholderManager

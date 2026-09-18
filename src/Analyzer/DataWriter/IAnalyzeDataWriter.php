@@ -180,12 +180,14 @@ interface IAnalyzeDataWriter extends IDataWriter {
 	 * @param string $created
 	 * @param string $modified
 	 * @param array $properties
+	 * @param array $collection
 	 *
 	 * @return bool
 	 */
 	public function addComment(
 		int $commentId, int $containerContentId, string $class, string $contentStatus,
-		string $userKey, array $bodyContentIds, string $created, string $modified, array $properties
+		string $userKey, array $bodyContentIds, string $created, string $modified,
+		array $properties, array $collection
 	): bool;
 
 	/**

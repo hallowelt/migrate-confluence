@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
+use HalloWelt\MigrateConfluence\Utility\CommentsHelper;
+
 /**
  */
 class ExtractCommentsBodyContents extends ExtractSpaceDescriptionBodyContents {
@@ -10,24 +12,21 @@ class ExtractCommentsBodyContents extends ExtractSpaceDescriptionBodyContents {
 	 * @return void
 	 */
 	public function execute(): void {
-		$currentContentIds = [];
-		foreach ( $this->workspaceDB->getCurrentComments() as $comment ) {
-			if ( !isset( $comment['comment_id'] )
-				|| !isset( $comment['content_class'] )
-			) {
-				continue;
-			}
+		$commentsHelper = new CommentsHelper( $this->workspaceDB );
 
-			// Comments composer handles both page-level and blog post comments.
-			if ( !in_array( (string)$comment['content_class'], [ 'Page', 'BlogPost' ], true )
-			) {
-				continue;
-			}
+		// Use each comment's own (fallback-resolved) body_content_ids instead of reverse-looking
+		// them up via body_contents.content_id, which is not always kept in sync for comments.
+		// CommentsHelper already excludes inline comments, keeping only page/blog-post comments.
+		$bodyContentIds = [];
+		foreach ( $commentsHelper->getPageComments() as $comment ) {
+			$bodyContentIds = array_merge( $bodyContentIds, $comment->getBodyContentIds() );
 
-			$currentContentIds[] = (int)$comment['comment_id'];
 		}
 
-		$this->doExtractBodyContent( $currentContentIds );
-	}
+		foreach ( $commentsHelper->getBlogPostComments() as $comment ) {
+			$bodyContentIds = array_merge( $bodyContentIds, $comment->getBodyContentIds() );
+		}
 
+		$this->extractBodyContentIds( $bodyContentIds );
+	}
 }

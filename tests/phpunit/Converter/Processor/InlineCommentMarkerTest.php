@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarker;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class InlineCommentMarkerTest extends ProcessorTestCase {
 
@@ -24,13 +25,32 @@ class InlineCommentMarkerTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new InlineCommentMarker( $this->createConverterDataWriter(), 1 );
+		$processor = new InlineCommentMarker(
+			$this->createConverterDataWriter(),
+			1,
+			$this->createDataLookup()
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
 		$expectedOutput = file_get_contents( "$this->dir/inline-comment-marker-output.xml" );
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
+	}
+
+	/**
+	 * @return DBConversionDataLookup
+	 */
+	private function createDataLookup(): DBConversionDataLookup {
+		$dataLookup = $this->createMock( DBConversionDataLookup::class );
+		$dataLookup->method( 'getInlineCommentsForMarkerRef' )->willReturn( [
+			'original_text' => 'with inline comment marker',
+			'comment_text' => 'Some comment',
+			'status' => 'resolved',
+			'children' => [],
+		] );
+
+		return $dataLookup;
 	}
 
 }

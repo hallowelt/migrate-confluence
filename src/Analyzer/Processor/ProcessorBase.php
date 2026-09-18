@@ -154,7 +154,7 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 			return $collection;
 		}
 
-		$collection[$name] = [];
+		$collection[$elementName] = [];
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
