@@ -17,6 +17,7 @@ use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\CSVParser;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\Sanitizer;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use SplFileInfo;
@@ -247,20 +248,10 @@ class Analyze extends BatchFileProcessorBase {
 						return null;
 					}
 
-					// phpcs:ignore Squiz.PHP.InnerFunctions.NotAllowed
-					function sanitize( string $text ): string {
-						return preg_replace( '#_+#', '_',
-							str_replace(
-								[ ' ', ':', ';', ',', '#', '+', '?', '*', '~', '"', "'" ],
-								'_',
-								trim( $text )
-							) );
-					}
-
 					$record = [
 						'space-key' => trim( $data[0] ?? '' ),
-						'wiki-name' => sanitize( $data[1] ?? '' ),
-						'wiki-namespace' => sanitize( $data[2] ?? '' ),
+						'wiki-name' => Sanitizer::sanitizeWikiName( $data[1] ?? '' ),
+						'wiki-namespace' => Sanitizer::sanitizeNamespace( $data[2] ?? '' ),
 						'wiki-root-page' => trim( $data[3] ?? '' ),
 					];
 					if ( empty( $record['space-key'] ) ) {
