@@ -73,6 +73,17 @@ interface IExtractorDataWriter extends IDataWriter {
 	public function updateBlogPostSpaceId( int $pageId, int $spaceId ): bool;
 
 	/**
+	 * Update the space_id of an attachment. Used as a fallback for older Confluence
+	 * exports where an attachment does not carry its own "space" property.
+	 *
+	 * @param int $attachmentId
+	 * @param int $spaceId
+	 *
+	 * @return bool
+	 */
+	public function updateAttachmentSpaceId( int $attachmentId, int $spaceId ): bool;
+
+	/**
 	 * @param int $pageId
 	 * @param string $wikiTitle
 	 *
