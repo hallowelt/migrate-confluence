@@ -15,4 +15,12 @@
 		}
 		</syntaxhighlight>
 
+<span id="html-test"></span>
+====== HTML test ======
+
+<syntaxhighlight lang="html">
+			<p class="important-message">This is HTML that should<br>
+<strong>not</strong> be quoted!</p>
+		</syntaxhighlight>
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

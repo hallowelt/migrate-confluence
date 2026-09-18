@@ -1,6 +1,6 @@
 <span id="some-sql"></span>
 ====== Some SQL ======
 
-<syntaxhighlight lang="sql" data-collapse="true"/>[[Category:Broken_macro/code/empty]]
+<syntaxhighlight lang="sql" data-collapse="true"></syntaxhighlight>[[Category:Broken_macro/code/empty]]
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
