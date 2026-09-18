@@ -170,7 +170,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		} else {
 			$this->migrationConfig = new MigrationConfig( [] );
 		}
-		$this->placeholderManager = new PlaceholderManager();
 	}
 
 	/**
