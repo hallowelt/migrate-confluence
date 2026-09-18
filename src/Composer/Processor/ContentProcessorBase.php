@@ -112,6 +112,21 @@ abstract class ContentProcessorBase extends ProcessorBase {
 	}
 
 	/**
+	 * Resolve the wiki username to record as revision contributor, or '' if
+	 * the `add-userinfo` setting is disabled or no user key is given.
+	 *
+	 * @param DBComposerDataLookup $dataLookup
+	 * @param string $userKey
+	 * @return string
+	 */
+	protected function resolveRevisionUsername( DBComposerDataLookup $dataLookup, string $userKey ): string {
+		if ( !$this->migrationConfig->getAddUserinfo() || $userKey === '' ) {
+			return '';
+		}
+		return $dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
+	}
+
+	/**
 	 * Build the correct Talk page title respecting namespaces:
 	 * "NS:Page" -> "NS_Talk:Page", plain "Page" -> "Talk:Page"
 	 *

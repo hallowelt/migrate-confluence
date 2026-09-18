@@ -617,6 +617,7 @@ class WorkspaceDB {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS users (
 				user_key CHAR PRIMARY KEY,
+				confluence_username CHAR,
 				wiki_user_name CHAR,
 				email CHAR,
 				properties BLOB
@@ -2020,7 +2021,11 @@ class WorkspaceDB {
 	 */
 	public function getMapSpaceIdToPrefix(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT space_id, namespace_prefix, root_page FROM spaces'
+			'SELECT s.space_id,
+				COALESCE( wc.wiki_namespace, s.namespace_prefix ) AS namespace_prefix,
+				COALESCE( wc.wiki_root_page, s.root_page ) AS root_page
+			FROM spaces s
+			LEFT JOIN wikis_config wc ON wc.space_key = s.space_key'
 		);
 
 		$result = $transaction->execute();
@@ -2895,7 +2900,7 @@ class WorkspaceDB {
 	 */
 	public function getPageRevisionsForPageId( int $pageId ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT revision_timestamp, version, body_content_ids FROM pages
+			'SELECT revision_timestamp, version, body_content_ids, last_modifier FROM pages
 			WHERE ( page_id = :page_id OR original_version_id = :page_id )
 			AND content_status = :content_status
 			ORDER BY revision_timestamp ASC'
@@ -3205,7 +3210,7 @@ class WorkspaceDB {
 	 */
 	public function getBlogPostRevisionsForBlogPostId( int $blogPostId ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT revision_timestamp, version, body_content_ids FROM blog_posts
+			'SELECT revision_timestamp, version, body_content_ids, last_modifier FROM blog_posts
 			WHERE page_id = :page_id OR original_version_id = :page_id
 			ORDER BY revision_timestamp ASC'
 		);
@@ -4251,34 +4256,52 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Inserts a user row, or updates an existing one (e.g. pre-populated from
+	 * a --usermap CSV file). The `wiki_user_name` of an existing row is kept
+	 * as-is; `email` and `properties` are always updated to the given values.
+	 *
 	 * @param string $userKey
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
+	 * @param string $confluenceUsername
 	 * @return bool
 	 */
 	public function addUser(
 		string $userKey,
 		string $wikiUsername,
 		string $email,
-		array $properties
+		array $properties,
+		string $confluenceUsername = ''
 	): bool {
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO users (
+			'INSERT INTO users (
 				user_key,
+				confluence_username,
 				wiki_user_name,
 				email,
 				properties
 			) VALUES (
 				:user_key,
+				:confluence_username,
 				:wiki_user_name,
 				:email,
 				:properties
-			)'
+			)
+			ON CONFLICT( user_key ) DO UPDATE SET
+				confluence_username = excluded.confluence_username,
+				wiki_user_name = CASE
+					WHEN users.wiki_user_name IS NOT NULL AND users.wiki_user_name != \'\'
+					THEN users.wiki_user_name
+					ELSE excluded.wiki_user_name
+				END,
+				email = excluded.email,
+				properties = excluded.properties'
 		);
 
 		$transaction->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_username', $confluenceUsername, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_user_name', $wikiUsername, SQLITE3_TEXT );
 		$transaction->bindValue( ':email', $email, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );

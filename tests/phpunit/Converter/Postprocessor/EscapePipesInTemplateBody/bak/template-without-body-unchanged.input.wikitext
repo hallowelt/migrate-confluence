@@ -1,0 +1,1 @@
+{{SomeTemplate###BREAK###|param = value###BREAK###}}

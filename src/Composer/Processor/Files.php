@@ -154,10 +154,12 @@ class Files extends FileProcessorBase {
 					continue;
 				}
 
+				$doHardLinks = true;
 				$testFilePath = $this->dest . '/images/' . $filename;
 				if ( file_exists( $testFilePath ) ) {
 					$this->output->writeln( "Attachment file override detected. Using override!" );
 					$filePath = $testFilePath;
+					$doHardLinks = false;
 				} elseif ( file_exists( $filePath ) ) {
 					$this->output->writeln( "Upload attachment file." );
 				} else {
@@ -165,9 +167,10 @@ class Files extends FileProcessorBase {
 					continue;
 				}
 
-				$attachmentContent = file_get_contents( $filePath );
-				$uploadFilePath = $this->workspace->saveUploadFile(
-					"$timestamp-$filename", $attachmentContent, $uploadPath
+				$uploadFilePath = $this->workspace->copyFile(
+					$filePath,
+					"$uploadPath/$timestamp-$filename",
+					$doHardLinks
 				);
 
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
@@ -246,11 +249,13 @@ class Files extends FileProcessorBase {
 						continue;
 					}
 
+					$doHardLinks = true;
 					// Check for temporary files created by converter (e.g. a drawio file)
 					$testFilePath = $this->dest . '/images/' . $filename;
 					if ( file_exists( $testFilePath ) ) {
 						$this->output->writeln( "Attachment file override detected. Using override!" );
 						$filePath = $testFilePath;
+						$doHardLinks = false;
 					} elseif ( file_exists( $filePath ) ) {
 						$this->output->writeln( "Upload attachment file." );
 					} else {
@@ -258,9 +263,10 @@ class Files extends FileProcessorBase {
 						continue;
 					}
 
-					$attachmentContent = file_get_contents( $filePath );
-					$uploadFilePath = $this->workspace->saveUploadFile(
-						$filename, $attachmentContent, $uploadPath
+					$uploadFilePath = $this->workspace->copyFile(
+						$filePath,
+						"$uploadPath/$filename",
+						$doHardLinks
 					);
 
 					$timestamp = $attachment['revision_timestamp'];

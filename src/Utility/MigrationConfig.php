@@ -32,27 +32,6 @@ class MigrationConfig {
 	/**
 	 * @return array
 	 */
-	public function getSpaceKeyToPrefixMap(): array {
-		return $this->get( 'space-prefix', [] );
-	}
-
-	/**
-	 * @param string $spaceKey
-	 * @return string|null
-	 */
-	public function getPrefixFromSpaceKeyToPrefixMap( string $spaceKey ): ?string {
-		$data = $this->getSpaceKeyToPrefixMap();
-
-		if ( !isset( $data[$spaceKey] ) ) {
-			return null;
-		}
-
-		return $data[$spaceKey];
-	}
-
-	/**
-	 * @return array
-	 */
 	public function getCategories(): array {
 		return $this->get( 'categories', [] );
 	}
@@ -107,9 +86,23 @@ class MigrationConfig {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function getAddUserinfo(): bool {
+		return $this->get( 'add-userinfo', false );
+	}
+
+	/**
 	 * @return string
 	 */
 	public function getProfile(): string {
 		return strtolower( $this->get( 'profile', 'bluespice-galaxy' ) );
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getCSVSeparator(): string {
+		return $this->get( 'csv-separator', ',' );
 	}
 }

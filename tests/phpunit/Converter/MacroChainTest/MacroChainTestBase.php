@@ -21,6 +21,7 @@ use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use PHPUnit\Framework\TestCase;
 
@@ -104,6 +105,7 @@ abstract class MacroChainTestBase extends TestCase {
 	protected function applyConfluenceFinalReplacements( string $wikiText ): string {
 		$wikiText = str_replace( "\r", '', $wikiText );
 		$wikiText = str_replace( '###BREAK###', "\n", $wikiText );
+		$wikiText = HtmlCommentMarkerResolver::resolve( $wikiText );
 		$wikiText = str_replace( "\n {{", "\n{{", $wikiText );
 		$wikiText = str_replace( "\n }}", "\n}}", $wikiText );
 		$wikiText = str_replace( "\n- ", "\n* ", $wikiText );

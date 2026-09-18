@@ -102,10 +102,16 @@ class Pages extends ContentProcessorBase {
 					);
 				}
 
+				$username = $this->resolveRevisionUsername(
+					$this->dataLookup,
+					(string)( $revision['last_modifier'] ?? '' )
+				);
+
 				$this->addRevision(
 					$pageTitle,
 					$pageContent,
-					$timestamp
+					$timestamp,
+					$username
 				);
 			}
 

@@ -42,6 +42,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\DrawioSketchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
@@ -49,6 +50,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
+use HalloWelt\MigrateConfluence\Converter\Processor\IncDrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarker;
@@ -93,6 +95,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
@@ -511,6 +514,20 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->currentSpace,
 				$this->confluencePageTitle
 			),
+			new DrawioSketchMacro(
+				$this->writer,
+				$this->dataLookup,
+				$this->conversionDataWriter,
+				$this->currentSpace,
+				$this->confluencePageTitle
+			),
+			new IncDrawioMacro(
+				$this->writer,
+				$this->dataLookup,
+				$this->conversionDataWriter,
+				$this->currentSpace,
+				$this->confluencePageTitle
+			),
 			new GliffyMacro(
 				$this->dataLookup,
 				$this->currentSpace,
@@ -875,6 +892,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		// On Windows the CR would be encoded as "&#xD;" in the MediaWiki-XML, which is ulgy and unnecessary
 		$this->wikiText = str_replace( "\r", '', $this->wikiText );
 		$this->wikiText = str_replace( "###BREAK###", "\n", $this->wikiText );
+		$this->wikiText = HtmlCommentMarkerResolver::resolve( $this->wikiText );
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
 		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
