@@ -58,8 +58,8 @@ class CSVParser {
 		$rowNumber = -1;
 		foreach ( $file as $data ) {
 			$rowNumber++;
-			if ( !count( $data ) || str_starts_with( trim( $data[0] ?? '' ), '#' ) ) {
-				// Skip empty lines and comments
+			if ( !count( $data ) || $data === [ null ] || str_starts_with( trim( $data[0] ?? '' ), '#' ) ) {
+				// Skip empty lines (including an empty row following a trailing newline) and comments
 				continue;
 			}
 			$mapping = ( $this->recordHandler )( $data, $rowNumber );
