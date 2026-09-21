@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\SpaceFilter;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use XMLReader;
 
@@ -11,6 +12,7 @@ class Spaces extends ProcessorBase {
 	public function __construct(
 		private IAnalyzeDataWriter $writer,
 		private readonly WikisConfig $wikis,
+		private readonly ?SpaceFilter $spaceFilter = null,
 	) {
 	}
 
@@ -45,6 +47,10 @@ class Spaces extends ProcessorBase {
 	 */
 	private function process( int $spaceId, array $properties ): void {
 		if ( $spaceId === -1 ) {
+			return;
+		}
+
+		if ( $this->spaceFilter !== null && !$this->spaceFilter->isSpaceAllowed( 'Space', $spaceId, $spaceId ) ) {
 			return;
 		}
 

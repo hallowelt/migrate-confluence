@@ -105,4 +105,11 @@ class MigrationConfig {
 	public function getCSVSeparator(): string {
 		return $this->get( 'csv-separator', ',' );
 	}
+
+	/**
+	 * @return bool
+	 */
+	public function getFilterForeignSpaceData(): bool {
+		return $this->get( 'filter-foreign-space-data', false );
+	}
 }

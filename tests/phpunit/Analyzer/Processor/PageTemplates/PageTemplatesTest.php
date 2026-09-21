@@ -22,8 +22,7 @@ class PageTemplatesTest extends TestCase {
 		$this->workspaceDB->addSpace( 10, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 
 		$processor = new PageTemplates(
-			new AnalyzerDirectDataWriter( $this->workspaceDB ),
-			$this->workspaceDB
+			new AnalyzerDirectDataWriter( $this->workspaceDB )
 		);
 		$this->executeProcessorForClass( $processor, __DIR__ . '/page_template.xml', 'PageTemplate' );
 

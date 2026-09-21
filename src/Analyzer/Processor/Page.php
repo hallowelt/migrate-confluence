@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\SpaceFilter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
 
@@ -11,10 +12,12 @@ class Page extends ProcessorBase {
 	/**
 	 * @param IAnalyzeDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
+	 * @param SpaceFilter|null $spaceFilter
 	 */
 	public function __construct(
 		private IAnalyzeDataWriter $writer,
-		private MigrationConfig $migrationConfig
+		private MigrationConfig $migrationConfig,
+		private readonly ?SpaceFilter $spaceFilter = null
 	) {
 	}
 
@@ -50,6 +53,10 @@ class Page extends ProcessorBase {
 		$spaceId = null;
 		if ( isset( $properties['space'] ) ) {
 			$spaceId = (int)$properties['space'];
+		}
+
+		if ( $this->spaceFilter !== null && !$this->spaceFilter->isSpaceAllowed( 'Page', $pageId, $spaceId ) ) {
+			return;
 		}
 
 		$originalVersionId = -1;

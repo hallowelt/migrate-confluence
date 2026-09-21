@@ -69,12 +69,18 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 		$this->output->writeln( "\nProcessing: $sourcePath" );
 		$this->output->writeln( "\nAnalyze data:" );
 
-		$processors = $this->getProcessors( $file->getPath() );
-
 		$this->writer->beginTransaction();
 		try {
-			$this->processExportDescriptor( $file );
+			$expectedSpaceKey = $this->processExportDescriptor( $file );
+
+			$spaceFilter = null;
+			if ( $this->config->getFilterForeignSpaceData() ) {
+				$spaceFilter = $this->buildSpaceFilter( $file, $expectedSpaceKey );
+			}
+
+			$processors = $this->getProcessors( $file->getPath(), $spaceFilter );
 			$this->processFile( $sourcePath, $processors );
+			$spaceFilter?->writeSummary();
 			$this->writer->commitTransaction();
 		} catch ( \Throwable $e ) {
 			$this->writer->rollbackTransaction();
@@ -86,12 +92,12 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 
 	/**
 	 * @param SplFileInfo $entitiesFile
-	 * @return void
+	 * @return string The expected spaceKey from exportDescriptor.properties, or '' if absent
 	 */
-	private function processExportDescriptor( SplFileInfo $entitiesFile ): void {
+	private function processExportDescriptor( SplFileInfo $entitiesFile ): string {
 		$descriptorPath = $entitiesFile->getPath() . '/exportDescriptor.properties';
 		if ( !file_exists( $descriptorPath ) ) {
-			return;
+			return '';
 		}
 
 		$props = [];
@@ -114,27 +120,128 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			$props['timezoneId'] ?? '',
 			basename( $entitiesFile->getPath() ) . '/' . $entitiesFile->getFilename()
 		);
+
+		return $props['spaceKey'] ?? '';
+	}
+
+	/**
+	 * Runs SpaceFilterPrescanProcessor over entities.xml and turns its result
+	 * into a configured SpaceFilter. Only called when `filter-foreign-space-data`
+	 * is enabled. See doc/configuration.md.
+	 *
+	 * Returns null (no filtering, matching the disabled default) if the expected
+	 * space cannot be determined - never a SpaceFilter with an empty allow-list,
+	 * which would deny every space instead of passing everything through.
+	 *
+	 * @param SplFileInfo $entitiesFile
+	 * @param string $expectedSpaceKey
+	 * @return SpaceFilter|null
+	 */
+	private function buildSpaceFilter( SplFileInfo $entitiesFile, string $expectedSpaceKey ): ?SpaceFilter {
+		if ( trim( $expectedSpaceKey ) === '' ) {
+			$this->writer->addLogEntry(
+				'serious-error',
+				'analyze',
+				__CLASS__,
+				'filter-foreign-space-data is enabled, but exportDescriptor.properties has no spaceKey.'
+					. ' Foreign-space filtering is skipped for this file.'
+			);
+			return null;
+		}
+
+		$scanner = new SpaceFilterPrescanProcessor();
+		$scanner->setOutput( $this->output );
+		$scanner->setLogger( $this->logger );
+
+		$xmlReader = new XMLReader();
+		$xmlReader->open( $entitiesFile->getPathname() );
+		$read = $xmlReader->read();
+		while ( $read ) {
+			if ( $xmlReader->name !== 'object' ) {
+				$read = $xmlReader->read();
+				continue;
+			}
+			$scanner->execute( $xmlReader );
+			$read = $xmlReader->next();
+		}
+		$xmlReader->close();
+
+		$allowedSpaceIds = [];
+		foreach ( $scanner->getSpaceKeys() as $spaceId => $spaceKey ) {
+			if ( $spaceKey === $expectedSpaceKey ) {
+				$allowedSpaceIds[$spaceId] = true;
+			}
+		}
+
+		if ( $allowedSpaceIds === [] ) {
+			$this->writer->addLogEntry(
+				'serious-error',
+				'analyze',
+				__CLASS__,
+				"filter-foreign-space-data is enabled, but no Space object in entities.xml matches the expected"
+					. " spaceKey '$expectedSpaceKey' from exportDescriptor.properties."
+					. ' Foreign-space filtering is skipped for this file to avoid discarding everything.'
+			);
+			return null;
+		}
+
+		$contentSpaceMap = $scanner->getDirectSpaceOwners();
+
+		// Resolve (possibly nested) Comment -> containerContent chains against the
+		// already-known content owners. Bounded: comment reply nesting is never deep.
+		$commentParents = $scanner->getCommentParents();
+		for ( $i = 0; $i < 10; $i++ ) {
+			$changed = false;
+			foreach ( $commentParents as $commentId => $parentId ) {
+				if ( isset( $contentSpaceMap[$commentId] ) ) {
+					continue;
+				}
+				if ( isset( $contentSpaceMap[$parentId] ) ) {
+					$contentSpaceMap[$commentId] = $contentSpaceMap[$parentId];
+					$changed = true;
+				}
+			}
+			if ( !$changed ) {
+				break;
+			}
+		}
+
+		$labellingSpaceMap = [];
+		foreach ( $scanner->getLabellingsOf() as $contentId => $labellingIds ) {
+			if ( !isset( $contentSpaceMap[$contentId] ) ) {
+				continue;
+			}
+			foreach ( $labellingIds as $labellingId ) {
+				$labellingSpaceMap[$labellingId] = $contentSpaceMap[$contentId];
+			}
+		}
+
+		$spaceFilter = new SpaceFilter( $this->writer, $this->output );
+		$spaceFilter->configure( $allowedSpaceIds, $contentSpaceMap, $labellingSpaceMap );
+
+		return $spaceFilter;
 	}
 
 	/**
 	 * @param string $sourceBasePath
+	 * @param SpaceFilter|null $spaceFilter
 	 *
 	 * @return array
 	 */
-	private function getProcessors( string $sourceBasePath ): array {
+	private function getProcessors( string $sourceBasePath, ?SpaceFilter $spaceFilter = null ): array {
 		return [
-			'BodyContent' => new BodyContents( $this->writer ),
-			'Space' => new Spaces( $this->writer, $this->wikis ),
-			'SpaceDescription' => new SpaceDescription( $this->writer, $this->config ),
-			'Page' => new Page( $this->writer, $this->config ),
-			'BlogPost' => new BlogPost( $this->writer, $this->config ),
-			'Attachment' => new Attachments( $this->writer, $this->config, $sourceBasePath ),
-			'Comment' => new Comments( $this->writer ),
+			'BodyContent' => new BodyContents( $this->writer, $spaceFilter ),
+			'Space' => new Spaces( $this->writer, $this->wikis, $spaceFilter ),
+			'SpaceDescription' => new SpaceDescription( $this->writer, $this->config, $spaceFilter ),
+			'Page' => new Page( $this->writer, $this->config, $spaceFilter ),
+			'BlogPost' => new BlogPost( $this->writer, $this->config, $spaceFilter ),
+			'Attachment' => new Attachments( $this->writer, $this->config, $sourceBasePath, $spaceFilter ),
+			'Comment' => new Comments( $this->writer, $spaceFilter ),
 			'Label' => new Label( $this->writer ),
-			'Labelling' => new Labelling( $this->writer ),
-			'ContentProperty' => new ContentProperty( $this->writer ),
+			'Labelling' => new Labelling( $this->writer, $spaceFilter ),
+			'ContentProperty' => new ContentProperty( $this->writer, $spaceFilter ),
 			'ConfluenceUserImpl' => new Users( $this->writer ),
-			'PageTemplate' => new PageTemplates( $this->writer ),
+			'PageTemplate' => new PageTemplates( $this->writer, $spaceFilter ),
 		];
 	}
 

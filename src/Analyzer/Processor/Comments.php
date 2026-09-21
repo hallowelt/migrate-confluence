@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\SpaceFilter;
 use XMLReader;
 
 /**
@@ -14,9 +15,11 @@ class Comments extends ProcessorBase {
 
 	/**
 	 * @param IAnalyzeDataWriter $writer
+	 * @param SpaceFilter|null $spaceFilter
 	 */
 	public function __construct(
-		private IAnalyzeDataWriter $writer
+		private IAnalyzeDataWriter $writer,
+		private readonly ?SpaceFilter $spaceFilter = null
 	) {
 	}
 
@@ -60,6 +63,13 @@ class Comments extends ProcessorBase {
 		// Only handle page-level comments (containerContent must be a Page)
 		$containerContentId = isset( $properties['containerContent'] ) ? (int)$properties['containerContent'] : null;
 		if ( $containerContentId === null ) {
+			return;
+		}
+
+		if (
+			$this->spaceFilter !== null &&
+			!$this->spaceFilter->isContentAllowed( 'Comment', $commentId, $containerContentId )
+		) {
 			return;
 		}
 

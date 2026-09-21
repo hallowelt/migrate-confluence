@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\SpaceFilter;
 use XMLReader;
 
 /**
@@ -14,9 +15,11 @@ class ContentProperty extends ProcessorBase {
 
 	/**
 	 * @param IAnalyzeDataWriter $writer
+	 * @param SpaceFilter|null $spaceFilter
 	 */
 	public function __construct(
-		private IAnalyzeDataWriter $writer
+		private IAnalyzeDataWriter $writer,
+		private readonly ?SpaceFilter $spaceFilter = null
 	) {
 	}
 
@@ -46,6 +49,14 @@ class ContentProperty extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 		$propName = $properties['name'] ?? null;
+
+		$contentId = isset( $properties['content'] ) ? (int)trim( (string)$properties['content'] ) : null;
+		if (
+			$this->spaceFilter !== null &&
+			!$this->spaceFilter->isContentAllowed( 'ContentProperty', $propertyId, $contentId )
+		) {
+			return;
+		}
 
 		$status = $this->writer->addContentProperty(
 			$propertyId,

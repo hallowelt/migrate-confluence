@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\SpaceFilter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
 use XMLReader;
@@ -13,11 +14,13 @@ class Attachments extends ProcessorBase {
 	 * @param IAnalyzeDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 * @param string $sourceBasePath
+	 * @param SpaceFilter|null $spaceFilter
 	 */
 	public function __construct(
 		private IAnalyzeDataWriter $writer,
 		private MigrationConfig $migrationConfig,
-		private string $sourceBasePath
+		private string $sourceBasePath,
+		private readonly ?SpaceFilter $spaceFilter = null
 	) {
 	}
 
@@ -85,6 +88,13 @@ class Attachments extends ProcessorBase {
 		}
 
 		if ( !$this->migrationConfig->getIncludeHistory() && $originalVersionId > 0 ) {
+			return;
+		}
+
+		if (
+			$this->spaceFilter !== null &&
+			!$this->spaceFilter->isSpaceAllowed( 'Attachment', $attachmentId, $spaceId )
+		) {
 			return;
 		}
 

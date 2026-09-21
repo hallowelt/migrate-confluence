@@ -36,6 +36,7 @@ config:
     profile: mediawiki
     csv-delimiter: ","
     add-userinfo: false
+    filter-foreign-space-data: false
 ```
 
 ### `mainpage`
@@ -177,6 +178,31 @@ is the comma as used as default by Excel.
 Add the author information to migrated data. There are some things to consider,
 if you want to enable this feature.
 See [Add Revision Author Info](./how_to_add_author_info.md) for details.
+
+### `filter-foreign-space-data`
+
+* Type: bool
+* Default: `false`
+
+Confluence Server/Data Center has a known bug where a single-space export's
+`entities.xml` can also contain `Space` objects and content belonging to
+*other* spaces (see [Atlassian KB
+949242294](https://confluence.atlassian.com/confkb/a-space-export-contains-multiple-space-objects-and-fails-when-importing-into-another-confluence-instance-949242294.html)).
+When `true`, `analyze` runs an extra read-only pre-scan of `entities.xml`
+before the normal analysis, determines the intended space from
+`exportDescriptor.properties` (`spaceKey`), and discards every `Space`,
+`Page`, `BlogPost`, `PageTemplate`, `Attachment`, `SpaceDescription` and
+`Comment` object that is confidently identified as belonging to a
+different space. Objects whose space cannot be determined are kept and a
+warning is logged, rather than risking data loss.
+
+Every discarded object is recorded in the workspace DB (`filtered_objects`
+table) with its type, id and detected foreign space id, so the decision is
+traceable.
+
+Leave this `false` (default) if your export is not affected; the pre-scan
+adds a second full read of `entities.xml` and is unnecessary overhead
+otherwise.
 
 ## Wikis-config CSV file (`--wikis`)
 

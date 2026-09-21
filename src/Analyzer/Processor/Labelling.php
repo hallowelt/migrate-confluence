@@ -3,15 +3,18 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\SpaceFilter;
 use XMLReader;
 
 class Labelling extends ProcessorBase {
 
 	/**
 	 * @param IAnalyzeDataWriter $writer
+	 * @param SpaceFilter|null $spaceFilter
 	 */
 	public function __construct(
-		private IAnalyzeDataWriter $writer
+		private IAnalyzeDataWriter $writer,
+		private readonly ?SpaceFilter $spaceFilter = null
 	) {
 	}
 
@@ -37,6 +40,10 @@ class Labelling extends ProcessorBase {
 		}
 
 		if ( !isset( $properties['label'] ) || $properties['label'] === '' ) {
+			return;
+		}
+
+		if ( $this->spaceFilter !== null && !$this->spaceFilter->isLabellingAllowed( $labellingId ) ) {
 			return;
 		}
 

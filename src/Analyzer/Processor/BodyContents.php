@@ -3,15 +3,18 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\SpaceFilter;
 use XMLReader;
 
 class BodyContents extends ProcessorBase {
 
 	/**
 	 * @param IAnalyzeDataWriter $writer
+	 * @param SpaceFilter|null $spaceFilter
 	 */
 	public function __construct(
-		private IAnalyzeDataWriter $writer
+		private IAnalyzeDataWriter $writer,
+		private readonly ?SpaceFilter $spaceFilter = null
 	) {
 	}
 
@@ -45,6 +48,15 @@ class BodyContents extends ProcessorBase {
 			return;
 		}
 
+		$contentId = (int)trim( $properties['content'] );
+
+		if (
+			$this->spaceFilter !== null &&
+			!$this->spaceFilter->isContentAllowed( 'BodyContent', $bodyContentId, $contentId )
+		) {
+			return;
+		}
+
 		// The body will be extracted later as file for pandoc and does not need to be in database.
 		// We store it in a separate table to be able to easily retrieve it for the content transformation and
 		// to keep the main table smaller.
@@ -55,8 +67,6 @@ class BodyContents extends ProcessorBase {
 			);
 			unset( $properties['body'] );
 		}
-
-		$contentId = (int)trim( $properties['content'] );
 
 		$status = $this->writer->addBodyContent(
 			$bodyContentId,

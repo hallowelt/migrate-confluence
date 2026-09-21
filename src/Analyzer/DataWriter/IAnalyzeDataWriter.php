@@ -296,4 +296,15 @@ interface IAnalyzeDataWriter extends IDataWriter {
 		string $confluenceVersion, string $exportDate,
 		string $timezoneId, string $entitiesXmlPath
 	): void;
+
+	/**
+	 * @param string $entityType Object class name, e.g. "Page", "Attachment"
+	 * @param int $entityId The object's own id
+	 * @param int $foreignSpaceId The space id the object was found to belong to
+	 * @param string $reason Short human-readable explanation
+	 * @return void
+	 */
+	public function addFilteredObject(
+		string $entityType, int $entityId, int $foreignSpaceId, string $reason
+	): void;
 }

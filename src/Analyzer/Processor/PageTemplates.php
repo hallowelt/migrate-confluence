@@ -3,14 +3,19 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Analyzer\SpaceFilter;
 use XMLReader;
 
 class PageTemplates extends ProcessorBase {
 
 	/**
 	 * @param IAnalyzeDataWriter $writer
+	 * @param SpaceFilter|null $spaceFilter
 	 */
-	public function __construct( private IAnalyzeDataWriter $writer ) {
+	public function __construct(
+		private IAnalyzeDataWriter $writer,
+		private readonly ?SpaceFilter $spaceFilter = null
+	) {
 	}
 
 	/**
@@ -62,6 +67,13 @@ class PageTemplates extends ProcessorBase {
 
 		$spaceId = isset( $properties['space'] ) ? (int)$properties['space'] : null;
 		if ( $spaceId === null ) {
+			return;
+		}
+
+		if (
+			$this->spaceFilter !== null &&
+			!$this->spaceFilter->isSpaceAllowed( 'PageTemplate', $templateId, $spaceId )
+		) {
 			return;
 		}
 

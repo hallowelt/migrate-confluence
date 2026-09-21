@@ -418,4 +418,17 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 			$entitiesXmlPath
 		);
 	}
+
+	/**
+	 * @param string $entityType
+	 * @param int $entityId
+	 * @param int $foreignSpaceId
+	 * @param string $reason
+	 * @return void
+	 */
+	public function addFilteredObject(
+		string $entityType, int $entityId, int $foreignSpaceId, string $reason
+	): void {
+		$this->db->addFilteredObject( $entityType, $entityId, $foreignSpaceId, $reason );
+	}
 }

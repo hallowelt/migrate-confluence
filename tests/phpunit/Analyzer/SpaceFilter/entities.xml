@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-generic datetime="2020-01-01 00:00:00">
+	<object class="Space" package="com.atlassian.confluence.spaces">
+		<id name="id">1</id>
+		<property name="key"><![CDATA[HR]]></property>
+		<property name="name"><![CDATA[HR]]></property>
+		<property name="description" class="SpaceDescription" package="com.atlassian.confluence.spaces">
+			<id name="id">501</id>
+		</property>
+	</object>
+	<object class="Space" package="com.atlassian.confluence.spaces">
+		<id name="id">2</id>
+		<property name="key"><![CDATA[OTHER]]></property>
+		<property name="name"><![CDATA[Other]]></property>
+		<property name="description" class="SpaceDescription" package="com.atlassian.confluence.spaces">
+			<id name="id">502</id>
+		</property>
+	</object>
+	<object class="SpaceDescription" package="com.atlassian.confluence.spaces">
+		<id name="id">501</id>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<property name="version">1</property>
+		<collection name="labellings" class="java.util.Set"></collection>
+	</object>
+	<object class="SpaceDescription" package="com.atlassian.confluence.spaces">
+		<id name="id">502</id>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<property name="version">1</property>
+		<collection name="labellings" class="java.util.Set"></collection>
+	</object>
+	<object class="Page" package="com.atlassian.confluence.pages">
+		<id name="id">100</id>
+		<property name="title"><![CDATA[HR Page]]></property>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<property name="version">1</property>
+		<property name="space" class="Space" package="com.atlassian.confluence.spaces">
+			<id name="id">1</id>
+		</property>
+		<collection name="bodyContents" class="java.util.Set">
+			<element class="BodyContent" package="com.atlassian.confluence.core">
+				<id name="id">8001</id>
+			</element>
+		</collection>
+		<collection name="labellings" class="java.util.Set">
+			<element class="Labelling" package="com.atlassian.confluence.labels">
+				<id name="id">7001</id>
+			</element>
+		</collection>
+	</object>
+	<object class="Page" package="com.atlassian.confluence.pages">
+		<id name="id">200</id>
+		<property name="title"><![CDATA[Other Page]]></property>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<property name="version">1</property>
+		<property name="space" class="Space" package="com.atlassian.confluence.spaces">
+			<id name="id">2</id>
+		</property>
+		<collection name="bodyContents" class="java.util.Set">
+			<element class="BodyContent" package="com.atlassian.confluence.core">
+				<id name="id">8002</id>
+			</element>
+		</collection>
+		<collection name="labellings" class="java.util.Set">
+			<element class="Labelling" package="com.atlassian.confluence.labels">
+				<id name="id">7002</id>
+			</element>
+		</collection>
+	</object>
+	<object class="BodyContent" package="com.atlassian.confluence.core">
+		<id name="id">8001</id>
+		<property name="body"><![CDATA[Hello HR]]></property>
+		<property name="bodyType">2</property>
+		<property name="content" class="Page" package="com.atlassian.confluence.pages">
+			<id name="id">100</id>
+		</property>
+	</object>
+	<object class="BodyContent" package="com.atlassian.confluence.core">
+		<id name="id">8002</id>
+		<property name="body"><![CDATA[Hello Other]]></property>
+		<property name="bodyType">2</property>
+		<property name="content" class="Page" package="com.atlassian.confluence.pages">
+			<id name="id">200</id>
+		</property>
+	</object>
+	<object class="Attachment" package="com.atlassian.confluence.pages">
+		<id name="id">300</id>
+		<property name="fileName"><![CDATA[a.txt]]></property>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<property name="version">1</property>
+		<property name="space" class="Space" package="com.atlassian.confluence.spaces">
+			<id name="id">1</id>
+		</property>
+		<property name="containerContent" class="Page" package="com.atlassian.confluence.pages">
+			<id name="id">100</id>
+		</property>
+	</object>
+	<object class="Attachment" package="com.atlassian.confluence.pages">
+		<id name="id">400</id>
+		<property name="fileName"><![CDATA[b.txt]]></property>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<property name="version">1</property>
+		<property name="space" class="Space" package="com.atlassian.confluence.spaces">
+			<id name="id">2</id>
+		</property>
+		<property name="containerContent" class="Page" package="com.atlassian.confluence.pages">
+			<id name="id">200</id>
+		</property>
+	</object>
+	<object class="Comment" package="com.atlassian.confluence.pages">
+		<id name="id">9001</id>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<property name="containerContent" class="Page" package="com.atlassian.confluence.pages">
+			<id name="id">100</id>
+		</property>
+		<collection name="bodyContents" class="java.util.Set"></collection>
+	</object>
+	<object class="Comment" package="com.atlassian.confluence.pages">
+		<id name="id">9002</id>
+		<property name="contentStatus"><![CDATA[current]]></property>
+		<property name="containerContent" class="Page" package="com.atlassian.confluence.pages">
+			<id name="id">200</id>
+		</property>
+		<collection name="bodyContents" class="java.util.Set"></collection>
+	</object>
+	<object class="Labelling" package="com.atlassian.confluence.labels">
+		<id name="id">7001</id>
+		<property name="label" class="Label" package="com.atlassian.confluence.labels">
+			<id name="id">600</id>
+		</property>
+	</object>
+	<object class="Labelling" package="com.atlassian.confluence.labels">
+		<id name="id">7002</id>
+		<property name="label" class="Label" package="com.atlassian.confluence.labels">
+			<id name="id">600</id>
+		</property>
+	</object>
+</hibernate-generic>

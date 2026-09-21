@@ -449,4 +449,17 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 			$entitiesXmlPath
 		);
 	}
+
+	/**
+	 * @param string $entityType
+	 * @param int $entityId
+	 * @param int $foreignSpaceId
+	 * @param string $reason
+	 * @return void
+	 */
+	public function addFilteredObject(
+		string $entityType, int $entityId, int $foreignSpaceId, string $reason
+	): void {
+		$this->send( __FUNCTION__, $entityType, $entityId, $foreignSpaceId, $reason );
+	}
 }

@@ -178,7 +178,8 @@ class WorkspaceDB {
 			'required_templates',
 			'default_pages_registry',
 			'default_files_registry',
-			'inline_comments'
+			'inline_comments',
+			'filtered_objects'
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -345,6 +346,7 @@ class WorkspaceDB {
 		$this->createTableExportProperties();
 		$this->createTableDefaultPagesRegistry();
 		$this->createTableDefaultFilesRegistry();
+		$this->createTableFilteredObjects();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -1082,6 +1084,62 @@ class WorkspaceDB {
 		$stmt->bindValue( ':timezone_id', $timezoneId, SQLITE3_TEXT );
 		$stmt->bindValue( ':entities_xml_path', $entitiesXmlPath, SQLITE3_TEXT );
 		$stmt->execute()->finalize();
+	}
+
+	/**
+	 * Table for `filter-foreign-space-data`: every object discarded by the
+	 * `analyze` step's foreign-space pre-scan (see doc/configuration.md).
+	 *
+	 * @return void
+	 */
+	private function createTableFilteredObjects(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS filtered_objects (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				entity_type CHAR,
+				entity_id INT,
+				foreign_space_id INT,
+				reason CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @param string $entityType Object class name, e.g. "Page", "Attachment"
+	 * @param int $entityId The object's own id
+	 * @param int $foreignSpaceId The space id the object was found to belong to
+	 * @param string $reason Short human-readable explanation
+	 * @return void
+	 */
+	public function addFilteredObject(
+		string $entityType, int $entityId, int $foreignSpaceId, string $reason
+	): void {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO filtered_objects (
+				entity_type,
+				entity_id,
+				foreign_space_id,
+				reason
+			) VALUES (
+				:entity_type,
+				:entity_id,
+				:foreign_space_id,
+				:reason
+			)'
+		);
+
+		$transaction->bindValue( ':entity_type', $entityType, SQLITE3_TEXT );
+		$transaction->bindValue( ':entity_id', $entityId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':foreign_space_id', $foreignSpaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':reason', $reason, SQLITE3_TEXT );
+		$transaction->execute();
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getFilteredObjects(): array {
+		return $this->getAllData( 'filtered_objects' );
 	}
 
 	/**

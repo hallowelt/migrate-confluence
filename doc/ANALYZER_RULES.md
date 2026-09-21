@@ -71,3 +71,26 @@ Steps:
 3. Register in `ConfluenceAnalyzer::processXML()`
 4. Create corresponding Composer processor if needed
 5. Create Converter processor if transformation required
+
+## 6. Foreign-space filtering (`filter-foreign-space-data`)
+
+See `doc/configuration.md` for the user-facing description. If a processor
+handles an entity that can carry a `space` property directly (Page, BlogPost,
+PageTemplate, Attachment) or a content/containerContent reference (Comment,
+BodyContent, ContentProperty) or is only reachable via a `labellings`
+collection (Labelling), add an `?SpaceFilter $spaceFilter = null` constructor
+parameter (default `null` keeps existing call sites/tests working) and guard
+the `writer->addXxx()` call:
+
+```php
+if ( $this->spaceFilter !== null && !$this->spaceFilter->isSpaceAllowed( 'MyEntity', $id, $spaceId ) ) {
+    return;
+}
+```
+
+Use `isSpaceAllowed()` for direct space-id owners, `isContentAllowed()` for
+content/containerContent references, `isLabellingAllowed()` for Labelling.
+Wire the real `SpaceFilter` instance in `ConfluenceAnalyzer::getProcessors()`.
+`SpaceFilterPrescanProcessor` builds the id/space maps `SpaceFilter` needs;
+extend it if a new entity type needs to participate in filtering.
+
