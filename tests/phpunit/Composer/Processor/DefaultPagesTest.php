@@ -2,11 +2,15 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MigrateConfluence\Composer\Processor\DefaultPages;
+use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
 use SplFileInfo;
+use Symfony\Component\Console\Output\Output;
 
 class DefaultPagesTest extends TestCase {
 
@@ -33,6 +37,38 @@ class DefaultPagesTest extends TestCase {
 			$expected,
 			$method->invoke( $processor, $fileObj, $basepath, $directoriesWithWikitext )
 		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Composer\Processor\DefaultPages::execute
+	 */
+	public function testAddsFolderAndStylesheetWhenFolderIsRegistered(): void {
+		$builder = $this->createMock( Builder::class );
+		$addedPages = [];
+		$builder->method( 'addRevision' )
+			->willReturnCallback( static function ( string $pageName ) use ( &$addedPages ): void {
+				$addedPages[] = $pageName;
+			} );
+		$builder->expects( $this->once() )->method( 'buildAndSave' );
+
+		$dataLookup = $this->createMock( DBComposerDataLookup::class );
+		$dataLookup->method( 'getRegisteredDefaultPagesForSpaceId' )->willReturn( [
+			'Template' => [ 'Folder' ],
+		] );
+
+		$processor = new DefaultPages(
+			$builder,
+			$this->createMock( Output::class ),
+			sys_get_temp_dir(),
+			new MigrationConfig( [] ),
+			$dataLookup
+		);
+		$processor->setCurrentSpaceIds( [ 1 ] );
+
+		$processor->execute();
+
+		$this->assertContains( 'Template:Folder', $addedPages );
+		$this->assertContains( 'Template:Folder/Style.css', $addedPages );
 	}
 
 	/**
