@@ -49,7 +49,7 @@ class CSVParser {
 		$file = new \SplFileObject( $resolvedFilename, 'r' );
 		$file->setFlags( \SplFileObject::READ_CSV );
 		$file->setCsvControl(
-			$this->migrationConfig->csvSeparator ?? ',',
+			$this->migrationConfig->getCSVSeparator(),
 			'"',
 			# empty string is recommended by <https://www.php.net/splfileobject.setcsvcontrol>:
 			''
