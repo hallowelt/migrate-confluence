@@ -76,7 +76,6 @@ abstract class MacroChainTestBase extends TestCase {
 		$postprocessors = [
 			new RestoreExcerptIncludeMacro( $this->dataLookup ),
 			new FixLineBreakInHeadings(),
-			new FixImagesWithExternalUrl(),
 			new NestedHeadings(),
 			new FixEmptyListItemWrapper(),
 			new FixMultilineTemplate(),
