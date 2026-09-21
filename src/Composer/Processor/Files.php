@@ -40,8 +40,11 @@ class Files extends FileProcessorBase {
 		$this->addPageAttachments();
 		$this->addBlogPostAttachments();
 		$this->addAdditionalAttachments();
+		$this->addGeneratedSvgs();
 
-		$this->writeOutputFile();
+		if ( $this->numOfRevisions > 0 ) {
+			$this->writeOutputFile();
+		}
 	}
 
 	/**
@@ -151,10 +154,12 @@ class Files extends FileProcessorBase {
 					continue;
 				}
 
+				$doHardLinks = true;
 				$testFilePath = $this->dest . '/images/' . $filename;
 				if ( file_exists( $testFilePath ) ) {
 					$this->output->writeln( "Attachment file override detected. Using override!" );
 					$filePath = $testFilePath;
+					$doHardLinks = false;
 				} elseif ( file_exists( $filePath ) ) {
 					$this->output->writeln( "Upload attachment file." );
 				} else {
@@ -162,9 +167,10 @@ class Files extends FileProcessorBase {
 					continue;
 				}
 
-				$attachmentContent = file_get_contents( $filePath );
-				$uploadFilePath = $this->workspace->saveUploadFile(
-					"$timestamp-$filename", $attachmentContent, $uploadPath
+				$uploadFilePath = $this->workspace->copyFile(
+					$filePath,
+					"$uploadPath/$timestamp-$filename",
+					$doHardLinks
 				);
 
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
@@ -243,11 +249,13 @@ class Files extends FileProcessorBase {
 						continue;
 					}
 
+					$doHardLinks = true;
 					// Check for temporary files created by converter (e.g. a drawio file)
 					$testFilePath = $this->dest . '/images/' . $filename;
 					if ( file_exists( $testFilePath ) ) {
 						$this->output->writeln( "Attachment file override detected. Using override!" );
 						$filePath = $testFilePath;
+						$doHardLinks = false;
 					} elseif ( file_exists( $filePath ) ) {
 						$this->output->writeln( "Upload attachment file." );
 					} else {
@@ -255,9 +263,10 @@ class Files extends FileProcessorBase {
 						continue;
 					}
 
-					$attachmentContent = file_get_contents( $filePath );
-					$uploadFilePath = $this->workspace->saveUploadFile(
-						$filename, $attachmentContent, $uploadPath
+					$uploadFilePath = $this->workspace->copyFile(
+						$filePath,
+						"$uploadPath/$filename",
+						$doHardLinks
 					);
 
 					$timestamp = $attachment['revision_timestamp'];
@@ -282,6 +291,61 @@ class Files extends FileProcessorBase {
 					$this->output->writeln( "Attachment file was not found!" );
 				}
 			}
+		}
+	}
+
+	/**
+	 * Add SVG files generated during conversion (e.g. rendered roadmap diagrams).
+	 * Unlike regular attachments these have no Confluence attachment record; the
+	 * Converter step already wrote them to $this->dest . '/images/' and logged
+	 * them via IConverterDataWriter::addRoadmapSvg().
+	 *
+	 * @return void
+	 */
+	private function addGeneratedSvgs(): void {
+		$this->output->writeln( "\nAdding generated SVGs...\n" );
+
+		$generatedSvgs = [];
+		if ( is_array( $this->currentSpaceIds ) ) {
+			foreach ( $this->currentSpaceIds as $spaceId ) {
+				$generatedSvgs = array_merge(
+					$generatedSvgs,
+					$this->dataLookup->getRoadmapSvgs( (int)$spaceId )
+				);
+			}
+		} else {
+			$generatedSvgs = $this->dataLookup->getRoadmapSvgs();
+		}
+
+		$uploadPath = $this->getUploadPath();
+
+		foreach ( $generatedSvgs as $generatedSvg ) {
+			$filename = $generatedSvg['svg_filename'];
+
+			if ( $this->skipHelper->skipWikiTitle( $filename ) ) {
+				$this->output->writeln( "Skip generated SVG $filename." );
+				continue;
+			}
+
+			$filePath = $this->dest . '/images/' . $filename;
+			if ( !file_exists( $filePath ) ) {
+				$this->output->writeln( "Generated SVG not found: $filename" );
+				continue;
+			}
+			$this->output->writeln( "Generated SVG: $filename" );
+
+			$svgContent = file_get_contents( $filePath );
+			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $svgContent, $uploadPath );
+
+			$this->builder->addFileRevision(
+				$filename,
+				$this->getRelativeFilePath( $uploadFilePath ),
+				'',
+				'',
+				''
+			);
+
+			$this->deploymentInfo->addFileExtension( 'svg' );
 		}
 	}
 }

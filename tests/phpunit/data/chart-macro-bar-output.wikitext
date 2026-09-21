@@ -1,0 +1,8 @@
+'''Some data as bar chart'''
+<barchart showvalues="true">
+A, 55
+B, 45
+</barchart>
+
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

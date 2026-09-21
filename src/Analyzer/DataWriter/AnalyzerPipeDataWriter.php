@@ -269,6 +269,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 * @param string $created
 	 * @param string $modified
 	 * @param array $properties
+	 * @param array $collection
 	 *
 	 * @return bool
 	 */
@@ -281,7 +282,8 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 		array $bodyContentIds,
 		string $created,
 		string $modified,
-		array $properties
+		array $properties,
+		array $collection
 	): bool {
 		$this->send(
 			__FUNCTION__,
@@ -293,7 +295,8 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 			$bodyContentIds,
 			$created,
 			$modified,
-			$properties
+			$properties,
+			$collection
 		);
 
 		return true;
@@ -350,11 +353,18 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
+	 * @param string $confluenceUsername
 	 *
 	 * @return bool
 	 */
-	public function addUser( string $userKey, string $wikiUsername, string $email, array $properties ): bool {
-		$this->send( __FUNCTION__, $userKey, $wikiUsername, $email, $properties );
+	public function addUser(
+		string $userKey,
+		string $wikiUsername,
+		string $email,
+		array $properties,
+		string $confluenceUsername = ''
+	): bool {
+		$this->send( __FUNCTION__, $userKey, $wikiUsername, $email, $properties, $confluenceUsername );
 
 		return true;
 	}

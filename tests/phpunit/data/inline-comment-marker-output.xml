@@ -14,7 +14,7 @@
 						<ac:task>
 							<ac:task-id>3</ac:task-id>
 							<ac:task-status>incomplete</ac:task-status>
-							<ac:task-body><span style="color: red;">Body 2</span> {{InlineComment|with inline comment marker}}</ac:task-body>
+							<ac:task-body><span style="color: red;">Body 2</span> {{InlineComment|text=with inline comment marker|comment=Some comment|answers=|status=resolved}}</ac:task-body>
 						</ac:task>
 					</ac:task-list>
 				</ac:task-body>

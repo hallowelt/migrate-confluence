@@ -36,7 +36,7 @@ class ContentByLabelMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new ContentByLabelMacro( 'SomePage' );
+		return new ContentByLabelMacro( $this->createConverterDataWriter(), 1, 'SomePage' );
 	}
 
 }

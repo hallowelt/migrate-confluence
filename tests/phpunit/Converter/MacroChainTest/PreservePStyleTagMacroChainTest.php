@@ -49,7 +49,7 @@ XML
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new PreservePStyleTag();
+		return new PreservePStyleTag( $this->placeholderManager );
 	}
 
 }

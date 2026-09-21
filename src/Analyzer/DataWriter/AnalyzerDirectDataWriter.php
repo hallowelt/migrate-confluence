@@ -255,6 +255,7 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	 * @param string $created
 	 * @param string $modified
 	 * @param array $properties
+	 * @param array $collection
 	 *
 	 * @return bool
 	 */
@@ -267,7 +268,8 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 		array $bodyContentIds,
 		string $created,
 		string $modified,
-		array $properties
+		array $properties,
+		array $collection
 	): bool {
 		return $this->db->addComment(
 			$commentId,
@@ -278,7 +280,8 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 			$bodyContentIds,
 			$created,
 			$modified,
-			$properties
+			$properties,
+			$collection
 		);
 	}
 
@@ -327,11 +330,18 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
+	 * @param string $confluenceUsername
 	 *
 	 * @return bool
 	 */
-	public function addUser( string $userKey, string $wikiUsername, string $email, array $properties ): bool {
-		return $this->db->addUser( $userKey, $wikiUsername, $email, $properties );
+	public function addUser(
+		string $userKey,
+		string $wikiUsername,
+		string $email,
+		array $properties,
+		string $confluenceUsername = ''
+	): bool {
+		return $this->db->addUser( $userKey, $wikiUsername, $email, $properties, $confluenceUsername );
 	}
 
 	/**

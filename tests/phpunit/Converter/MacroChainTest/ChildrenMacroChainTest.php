@@ -40,7 +40,7 @@ class ChildrenMacroChainTest extends MacroChainTestBase {
 			->createWithoutExtNsFileRepoCompat();
 		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
 
-		return new ChildrenMacro( 42, 'SomePage', $dataLookup );
+		return new ChildrenMacro( $this->createConverterDataWriter(), 42, 'SomePage', $dataLookup );
 	}
 
 }

@@ -1,0 +1,13 @@
+<noinclude>Template added by Confluence migration to handle the "reg-tm" macro.
+
+<templatedata>
+{
+    "params": {
+        "body": {
+            "label": "Body",
+            "type": "string",
+            "required": false
+        }
+    }
+}
+</templatedata></noinclude><includeonly>'''{{{body|}}}'''®</includeonly>
