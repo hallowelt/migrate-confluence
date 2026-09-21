@@ -30,7 +30,9 @@ class NamespaceBasedComposer extends ConfluenceComposerBase {
 		$spacesMap = $this->buildSpacesMap( $spaces );
 		$this->storeMigrationResult( $spacesMap, $builder );
 
-		$this->writeUserReadableDBLog( $this->dbLog );
+		if ( !$this->isWorker() ) {
+			$this->writeUserReadableDBLog( $this->dbLog );
+		}
 	}
 
 	/**
@@ -39,10 +41,16 @@ class NamespaceBasedComposer extends ConfluenceComposerBase {
 	 * @return void
 	 */
 	protected function storeMigrationResult( array $spacesMap, Builder $builder ): void {
-		// Run processors for each namespace
+		// Run processors for each namespace. Namespaces are round-robin sliced across
+		// worker processes; namespace size is not taken into account.
+		$index = 0;
 		foreach ( $spacesMap as $namespace => $spaces ) {
 			if ( $this->skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
 				$this->output->writeln( "Skip namespace '$namespace' by configuration." );
+				continue;
+			}
+
+			if ( !$this->isMyShare( $index++ ) ) {
 				continue;
 			}
 

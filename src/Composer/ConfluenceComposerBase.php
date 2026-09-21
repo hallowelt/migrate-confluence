@@ -51,6 +51,12 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	/** @var DBLog|null */
 	protected ?DBLog $dbLog = null;
 
+	/** @var int Total number of parallel compose worker processes (1 = no parallelism) */
+	protected int $workerCount = 1;
+
+	/** @var int Zero-based index of this worker process among $workerCount */
+	protected int $workerIndex = 0;
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -65,7 +71,34 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 			$this->migrationConfig = new MigrationConfig( [] );
 		}
 
+		$this->workerCount = (int)( $config['worker-count'] ?? 1 );
+		$this->workerIndex = (int)( $config['worker-index'] ?? 0 );
+
 		$this->workspace = $workspace;
+	}
+
+	/**
+	 * Whether this instance is a spawned worker process (--workers > 1). Workers must not
+	 * write to the shared DB log or aggregated log files; only the single-process run does.
+	 *
+	 * @return bool
+	 */
+	protected function isWorker(): bool {
+		return $this->workerCount > 1;
+	}
+
+	/**
+	 * Round-robin slice check: true if the item at $index belongs to this worker.
+	 * Namespace/wiki sizes are not taken into account; distribution is a simple modulo split.
+	 *
+	 * @param int $index
+	 * @return bool
+	 */
+	protected function isMyShare( int $index ): bool {
+		if ( $this->workerCount <= 1 ) {
+			return true;
+		}
+		return $index % $this->workerCount === $this->workerIndex;
 	}
 
 	/**
@@ -87,10 +120,15 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @return void
 	 */
 	public function buildXML( Builder $builder ): void {
-		$this->workspaceDB = WorkspaceDB::open( $this->dest );
+		// Workers open the DB read-only: they never write to it, and concurrent
+		// writers would be unsafe. Only the single (non-parallel) run writes the
+		// version log entry.
+		$this->workspaceDB = WorkspaceDB::open( $this->dest, $this->isWorker() );
 		$this->dataLookup = new DBComposerDataLookup( $this->workspaceDB );
 		$this->dbLog = new DBLog( $this->workspaceDB );
-		$this->logMigrateConfluenceToolVersion( $this->dbLog );
+		if ( !$this->isWorker() ) {
+			$this->logMigrateConfluenceToolVersion( $this->dbLog );
+		}
 		$this->skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
 
 		$this->doBuildXML( $builder );

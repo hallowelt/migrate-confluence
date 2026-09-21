@@ -24,10 +24,18 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 		// If wikis are configured, we will process spaces grouped by wiki name
 		$this->output->writeln( "Data is assigned to some wikis." );
 
+		// Wikis are round-robin sliced across worker processes (whole wiki per worker,
+		// to keep each wiki's shared ComposerDeploymentInfo/deployment.txt self-contained).
+		// Wiki size is not taken into account.
+		$index = 0;
 		foreach ( $wikiNames as $wikiName ) {
 			$spaces = $this->dataLookup->getWikisConfigSpacesForWikiName( $wikiName );
 			if ( $spaces === [] ) {
 				$this->output->writeln( "No spaces found for wiki '$wikiName'." );
+				continue;
+			}
+
+			if ( !$this->isMyShare( $index++ ) ) {
 				continue;
 			}
 
@@ -49,7 +57,9 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 			$this->output->writeln( "Processing wiki '$wikiName' with " . count( $spaces ) . " spaces." );
 		}
 
-		$this->writeUserReadableDBLog( $this->dbLog );
+		if ( !$this->isWorker() ) {
+			$this->writeUserReadableDBLog( $this->dbLog );
+		}
 	}
 
 	/**
