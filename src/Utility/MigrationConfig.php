@@ -103,6 +103,6 @@ class MigrationConfig {
 	 * @return string
 	 */
 	public function getCSVSeparator(): string {
-		return $this->get( 'csv-separator', ',' );
+		return $this->get( 'csv-delimiter', ',' );
 	}
 }
