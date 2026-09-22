@@ -167,11 +167,12 @@ class Files extends FileProcessorBase {
 					continue;
 				}
 
-				$uploadFilePath = $this->workspace->copyFile(
+				$this->workspace->copyFile(
 					$filePath,
 					"$uploadPath/$timestamp-$filename",
 					$doHardLinks
 				);
+				$uploadFilePath = "/$uploadPath/$timestamp-$filename";
 
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 				$this->addFileRevision(
@@ -263,11 +264,12 @@ class Files extends FileProcessorBase {
 						continue;
 					}
 
-					$uploadFilePath = $this->workspace->copyFile(
+					$this->workspace->copyFile(
 						$filePath,
 						"$uploadPath/$filename",
 						$doHardLinks
 					);
+					$uploadFilePath = "/$uploadPath/$filename";
 
 					$timestamp = $attachment['revision_timestamp'];
 					/* same as above: to use the author info in $attachment['last_modifier'],
