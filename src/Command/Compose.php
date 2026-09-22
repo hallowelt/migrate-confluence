@@ -8,7 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Database\DataWriter\NullDataWriter;
+use HalloWelt\MigrateConfluence\Database\DataWriter\ComposeDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
@@ -25,6 +25,12 @@ class Compose extends CommandCompose {
 	 * once-per-wiki artifacts after all compose workers have finished (see WikiBasedComposer).
 	 */
 	private bool $finalizeOnly = false;
+
+	/**
+	 * @var array<string,string[]> subDir (wikiName/namespace) => file extensions, collected
+	 * in memory from all workers via ComposeDataWriter, for the finalize pass to consume.
+	 */
+	private array $namespaceFileExtensions = [];
 
 	/**
 	 * @inheritDoc
@@ -95,7 +101,8 @@ class Compose extends CommandCompose {
 				return Command::FAILURE;
 			}
 
-			$pool = new WorkerPool( $output, new NullDataWriter() );
+			$writer = new ComposeDataWriter();
+			$pool = new WorkerPool( $output, $writer );
 			// Total duration should cover workers + finalize pass, not just the (short)
 			// finalize pass on its own — see logExecutionTime()/initExecutionTime() overrides.
 			$this->executionTime = new ExecutionTime();
@@ -103,6 +110,9 @@ class Compose extends CommandCompose {
 			if ( $result !== Command::SUCCESS ) {
 				return $result;
 			}
+			// All namespace-extension messages have been replayed into $writer by now,
+			// since WorkerPool::run() only returns once every worker's fd-3 pipe hit EOF.
+			$this->namespaceFileExtensions = $writer->getCollected();
 
 			// Workers only produced per-namespace artifacts. Run a single, non-parallel
 			// finalize pass in-process to aggregate the once-per-wiki artifacts
@@ -171,6 +181,7 @@ class Compose extends CommandCompose {
 		$this->config['worker-count'] = (int)$this->input->getOption( 'workers' );
 		$this->config['worker-index'] = (int)$this->input->getOption( 'worker' );
 		$this->config['compose-finalize-only'] = $this->finalizeOnly;
+		$this->config['namespace-file-extensions'] = $this->namespaceFileExtensions;
 
 		$composers = $this->makeComposers();
 		$mediawikixmlbuilder = new Builder();

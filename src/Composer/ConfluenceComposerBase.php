@@ -66,6 +66,14 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	protected bool $finalizeOnly = false;
 
 	/**
+	 * @var array<string,string[]> subDir (wikiName/namespace) => file extensions, collected
+	 * from all workers by the orchestrator (via ComposeDataWriter over the fd-3 DB pipe) and
+	 * passed through here for the finalize pass to consume. Empty outside a finalize pass.
+	 * See WikiBasedComposer.
+	 */
+	protected array $namespaceFileExtensions = [];
+
+	/**
 	 * @param array $config
 	 * @param Workspace $workspace
 	 * @param DataBuckets $buckets
@@ -82,6 +90,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 		$this->workerCount = (int)( $config['worker-count'] ?? 1 );
 		$this->workerIndex = (int)( $config['worker-index'] ?? 0 );
 		$this->finalizeOnly = (bool)( $config['compose-finalize-only'] ?? false );
+		$this->namespaceFileExtensions = $config['namespace-file-extensions'] ?? [];
 
 		$this->workspace = $workspace;
 	}

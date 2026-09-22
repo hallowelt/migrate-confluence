@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Composer;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MigrateConfluence\Composer\Processor\Sidebar;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 
 class WikiBasedComposer extends ConfluenceComposerBase {
@@ -18,6 +19,9 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 	 * @var int
 	 */
 	private int $namespaceShardIndex = 0;
+
+	/** @var PipeChannel|null Lazily opened; only used when isWorker() actually sends data. */
+	private ?PipeChannel $pipeChannel = null;
 
 	/**
 	 * @param Builder $builder
@@ -162,14 +166,27 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 
 			if ( $this->isWorker() ) {
 				// The wiki-level deployment.txt is deferred to the finalize pass (it may need
-				// to merge contributions from other workers touching the same wiki). Persist
-				// this namespace's file extensions so the finalize pass can pick them up
-				// without redoing the (expensive) content processing above.
-				$this->persistNamespaceFileExtensions( $subDir, $namespaceDeploymentInfo );
+				// to merge contributions from other workers touching the same wiki). Send
+				// this namespace's file extensions over the DB pipe (fd 3) so the orchestrator
+				// can hand them to the finalize pass in memory — no temp files, mirroring how
+				// Analyze/Convert stream results back to the parent process.
+				$this->getPipeChannel()->send(
+					[ 'addNamespaceExtensions', $subDir, $namespaceDeploymentInfo->getFileExtensions() ]
+				);
 			}
 		}
 
 		return $wikiDeploymentInfo;
+	}
+
+	/**
+	 * @return PipeChannel
+	 */
+	private function getPipeChannel(): PipeChannel {
+		if ( $this->pipeChannel === null ) {
+			$this->pipeChannel = new PipeChannel();
+		}
+		return $this->pipeChannel;
 	}
 
 	/**
@@ -209,8 +226,9 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 	}
 
 	/**
-	 * Reconstruct the wiki-level ComposerDeploymentInfo from the per-namespace file-extension
-	 * snapshots persisted by workers, without re-running any content processing.
+	 * Reconstruct the wiki-level ComposerDeploymentInfo from each namespace's file
+	 * extensions, collected in memory from workers (via ComposeDataWriter) and passed
+	 * through $this->namespaceFileExtensions, without re-running any content processing.
 	 *
 	 * @param array $spacesMap
 	 * @param string $wikiName
@@ -226,38 +244,12 @@ class WikiBasedComposer extends ConfluenceComposerBase {
 			$deploymentInfo->addNamespace( $namespace );
 
 			$subDir = $wikiName . '/' . $namespace;
-			foreach ( $this->readPersistedNamespaceFileExtensions( $subDir ) as $extension ) {
+			foreach ( $this->namespaceFileExtensions[$subDir] ?? [] as $extension ) {
 				$deploymentInfo->addFileExtension( $extension );
 			}
 		}
 
 		return $deploymentInfo;
-	}
-
-	/**
-	 * @param string $subDir
-	 * @param ComposerDeploymentInfo $deploymentInfo
-	 * @return void
-	 */
-	private function persistNamespaceFileExtensions( string $subDir, ComposerDeploymentInfo $deploymentInfo ): void {
-		$logDir = $this->ensureLogPath( $subDir );
-		file_put_contents(
-			$logDir . '/.deployment-extensions.json',
-			json_encode( $deploymentInfo->getFileExtensions(), JSON_UNESCAPED_SLASHES )
-		);
-	}
-
-	/**
-	 * @param string $subDir
-	 * @return string[]
-	 */
-	private function readPersistedNamespaceFileExtensions( string $subDir ): array {
-		$path = $this->dest . "/result/$subDir/log/.deployment-extensions.json";
-		if ( !is_file( $path ) ) {
-			return [];
-		}
-		$data = json_decode( (string)file_get_contents( $path ), true );
-		return is_array( $data ) ? $data : [];
 	}
 
 	/**
