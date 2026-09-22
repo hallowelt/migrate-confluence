@@ -5,48 +5,25 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
-use HalloWelt\MigrateConfluence\Converter\IProcessor;
-use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
-class Image extends ConversionHelper implements IProcessor {
-
-	protected FilenameResolver $filenameResolver;
-
-	public function __construct(
-		private DBConversionDataLookup $dataLookup,
-		private int $currentSpaceId,
-		private string $rawPageTitle,
-		MigrationConfig $migrationConfig
-	) {
-		$this->filenameResolver = new FilenameResolver( $dataLookup, $migrationConfig );
-	}
+/**
+ * Handles <ac:image> nodes. Raw HTML <img> nodes are handled by RawImage.
+ */
+class Image extends ImageProcessorBase {
 
 	public function process( DOMDocument $dom ): void {
-		$nonLiveList = [];
+		$imageNodes = [];
 
 		foreach ( $dom->getElementsByTagName( 'image' ) as $imageNode ) {
-			$nonLiveList[] = $imageNode;
+			$imageNodes[] = $imageNode;
 		}
 
-		foreach ( $dom->getElementsByTagName( 'img' ) as $imageNode ) {
-			$nonLiveList[] = $imageNode;
-		}
-
-		foreach ( $nonLiveList as $imageNode ) {
+		foreach ( $imageNodes as $imageNode ) {
 			$this->doProcessImage( $imageNode );
 		}
 	}
 
 	private function doProcessImage( DOMElement $node ): void {
-		if ( $node->nodeName === 'img' ) {
-			$this->doProcessRawImg( $node );
-
-			return;
-		}
-
 		if ( $this->isImageWithPageLink( $node ) ) {
 			$pageLinkReplacementNode = $this->makeImagePageLinkReplacement( $node );
 
@@ -101,40 +78,6 @@ class Image extends ConversionHelper implements IProcessor {
 			$replacementNode,
 			$node
 		);
-	}
-
-	/**
-	 * Handles a raw HTML <img> node (as opposed to an <ac:image>). Its source
-	 * is in the `src` attribute rather than a child element. External images
-	 * are replaced by their cleaned URL as plain text; anything else (e.g. a
-	 * relative/internal src) is left untouched.
-	 */
-	private function doProcessRawImg( DOMElement $node ): void {
-		$urlText = $this->getExternalUrlText( $node->getAttribute( 'src' ) );
-		if ( $urlText === '' ) {
-			// relative/internal src (no scheme/host) -> not handled here, leave as-is
-			return;
-		}
-
-		$node->parentNode->replaceChild(
-			$this->createTextNode( $node->ownerDocument, $urlText, __METHOD__ ),
-			$node
-		);
-	}
-
-	/**
-	 * Handle ri:url image inside external link or link in <img>
-	 * Replace with a plain text URL so the <a> survives and pandoc renders
-	 * [href imageUrl] instead of dropping the link entirely.
-	 *
-	 * Cleaned external URL (scheme://host/path, query stripped), or '' if not external.
-	 */
-	private function getExternalUrlText( string $url ): string {
-		$parsed = parse_url( $url );
-		if ( !isset( $parsed['scheme'] ) || !isset( $parsed['host'] ) ) {
-			return '';
-		}
-		return $parsed['scheme'] . '://' . $parsed['host'] . ( $parsed['path'] ?? '' );
 	}
 
 	private function getImageParams( DOMElement $node ): array {
@@ -340,24 +283,6 @@ class Image extends ConversionHelper implements IProcessor {
 		);
 
 		return $replacementNode;
-	}
-
-	private function makeImageLinkWithDebugInfo( DOMDocument $dom, array $params,
-		string $confluenceFileKey, string $debug = '' ): DOMNode {
-		$params = array_map( 'trim', $params );
-
-		if ( empty( $params ) || empty( $params[0] ) ) {
-			$debug .= " ###BROKENIMAGE $confluenceFileKey ###";
-		}
-
-		$replacementText = $this->getImageReplacement( $params );
-		$replacementText .= $debug;
-
-		return $this->createTextNode( $dom, $replacementText, __METHOD__ );
-	}
-
-	private function getImageReplacement( array $params ): string {
-		return '[[File:' . implode( '|', $params ) . ']]';
 	}
 
 	private function isImageWithPageLink( DOMElement $node ): bool {

@@ -20,7 +20,7 @@ class ImageTest extends ProcessorTestCase {
 	private $dir = '';
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::process
 	 * @return void
 	 */
 	public function testProcess() {
@@ -38,7 +38,7 @@ class ImageTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::process
 	 * @return void
 	 */
 	public function testUrlImageInExternalLink() {
@@ -66,57 +66,6 @@ class ImageTest extends ProcessorTestCase {
 			$dataLookup,
 			'image-url-plain-input.xml',
 			'image-url-plain-output.xml',
-			42,
-			'SomePage'
-		);
-	}
-
-	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::doProcessRawImg
-	 * @return void
-	 */
-	public function testRawImgWithExternalSrcIsReplacedByPlainTextUrl() {
-		$this->dir = dirname( __DIR__, 2 ) . '/data';
-
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
-		$this->doTestWith(
-			$dataLookup,
-			'image-raw-img-external-input.xml',
-			'image-raw-img-external-output.xml',
-			42,
-			'SomePage'
-		);
-	}
-
-	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::doProcessRawImg
-	 * @return void
-	 */
-	public function testRawImgInsideLinkKeepsLinkAndReplacesImgWithPlainTextUrl() {
-		$this->dir = dirname( __DIR__, 2 ) . '/data';
-
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
-		$this->doTestWith(
-			$dataLookup,
-			'image-raw-img-in-link-input.xml',
-			'image-raw-img-in-link-output.xml',
-			42,
-			'SomePage'
-		);
-	}
-
-	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::doProcessRawImg
-	 * @return void
-	 */
-	public function testRawImgWithInternalRelativeSrcIsLeftUnchanged() {
-		$this->dir = dirname( __DIR__, 2 ) . '/data';
-
-		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
-		$this->doTestWith(
-			$dataLookup,
-			'image-raw-img-internal-input.xml',
-			'image-raw-img-internal-input.xml',
 			42,
 			'SomePage'
 		);
