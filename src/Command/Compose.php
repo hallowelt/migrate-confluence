@@ -6,6 +6,7 @@ use Exception;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
+use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\DataWriter\NullDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
@@ -95,6 +96,9 @@ class Compose extends CommandCompose {
 			}
 
 			$pool = new WorkerPool( $output, new NullDataWriter() );
+			// Total duration should cover workers + finalize pass, not just the (short)
+			// finalize pass on its own — see logExecutionTime()/initExecutionTime() overrides.
+			$this->executionTime = new ExecutionTime();
 			$result = $pool->run( WorkerPool::baseCommandFromArgv(), $workers );
 			if ( $result !== Command::SUCCESS ) {
 				return $result;
@@ -107,10 +111,47 @@ class Compose extends CommandCompose {
 			$this->finalizeOnly = true;
 			$result = parent::execute( $input, $output );
 			$this->finalizeOnly = false;
+
+			// Log the total (workers + finalize) execution time once, now that finalize's
+			// own processFiles() run has set up $this->workspace/executionTimeBuckets.
+			$this->logExecutionTime();
+
 			return $result;
 		}
 
 		return parent::execute( $input, $output );
+	}
+
+	/**
+	 * Keep the timer started before spawning workers (see execute()) alive across the
+	 * finalize pass's processFiles() call, instead of resetting it to the finalize pass's
+	 * own (short) runtime. executionTimeBuckets still needs to be (re)loaded here since
+	 * finalize sets up a fresh Workspace instance.
+	 *
+	 * @return void
+	 */
+	protected function initExecutionTime(): void {
+		if ( $this->finalizeOnly && $this->executionTime !== null ) {
+			$this->executionTimeBuckets = new DataBuckets( [ 'execution-time' ] );
+			$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
+			return;
+		}
+		parent::initExecutionTime();
+	}
+
+	/**
+	 * Workers must not log execution time at all (each would only know its own partial
+	 * slice); the finalize pass must not log it either, since it would overwrite the total
+	 * (workers + finalize) duration with just its own short runtime. The orchestrator logs
+	 * the correct total explicitly after the finalize pass completes (see execute()).
+	 *
+	 * @return void
+	 */
+	protected function logExecutionTime(): void {
+		if ( $this->input->hasParameterOption( '--worker' ) || $this->finalizeOnly ) {
+			return;
+		}
+		parent::logExecutionTime();
 	}
 
 	/**
