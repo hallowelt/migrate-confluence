@@ -51,6 +51,28 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	/** @var DBLog|null */
 	protected ?DBLog $dbLog = null;
 
+	/** @var int Total number of parallel compose worker processes (1 = no parallelism) */
+	protected int $workerCount = 1;
+
+	/** @var int Zero-based index of this worker process among $workerCount */
+	protected int $workerIndex = 0;
+
+	/**
+	 * @var bool Set on the single, non-parallel pass that runs after all compose workers have
+	 * finished, to aggregate wiki-level artifacts (deployment.txt, wikiimport.sh, shared
+	 * content, wiki-level sidebar) that cannot be safely produced by concurrent workers
+	 * touching the same wiki. See WikiBasedComposer.
+	 */
+	protected bool $finalizeOnly = false;
+
+	/**
+	 * @var array<string,string[]> subDir (wikiName/namespace) => file extensions, collected
+	 * from all workers by the orchestrator (via ComposeDataWriter over the fd-3 DB pipe) and
+	 * passed through here for the finalize pass to consume. Empty outside a finalize pass.
+	 * See WikiBasedComposer.
+	 */
+	protected array $namespaceFileExtensions = [];
+
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -65,7 +87,46 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 			$this->migrationConfig = new MigrationConfig( [] );
 		}
 
+		$this->workerCount = (int)( $config['worker-count'] ?? 1 );
+		$this->workerIndex = (int)( $config['worker-index'] ?? 0 );
+		$this->finalizeOnly = (bool)( $config['compose-finalize-only'] ?? false );
+		$this->namespaceFileExtensions = $config['namespace-file-extensions'] ?? [];
+
 		$this->workspace = $workspace;
+	}
+
+	/**
+	 * Whether this instance is a spawned worker process (--workers > 1). Workers must not
+	 * write to the shared DB log or aggregated log files; only the single-process run does.
+	 *
+	 * @return bool
+	 */
+	protected function isWorker(): bool {
+		return $this->workerCount > 1 && !$this->finalizeOnly;
+	}
+
+	/**
+	 * Whether this is the single, non-parallel finalize pass that runs after all compose
+	 * workers have finished (see WikiBasedComposer for what it aggregates).
+	 *
+	 * @return bool
+	 */
+	protected function isFinalizeOnly(): bool {
+		return $this->finalizeOnly;
+	}
+
+	/**
+	 * Round-robin slice check: true if the item at $index belongs to this worker.
+	 * Namespace/wiki sizes are not taken into account; distribution is a simple modulo split.
+	 *
+	 * @param int $index
+	 * @return bool
+	 */
+	protected function isMyShare( int $index ): bool {
+		if ( $this->workerCount <= 1 ) {
+			return true;
+		}
+		return $index % $this->workerCount === $this->workerIndex;
 	}
 
 	/**
@@ -87,10 +148,15 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @return void
 	 */
 	public function buildXML( Builder $builder ): void {
-		$this->workspaceDB = WorkspaceDB::open( $this->dest );
+		// Workers open the DB read-only: they never write to it, and concurrent
+		// writers would be unsafe. Only the single (non-parallel) run writes the
+		// version log entry.
+		$this->workspaceDB = WorkspaceDB::open( $this->dest, $this->isWorker() );
 		$this->dataLookup = new DBComposerDataLookup( $this->workspaceDB );
 		$this->dbLog = new DBLog( $this->workspaceDB );
-		$this->logMigrateConfluenceToolVersion( $this->dbLog );
+		if ( !$this->isWorker() ) {
+			$this->logMigrateConfluenceToolVersion( $this->dbLog );
+		}
 		$this->skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
 
 		$this->doBuildXML( $builder );
