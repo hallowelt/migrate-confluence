@@ -19,6 +19,13 @@ class NamespaceBasedComposer extends ConfluenceComposerBase {
 			return;
 		}
 
+		if ( $this->isFinalizeOnly() ) {
+			// All namespaces were already fully processed (self-contained, one deployment.txt
+			// each) by the workers; there is nothing to aggregate for this composer.
+			$this->writeUserReadableDBLog( $this->dbLog );
+			return;
+		}
+
 		// Run space dependent processors for each space
 		$this->output->writeln( "Data is not assigned to any wikis." );
 

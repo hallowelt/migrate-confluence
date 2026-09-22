@@ -20,6 +20,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Compose extends CommandCompose {
 
 	/**
+	 * @var bool Set while running the single, non-parallel finalize pass that aggregates
+	 * once-per-wiki artifacts after all compose workers have finished (see WikiBasedComposer).
+	 */
+	private bool $finalizeOnly = false;
+
+	/**
 	 * @inheritDoc
 	 */
 	protected function configure(): void {
@@ -89,7 +95,19 @@ class Compose extends CommandCompose {
 			}
 
 			$pool = new WorkerPool( $output, new NullDataWriter() );
-			return $pool->run( WorkerPool::baseCommandFromArgv(), $workers );
+			$result = $pool->run( WorkerPool::baseCommandFromArgv(), $workers );
+			if ( $result !== Command::SUCCESS ) {
+				return $result;
+			}
+
+			// Workers only produced per-namespace artifacts. Run a single, non-parallel
+			// finalize pass in-process to aggregate the once-per-wiki artifacts
+			// (deployment.txt, wikiimport.sh, shared content, wiki-level sidebar) and the
+			// version-log DB write.
+			$this->finalizeOnly = true;
+			$result = parent::execute( $input, $output );
+			$this->finalizeOnly = false;
+			return $result;
 		}
 
 		return parent::execute( $input, $output );
@@ -111,6 +129,7 @@ class Compose extends CommandCompose {
 
 		$this->config['worker-count'] = (int)$this->input->getOption( 'workers' );
 		$this->config['worker-index'] = (int)$this->input->getOption( 'worker' );
+		$this->config['compose-finalize-only'] = $this->finalizeOnly;
 
 		$composers = $this->makeComposers();
 		$mediawikixmlbuilder = new Builder();

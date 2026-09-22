@@ -58,6 +58,14 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	protected int $workerIndex = 0;
 
 	/**
+	 * @var bool Set on the single, non-parallel pass that runs after all compose workers have
+	 * finished, to aggregate wiki-level artifacts (deployment.txt, wikiimport.sh, shared
+	 * content, wiki-level sidebar) that cannot be safely produced by concurrent workers
+	 * touching the same wiki. See WikiBasedComposer.
+	 */
+	protected bool $finalizeOnly = false;
+
+	/**
 	 * @param array $config
 	 * @param Workspace $workspace
 	 * @param DataBuckets $buckets
@@ -73,6 +81,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 
 		$this->workerCount = (int)( $config['worker-count'] ?? 1 );
 		$this->workerIndex = (int)( $config['worker-index'] ?? 0 );
+		$this->finalizeOnly = (bool)( $config['compose-finalize-only'] ?? false );
 
 		$this->workspace = $workspace;
 	}
@@ -84,7 +93,17 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @return bool
 	 */
 	protected function isWorker(): bool {
-		return $this->workerCount > 1;
+		return $this->workerCount > 1 && !$this->finalizeOnly;
+	}
+
+	/**
+	 * Whether this is the single, non-parallel finalize pass that runs after all compose
+	 * workers have finished (see WikiBasedComposer for what it aggregates).
+	 *
+	 * @return bool
+	 */
+	protected function isFinalizeOnly(): bool {
+		return $this->finalizeOnly;
 	}
 
 	/**
