@@ -102,7 +102,6 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 */
 	protected function addAttachments(): void {
 		$contentIdToWikiTitleMap = [];
-		$contentIdToSpaceIdMap = [];
 		foreach ( $this->getContentItems() as $item ) {
 			if ( !isset( $item['page_id'] ) ) {
 				continue;
@@ -133,7 +132,6 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			}
 
 			$contentIdToWikiTitleMap[$contentId] = $wikiTitle;
-			$contentIdToSpaceIdMap[$contentId] = isset( $item['space_id'] ) ? (int)$item['space_id'] : 0;
 		}
 
 		if ( $contentIdToWikiTitleMap === [] ) {
@@ -159,10 +157,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			}
 
 			$attachmentId = (int)$attachment['attachment_id'];
-			// The attachment's own "space" property is absent in older Confluence exports.
-			// The attachment always belongs to its container page's space, so inherit it
-			// from there rather than relying on the attachment's own space_id.
-			$attachmentSpaceId = $contentIdToSpaceIdMap[$containerId];
+			$attachmentSpaceId = (int)$attachment['space_id'];
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
 			$this->writeln(
