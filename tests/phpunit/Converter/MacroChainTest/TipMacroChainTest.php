@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
 
@@ -52,7 +53,7 @@ XML
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new TipMacro();
+		return new TipMacro( $this->createMock( IConverterDataWriter::class ), 1 );
 	}
 
 }

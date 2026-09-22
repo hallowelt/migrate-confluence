@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class PlaceholderTest extends ProcessorTestCase {
 
@@ -24,7 +25,7 @@ class PlaceholderTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new Placeholder();
+		$processor = new Placeholder( new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

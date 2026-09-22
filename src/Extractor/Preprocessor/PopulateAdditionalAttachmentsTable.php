@@ -75,7 +75,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 		}
 
 		$filenameBuilder = new FilenameBuilder(
-			$this->getSpaceIdToPrefixMapWithConfigOverrides(),
+			$this->getMapSpaceIdToPrefix(),
 			$this->migrationConfig
 		);
 
@@ -123,29 +123,4 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 		$this->finalizeAndStoreAttachments( $collected );
 	}
 
-	/**
-	 * Builds the space_id => prefix map used for additional attachment titles.
-	 * Configured space-prefix values override DB prefixes by matching space keys.
-	 *
-	 * @return array
-	 */
-	protected function getSpaceIdToPrefixMapWithConfigOverrides(): array {
-		$spaceIdToPrefixMap = $this->workspaceDB->getMapSpaceIdToPrefix();
-		$spaceIdToKeyMap = $this->workspaceDB->getMapSpaceIdToKey();
-
-		foreach ( $spaceIdToKeyMap as $spaceId => $spaceKey ) {
-			$configPrefix = $this->migrationConfig->getPrefixFromSpaceKeyToPrefixMap( (string)$spaceKey );
-			if ( $configPrefix === null ) {
-				continue;
-			}
-
-			if ( $configPrefix !== '' && strpos( $configPrefix, ':' ) === false ) {
-				$configPrefix .= ':';
-			}
-
-			$spaceIdToPrefixMap[(int)$spaceId] = $configPrefix;
-		}
-
-		return $spaceIdToPrefixMap;
-	}
 }

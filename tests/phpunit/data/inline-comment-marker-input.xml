@@ -14,7 +14,7 @@
 						<ac:task>
 							<ac:task-id>3</ac:task-id>
 							<ac:task-status>incomplete</ac:task-status>
-							<ac:task-body><span style="color: red;">Body 2</span> <ac:inline-comment-marker>with inline comment marker</ac:inline-comment-marker></ac:task-body>
+							<ac:task-body><span style="color: red;">Body 2</span> <ac:inline-comment-marker ac:ref="ref-1">with inline comment marker</ac:inline-comment-marker></ac:task-body>
 						</ac:task>
 					</ac:task-list>
 				</ac:task-body>

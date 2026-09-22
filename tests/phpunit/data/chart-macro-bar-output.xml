@@ -1,0 +1,3 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<strong>Some data as bar chart</strong>###BREAK###convert:placeholder=0A, 55###BREAK###B, 45###BREAK###convert:placeholder=1<barchart showvalues="true"/>
+</xml>

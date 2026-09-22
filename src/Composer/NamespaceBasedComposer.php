@@ -19,16 +19,6 @@ class NamespaceBasedComposer extends ConfluenceComposerBase {
 			return;
 		}
 
-		// Run shared content processors
-		$sharedProcessors = $this->initProcessorsForSharedContent(
-			$builder
-		);
-
-		foreach ( $sharedProcessors as $processor ) {
-			$processor->setSubDir( '_shared' );
-			$processor->execute();
-		}
-
 		// Run space dependent processors for each space
 		$this->output->writeln( "Data is not assigned to any wikis." );
 
@@ -60,10 +50,12 @@ class NamespaceBasedComposer extends ConfluenceComposerBase {
 			$deploymentInfo->addNamespace( $namespace );
 
 			$subDir = $namespace;
+			$spaceIds = array_keys( $spaces );
+
+			$this->runSharedContentProcessors( $builder, $subDir, $spaceIds );
 
 			$processors = $this->initProcessorsForSpaceContent( $builder, $deploymentInfo );
 
-			$spaceIds = array_keys( $spaces );
 			foreach ( $processors as $processor ) {
 				$processor->setSubDir( $subDir );
 				if ( $processor instanceof ISpaceIdsDependentProcessor ) {

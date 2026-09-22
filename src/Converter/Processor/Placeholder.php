@@ -4,12 +4,19 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  *
  */
-class Placeholder extends ConversionHelper implements IProcessor {
+class Placeholder extends ConversionHelper implements IProcessor, IUsesPlaceholder {
+	public function __construct(
+		private readonly PlaceholderManager $placeholderManager
+	) {
+	}
+
 	/**
 	 * @inheritDoc
 	 */
@@ -25,7 +32,7 @@ class Placeholder extends ConversionHelper implements IProcessor {
 			$macroNode->parentNode->replaceChild(
 				$this->createTextNode(
 					$macroNode->ownerDocument,
-					"###HTMLCOMMENTOPEN###$macroNode->textContent###HTMLCOMMENTCLOSE###",
+					$this->placeholderManager->getPlaceholder( "<!--$macroNode->textContent-->" ),
 					__METHOD__
 				),
 				$macroNode

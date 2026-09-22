@@ -172,11 +172,16 @@ class WorkspaceDB {
 			'users',
 			'content_properties',
 			'comments',
+			'page_comments',
+			'blog_post_comments',
 			'labellings',
 			'labels',
 			'gliffy',
+			'roadmap_svgs',
 			'required_templates',
 			'default_pages_registry',
+			'default_files_registry',
+			'inline_comments'
 		];
 
 		if ( !in_array( $table, $allowedTables, true ) ) {
@@ -263,6 +268,21 @@ class WorkspaceDB {
 			'idx_blog_posts_space_id', 'blog_posts', 'space_id'
 		);
 		$this->doCreateIndex(
+			'idx_page_comments_page_id', 'page_comments', 'page_id'
+		);
+		$this->doCreateIndex(
+			'idx_blog_post_comments_blog_post_id', 'blog_post_comments', 'blog_post_id'
+		);
+		$this->doCreateIndex(
+			'idx_inline_comments_container_id', 'inline_comments', 'container_id'
+		);
+		$this->doCreateIndex(
+			'idx_inline_comments_comment_ref', 'inline_comments', 'comment_ref'
+		);
+		$this->doCreateIndex(
+			'idx_inline_comments_parent_id', 'inline_comments', 'parent_id'
+		);
+		$this->doCreateIndex(
 			'idx_page_templates_template_id', 'page_templates', 'template_id'
 		);
 	}
@@ -314,9 +334,11 @@ class WorkspaceDB {
 		$this->createTableComments();
 		$this->createTablePageComments();
 		$this->createTableBlogPostComments();
+		$this->createTableInlineComments();
 		$this->createTableLabellings();
 		$this->createTableLabels();
 		$this->createTableGliffy();
+		$this->createTableRoadmapSvgs();
 		$this->createTablePagesMeta();
 		$this->createTableBlogPostsMeta();
 		$this->createTableAttachmentsMeta();
@@ -325,6 +347,7 @@ class WorkspaceDB {
 		$this->createTableAttachmentsDescriptions();
 		$this->createTableExportProperties();
 		$this->createTableDefaultPagesRegistry();
+		$this->createTableDefaultFilesRegistry();
 
 		// Indexing tables
 		$this->createIndexes();
@@ -616,6 +639,7 @@ class WorkspaceDB {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS users (
 				user_key CHAR PRIMARY KEY,
+				confluence_username CHAR,
 				wiki_user_name CHAR,
 				email CHAR,
 				properties BLOB
@@ -651,7 +675,8 @@ class WorkspaceDB {
 				body_content_ids BLOB,
 				created CHAR,
 				modified CHAR,
-				properties BLOB
+				properties BLOB,
+				collection BLOB
 			);'
 		);
 	}
@@ -678,6 +703,24 @@ class WorkspaceDB {
 				comment_id INT PRIMARY KEY,
 				blog_post_id INT,
 				wiki_title CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableInlineComments(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS inline_comments (
+				comment_id INT PRIMARY KEY,
+				parent_id INT,
+				container_id INT,
+				comment_ref CHAR,
+				original_text CHAR,
+				comment_text CHAR,
+				created INT,
+				status CHAR
 			);'
 		);
 	}
@@ -719,6 +762,24 @@ class WorkspaceDB {
 				confluence_title CHAR,
 				original_attachment_filename CHAR,
 				target_attachment_filename CHAR
+			);'
+		);
+	}
+
+	/**
+	 * Generated SVG files (e.g. rendered roadmap diagrams) that were written to
+	 * disk during conversion and must be picked up by the Composer step so they
+	 * end up in files.xml, even though they have no corresponding Confluence
+	 * attachment record.
+	 *
+	 * @return void
+	 */
+	private function createTableRoadmapSvgs(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS roadmap_svgs (
+				space_id INT,
+				confluence_title CHAR,
+				svg_filename CHAR
 			);'
 		);
 	}
@@ -951,7 +1012,7 @@ class WorkspaceDB {
 	 */
 	public function getWikisConfigWikiNames(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT wiki_name FROM wikis_config'
+			'SELECT DISTINCT wiki_name FROM wikis_config'
 		);
 
 		$result = $transaction->execute();
@@ -2001,7 +2062,11 @@ class WorkspaceDB {
 	 */
 	public function getMapSpaceIdToPrefix(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT space_id, namespace_prefix, root_page FROM spaces'
+			'SELECT s.space_id,
+				COALESCE( wc.wiki_namespace, s.namespace_prefix ) AS namespace_prefix,
+				COALESCE( wc.wiki_root_page, s.root_page ) AS root_page
+			FROM spaces s
+			LEFT JOIN wikis_config wc ON wc.space_key = s.space_key'
 		);
 
 		$result = $transaction->execute();
@@ -2876,7 +2941,7 @@ class WorkspaceDB {
 	 */
 	public function getPageRevisionsForPageId( int $pageId ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT revision_timestamp, version, body_content_ids FROM pages
+			'SELECT revision_timestamp, version, body_content_ids, last_modifier FROM pages
 			WHERE ( page_id = :page_id OR original_version_id = :page_id )
 			AND content_status = :content_status
 			ORDER BY revision_timestamp ASC'
@@ -3186,7 +3251,7 @@ class WorkspaceDB {
 	 */
 	public function getBlogPostRevisionsForBlogPostId( int $blogPostId ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT revision_timestamp, version, body_content_ids FROM blog_posts
+			'SELECT revision_timestamp, version, body_content_ids, last_modifier FROM blog_posts
 			WHERE page_id = :page_id OR original_version_id = :page_id
 			ORDER BY revision_timestamp ASC'
 		);
@@ -3405,6 +3470,93 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Get the space ID of the page or blog post body content.
+	 *
+	 * @param int $bodyContentId
+	 * @return int|null
+	 */
+	public function getSpaceIdForBodyContentId( int $bodyContentId ): ?int {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.space_id, bp.space_id ) AS space_id
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		if ( $data === false || $data['space_id'] === null ) {
+			return null;
+		}
+
+		return (int)$data['space_id'];
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getWikiTitleForBodyContentId( int $bodyContentId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.wiki_title, bp.wiki_title ) AS wiki_title
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return $data === false || $data['wiki_title'] === null ? null : (string)$data['wiki_title'];
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getConfluenceTitleForBodyContentId( int $bodyContentId ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT COALESCE( p.confluence_title, bp.confluence_title ) AS confluence_title
+			FROM body_contents bc
+			INNER JOIN comments c ON c.comment_id = bc.content_id
+			LEFT JOIN pages p ON p.page_id = c.container_id
+			LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
+			WHERE bc.body_content_id = :body_content_id
+			LIMIT 1'
+		);
+		$transaction->bindValue( ':body_content_id', $bodyContentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$data = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+
+		return $data === false || $data['confluence_title'] === null ? null : (string)$data['confluence_title'];
+	}
+
+	/**
 	 * @param int $bodyContentId
 	 * @param string $body
 	 * @return bool True on success, false on error.
@@ -3482,6 +3634,22 @@ class WorkspaceDB {
 		}
 
 		return $data['body'];
+	}
+
+	/**
+	 * @param int[] $bodyContentIds
+	 * @return string[]
+	 */
+	public function getBodyContentBodiesForBodyContentId( array $bodyContentIds ): array {
+		$bodies = [];
+		foreach ( $bodyContentIds as $bodyContentId ) {
+			$body = $this->getBodyContentBodyByBodyContentId( (int)$bodyContentId );
+			if ( $body !== null ) {
+				$bodies[] = $body;
+			}
+		}
+
+		return $bodies;
 	}
 
 	public function addAttachment(
@@ -4174,34 +4342,52 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Inserts a user row, or updates an existing one (e.g. pre-populated from
+	 * a --usermap CSV file). The `wiki_user_name` of an existing row is kept
+	 * as-is; `email` and `properties` are always updated to the given values.
+	 *
 	 * @param string $userKey
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
+	 * @param string $confluenceUsername
 	 * @return bool
 	 */
 	public function addUser(
 		string $userKey,
 		string $wikiUsername,
 		string $email,
-		array $properties
+		array $properties,
+		string $confluenceUsername = ''
 	): bool {
 		$propertiesJson = json_encode( $properties );
 		$transaction = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO users (
+			'INSERT INTO users (
 				user_key,
+				confluence_username,
 				wiki_user_name,
 				email,
 				properties
 			) VALUES (
 				:user_key,
+				:confluence_username,
 				:wiki_user_name,
 				:email,
 				:properties
-			)'
+			)
+			ON CONFLICT( user_key ) DO UPDATE SET
+				confluence_username = excluded.confluence_username,
+				wiki_user_name = CASE
+					WHEN users.wiki_user_name IS NOT NULL AND users.wiki_user_name != \'\'
+					THEN users.wiki_user_name
+					ELSE excluded.wiki_user_name
+				END,
+				email = excluded.email,
+				properties = excluded.properties'
 		);
 
 		$transaction->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_username', $confluenceUsername, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_user_name', $wikiUsername, SQLITE3_TEXT );
 		$transaction->bindValue( ':email', $email, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
@@ -4286,6 +4472,26 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int $contentPropertyId
+	 * @return array|null
+	 */
+	public function getContentPopertyById( int $contentPropertyId ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM content_properties WHERE property_id = :property_id LIMIT 1'
+		);
+		$transaction->bindValue( ':property_id', $contentPropertyId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+
+		if ( $data === [] ) {
+			return null;
+		}
+
+		return $data[0];
+	}
+
+	/**
 	 * @param int $commentId
 	 * @param int $containerContentId
 	 * @param string $class
@@ -4295,13 +4501,15 @@ class WorkspaceDB {
 	 * @param string $created
 	 * @param string $modified
 	 * @param array $properties
+	 * @param array $collection
 	 * @return bool
 	 */
 	public function addComment(
 		int $commentId, int $containerContentId, string $class, string $contentStatus,
-		string $userKey, array $bodyContentIds, string $created, string $modified, array $properties
+		string $userKey, array $bodyContentIds, string $created, string $modified, array $properties, array $collection
 	): bool {
 		$propertiesJson = json_encode( $properties );
+		$collectionJson = json_encode( $collection );
 		$bodyContentIdsJson = json_encode( $bodyContentIds );
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO comments (
@@ -4313,7 +4521,8 @@ class WorkspaceDB {
 				body_content_ids,
 				created,
 				modified,
-				properties
+				properties,
+				collection
 			) VALUES (
 				:comment_id,
 				:container_id,
@@ -4323,7 +4532,8 @@ class WorkspaceDB {
 				:body_content_ids,
 				:created,
 				:modified,
-				:properties
+				:properties,
+				:collection
 			)'
 		);
 
@@ -4336,6 +4546,7 @@ class WorkspaceDB {
 		$transaction->bindValue( ':created', $created, SQLITE3_TEXT );
 		$transaction->bindValue( ':modified', $modified, SQLITE3_TEXT );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
+		$transaction->bindValue( ':collection', $collectionJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
 	}
 
@@ -4389,6 +4600,39 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return array
+	 */
+	public function getPageComments(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT c.*, pc.page_id, pc.wiki_title
+			FROM page_comments pc
+			INNER JOIN comments c ON c.comment_id = pc.comment_id'
+		);
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * @param int $commentId
+	 * @param string $wikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updatePageCommentWikiTitle( int $commentId, string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE page_comments SET wiki_title = :wiki_title WHERE comment_id = :comment_id'
+		);
+
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
 	 * @param int $commentId
 	 * @param int $blogPostId
 	 * @param string $wikiTitle
@@ -4411,6 +4655,154 @@ class WorkspaceDB {
 		$transaction->bindValue( ':blog_post_id', $blogPostId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getBlogPostComments(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT c.*, bpc.blog_post_id, bpc.wiki_title
+			FROM blog_post_comments bpc
+			INNER JOIN comments c ON c.comment_id = bpc.comment_id'
+		);
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * @param int $commentId
+	 * @param string $wikiTitle
+	 * @return bool True on success, false on error.
+	 */
+	public function updateBlogPostCommentWikiTitle( int $commentId, string $wikiTitle ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE blog_post_comments SET wiki_title = :wiki_title WHERE comment_id = :comment_id'
+		);
+
+		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $commentId
+	 * @param int|null $parentId
+	 * @param int $containerId
+	 * @param string|null $commentRef
+	 * @param string|null $originalText
+	 * @param string $commentText
+	 * @param int $created
+	 * @param string|null $status
+	 * @return bool
+	 */
+	public function addInlineComments(
+		int $commentId,
+		?int $parentId,
+		int $containerId,
+		?string $commentRef,
+		?string $originalText,
+		string $commentText,
+		int $created,
+		?string $status
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR IGNORE INTO inline_comments (
+				comment_id,
+				comment_ref,
+				original_text,
+				comment_text,
+				parent_id,
+				container_id,
+				created,
+				status
+			) VALUES (
+				:comment_id,
+				:comment_ref,
+				:original_text,
+				:comment_text,
+				:parent_id,
+				:container_id,
+				:created,
+				:status
+			)'
+		);
+
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':parent_id', $parentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':container_id', $containerId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':comment_ref', $commentRef, SQLITE3_TEXT );
+		$transaction->bindValue( ':original_text', $originalText, SQLITE3_TEXT );
+		$transaction->bindValue( ':comment_text', $commentText, SQLITE3_TEXT );
+		$transaction->bindValue( ':created', $created, SQLITE3_INTEGER );
+		$transaction->bindValue( ':status', $status, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $containerId
+	 * @return array
+	 */
+	public function getInlineCommentsForContentId( int $containerId ): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM inline_comments WHERE container_id = :container_id ORDER BY created ASC'
+		);
+		$transaction->bindValue( ':container_id', $containerId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
+	}
+
+	/**
+	 * @param string $markerRef
+	 * @return array|null
+	 */
+	public function getInlineCommentsForMarkerRef( string $markerRef ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM inline_comments WHERE comment_ref = :comment_ref LIMIT 1'
+		);
+		$transaction->bindValue( ':comment_ref', $markerRef, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		$comment = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+		if ( $comment === false || !isset( $comment['comment_id'] ) ) {
+			return null;
+		}
+
+		$childrenTransaction = $this->cachedPrepare(
+			'SELECT * FROM inline_comments WHERE parent_id = :parent_id ORDER BY created ASC'
+		);
+		$childrenTransaction->bindValue( ':parent_id', (int)$comment['comment_id'], SQLITE3_INTEGER );
+		$childrenResult = $childrenTransaction->execute();
+		if ( $childrenResult === false ) {
+			$comment['children'] = [];
+			return $comment;
+		}
+
+		$children = [];
+		foreach ( $this->fetchDbArray( $childrenResult ) as $child ) {
+			if ( !isset( $child['created'] ) ) {
+				continue;
+			}
+			$children[(string)$child['created']] = $child;
+		}
+		$comment['children'] = $children;
+
+		return $comment;
 	}
 
 	/**
@@ -4474,9 +4866,12 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getCommentsForPages( ?int $spaceId = null ): array {
+		// INNER JOIN page_comments to exclude inline comments, which are not classified as
+		// page-level comments by CommentsHelper/PrepareComments even though their container is a page.
 		if ( $spaceId === null ) {
 			$transaction = $this->cachedPrepare(
 				'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
+				INNER JOIN page_comments pc ON pc.comment_id = c.comment_id
 				LEFT JOIN pages p ON p.page_id = c.container_id
 				 WHERE c.content_class = :content_class
 				 AND c.content_status = :content_status
@@ -4485,6 +4880,7 @@ class WorkspaceDB {
 		} else {
 			$transaction = $this->cachedPrepare(
 				'SELECT c.*, p.wiki_title AS wiki_title FROM comments c
+				INNER JOIN page_comments pc ON pc.comment_id = c.comment_id
 				LEFT JOIN pages p ON p.page_id = c.container_id
 				WHERE c.content_class = :content_class
 				 AND c.content_status = :content_status
@@ -4513,9 +4909,12 @@ class WorkspaceDB {
 	 * @return array
 	 */
 	public function getCommentsForBlogPosts( ?int $spaceId = null ): array {
+		// INNER JOIN blog_post_comments to exclude inline comments, which are not classified as
+		// blog-post-level comments by CommentsHelper/PrepareComments even though their container is a blog post.
 		if ( $spaceId === null ) {
 			$transaction = $this->cachedPrepare(
 				'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
+				INNER JOIN blog_post_comments bpc ON bpc.comment_id = c.comment_id
 				LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
 				WHERE c.content_class = :content_class
 				AND c.content_status = :content_status
@@ -4524,6 +4923,7 @@ class WorkspaceDB {
 		} else {
 			$transaction = $this->cachedPrepare(
 				'SELECT c.*, bp.wiki_title AS wiki_title FROM comments c
+				INNER JOIN blog_post_comments bpc ON bpc.comment_id = c.comment_id
 				LEFT JOIN blog_posts bp ON bp.page_id = c.container_id
 				WHERE c.content_class = :content_class
 				AND c.content_status = :content_status
@@ -4552,6 +4952,48 @@ class WorkspaceDB {
 	public function commentIdExists( int $commentId ): bool {
 		$transaction = $this->cachedPrepare(
 			'SELECT comment_id FROM comments WHERE comment_id = :comment_id LIMIT 1'
+		);
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return false;
+		}
+
+		$exists = $result->fetchArray( SQLITE3_ASSOC ) !== false;
+		$result->finalize();
+
+		return $exists;
+	}
+
+	/**
+	 * @param int $commentId
+	 * @return bool
+	 */
+	public function pageCommentIdExists( int $commentId ): bool {
+		$transaction = $this->cachedPrepare(
+			'SELECT comment_id FROM page_comments WHERE comment_id = :comment_id LIMIT 1'
+		);
+		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return false;
+		}
+
+		$exists = $result->fetchArray( SQLITE3_ASSOC ) !== false;
+		$result->finalize();
+
+		return $exists;
+	}
+
+	/**
+	 * @param int $commentId
+	 * @return bool
+	 */
+	public function blogPostCommentIdExists( int $commentId ): bool {
+		$transaction = $this->cachedPrepare(
+			'SELECT comment_id FROM blog_post_comments WHERE comment_id = :comment_id LIMIT 1'
 		);
 		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
 
@@ -4889,6 +5331,65 @@ class WorkspaceDB {
 		$transaction->bindValue( ':target_attachment_filename', $targetAttachmentFilename, SQLITE3_TEXT );
 
 		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Registers a SVG file generated during conversion (e.g. a rendered roadmap
+	 * diagram) so the Composer step can add it to files.xml.
+	 *
+	 * @param int|null $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $svgFilename
+	 * @return bool
+	 */
+	public function addRoadmapSvg(
+		?int $spaceId,
+		string $confluenceTitle,
+		string $svgFilename
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO roadmap_svgs (
+				space_id,
+				confluence_title,
+				svg_filename
+			) VALUES (
+				:space_id,
+				:confluence_title,
+				:svg_filename
+			)'
+		);
+
+		if ( $spaceId !== null ) {
+			$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		} else {
+			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
+		}
+		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':svg_filename', $svgFilename, SQLITE3_TEXT );
+
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int|null $spaceId
+	 * @return array
+	 */
+	public function getRoadmapSvgs( ?int $spaceId = null ): array {
+		if ( $spaceId === null ) {
+			return $this->getAllData( 'roadmap_svgs' );
+		}
+
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM roadmap_svgs WHERE space_id = :space_id'
+		);
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
@@ -5305,8 +5806,19 @@ class WorkspaceDB {
 			'CREATE TABLE IF NOT EXISTS default_pages_registry (
 				space_id INT,
 				namespace TEXT,
-				name TEXT,
-				PRIMARY KEY (space_id, namespace, name)
+				name TEXT
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableDefaultFilesRegistry(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS default_files_registry (
+				space_id INT,
+				name TEXT
 			);'
 		);
 	}
@@ -5323,7 +5835,7 @@ class WorkspaceDB {
 		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'
 	): bool {
 		$transaction = $this->cachedPrepare(
-			'INSERT OR IGNORE INTO default_pages_registry (
+			'INSERT INTO default_pages_registry (
 				space_id,
 				namespace,
 				name
@@ -5341,14 +5853,79 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * Get all registered default pages for a given space ID.
+	 * Register default files used for creating new pages in spaces.
 	 *
 	 * @param int $spaceId
+	 * @param string $defaultFileName
+	 * @return bool
+	 */
+	public function registerDefaultFile(
+		int $spaceId, string $defaultFileName
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO default_files_registry (
+				space_id,
+				name
+			) VALUES (
+				:space_id,
+				:name
+			)'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':name', $defaultFileName, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * Get registered default pages for a given space ID grouped by namespace.
+	 *
+	 * @param int $spaceId
+	 * @param string $namespace Use '*' to return all namespaces.
 	 * @return array
 	 */
-	public function getRegisteredDefaultPagesForSpace( int $spaceId ): array {
+	public function getRegisteredDefaultPagesForSpaceId( int $spaceId, string $namespace = '*' ): array {
+		if ( $namespace === '*' ) {
+			$transaction = $this->cachedPrepare(
+				'SELECT DISTINCT namespace, name FROM default_pages_registry
+					WHERE space_id = :space_id
+					ORDER BY namespace, name'
+			);
+		} else {
+			$transaction = $this->cachedPrepare(
+				'SELECT DISTINCT namespace, name FROM default_pages_registry
+					WHERE space_id = :space_id AND namespace = :namespace
+					ORDER BY name'
+			);
+			$transaction->bindValue( ':namespace', $namespace, SQLITE3_TEXT );
+		}
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return [];
+		}
+
+		$rows = $this->fetchDbArray( $result );
+		$defaultPages = [];
+		foreach ( $rows as $row ) {
+			$pageNamespace = $row['namespace'];
+			$defaultPages[$pageNamespace][] = $row['name'];
+		}
+
+		return $defaultPages;
+	}
+
+	/**
+	 * Get registered default files for a given space ID and namespace.
+	 *
+	 * @param int $spaceId
+	 * @return string[]
+	 */
+	public function getRegisteredDefaultFilesForSpaceId( int $spaceId ): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT namespace, name FROM default_pages_registry WHERE space_id = :space_id'
+			'SELECT DISTINCT name FROM default_files_registry
+				WHERE space_id = :space_id'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 
@@ -5357,6 +5934,12 @@ class WorkspaceDB {
 			return [];
 		}
 
-		return $this->fetchDbArray( $result );
+		$rows = $this->fetchDbArray( $result );
+		$defaultFiles = [];
+		foreach ( $rows as $row ) {
+			$defaultFiles[] = $row['name'];
+		}
+
+		return $defaultFiles;
 	}
 }

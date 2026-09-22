@@ -24,7 +24,7 @@ class DetailsMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new DetailsMacro();
+		$processor = new DetailsMacro( $this->createConverterDataWriter(), 1 );
 		$processor->process( $dom );
 
 		$expectedDom = new DOMDocument();

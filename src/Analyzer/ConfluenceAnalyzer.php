@@ -34,6 +34,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	 * @param IAnalyzeDataWriter $writer
 	 * @param OutputInterface $output
 	 * @param MigrationConfig $config
+	 * @param WikisConfig $wikis
 	 */
 	public function __construct(
 		private readonly IAnalyzeDataWriter $writer,
