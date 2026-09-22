@@ -1009,7 +1009,7 @@ class WorkspaceDB {
 	 */
 	public function getWikisConfigWikiNames(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT wiki_name FROM wikis_config'
+			'SELECT DISTINCT wiki_name FROM wikis_config'
 		);
 
 		$result = $transaction->execute();
