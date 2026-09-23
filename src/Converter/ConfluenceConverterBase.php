@@ -406,7 +406,12 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 
 		$properties = $this->dataLookup->getPropertiesForPageId( $this->pageId );
 		if ( !empty( $properties['isFolder'] ) ) {
+			if ( $this->currentSpace === null ) {
+				return;
+			}
+
 			$this->wikiText = '{{Folder}}';
+			$this->writer->registerDefaultPage( $this->currentSpace, 'Folder' );
 		}
 	}
 
