@@ -167,17 +167,17 @@ class Files extends FileProcessorBase {
 					continue;
 				}
 
+				$uploadFilePath = "$uploadPath/$timestamp-$filename";
 				$this->workspace->copyFile(
 					$filePath,
-					"$uploadPath/$timestamp-$filename",
+					$uploadFilePath,
 					$doHardLinks
 				);
-				$uploadFilePath = "/$uploadPath/$timestamp-$filename";
 
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 				$this->addFileRevision(
 					$attachmentPageTitle,
-					$this->getRelativeFilePath( $uploadFilePath ),
+					$this->getRelativeFilePath( "/$uploadFilePath" ),
 					$timestamp,
 					'',
 					$pageText
@@ -264,12 +264,12 @@ class Files extends FileProcessorBase {
 						continue;
 					}
 
+					$uploadFilePath = "$uploadPath/$filename";
 					$this->workspace->copyFile(
 						$filePath,
-						"$uploadPath/$filename",
+						$uploadFilePath,
 						$doHardLinks
 					);
-					$uploadFilePath = "/$uploadPath/$filename";
 
 					$timestamp = $attachment['revision_timestamp'];
 					/* same as above: to use the author info in $attachment['last_modifier'],
@@ -281,7 +281,7 @@ class Files extends FileProcessorBase {
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					$this->addFileRevision(
 						$attachmentPageTitle,
-						$this->getRelativeFilePath( $uploadFilePath ),
+						$this->getRelativeFilePath( "/$uploadFilePath" ),
 						$timestamp,
 						'',
 						$pageText
