@@ -41,7 +41,7 @@ from xml.parsers import expat
 DIRECT_OWNER_CLASSES = {"Page", "BlogPost", "PageTemplate", "Attachment"}
 
 # Object classes whose ownership is resolved indirectly (own id looked up in
-# content_space_map, built from direct owners + Comment chains + the
+# content_space_map, built from direct owners + Comment/version chains + the
 # Space -> SpaceDescription reverse link).
 INDIRECT_OWNER_CLASSES = {"SpaceDescription", "Comment"}
 
@@ -71,7 +71,7 @@ def parse_properties(path: Path) -> dict:
 def build_index(data) -> tuple:
     """
     Single expat pass over `data` (bytes-like). Returns
-    (records, space_keys, direct_owners, comment_parents, collections_of):
+    (records, space_keys, direct_owners, comment_parents, version_parents, collections_of):
 
     - records: list of dicts {start, end, cls, id, [ref]}, one per top-level
       <object>, in document order. "ref" is only set for CONTENT_REF_CLASSES
@@ -80,6 +80,11 @@ def build_index(data) -> tuple:
     - direct_owners: {contentId: spaceId} for DIRECT_OWNER_CLASSES, plus
       {descriptionId: spaceId} via each Space's "description" property.
     - comment_parents: {commentId: containerContentId}
+    - version_parents: {historicalContentId: originalVersionId} for
+      DIRECT_OWNER_CLASSES rows that are superseded historical version
+      snapshots -- these carry no "space" property of their own (Confluence
+      leaves it unset on old versions), only an "originalVersionId" pointing
+      back at the live content row they're a version of.
     - collections_of: {collectionName: {contentId: [elementId, ...]}} for
       every name in TRACKED_COLLECTIONS (e.g. "labellings", "contentProperties")
       -- collections are the only way to learn the ownership of elements that
@@ -89,6 +94,7 @@ def build_index(data) -> tuple:
     space_keys = {}
     direct_owners = {}
     comment_parents = {}
+    version_parents = {}
     collections_of = {name: {} for name in TRACKED_COLLECTIONS}
 
     parser = expat.ParserCreate()
@@ -130,6 +136,10 @@ def build_index(data) -> tuple:
             sp = props.get("space")
             if sp:
                 direct_owners[oid] = sp
+            else:
+                ov = props.get("originalVersionId")
+                if ov:
+                    version_parents[oid] = ov
         elif cls == "Comment":
             cc = props.get("containerContent")
             if cc:
@@ -218,22 +228,28 @@ def build_index(data) -> tuple:
     parser.CharacterDataHandler = char_data
     parser.Parse(data, True)
 
-    return records, space_keys, direct_owners, comment_parents, collections_of
+    return records, space_keys, direct_owners, comment_parents, version_parents, collections_of
 
 
-def resolve_content_space_map(direct_owners: dict, comment_parents: dict) -> dict:
+def resolve_content_space_map(direct_owners: dict, comment_parents: dict, version_parents: dict = None) -> dict:
     """
-    Merge Comment -> containerContent chains into the direct-owner map.
-    Bounded iterations: comment reply nesting is never deep in practice.
+    Merge Comment -> containerContent chains and historical-version ->
+    originalVersionId chains into the direct-owner map. Both are id -> id
+    back-references that ultimately resolve to a DIRECT_OWNER_CLASSES row
+    carrying an explicit "space" property, so a bounded iterative resolution
+    (comment reply nesting / version chains are never deep in practice)
+    covers them uniformly.
     """
     content_space_map = dict(direct_owners)
+    parent_of = dict(comment_parents)
+    parent_of.update(version_parents or {})
     for _ in range(10):
         changed = False
-        for comment_id, parent_id in comment_parents.items():
-            if comment_id in content_space_map:
+        for child_id, parent_id in parent_of.items():
+            if child_id in content_space_map:
                 continue
             if parent_id in content_space_map:
-                content_space_map[comment_id] = content_space_map[parent_id]
+                content_space_map[child_id] = content_space_map[parent_id]
                 changed = True
         if not changed:
             break
@@ -324,7 +340,7 @@ def process_export(entities_path: Path, props_path: Path, output_path: Path) -> 
     with open(entities_path, "rb") as fh:
         data = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
         try:
-            records, space_keys, direct_owners, comment_parents, collections_of = build_index(data)
+            records, space_keys, direct_owners, comment_parents, version_parents, collections_of = build_index(data)
 
             allowed_space_ids = {sid for sid, key in space_keys.items() if key == expected_key}
             if not expected_key or not allowed_space_ids:
@@ -336,7 +352,7 @@ def process_export(entities_path: Path, props_path: Path, output_path: Path) -> 
                 output_path.write_bytes(data)
                 return
 
-            content_space_map = resolve_content_space_map(direct_owners, comment_parents)
+            content_space_map = resolve_content_space_map(direct_owners, comment_parents, version_parents)
             labelling_space_map = build_collection_space_map(collections_of["labellings"], content_space_map)
             content_property_space_map = build_collection_space_map(
                 collections_of["contentProperties"], content_space_map
