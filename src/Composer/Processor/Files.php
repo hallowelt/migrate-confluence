@@ -177,7 +177,7 @@ class Files extends FileProcessorBase {
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 				$this->addFileRevision(
 					$attachmentPageTitle,
-					$this->getRelativeFilePath( "/$uploadFilePath" ),
+					$this->getRelativeFilePath( $uploadFilePath ),
 					$timestamp,
 					'',
 					$pageText
@@ -281,7 +281,7 @@ class Files extends FileProcessorBase {
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					$this->addFileRevision(
 						$attachmentPageTitle,
-						$this->getRelativeFilePath( "/$uploadFilePath" ),
+						$this->getRelativeFilePath( $uploadFilePath ),
 						$timestamp,
 						'',
 						$pageText
