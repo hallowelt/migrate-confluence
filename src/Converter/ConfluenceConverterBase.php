@@ -44,8 +44,6 @@ use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioSketchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
-use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;

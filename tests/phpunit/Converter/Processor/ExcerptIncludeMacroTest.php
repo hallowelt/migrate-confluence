@@ -13,7 +13,9 @@ class ExcerptIncludeMacroTest extends ProcessorTestCase {
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( dirname( __DIR__, 2 ) . '/data/PageExcerpt/MediaWiki/excerpt-include-macro-output.xml' );
+		return file_get_contents(
+			dirname( __DIR__, 2 ) . '/data/PageExcerpt/MediaWiki/excerpt-include-macro-output.xml'
+		);
 	}
 
 	/**
