@@ -25,9 +25,15 @@ class ConfluenceConverterBaseTest extends TestCase {
 		);
 
 		$converter = $this->newConverter();
+		$writer = $this->createMock( IConverterDataWriter::class );
+		$writer->expects( $this->once() )
+			->method( 'registerDefaultPage' )
+			->with( 1, 'Folder' );
 		$this->setProperty( $converter, 'dataLookup', new DBConversionDataLookup( $database ) );
+		$this->setProperty( $converter, 'writer', $writer );
 		$this->setProperty( $converter, 'contentType', 'page' );
 		$this->setProperty( $converter, 'pageId', 1 );
+		$this->setProperty( $converter, 'currentSpace', 1 );
 		$this->setProperty( $converter, 'wikiText', '' );
 
 		( new ReflectionMethod( ConfluenceConverterBase::class, 'addFolderTemplateIfApplicable' ) )

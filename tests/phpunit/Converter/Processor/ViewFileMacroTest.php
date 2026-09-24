@@ -69,7 +69,13 @@ class ViewFileMacroTest extends ProcessorTestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new ViewFileMacro( $this->dataLookup, $spaceId, $pageName, new MigrationConfig( [] ) );
+		$processor = new ViewFileMacro(
+			$this->createConverterDataWriter(),
+			$this->dataLookup,
+			$spaceId,
+			$pageName,
+			new MigrationConfig( [] )
+		);
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );

@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
 
 class JiraMacroTest extends ProcessorTestCase {
@@ -11,7 +12,7 @@ class JiraMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$jiraMacroProcessor = new JiraMacro();
+		$jiraMacroProcessor = new JiraMacro( $this->createConverterDataWriter(), 1 );
 		$dom = new \DOMDocument();
 		$dom->load(
 			dirname( __DIR__, 2 ) . '/data/jira-macro-input.xml'
@@ -87,12 +88,19 @@ class JiraMacroTest extends ProcessorTestCase {
 	 * @param string $outputFile
 	 */
 	private function doTest( string $inputFile, string $outputFile ): void {
-		$processor = new JiraMacro();
+		$processor = new JiraMacro( $this->createConverterDataWriter(), 1 );
 		$dom = new \DOMDocument();
 		$dom->load( dirname( __DIR__, 2 ) . '/data/' . $inputFile );
 		$expectedDom = new \DOMDocument();
 		$expectedDom->load( dirname( __DIR__, 2 ) . '/data/' . $outputFile );
 		$processor->process( $dom );
 		$this->assertDomXmlEquals( $expectedDom, $dom );
+	}
+
+	/**
+	 * @return IConverterDataWriter
+	 */
+	protected function createConverterDataWriter(): IConverterDataWriter {
+		return $this->createMock( IConverterDataWriter::class );
 	}
 }

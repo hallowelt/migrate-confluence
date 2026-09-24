@@ -167,14 +167,15 @@ class Files extends FileProcessorBase {
 					continue;
 				}
 
-				$uploadFilePath = $this->workspace->copyFile(
+				$uploadFilePath = "$uploadPath/$timestamp-$filename";
+				$this->workspace->copyFile(
 					$filePath,
-					"$uploadPath/$timestamp-$filename",
+					$uploadFilePath,
 					$doHardLinks
 				);
 
 				// XML containing files is supported by MediaWiki dumpBackup but can not be imported
-				$this->builder->addFileRevision(
+				$this->addFileRevision(
 					$attachmentPageTitle,
 					$this->getRelativeFilePath( $uploadFilePath ),
 					$timestamp,
@@ -263,9 +264,10 @@ class Files extends FileProcessorBase {
 						continue;
 					}
 
-					$uploadFilePath = $this->workspace->copyFile(
+					$uploadFilePath = "$uploadPath/$filename";
+					$this->workspace->copyFile(
 						$filePath,
-						"$uploadPath/$filename",
+						$uploadFilePath,
 						$doHardLinks
 					);
 
@@ -277,7 +279,7 @@ class Files extends FileProcessorBase {
 					$pageText = $this->dataLookup->getAttachmentDescription( (int)$attachmentId );
 
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
-					$this->builder->addFileRevision(
+					$this->addFileRevision(
 						$attachmentPageTitle,
 						$this->getRelativeFilePath( $uploadFilePath ),
 						$timestamp,
@@ -337,7 +339,7 @@ class Files extends FileProcessorBase {
 			$svgContent = file_get_contents( $filePath );
 			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $svgContent, $uploadPath );
 
-			$this->builder->addFileRevision(
+			$this->addFileRevision(
 				$filename,
 				$this->getRelativeFilePath( $uploadFilePath ),
 				'',

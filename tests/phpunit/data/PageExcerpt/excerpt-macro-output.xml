@@ -2,32 +2,71 @@
 <xml xmlns:ac="sample_namespace">
     <p>
         convert:placeholder=0
-    </p>
-    <p>
-        convert:placeholder=1
+                <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
+                    macro.
+                </p>
+            convert:placeholder=1
     </p>
     <p>
         convert:placeholder=2
+                <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
+                    macro.
+                </p>
+            convert:placeholder=3
     </p>
     <p>
-        convert:placeholder=3
-    </p>
-    <p>
-        convert:placeholder=4
-    </p>
-    <p>
-        convert:placeholder=5
+        convert:placeholder=4convert:placeholder=5
     </p>
     <p>
         convert:placeholder=6
-    </p>
-    <p>
-        convert:placeholder=7
+                <p local-id="176212f6efc1">This content is transcluded from page &#x201C;excerpt&#x201D;.</p>
+            convert:placeholder=7
     </p>
     <p>
         convert:placeholder=8
+                <table class="relative-table wrapped">
+                    <colgroup><col/></colgroup>
+                    <tbody>
+                        <tr><th>Table Header 1</th></tr>
+                        <tr><td>Table Cell 1</td></tr>
+                    </tbody>
+                </table>
+            convert:placeholder=9
     </p>
     <p>
-        convert:placeholder=9
+        convert:placeholder=10
+                <table class="relative-table wrapped">
+                    <colgroup><col/></colgroup>
+                    <tbody>
+                        <tr><th>Table Header 1</th></tr>
+                        <tr><td>Table Cell 1</td></tr>
+                    </tbody>
+                </table>
+            convert:placeholder=11
+    </p>
+    <p>
+        convert:placeholder=12
+                <p>First paragraph of the excerpt.</p>
+                <p>Second paragraph of the excerpt.</p>
+            convert:placeholder=13
+    </p>
+    <p>
+        convert:placeholder=14
+                <p>Intro text before the heading.</p>
+                <h2>A heading inside the excerpt</h2>
+            convert:placeholder=15
+    </p>
+    <p>
+        convert:placeholder=16
+                <ul>
+                    <li>First list item</li>
+                    <li>Second list item</li>
+                </ul>
+            convert:placeholder=17
+    </p>
+    <p>
+        convert:placeholder=18
+                <p>Line one of the excerpt.<br/>Line two of the excerpt.</p>
+            convert:placeholder=19
     </p>
 </xml>

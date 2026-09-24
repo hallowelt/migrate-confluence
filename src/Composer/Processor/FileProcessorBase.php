@@ -180,12 +180,13 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	}
 
 	/**
+	 * strip "result/" prefix from $filePath to get the reference path for the file
+	 *
 	 * @param string $filePath
 	 * @return string
 	 */
 	protected function getRelativeFilePath( string $filePath ): string {
-		// strip /result form $uploadPath to get the reference path for the file
-		return str_replace( '/result/' . $this->subDir, '.', $filePath );
+		return str_replace( 'result/' . $this->subDir . '/', './', ltrim( $filePath, '/' ) );
 	}
 
 	/**

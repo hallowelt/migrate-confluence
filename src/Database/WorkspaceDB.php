@@ -1009,7 +1009,7 @@ class WorkspaceDB {
 	 */
 	public function getWikisConfigWikiNames(): array {
 		$transaction = $this->cachedPrepare(
-			'SELECT wiki_name FROM wikis_config'
+			'SELECT DISTINCT wiki_name FROM wikis_config'
 		);
 
 		$result = $transaction->execute();
@@ -2933,6 +2933,12 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * get page revisions
+	 *
+	 * It is important that the result is ordered oldest first. During import MediaWiki creates
+	 * revisions as they are noted in the file. If newer versions are imported before older ones,
+	 * the version history page will display revisions out of order.
+	 *
 	 * @param int $pageId
 	 * @return array
 	 */
