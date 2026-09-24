@@ -44,8 +44,6 @@ use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioSketchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
-use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
@@ -465,14 +463,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new IncludeMacro(
 				$this->dataLookup,
 				$this->currentSpace
-			),
-			new ExcerptMacro(
-				$this->placeholderManager
-			),
-			new ExcerptIncludeMacro(
-				$this->dataLookup,
-				$this->currentSpace,
-				$this->placeholderManager
 			),
 			new Emoticon(
 				$this->writer,

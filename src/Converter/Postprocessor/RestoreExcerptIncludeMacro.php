@@ -5,7 +5,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Postprocessor;
 use DOMDocument;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
-use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class RestoreExcerptIncludeMacro implements IPostprocessor {
