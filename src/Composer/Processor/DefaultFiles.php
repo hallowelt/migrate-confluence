@@ -73,6 +73,11 @@ class DefaultFiles extends FileProcessorBase {
 			$attachmentPageTitle = $filename;
 			$data = file_get_contents( $file );
 
+			/* we do not use copyFile here, because the latter will try
+			 * to create hardlinks, which will fail in the advertised
+			 * usage way (Docker image with mounted data folder). If we
+			 * start using lots of default files, we should revise this
+			 * decision. */
 			$uploadFilePath = $this->workspace->saveUploadFile(
 				$filename, $data, $uploadPath
 			);

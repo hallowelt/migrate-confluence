@@ -167,9 +167,10 @@ class Files extends FileProcessorBase {
 					continue;
 				}
 
-				$uploadFilePath = $this->workspace->copyFile(
+				$uploadFilePath = "$uploadPath/$timestamp-$filename";
+				$this->workspace->copyFile(
 					$filePath,
-					"$uploadPath/$timestamp-$filename",
+					$uploadFilePath,
 					$doHardLinks
 				);
 
@@ -263,9 +264,10 @@ class Files extends FileProcessorBase {
 						continue;
 					}
 
-					$uploadFilePath = $this->workspace->copyFile(
+					$uploadFilePath = "$uploadPath/$filename";
+					$this->workspace->copyFile(
 						$filePath,
-						"$uploadPath/$filename",
+						$uploadFilePath,
 						$doHardLinks
 					);
 
