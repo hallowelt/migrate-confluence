@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
-use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use ReflectionClass;
@@ -127,14 +127,13 @@ class ExcerptIncludeMacroChainTest extends MacroChainTestBase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptIncludeMacro::process
 	 * @return void
 	 */
 	public function testMacroChain(): void {
 		$dir = dirname( __DIR__, 2 ) . '/data/PageExcerpt';
 		$fixtures = [
-			'excerpt-include-macro-input.xml' => 'excerpt-include-macro-output.wikitext',
-			'excerpt-include-macro-fallback-found-input.xml' => 'excerpt-include-macro-fallback-found-output.wikitext',
+			'excerpt-include-macro-input.xml' => 'BlueSpiceGalaxy/excerpt-include-macro-output.wikitext',
 		];
 
 		foreach ( $fixtures as $inputFixture => $expectedFixture ) {

@@ -1,21 +1,31 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Converter\Processor;
+namespace HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy;
 
 use DOMElement;
 use Exception;
-use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
+use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
-class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
+class ExcerptIncludeMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
 
+	/** @var ConversionHelper */
 	private ConversionHelper $conversionHelper;
 
+	/** @var bool */
+	private bool $isBroken;
+
+	/**
+	 * @param DBConversionDataLookup $dataLookup
+	 * @param int $currentSpaceId
+	 */
 	public function __construct(
-		private IConverterDataWriter $writer,
 		private readonly DBConversionDataLookup $dataLookup,
-		private readonly int $currentSpaceId
+		private readonly int $currentSpaceId,
+		private readonly PlaceholderManager $placeholderManager
 	) {
 		$this->conversionHelper = new ConversionHelper();
 	}
@@ -28,41 +38,53 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
-	 * Is broken per default
-	 *
 	 * @inheritDoc
-	 * @throws Exception
+	 *
+	 * Pandoc strips unknown HTML elements like <excerpt-include> when converting to MediaWiki
+	 * format. To preserve the tag, we insert a text placeholder here and restore the actual
+	 * <excerpt-include> tag in the RestoreExcerptIncludeMacro postprocessor.
+	 * Placeholders use pipe-separated values to avoid HTML attribute quote encoding issues.
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
+		$this->isBroken = false;
+
 		$targetPage = $this->findPageParameter( $node );
 		$options = $this->findOptionsParameters( $node );
 
+		$page = htmlspecialchars( $targetPage ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 		$showpanel = ( $options['nopanel'] === "true" ) ? "false" : "true";
-		$excerptName = $options['name'];
+		$excerpt = $options['name'] ?? '';
 
-		$params = [];
-		if ( $targetPage !== null ) {
-			$params[] = "page = $targetPage";
-		}
-		$params[] = "showpanel = $showpanel";
-		if ( $excerptName !== null ) {
-			$params[] = "excerpt = $excerptName";
-		}
+		$parent = $node->parentNode;
 
-		$replacement = '{{ExcerptInclude|' . implode( '|', $params ) . '}}' . $this->getBrokenMacroCategory();
-
-		$node->parentNode->replaceChild( $this->createTextNode(
+		$placeholder = $this->createTextNode(
 			$node->ownerDocument,
-			$replacement,
+			$this->placeholderManager->getPlaceholder(
+				"<excerpt-include showpanel=\"$showpanel\" page=\"$page\" excerpt=\"$excerpt\"/>" ),
 			__METHOD__
-		), $node );
-
-		$this->writer->registerDefaultPage(
-			$this->currentSpaceId,
-			"ExcerptInclude"
 		);
+		$parent->insertBefore( $placeholder, $node );
+
+		if ( $this->isBroken ) {
+			$parent->insertBefore(
+				$this->createTextNode(
+					$node->ownerDocument,
+					$this->getBrokenMacroCategory(),
+					__METHOD__
+				),
+				$node
+			);
+			$this->isBroken = false;
+		}
+
+		$parent->removeChild( $node );
 	}
 
+	/**
+	 * @param DOMElement $node
+	 *
+	 * @return array
+	 */
 	private function findOptionsParameters( DOMElement $node ): array {
 		$options = [
 			'nopanel' => true,
@@ -84,8 +106,12 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
+	 * @param DOMElement $node
+	 *
 	 * Target page is in default parameter.
 	 * Either ac:name="" or ac:default-parameter
+	 *
+	 * @return string|null
 	 * @throws Exception
 	 */
 	private function findPageParameter( DOMElement $node ): ?string {
@@ -101,6 +127,8 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 			}
 		}
 
+		$this->isBroken = true;
+
 		return null;
 	}
 
@@ -110,6 +138,9 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 	 * The parameter either wraps an <ac:link><ri:page ri:content-title="…"/></ac:link>
 	 * or holds the page title as plain text.
 	 *
+	 * @param DOMElement $pageElement
+	 *
+	 * @return string|null The wiki page title, or null if it can't be determined.
 	 * @throws Exception
 	 */
 	private function findPageValue( DOMElement $pageElement ): ?string {
@@ -119,6 +150,8 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 			if ( $pageLinkPageElement instanceof DOMElement ) {
 				$confluenceTitle = $pageLinkPageElement->getAttribute( 'ri:content-title' );
 				if ( empty( $confluenceTitle ) ) {
+					$this->isBroken = true;
+
 					return null;
 				}
 
@@ -131,6 +164,8 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 
 		$confluenceTitle = $pageElement->textContent;
 		if ( empty( $confluenceTitle ) ) {
+			$this->isBroken = true;
+
 			return null;
 		}
 
@@ -138,6 +173,10 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
+	 * @param string $confluenceTitle
+	 * @param DOMElement $el
+	 *
+	 * @return string
 	 * @throws Exception
 	 */
 	private function getWikiPageTitle( string $confluenceTitle, DOMElement $el ): string {
@@ -158,6 +197,7 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 		}
 
 		// Fallback to confluence page key
+		$this->isBroken = true;
 		if ( empty( $spaceKey ) ) {
 			return $this->conversionHelper->getConfluencePageKeyFromSpaceId( $spaceId, $confluenceTitle );
 		}

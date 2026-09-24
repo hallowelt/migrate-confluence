@@ -1,0 +1,48 @@
+<noinclude>Template added by Confluence migration to handle the "excerpt-include" macro
+
+<templatedata>
+{
+    "description": {
+        "en": "include an excerpt from another page",
+        "de": "Einen Auszug von einer anderen Seite einbinden"
+    },
+    "params": {
+        "page": {
+            "label": {
+                "en": "page",
+                "de": "Seite"
+            },
+            "type": "wiki-page-name",
+            "required": false,
+            "description": {
+                "en": "The page the excerpt should be included from",
+                "de": "Die Seite, von der der Auszug eingebunden werden soll"
+            }
+        },
+        "excerpt": {
+            "label": {
+                "en": "excerpt",
+                "de": "Auszug"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "The name of the excerpt to include",
+                "de": "Der Name des einzubindenden Auszugs"
+            }
+        },
+        "showpanel": {
+            "label": {
+                "en": "showpanel",
+                "de": "Panel anzeigen"
+            },
+            "type": "boolean",
+            "required": false,
+            "description": {
+                "en": "Whether to show the excerpt in a panel",
+                "de": "Ob der Auszug in einem Panel angezeigt werden soll"
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{Textbox|boxtype=important|header=|text=Here should be an included excerpt{{#if:{{{page|}}}| from page {{{page}}}}}{{#if:{{{excerpt|}}}| from excerpt name {{{excerpt}}}}}.|icon=yes}}</includeonly>

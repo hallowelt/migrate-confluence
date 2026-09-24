@@ -1,0 +1,49 @@
+<noinclude>Template added by Confluence migration to handle the "excerpt" macro
+
+<templatedata>
+{
+    "description": {
+        "en": "mark part of a page as an excerpt to be included on other pages",
+        "de": "Einen Teil einer Seite als Auszug markieren, der auf anderen Seiten eingebunden werden kann"
+    },
+    "params": {
+        "excerpt": {
+            "label": {
+                "en": "excerpt",
+                "de": "Auszug"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "The name of the excerpt",
+                "de": "Der Name des Auszugs"
+            }
+        },
+        "type": {
+            "label": {
+                "en": "type",
+                "de": "Typ"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "Whether the excerpt is a block or inline element",
+                "de": "Ob der Auszug ein Block- oder Inline-Element ist"
+            }
+        },
+        "hidden": {
+            "label": {
+                "en": "hidden",
+                "de": "Versteckt"
+            },
+            "type": "boolean",
+            "required": false,
+            "description": {
+                "en": "Whether the excerpt content is hidden on this page",
+                "de": "Ob der Auszugsinhalt auf dieser Seite versteckt ist"
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{Textbox|boxtype=important|header=|text=The following part of this page should have been defined as an excerpt to include on other pages{{#if:{{{excerpt|}}}| (excerpt name: {{{excerpt}}})}}, but this functionality is not available.|icon=yes}}
+</includeonly>

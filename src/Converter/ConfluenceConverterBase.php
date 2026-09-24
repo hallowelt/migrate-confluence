@@ -466,14 +466,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->dataLookup,
 				$this->currentSpace
 			),
-			new ExcerptMacro(
-				$this->placeholderManager
-			),
-			new ExcerptIncludeMacro(
-				$this->dataLookup,
-				$this->currentSpace,
-				$this->placeholderManager
-			),
 			new Emoticon(
 				$this->writer,
 				$this->currentSpace

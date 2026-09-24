@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
-use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptMacro;
 
 /**
  * @group full
@@ -17,7 +17,7 @@ class ExcerptMacroChainTest extends MacroChainTestBase {
 	public function testMacroChain(): void {
 		$dir = dirname( __DIR__, 2 ) . '/data/PageExcerpt';
 		$fixtures = [
-			'excerpt-macro-input.xml' => 'excerpt-macro-output.wikitext',
+			'excerpt-macro-input.xml' => 'BlueSpiceGalaxy/excerpt-macro-output.wikitext',
 		];
 
 		foreach ( $fixtures as $inputFixture => $expectedFixture ) {
