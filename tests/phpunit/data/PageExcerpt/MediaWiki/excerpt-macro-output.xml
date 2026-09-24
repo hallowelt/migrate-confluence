@@ -5,12 +5,14 @@
         <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
                     macro.
                 </p>
+        {{ExcerptEnd}}
     </p>
     <p>
         {{Excerpt|type=inline|hidden = true}}[[Category:Broken_macro/excerpt]]
         <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
                     macro.
                 </p>
+        {{ExcerptEnd}}
     </p>
     <p>
         {{Excerpt|type=block}}[[Category:Broken_macro/excerpt]]
@@ -18,6 +20,7 @@
     <p>
         {{Excerpt|type=block|excerpt = Excerpt Name 1}}[[Category:Broken_macro/excerpt]]
         <p local-id="176212f6efc1">This content is transcluded from page &#x201C;excerpt&#x201D;.</p>
+        {{ExcerptEnd}}
     </p>
     <p>
         {{Excerpt|type=inline}}[[Category:Broken_macro/excerpt]]
@@ -28,6 +31,7 @@
                 <tr><td>Table Cell 1</td></tr>
             </tbody>
         </table>
+        {{ExcerptEnd}}
     </p>
     <p>
         {{Excerpt|type=inline}}[[Category:Broken_macro/excerpt]]
@@ -38,16 +42,19 @@
                 <tr><td>Table Cell 1</td></tr>
             </tbody>
         </table>
+        {{ExcerptEnd}}
     </p>
     <p>
         {{Excerpt|type=inline}}[[Category:Broken_macro/excerpt]]
         <p>First paragraph of the excerpt.</p>
         <p>Second paragraph of the excerpt.</p>
+        {{ExcerptEnd}}
     </p>
     <p>
         {{Excerpt|type=inline}}[[Category:Broken_macro/excerpt]]
         <p>Intro text before the heading.</p>
         <h2>A heading inside the excerpt</h2>
+        {{ExcerptEnd}}
     </p>
     <p>
         {{Excerpt|type=inline}}[[Category:Broken_macro/excerpt]]
@@ -55,9 +62,11 @@
             <li>First list item</li>
             <li>Second list item</li>
         </ul>
+        {{ExcerptEnd}}
     </p>
     <p>
         {{Excerpt|type=inline}}[[Category:Broken_macro/excerpt]]
         <p>Line one of the excerpt.<br/>Line two of the excerpt.</p>
+        {{ExcerptEnd}}
     </p>
 </xml>

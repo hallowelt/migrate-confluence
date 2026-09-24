@@ -91,6 +91,17 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 			foreach ( iterator_to_array( $richTextBody->childNodes ) as $bodyChild ) {
 				$parentNode->insertBefore( $bodyChild, $node );
 			}
+
+			$parentNode->insertBefore( $this->createTextNode(
+				$node->ownerDocument,
+				'{{ExcerptEnd}}',
+				__METHOD__
+			), $node );
+
+			$this->writer->registerDefaultPage(
+				$this->currentSpaceId,
+				"ExcerptEnd"
+			);
 		}
 
 		$parentNode->removeChild( $node );
