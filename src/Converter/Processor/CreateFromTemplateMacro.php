@@ -6,6 +6,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
@@ -45,8 +46,17 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
 
 	/**
+	 * @param IConverterDataWriter $writer
+	 * @param DBConversionDataLookup $dataLookup
+	 * @param PlaceholderManager $placeholderManager
+	 * @param int $currentSpaceId
 	 */
-	public function __construct( private readonly DBConversionDataLookup $dataLookup, private readonly PlaceholderManager $placeholderManager ) {
+	public function __construct(
+		private IConverterDataWriter $writer,
+		private readonly DBConversionDataLookup $dataLookup,
+		private readonly PlaceholderManager $placeholderManager,
+		private int $currentSpaceId,
+	) {
 	}
 
 	/**
@@ -107,6 +117,11 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 				$this->getBrokenMacroCategory()
 			) );
 		}
+
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			'SubpageList'
+		);
 
 		$node->parentNode->replaceChild(
 			$this->createTextNode( $node->ownerDocument, $wikiText, __METHOD__ ),

@@ -43,7 +43,13 @@ class MultimediaMacroChainTest extends MacroChainTestBase {
 		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
 		$migrationConfig = new \HalloWelt\MigrateConfluence\Utility\MigrationConfig( [] );
 
-		return new MultimediaMacro( $dataLookup, 0, 'SomePage', $migrationConfig );
+		return new MultimediaMacro(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			0,
+			'SomePage',
+			$migrationConfig
+		);
 	}
 
 }
