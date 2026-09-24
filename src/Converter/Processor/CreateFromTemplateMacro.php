@@ -46,13 +46,18 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
 
 	/**
+	 * @param IConverterDataWriter $writer
+	 * @param DBConversionDataLookup $dataLookup
+	 * @param PlaceholderManager $placeholderManager
+	 * @param int $currentSpaceId
 	 */
 	public function __construct(
 		private IConverterDataWriter $writer,
 		private readonly DBConversionDataLookup $dataLookup,
 		private readonly PlaceholderManager $placeholderManager,
 		private int $currentSpaceId,
-	) {}
+	) {
+	}
 
 	/**
 	 * @return string

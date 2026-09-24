@@ -12,6 +12,7 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 class ViewFileMacro extends StructuredMacroProcessorBase {
 
 	/**
+	 * @param IConverterDataWriter $writer
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
@@ -22,7 +23,8 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		protected DBConversionDataLookup $dataLookup,
 		protected int $currentSpaceId,
 		protected string $rawPageTitle,
-		protected MigrationConfig $migrationConfig ) {}
+		protected MigrationConfig $migrationConfig ) {
+	}
 
 	/**
 	 * @return string

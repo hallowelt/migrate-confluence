@@ -43,7 +43,13 @@ class ViewFileMacroChainTest extends MacroChainTestBase {
 		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
 		$migrationConfig = new \HalloWelt\MigrateConfluence\Utility\MigrationConfig( [] );
 
-		return new ViewFileMacro( $dataLookup, 42, 'SomePage', $migrationConfig );
+		return new ViewFileMacro(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			42,
+			'SomePage',
+			$migrationConfig
+		);
 	}
 
 }

@@ -41,7 +41,13 @@ class ViewXlsMacroChainTest extends MacroChainTestBase {
 		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
 		$migrationConfig = new \HalloWelt\MigrateConfluence\Utility\MigrationConfig( [] );
 
-		return new ViewXlsMacro( $dataLookup, 42, 'SomePage', $migrationConfig );
+		return new ViewXlsMacro(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			42,
+			'SomePage',
+			$migrationConfig
+		);
 	}
 
 }
