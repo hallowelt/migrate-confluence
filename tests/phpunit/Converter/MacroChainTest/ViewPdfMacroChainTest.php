@@ -41,7 +41,13 @@ class ViewPdfMacroChainTest extends MacroChainTestBase {
 		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
 		$migrationConfig = new \HalloWelt\MigrateConfluence\Utility\MigrationConfig( [] );
 
-		return new ViewPdfMacro( $dataLookup, 42, 'SomePage', $migrationConfig );
+		return new ViewPdfMacro(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			42,
+			'SomePage',
+			$migrationConfig
+		);
 	}
 
 }

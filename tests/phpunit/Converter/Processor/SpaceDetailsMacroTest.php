@@ -23,7 +23,10 @@ class SpaceDetailsMacroTest extends ProcessorTestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new SpaceDetailsMacro();
+		$processor = new SpaceDetailsMacro(
+			$this->createConverterDataWriter(),
+			1
+		);
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );

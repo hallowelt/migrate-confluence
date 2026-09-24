@@ -4,8 +4,19 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 
 class SpaceDetailsMacro extends StructuredMacroProcessorBase {
+
+	/**
+	 * @param IConverterDataWriter $writer
+	 * @param int $currentSpaceId
+	 */
+	public function __construct(
+		private IConverterDataWriter $writer,
+		private int $currentSpaceId
+	) {
+	}
 
 	/**
 	 *
@@ -27,6 +38,11 @@ class SpaceDetailsMacro extends StructuredMacroProcessorBase {
 				$wikitextTemplate->render()
 			),
 			$node
+		);
+
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			$this->getWikiTextTemplateName()
 		);
 	}
 

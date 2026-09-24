@@ -80,11 +80,17 @@ class Pages extends ContentProcessorBase {
 				$revisions = $this->dataLookup->getPageRevisionsForPageId( $pageId );
 			}
 
+			$i = 0;
+			$numRevisions = count( $revisions );
 			foreach ( $revisions as $revision ) {
-				$timestamp = (string)$revision['revision_timestamp'];
+				$i++;
+
 				if ( !$this->hasValidContentIdsJson( (string)( $revision['body_content_ids'] ?? '' ) ) ) {
 					continue;
 				}
+
+				$timestamp = (string)$revision['revision_timestamp'];
+
 				$pageContent = $this->buildConvertedContentFromIdsJson(
 					$this->workspace,
 					(string)( $revision['body_content_ids'] ?? '' ),
@@ -100,6 +106,14 @@ class Pages extends ContentProcessorBase {
 						$timestamp,
 						$spaceDescriptions
 					);
+				}
+
+				if ( $pageId === $homepageId && $namespace === 'NS_MAIN' && $i === $numRevisions ) {
+					/* the newest revision of the homepage might not be shown, if
+					 * the wiki is younger than the export. In some cases MW sorts
+					 * revisions strictly by timestamp, so the homepage would remain
+					 * in its default state. */
+					$timestamp = '';
 				}
 
 				$username = $this->resolveRevisionUsername(

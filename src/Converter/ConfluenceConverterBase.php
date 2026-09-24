@@ -563,39 +563,48 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new RegTmMacro( $this->writer, $this->currentSpace ),
 			new CopyrightMacro( $this->writer, $this->currentSpace ),
 			new SmMacro( $this->writer, $this->currentSpace ),
-			new JiraMacro(),
+			new JiraMacro(
+				$this->writer,
+				$this->currentSpace
+			),
 			new MarkdownMacro(),
 			new ViewFileMacro(
+				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new ViewDocMacro(
+				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new ViewXlsMacro(
+				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new ViewPptMacro(
+				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new ViewPdfMacro(
+				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new MultimediaMacro(
+				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
@@ -612,8 +621,10 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			),
 			new LoremIpsumMacro( $this->writer, $this->currentSpace ),
 			new CreateFromTemplateMacro(
+				$this->writer,
 				$this->dataLookup,
-				$this->placeholderManager
+				$this->placeholderManager,
+				$this->currentSpace
 			),
 			new LivesearchMacro( $this->writer, $this->currentSpace ),
 			new ChartMacro( $this->placeholderManager ),

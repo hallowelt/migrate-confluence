@@ -98,11 +98,6 @@ class InlineCommentMarker extends ConversionHelper implements IProcessor {
 				),
 				$macroNode
 			);
-
-			$this->writer->registerDefaultPage(
-				$this->currentSpaceId,
-				'InlineComment'
-			);
 		}
 	}
 
