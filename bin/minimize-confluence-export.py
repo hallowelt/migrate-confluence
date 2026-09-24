@@ -14,7 +14,15 @@ only contains objects belonging to the space named by that file's
 this tool only ever touches `entities.xml` and `exportDescriptor.properties`.
 
 Usage:
-    bin/minimize-confluence-export.py <input_dir> [output_dir]
+    bin/minimize-confluence-export.py [--no-history] [--no-deleted] [--no-draft] <input_dir> [output_dir]
+
+Optional flags (independent of the space filtering above, can be combined):
+    --no-history  drop every superseded historical page/attachment/...
+                  version (anything that is not the most current version of
+                  its content), plus that version's own body/properties.
+    --no-deleted  drop live content whose contentStatus is "deleted", plus
+                  its historical versions, body/properties, comments, labels.
+    --no-draft    same as --no-deleted, for contentStatus "draft".
 
 `output_dir` defaults to a sibling folder named `minimized` next to
 `input_dir`, mirroring `input_dir`'s internal structure (useful for the
@@ -77,7 +85,8 @@ def parse_properties(path: Path) -> dict:
 def build_index(data) -> tuple:
     """
     Single expat pass over `data` (bytes-like). Returns
-    (records, space_keys, direct_owners, comment_parents, version_parents, collections_of):
+    (records, space_keys, direct_owners, comment_parents, version_parents,
+    collections_of, content_status):
 
     - records: list of dicts {start, end, cls, id, [ref]}, one per top-level
       <object>, in document order. "ref" is only set for CONTENT_REF_CLASSES
@@ -91,11 +100,15 @@ def build_index(data) -> tuple:
       snapshots -- these carry no "space" property of their own (Confluence
       leaves it unset on old versions), only an "originalVersionId"/
       "originalVersion" property (scalar or ref-style, depending on export)
-      pointing back at the live content row they're a version of.
+      pointing back at the live content row they're a version of. A row's
+      presence as a *key* in this map is exactly what "historical" means:
+      keys are historical rows, regardless of chain depth.
     - collections_of: {collectionName: {contentId: [elementId, ...]}} for
       every name in TRACKED_COLLECTIONS (e.g. "labellings", "contentProperties")
       -- collections are the only way to learn the ownership of elements that
       don't carry a back-reference to their owner themselves.
+    - content_status: {contentId: contentStatus} for DIRECT_OWNER_CLASSES
+      rows (live and historical alike), e.g. "current", "draft", "deleted".
     """
     records = []
     space_keys = {}
@@ -103,6 +116,7 @@ def build_index(data) -> tuple:
     comment_parents = {}
     version_parents = {}
     collections_of = {name: {} for name in TRACKED_COLLECTIONS}
+    content_status = {}
 
     parser = expat.ParserCreate()
     parser.buffer_text = True
@@ -152,6 +166,7 @@ def build_index(data) -> tuple:
                 ov = props.get("originalVersionId") or props.get("originalVersion")
                 if ov:
                     version_parents[oid] = ov
+            content_status[oid] = props.get("contentStatus")
         elif cls == "Comment":
             cc = props.get("containerContent")
             if cc:
@@ -240,7 +255,7 @@ def build_index(data) -> tuple:
     parser.CharacterDataHandler = char_data
     parser.Parse(data, True)
 
-    return records, space_keys, direct_owners, comment_parents, version_parents, collections_of
+    return records, space_keys, direct_owners, comment_parents, version_parents, collections_of, content_status
 
 
 def resolve_content_space_map(direct_owners: dict, comment_parents: dict, version_parents: dict = None) -> dict:
@@ -268,9 +283,85 @@ def resolve_content_space_map(direct_owners: dict, comment_parents: dict, versio
     return content_space_map
 
 
-def is_kept(rec, allowed_space_ids, content_space_map, labelling_space_map, content_property_space_map) -> bool:
+def compute_status_exclusions(
+    direct_owners: dict, version_parents: dict, content_status: dict, comment_parents: dict,
+    collections_of: dict, no_history: bool, no_deleted: bool, no_draft: bool,
+) -> set:
+    """
+    Returns the set of object ids to drop for reasons independent of space
+    membership:
+
+    - --no-history drops every historical (superseded) content version --
+      version_parents keys ARE exactly the historical rows (a row with no
+      "space" property, i.e. a version snapshot), regardless of chain depth.
+    - --no-deleted / --no-draft drop *live* content rows (space carried
+      directly, i.e. rows in `direct_owners`) whose "contentStatus" is
+      "deleted" / "draft".
+
+    Either way, dropping a content row would leave dangling data if we
+    stopped there, so this also cascades to: the content's own historical
+    versions (chained, bounded), its BodyContent/ContentProperty (via the
+    "content" ref-property path, checked by the caller), its Comments, and
+    its Labellings/ContentProperty owned via a TRACKED_COLLECTIONS collection.
+    """
+    if not (no_history or no_deleted or no_draft):
+        return set()
+
+    excluded_content_ids = set()
+
+    if no_history:
+        excluded_content_ids |= set(version_parents.keys())
+
+    target_statuses = set()
+    if no_deleted:
+        target_statuses.add("deleted")
+    if no_draft:
+        target_statuses.add("draft")
+    if target_statuses:
+        excluded_content_ids |= {
+            oid for oid in direct_owners if content_status.get(oid) in target_statuses
+        }
+        # Cascade to historical versions of a newly-excluded live row
+        # (bounded, mirrors resolve_content_space_map's chain resolution).
+        for _ in range(10):
+            changed = False
+            for hist_id, live_id in version_parents.items():
+                if hist_id in excluded_content_ids:
+                    continue
+                if live_id in excluded_content_ids:
+                    excluded_content_ids.add(hist_id)
+                    changed = True
+            if not changed:
+                break
+
+    if not excluded_content_ids:
+        return set()
+
+    excluded_ids = set(excluded_content_ids)
+
+    for comment_id, container_id in comment_parents.items():
+        if container_id in excluded_content_ids:
+            excluded_ids.add(comment_id)
+
+    for collection_name in TRACKED_COLLECTIONS:
+        for owner_id, element_ids in collections_of[collection_name].items():
+            if owner_id in excluded_content_ids:
+                excluded_ids.update(element_ids)
+
+    return excluded_ids
+
+
+def is_kept(rec, allowed_space_ids, content_space_map, labelling_space_map, content_property_space_map,
+            excluded_ids=frozenset()) -> bool:
     if rec["cls"] not in FILTERED_CLASSES:
         return True  # Label, User, and any other class: never filtered.
+    oid = rec["id"]
+    if oid in excluded_ids:
+        return False
+    if rec["cls"] in CONTENT_REF_CLASSES:
+        ref = rec.get("ref")
+        if ref is not None and ref in excluded_ids:
+            return False
     sp = own_space(rec, content_space_map, labelling_space_map, content_property_space_map)
     return sp is None or sp in allowed_space_ids
 
@@ -344,54 +435,77 @@ def build_collection_space_map(collection_of: dict, content_space_map: dict) -> 
     return result
 
 
-def process_export(entities_path: Path, props_path: Path, output_path: Path) -> None:
+def process_export(
+    entities_path: Path, props_path: Path, output_path: Path,
+    no_history: bool = False, no_deleted: bool = False, no_draft: bool = False,
+) -> None:
     expected_key = ""
     if props_path.exists():
         expected_key = parse_properties(props_path).get("spaceKey", "")
 
+    apply_status_flags = no_history or no_deleted or no_draft
+
     with open(entities_path, "rb") as fh:
         data = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
         try:
-            records, space_keys, direct_owners, comment_parents, version_parents, collections_of = build_index(data)
+            (records, space_keys, direct_owners, comment_parents, version_parents,
+             collections_of, content_status) = build_index(data)
 
             allowed_space_ids = {sid for sid, key in space_keys.items() if key == expected_key}
-            if not expected_key or not allowed_space_ids:
-                # Can't determine the target space: don't risk dropping everything,
-                # copy the file through unchanged.
+            filter_by_space = bool(expected_key and allowed_space_ids)
+
+            if not filter_by_space and not apply_status_flags:
+                # Can't determine the target space and no other filter is
+                # requested: don't risk dropping everything, copy through as-is.
                 reason = "no exportDescriptor.properties / spaceKey" if not expected_key \
                     else f"no Space object matches spaceKey '{expected_key}'"
                 print(f"  {entities_path}: skipped filtering ({reason}), copied as-is.")
                 output_path.write_bytes(data)
                 return
 
+            if not filter_by_space:
+                # Space can't be determined, but --no-history/--no-deleted/
+                # --no-draft don't need it: keep every space, apply only
+                # those flags.
+                reason = "no exportDescriptor.properties / spaceKey" if not expected_key \
+                    else f"no Space object matches spaceKey '{expected_key}'"
+                print(f"  {entities_path}: not filtering by space ({reason}), still applying requested flags.")
+                allowed_space_ids = set(space_keys.keys())
+
             content_space_map = resolve_content_space_map(direct_owners, comment_parents, version_parents)
             labelling_space_map = build_collection_space_map(collections_of["labellings"], content_space_map)
             content_property_space_map = build_collection_space_map(
                 collections_of["contentProperties"], content_space_map
             )
-
-            collateral = find_collateral_damage(
-                records, allowed_space_ids, content_space_map, labelling_space_map,
-                content_property_space_map, space_keys
+            excluded_ids = compute_status_exclusions(
+                direct_owners, version_parents, content_status, comment_parents, collections_of,
+                no_history=no_history, no_deleted=no_deleted, no_draft=no_draft,
             )
-            for foreign_sid, refs in collateral.items():
-                foreign_key = space_keys.get(foreign_sid, "?")
-                example_cls, example_id, example_ref = refs[0]
-                print(
-                    f"  {entities_path}: WARNING: {len(refs)} object(s) kept for spaceKey"
-                    f" '{expected_key}' still reference foreign space '{foreign_key}'"
-                    f" (id {foreign_sid}), e.g. {example_cls} (ID:{example_id}) -> {example_ref}."
-                    " This is cross-space reference corruption (see the Atlassian KB article);"
-                    " fix SPACEID in the source database and re-export, or the kept space will"
-                    " come out incomplete."
+
+            if filter_by_space:
+                collateral = find_collateral_damage(
+                    records, allowed_space_ids, content_space_map, labelling_space_map,
+                    content_property_space_map, space_keys
                 )
+                for foreign_sid, refs in collateral.items():
+                    foreign_key = space_keys.get(foreign_sid, "?")
+                    example_cls, example_id, example_ref = refs[0]
+                    print(
+                        f"  {entities_path}: WARNING: {len(refs)} object(s) kept for spaceKey"
+                        f" '{expected_key}' still reference foreign space '{foreign_key}'"
+                        f" (id {foreign_sid}), e.g. {example_cls} (ID:{example_id}) -> {example_ref}."
+                        " This is cross-space reference corruption (see the Atlassian KB article);"
+                        " fix SPACEID in the source database and re-export, or the kept space will"
+                        " come out incomplete."
+                    )
 
             skip_counts = {}
             with open(output_path, "wb") as out:
                 out.write(data[0: records[0]["start"]] if records else data[:])
                 for rec in records:
                     if is_kept(
-                        rec, allowed_space_ids, content_space_map, labelling_space_map, content_property_space_map
+                        rec, allowed_space_ids, content_space_map, labelling_space_map,
+                        content_property_space_map, excluded_ids
                     ):
                         out.write(data[rec["start"]: rec["end"]])
                         out.write(b"\n")
@@ -402,9 +516,11 @@ def process_export(entities_path: Path, props_path: Path, output_path: Path) -> 
 
             if skip_counts:
                 summary = ", ".join(f"{count} {cls}" for cls, count in sorted(skip_counts.items()))
-                print(f"  {entities_path}: kept spaceKey '{expected_key}', filtered out {summary}.")
+                label = f"spaceKey '{expected_key}'" if filter_by_space else "all spaces"
+                print(f"  {entities_path}: kept {label}, filtered out {summary}.")
             else:
-                print(f"  {entities_path}: kept spaceKey '{expected_key}', nothing to filter out.")
+                label = f"spaceKey '{expected_key}'" if filter_by_space else "all spaces"
+                print(f"  {entities_path}: kept {label}, nothing to filter out.")
 
             original_size = len(data)
             new_size = output_path.stat().st_size
@@ -431,21 +547,34 @@ def find_export_dirs(input_dir: Path, output_dir: Path):
 
 
 def main(argv) -> int:
-    if len(argv) < 2:
-        print(f"Usage: {argv[0]} <input_dir> [output_dir]", file=sys.stderr)
-        return 2
+    flags = {"--no-history": False, "--no-deleted": False, "--no-draft": False}
+    positional = []
+    for arg in argv[1:]:
+        if arg in flags:
+            flags[arg] = True
+        else:
+            positional.append(arg)
 
-    if argv[1] == '--help':
+    if positional and positional[0] == '--help':
         print(__doc__)
         return 0
 
-    input_dir = Path(argv[1]).resolve()
+    if not positional:
+        print(f"Usage: {argv[0]} [--no-history] [--no-deleted] [--no-draft] <input_dir> [output_dir]",
+              file=sys.stderr)
+        return 2
+
+    input_dir = Path(positional[0]).resolve()
     if not input_dir.is_dir():
         print(f"Not a directory: {input_dir}", file=sys.stderr)
         return 2
 
-    output_dir = Path(argv[2]).resolve() if len(argv) > 2 else input_dir.parent / "minimized"
+    output_dir = Path(positional[1]).resolve() if len(positional) > 1 else input_dir.parent / "minimized"
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    active = [f for f in ("--no-history", "--no-deleted", "--no-draft") if flags[f]]
+    if active:
+        print(f"Additional filters active: {', '.join(active)}")
 
     found_any = False
     for export_dir in find_export_dirs(input_dir, output_dir):
@@ -459,6 +588,9 @@ def main(argv) -> int:
             export_dir / "entities.xml",
             export_dir / "exportDescriptor.properties",
             out_subdir / "entities.xml",
+            no_history=flags["--no-history"],
+            no_deleted=flags["--no-deleted"],
+            no_draft=flags["--no-draft"],
         )
         props_path = export_dir / "exportDescriptor.properties"
         if props_path.exists():
