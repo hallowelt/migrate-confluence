@@ -122,28 +122,31 @@ class ExcerptMacro extends StructuredMacroProcessorBase implements IUsesPlacehol
 			$excerptName = $this->generateExcerptName();
 		}
 
-		$tag = $node->ownerDocument->createElement( 'excerpt-' . $layout );
-		$tag->setAttribute( 'name', $excerptName );
-		if ( $hidden ) {
-			$tag->setAttribute( 'hidden', $hidden );
-		}
+		$frag = $node->ownerDocument->createDocumentFragment();
+		$frag->appendChild( $this->createTextNode(
+			$node->ownerDocument,
+			$this->placeholderManager->getPlaceholder( sprintf(
+				'<excerpt-%s%s%s>',
+				$layout,
+				$excerptName ? sprintf( ' name="%s"', $excerptName ) : '',
+				$hidden ? sprintf( ' hidden="%s"', $hidden ) : '' ) ),
+			__METHOD__
+		) );
 
 		foreach ( $node->childNodes as $childNode ) {
 			if ( $childNode->nodeName === 'ac:rich-text-body' ) {
 				foreach ( iterator_to_array( $childNode->childNodes ) as $bodyChild ) {
-					$tag->appendChild( $bodyChild->cloneNode( true ) );
+					$frag->appendChild( $bodyChild->cloneNode( true ) );
 				}
 			}
 		}
 
-		$parent->insertBefore(
-			$this->createTextNode(
-				$node->ownerDocument,
-				$this->placeholderManager->getPlaceholder(
-					$tag->ownerDocument->saveXML( $tag )
-				),
-				__METHOD__ ),
-			$node );
+		$frag->appendChild( $this->createTextNode(
+			$node->ownerDocument,
+			$this->placeholderManager->getPlaceholder( sprintf( '</excerpt-%s>', $layout ) ),
+			__METHOD__
+		) );
+		$parent->insertBefore( $frag, $node );
 		$parent->removeChild( $node );
 	}
 

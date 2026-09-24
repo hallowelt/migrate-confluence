@@ -1,60 +1,74 @@
 <excerpt-block name="excerpt-0" hidden="true">
-                <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
-                    macro.
-                </p>
-            </excerpt-block>
+
+This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.
+
+</excerpt-block>
 
 <excerpt-inline name="excerpt-0" hidden="true">
-                <p>This is the <strong>text</strong> I want to reuse in other pages. This text is inside an Excerpt
-                    macro.
-                </p>
-            </excerpt-inline>
 
-<excerpt-block name="excerpt-0"/>
+This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.
+
+</excerpt-inline>
+
+<excerpt-block name="excerpt-0"></excerpt-block>
 
 <excerpt-block name="Excerpt Name 1">
-                <p local-id="176212f6efc1">This content is transcluded from page “excerpt”.</p>
-            </excerpt-block>
+
+This content is transcluded from page “excerpt”.
+
+</excerpt-block>
 
 <excerpt-block name="excerpt-0">
-                <table class="relative-table wrapped">
-                    
-                    <tbody>
-                        <tr><th>Table Header 1</th></tr>
-                        <tr><td>Table Cell 1</td></tr>
-                    </tbody>
-                </table>
-            </excerpt-block>
+
+{| class="wikitable relative-table wrapped"
+|-
+! Table Header 1
+|-
+| Table Cell 1
+|}
+
+</excerpt-block>
 
 <excerpt-block name="excerpt-0">
-                <table class="relative-table wrapped">
-                    
-                    <tbody>
-                        <tr><th>Table Header 1</th></tr>
-                        <tr><td>Table Cell 1</td></tr>
-                    </tbody>
-                </table>
-            </excerpt-block>
+
+{| class="wikitable relative-table wrapped"
+|-
+! Table Header 1
+|-
+| Table Cell 1
+|}
+
+</excerpt-block>
 
 <excerpt-block name="excerpt-0">
-                <p>First paragraph of the excerpt.</p>
-                <p>Second paragraph of the excerpt.</p>
-            </excerpt-block>
+
+First paragraph of the excerpt.
+
+Second paragraph of the excerpt.
+
+</excerpt-block>
 
 <excerpt-block name="excerpt-0">
-                <p>Intro text before the heading.</p>
-                <h2>A heading inside the excerpt</h2>
-            </excerpt-block>
+
+Intro text before the heading.
+
+<span id="a-heading-inside-the-excerpt"></span>
+== A heading inside the excerpt ==
+
+</excerpt-block>
 
 <excerpt-block name="excerpt-0">
-                <ul>
-                    <li>First list item</li>
-                    <li>Second list item</li>
-                </ul>
-            </excerpt-block>
+
+* First list item
+* Second list item
+
+</excerpt-block>
 
 <excerpt-block name="excerpt-0">
-                <p>Line one of the excerpt.<br/>Line two of the excerpt.</p>
-            </excerpt-block>
+
+Line one of the excerpt.<br />
+Line two of the excerpt.
+
+</excerpt-block>
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
