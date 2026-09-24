@@ -108,12 +108,11 @@ class Pages extends ContentProcessorBase {
 					);
 				}
 
-				if ( $pageId === $homepageId && $i === $numRevisions ) {
-					/* the newest revision of the homepage will not be shown, if it
-					 * has a timestamp that is older than the wiki creation date. MW sorts
-					 * revisions automatically by timestamp, so after the import into a
-					 * reasonably freshly installed wiki the homepage would remain in its
-					 * default state. */
+				if ( $pageId === $homepageId && $namespace === 'NS_MAIN' && $i === $numRevisions ) {
+					/* the newest revision of the homepage might not be shown, if
+					 * the wiki is younger than the export. In some cases MW sorts
+					 * revisions strictly by timestamp, so the homepage would remain
+					 * in its default state. */
 					$timestamp = '';
 				}
 
