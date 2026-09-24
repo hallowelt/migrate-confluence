@@ -2933,6 +2933,12 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * get page revisions
+	 *
+	 * It is important that the result is ordered oldest first. During import MediaWiki creates
+	 * revisions as they are noted in the file. If newer versions are imported before older ones,
+	 * the version history page will display revisions out of order.
+	 *
 	 * @param int $pageId
 	 * @return array
 	 */
