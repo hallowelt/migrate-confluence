@@ -38,7 +38,13 @@ from pathlib import Path
 from xml.parsers import expat
 
 # Object classes that carry their owning space id directly in a "space" property.
-DIRECT_OWNER_CLASSES = {"Page", "BlogPost", "PageTemplate", "Attachment"}
+# CustomContentEntityObject is the generic content type many plugins use
+# (whiteboards, drawio diagrams, content-appearance drafts, ...) -- easy to
+# miss because it looks like housekeeping metadata, but it carries a real
+# "space" property and can carry large BodyContent, so leaving it out of
+# this set silently keeps every such object (and its body) regardless of
+# space, in every space in the export.
+DIRECT_OWNER_CLASSES = {"Page", "BlogPost", "PageTemplate", "Attachment", "CustomContentEntityObject"}
 
 # Object classes whose ownership is resolved indirectly (own id looked up in
 # content_space_map, built from direct owners + Comment/version chains + the
@@ -83,8 +89,9 @@ def build_index(data) -> tuple:
     - version_parents: {historicalContentId: originalVersionId} for
       DIRECT_OWNER_CLASSES rows that are superseded historical version
       snapshots -- these carry no "space" property of their own (Confluence
-      leaves it unset on old versions), only an "originalVersionId" pointing
-      back at the live content row they're a version of.
+      leaves it unset on old versions), only an "originalVersionId"/
+      "originalVersion" property (scalar or ref-style, depending on export)
+      pointing back at the live content row they're a version of.
     - collections_of: {collectionName: {contentId: [elementId, ...]}} for
       every name in TRACKED_COLLECTIONS (e.g. "labellings", "contentProperties")
       -- collections are the only way to learn the ownership of elements that
@@ -137,7 +144,12 @@ def build_index(data) -> tuple:
             if sp:
                 direct_owners[oid] = sp
             else:
-                ov = props.get("originalVersionId")
+                # Confluence has two forms of this back-reference depending
+                # on export/version: a scalar "originalVersionId", or a
+                # ref-style "originalVersion" (class="Page" + nested <id>).
+                # Both are captured generically as props[name] by the parser
+                # above, so just check both names.
+                ov = props.get("originalVersionId") or props.get("originalVersion")
                 if ov:
                     version_parents[oid] = ov
         elif cls == "Comment":
