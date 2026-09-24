@@ -4,8 +4,18 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 
 class JiraMacro extends StructuredMacroProcessorBase {
+
+	/**
+	 * @param IConverterDataWriter $writer
+	 * @param int $currentSpaceId
+	 */
+	public function __construct(
+		private IConverterDataWriter $writer,
+		private int $currentSpaceId
+	) {}
 
 	/**
 	 * @return string
@@ -52,6 +62,11 @@ class JiraMacro extends StructuredMacroProcessorBase {
 				__METHOD__
 			),
 			$node
+		);
+
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			$this->getWikiTextTemplateName()
 		);
 	}
 
