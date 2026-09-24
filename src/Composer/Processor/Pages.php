@@ -99,6 +99,10 @@ class Pages extends ContentProcessorBase {
 					true
 				);
 
+				if ( empty( $pageContent ) ) {
+					"<!-- This page had no content (page id:" . $pageId . ") -->";
+				}
+
 				if ( $homepageId !== null ) {
 					$pageContent .= $this->addSpaceDescriptionToMainPage(
 						$pageId,
