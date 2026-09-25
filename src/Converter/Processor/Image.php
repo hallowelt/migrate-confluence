@@ -38,11 +38,22 @@ class Image extends ImageProcessorBase {
 		}
 
 		if ( $this->isImageWithExternalLink( $node ) ) {
+			$urlText = $this->getImageUrlText( $node );
+			if ( $urlText !== '' ) {
+				$anchor = $node->parentNode;
+				$link = $anchor instanceof DOMElement ? $anchor->getAttribute( 'href' ) : '';
+				$anchor->parentNode->replaceChild(
+					$this->makePlainUrlImageReplacement( $node, $link ),
+					$anchor
+				);
+
+				return;
+			}
+
 			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node );
 
 			$linkNode = $node->parentNode;
 			if ( $externalLinkReplacementNode === $node ) {
-				$urlText = $this->getImageUrlText( $node );
 				$node->parentNode->replaceChild(
 					$this->createTextNode( $node->ownerDocument, $urlText, __METHOD__ ),
 					$node
@@ -103,6 +114,38 @@ class Image extends ImageProcessorBase {
 		}
 
 		return $params;
+	}
+
+	/**
+	 * MediaWiki does not render an img tag pointing to an external url.
+	 * Wrap the url (and, if present, the link it is enclosed by) in the
+	 * {{PlainUrlImage}} template so the wiki side can decide how to render it.
+	 */
+	private function makePlainUrlImageReplacement( DOMElement $imageNode, string $link = '' ): DOMNode {
+		$urlText = $this->getImageUrlText( $imageNode );
+		if ( $urlText === '' ) {
+			return $imageNode;
+		}
+
+		$params = [];
+		if ( $link !== '' ) {
+			$params[] = "link=$link";
+		}
+		$params[] = "url=$urlText";
+
+		$height = $imageNode->getAttribute( 'ac:height' );
+		if ( $height !== '' ) {
+			$params[] = "height=$height";
+		}
+
+		$width = $imageNode->getAttribute( 'ac:width' );
+		if ( $width !== '' ) {
+			$params[] = "width=$width";
+		}
+
+		$replacementText = '{{PlainUrlImage|' . implode( '|', $params ) . '}}';
+
+		return $this->createTextNode( $imageNode->ownerDocument, $replacementText, __METHOD__ );
 	}
 
 	/**
