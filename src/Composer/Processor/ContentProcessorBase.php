@@ -78,7 +78,10 @@ abstract class ContentProcessorBase extends ProcessorBase {
 			}
 
 			$convertedId = $idPrefix . $contentId;
-			$content .= $workspace->getConvertedContent( $convertedId ) . "\n";
+			$convertedContent = $workspace->getConvertedContent( $convertedId );
+			if ( $convertedContent !== false ) {
+				$content .=  $convertedContent . "\n";
+			}
 		}
 
 		return $content;
