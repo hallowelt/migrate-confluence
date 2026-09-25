@@ -11,6 +11,7 @@ use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PrepareComments;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateAttachmentsTableWithSpaceIdFallback;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithSpaceIdOfHistoryVersions;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithWikiTitle;
@@ -163,6 +164,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $this->dbLog, $writer ),
 			new UpdateBlogPostsTableWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
 			new UpdatePageTemplatesWithWikiTitle( $this->workspaceDB, $this->dbLog, $writer ),
+			new UpdateAttachmentsTableWithSpaceIdFallback( $this->workspaceDB, $this->dbLog, $writer ),
 			new UpdatePageAttachmentTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 			new UpdateBlogPostAttachmentTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
 			new PopulateAdditionalAttachmentsTable( $this->workspaceDB, $this->dbLog, $writer, $this->migrationConfig ),
