@@ -100,7 +100,7 @@ class Pages extends ContentProcessorBase {
 				);
 
 				if ( empty( $pageContent ) ) {
-					"<!-- This page had no content (page id:" . $pageId . ") -->";
+					$pageContent = "<!-- This page had no content (page id:" . $pageId . ") -->";
 				}
 
 				if ( $homepageId !== null ) {
