@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMNode;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
@@ -19,6 +20,7 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 	protected FilenameResolver $filenameResolver;
 
 	public function __construct(
+		protected IConverterDataWriter $writer,
 		protected DBConversionDataLookup $dataLookup,
 		protected int $currentSpaceId,
 		protected string $rawPageTitle,

@@ -113,7 +113,13 @@ class ImageTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new Image( $dataLookup, $spaceId, $rawPageTitle, new MigrationConfig( [] ) );
+		$processor = new Image(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			$spaceId,
+			$rawPageTitle,
+			new MigrationConfig( [] )
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

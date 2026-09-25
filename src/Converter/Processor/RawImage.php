@@ -102,6 +102,11 @@ class RawImage extends ImageProcessorBase {
 			$params[] = "width=$width";
 		}
 
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			"PlainUrlImage"
+		);
+
 		return '{{PlainUrlImage|' . implode( '|', $params ) . '}}';
 	}
 

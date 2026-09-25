@@ -162,6 +162,11 @@ class Image extends ImageProcessorBase {
 			$params[] = "width=$width";
 		}
 
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			"PlainUrlImage"
+		);
+
 		$replacementText = '{{PlainUrlImage|' . implode( '|', $params ) . '}}';
 
 		return $this->createTextNode( $imageNode->ownerDocument, $replacementText, __METHOD__ );

@@ -483,12 +483,14 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->placeholderManager
 			),
 			new Image(
+				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
 			new RawImage(
+				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,

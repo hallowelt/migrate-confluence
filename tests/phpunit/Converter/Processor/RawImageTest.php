@@ -74,7 +74,13 @@ class RawImageTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $inputContent );
 
-		$processor = new RawImage( $dataLookup, 42, 'SomePage', new MigrationConfig( [] ) );
+		$processor = new RawImage(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			42,
+			'SomePage',
+			new MigrationConfig( [] )
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
