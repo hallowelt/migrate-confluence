@@ -8,7 +8,6 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
@@ -77,7 +76,6 @@ abstract class MacroChainTestBase extends TestCase {
 		$postprocessors = [
 			new RestoreExcerptIncludeMacro( $this->dataLookup ),
 			new FixLineBreakInHeadings(),
-			new FixImagesWithExternalUrl(),
 			new NestedHeadings(),
 			new FixEmptyListItemWrapper(),
 			new FixMultilineTemplate(),

@@ -94,4 +94,4 @@ Used [[:Template:Folder/Row|template Folder/Row]] to show rows of pages.
 {{#ifeq:{{SUBPAGENAME}}|{{PAGENAME}}|| &larr; [[{{NAMESPACE}}:{{BASEPAGENAME}}|{{BASEPAGENAME}}]]}}
 {{#subpages:parent={{{spl-parent|{{FULLPAGENAME}}}}}|kidsonly={{{spl-kidsonly|no}}}|default=<span class="default">no subpages</span>}}</div>
 __NOTOC__
-<templatestyles src="Folder/style.css"/></includeonly>
+<templatestyles src="Folder/Style.css"/></includeonly>

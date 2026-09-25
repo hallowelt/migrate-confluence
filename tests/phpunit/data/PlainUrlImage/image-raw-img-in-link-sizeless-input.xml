@@ -1,0 +1,7 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		<a href="https://example.com/pages/viewpage.action?pageId=226420463">
+			<img src="https://example.com/download/attachments/1933361/image.png?version=1&amp;modificationDate=1724938529723&amp;api=v2"/>
+		</a>
+	</p>
+</xml>

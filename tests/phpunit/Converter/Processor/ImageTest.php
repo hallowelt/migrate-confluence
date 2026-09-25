@@ -20,7 +20,7 @@ class ImageTest extends ProcessorTestCase {
 	private $dir = '';
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::process
 	 * @return void
 	 */
 	public function testProcess() {
@@ -38,7 +38,7 @@ class ImageTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::process
 	 * @return void
 	 */
 	public function testUrlImageInExternalLink() {
@@ -47,8 +47,42 @@ class ImageTest extends ProcessorTestCase {
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(
 			$dataLookup,
-			'image-url-external-link-input.xml',
-			'image-url-external-link-output.xml',
+			'PlainUrlImage/image-url-external-link-input.xml',
+			'PlainUrlImage/image-url-external-link-output.xml',
+			42,
+			'SomePage'
+		);
+	}
+
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::process
+	 * @return void
+	 */
+	public function testUrlImageInExternalLinkWithEmptyLink() {
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
+
+		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$this->doTestWith(
+			$dataLookup,
+			'PlainUrlImage/image-url-invalid-external-link-input.xml',
+			'PlainUrlImage/image-url-invalid-external-link-output.xml',
+			42,
+			'SomePage'
+		);
+	}
+
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::doProcessImage
+	 * @return void
+	 */
+	public function testUrlImagePlainIsReplacedByPlainTextUrl() {
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
+
+		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$this->doTestWith(
+			$dataLookup,
+			'PlainUrlImage/image-url-plain-input.xml',
+			'PlainUrlImage/image-url-plain-output.xml',
 			42,
 			'SomePage'
 		);
@@ -79,7 +113,13 @@ class ImageTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new Image( $dataLookup, $spaceId, $rawPageTitle, new MigrationConfig( [] ) );
+		$processor = new Image(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			$spaceId,
+			$rawPageTitle,
+			new MigrationConfig( [] )
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

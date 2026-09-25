@@ -1,0 +1,70 @@
+<noinclude>Template added by Confluence migration to handle the plain url images.
+Include style to size the parent container and the image based on confluence data.
+<templatedata>
+{
+	"params": {
+		"url": {
+			"label": {
+				"en": "Image URL",
+				"de": "Bild-URL"
+			},
+			"description": {
+				"en": "External URL of the image, without query parameters.",
+				"de": "Externe URL des Bildes, ohne Query-Parameter."
+			},
+			"type": "url",
+			"required": true
+		},
+		"link": {
+			"label": {
+				"en": "Link target",
+				"de": "Linkziel"
+			},
+			"description": {
+				"en": "External URL the image links to. If empty, the image is not linked.",
+				"de": "Externe URL, auf die das Bild verlinkt. Leer lassen, wenn das Bild nicht verlinkt werden soll."
+			},
+			"type": "url",
+			"suggested": true
+		},
+		"width": {
+			"label": {
+				"en": "Width",
+				"de": "Breite"
+			},
+			"description": {
+				"en": "Width of the image in pixels, as set in Confluence.",
+				"de": "Breite des Bildes in Pixeln, wie in Confluence festgelegt."
+			},
+			"type": "number",
+			"suggested": true
+		},
+		"height": {
+			"label": {
+				"en": "Height",
+				"de": "Höhe"
+			},
+			"description": {
+				"en": "Height of the image in pixels, as set in Confluence.",
+				"de": "Höhe des Bildes in Pixeln, wie in Confluence festgelegt."
+			},
+			"type": "number",
+			"suggested": true
+		}
+	},
+	"description": {
+		"en": "Shows an external image (migrated from Confluence) with the original width and height, optionally linked to an external page.",
+		"de": "Zeigt ein externes Bild (aus Confluence migriert) mit der ursprünglichen Breite und Höhe an, optional verlinkt auf eine externe Seite."
+	},
+	"paramOrder": [
+		"url",
+		"link",
+		"width",
+		"height"
+	],
+	"format": "inline"
+}
+</templatedata>
+</noinclude><includeonly>
+<span class="plainurlimage plainlinks{{#if:{{{width|}}}| plainurlimage-w}}{{#if:{{{height|}}}| plainurlimage-h}}" style="{{#if:{{{width|}}}|width:{{{width}}}px;}}{{#if:{{{height|}}}|height:{{{height}}}px;}}">{{#if:{{{link|}}}|[{{{link}}} {{{url}}}]|{{{url}}}}}</span>
+<templatestyles src="PlainUrlImage/Style.css"/></includeonly>
