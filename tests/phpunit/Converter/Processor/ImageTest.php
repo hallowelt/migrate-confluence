@@ -47,8 +47,25 @@ class ImageTest extends ProcessorTestCase {
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(
 			$dataLookup,
-			'image-url-external-link-input.xml',
-			'image-url-external-link-output.xml',
+			'PlainUrlImage/image-url-external-link-input.xml',
+			'PlainUrlImage/image-url-external-link-output.xml',
+			42,
+			'SomePage'
+		);
+	}
+
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::process
+	 * @return void
+	 */
+	public function testUrlImageInExternalLinkWithEmptyLink() {
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
+
+		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$this->doTestWith(
+			$dataLookup,
+			'PlainUrlImage/image-url-invalid-external-link-input.xml',
+			'PlainUrlImage/image-url-invalid-external-link-output.xml',
 			42,
 			'SomePage'
 		);
@@ -64,8 +81,8 @@ class ImageTest extends ProcessorTestCase {
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(
 			$dataLookup,
-			'image-url-plain-input.xml',
-			'image-url-plain-output.xml',
+			'PlainUrlImage/image-url-plain-input.xml',
+			'PlainUrlImage/image-url-plain-output.xml',
 			42,
 			'SomePage'
 		);

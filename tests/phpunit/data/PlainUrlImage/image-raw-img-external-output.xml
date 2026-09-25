@@ -1,0 +1,5 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		{{PlainUrlImage|url=https://example.com/download/attachments/1933361/image.png|height=150|width=250}}
+	</p>
+</xml>

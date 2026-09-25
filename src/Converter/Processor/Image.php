@@ -11,6 +11,11 @@ use DOMNode;
  */
 class Image extends ImageProcessorBase {
 
+	/**
+	 * Inline elements that may sit between an <a> and the <ac:image> it encloses.
+	 */
+	private const INLINE_WRAPPERS = [ 'span', 'strong', 'b', 'em', 'i', 'u', 's', 'sub', 'sup', 'code' ];
+
 	public function process( DOMDocument $dom ): void {
 		$imageNodes = [];
 
@@ -38,12 +43,19 @@ class Image extends ImageProcessorBase {
 		}
 
 		if ( $this->isImageWithExternalLink( $node ) ) {
+			$anchor = $this->getEnclosingAnchor( $node );
+			$href = $anchor->getAttribute( 'href' );
 			$urlText = $this->getImageUrlText( $node );
+
 			if ( $urlText !== '' ) {
-				$anchor = $node->parentNode;
-				$link = $anchor instanceof DOMElement ? $anchor->getAttribute( 'href' ) : '';
+				if ( !$this->hasDimensions( $node ) ) {
+					$this->replaceAnchorWithTextLink( $anchor, $href, $urlText );
+
+					return;
+				}
+
 				$anchor->parentNode->replaceChild(
-					$this->makePlainUrlImageReplacement( $node, $link ),
+					$this->makePlainUrlImageReplacement( $node, $href ),
 					$anchor
 				);
 
@@ -51,19 +63,16 @@ class Image extends ImageProcessorBase {
 			}
 
 			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node );
-
-			$linkNode = $node->parentNode;
-			if ( $externalLinkReplacementNode === $node ) {
-				$node->parentNode->replaceChild(
-					$this->createTextNode( $node->ownerDocument, $urlText, __METHOD__ ),
-					$node
-				);
-			} else {
-				$linkNode->parentNode->replaceChild(
+			if ( $externalLinkReplacementNode !== $node ) {
+				$anchor->parentNode->replaceChild(
 					$externalLinkReplacementNode,
-					$linkNode
+					$anchor
 				);
+
+				return;
 			}
+
+			$this->replaceWithBrokenExternalLink( $anchor, $href );
 
 			return;
 		}
@@ -79,7 +88,7 @@ class Image extends ImageProcessorBase {
 				continue;
 			}
 			if ( $childNode->nodeName === 'ri:url' ) {
-				$replacementNode = $this->makeImageUrlReplacement( $childNode );
+				$replacementNode = $this->makePlainUrlImageReplacement( $node );
 			} elseif ( $childNode->nodeName === 'ri:attachment' ) {
 				$replacementNode = $this->makeImageAttachmentReplacement( $childNode );
 			}
@@ -116,15 +125,25 @@ class Image extends ImageProcessorBase {
 		return $params;
 	}
 
+	private function hasDimensions( DOMElement $imageNode ): bool {
+		return $imageNode->getAttribute( 'ac:width' ) !== ''
+			|| $imageNode->getAttribute( 'ac:height' ) !== '';
+	}
+
 	/**
 	 * MediaWiki does not render an img tag pointing to an external url.
-	 * Wrap the url (and, if present, the link it is enclosed by) in the
-	 * {{PlainUrlImage}} template so the wiki side can decide how to render it.
+	 * Images with dimensions are wrapped in the {{PlainUrlImage}} template
+	 * so the wiki side can decide how to render them. Without dimensions the
+	 * url (stripped of query params) is output as plain text.
 	 */
 	private function makePlainUrlImageReplacement( DOMElement $imageNode, string $link = '' ): DOMNode {
 		$urlText = $this->getImageUrlText( $imageNode );
 		if ( $urlText === '' ) {
 			return $imageNode;
+		}
+
+		if ( !$this->hasDimensions( $imageNode ) ) {
+			return $this->createTextNode( $imageNode->ownerDocument, $urlText, __METHOD__ );
 		}
 
 		$params = [];
@@ -149,17 +168,37 @@ class Image extends ImageProcessorBase {
 	}
 
 	/**
-	 * MediaWiki does not render an img tag.
-	 * But with $wgAllowExternalImages it can show external images.
-	 * If this variable is false we show at least the url as link.
+	 * Replaces the anchor (including any inline wrappers around the image)
+	 * with a fresh <a href="$href">$text</a>.
 	 */
-	private function makeImageUrlReplacement( DOMElement $node ): DOMNode {
-		$urlText = $this->getExternalUrlText( $node->getAttribute( 'ri:value' ) );
-		if ( $urlText === '' ) {
-			return $node;
-		}
+	private function replaceAnchorWithTextLink( DOMElement $anchor, string $href, string $text ): DOMElement {
+		$dom = $anchor->ownerDocument;
 
-		return $this->createTextNode( $node->ownerDocument, $urlText, __METHOD__ );
+		$newAnchor = $dom->createElement( 'a' );
+		$newAnchor->setAttribute( 'href', $href );
+		$newAnchor->appendChild( $this->createTextNode( $dom, $text, __METHOD__ ) );
+
+		$anchor->parentNode->replaceChild( $newAnchor, $anchor );
+
+		return $newAnchor;
+	}
+
+	/**
+	 * The image inside the link could not be resolved (no ri:url, no usable
+	 * ri:attachment). Keep the link itself, using its href as link text,
+	 * and mark the page as containing a broken image.
+	 */
+	private function replaceWithBrokenExternalLink( DOMElement $anchor, string $href ): void {
+		$newAnchor = $this->replaceAnchorWithTextLink( $anchor, $href, $href );
+
+		$newAnchor->parentNode->insertBefore(
+			$this->createTextNode(
+				$newAnchor->ownerDocument,
+				$this->getCategoryBroken( 'image' ),
+				__METHOD__
+			),
+			$newAnchor->nextSibling
+		);
 	}
 
 	private function makeImageAttachmentReplacement( DOMElement $node ): DOMNode {
@@ -231,7 +270,7 @@ class Image extends ImageProcessorBase {
 		}
 
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
-				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
+			$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 		array_unshift( $params, $targetFilename );
 
 		$linkBody = $node->parentNode;
@@ -295,14 +334,14 @@ class Image extends ImageProcessorBase {
 		}
 
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
-				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
+			$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 		array_unshift( $params, $targetFilename );
 
 		$brokenLinkInfo = '';
 		$target = '';
 
-		$link = $node->parentNode;
-		if ( $link instanceof DOMElement === false ) {
+		$link = $this->getEnclosingAnchor( $node );
+		if ( $link === null ) {
 			$brokenLinkInfo = $this->getCategoryBroken( 'image_external_link' );
 		} else {
 			$target = $link->getAttribute( 'href' );
@@ -349,28 +388,33 @@ class Image extends ImageProcessorBase {
 		return '';
 	}
 
+	/**
+	 * Returns the <a> enclosing the image, looking through inline wrappers
+	 * like <span> or <strong>. Returns null if there is none.
+	 */
+	private function getEnclosingAnchor( DOMElement $node ): ?DOMElement {
+		$current = $node->parentNode;
+		while ( $current instanceof DOMElement ) {
+			if ( $current->nodeName === 'a' ) {
+				return $current;
+			}
+			if ( !in_array( $current->nodeName, self::INLINE_WRAPPERS, true ) ) {
+				return null;
+			}
+			$current = $current->parentNode;
+		}
+		return null;
+	}
+
 	private function isImageWithExternalLink( DOMElement $node ): bool {
-		if ( $node->parentNode->nodeName !== 'a' ) {
+		$anchor = $this->getEnclosingAnchor( $node );
+		if ( $anchor === null || !$anchor->hasAttribute( 'href' ) ) {
 			return false;
 		}
 
-		$anchor = $node->parentNode;
-		if ( $anchor instanceof DOMElement === false ) {
-			return false;
-		}
+		$parsedUrl = parse_url( $anchor->getAttribute( 'href' ) );
 
-		if ( !$anchor->hasAttribute( 'href' ) ) {
-			return false;
-		}
-
-		$href = $anchor->getAttribute( 'href' );
-		$parsedUrl = parse_url( $href );
-
-		if ( isset( $parsedUrl['scheme'] ) ) {
-			return true;
-		}
-
-		return false;
+		return isset( $parsedUrl['scheme'] );
 	}
 
 }
