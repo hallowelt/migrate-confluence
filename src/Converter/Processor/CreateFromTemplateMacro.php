@@ -120,7 +120,7 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 
 		$this->writer->registerDefaultPage(
 			$this->currentSpaceId,
-			'SubpageList'
+			$this->getWikiTextTemplateName()
 		);
 
 		$node->parentNode->replaceChild(
