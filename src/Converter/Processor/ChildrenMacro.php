@@ -72,6 +72,10 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			$this->spaceId,
 			'SubpageList'
 		);
+		$this->writer->registerDefaultPage(
+			$this->spaceId,
+			'SubpageListRow'
+		);
 	}
 
 	/**

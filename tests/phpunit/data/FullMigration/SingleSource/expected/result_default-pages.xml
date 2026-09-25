@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <mediawiki>
   <page>
-    <title>Template:SubpageList</title>
+    <title>Template:CreateFromTemplate</title>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>
