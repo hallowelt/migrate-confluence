@@ -67,4 +67,4 @@ Include style to size the parent container and the image based on confluence dat
 </templatedata>
 </noinclude><includeonly>
 <span class="plainurlimage plainlinks{{#if:{{{width|}}}| plainurlimage-w}}{{#if:{{{height|}}}| plainurlimage-h}}" style="{{#if:{{{width|}}}|width:{{{width}}}px;}}{{#if:{{{height|}}}|height:{{{height}}}px;}}">{{#if:{{{link|}}}|[{{{link}}} {{{url}}}]|{{{url}}}}}</span>
-<templatestyles src="PlainUrlImage/style.css"/></includeonly>
+<templatestyles src="PlainUrlImage/Style.css"/></includeonly>
