@@ -4202,7 +4202,12 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Join in the owning page as a fallback for attachments whose own space_id
+	 * is not set (e.g. older Confluence exports); COALESCE prefers the
+	 * attachment's space_id but falls back to its page's space_id.
+	 *
 	 * @param int|null $spaceId
+	 *
 	 * @return array
 	 */
 	public function getPageAttachments( ?int $spaceId = null ): array {
