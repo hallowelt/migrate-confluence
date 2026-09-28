@@ -36,7 +36,7 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 	 *
 	 * Cleaned external URL (scheme://host/path, query stripped), or '' if not external.
 	 */
-	protected function getExternalUrlText( string $url ): string {
+	protected function getExternalUrl( string $url ): string {
 		$parsed = parse_url( $url );
 		if ( !isset( $parsed['scheme'] ) || !isset( $parsed['host'] ) ) {
 			return '';

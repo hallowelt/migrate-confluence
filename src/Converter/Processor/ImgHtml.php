@@ -9,14 +9,14 @@ use DOMElement;
  * Handles raw HTML <img> nodes (as opposed to <ac:image>). Its source is in
  * the `src` attribute rather than a child element. MediaWiki does not
  * render an img tag pointing to an external url, so:
- * - with height/width it is replaced by the {{PlainUrlImage}} template
+ * - with height/width it is replaced by the {{ExternalImage}} template
  *   (preserving height/width and, if the <img> is wrapped in a link, the
  *   link target);
  * - without height/width it is replaced by the plain url (stripped of query
  *   params), or, if wrapped in a link, by a link with the url as its text.
  * Anything else (e.g. a relative/internal src) is left untouched.
  */
-class RawImage extends ImageProcessorBase {
+class ImgHtml extends ImageProcessorBase {
 
 	/**
 	 * Inline elements that may sit between an <a> and the <img> it encloses.
@@ -35,8 +35,8 @@ class RawImage extends ImageProcessorBase {
 	}
 
 	private function doProcessImg( DOMElement $node ): void {
-		$urlText = $this->getExternalUrlText( $node->getAttribute( 'src' ) );
-		if ( $urlText === '' ) {
+		$url = $this->getExternalUrl( $node->getAttribute( 'src' ) );
+		if ( $url === '' ) {
 			// relative/internal src (no scheme/host) -> not handled here, leave as-is
 			return;
 		}
@@ -48,7 +48,7 @@ class RawImage extends ImageProcessorBase {
 			$href = $anchor->getAttribute( 'href' );
 
 			if ( !$this->hasDimensions( $node ) ) {
-				$this->replaceAnchorWithTextLink( $anchor, $href, $urlText );
+				$this->replaceAnchorWithTextLink( $anchor, $href, $url );
 
 				return;
 			}
@@ -56,7 +56,7 @@ class RawImage extends ImageProcessorBase {
 			$anchor->parentNode->replaceChild(
 				$this->createTextNode(
 					$dom,
-					$this->makePlainUrlImageReplacement( $node, $urlText, $href ),
+					$this->makeExternalImageReplacement( $node, $url, $href ),
 					__METHOD__
 				),
 				$anchor
@@ -66,8 +66,8 @@ class RawImage extends ImageProcessorBase {
 		}
 
 		$replacementText = $this->hasDimensions( $node )
-			? $this->makePlainUrlImageReplacement( $node, $urlText )
-			: $urlText;
+			? $this->makeExternalImageReplacement( $node, $url )
+			: $url;
 
 		$node->parentNode->replaceChild(
 			$this->createTextNode( $dom, $replacementText, __METHOD__ ),
@@ -83,9 +83,9 @@ class RawImage extends ImageProcessorBase {
 	/**
 	 * MediaWiki does not render an img tag pointing to an external url.
 	 * Wrap the url (and, if present, the link it is enclosed by) in the
-	 * {{PlainUrlImage}} template so the wiki side can decide how to render it.
+	 * {{ExternalImage}} template so the wiki side can decide how to render it.
 	 */
-	private function makePlainUrlImageReplacement( DOMElement $node, string $urlText, string $link = '' ): string {
+	private function makeExternalImageReplacement( DOMElement $node, string $urlText, string $link = '' ): string {
 		$params = [];
 		if ( $link !== '' ) {
 			$params[] = "link=$link";
@@ -104,10 +104,10 @@ class RawImage extends ImageProcessorBase {
 
 		$this->writer->registerDefaultPage(
 			$this->currentSpaceId,
-			"PlainUrlImage"
+			"ExternalImage"
 		);
 
-		return '{{PlainUrlImage|' . implode( '|', $params ) . '}}';
+		return '{{ExternalImage|' . implode( '|', $params ) . '}}';
 	}
 
 	/**

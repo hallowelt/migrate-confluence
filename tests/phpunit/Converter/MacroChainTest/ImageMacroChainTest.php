@@ -32,7 +32,7 @@ class ImageMacroChainTest extends MacroChainTestBase {
 			$this->assertSame( $expected, $actual, "Mismatch for fixture $inputFixture" );
 		}
 
-		$dir = dirname( __DIR__, 2 ) . '/data/PlainUrlImage';
+		$dir = dirname( __DIR__, 2 ) . '/data/ExternalImage';
 		$fixtures = [
 			'image-url-external-link-input.xml' => 'image-url-external-link-output.wikitext'
 		];

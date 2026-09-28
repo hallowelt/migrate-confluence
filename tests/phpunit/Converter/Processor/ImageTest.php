@@ -47,8 +47,8 @@ class ImageTest extends ProcessorTestCase {
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(
 			$dataLookup,
-			'PlainUrlImage/image-url-external-link-input.xml',
-			'PlainUrlImage/image-url-external-link-output.xml',
+			'ExternalImage/image-url-external-link-input.xml',
+			'ExternalImage/image-url-external-link-output.xml',
 			42,
 			'SomePage'
 		);
@@ -64,8 +64,8 @@ class ImageTest extends ProcessorTestCase {
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(
 			$dataLookup,
-			'PlainUrlImage/image-url-invalid-external-link-input.xml',
-			'PlainUrlImage/image-url-invalid-external-link-output.xml',
+			'ExternalImage/image-url-invalid-external-link-input.xml',
+			'ExternalImage/image-url-invalid-external-link-output.xml',
 			42,
 			'SomePage'
 		);
@@ -81,8 +81,8 @@ class ImageTest extends ProcessorTestCase {
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
 		$this->doTestWith(
 			$dataLookup,
-			'PlainUrlImage/image-url-plain-input.xml',
-			'PlainUrlImage/image-url-plain-output.xml',
+			'ExternalImage/image-url-plain-input.xml',
+			'ExternalImage/image-url-plain-output.xml',
 			42,
 			'SomePage'
 		);

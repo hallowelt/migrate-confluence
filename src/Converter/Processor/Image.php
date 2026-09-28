@@ -45,17 +45,17 @@ class Image extends ImageProcessorBase {
 		if ( $this->isImageWithExternalLink( $node ) ) {
 			$anchor = $this->getEnclosingAnchor( $node );
 			$href = $anchor->getAttribute( 'href' );
-			$urlText = $this->getImageUrlText( $node );
+			$url = $this->getImageUrl( $node );
 
-			if ( $urlText !== '' ) {
+			if ( $url !== '' ) {
 				if ( !$this->hasDimensions( $node ) ) {
-					$this->replaceAnchorWithTextLink( $anchor, $href, $urlText );
+					$this->replaceAnchorWithTextLink( $anchor, $href, $url );
 
 					return;
 				}
 
 				$anchor->parentNode->replaceChild(
-					$this->makePlainUrlImageReplacement( $node, $href ),
+					$this->makeExternalImageReplacement( $node, $href ),
 					$anchor
 				);
 
@@ -88,7 +88,7 @@ class Image extends ImageProcessorBase {
 				continue;
 			}
 			if ( $childNode->nodeName === 'ri:url' ) {
-				$replacementNode = $this->makePlainUrlImageReplacement( $node );
+				$replacementNode = $this->makeExternalImageReplacement( $node );
 			} elseif ( $childNode->nodeName === 'ri:attachment' ) {
 				$replacementNode = $this->makeImageAttachmentReplacement( $childNode );
 			}
@@ -132,12 +132,12 @@ class Image extends ImageProcessorBase {
 
 	/**
 	 * MediaWiki does not render an img tag pointing to an external url.
-	 * Images with dimensions are wrapped in the {{PlainUrlImage}} template
+	 * Images with dimensions are wrapped in the {{ExternalImage}} template
 	 * so the wiki side can decide how to render them. Without dimensions the
 	 * url (stripped of query params) is output as plain text.
 	 */
-	private function makePlainUrlImageReplacement( DOMElement $imageNode, string $link = '' ): DOMNode {
-		$urlText = $this->getImageUrlText( $imageNode );
+	private function makeExternalImageReplacement( DOMElement $imageNode, string $link = '' ): DOMNode {
+		$urlText = $this->getImageUrl( $imageNode );
 		if ( $urlText === '' ) {
 			return $imageNode;
 		}
@@ -164,10 +164,10 @@ class Image extends ImageProcessorBase {
 
 		$this->writer->registerDefaultPage(
 			$this->currentSpaceId,
-			"PlainUrlImage"
+			"ExternalImage"
 		);
 
-		$replacementText = '{{PlainUrlImage|' . implode( '|', $params ) . '}}';
+		$replacementText = '{{ExternalImage|' . implode( '|', $params ) . '}}';
 
 		return $this->createTextNode( $imageNode->ownerDocument, $replacementText, __METHOD__ );
 	}
@@ -384,10 +384,10 @@ class Image extends ImageProcessorBase {
 	 * Extracts the plain URL string from an <ac:image> node's <ri:url> child,
 	 * stripping query parameters. Returns an empty string if not applicable.
 	 */
-	private function getImageUrlText( DOMElement $imageNode ): string {
+	private function getImageUrl( DOMElement $imageNode ): string {
 		foreach ( $imageNode->childNodes as $child ) {
 			if ( $child instanceof DOMElement && $child->nodeName === 'ri:url' ) {
-				return $this->getExternalUrlText( $child->getAttribute( 'ri:value' ) );
+				return $this->getExternalUrl( $child->getAttribute( 'ri:value' ) );
 			}
 		}
 		return '';

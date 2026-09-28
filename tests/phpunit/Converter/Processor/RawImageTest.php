@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\RawImage;
+use HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -19,10 +19,10 @@ class RawImageTest extends ProcessorTestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RawImage::process
 	 * @return void
 	 */
-	public function testRawImgExternalIsReplacedByPlainUrlImageTemplate() {
+	public function testRawImgExternalIsReplacedByExternalImageTemplate() {
 		$this->doTest(
-			'PlainUrlImage/image-raw-img-external-input.xml',
-			'PlainUrlImage/image-raw-img-external-output.xml'
+			'ExternalImage/image-raw-img-external-input.xml',
+			'ExternalImage/image-raw-img-external-output.xml'
 		);
 	}
 
@@ -30,10 +30,10 @@ class RawImageTest extends ProcessorTestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RawImage::process
 	 * @return void
 	 */
-	public function testRawImgExternalWithoutSizeIsNotReplacedByPlainUrlImageTemplate() {
+	public function testRawImgExternalWithoutSizeIsNotReplacedByExternalImageTemplate() {
 		$this->doTest(
-			'PlainUrlImage/image-raw-img-external-sizeless-input.xml',
-			'PlainUrlImage/image-raw-img-external-sizeless-output.xml'
+			'ExternalImage/image-raw-img-external-sizeless-input.xml',
+			'ExternalImage/image-raw-img-external-sizeless-output.xml'
 		);
 	}
 
@@ -41,10 +41,10 @@ class RawImageTest extends ProcessorTestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RawImage::process
 	 * @return void
 	 */
-	public function testRawImgInLinkIsReplacedByPlainUrlImageTemplateWithLink() {
+	public function testRawImgInLinkIsReplacedByExternalImageTemplateWithLink() {
 		$this->doTest(
-			'PlainUrlImage/image-raw-img-in-link-input.xml',
-			'PlainUrlImage/image-raw-img-in-link-output.xml'
+			'ExternalImage/image-raw-img-in-link-input.xml',
+			'ExternalImage/image-raw-img-in-link-output.xml'
 		);
 	}
 
@@ -52,10 +52,10 @@ class RawImageTest extends ProcessorTestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RawImage::process
 	 * @return void
 	 */
-	public function testRawImgInLinkWithhoutSizeIsNotReplacedByPlainUrlImageTemplateWithLink() {
+	public function testRawImgInLinkWithhoutSizeIsNotReplacedByExternalImageTemplateWithLink() {
 		$this->doTest(
-			'PlainUrlImage/image-raw-img-in-link-sizeless-input.xml',
-			'PlainUrlImage/image-raw-img-in-link-sizeless-output.xml'
+			'ExternalImage/image-raw-img-in-link-sizeless-input.xml',
+			'ExternalImage/image-raw-img-in-link-sizeless-output.xml'
 		);
 	}
 
@@ -74,7 +74,7 @@ class RawImageTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $inputContent );
 
-		$processor = new RawImage(
+		$processor = new ImgHtml(
 			$this->createConverterDataWriter(),
 			$dataLookup,
 			42,

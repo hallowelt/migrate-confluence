@@ -71,7 +71,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PanelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
-use HalloWelt\MigrateConfluence\Converter\Processor\RawImage;
+use HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml;
 use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RegTmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RoadmapMacro;
@@ -489,7 +489,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
-			new RawImage(
+			new ImgHtml(
 				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
