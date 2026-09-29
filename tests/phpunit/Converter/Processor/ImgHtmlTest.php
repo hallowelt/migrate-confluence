@@ -6,7 +6,6 @@ use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ImgHtmlTest extends ProcessorTestCase {
 
