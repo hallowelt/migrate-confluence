@@ -4,33 +4,32 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
-use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class ExcerptMacroTest extends ProcessorTestCase {
 
-	protected function getInput(): string {
-		return file_get_contents( dirname( __DIR__, 2 ) . '/data/PageExcerpt/excerpt-macro-input.xml' );
-	}
-
-	protected function getExpectedOutput(): string {
-		return file_get_contents( dirname( __DIR__, 2 ) . '/data/PageExcerpt/excerpt-macro-output.xml' );
-	}
+	/**
+	 * @var string
+	 */
+	private $dir = '';
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
-		$input = $this->getInput();
-		$expectedOutput = $this->getExpectedOutput();
+		$this->dir = dirname( __DIR__, 2 ) . '/data/PageExcerpt';
+
+		$input = file_get_contents( "$this->dir/excerpt-macro-input.xml" );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ExcerptMacro( new PlaceholderManager() );
+		$processor = new ExcerptMacro( $this->createConverterDataWriter(), 1 );
 		$processor->process( $dom );
-		$actualOutput = $dom->saveXML();
 
-		$this->assertEquals( $expectedOutput, $actualOutput );
+		$expectedDom = new DOMDocument();
+		$expectedDom->load( "$this->dir/MediaWiki/excerpt-macro-output.xml" );
+		$this->assertDomXmlEquals( $expectedDom, $dom );
 	}
+
 }

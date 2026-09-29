@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter;
 
+use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\StatusMacro;
 
 class ConfluenceConverterMediaWiki extends ConfluenceConverterBase {
@@ -11,8 +13,10 @@ class ConfluenceConverterMediaWiki extends ConfluenceConverterBase {
 	 * @inheritDoc
 	 */
 	protected function getProcessors(): array {
-		$processors = $this->getDefaultProcessors();
-		$processors[] = new StatusMacro( $this->writer, $this->currentSpace );
-		return $processors;
+		return array_merge( $this->getDefaultProcessors(), [
+			new StatusMacro( $this->writer, $this->currentSpace ),
+			new ExcerptMacro( $this->writer, $this->currentSpace ),
+			new ExcerptIncludeMacro( $this->writer, $this->dataLookup, $this->currentSpace ),
+		] );
 	}
 }

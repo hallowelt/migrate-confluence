@@ -1,25 +1,27 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
+namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor\BlueSpiceGalaxy;
 
 use DOMDocument;
-use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptIncludeMacro;
+use HalloWelt\MigrateConfluence\Tests\Converter\Processor\ProcessorTestCase;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class ExcerptIncludeMacroTest extends ProcessorTestCase {
 	protected function getInput(): string {
-		return file_get_contents( dirname( __DIR__, 2 ) . '/data/PageExcerpt/excerpt-include-macro-input.xml' );
+		return file_get_contents( dirname( __DIR__, 3 ) . '/data/PageExcerpt/excerpt-include-macro-input.xml' );
 	}
 
 	protected function getExpectedOutput(): string {
 		return file_get_contents(
-			dirname( __DIR__, 2 ) . '/data/PageExcerpt/MediaWiki/excerpt-include-macro-output.xml'
+			dirname( __DIR__, 3 ) . '/data/PageExcerpt/BlueSpiceGalaxy/excerpt-include-macro-output.xml'
 		);
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptIncludeMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
@@ -32,7 +34,7 @@ class ExcerptIncludeMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ExcerptIncludeMacro( $this->createConverterDataWriter(), $dataLookup, $currentSpaceId );
+		$processor = new ExcerptIncludeMacro( $dataLookup, $currentSpaceId, new PlaceholderManager() );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 

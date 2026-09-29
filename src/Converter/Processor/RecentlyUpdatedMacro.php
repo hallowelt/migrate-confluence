@@ -50,5 +50,9 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 			$this->currentSpaceId,
 			'RecentlyUpdated'
 		);
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			'RecentlyUpdatedRow'
+		);
 	}
 }
