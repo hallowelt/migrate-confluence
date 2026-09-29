@@ -8,4 +8,8 @@
 	<ac:structured-macro ac:name="widget" ac:schema-version="1" ac:macro-id="2">
 		<ac:parameter ac:name="url">https://www.example.com/2</ac:parameter>
 	</ac:structured-macro>
+
+	<ac:structured-macro ac:name="widget" ac:schema-version="1" ac:macro-id="3">
+		<ac:parameter ac:name="url">https://www.example.com/3?p=1&amp;q=2</ac:parameter>
+	</ac:structured-macro>
 </xml>
