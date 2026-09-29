@@ -11,11 +11,6 @@ use DOMNode;
  */
 class Image extends ImageProcessorBase {
 
-	/**
-	 * Inline elements that may sit between an <a> and the <ac:image> it encloses.
-	 */
-	private const INLINE_WRAPPERS = [ 'span', 'strong', 'b', 'em', 'i', 'u', 's', 'sub', 'sup', 'code' ];
-
 	public function process( DOMDocument $dom ): void {
 		$imageNodes = [];
 
@@ -43,7 +38,7 @@ class Image extends ImageProcessorBase {
 		}
 
 		if ( $this->isImageWithExternalLink( $node ) ) {
-			$anchor = $this->getEnclosingAnchor( $node );
+			$anchor = $this->findEnclosingAnchor( $node );
 			$href = $anchor->getAttribute( 'href' );
 			$url = $this->getImageUrl( $node );
 
@@ -146,46 +141,46 @@ class Image extends ImageProcessorBase {
 			return $this->createTextNode( $imageNode->ownerDocument, $urlText, __METHOD__ );
 		}
 
-		$params = [];
-		if ( $link !== '' ) {
-			$params[] = "link=$link";
-		}
-		$params[] = "url=$urlText";
-
-		$height = $imageNode->getAttribute( 'ac:height' );
-		if ( $height !== '' ) {
-			$params[] = "height=$height";
-		}
-
-		$width = $imageNode->getAttribute( 'ac:width' );
-		if ( $width !== '' ) {
-			$params[] = "width=$width";
-		}
-
-		$this->writer->registerDefaultPage(
-			$this->currentSpaceId,
-			"ExternalImage"
+		$replacementText = $this->buildExternalImageTemplate(
+			$this->getExternalImageParams( $imageNode ),
+			$urlText,
+			$link
 		);
-
-		$replacementText = '{{ExternalImage|' . implode( '|', $params ) . '}}';
 
 		return $this->createTextNode( $imageNode->ownerDocument, $replacementText, __METHOD__ );
 	}
 
 	/**
-	 * Replaces the anchor (including any inline wrappers around the image)
-	 * with a fresh <a href="$href">$text</a>.
+	 * Collects the <ac:image> node's attributes (e.g. ac:height, ac:width,
+	 * ac:align, ...) as "name=value" template params, stripping the "ac:"
+	 * namespace prefix. height/width come first for a stable, predictable
+	 * param order.
 	 */
-	private function replaceAnchorWithTextLink( DOMElement $anchor, string $href, string $text ): DOMElement {
-		$dom = $anchor->ownerDocument;
+	private function getExternalImageParams( DOMElement $imageNode ): array {
+		$params = [];
 
-		$newAnchor = $dom->createElement( 'a' );
-		$newAnchor->setAttribute( 'href', $href );
-		$newAnchor->appendChild( $this->createTextNode( $dom, $text, __METHOD__ ) );
+		foreach ( [ 'height', 'width' ] as $name ) {
+			$value = $imageNode->getAttribute( "ac:$name" );
+			if ( $value !== '' ) {
+				$params[$name] = $value;
+			}
+		}
 
-		$anchor->parentNode->replaceChild( $newAnchor, $anchor );
+		foreach ( $imageNode->attributes as $attribute ) {
+			$name = $attribute->nodeName;
+			if ( strpos( $name, 'ac:' ) !== 0 ) {
+				continue;
+			}
+			$name = substr( $name, strlen( 'ac:' ) );
 
-		return $newAnchor;
+			if ( isset( $params[$name] ) ) {
+				continue;
+			}
+
+			$params[$name] = $attribute->value;
+		}
+
+		return $params;
 	}
 
 	/**
@@ -345,7 +340,7 @@ class Image extends ImageProcessorBase {
 		$brokenLinkInfo = '';
 		$target = '';
 
-		$link = $this->getEnclosingAnchor( $node );
+		$link = $this->findEnclosingAnchor( $node );
 		if ( $link === null ) {
 			$brokenLinkInfo = $this->getCategoryBroken( 'image_external_link' );
 		} else {
@@ -397,29 +392,8 @@ class Image extends ImageProcessorBase {
 	 * Returns the <a> enclosing the image, looking through inline wrappers
 	 * like <span> or <strong>. Returns null if there is none.
 	 */
-	private function getEnclosingAnchor( DOMElement $node ): ?DOMElement {
-		$current = $node->parentNode;
-		while ( $current instanceof DOMElement ) {
-			if ( $current->nodeName === 'a' ) {
-				return $current;
-			}
-			if ( !in_array( $current->nodeName, self::INLINE_WRAPPERS, true ) ) {
-				return null;
-			}
-			$current = $current->parentNode;
-		}
-		return null;
-	}
-
 	private function isImageWithExternalLink( DOMElement $node ): bool {
-		$anchor = $this->getEnclosingAnchor( $node );
-		if ( $anchor === null || !$anchor->hasAttribute( 'href' ) ) {
-			return false;
-		}
-
-		$parsedUrl = parse_url( $anchor->getAttribute( 'href' ) );
-
-		return isset( $parsedUrl['scheme'] );
+		return $this->isExternalAnchor( $this->findEnclosingAnchor( $node ) );
 	}
 
 	private function getImageReplacement( array $params ): string {

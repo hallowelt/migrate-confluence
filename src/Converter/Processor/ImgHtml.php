@@ -18,11 +18,6 @@ use DOMElement;
  */
 class ImgHtml extends ImageProcessorBase {
 
-	/**
-	 * Inline elements that may sit between an <a> and the <img> it encloses.
-	 */
-	private const INLINE_WRAPPERS = [ 'span', 'strong', 'b', 'em', 'i', 'u', 's', 'sub', 'sup', 'code' ];
-
 	public function process( DOMDocument $dom ): void {
 		$imgNodes = [];
 		foreach ( $dom->getElementsByTagName( 'img' ) as $imgNode ) {
@@ -86,42 +81,39 @@ class ImgHtml extends ImageProcessorBase {
 	 * {{ExternalImage}} template so the wiki side can decide how to render it.
 	 */
 	private function makeExternalImageReplacement( DOMElement $node, string $urlText, string $link = '' ): string {
-		$params = [];
-		if ( $link !== '' ) {
-			$params[] = "link=$link";
-		}
-		$params[] = "url=$urlText";
-
-		$height = $node->getAttribute( 'height' );
-		if ( $height !== '' ) {
-			$params[] = "height=$height";
-		}
-
-		$width = $node->getAttribute( 'width' );
-		if ( $width !== '' ) {
-			$params[] = "width=$width";
-		}
-
-		$this->writer->registerDefaultPage(
-			$this->currentSpaceId,
-			"ExternalImage"
+		return $this->buildExternalImageTemplate(
+			$this->getExternalImageParams( $node ),
+			$urlText,
+			$link
 		);
-
-		return '{{ExternalImage|' . implode( '|', $params ) . '}}';
 	}
 
 	/**
-	 * Replaces the anchor (including any inline wrappers around the image)
-	 * with a fresh <a href="$href">$text</a>.
+	 * Collects the <img> node's attributes (e.g. height, width, ...) as
+	 * "name=value" template params. "src" is excluded, as it is already
+	 * carried via the url param. height/width come first for a stable,
+	 * predictable param order.
 	 */
-	private function replaceAnchorWithTextLink( DOMElement $anchor, string $href, string $text ): void {
-		$dom = $anchor->ownerDocument;
+	private function getExternalImageParams( DOMElement $node ): array {
+		$params = [];
 
-		$newAnchor = $dom->createElement( 'a' );
-		$newAnchor->setAttribute( 'href', $href );
-		$newAnchor->appendChild( $this->createTextNode( $dom, $text, __METHOD__ ) );
+		foreach ( [ 'height', 'width' ] as $name ) {
+			$value = $node->getAttribute( $name );
+			if ( $value !== '' ) {
+				$params[$name] = $value;
+			}
+		}
 
-		$anchor->parentNode->replaceChild( $newAnchor, $anchor );
+		foreach ( $node->attributes as $attribute ) {
+			$name = $attribute->nodeName;
+			if ( $name === 'src' || isset( $params[$name] ) ) {
+				continue;
+			}
+
+			$params[$name] = $attribute->value;
+		}
+
+		return $params;
 	}
 
 	/**
@@ -130,23 +122,9 @@ class ImgHtml extends ImageProcessorBase {
 	 * is none.
 	 */
 	private function getEnclosingExternalAnchor( DOMElement $node ): ?DOMElement {
-		$current = $node->parentNode;
-		while ( $current instanceof DOMElement ) {
-			if ( $current->nodeName === 'a' ) {
-				if ( !$current->hasAttribute( 'href' ) ) {
-					return null;
-				}
-				$parsedUrl = parse_url( $current->getAttribute( 'href' ) );
+		$anchor = $this->findEnclosingAnchor( $node );
 
-				return isset( $parsedUrl['scheme'] ) ? $current : null;
-			}
-			if ( !in_array( $current->nodeName, self::INLINE_WRAPPERS, true ) ) {
-				return null;
-			}
-			$current = $current->parentNode;
-		}
-
-		return null;
+		return $this->isExternalAnchor( $anchor ) ? $anchor : null;
 	}
 
 }
