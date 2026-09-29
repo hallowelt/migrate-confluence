@@ -35,7 +35,7 @@ class ImgHtml extends ImageProcessorBase {
 	}
 
 	private function doProcessImg( DOMElement $node ): void {
-		$url = $this->getExternalUrl( $node->getAttribute( 'src' ) );
+		$url = $this->modifyExternalImageUrl( $node->getAttribute( 'src' ) );
 		if ( $url === '' ) {
 			// relative/internal src (no scheme/host) -> not handled here, leave as-is
 			return;

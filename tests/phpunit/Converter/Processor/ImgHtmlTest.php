@@ -8,7 +8,7 @@ use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
-class RawImageTest extends ProcessorTestCase {
+class ImgHtmlTest extends ProcessorTestCase {
 
 	/**
 	 * @var string
@@ -16,7 +16,7 @@ class RawImageTest extends ProcessorTestCase {
 	private $dir = '';
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RawImage::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml::process
 	 * @return void
 	 */
 	public function testRawImgExternalIsReplacedByExternalImageTemplate() {
@@ -27,18 +27,18 @@ class RawImageTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RawImage::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml::process
 	 * @return void
 	 */
 	public function testRawImgExternalWithoutSizeIsNotReplacedByExternalImageTemplate() {
 		$this->doTest(
-			'ExternalImage/image-raw-img-external-sizeless-input.xml',
-			'ExternalImage/image-raw-img-external-sizeless-output.xml'
+			'ExternalImage/image-raw-img-external-no-attributes-input.xml',
+			'ExternalImage/image-raw-img-external-no-attributes-output.xml'
 		);
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RawImage::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml::process
 	 * @return void
 	 */
 	public function testRawImgInLinkIsReplacedByExternalImageTemplateWithLink() {
@@ -49,13 +49,13 @@ class RawImageTest extends ProcessorTestCase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\RawImage::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml::process
 	 * @return void
 	 */
 	public function testRawImgInLinkWithhoutSizeIsNotReplacedByExternalImageTemplateWithLink() {
 		$this->doTest(
-			'ExternalImage/image-raw-img-in-link-sizeless-input.xml',
-			'ExternalImage/image-raw-img-in-link-sizeless-output.xml'
+			'ExternalImage/image-raw-img-in-link-no-attributes-input.xml',
+			'ExternalImage/image-raw-img-in-link-no-attributes-output.xml'
 		);
 	}
 

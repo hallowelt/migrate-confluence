@@ -387,7 +387,7 @@ class Image extends ImageProcessorBase {
 	private function getImageUrl( DOMElement $imageNode ): string {
 		foreach ( $imageNode->childNodes as $child ) {
 			if ( $child instanceof DOMElement && $child->nodeName === 'ri:url' ) {
-				return $this->getExternalUrl( $child->getAttribute( 'ri:value' ) );
+				return $this->modifyExternalImageUrl( $child->getAttribute( 'ri:value' ) );
 			}
 		}
 		return '';
@@ -422,4 +422,21 @@ class Image extends ImageProcessorBase {
 		return isset( $parsedUrl['scheme'] );
 	}
 
+	private function getImageReplacement( array $params ): string {
+		return '[[File:' . implode( '|', $params ) . ']]';
+	}
+
+	private function makeImageLinkWithDebugInfo( DOMDocument $dom, array $params,
+		string $confluenceFileKey, string $debug = '' ): DOMNode {
+		$params = array_map( 'trim', $params );
+
+		if ( empty( $params ) || empty( $params[0] ) ) {
+			$debug .= " ###BROKENIMAGE $confluenceFileKey ###";
+		}
+
+		$replacementText = $this->getImageReplacement( $params );
+		$replacementText .= $debug;
+
+		return $this->createTextNode( $dom, $replacementText, __METHOD__ );
+	}
 }

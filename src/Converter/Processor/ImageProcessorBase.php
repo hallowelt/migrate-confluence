@@ -17,6 +17,8 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
  */
 abstract class ImageProcessorBase extends ConversionHelper implements IProcessor {
 
+	private const IMAGE_EXTENSION_FALLBACK = '.jpg';
+
 	protected FilenameResolver $filenameResolver;
 
 	public function __construct(
@@ -30,36 +32,42 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 	}
 
 	/**
-	 * Handle ri:url image inside external link or link in <img>
-	 * Replace with a plain text URL so the <a> survives and pandoc renders
-	 * [href imageUrl] instead of dropping the link entirely.
+	 * Ensures compatibility with mediawikis handling of external image urls.
 	 *
-	 * Cleaned external URL (scheme://host/path, query stripped), or '' if not external.
+	 *  Handle ri:url image inside external link or link in <img>
+	 *  Replace with a plain text URL so the <a> survives and pandoc renders
+	 *  [href imageUrl] instead of dropping the link entirely.
+	 *
+	 * 	HACK: If the URL has query params, they are kept and a file extension is appended
+	 * 	as a fragment at the end of the string, so MediaWiki still recognizes the file type.
+	 * 	Default extension if none is present: .jpg
+	 * 	e.g.
+	 * 	https://example.com/download/attachments/1933361/image.png?version=1&modificationDate=1724938529723
+	 * 	->
+	 * 	https://example.com/download/attachments/1933361/image.png?version=1&modificationDate=1724938529723#.png
+	 *
+	 * Cleaned external image URL (scheme://host/path[?query#.ext]), or '' if not external.
 	 */
-	protected function getExternalUrl( string $url ): string {
+	protected function modifyExternalImageUrl( string $url ): string {
 		$parsed = parse_url( $url );
 		if ( !isset( $parsed['scheme'] ) || !isset( $parsed['host'] ) ) {
 			return '';
 		}
-		return $parsed['scheme'] . '://' . $parsed['host'] . ( $parsed['path'] ?? '' );
-	}
 
-	protected function getImageReplacement( array $params ): string {
-		return '[[File:' . implode( '|', $params ) . ']]';
-	}
+		$path = $parsed['path'] ?? '';
+		$result = $parsed['scheme'] . '://' . $parsed['host'] . $path;
 
-	protected function makeImageLinkWithDebugInfo( DOMDocument $dom, array $params,
-		string $confluenceFileKey, string $debug = '' ): DOMNode {
-		$params = array_map( 'trim', $params );
-
-		if ( empty( $params ) || empty( $params[0] ) ) {
-			$debug .= " ###BROKENIMAGE $confluenceFileKey ###";
+		if ( isset( $parsed['query'] ) && $parsed['query'] !== '' ) {
+			$extension = pathinfo( $path, PATHINFO_EXTENSION );
+			if ( $extension === '' ) {
+				$extension = self::IMAGE_EXTENSION_FALLBACK;
+			}
+			$result .= '?' . $parsed['query'] . '#.' . $extension;
 		}
 
-		$replacementText = $this->getImageReplacement( $params );
-		$replacementText .= $debug;
-
-		return $this->createTextNode( $dom, $replacementText, __METHOD__ );
+		return $result;
 	}
+
+
 
 }

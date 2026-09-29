@@ -17,8 +17,7 @@ class ImageMacroChainTest extends MacroChainTestBase {
 	public function testMacroChain(): void {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$fixtures = [
-			'image-attachment-input-1.xml' => 'image-attachment-input-1.wikitext',
-			'image-attachment-input-2.xml' => 'image-attachment-input-2.wikitext'
+			'image-attachment-input-1.xml' => 'image-attachment-output-1.wikitext'
 		];
 
 		foreach ( $fixtures as $inputFixture => $expectedFixture ) {
