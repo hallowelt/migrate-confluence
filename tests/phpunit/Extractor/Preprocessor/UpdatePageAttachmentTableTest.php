@@ -221,4 +221,8 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		);
 	}
 
+	// Note: attachments without their own space_id (older Confluence export format) are
+	// backfilled upstream by UpdateAttachmentsTableWithSpaceIdFallback, which runs before
+	// this preprocessor in the pipeline. See UpdateAttachmentsTableWithSpaceIdFallbackTest.
+
 }

@@ -89,6 +89,16 @@ class ExtractorDirectDataWriter extends AbstractDirectDataWriter implements IExt
 	}
 
 	/**
+	 * @param int $attachmentId
+	 * @param int $spaceId
+	 *
+	 * @return bool
+	 */
+	public function updateAttachmentSpaceId( int $attachmentId, int $spaceId ): bool {
+		return $this->db->updateAttachmentSpaceId( $attachmentId, $spaceId );
+	}
+
+	/**
 	 * @param int $pageId
 	 * @param string $wikiTitle
 	 *
