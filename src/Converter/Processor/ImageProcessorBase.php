@@ -103,22 +103,6 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 	}
 
 	/**
-	 * Replaces the anchor (including any inline wrappers around the image)
-	 * with a fresh <a href="$href">$text</a>.
-	 */
-	protected function replaceAnchorWithTextLink( DOMElement $anchor, string $href, string $text ): DOMElement {
-		$dom = $anchor->ownerDocument;
-
-		$newAnchor = $dom->createElement( 'a' );
-		$newAnchor->setAttribute( 'href', $href );
-		$newAnchor->appendChild( $this->createTextNode( $dom, $text, __METHOD__ ) );
-
-		$anchor->parentNode->replaceChild( $newAnchor, $anchor );
-
-		return $newAnchor;
-	}
-
-	/**
 	 * MediaWiki does not render an img tag pointing to an external url.
 	 * Builds the {{ExternalImage}} template text carrying the url, optional
 	 * link target and the given params (e.g. height, width, align, ...),

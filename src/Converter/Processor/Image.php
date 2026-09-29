@@ -187,6 +187,22 @@ class Image extends ImageProcessorBase {
 		);
 	}
 
+	/**
+	 * Replaces the anchor (including any inline wrappers around the image)
+	 * with a fresh <a href="$href">$text</a>.
+	 */
+	private function replaceAnchorWithTextLink( DOMElement $anchor, string $href, string $text ): DOMElement {
+		$dom = $anchor->ownerDocument;
+
+		$newAnchor = $dom->createElement( 'a' );
+		$newAnchor->setAttribute( 'href', $href );
+		$newAnchor->appendChild( $this->createTextNode( $dom, $text, __METHOD__ ) );
+
+		$anchor->parentNode->replaceChild( $newAnchor, $anchor );
+
+		return $newAnchor;
+	}
+
 	private function makeImageAttachmentReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node->parentNode );
 
