@@ -206,7 +206,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		/**
 		 * Older formats dont have a contentStatus property,
 		 * but its safe to treat a missing contentStatus as current because
-		 * the analyzer already checks drops those.
+		 * the analyzer already checks those.
 		 */
 		if ( isset( $attachment['content_status'] ) && $attachment['content_status'] !== 'current' ) {
 			return false;
