@@ -76,10 +76,7 @@ class ImgHtmlTest extends ProcessorTestCase {
 
 		$processor = new ImgHtml(
 			$this->createConverterDataWriter(),
-			$dataLookup,
-			42,
-			'SomePage',
-			new MigrationConfig( [] )
+			42
 		);
 		$processor->process( $dom );
 

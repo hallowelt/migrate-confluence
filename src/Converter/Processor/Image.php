@@ -5,11 +5,26 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
+use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 /**
  * Handles <ac:image> nodes. Raw HTML <img> nodes are handled by RawImage.
  */
 class Image extends ImageProcessorBase {
+
+	public function __construct(
+		protected IConverterDataWriter $writer,
+		protected DBConversionDataLookup $dataLookup,
+		protected int $currentSpaceId,
+		protected string $rawPageTitle,
+		MigrationConfig $migrationConfig
+	) {
+		parent::__construct( $writer, $this->currentSpaceId );
+		$this->filenameResolver = new FilenameResolver( $dataLookup, $migrationConfig );
+	}
 
 	public function process( DOMDocument $dom ): void {
 		$imageNodes = [];

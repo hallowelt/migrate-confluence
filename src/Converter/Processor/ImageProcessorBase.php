@@ -7,9 +7,7 @@ use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
-use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 /**
  * Shared logic used by both the <ac:image> processor (Image) and the raw
@@ -28,12 +26,8 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 
 	public function __construct(
 		protected IConverterDataWriter $writer,
-		protected DBConversionDataLookup $dataLookup,
 		protected int $currentSpaceId,
-		protected string $rawPageTitle,
-		MigrationConfig $migrationConfig
 	) {
-		$this->filenameResolver = new FilenameResolver( $dataLookup, $migrationConfig );
 	}
 
 	/**
