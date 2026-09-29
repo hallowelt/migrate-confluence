@@ -37,42 +37,29 @@ class ImgHtml extends ImageProcessorBase {
 		}
 
 		$dom = $node->ownerDocument;
-		$anchor = $this->getEnclosingExternalAnchor( $node );
+		$enclosingExternalLink = $this->getEnclosingExternalLink( $node );
 
-		if ( $anchor !== null ) {
-			$href = $anchor->getAttribute( 'href' );
+		if ( $enclosingExternalLink ) {
+			$href = $enclosingExternalLink->getAttribute( 'href' );
 
-			if ( !$this->hasDimensions( $node ) ) {
-				$this->replaceAnchorWithTextLink( $anchor, $href, $url );
-
-				return;
-			}
-
-			$anchor->parentNode->replaceChild(
+			$enclosingExternalLink->parentNode->replaceChild(
 				$this->createTextNode(
 					$dom,
 					$this->makeExternalImageReplacement( $node, $url, $href ),
 					__METHOD__
 				),
-				$anchor
+				$enclosingExternalLink
 			);
 
 			return;
 		}
 
-		$replacementText = $this->hasDimensions( $node )
-			? $this->makeExternalImageReplacement( $node, $url )
-			: $url;
+		$replacementText = $this->makeExternalImageReplacement( $node, $url );
 
 		$node->parentNode->replaceChild(
 			$this->createTextNode( $dom, $replacementText, __METHOD__ ),
 			$node
 		);
-	}
-
-	private function hasDimensions( DOMElement $node ): bool {
-		return $node->getAttribute( 'width' ) !== ''
-			|| $node->getAttribute( 'height' ) !== '';
 	}
 
 	/**
@@ -115,16 +102,4 @@ class ImgHtml extends ImageProcessorBase {
 
 		return $params;
 	}
-
-	/**
-	 * Returns the <a> with an absolute href enclosing the image, looking
-	 * through inline wrappers like <span> or <strong>. Returns null if there
-	 * is none.
-	 */
-	private function getEnclosingExternalAnchor( DOMElement $node ): ?DOMElement {
-		$anchor = $this->findEnclosingAnchor( $node );
-
-		return $this->isExternalAnchor( $anchor ) ? $anchor : null;
-	}
-
 }

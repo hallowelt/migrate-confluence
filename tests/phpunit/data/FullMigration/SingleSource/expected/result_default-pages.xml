@@ -1,6 +1,22 @@
 <?xml version="1.0"?>
 <mediawiki>
   <page>
+    <title>Template:ExternalImage</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+        <text>...</text>
+    </revision>
+  </page>
+  <page>
+    <title>Template:ExternalImage/Style.css</title>
+    <revision>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+        <text>...</text>
+    </revision>
+  </page>
+  <page>
     <title>Template:SubpageList</title>
     <revision>
       <model>wikitext</model>

@@ -30,7 +30,7 @@ class ImgHtmlTest extends ProcessorTestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml::process
 	 * @return void
 	 */
-	public function testRawImgExternalWithoutSizeIsNotReplacedByExternalImageTemplate() {
+	public function testRawImgExternalWithoutSizeIsReplacedByExternalImageTemplate() {
 		$this->doTest(
 			'ExternalImage/image-raw-img-external-no-attributes-input.xml',
 			'ExternalImage/image-raw-img-external-no-attributes-output.xml'
@@ -52,7 +52,7 @@ class ImgHtmlTest extends ProcessorTestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml::process
 	 * @return void
 	 */
-	public function testRawImgInLinkWithhoutSizeIsNotReplacedByExternalImageTemplateWithLink() {
+	public function testRawImgInLinkWithhoutSizeIsReplacedByExternalImageTemplateWithLink() {
 		$this->doTest(
 			'ExternalImage/image-raw-img-in-link-no-attributes-input.xml',
 			'ExternalImage/image-raw-img-in-link-no-attributes-output.xml'

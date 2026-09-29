@@ -37,21 +37,16 @@ class Image extends ImageProcessorBase {
 			return;
 		}
 
-		if ( $this->isImageWithExternalLink( $node ) ) {
-			$anchor = $this->findEnclosingAnchor( $node );
-			$href = $anchor->getAttribute( 'href' );
+		$enclosingExternalLink = $this->getEnclosingExternalLink( $node );
+
+		if ( $enclosingExternalLink ) {
+			$href = $enclosingExternalLink->getAttribute( 'href' );
 			$url = $this->getImageUrl( $node );
 
 			if ( $url !== '' ) {
-				if ( !$this->hasDimensions( $node ) ) {
-					$this->replaceAnchorWithTextLink( $anchor, $href, $url );
-
-					return;
-				}
-
-				$anchor->parentNode->replaceChild(
+				$enclosingExternalLink->parentNode->replaceChild(
 					$this->makeExternalImageReplacement( $node, $href ),
-					$anchor
+					$enclosingExternalLink
 				);
 
 				return;
@@ -59,15 +54,15 @@ class Image extends ImageProcessorBase {
 
 			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node );
 			if ( $externalLinkReplacementNode !== $node ) {
-				$anchor->parentNode->replaceChild(
+				$enclosingExternalLink->parentNode->replaceChild(
 					$externalLinkReplacementNode,
-					$anchor
+					$enclosingExternalLink
 				);
 
 				return;
 			}
 
-			$this->replaceWithBrokenExternalLink( $anchor, $href );
+			$this->replaceWithBrokenExternalLink( $enclosingExternalLink, $href );
 
 			return;
 		}
@@ -120,11 +115,6 @@ class Image extends ImageProcessorBase {
 		return $params;
 	}
 
-	private function hasDimensions( DOMElement $imageNode ): bool {
-		return $imageNode->getAttribute( 'ac:width' ) !== ''
-			|| $imageNode->getAttribute( 'ac:height' ) !== '';
-	}
-
 	/**
 	 * MediaWiki does not render an img tag pointing to an external url.
 	 * Images with dimensions are wrapped in the {{ExternalImage}} template
@@ -135,10 +125,6 @@ class Image extends ImageProcessorBase {
 		$urlText = $this->getImageUrl( $imageNode );
 		if ( $urlText === '' ) {
 			return $imageNode;
-		}
-
-		if ( !$this->hasDimensions( $imageNode ) ) {
-			return $this->createTextNode( $imageNode->ownerDocument, $urlText, __METHOD__ );
 		}
 
 		$replacementText = $this->buildExternalImageTemplate(
@@ -386,14 +372,6 @@ class Image extends ImageProcessorBase {
 			}
 		}
 		return '';
-	}
-
-	/**
-	 * Returns the <a> enclosing the image, looking through inline wrappers
-	 * like <span> or <strong>. Returns null if there is none.
-	 */
-	private function isImageWithExternalLink( DOMElement $node ): bool {
-		return $this->isExternalAnchor( $this->findEnclosingAnchor( $node ) );
 	}
 
 	private function getImageReplacement( array $params ): string {

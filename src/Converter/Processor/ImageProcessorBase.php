@@ -38,21 +38,21 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 	}
 
 	/**
-	 * Ensures compatibility with mediawikis handling of external image urls.
+	 *	Ensures compatibility with mediawikis handling of external image urls.
 	 *
-	 *  Handle ri:url image inside external link or link in <img>
-	 *  Replace with a plain text URL so the <a> survives and pandoc renders
-	 *  [href imageUrl] instead of dropping the link entirely.
+	 *	Handle ri:url image inside external link or link in <img>
+	 *	Replace with a plain text URL so the <a> survives and pandoc renders
+	 *	[href imageUrl] instead of dropping the link entirely.
 	 *
-	 * 	HACK: If the URL has query params, they are kept and a file extension is appended
-	 * 	as a fragment at the end of the string, so MediaWiki still recognizes the file type.
-	 * 	Default extension if none is present: .jpg
-	 * 	e.g.
-	 * 	https://example.com/download/attachments/1933361/image.png?version=1&modificationDate=1724938529723
-	 * 	->
-	 * 	https://example.com/download/attachments/1933361/image.png?version=1&modificationDate=1724938529723#.png
+	 *	HACK: If the URL has query params, they are kept and a file extension is appended
+	 *	as a fragment at the end of the string, so MediaWiki still recognizes the file type.
+	 *	Default extension if none is present: .jpg
+	 *	e.g.
+	 *	https://example.com/download/attachments/1933361/image.png?version=1&modificationDate=1724938529723
+	 *	->
+	 *	https://example.com/download/attachments/1933361/image.png?version=1&modificationDate=1724938529723#.png
 	 *
-	 * Cleaned external image URL (scheme://host/path[?query#.ext]), or '' if not external.
+	 *	Cleaned external image URL (scheme://host/path[?query#.ext]), or '' if not external.
 	 */
 	protected function modifyExternalImageUrl( string $url ): string {
 		$parsed = parse_url( $url );
@@ -75,6 +75,17 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 	}
 
 	/**
+	 * Returns the <a> with an absolute href enclosing the image, looking
+	 * through inline wrappers like <span> or <strong>. Returns null if there
+	 * is none.
+	 */
+	protected function getEnclosingExternalLink( DOMElement $node ): ?DOMElement {
+		$anchor = $this->findEnclosingAnchor( $node );
+
+		return $this->isExternalAnchor( $anchor ) ? $anchor : null;
+	}
+
+	/**
 	 * Walks up from $node through inline wrappers (e.g. <span>, <strong>)
 	 * looking for an enclosing <a>. Returns null if there is none.
 	 */
@@ -90,20 +101,6 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 			$current = $current->parentNode;
 		}
 		return null;
-	}
-
-	/**
-	 * Whether the given anchor has an href with a scheme (i.e. points to an
-	 * external url, as opposed to a relative/internal link).
-	 */
-	protected function isExternalAnchor( ?DOMElement $anchor ): bool {
-		if ( $anchor === null || !$anchor->hasAttribute( 'href' ) ) {
-			return false;
-		}
-
-		$parsedUrl = parse_url( $anchor->getAttribute( 'href' ) );
-
-		return isset( $parsedUrl['scheme'] );
 	}
 
 	/**
@@ -153,4 +150,17 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 		return '{{ExternalImage|' . implode( '|', $templateParams ) . '}}';
 	}
 
+	/**
+	 * Whether the given anchor has an href with a scheme (i.e. points to an
+	 * external url, as opposed to a relative/internal link).
+	 */
+	private function isExternalAnchor( ?DOMElement $anchor ): bool {
+		if ( $anchor === null || !$anchor->hasAttribute( 'href' ) ) {
+			return false;
+		}
+
+		$parsedUrl = parse_url( $anchor->getAttribute( 'href' ) );
+
+		return isset( $parsedUrl['scheme'] );
+	}
 }
