@@ -1,0 +1,31 @@
+.externalimage {
+	display: inline-block;
+	max-width: 100%;
+	vertical-align: middle;
+	overflow: hidden;
+}
+
+.externalimage img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+
+/* Only width given: scale to container width, keep aspect ratio */
+.externalimage-w img {
+	width: 100%;
+	height: auto;
+}
+
+/* Only height given: scale to container height, keep aspect ratio */
+.externalimage-h img {
+	height: 100%;
+	width: auto;
+}
+
+/* Both given: fill the box without distortion */
+.externalimage-w.externalimage-h img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
