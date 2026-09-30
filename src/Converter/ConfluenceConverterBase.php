@@ -942,11 +942,12 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		if ( $this->migrationConfig->sanitizeWCAG() !== true ) {
 			return;
 		}
+
 		$headings = new Headings();
 		$this->wikiText = $headings->sanitize( $this->wikiText );
 
-		$headings = new Tables();
-		$this->wikiText = $headings->sanitize( $this->wikiText, "Table" );
+		$tables = new Tables();
+		$this->wikiText = $tables->sanitize( $this->wikiText, "Table" );
 	}
 
 	/**
