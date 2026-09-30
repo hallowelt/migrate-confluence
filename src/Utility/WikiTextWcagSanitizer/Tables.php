@@ -21,17 +21,17 @@ class Tables {
 	public function sanitize( string $wikitext, string $label = "Table" ): string {
 		$tables = $this->extractWikiTables( $wikitext );
 
-		$tableWithoudCaption = false;
+		$tableWithoutCaption = false;
 		for ( $i = 0; $i < count( $tables ); $i++ ) {
 			$table = $tables[$i];
 			if ( $this->tableHasCaption( $table ) ) {
 				continue;
 			}
 			$this->addTableCaption( $wikitext, $label, $table, $i + 1 );
-			$tableWithoudCaption = true;
+			$tableWithoutCaption = true;
 		}
 
-		if ( !$tableWithoudCaption ) {
+		if ( !$tableWithoutCaption ) {
 			$category = "[[Category:Table_without_caption]]";
 			$wikitext .= "\n$category\n";
 		}
