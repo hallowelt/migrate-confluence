@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMElement;
 use DOMException;
 use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
@@ -15,12 +16,16 @@ use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
  */
 class CodeMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
 
+	public const MACRO_NAME = 'code';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'SyntaxHighlight' ];
+
 	public function __construct(
 		private readonly PlaceholderManager $placeholderManager
 	) {
 	}
-
-	public const MACRO_NAME = 'code';
 
 	/**
 	 * @inheritDoc

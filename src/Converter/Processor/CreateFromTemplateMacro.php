@@ -11,6 +11,7 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 // phpcs:disable Generic.Files.LineLength.TooLong
@@ -42,6 +43,12 @@ use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
  */
 class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IUsesPlaceholder {
 
+	public const MACRO_NAME = 'create-from-template';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'InputBox', 'ParserFunctions', 'Semantic_MediaWiki' ];
+
 	/** @var string */
 	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
 
@@ -58,8 +65,6 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 		private int $currentSpaceId,
 	) {
 	}
-
-	public const MACRO_NAME = 'create-from-template';
 
 	/**
 	 * @return string

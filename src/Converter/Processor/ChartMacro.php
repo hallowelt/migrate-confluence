@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
@@ -33,6 +34,12 @@ use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
  * </ac:structured-macro>
  */
 class ChartMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'chart';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'SimpleCharts' ];
 
 	// Pie Chart: Showing parts of a whole (proportions)
 	private const PIE = 'pie';
@@ -76,8 +83,6 @@ class ChartMacro extends StructuredMacroProcessorBase {
 	 */
 	public function __construct( private PlaceholderManager $placeholderManager ) {
 	}
-
-	public const MACRO_NAME = 'chart';
 
 	/**
 	 * @inheritDoc

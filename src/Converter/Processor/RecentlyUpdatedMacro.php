@@ -4,8 +4,15 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'recently-updated';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'Semantic_MediaWiki' ];
 
 	/**
 	 * @param IConverterDataWriter $writer
@@ -18,8 +25,6 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 		private string $wikiTitle
 	) {
 	}
-
-	public const MACRO_NAME = 'recently-updated';
 
 	/**
 	 * @inheritDoc

@@ -7,8 +7,15 @@ use DOMElement;
 use DOMException;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class LivesearchMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'livesearch';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'BlueSpiceExtendedSearch', 'ParserFunctions' ];
 
 	private const TEMPLATE_NAME = 'TagSearch';
 
@@ -32,8 +39,6 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	 */
 	public function __construct( private IConverterDataWriter $writer, private int $currentSpace ) {
 	}
-
-	public const MACRO_NAME = 'livesearch';
 
 	/**
 	 * @inheritDoc

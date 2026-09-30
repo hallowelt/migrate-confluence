@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
  * Unfortunately `pandoc` eats <syntaxhighlight> tags.
@@ -13,6 +14,8 @@ use DOMElement;
 class NoFormatMacro extends StructuredMacroProcessorBase {
 
 	public const MACRO_NAME = 'noformat';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
 
 	/**
 	 * @inheritDoc

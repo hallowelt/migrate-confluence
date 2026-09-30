@@ -5,8 +5,15 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\CQLParser\DplCQLParser;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class ContentByLabelMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'contentbylabel';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'DynamicPageList3' ];
 
 	/**
 	 * @param IConverterDataWriter $writer
@@ -19,8 +26,6 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 		private string $currentWikiTitle
 	) {
 	}
-
-	public const MACRO_NAME = 'contentbylabel';
 
 	/**
 	 * @inheritDoc

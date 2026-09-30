@@ -6,10 +6,13 @@ use DOMDocument;
 use DOMElement;
 use DOMException;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class AlignMacro implements IProcessor {
 
 	public const MACRO_NAME = 'align';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	/**
 	 * @inheritDoc

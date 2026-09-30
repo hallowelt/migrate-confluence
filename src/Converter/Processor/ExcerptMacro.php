@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
  * MediaWiki (without PageExcerpts extension) has no equivalent for excerpts.
@@ -15,13 +16,15 @@ use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
  */
 class ExcerptMacro extends StructuredMacroProcessorBase {
 
+	public const MACRO_NAME = 'excerpt';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_SKETCHY;
+
 	public function __construct(
 		private readonly IConverterDataWriter $writer,
 		private readonly int $currentSpaceId
 	) {
 	}
-
-	public const MACRO_NAME = 'excerpt';
 
 	/**
 	 * Is broken per default

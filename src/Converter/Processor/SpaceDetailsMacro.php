@@ -5,8 +5,15 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class SpaceDetailsMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'space-details';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'Semantic_MediaWiki' ];
 
 	/**
 	 * @param IConverterDataWriter $writer
@@ -17,8 +24,6 @@ class SpaceDetailsMacro extends StructuredMacroProcessorBase {
 		private int $currentSpaceId
 	) {
 	}
-
-	public const MACRO_NAME = 'space-details';
 
 	/**
 	 * @inheritDoc

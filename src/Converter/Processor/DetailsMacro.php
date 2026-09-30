@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
+
 /**
  * <ac:structured-macro ac:name="details" ac:schema-version="1" ac:macro-id="...">
  *   <ac:parameter ac:name="id">control</ac:parameter>
@@ -18,6 +20,10 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 class DetailsMacro extends ConvertMacroToTemplateWithBodyBase {
 
 	public const MACRO_NAME = 'details';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'ParserFunctions' ];
 
 	/**
 	 * @inheritDoc

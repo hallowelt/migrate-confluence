@@ -3,10 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class AttachmentsMacro extends StructuredMacroProcessorBase {
 
 	public const MACRO_NAME = 'attachments';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
 
 	/**
 	 * @inheritDoc

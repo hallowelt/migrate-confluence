@@ -4,12 +4,15 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
  */
 class WidgetMacro extends StructuredMacroProcessorBase {
 
 	public const MACRO_NAME = 'widget';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	/**
 	 * @inheritDoc

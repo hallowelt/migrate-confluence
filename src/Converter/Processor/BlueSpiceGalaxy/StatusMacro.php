@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy;
 
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroProcessorBase;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
@@ -16,12 +17,16 @@ use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
  */
 class StatusMacro extends StructuredMacroProcessorBase {
 
+	public const MACRO_NAME = 'status';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'StatusBadges' ];
+
 	public function __construct(
 		private readonly PlaceholderManager $placeholderManager
 	) {
 	}
-
-	public const MACRO_NAME = 'status';
 
 	/**
 	 * @inheritDoc

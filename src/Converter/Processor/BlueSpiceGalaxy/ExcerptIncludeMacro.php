@@ -8,17 +8,22 @@ use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class ExcerptIncludeMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
+
+	public const MACRO_NAME = 'excerpt-include';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'PageExcerpts' ];
 
 	/** @var ConversionHelper */
 	private ConversionHelper $conversionHelper;
 
 	/** @var bool */
 	private bool $isBroken;
-
-	public const MACRO_NAME = 'excerpt-include';
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
