@@ -36,6 +36,7 @@ config:
     profile: mediawiki
     csv-delimiter: ","
     add-userinfo: false
+	sanitize-wcag: false
 ```
 
 ### `mainpage`
@@ -232,3 +233,7 @@ Optional. A page title pages of this space are nested under as
 subpages, e.g. `Marketing` turns `Page A` into
 `Marketing/Page A` (within the resolved namespace). If empty, pages are
 not nested.
+
+### `sanitize-wcag`
+
+Optional. Fix order of headlines and add table caption if not set
