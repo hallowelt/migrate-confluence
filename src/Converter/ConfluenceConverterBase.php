@@ -98,6 +98,8 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use HalloWelt\MigrateConfluence\Utility\TranslatableString;
+use HalloWelt\MigrateConfluence\Utility\WikiTextWcagSanitizer\Headings;
+use HalloWelt\MigrateConfluence\Utility\WikiTextWcagSanitizer\Tables;
 use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
@@ -379,6 +381,8 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		$this->addFolderTemplateIfApplicable();
 
 		$this->postprocessWikiText();
+
+		$this->sanitizeWCAG();
 
 		$this->checkContentLength( $bodyContentId );
 
@@ -932,6 +936,17 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		}
 
 		$this->wikiText .= "\n <!-- From bodyContent {$this->rawFile->getBasename()} -->";
+	}
+
+	private function sanitizeWCAG(): void {
+		if ( $this->migrationConfig->sanitizeWCAG() !== true ) {
+			return;
+		}
+		$headings = new Headings();
+		$this->wikiText = $headings->sanitize( $this->wikiText );
+
+		$headings = new Tables();
+		$this->wikiText = $headings->sanitize( $this->wikiText, "Table" );
 	}
 
 	/**
