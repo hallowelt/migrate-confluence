@@ -154,18 +154,20 @@ class Convert extends CommandConvert {
 	/**
 	 * @throws Exception
 	 */
-	protected function doProcessFile(): bool {
+	protected function processFiles(): int {
 		if ( !$this->dataWriter ) {
 			throw new Exception( 'No data writer is set' );
 		}
-
-		$converterFactoryCallbacks = $this->config['converters'];
-
+		$this->readConfigFile( $this->config );
 		$this->wikiTextBasePath = $this->dest . '/content/wikitext';
 		$this->makeTargetPathname();
 		$this->ensureTargetPath();
 
-		$this->readConfigFile( $this->config );
+		return parent::processFiles();
+	}
+
+	protected function doProcessFile(): bool {
+		$converterFactoryCallbacks = $this->config['converters'];
 
 		foreach ( $converterFactoryCallbacks as $key => $callback ) {
 			$converter = call_user_func_array(
