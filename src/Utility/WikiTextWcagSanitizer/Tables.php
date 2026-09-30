@@ -25,6 +25,7 @@ class Tables {
 		for ( $i = 0; $i < count( $tables ); $i++ ) {
 			$table = $tables[$i];
 			if ( $this->tableHasCaption( $table ) ) {
+				$this->prependTableCaption( $wikitext, $label, $table, $i + 1 );
 				continue;
 			}
 			$this->addTableCaption( $wikitext, $label, $table, $i + 1 );
@@ -40,7 +41,6 @@ class Tables {
 	}
 
 	private function extractWikiTables( string $wikitext ): array {
-		$data = [];
 		$open = [];
 		$close = [];
 
@@ -188,4 +188,30 @@ class Tables {
 
 		$wikitext = str_replace( $table['text'], implode( "\n", $lines ), $wikitext );
 	}
+
+	private function prependTableCaption(
+		string &$wikitext, string $label, array $table, int $num
+	): void {
+		$lines = preg_split( '#\r?\n#', $table['text'] );
+		if ( !is_array( $lines ) ) {
+			return;
+		}
+
+		if ( count( $lines ) === 1 ) {
+			$line = $lines[0];
+			$lines[0] = preg_replace( '#\|\+\s*#', "|+ $label $num: ", $line );
+		} else {
+			for ( $i = 0; $i < count( $lines ); $i++ ) {
+				$line = $lines[$i];
+				if ( !str_starts_with( ltrim( $line ), '|+' ) ) {
+					continue;
+				}
+				$line = preg_replace( '#\|\+\s*#', "|+ $label $num: ", ltrim( $line ) );
+				$lines[$i] = $line;
+			}
+		}
+
+		$wikitext = str_replace( $table['text'], implode( "\n", $lines ), $wikitext );
+	}
+
 }
