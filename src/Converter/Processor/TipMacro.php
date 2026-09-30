@@ -13,12 +13,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class TipMacro extends ConvertMacroToTemplateBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'tip';
-	}
+	public const MACRO_NAME = 'tip';
 
 	/**
 	 * @inheritDoc

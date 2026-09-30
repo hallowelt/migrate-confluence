@@ -22,12 +22,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	) {
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	public function getMacroName(): string {
-		return 'children';
-	}
+	public const MACRO_NAME = 'children';
 
 	/**
 	 * @inheritDoc

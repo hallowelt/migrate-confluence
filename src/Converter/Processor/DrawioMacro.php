@@ -53,13 +53,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		$this->rawPageTitle = $rawPageTitle;
 	}
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'drawio';
-	}
+	public const MACRO_NAME = 'drawio';
 
 	/**
 	 * Name of the wiki template used to render this macro.

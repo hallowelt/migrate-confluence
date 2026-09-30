@@ -6,12 +6,7 @@ use DOMElement;
 
 class AttachmentsMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'attachments';
-	}
+	public const MACRO_NAME = 'attachments';
 
 	/**
 	 * @inheritDoc

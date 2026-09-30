@@ -18,13 +18,7 @@ class SpaceDetailsMacro extends StructuredMacroProcessorBase {
 	) {
 	}
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'space-details';
-	}
+	public const MACRO_NAME = 'space-details';
 
 	/**
 	 * @inheritDoc

@@ -18,6 +18,8 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase implements IUsesP
 	/** @var bool */
 	private bool $isBroken;
 
+	public const MACRO_NAME = 'excerpt-include';
+
 	/**
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
@@ -28,13 +30,6 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase implements IUsesP
 		private readonly PlaceholderManager $placeholderManager
 	) {
 		$this->conversionHelper = new ConversionHelper();
-	}
-
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'excerpt-include';
 	}
 
 	/**

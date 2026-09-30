@@ -24,13 +24,7 @@ class LoremIpsumMacro extends StructuredMacroProcessorBase {
 	) {
 	}
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'loremipsum';
-	}
+	public const MACRO_NAME = 'loremipsum';
 
 	/**
 	 * @return string

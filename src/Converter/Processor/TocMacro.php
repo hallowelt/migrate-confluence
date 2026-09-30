@@ -14,13 +14,7 @@ class TocMacro extends StructuredMacroProcessorBase {
 		$this->usage = &$usage;
 	}
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'toc';
-	}
+	public const MACRO_NAME = 'toc';
 
 	/**
 	 * @inheritDoc

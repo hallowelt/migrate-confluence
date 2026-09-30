@@ -19,12 +19,7 @@ class TasksReportMacro extends StructuredMacroProcessorBase implements IUsesPlac
 	) {
 	}
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'tasks-report-macro';
-	}
+	public const MACRO_NAME = 'tasks-report-macro';
 
 	/**
 	 * @inheritDoc

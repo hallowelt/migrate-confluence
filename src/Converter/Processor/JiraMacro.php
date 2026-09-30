@@ -18,12 +18,7 @@ class JiraMacro extends StructuredMacroProcessorBase {
 	) {
 	}
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'jira';
-	}
+	public const MACRO_NAME = 'jira';
 
 	/**
 	 * @inheritDoc

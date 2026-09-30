@@ -17,12 +17,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class DetailsMacro extends ConvertMacroToTemplateWithBodyBase {
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'details';
-	}
+	public const MACRO_NAME = 'details';
 
 	/**
 	 * @inheritDoc

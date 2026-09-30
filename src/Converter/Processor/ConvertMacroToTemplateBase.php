@@ -19,6 +19,8 @@ use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
  */
 abstract class ConvertMacroToTemplateBase extends ConversionHelper implements IProcessor {
 
+	public const MACRO_NAME = '';
+
 	/**
 	 * @param IConverterDataWriter $writer
 	 * @param int $currentSpace
@@ -34,7 +36,7 @@ abstract class ConvertMacroToTemplateBase extends ConversionHelper implements IP
 	 */
 	public function process( DOMDocument $dom ): void {
 		$macros = $dom->getElementsByTagName( 'structured-macro' );
-		$requiredMacroName = $this->getMacroName();
+		$requiredMacroName = static::MACRO_NAME;
 		$wikiTextTemplateName = $this->getWikiTextTemplateName();
 
 		// Collect all DOMElements in a non-live list
@@ -151,12 +153,6 @@ abstract class ConvertMacroToTemplateBase extends ConversionHelper implements IP
 			}
 		}
 	}
-
-	/**
-	 *
-	 * @return string
-	 */
-	abstract protected function getMacroName(): string;
 
 	/**
 	 *

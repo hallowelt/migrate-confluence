@@ -17,13 +17,7 @@ use DOMElement;
  */
 class LocalTabMacro extends MacroProcessorBase {
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'localtab';
-	}
+	public const MACRO_NAME = 'localtab';
 
 	/**
 	 * @inheritDoc

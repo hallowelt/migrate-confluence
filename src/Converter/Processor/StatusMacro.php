@@ -10,12 +10,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class StatusMacro extends ConvertMacroToTemplateBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'status';
-	}
+	public const MACRO_NAME = 'status';
 
 	/**
 	 * @inheritDoc

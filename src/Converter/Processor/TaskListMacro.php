@@ -13,6 +13,9 @@ use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
  *
  */
 class TaskListMacro extends ConversionHelper implements IProcessor {
+
+	public const MACRO_NAME = 'task-list';
+
 	/**
 	 * @inheritDoc
 	 */

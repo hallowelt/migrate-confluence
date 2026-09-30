@@ -18,12 +18,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class ExpandMacro extends ConvertMacroToTemplateWithBodyBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'expand';
-	}
+	public const MACRO_NAME = 'expand';
 
 	/**
 	 * @inheritDoc

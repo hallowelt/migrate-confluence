@@ -6,12 +6,7 @@ use DOMElement;
 
 class MarkdownMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'markdown';
-	}
+	public const MACRO_NAME = 'markdown';
 
 	/**
 	 * @inheritDoc

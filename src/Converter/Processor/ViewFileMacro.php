@@ -26,12 +26,7 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		protected MigrationConfig $migrationConfig ) {
 	}
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'view-file';
-	}
+	public const MACRO_NAME = 'view-file';
 
 	/**
 	 * @inheritDoc

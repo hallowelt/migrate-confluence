@@ -9,12 +9,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class SmMacro extends ConvertMacroToTemplateBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'sm';
-	}
+	public const MACRO_NAME = 'sm';
 
 	/**
 	 * @inheritDoc

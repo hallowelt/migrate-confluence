@@ -6,12 +6,7 @@ use DOMElement;
 
 class AnchorMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'anchor';
-	}
+	public const MACRO_NAME = 'anchor';
 
 	/**
 	 * @inheritDoc

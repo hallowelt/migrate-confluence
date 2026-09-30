@@ -19,13 +19,7 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 	) {
 	}
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'recently-updated';
-	}
+	public const MACRO_NAME = 'recently-updated';
 
 	/**
 	 * @inheritDoc

@@ -26,12 +26,7 @@ use DOMElement;
  */
 class DetailsSummaryMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'detailssummary';
-	}
+	public const MACRO_NAME = 'detailssummary';
 
 	/**
 	 * @inheritDoc

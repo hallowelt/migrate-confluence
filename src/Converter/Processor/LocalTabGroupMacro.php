@@ -25,13 +25,7 @@ class LocalTabGroupMacro extends MacroProcessorBase implements IUsesPlaceholder 
 	public function __construct( private PlaceholderManager $placeholderManager ) {
 	}
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'localtabgroup';
-	}
+	public const MACRO_NAME = 'localtabgroup';
 
 	/**
 	 * @inheritDoc

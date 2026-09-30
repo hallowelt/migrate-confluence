@@ -20,13 +20,7 @@ class CodeMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder
 	) {
 	}
 
-	/**
-	 *
-	 * @inheritDoc
-	 */
-	public function getMacroName(): string {
-		return 'code';
-	}
+	public const MACRO_NAME = 'code';
 
 	/**
 	 * @inheritDoc

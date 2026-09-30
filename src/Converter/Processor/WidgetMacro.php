@@ -9,13 +9,7 @@ use DOMNode;
  */
 class WidgetMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 *
-	 * @inheritDoc
-	 */
-	public function getMacroName(): string {
-		return 'widget';
-	}
+	public const MACRO_NAME = 'widget';
 
 	/**
 	 * @inheritDoc

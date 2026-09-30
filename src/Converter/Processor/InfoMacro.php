@@ -13,12 +13,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class InfoMacro extends ConvertMacroToTemplateBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'info';
-	}
+	public const MACRO_NAME = 'info';
 
 	/**
 	 * @inheritDoc

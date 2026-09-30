@@ -11,12 +11,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class MultimediaMacro extends ViewFileMacro {
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'multimedia';
-	}
+	public const MACRO_NAME = 'multimedia';
 
 	/**
 	 * @return string

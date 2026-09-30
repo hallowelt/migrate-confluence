@@ -15,12 +15,7 @@ class PageTreeMacro extends StructuredMacroProcessorBase {
 	/** @var array */
 	private array $params = [];
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'pagetree';
-	}
+	public const MACRO_NAME = 'pagetree';
 
 	/**
 	 * @param IConverterDataWriter $writer

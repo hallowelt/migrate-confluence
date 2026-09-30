@@ -13,12 +13,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class WarningMacro extends ConvertMacroToTemplateBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'warning';
-	}
+	public const MACRO_NAME = 'warning';
 
 	/**
 	 * @inheritDoc

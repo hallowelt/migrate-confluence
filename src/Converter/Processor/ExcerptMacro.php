@@ -21,12 +21,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 	) {
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'excerpt';
-	}
+	public const MACRO_NAME = 'excerpt';
 
 	/**
 	 * Is broken per default

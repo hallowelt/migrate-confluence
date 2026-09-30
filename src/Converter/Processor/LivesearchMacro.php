@@ -33,12 +33,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	public function __construct( private IConverterDataWriter $writer, private int $currentSpace ) {
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'livesearch';
-	}
+	public const MACRO_NAME = 'livesearch';
 
 	/**
 	 * @inheritDoc
@@ -46,7 +41,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	public function process( DOMDocument $dom ): void {
 		$macros = $this->findAsStructuredMacro( $dom );
 
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 
 		foreach ( $macros as $macro ) {
 			if ( $macro->getAttribute( 'ac:name' ) === $macroName ) {
@@ -80,7 +75,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	 * @return void
 	 */
 	private function processAsWikiMarkup( DOMDocument $dom ): void {
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 		$regex = '/\{' . preg_quote( $macroName, '/' ) . '(?::([^}]*))?\}/';
 
 		$found = false;

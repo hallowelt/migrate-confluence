@@ -9,12 +9,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class CopyrightMacro extends ConvertMacroToTemplateBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'copyright';
-	}
+	public const MACRO_NAME = 'copyright';
 
 	/**
 	 * @inheritDoc

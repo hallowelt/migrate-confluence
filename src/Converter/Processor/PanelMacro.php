@@ -4,13 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 class PanelMacro extends ConvertMacroToTemplateWithBodyBase {
 
-	/**
-	 *
-	 * @inheritDoc
-	 */
-	public function getMacroName(): string {
-		return 'panel';
-	}
+	public const MACRO_NAME = 'panel';
 
 	/**
 	 * @return string

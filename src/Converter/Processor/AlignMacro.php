@@ -9,12 +9,7 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
 
 class AlignMacro implements IProcessor {
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'align';
-	}
+	public const MACRO_NAME = 'align';
 
 	/**
 	 * @inheritDoc
@@ -27,7 +22,7 @@ class AlignMacro implements IProcessor {
 			$macros[] = $macrosTag;
 		}
 
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 		foreach ( $macros as $macro ) {
 			if ( $macro->getAttribute( 'ac:name' ) === $macroName ) {
 				$this->doProcessMacro( $macro );

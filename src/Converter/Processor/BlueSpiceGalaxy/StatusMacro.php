@@ -21,12 +21,7 @@ class StatusMacro extends StructuredMacroProcessorBase {
 	) {
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'status';
-	}
+	public const MACRO_NAME = 'status';
 
 	/**
 	 * @inheritDoc

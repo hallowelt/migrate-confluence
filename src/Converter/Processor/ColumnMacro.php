@@ -4,13 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 class ColumnMacro extends ConvertMacroToTemplateWithBodyBase {
 
-	/**
-	 *
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'column';
-	}
+	public const MACRO_NAME = 'column';
 
 	/**
 	 *

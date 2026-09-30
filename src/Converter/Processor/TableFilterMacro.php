@@ -29,12 +29,7 @@ use DOMElement;
  */
 class TableFilterMacro extends ConvertMacroToTemplateWithBodyBase {
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'table-filter';
-	}
+	public const MACRO_NAME = 'table-filter';
 
 	/**
 	 * @inheritDoc

@@ -11,12 +11,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class ViewXlsMacro extends ViewFileMacro {
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'viewxls';
-	}
+	public const MACRO_NAME = 'viewxls';
 
 	/**
 	 * @return string

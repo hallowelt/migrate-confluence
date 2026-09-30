@@ -20,12 +20,7 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 		$this->conversionHelper = new ConversionHelper();
 	}
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'excerpt-include';
-	}
+	public const MACRO_NAME = 'excerpt-include';
 
 	/**
 	 * Is broken per default

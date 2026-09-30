@@ -13,12 +13,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class NoteMacro extends ConvertMacroToTemplateBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'note';
-	}
+	public const MACRO_NAME = 'note';
 
 	/**
 	 * @inheritDoc

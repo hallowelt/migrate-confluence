@@ -59,12 +59,7 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 	) {
 	}
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'create-from-template';
-	}
+	public const MACRO_NAME = 'create-from-template';
 
 	/**
 	 * @return string
@@ -84,7 +79,7 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 			$macros[] = $structuredMacro;
 		}
 
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 
 		foreach ( $macros as $macro ) {
 			if ( $macro->getAttribute( 'ac:name' ) === $macroName ) {
@@ -171,7 +166,7 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 	 * @return string
 	 */
 	private function getBrokenMacroCategory(): string {
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 		return $this->getCategoryBrokenMacro( $macroName );
 	}
 

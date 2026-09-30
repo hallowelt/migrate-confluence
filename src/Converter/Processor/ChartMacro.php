@@ -77,12 +77,7 @@ class ChartMacro extends StructuredMacroProcessorBase {
 	public function __construct( private PlaceholderManager $placeholderManager ) {
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'chart';
-	}
+	public const MACRO_NAME = 'chart';
 
 	/**
 	 * @inheritDoc

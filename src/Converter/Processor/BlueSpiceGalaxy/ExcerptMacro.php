@@ -54,12 +54,7 @@ class ExcerptMacro extends StructuredMacroProcessorBase implements IUsesPlacehol
 	) {
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'excerpt';
-	}
+	public const MACRO_NAME = 'excerpt';
 
 	public function process( DOMDocument $dom ): void {
 		parent::process( $dom );

@@ -20,12 +20,7 @@ class ContentByLabelMacro extends StructuredMacroProcessorBase {
 	) {
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	public function getMacroName(): string {
-		return 'contentbylabel';
-	}
+	public const MACRO_NAME = 'contentbylabel';
 
 	/**
 	 * @inheritDoc

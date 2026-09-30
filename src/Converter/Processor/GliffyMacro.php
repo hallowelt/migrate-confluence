@@ -22,13 +22,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 	) {
 	}
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'gliffy';
-	}
+	public const MACRO_NAME = 'gliffy';
 
 	/**
 	 * @inheritDoc

@@ -12,13 +12,7 @@ use DOMElement;
  */
 class NoFormatMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 *
-	 * @inheritDoc
-	 */
-	public function getMacroName(): string {
-		return 'noformat';
-	}
+	public const MACRO_NAME = 'noformat';
 
 	/**
 	 * @inheritDoc

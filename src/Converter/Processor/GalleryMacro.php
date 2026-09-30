@@ -47,12 +47,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		$this->config = $config;
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'gallery';
-	}
+	public const MACRO_NAME = 'gallery';
 
 	/**
 	 * @inheritDoc

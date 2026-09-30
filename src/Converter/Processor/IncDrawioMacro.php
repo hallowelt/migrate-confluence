@@ -8,13 +8,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class IncDrawioMacro extends DrawioMacro {
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'inc-drawio';
-	}
+	public const MACRO_NAME = 'inc-drawio';
 
 	/**
 	 * @inheritDoc

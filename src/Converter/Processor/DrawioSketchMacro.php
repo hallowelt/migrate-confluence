@@ -4,13 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 class DrawioSketchMacro extends DrawioMacro {
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'drawio-sketch';
-	}
+	public const MACRO_NAME = 'drawio-sketch';
 
 	/**
 	 * @return string

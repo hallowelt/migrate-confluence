@@ -48,12 +48,7 @@ class RoadmapMacro extends StructuredMacroProcessorBase {
 	) {
 	}
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'roadmap';
-	}
+	public const MACRO_NAME = 'roadmap';
 
 	/**
 	 * @inheritDoc

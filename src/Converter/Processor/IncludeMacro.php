@@ -33,13 +33,7 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 		$this->conversionHelper = new ConversionHelper();
 	}
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'include';
-	}
+	public const MACRO_NAME = 'include';
 
 	/**
 	 * @inheritDoc
