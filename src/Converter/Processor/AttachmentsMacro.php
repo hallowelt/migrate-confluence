@@ -11,6 +11,8 @@ class AttachmentsMacro extends StructuredMacroProcessorBase {
 
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
 
+	public const REQUIRED_EXTENSIONS = [ 'EnhancedUpload' ];
+
 	/**
 	 * @inheritDoc
 	 */

@@ -12,7 +12,7 @@ class RecentlyUpdatedMacro extends StructuredMacroProcessorBase {
 
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
 
-	public const REQUIRED_EXTENSIONS = [ 'Semantic_MediaWiki' ];
+	public const REQUIRED_EXTENSIONS = [ 'Arrays', 'ParserFunctions', 'Semantic_MediaWiki', 'TemplateStyles' ];
 
 	/**
 	 * @param IConverterDataWriter $writer

@@ -15,6 +15,8 @@ class ExcerptIncludeMacro extends StructuredMacroProcessorBase {
 
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_SKETCHY;
 
+	public const REQUIRED_EXTENSIONS = [ 'ParserFunctions' ];
+
 	private ConversionHelper $conversionHelper;
 
 	public function __construct(

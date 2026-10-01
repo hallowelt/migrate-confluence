@@ -20,6 +20,8 @@ class ExcerptMacro extends StructuredMacroProcessorBase {
 
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_SKETCHY;
 
+	public const REQUIRED_EXTENSIONS = [ 'ParserFunctions' ];
+
 	public function __construct(
 		private readonly IConverterDataWriter $writer,
 		private readonly int $currentSpaceId

@@ -14,7 +14,7 @@ class IncDrawioMacro extends DrawioMacro {
 
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
 
-	public const REQUIRED_EXTENSIONS = [ 'DrawioEditor' ];
+	public const REQUIRED_EXTENSIONS = [ 'DrawioEditor', 'ParserFunctions' ];
 
 	/**
 	 * @inheritDoc

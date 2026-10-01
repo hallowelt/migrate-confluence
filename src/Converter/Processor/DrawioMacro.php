@@ -15,7 +15,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
 
-	public const REQUIRED_EXTENSIONS = [ 'DrawioEditor' ];
+	public const REQUIRED_EXTENSIONS = [ 'DrawioEditor', 'ParserFunctions' ];
 
 	/** @var IConverterDataWriter */
 	protected IConverterDataWriter $writer;
