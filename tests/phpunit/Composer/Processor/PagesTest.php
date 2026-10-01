@@ -86,6 +86,66 @@ class PagesTest extends TestCase {
 		$this->assertStringContainsString( 'space-description', $result );
 	}
 
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Composer\Processor\Pages::addContentPages
+	 */
+	public function testHomepageNewestRevisionGetsEmptyTimestamp() {
+		$builder = $this->createMock( Builder::class );
+		$dataLookup = $this->createMock( DBComposerDataLookup::class );
+		$workspace = $this->createMock( Workspace::class );
+		$migrationConfig = $this->createMock( MigrationConfig::class );
+
+		$migrationConfig->method( 'getComposerPagePerXmlLimit' )->willReturn( 0 );
+		$migrationConfig->method( 'getComposerSkipNamespaces' )->willReturn( [] );
+		$migrationConfig->method( 'getComposerSkipTitles' )->willReturn( [] );
+		$migrationConfig->method( 'getAddUserinfo' )->willReturn( false );
+
+		$dataLookup->method( 'isPageInvalid' )->willReturn( false );
+		$dataLookup->method( 'getPageIdWikiPageTitleMap' )->willReturn( [ 1 => 'Homepage' ] );
+		$dataLookup->method( 'getSpaceIdForPageId' )->willReturn( 10 );
+		$dataLookup->method( 'getSpaceHomepageIdForSpaceId' )->willReturn( 1 );
+		$dataLookup->method( 'getSpaceDescriptionRevisionsForSpaceId' )->willReturn( [] );
+		$dataLookup->method( 'getPageRevisionsForPageId' )->willReturn( [
+			[
+				'revision_timestamp' => '20230101000000',
+				'body_content_ids' => json_encode( [ 1 ] ),
+				'last_modifier' => '',
+			],
+			[
+				'revision_timestamp' => '20240101000000',
+				'body_content_ids' => json_encode( [ 2 ] ),
+				'last_modifier' => '',
+			],
+		] );
+
+		$workspace->method( 'getConvertedContent' )->willReturn( 'content' );
+
+		$recordedTimestamps = [];
+		$builder->method( 'addRevision' )->willReturnCallback(
+			static function ( $title, $text, $timestamp ) use ( &$recordedTimestamps ) {
+				$recordedTimestamps[] = $timestamp;
+			}
+		);
+
+		$composerDeploymentInfo = new ComposerDeploymentInfo();
+		$skipHelper = new ComposerSkipHelper( $dataLookup, $migrationConfig );
+
+		$processor = new Pages(
+			$builder,
+			$dataLookup,
+			$workspace,
+			$this->makeOutput(),
+			$this->tmpDir,
+			$migrationConfig,
+			$composerDeploymentInfo,
+			$skipHelper
+		);
+
+		$processor->execute();
+
+		$this->assertSame( [ '20230101000000', '' ], $recordedTimestamps );
+	}
+
 	/** @return Output */
 	private function makeOutput(): Output {
 		return new class extends Output {

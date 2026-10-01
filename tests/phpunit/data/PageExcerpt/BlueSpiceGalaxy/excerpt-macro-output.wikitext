@@ -1,0 +1,74 @@
+<excerpt-block name="excerpt-0" hidden="true">
+
+This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.
+
+</excerpt-block>
+
+<excerpt-inline name="excerpt-0" hidden="true">
+
+This is the '''text''' I want to reuse in other pages. This text is inside an Excerpt macro.
+
+</excerpt-inline>
+
+<excerpt-block name="excerpt-0"></excerpt-block>
+
+<excerpt-block name="Excerpt Name 1">
+
+This content is transcluded from page “excerpt”.
+
+</excerpt-block>
+
+<excerpt-block name="excerpt-0">
+
+{| class="wikitable relative-table wrapped"
+|-
+! Table Header 1
+|-
+| Table Cell 1
+|}
+
+</excerpt-block>
+
+<excerpt-block name="excerpt-0">
+
+{| class="wikitable relative-table wrapped"
+|-
+! Table Header 1
+|-
+| Table Cell 1
+|}
+
+</excerpt-block>
+
+<excerpt-block name="excerpt-0">
+
+First paragraph of the excerpt.
+
+Second paragraph of the excerpt.
+
+</excerpt-block>
+
+<excerpt-block name="excerpt-0">
+
+Intro text before the heading.
+
+<span id="a-heading-inside-the-excerpt"></span>
+== A heading inside the excerpt ==
+
+</excerpt-block>
+
+<excerpt-block name="excerpt-0">
+
+* First list item
+* Second list item
+
+</excerpt-block>
+
+<excerpt-block name="excerpt-0">
+
+Line one of the excerpt.<br />
+Line two of the excerpt.
+
+</excerpt-block>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

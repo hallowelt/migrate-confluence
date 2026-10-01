@@ -44,7 +44,9 @@ class PageTreeMacroTest extends ProcessorTestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new PageTreeMacro( $this->dataLookup, 42, 'Testpage', 'ABC:SomeLinkedPage/Testpage', 'Main Page' );
+		$processor = new PageTreeMacro(
+			$this->createConverterDataWriter(), $this->dataLookup, 42, 'Testpage', 'ABC:SomeLinkedPage/Testpage'
+		);
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );
@@ -69,6 +71,7 @@ class PageTreeMacroTest extends ProcessorTestCase {
 		);
 
 		$processor = new PageTreeMacro(
+			$this->createConverterDataWriter(),
 			new DBConversionDataLookup( $workspaceDB ),
 			42,
 			'Testpage',
@@ -103,6 +106,7 @@ class PageTreeMacroTest extends ProcessorTestCase {
 		);
 
 		$processor = new PageTreeMacro(
+			$this->createConverterDataWriter(),
 			new DBConversionDataLookup( $workspaceDB ),
 			42,
 			'Testpage',

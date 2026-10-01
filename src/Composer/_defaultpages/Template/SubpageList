@@ -55,7 +55,7 @@ Uses the [[:Template:SubpageListRow|SubpageListRow]] template for display.
 |format=ul
 |template=SubpageListRow
 <!-- |userparam={{{page|{{FULLPAGENAME}}}}} -->
-|limit={{#switch:{{{first|10}}}|0=100|{{{first|10}}}}}
+|limit={{#if:{{{first|}}}|{{{first}}}|500}}
 |link=none
 |searchlabel=
 |sort={{#switch:{{{sort|}}}|title=|creation=creation date}}

@@ -18,7 +18,7 @@ class ChildrenMacroTest extends StructuredMacroProcessorTestBase {
 
 	protected function getProcessorToTest(): IProcessor {
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
-		return new ChildrenMacro( 42, 'ABC:Some_page', $dataLookup );
+		return new ChildrenMacro( $this->createConverterDataWriter(), 42, 'ABC:Some_page', $dataLookup );
 	}
 
 	/**
@@ -39,7 +39,9 @@ class ChildrenMacroTest extends StructuredMacroProcessorTestBase {
 			. '</ac:link></ac:parameter></ac:structured-macro></xml>'
 		);
 
-		$processor = new ChildrenMacro( 42, 'ABC:Some_page', new DBConversionDataLookup( $workspaceDB ) );
+		$processor = new ChildrenMacro(
+			$this->createConverterDataWriter(), 42, 'ABC:Some_page', new DBConversionDataLookup( $workspaceDB )
+		);
 		$processor->process( $dom );
 
 		$this->assertSame( '{{SubpageList|page=DEVOPS:Page Title3}}', trim( $dom->documentElement->textContent ) );
@@ -65,7 +67,9 @@ class ChildrenMacroTest extends StructuredMacroProcessorTestBase {
 			. '</ac:link></ac:parameter></ac:structured-macro></xml>'
 		);
 
-		$processor = new ChildrenMacro( 42, 'ABC:Some_page', new DBConversionDataLookup( $workspaceDB ) );
+		$processor = new ChildrenMacro(
+			$this->createConverterDataWriter(), 42, 'ABC:Some_page', new DBConversionDataLookup( $workspaceDB )
+		);
 		$processor->process( $dom );
 
 		$this->assertSame(

@@ -9,7 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
-use HalloWelt\MigrateConfluence\Converter\ConfluenceConverter;
+use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBase;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterPipeDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
@@ -178,7 +178,10 @@ class Convert extends CommandConvert {
 					. "IConverter object"
 				);
 			}
-			if ( $converter instanceof ConfluenceConverter ) {
+			if ( $converter instanceof ConfluenceConverterBase ) {
+				if ( !$converter->matchesProfile() ) {
+					continue;
+				}
 				$converter->setDataWriter( $this->dataWriter );
 			}
 			if ( $converter instanceof IOutputAwareInterface ) {

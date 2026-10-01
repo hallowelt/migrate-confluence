@@ -41,7 +41,13 @@ class ViewPptMacroChainTest extends MacroChainTestBase {
 		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
 		$migrationConfig = new \HalloWelt\MigrateConfluence\Utility\MigrationConfig( [] );
 
-		return new ViewPptMacro( $dataLookup, 42, 'SomePage', $migrationConfig );
+		return new ViewPptMacro(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			42,
+			'SomePage',
+			$migrationConfig
+		);
 	}
 
 }

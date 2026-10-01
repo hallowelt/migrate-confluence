@@ -5,7 +5,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Postprocessor;
 use DOMDocument;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\IPostprocessor;
-use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 class RestoreExcerptIncludeMacro implements IPostprocessor {
@@ -14,20 +14,16 @@ class RestoreExcerptIncludeMacro implements IPostprocessor {
 	}
 
 	/**
-	 * @inheritDoc
+	 * auto-detect excerpt names, if they are missing
 	 */
 	public function postprocess( string $wikiText ): string {
 		$replace = function ( array $matches ): string {
 			$attributes = [
 				'showpanel' => $matches[1] ?? '',
-				'excerpt' => $matches[3] ?? '',
 				'page' => $matches[2] ?? '',
 			];
 
-			// Add missing excerpt name fallback
-			if ( empty( $attributes['excerpt'] ) ) {
-				$attributes['excerpt'] = $this->createExcerptNameFallback( $attributes['page'] );
-			}
+			$attributes['excerpt'] = $this->createExcerptNameFallback( $attributes['page'] );
 
 			$attrString = '';
 			foreach ( $attributes as $name => $value ) {
@@ -40,7 +36,7 @@ class RestoreExcerptIncludeMacro implements IPostprocessor {
 		};
 
 		return preg_replace_callback(
-			'/#####EXCERPTINCLUDE\|(.*?)\|(.*?)\|(.*?)#####/',
+			'#<excerpt-include showpanel="(true|false)" page="(.*?)" excerpt=""/>#',
 			$replace,
 			$wikiText
 		);

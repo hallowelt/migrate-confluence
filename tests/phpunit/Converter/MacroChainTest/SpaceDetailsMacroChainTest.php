@@ -36,7 +36,10 @@ class SpaceDetailsMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new SpaceDetailsMacro();
+		return new SpaceDetailsMacro(
+			$this->createConverterDataWriter(),
+			1
+		);
 	}
 
 }

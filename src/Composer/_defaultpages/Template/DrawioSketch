@@ -1,0 +1,24 @@
+<noinclude>Template added by Confluence migration to handle DrawIO Sketch diagrams.
+
+<templatedata>
+{
+    "description": {
+        "en": "show a DrawIO Sketch diagram",
+        "de": "Ein DrawIO-Sketch-Diagramm anzeigen"
+    },
+    "params": {
+        "diagramName": {
+            "label": {
+                "en": "diagramName",
+                "de": "Diagrammname"
+            },
+            "type": "wiki-file-name",
+            "required": true,
+            "description": {
+                "en": "The name of the DrawIO Sketch diagram to display",
+                "de": "Der Name des anzuzeigenden DrawIO-Sketch-Diagramms"
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{#tag:drawio-sketch||filename={{{diagramName}}}}}</includeonly>

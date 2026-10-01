@@ -13,11 +13,13 @@ class ExcerptIncludeMacroTest extends ProcessorTestCase {
 	}
 
 	protected function getExpectedOutput(): string {
-		return file_get_contents( dirname( __DIR__, 2 ) . '/data/PageExcerpt/excerpt-include-macro-output.xml' );
+		return file_get_contents(
+			dirname( __DIR__, 2 ) . '/data/PageExcerpt/MediaWiki/excerpt-include-macro-output.xml'
+		);
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\ExcerptIncludeMacro::preprocess
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro::process
 	 * @return void
 	 */
 	public function testProcess() {
@@ -30,7 +32,7 @@ class ExcerptIncludeMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ExcerptIncludeMacro( $dataLookup, $currentSpaceId );
+		$processor = new ExcerptIncludeMacro( $this->createConverterDataWriter(), $dataLookup, $currentSpaceId );
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 

@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -11,37 +12,18 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 class ViewFileMacro extends StructuredMacroProcessorBase {
 
 	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var int
-	 */
-	protected int $currentSpaceId;
-
-	/**
-	 * @var string
-	 */
-	protected string $rawPageTitle;
-
-	/**
-	 * @var MigrationConfig
-	 */
-	protected MigrationConfig $migrationConfig;
-
-	/**
+	 * @param IConverterDataWriter $writer
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 * @param MigrationConfig $migrationConfig
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup,
-		int $currentSpaceId, string $rawPageTitle, MigrationConfig $migrationConfig ) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
-		$this->migrationConfig = $migrationConfig;
+	public function __construct(
+		protected IConverterDataWriter $writer,
+		protected DBConversionDataLookup $dataLookup,
+		protected int $currentSpaceId,
+		protected string $rawPageTitle,
+		protected MigrationConfig $migrationConfig ) {
 	}
 
 	/**
@@ -90,6 +72,11 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		$node->parentNode->replaceChild(
 			$this->createTextNode( $node->ownerDocument, $text, __METHOD__ ),
 			$node
+		);
+
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			$this->getWikiTextTemplateName()
 		);
 	}
 

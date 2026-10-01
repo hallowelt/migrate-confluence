@@ -24,7 +24,7 @@ class LoremIpsumMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$preprocessor = new LoremIpsumMacro();
+		$preprocessor = new LoremIpsumMacro( $this->createConverterDataWriter(), 1 );
 		$preprocessor->process( $dom );
 
 		$actualOutput = $dom->saveXML();

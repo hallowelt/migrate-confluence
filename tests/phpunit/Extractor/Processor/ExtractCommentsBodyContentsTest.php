@@ -20,21 +20,60 @@ class ExtractCommentsBodyContentsTest extends TestCase {
 		$dbLog = $this->createMock( DBLog::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
-		$workspaceDB->method( 'getCurrentComments' )->willReturn( [
-			[ 'comment_id' => 14, 'content_class' => 'Page' ],
-			[ 'comment_id' => 15, 'content_class' => 'BlogPost' ],
-			[ 'comment_id' => 16, 'content_class' => 'SpaceDescription' ],
+		$workspaceDB->method( 'getComments' )->willReturn( [
+			[
+				'comment_id' => 14,
+				'container_id' => 1,
+				'content_status' => 'current',
+				'body_content_ids' => json_encode( [ 104 ] ),
+				'properties' => json_encode( [] ),
+				'collection' => json_encode( [] ),
+				'created' => '',
+			],
+			[
+				'comment_id' => 15,
+				'container_id' => 2,
+				'content_status' => 'current',
+				'body_content_ids' => json_encode( [ 105 ] ),
+				'properties' => json_encode( [] ),
+				'collection' => json_encode( [] ),
+				'created' => '',
+			],
+			[
+				// Inline comment on a page: must be excluded even though its container is a page.
+				'comment_id' => 17,
+				'container_id' => 1,
+				'content_status' => 'current',
+				'body_content_ids' => json_encode( [ 107 ] ),
+				'properties' => json_encode( [] ),
+				'collection' => json_encode( [ 'contentProperties' => [ 1 ] ] ),
+				'created' => '',
+			],
+			[
+				// Comment on neither a page nor a blog post: must be excluded.
+				'comment_id' => 16,
+				'container_id' => 3,
+				'content_status' => 'current',
+				'body_content_ids' => json_encode( [ 106 ] ),
+				'properties' => json_encode( [] ),
+				'collection' => json_encode( [] ),
+				'created' => '',
+			],
 		] );
-		$workspaceDB->method( 'getBodyContentIdsForContentId' )
-			->willReturnCallback( static function ( int $contentId ) {
-				if ( $contentId === 14 ) {
-					return [ 104 ];
+		$workspaceDB->method( 'pageIdExists' )->willReturnCallback(
+			static fn ( int $pageId ) => $pageId === 1
+		);
+		$workspaceDB->method( 'blogPostIdExists' )->willReturnCallback(
+			static fn ( int $blogPostId ) => $blogPostId === 2
+		);
+		$workspaceDB->method( 'getContentPopertyById' )->willReturnCallback(
+			static function ( int $id ) {
+				if ( $id === 1 ) {
+					return [ 'properties' => json_encode( [ 'name' => 'inline-comment', 'stringValue' => 'true' ] ) ];
 				}
-				if ( $contentId === 15 ) {
-					return [ 105 ];
-				}
-				return [];
-			} );
+				return null;
+			}
+		);
 		$workspaceDB->method( 'getBodyContentBodyByBodyContentId' )
 			->willReturnCallback( static function ( int $bodyContentId ) {
 				if ( $bodyContentId === 104 ) {

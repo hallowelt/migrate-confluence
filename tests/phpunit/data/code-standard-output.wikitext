@@ -1,17 +1,26 @@
 <span id="the-menu"></span>
 ====== The menu ======
 
-<syntaxhighlight lang="sql" collapse="true">
+<syntaxhighlight lang="sql" data-collapse="true">
 		SELECT * FROM menu;
 		</syntaxhighlight>
+
 <span id="json-test"></span>
 ====== JSON test ======
 
-<syntaxhighlight lang="json" collapse="true">
+<syntaxhighlight lang="json" data-collapse="true">
 		{
 			"name": "test",
 			"version": "null"
 		}
+		</syntaxhighlight>
+
+<span id="html-test"></span>
+====== HTML test ======
+
+<syntaxhighlight lang="html">
+			<p class="important-message">This is HTML that should<br>
+<strong>not</strong> be quoted!</p>
 		</syntaxhighlight>
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

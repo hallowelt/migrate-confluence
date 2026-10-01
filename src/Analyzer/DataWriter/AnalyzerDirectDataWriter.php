@@ -193,31 +193,13 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 		return $this->db->addBodyContentBody( $bodyContentId, $body );
 	}
 
-	/**
-	 * @param int $attachmentId
-	 * @param int|null $spaceId
-	 * @param string $filename
-	 * @param string $fileExtension
-	 * @param int $containerContentId
-	 * @param string $contentStatus
-	 * @param string $version
-	 * @param string $revisionTimestamp
-	 * @param string $lastModifier
-	 * @param int $originalVersionId
-	 * @param string $attachmentReference
-	 * @param array $historicalIds
-	 * @param array $properties
-	 * @param array $collection
-	 *
-	 * @return bool
-	 */
 	public function addAttachment(
 		int $attachmentId,
 		?int $spaceId,
 		string $filename,
 		string $fileExtension,
 		int $containerContentId,
-		string $contentStatus,
+		?string $contentStatus,
 		string $version,
 		string $revisionTimestamp,
 		string $lastModifier,
@@ -255,6 +237,7 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	 * @param string $created
 	 * @param string $modified
 	 * @param array $properties
+	 * @param array $collection
 	 *
 	 * @return bool
 	 */
@@ -267,7 +250,8 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 		array $bodyContentIds,
 		string $created,
 		string $modified,
-		array $properties
+		array $properties,
+		array $collection
 	): bool {
 		return $this->db->addComment(
 			$commentId,
@@ -278,7 +262,8 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 			$bodyContentIds,
 			$created,
 			$modified,
-			$properties
+			$properties,
+			$collection
 		);
 	}
 
@@ -327,11 +312,18 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
+	 * @param string $confluenceUsername
 	 *
 	 * @return bool
 	 */
-	public function addUser( string $userKey, string $wikiUsername, string $email, array $properties ): bool {
-		return $this->db->addUser( $userKey, $wikiUsername, $email, $properties );
+	public function addUser(
+		string $userKey,
+		string $wikiUsername,
+		string $email,
+		array $properties,
+		string $confluenceUsername = ''
+	): bool {
+		return $this->db->addUser( $userKey, $wikiUsername, $email, $properties, $confluenceUsername );
 	}
 
 	/**

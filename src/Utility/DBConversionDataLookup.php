@@ -30,6 +30,30 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * @param int $pageId
+	 * @return string|null The wiki title the given Confluence page ID was migrated to, or null
+	 */
+	public function getWikiPageTitleFromPageId( int $pageId ): ?string {
+		return $this->workspaceDB->getWikiPageTitleFromPageId( $pageId );
+	}
+
+	/**
+	 * @param int $containerId
+	 * @return array
+	 */
+	public function getInlineCommentsForContentId( int $containerId ): array {
+		return $this->workspaceDB->getInlineCommentsForContentId( $containerId );
+	}
+
+	/**
+	 * @param string $markerRef
+	 * @return array|null
+	 */
+	public function getInlineCommentsForMarkerRef( string $markerRef ): ?array {
+		return $this->workspaceDB->getInlineCommentsForMarkerRef( $markerRef );
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getSpaceIdToPrefixMap(): array {
@@ -48,6 +72,30 @@ class DBConversionDataLookup {
 		}
 
 		return $this->workspaceDB->getSpaceIdFromSpaceKey( $spaceKey );
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return int|null
+	 */
+	public function getSpaceIdForBodyContentId( int $bodyContentId ): ?int {
+		return $this->workspaceDB->getSpaceIdForBodyContentId( $bodyContentId );
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getWikiTitleForBodyContentId( int $bodyContentId ): ?string {
+		return $this->workspaceDB->getWikiTitleForBodyContentId( $bodyContentId );
+	}
+
+	/**
+	 * @param int $bodyContentId
+	 * @return string|null
+	 */
+	public function getConfluenceTitleForBodyContentId( int $bodyContentId ): ?string {
+		return $this->workspaceDB->getConfluenceTitleForBodyContentId( $bodyContentId );
 	}
 
 	/**
@@ -328,6 +376,22 @@ class DBConversionDataLookup {
 
 	public function getPageByWikiTitle( string $wikiTitle ): ?array {
 		return $this->workspaceDB->getPageByWikiTitle( $wikiTitle );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @return string|null
+	 */
+	public function getConfluencePageTitleFromPageId( int $pageId ): ?string {
+		return $this->workspaceDB->getConfluencePageTitleFromPageId( $pageId );
+	}
+
+	/**
+	 * @param int $pageId
+	 * @return int|null
+	 */
+	public function getSpaceIdForPageId( int $pageId ): ?int {
+		return $this->workspaceDB->getSpaceIdForPageId( $pageId );
 	}
 
 	public function getConfluencePageBodyContent( array $bodyContentIds ): ?string {

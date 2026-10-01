@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_namespace2">
+    <p>
+        convert:placeholder=0
+    </p>
+    <p>
+        convert:placeholder=1
+    </p>
+    <p>
+        convert:placeholder=2
+    </p>
+    <p>
+        convert:placeholder=3
+    </p>
+    <p>
+        convert:placeholder=4
+    </p>
+    <p>
+        convert:placeholder=5
+    </p>
+    <p>
+        convert:placeholder=6
+    </p>
+    <p>
+        convert:placeholder=7[[Category:Broken_macro/excerpt-include]]
+    </p>
+    <p>
+        convert:placeholder=8[[Category:Broken_macro/excerpt-include]]
+    </p>
+    <p>
+        convert:placeholder=9[[Category:Broken_macro/excerpt-include]]
+    </p>
+    <p>
+        convert:placeholder=10[[Category:Broken_macro/excerpt-include]]
+    </p>
+</xml>

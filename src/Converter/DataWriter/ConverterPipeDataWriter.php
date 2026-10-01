@@ -44,6 +44,22 @@ class ConverterPipeDataWriter extends AbstractPipeDataWriter implements IConvert
 	}
 
 	/**
+	 * @param int|null $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $svgFilename
+	 *
+	 * @return bool
+	 */
+	public function addRoadmapSvg(
+		?int $spaceId,
+		string $confluenceTitle,
+		string $svgFilename
+	): bool {
+		$this->send( __FUNCTION__, $spaceId, $confluenceTitle, $svgFilename );
+		return true;
+	}
+
+	/**
 	 * @param int $spaceId
 	 * @param string $defaultPageName
 	 * @param string $defaultPageNamespace
@@ -53,6 +69,18 @@ class ConverterPipeDataWriter extends AbstractPipeDataWriter implements IConvert
 		int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template'
 	): bool {
 		$this->send( __FUNCTION__, $spaceId, $defaultPageName, $defaultPageNamespace );
+		return true;
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $defaultFileName
+	 * @return bool
+	 */
+	public function registerDefaultFile(
+		int $spaceId, string $defaultFileName
+	): bool {
+		$this->send( __FUNCTION__, $spaceId, $defaultFileName );
 		return true;
 	}
 }

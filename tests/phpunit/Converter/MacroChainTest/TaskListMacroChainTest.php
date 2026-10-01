@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 
 /**
@@ -27,16 +28,19 @@ class TaskListMacroChainTest extends MacroChainTestBase {
 			$this->assertFileExists( $expectedPath, "Missing expected fixture $expectedFixture" );
 			$inputXml = (string)file_get_contents( $inputPath );
 			$expected = $this->applyConfluenceFinalReplacements( (string)file_get_contents( $expectedPath ) );
-			$actual = $this->runChainWithProcessor( $this->createProcessor(), $inputXml );
+			$actual = $this->runChainWithProcessor( $this->createProcessors(), $inputXml );
 			$this->assertSame( $expected, $actual, "Mismatch for fixture $inputFixture" );
 		}
 	}
 
 	/**
-	 * @return IProcessor
+	 * @return IProcessor[]
 	 */
-	private function createProcessor(): IProcessor {
-		return new TaskListMacro();
+	private function createProcessors(): array {
+		return [
+			new PreserveTimeTag( $this->placeholderManager ),
+			new TaskListMacro(),
+		];
 	}
 
 }

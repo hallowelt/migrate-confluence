@@ -16,6 +16,6 @@ class ContentByLabelMacroTest extends StructuredMacroProcessorTestBase {
 	}
 
 	protected function getProcessorToTest(): IProcessor {
-		return new ContentByLabelMacro( 'SomePage' );
+		return new ContentByLabelMacro( $this->createConverterDataWriter(), 1, 'SomePage' );
 	}
 }

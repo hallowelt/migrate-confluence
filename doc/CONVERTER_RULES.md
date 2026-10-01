@@ -106,3 +106,10 @@ All processors must be registered in `ConfluenceConverter::__construct()`:
 | HTML Preprocessor | `Preprocessor/html/` | `{Name}.php` | `CDATAClosingFixer.php` |
 | DOM Preprocessor | `Preprocessor/dom/` | `{Name}.php` | `Table.php` |
 | Postprocessor | `Postprocessor/` | `{Fix\|Operation}.php` | `FixLineBreakInHeadings.php` |
+
+## 6. Using default pages and default files (e.g. wiki templates)
+
+Only registered default pages and default files will be added to the output data.
+
+- register the default pages for the space `registerDefaultPage( int $spaceId, string $defaultPageName, string $defaultPageNamespace = 'Template' )`
+- register the default files for the space `registerDefaultFile( int $spaceId, string $defaultFileName )`

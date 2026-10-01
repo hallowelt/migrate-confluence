@@ -19,14 +19,11 @@ class NamespaceBasedComposer extends ConfluenceComposerBase {
 			return;
 		}
 
-		// Run shared content processors
-		$sharedProcessors = $this->initProcessorsForSharedContent(
-			$builder
-		);
-
-		foreach ( $sharedProcessors as $processor ) {
-			$processor->setSubDir( '_shared' );
-			$processor->execute();
+		if ( $this->isFinalizeOnly() ) {
+			// All namespaces were already fully processed (self-contained, one deployment.txt
+			// each) by the workers; there is nothing to aggregate for this composer.
+			$this->writeUserReadableDBLog( $this->dbLog );
+			return;
 		}
 
 		// Run space dependent processors for each space
@@ -40,7 +37,9 @@ class NamespaceBasedComposer extends ConfluenceComposerBase {
 		$spacesMap = $this->buildSpacesMap( $spaces );
 		$this->storeMigrationResult( $spacesMap, $builder );
 
-		$this->writeUserReadableDBLog( $this->dbLog );
+		if ( !$this->isWorker() ) {
+			$this->writeUserReadableDBLog( $this->dbLog );
+		}
 	}
 
 	/**
@@ -49,10 +48,16 @@ class NamespaceBasedComposer extends ConfluenceComposerBase {
 	 * @return void
 	 */
 	protected function storeMigrationResult( array $spacesMap, Builder $builder ): void {
-		// Run processors for each namespace
+		// Run processors for each namespace. Namespaces are round-robin sliced across
+		// worker processes; namespace size is not taken into account.
+		$index = 0;
 		foreach ( $spacesMap as $namespace => $spaces ) {
 			if ( $this->skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
 				$this->output->writeln( "Skip namespace '$namespace' by configuration." );
+				continue;
+			}
+
+			if ( !$this->isMyShare( $index++ ) ) {
 				continue;
 			}
 
@@ -60,10 +65,12 @@ class NamespaceBasedComposer extends ConfluenceComposerBase {
 			$deploymentInfo->addNamespace( $namespace );
 
 			$subDir = $namespace;
+			$spaceIds = array_keys( $spaces );
+
+			$this->runSharedContentProcessors( $builder, $subDir, $spaceIds );
 
 			$processors = $this->initProcessorsForSpaceContent( $builder, $deploymentInfo );
 
-			$spaceIds = array_keys( $spaces );
 			foreach ( $processors as $processor ) {
 				$processor->setSubDir( $subDir );
 				if ( $processor instanceof ISpaceIdsDependentProcessor ) {

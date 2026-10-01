@@ -54,6 +54,11 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 				$node
 			);
 		}
+
+		$this->dataWriter->registerDefaultPage(
+			$this->currentSpaceId,
+			'Gliffy'
+		);
 	}
 
 	/**

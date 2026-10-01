@@ -36,7 +36,7 @@ class ExpandMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new ExpandMacro();
+		return new ExpandMacro( $this->createConverterDataWriter(), 1 );
 	}
 
 }

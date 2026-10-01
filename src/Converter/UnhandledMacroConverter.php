@@ -4,8 +4,13 @@ namespace HalloWelt\MigrateConfluence\Converter;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
-class UnhandledMacroConverter extends ConversionHelper implements IProcessor {
+class UnhandledMacroConverter extends ConversionHelper implements IProcessor, IUsesPlaceholder {
+	public function __construct(
+		private readonly PlaceholderManager $placeholderManager
+	) {
+	}
 
 	/**
 	 * @param DOMDocument $dom
@@ -33,7 +38,8 @@ class UnhandledMacroConverter extends ConversionHelper implements IProcessor {
 			$replacement->appendChild(
 				$this->createTextNode(
 					$replacement->ownerDocument,
-					'###HTMLCOMMENTOPEN###' . $macro->ownerDocument->saveXML( $macro ) . '###HTMLCOMMENTCLOSE###',
+					$this->placeholderManager->getPlaceholder(
+						"<!--" . $macro->ownerDocument->saveXML( $macro ) . "-->" ),
 					__METHOD__
 				)
 			);

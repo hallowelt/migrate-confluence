@@ -32,6 +32,6 @@
 			<br/></div>
 </p>
 <div class="ac-task-list">
-[x] <ac:link xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace"><ri:user ri:userkey="1234"/></ac:link> <span class="PRESERVEDATETIME">2024-02-22</span> Testaufgabe 1<br/>
-[] <ac:link xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace"><ri:user ri:userkey="567"/></ac:link> <span class="PRESERVEDATETIME">2024-02-12</span> Testaufgabe 2<br/></div>
+[x] <ac:link xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace"><ri:user ri:userkey="1234"/></ac:link> <time datetime="2024-02-22"/> Testaufgabe 1<br/>
+[] <ac:link xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace"><ri:user ri:userkey="567"/></ac:link> <time datetime="2024-02-12"/> Testaufgabe 2<br/></div>
 </xml>

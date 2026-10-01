@@ -27,6 +27,7 @@ class Comments extends ProcessorBase {
 		$commentId = -1;
 		$containerContentClass = '';
 		$properties = [];
+		$collection = [];
 
 		$this->xmlReader->read();
 		while ( $this->xmlReader->nodeType !== XMLReader::END_ELEMENT ) {
@@ -44,6 +45,8 @@ class Comments extends ProcessorBase {
 					$containerContentClass = $this->xmlReader->getAttribute( 'class' );
 				}
 				$properties = $this->processPropertyNodes( $properties );
+			} elseif ( $this->xmlReader->name === 'collection' ) {
+				$collection = $this->processCollectionNodes( $collection );
 			}
 			$this->xmlReader->next();
 		}
@@ -61,12 +64,14 @@ class Comments extends ProcessorBase {
 		}
 
 		$bodyContentIds = [];
-		if ( isset( $properties['bodyContents'] ) ) {
+		if ( isset( $collection['bodyContents'] ) ) {
+			$bodyContentIds = $collection['bodyContents'];
+		} elseif ( isset( $properties['bodyContents'] ) ) {
 			$bodyContentIds = $properties['bodyContents'];
 		}
 		// A fallback mechanism for body content IDs in case they are not found in the collection
-		// is placed in the ConfluenceAnalyzer, which will attempt to retrieve them from the
-		// body_contents table based on the comment ID.
+		// and in collection is placed in the ConfluenceAnalyzer, which will attempt to retrieve them
+		// from the body_contents table based on the comment ID.
 
 		$this->output->writeln( "Add comment (ID:$commentId)" );
 
@@ -94,7 +99,8 @@ class Comments extends ProcessorBase {
 			$bodyContentIds,
 			$this->buildTimestamp( $created ),
 			$this->buildTimestamp( $modified ),
-			$properties
+			$properties,
+			$collection
 		);
 
 		if ( !$status ) {

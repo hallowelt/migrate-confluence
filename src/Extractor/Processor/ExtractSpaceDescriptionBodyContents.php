@@ -52,21 +52,42 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 			return;
 		}
 
+		$bodyContentIds = [];
 		foreach ( $currentContentIds as $currentContentId ) {
-			$bodyContentIds = $this->workspaceDB->getBodyContentIdsForContentId( $currentContentId );
-			foreach ( $bodyContentIds as $bodyContentId ) {
-				$body = $this->workspaceDB->getBodyContentBodyByBodyContentId( $bodyContentId );
-				if ( $body === null ) {
-					continue;
-				}
+			$bodyContentIds = array_merge(
+				$bodyContentIds,
+				$this->workspaceDB->getBodyContentIdsForContentId( $currentContentId )
+			);
+		}
 
-				$bodyContentHTML = $this->normalizeBodyContentHTML( $body );
-				$targetFileName = $this->workspace->saveRawContent( (string)$bodyContentId, $bodyContentHTML );
+		$this->extractBodyContentIds( $bodyContentIds );
+	}
 
+	/**
+	 * Extracts and saves raw content for an already resolved list of body content IDs.
+	 *
+	 * @param array $bodyContentIds
+	 * @return void
+	 */
+	protected function extractBodyContentIds( array $bodyContentIds ): void {
+		$bodyContentIds = array_values( array_unique( array_map( 'intval', $bodyContentIds ) ) );
+
+		foreach ( $bodyContentIds as $bodyContentId ) {
+			$body = $this->workspaceDB->getBodyContentBodyByBodyContentId( $bodyContentId );
+			if ( $body === null ) {
 				$this->dbLog->addLogEntry(
-					'info', 'extract', __METHOD__, "Extract body content to $targetFileName"
+					'warning', 'extract', __METHOD__,
+					"No body found in body_content_bodies for body content ID $bodyContentId, skipping extraction."
 				);
+				continue;
 			}
+
+			$bodyContentHTML = $this->normalizeBodyContentHTML( $body );
+			$targetFileName = $this->workspace->saveRawContent( (string)$bodyContentId, $bodyContentHTML );
+
+			$this->dbLog->addLogEntry(
+				'info', 'extract', __METHOD__, "Extract body content to $targetFileName"
+			);
 		}
 	}
 

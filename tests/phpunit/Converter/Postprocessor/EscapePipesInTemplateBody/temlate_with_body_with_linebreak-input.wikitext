@@ -1,0 +1,15 @@
+{{Info###BREAK###|body = ###BREAK###
+{| class="wikitable"
+|-
+| {{Bold|text}} || B
+|}}}
+
+{{Info###BREAK###|body =###BREAK### {| class="wikitable"
+|-
+| {{Bold|text}} || B
+|}}}
+
+{{Info###BREAK###| body=###BREAK###{| class="wikitable"
+|-
+| {{Bold|text}} || B
+|}}}

@@ -43,10 +43,4 @@
         }
     }
 }
-</templatedata>
-</noinclude><includeonly>{{#if: {{{filename|}}}|[[File:{{{filename}}}|{{#if: {{{width|}}}
-|{{{width}}}{{#if: {{{height|}}}||px}}
-|}}{{#if: {{{height|}}}
-|x{{{height}}}px
-|}}
-]]|<span class="d-inline-flex alert alert-warning mb-3 mt-3 px-2 py-1 bg-warning-subtle border border-warning-subtle rounded-2 fst-italic">File name missing: nothing to show</span>}}</includeonly>
+</templatedata></noinclude><includeonly>{{#if: {{{filename|}}}|[[File:{{{filename}}}{{#if: {{{width|}}}|{{!}}{{{width}}}{{#if: {{{height|}}}||px}}|}}{{#if: {{{height|}}}|x{{{height}}}px|}}]]|<span style="border:1px solid #fee17f;border-radius:2px;color:#664d03;background-color:#fef6d8;font-style:italic;font-size:.935em;padding:.25em .5em;">File name missing: nothing to show</span>}}</includeonly>

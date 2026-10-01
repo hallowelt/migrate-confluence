@@ -5,9 +5,16 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
-class PreservePStyleTag extends ConversionHelper implements IProcessor {
+class PreservePStyleTag extends ConversionHelper implements IProcessor, IUsesPlaceholder {
+
+	public function __construct(
+		private readonly PlaceholderManager $placeholderManager
+	) {
+	}
 
 	/**
 	 * Pandoc removes p tags with style
@@ -42,13 +49,13 @@ class PreservePStyleTag extends ConversionHelper implements IProcessor {
 
 			$openingTagReplacement = $this->createTextNode(
 				$tag->ownerDocument,
-				"#####PRESERVEPSTYLEOPEN $attributesString#####",
+				$this->placeholderManager->getPlaceholder( "<p $attributesString>" ),
 				__METHOD__
 			);
 
 			$closingTagReplacement = $this->createTextNode(
 				$tag->ownerDocument,
-				"#####PRESERVEPSTYLECLOSE#####",
+				$this->placeholderManager->getPlaceholder( "</p>" ),
 				__METHOD__
 			);
 

@@ -135,31 +135,13 @@ interface IAnalyzeDataWriter extends IDataWriter {
 		string $body
 	): bool;
 
-	/**
-	 * @param int $attachmentId
-	 * @param int|null $spaceId
-	 * @param string $filename
-	 * @param string $fileExtension
-	 * @param int $containerContentId
-	 * @param string $contentStatus
-	 * @param string $version
-	 * @param string $revisionTimestamp
-	 * @param string $lastModifier
-	 * @param int $originalVersionId
-	 * @param string $attachmentReference
-	 * @param array $historicalIds
-	 * @param array $properties
-	 * @param array $collection
-	 *
-	 * @return bool
-	 */
 	public function addAttachment(
 		int $attachmentId,
 		?int $spaceId,
 		string $filename,
 		string $fileExtension,
 		int $containerContentId,
-		string $contentStatus,
+		?string $contentStatus,
 		string $version,
 		string $revisionTimestamp,
 		string $lastModifier,
@@ -180,12 +162,14 @@ interface IAnalyzeDataWriter extends IDataWriter {
 	 * @param string $created
 	 * @param string $modified
 	 * @param array $properties
+	 * @param array $collection
 	 *
 	 * @return bool
 	 */
 	public function addComment(
 		int $commentId, int $containerContentId, string $class, string $contentStatus,
-		string $userKey, array $bodyContentIds, string $created, string $modified, array $properties
+		string $userKey, array $bodyContentIds, string $created, string $modified,
+		array $properties, array $collection
 	): bool;
 
 	/**
@@ -231,6 +215,7 @@ interface IAnalyzeDataWriter extends IDataWriter {
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
+	 * @param string $confluenceUsername
 	 *
 	 * @return bool
 	 */
@@ -238,7 +223,8 @@ interface IAnalyzeDataWriter extends IDataWriter {
 		string $userKey,
 		string $wikiUsername,
 		string $email,
-		array $properties
+		array $properties,
+		string $confluenceUsername = ''
 	): bool;
 
 	/**

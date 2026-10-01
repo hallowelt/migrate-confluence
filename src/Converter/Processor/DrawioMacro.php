@@ -3,11 +3,15 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 
 class DrawioMacro extends StructuredMacroProcessorBase {
+
+	/** @var IConverterDataWriter */
+	protected IConverterDataWriter $writer;
 
 	/**
 	 * @var DBConversionDataLookup
@@ -30,13 +34,19 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	protected string $rawPageTitle;
 
 	/**
+	 * Undocumented function
+	 *
+	 * @param IConverterDataWriter $writer
 	 * @param DBConversionDataLookup $dataLookup
 	 * @param ConversionDataWriter $conversionDataWriter
 	 * @param int $currentSpaceId
 	 * @param string $rawPageTitle
 	 */
-	public function __construct( DBConversionDataLookup $dataLookup, ConversionDataWriter $conversionDataWriter,
-		int $currentSpaceId, string $rawPageTitle ) {
+	public function __construct(
+		IConverterDataWriter $writer, DBConversionDataLookup $dataLookup,
+		ConversionDataWriter $conversionDataWriter,	int $currentSpaceId, string $rawPageTitle
+	) {
+		$this->writer = $writer;
 		$this->dataLookup = $dataLookup;
 		$this->conversionDataWriter = $conversionDataWriter;
 		$this->currentSpaceId = $currentSpaceId;
@@ -52,6 +62,15 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	}
 
 	/**
+	 * Name of the wiki template used to render this macro.
+	 *
+	 * @return string
+	 */
+	protected function getTemplateName(): string {
+		return 'Drawio';
+	}
+
+	/**
 	 * @inheritDoc
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
@@ -59,23 +78,32 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 
 		if ( isset( $params['diagramName'] ) ) {
 			$paramsString = $this->makeParamsString( $params );
+			$templateName = $this->getTemplateName();
 
 			$node->parentNode->replaceChild(
-				$this->createTextNode( $node->ownerDocument, "{{Drawio$paramsString}}", __METHOD__ ),
+				$this->createTextNode( $node->ownerDocument, "{{{$templateName}{$paramsString}}}", __METHOD__ ),
 				$node
 			);
 		}
+
+		$this->writer->registerDefaultPage(
+			$this->currentSpaceId,
+			$this->getTemplateName()
+		);
 	}
 
 	/**
 	 * @param array $params
+	 * @param int|null $spaceId Space to look up the diagram's attachments in. Defaults to the current space.
+	 * @param string|null $rawPageTitle Confluence page title to look up the diagram's attachments on.
+	 *   Defaults to the current page.
 	 * @return string
 	 */
-	private function makeParamsString( array $params ): string {
+	protected function makeParamsString( array $params, ?int $spaceId = null, ?string $rawPageTitle = null ): string {
 		$paramsString = '';
 
 		if ( isset( $params['diagramName'] ) ) {
-			$filename = $this->getFilename( $params['diagramName'] );
+			$filename = $this->getFilename( $params['diagramName'], $spaceId, $rawPageTitle );
 			$params['diagramName'] = $filename;
 		} else {
 			return '';
@@ -93,7 +121,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 *
 	 * @return array
 	 */
-	private function getMacroParams( DOMElement $macro ): array {
+	protected function getMacroParams( DOMElement $macro ): array {
 		$params = [];
 		foreach ( $macro->childNodes as $childNode ) {
 			if ( $childNode instanceof DOMElement === false ) {
@@ -116,13 +144,18 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 
 	/**
 	 * @param string $diagramName
+	 * @param int|null $spaceId Space to look up the diagram's attachments in. Defaults to the current space.
+	 * @param string|null $rawPageTitle Confluence page title to look up the diagram's attachments on.
+	 *   Defaults to the current page.
 	 * @return string
 	 */
-	private function getFilename( string $diagramName ): string {
-		$spaceId = $this->currentSpaceId;
+	protected function getFilename( string $diagramName, ?int $spaceId = null, ?string $rawPageTitle = null ): string {
+		$spaceId ??= $this->currentSpaceId;
+		$rawPageTitle ??= $this->rawPageTitle;
+
 		$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 			$spaceId,
-			$this->rawPageTitle,
+			$rawPageTitle,
 			$diagramName
 		) ?? '';
 		$originalFilename = $filename;
@@ -143,7 +176,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 			$drawioDataFilename = $originalFilename;
 			$drawioImageFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 				$spaceId,
-				$this->rawPageTitle,
+				$rawPageTitle,
 				$diagramName . '.png'
 			) ?? '';
 		} else {
@@ -152,7 +185,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 			$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.png' ) );
 			$drawioDataFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 				$spaceId,
-				$this->rawPageTitle,
+				$rawPageTitle,
 				$diagramName
 			) ?? '';
 			// Maybe png = PNG
@@ -160,7 +193,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 				$diagramName = substr( $filename, 0, strlen( $filename ) - strlen( '.PNG' ) );
 				$drawioDataFilename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 					$spaceId,
-					$this->rawPageTitle,
+					$rawPageTitle,
 					$diagramName
 				) ?? '';
 			}
@@ -178,7 +211,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 * @param string $filename
 	 * @return string
 	 */
-	private function getFileExtension( string $filename ): string {
+	protected function getFileExtension( string $filename ): string {
 		$filenameParts = explode( '.', $filename );
 		$fileextension = array_pop( $filenameParts );
 
@@ -190,7 +223,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	 * @param string $drawioImageFilename
 	 * @return void
 	 */
-	private function bakeDrawIODataInPNG( string $drawioDataFilename, string $drawioImageFilename ): void {
+	protected function bakeDrawIODataInPNG( string $drawioDataFilename, string $drawioImageFilename ): void {
 		// Diagram file could be not an '.png' image, but just a text file with diagram XML
 		// In that case it may have '.drawio' extension, or may not have extension at all
 		// Anyway, in case with DrawIO diagram there should be a corresponding '.png' image:

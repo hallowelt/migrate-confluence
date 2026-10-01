@@ -204,31 +204,13 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 		return true;
 	}
 
-	/**
-	 * @param int $attachmentId
-	 * @param int|null $spaceId
-	 * @param string $filename
-	 * @param string $fileExtension
-	 * @param int $containerContentId
-	 * @param string $contentStatus
-	 * @param string $version
-	 * @param string $revisionTimestamp
-	 * @param string $lastModifier
-	 * @param int $originalVersionId
-	 * @param string $attachmentReference
-	 * @param array $historicalIds
-	 * @param array $properties
-	 * @param array $collection
-	 *
-	 * @return bool
-	 */
 	public function addAttachment(
 		int $attachmentId,
 		?int $spaceId,
 		string $filename,
 		string $fileExtension,
 		int $containerContentId,
-		string $contentStatus,
+		?string $contentStatus,
 		string $version,
 		string $revisionTimestamp,
 		string $lastModifier,
@@ -269,6 +251,7 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 * @param string $created
 	 * @param string $modified
 	 * @param array $properties
+	 * @param array $collection
 	 *
 	 * @return bool
 	 */
@@ -281,7 +264,8 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 		array $bodyContentIds,
 		string $created,
 		string $modified,
-		array $properties
+		array $properties,
+		array $collection
 	): bool {
 		$this->send(
 			__FUNCTION__,
@@ -293,7 +277,8 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 			$bodyContentIds,
 			$created,
 			$modified,
-			$properties
+			$properties,
+			$collection
 		);
 
 		return true;
@@ -350,11 +335,18 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	 * @param string $wikiUsername
 	 * @param string $email
 	 * @param array $properties
+	 * @param string $confluenceUsername
 	 *
 	 * @return bool
 	 */
-	public function addUser( string $userKey, string $wikiUsername, string $email, array $properties ): bool {
-		$this->send( __FUNCTION__, $userKey, $wikiUsername, $email, $properties );
+	public function addUser(
+		string $userKey,
+		string $wikiUsername,
+		string $email,
+		array $properties,
+		string $confluenceUsername = ''
+	): bool {
+		$this->send( __FUNCTION__, $userKey, $wikiUsername, $email, $properties, $confluenceUsername );
 
 		return true;
 	}

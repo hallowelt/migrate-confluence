@@ -36,7 +36,7 @@ class PreserveTimeTagMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new PreserveTimeTag();
+		return new PreserveTimeTag( $this->placeholderManager );
 	}
 
 }

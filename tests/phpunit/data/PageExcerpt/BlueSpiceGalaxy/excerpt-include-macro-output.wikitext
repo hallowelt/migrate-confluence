@@ -1,0 +1,23 @@
+<excerpt-include showpanel="false" page="ABC:Some_MediaWiki_page_name" excerpt="excerpt-0"/>
+
+<excerpt-include showpanel="true" page="ABC:Some_MediaWiki_page_name" excerpt="excerpt-0"/>
+
+<excerpt-include showpanel="true" page="ABC:Some_MediaWiki_page_name" excerpt="excerpt-0"/>
+
+<excerpt-include showpanel="true" page="ABC:Some_MediaWiki_page_name" excerpt="Excerpt Name 1"/>
+
+<excerpt-include showpanel="true" page="ABC:Some_MediaWiki_page_name" excerpt="Excerpt Name 2"/>
+
+<excerpt-include showpanel="true" page="ABC:Some_MediaWiki_page_name" excerpt="excerpt-0"/>
+
+<excerpt-include showpanel="true" page="ABC:Some_MediaWiki_page_name" excerpt="excerpt-0"/>
+
+<excerpt-include showpanel="true" page="Confluence_page---42---Page_doesnt_exist"/>[[Category:Broken_macro/excerpt-include]]
+
+<excerpt-include showpanel="true"/>[[Category:Broken_macro/excerpt-include]]
+
+<excerpt-include showpanel="true"/>[[Category:Broken_macro/excerpt-include]]
+
+<excerpt-include showpanel="true" page="" excerpt="Excerpt Name 2"/>[[Category:Broken_macro/excerpt-include]]
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

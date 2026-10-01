@@ -41,7 +41,7 @@ class PageTreeMacroChainTest extends MacroChainTestBase {
 			->createWithoutExtNsFileRepoCompat();
 		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
 
-		return new PageTreeMacro( $dataLookup, 42, 'SomePage', 'SomePage' );
+		return new PageTreeMacro( $this->createConverterDataWriter(), $dataLookup, 42, 'SomePage', 'SomePage' );
 	}
 
 }

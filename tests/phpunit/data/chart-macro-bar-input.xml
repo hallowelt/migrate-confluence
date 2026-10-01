@@ -1,0 +1,24 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="chart" ac:schema-version="1">
+		<ac:parameter ac:name="type">bar</ac:parameter>
+		<ac:parameter ac:name="title">Some data as bar chart</ac:parameter>
+		<ac:rich-text-body>
+			<table>
+				<tbody>
+					<tr>
+						<th>Name</th>
+						<th>Share</th>
+					</tr>
+					<tr>
+						<td>A</td>
+						<td>55</td>
+					</tr>
+					<tr>
+						<td>B</td>
+						<td>45</td>
+					</tr>
+				</tbody>
+			</table>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>

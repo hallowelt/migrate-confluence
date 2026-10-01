@@ -3,9 +3,11 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
@@ -35,7 +37,12 @@ class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
 		$dataLookup = new DBConversionDataLookup( $workspaceDB );
 
-		$processor = new CreateFromTemplateMacro( $dataLookup );
+		$processor = new CreateFromTemplateMacro(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			new PlaceholderManager(),
+			1
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
@@ -60,12 +67,24 @@ class CreateFromTemplateMacroTest extends ProcessorTestCase {
 
 		$dataLookup = new DBConversionDataLookup( $workspaceDB );
 
-		$processor = new CreateFromTemplateMacro( $dataLookup );
+		$processor = new CreateFromTemplateMacro(
+			$this->createConverterDataWriter(),
+			$dataLookup,
+			new PlaceholderManager(),
+			1
+		);
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
 		$expectedOutput = file_get_contents( "$dir/$output" );
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
+	}
+
+	/**
+	 * @return IConverterDataWriter
+	 */
+	protected function createConverterDataWriter(): IConverterDataWriter {
+		return $this->createMock( IConverterDataWriter::class );
 	}
 }

@@ -17,7 +17,7 @@ class RecentlyUpdatedMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new RecentlyUpdatedMacro( 'ABC:SomePage_1' );
+		$processor = new RecentlyUpdatedMacro( $this->createConverterDataWriter(), 1, 'ABC:SomePage_1' );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

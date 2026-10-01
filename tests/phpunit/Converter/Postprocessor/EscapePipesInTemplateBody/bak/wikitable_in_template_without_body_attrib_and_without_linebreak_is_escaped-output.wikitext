@@ -1,0 +1,4 @@
+{{Info###BREAK###{| class="wikitable"
+|-
+| A || B
+|}}}

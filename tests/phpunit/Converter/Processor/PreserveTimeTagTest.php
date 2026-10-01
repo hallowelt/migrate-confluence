@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class PreserveTimeTagTest extends ProcessorTestCase {
 
@@ -24,7 +25,7 @@ class PreserveTimeTagTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new PreserveTimeTag();
+		$processor = new PreserveTimeTag( new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

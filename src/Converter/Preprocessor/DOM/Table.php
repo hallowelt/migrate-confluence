@@ -32,6 +32,7 @@ class Table implements IDomPreprocessor {
 
 			$this->removeColgroup( $table );
 			$this->translateId( $table );
+			$this->migrateCellFeatures( $table );
 		}
 	}
 
@@ -51,31 +52,16 @@ class Table implements IDomPreprocessor {
 	}
 
 	/**
-	 * Translate "ac:local-id" to "id" to "id"
+	 * Translate "ac:local-id" to "id"
 	 *
 	 * @param DOMElement $table
 	 * @return void
 	 */
 	private function translateId( DOMElement $table ): void {
 		$nonLiveList = [ $table ];
-
-		// Table rows (tr)
-		$trEls = $table->getElementsByTagName( 'tr' );
-		foreach ( $trEls as $trEl ) {
-			$nonLiveList[] = $trEl;
-		}
-
-		// Table heads (th)
-		$thEls = $table->getElementsByTagName( 'th' );
-		foreach ( $thEls as $thEl ) {
-			$nonLiveList[] = $thEl;
-		}
-
-		// Table cells (td)
-		$tdEls = $table->getElementsByTagName( 'td' );
-		foreach ( $tdEls as $tdEl ) {
-			$nonLiveList[] = $tdEl;
-		}
+		array_push( $nonLiveList, ...$table->getElementsByTagName( 'tr' ) );
+		array_push( $nonLiveList, ...$table->getElementsByTagName( 'th' ) );
+		array_push( $nonLiveList, ...$table->getElementsByTagName( 'td' ) );
 
 		foreach ( $nonLiveList as $element ) {
 			if ( !$element->hasAttribute( 'ac:local-id' ) ) {
@@ -86,5 +72,49 @@ class Table implements IDomPreprocessor {
 			$element->setAttribute( 'id', $id );
 			$element->removeAttribute( 'ac:local-id' );
 		}
+	}
+
+	/**
+	 * migrate styling features of table cells
+	 *
+	 * @param DOMElement $table
+	 * @return void
+	 */
+	private function migrateCellFeatures( DOMElement $table ): void {
+		$nonLiveList = [];
+		array_push( $nonLiveList, ...$table->getElementsByTagName( 'th' ) );
+		array_push( $nonLiveList, ...$table->getElementsByTagName( 'td' ) );
+
+		foreach ( $nonLiveList as $element ) {
+			if ( !$element->hasAttribute( 'data-highlight-colour' ) ) {
+				continue;
+			}
+			$style = $element->getAttribute( 'style' );
+			if ( strpos( $style, 'background-color' ) === false ) {
+				if ( $style && !str_ends_with( $style, ';' ) ) {
+					$style .= ';';
+				}
+				$element->setAttribute(
+					'style',
+					$style . 'background-color: ' .
+						$this->mapColorNameToRGB( $element->getAttribute( 'data-highlight-colour' ) ) );
+				$element->removeAttribute( 'data-highlight-colour' );
+			}
+		}
+	}
+
+	private function mapColorNameToRGB( string $colorName ): string {
+		$colorMap = [
+			'gray' => '#f0f1f2',
+			'grey' => '#f0f1f2',
+			'blue' => '#cfe1fd',
+			'teal' => '#c6edfb',
+			'green' => '#baf3db',
+			'yellow' => '#f5e989',
+			'red' => '#ffd5d2',
+			'purple' => '#eed7fc',
+		];
+
+		return $colorMap[ strtolower( $colorName ) ] ?? $colorName;
 	}
 }

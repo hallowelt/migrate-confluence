@@ -22,6 +22,19 @@ interface IConverterDataWriter extends IDataWriter {
 	): bool;
 
 	/**
+	 * @param int|null $spaceId
+	 * @param string $confluenceTitle
+	 * @param string $svgFilename
+	 *
+	 * @return bool
+	 */
+	public function addRoadmapSvg(
+		?int $spaceId,
+		string $confluenceTitle,
+		string $svgFilename
+	): bool;
+
+	/**
 	 * @param int $spaceId
 	 * @param string $defaultPageName
 	 * @param string $defaultPageNamespace

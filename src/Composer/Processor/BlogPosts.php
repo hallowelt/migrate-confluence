@@ -81,11 +81,16 @@ class BlogPosts extends ContentProcessorBase {
 					true
 				);
 
+				$username = $this->resolveRevisionUsername(
+					$this->dataLookup,
+					(string)( $revision['last_modifier'] ?? '' )
+				);
+
 				$this->addRevision(
 					$blogPostTitle,
 					$pageContent,
 					$timestamp,
-					'',
+					$username,
 					'blog_post',
 				);
 			}

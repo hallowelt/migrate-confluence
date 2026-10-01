@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\MultimediaMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
@@ -70,9 +71,22 @@ class MultimediaMacroTest extends TestCase {
 		$dom = new \DOMDocument();
 		$dom->load( __DIR__ . '/../../data/' . $input );
 		$expectedOutput = file_get_contents( dirname( __DIR__, 2 ) . '/data/' . $output );
-		$processor = new MultimediaMacro( $this->dataLookup, $spaceId, $pageName, new MigrationConfig( [] ) );
+		$processor = new MultimediaMacro(
+			$this->createConverterDataWriter(),
+			$this->dataLookup,
+			$spaceId,
+			$pageName,
+			new MigrationConfig( [] )
+		);
 		$processor->process( $dom );
 		$actualOutput = $dom->saveXML();
 		$this->assertEquals( $expectedOutput, $actualOutput );
+	}
+
+	/**
+	 * @return IConverterDataWriter
+	 */
+	protected function createConverterDataWriter(): IConverterDataWriter {
+		return $this->createMock( IConverterDataWriter::class );
 	}
 }

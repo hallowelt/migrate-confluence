@@ -78,7 +78,10 @@ abstract class ContentProcessorBase extends ProcessorBase {
 			}
 
 			$convertedId = $idPrefix . $contentId;
-			$content .= $workspace->getConvertedContent( $convertedId ) . "\n";
+			$convertedContent = $workspace->getConvertedContent( $convertedId );
+			if ( $convertedContent !== false ) {
+				$content .= $convertedContent . "\n";
+			}
 		}
 
 		return $content;
@@ -109,6 +112,21 @@ abstract class ContentProcessorBase extends ProcessorBase {
 		}
 
 		return $userkeyToUsernameMap;
+	}
+
+	/**
+	 * Resolve the wiki username to record as revision contributor, or '' if
+	 * the `add-userinfo` setting is disabled or no user key is given.
+	 *
+	 * @param DBComposerDataLookup $dataLookup
+	 * @param string $userKey
+	 * @return string
+	 */
+	protected function resolveRevisionUsername( DBComposerDataLookup $dataLookup, string $userKey ): string {
+		if ( !$this->migrationConfig->getAddUserinfo() || $userKey === '' ) {
+			return '';
+		}
+		return $dataLookup->getUsernameFromUserKey( $userKey ) ?? $userKey;
 	}
 
 	/**

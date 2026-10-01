@@ -46,9 +46,6 @@ class ContentProperty extends ProcessorBase {
 			$this->xmlReader->next();
 		}
 		$propName = $properties['name'] ?? null;
-		if ( $propName !== 'inline-comment' && $propName !== 'inline-marker-ref' ) {
-			return;
-		}
 
 		$status = $this->writer->addContentProperty(
 			$propertyId,

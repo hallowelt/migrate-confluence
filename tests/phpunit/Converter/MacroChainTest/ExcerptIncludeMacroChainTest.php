@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
-use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use ReflectionClass;
@@ -13,6 +13,7 @@ use ReflectionClass;
 class ExcerptIncludeMacroChainTest extends MacroChainTestBase {
 
 	protected function setUp(): void {
+		parent::setUp();
 		$workspaceDb = $this->createWorkspaceDb();
 		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
 	}
@@ -126,14 +127,13 @@ class ExcerptIncludeMacroChainTest extends MacroChainTestBase {
 	}
 
 	/**
-	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro::process
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptIncludeMacro::process
 	 * @return void
 	 */
 	public function testMacroChain(): void {
 		$dir = dirname( __DIR__, 2 ) . '/data/PageExcerpt';
 		$fixtures = [
-			'excerpt-include-macro-input.xml' => 'excerpt-include-macro-output.wikitext',
-			'excerpt-include-macro-fallback-found-input.xml' => 'excerpt-include-macro-fallback-found-output.wikitext',
+			'excerpt-include-macro-input.xml' => 'BlueSpiceGalaxy/excerpt-include-macro-output.wikitext',
 		];
 
 		foreach ( $fixtures as $inputFixture => $expectedFixture ) {
@@ -143,7 +143,8 @@ class ExcerptIncludeMacroChainTest extends MacroChainTestBase {
 			$this->assertFileExists( $expectedPath, "Missing expected fixture $expectedFixture" );
 			$inputXml = (string)file_get_contents( $inputPath );
 			$expected = $this->applyConfluenceFinalReplacements( (string)file_get_contents( $expectedPath ) );
-			$actual = $this->runChainWithProcessor( new ExcerptIncludeMacro( $this->dataLookup, 42 ), $inputXml );
+			$processor = new ExcerptIncludeMacro( $this->dataLookup, 42, $this->placeholderManager );
+			$actual = $this->runChainWithProcessor( $processor, $inputXml );
 			$this->assertSame( $expected, $actual, "Mismatch for fixture $inputFixture" );
 		}
 	}

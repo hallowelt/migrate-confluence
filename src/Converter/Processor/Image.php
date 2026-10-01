@@ -4,58 +4,40 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMDocument;
 use DOMElement;
-use DOMException;
 use DOMNode;
-use HalloWelt\MigrateConfluence\Converter\IProcessor;
-use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
+use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
-class Image extends ConversionHelper implements IProcessor {
+/**
+ * Handles <ac:image> nodes. Raw HTML <img> nodes are handled by RawImage.
+ */
+class Image extends ImageProcessorBase {
 
-	/**
-	 * @var FilenameResolver
-	 */
-	protected FilenameResolver $filenameResolver;
-
-	/**
-	 * @param DBConversionDataLookup $dataLookup
-	 * @param int $currentSpaceId
-	 * @param string $rawPageTitle
-	 * @param MigrationConfig $migrationConfig
-	 */
 	public function __construct(
-		private DBConversionDataLookup $dataLookup,
-		private int $currentSpaceId,
-		private string $rawPageTitle,
+		protected IConverterDataWriter $writer,
+		protected DBConversionDataLookup $dataLookup,
+		protected int $currentSpaceId,
+		protected string $rawPageTitle,
 		MigrationConfig $migrationConfig
 	) {
+		parent::__construct( $writer, $this->currentSpaceId );
 		$this->filenameResolver = new FilenameResolver( $dataLookup, $migrationConfig );
 	}
 
-	/**
-	 * @inheritDoc
-	 */
 	public function process( DOMDocument $dom ): void {
-		$imageNodes = $dom->getElementsByTagName( 'image' );
+		$imageNodes = [];
 
-		$nonLiveList = [];
-		foreach ( $imageNodes as $imageNode ) {
-			$nonLiveList[] = $imageNode;
+		foreach ( $dom->getElementsByTagName( 'image' ) as $imageNode ) {
+			$imageNodes[] = $imageNode;
 		}
 
-		foreach ( $nonLiveList as $imageNode ) {
+		foreach ( $imageNodes as $imageNode ) {
 			$this->doProcessImage( $imageNode );
 		}
 	}
 
-	/**
-	 * @param DOMElement $node
-	 *
-	 * @return void
-	 * @throws DOMException
-	 */
 	private function doProcessImage( DOMElement $node ): void {
 		if ( $this->isImageWithPageLink( $node ) ) {
 			$pageLinkReplacementNode = $this->makeImagePageLinkReplacement( $node );
@@ -66,102 +48,63 @@ class Image extends ConversionHelper implements IProcessor {
 				$pageLinkReplacementNode,
 				$linkNode
 			);
-		} elseif ( $this->isImageWithExternalLink( $node ) ) {
+
+			return;
+		}
+
+		$enclosingExternalLink = $this->getEnclosingExternalLink( $node );
+
+		if ( $enclosingExternalLink ) {
+			$href = $enclosingExternalLink->getAttribute( 'href' );
+			$url = $this->getImageUrl( $node );
+
+			if ( $url !== '' ) {
+				$enclosingExternalLink->parentNode->replaceChild(
+					$this->makeExternalImageReplacement( $node, $href ),
+					$enclosingExternalLink
+				);
+
+				return;
+			}
+
 			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node );
-
-			$linkNode = $node->parentNode;
-			if ( $externalLinkReplacementNode === $node ) {
-				// ri:url image inside external link: replace just the <ac:image>
-				// with a plain text URL so the <a> survives and pandoc renders
-				// [href imageUrl] instead of dropping the link entirely.
-				$urlText = $this->getImageUrlText( $node );
-				$node->parentNode->replaceChild(
-					$this->createTextNode( $node->ownerDocument, $urlText, __METHOD__ ),
-					$node
-				);
-			} else {
-				$linkNode->parentNode->replaceChild(
+			if ( $externalLinkReplacementNode !== $node ) {
+				$enclosingExternalLink->parentNode->replaceChild(
 					$externalLinkReplacementNode,
-					$linkNode
+					$enclosingExternalLink
 				);
-			}
-		} else {
-			$replacementNode = $this->createTextNode(
-				$node->ownerDocument,
-				$this->getCategoryBroken( 'image' ),
-				__METHOD__
-			);
 
-			foreach ( $node->childNodes as $childNode ) {
-				if ( $childNode instanceof DOMElement === false ) {
-					continue;
-				}
-				if ( $childNode->nodeName === 'ri:url' ) {
-					$replacementNode = $this->makeImageUrlReplacement( $childNode );
-				} elseif ( $childNode->nodeName === 'ri:attachment' ) {
-					$replacementNode = $this->makeImageAttachmentReplacement( $childNode );
-				}
+				return;
 			}
 
-			$node->parentNode->replaceChild(
-				$replacementNode,
-				$node
-			);
+			$this->replaceWithBrokenExternalLink( $enclosingExternalLink, $href );
+
+			return;
 		}
+
+		$replacementNode = $this->createTextNode(
+			$node->ownerDocument,
+			$this->getCategoryBroken( 'image' ),
+			__METHOD__
+		);
+
+		foreach ( $node->childNodes as $childNode ) {
+			if ( $childNode instanceof DOMElement === false ) {
+				continue;
+			}
+			if ( $childNode->nodeName === 'ri:url' ) {
+				$replacementNode = $this->makeExternalImageReplacement( $node );
+			} elseif ( $childNode->nodeName === 'ri:attachment' ) {
+				$replacementNode = $this->makeImageAttachmentReplacement( $childNode );
+			}
+		}
+
+		$node->parentNode->replaceChild(
+			$replacementNode,
+			$node
+		);
 	}
 
-	/**
-	 * @param DOMElement $node
-	 *
-	 * @return array
-	 */
-	private function getImageAttributes( DOMElement $node ): array {
-		$attributes = [];
-		$width = '';
-		$height = '';
-
-		if ( $node->hasAttribute( 'ac:width' ) ) {
-			$width = $node->getAttribute( 'ac:width' );
-		}
-		if ( $node->hasAttribute( 'ac:height' ) ) {
-			$height = $node->getAttribute( 'ac:height' );
-		}
-		if ( $width !== '' || $height !== '' ) {
-			if ( $height !== '' ) {
-				$attributes['height'] = $height;
-			}
-			if ( $width !== '' ) {
-				$attributes['width'] = $width;
-			}
-		}
-
-		$classes = [];
-		if ( $node->getAttribute( 'ac:class' ) !== '' ) {
-			$classes[] = $node->getAttribute( 'ac:class' );
-		}
-		if ( $node->getAttribute( 'ac:thumbnail' ) !== '' ) {
-			$classes[] = 'thumb';
-		}
-		if ( !empty( $classes ) ) {
-			$attributes['class'] = implode( ' ', $classes );
-		}
-
-		if ( $node->getAttribute( 'ac:align' ) !== '' ) {
-			$attributes['align'] = $node->getAttribute( 'ac:align' );
-		}
-
-		if ( $node->getAttribute( 'ac:alt' ) !== '' ) {
-			$attributes['alt'] = $node->getAttribute( 'ac:alt' );
-		}
-
-		return $attributes;
-	}
-
-	/**
-	 * @param DOMElement $node
-	 *
-	 * @return array
-	 */
 	private function getImageParams( DOMElement $node ): array {
 		$params = [];
 
@@ -188,50 +131,93 @@ class Image extends ConversionHelper implements IProcessor {
 	}
 
 	/**
-	 * MediaWiki does not render an img tag.
-	 * But with $wgAllowExternalImages it can show external images.
-	 * If this variable is false we show at least the url as link.
-	 *
-	 * @param DOMElement $node
-	 *
-	 * @return DOMElement
-	 * @throws DOMException
+	 * MediaWiki does not render an img tag pointing to an external url.
+	 * Images with dimensions are wrapped in the {{ExternalImage}} template
+	 * so the wiki side can decide how to render them. Without dimensions the
+	 * url (stripped of query params) is output as plain text.
 	 */
-	private function makeImageUrlReplacement( DOMElement $node ): DOMElement {
-		$attributes = $this->getImageAttributes( $node->parentNode );
-
-		$originalUrl = $node->getAttribute( 'ri:value' );
-		$parsedUrl = parse_url( $originalUrl );
-
-		if ( !isset( $parsedUrl['scheme'] ) || !isset( $parsedUrl['host'] ) || !isset( $parsedUrl['path'] ) ) {
-			return $node;
+	private function makeExternalImageReplacement( DOMElement $imageNode, string $link = '' ): DOMNode {
+		$urlText = $this->getImageUrl( $imageNode );
+		if ( $urlText === '' ) {
+			return $imageNode;
 		}
 
-		// Remove url params
-		$src = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . $parsedUrl['path'];
-
-		$replacementNode = $node->ownerDocument->createElement( 'span' );
-
-		foreach ( $attributes as $name => $value ) {
-			$replacementNode->setAttribute( $name, $value );
-		}
-
-		if ( $originalUrl !== $src ) {
-			$replacementNode->setAttribute( 'data-original-url', $originalUrl );
-		}
-
-		$replacementNode->appendChild(
-			$this->createTextNode( $node->ownerDocument, $src, __METHOD__ )
+		$replacementText = $this->buildExternalImageTemplate(
+			$this->getExternalImageParams( $imageNode ),
+			$urlText,
+			$link
 		);
 
-		return $replacementNode;
+		return $this->createTextNode( $imageNode->ownerDocument, $replacementText, __METHOD__ );
 	}
 
 	/**
-	 * @param DOMElement $node
-	 *
-	 * @return DOMNode
+	 * Collects the <ac:image> node's attributes (e.g. ac:height, ac:width,
+	 * ac:align, ...) as "name=value" template params, stripping the "ac:"
+	 * namespace prefix. height/width come first for a stable, predictable
+	 * param order.
 	 */
+	private function getExternalImageParams( DOMElement $imageNode ): array {
+		$params = [];
+
+		foreach ( [ 'height', 'width' ] as $name ) {
+			$value = $imageNode->getAttribute( "ac:$name" );
+			if ( $value !== '' ) {
+				$params[$name] = $value;
+			}
+		}
+
+		foreach ( $imageNode->attributes as $attribute ) {
+			$name = $attribute->nodeName;
+			if ( strpos( $name, 'ac:' ) !== 0 ) {
+				continue;
+			}
+			$name = substr( $name, strlen( 'ac:' ) );
+
+			if ( isset( $params[$name] ) ) {
+				continue;
+			}
+
+			$params[$name] = $attribute->value;
+		}
+
+		return $params;
+	}
+
+	/**
+	 * The image inside the link could not be resolved (no ri:url, no usable
+	 * ri:attachment). Keep the link itself, using its href as link text,
+	 * and mark the page as containing a broken image.
+	 */
+	private function replaceWithBrokenExternalLink( DOMElement $anchor, string $href ): void {
+		$newAnchor = $this->replaceAnchorWithTextLink( $anchor, $href, $href );
+
+		$newAnchor->parentNode->insertBefore(
+			$this->createTextNode(
+				$newAnchor->ownerDocument,
+				$this->getCategoryBroken( 'image' ),
+				__METHOD__
+			),
+			$newAnchor->nextSibling
+		);
+	}
+
+	/**
+	 * Replaces the anchor (including any inline wrappers around the image)
+	 * with a fresh <a href="$href">$text</a>.
+	 */
+	private function replaceAnchorWithTextLink( DOMElement $anchor, string $href, string $text ): DOMElement {
+		$dom = $anchor->ownerDocument;
+
+		$newAnchor = $dom->createElement( 'a' );
+		$newAnchor->setAttribute( 'href', $href );
+		$newAnchor->appendChild( $this->createTextNode( $dom, $text, __METHOD__ ) );
+
+		$anchor->parentNode->replaceChild( $newAnchor, $anchor );
+
+		return $newAnchor;
+	}
+
 	private function makeImageAttachmentReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node->parentNode );
 
@@ -247,14 +233,13 @@ class Image extends ConversionHelper implements IProcessor {
 			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
 				$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			}
-			$spaceKey = '';
+
 			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
-			}
-			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
-				// TODO: Log if spaceId is null, but we should be able to
-				//resolve the filename without spaceId as well, so we can continue processing
+
+				if ( !empty( $spaceKey ) ) {
+					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				}
 			}
 		}
 
@@ -274,10 +259,6 @@ class Image extends ConversionHelper implements IProcessor {
 		);
 	}
 
-	/**
-	 * @param DOMElement $node
-	 * @return DOMNode
-	 */
 	private function makeImagePageLinkReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node );
 
@@ -295,19 +276,18 @@ class Image extends ConversionHelper implements IProcessor {
 			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
 				$linkPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			}
-			$spaceKey = '';
+
 			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
-			}
-			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
-				// TODO: Log if spaceId is null, but we should be able to
-				// resolve the filename without spaceId as well, so we can continue processing
+
+				if ( !empty( $spaceKey ) ) {
+					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				}
 			}
 		}
 
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
-				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
+			$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 		array_unshift( $params, $targetFilename );
 
 		$linkBody = $node->parentNode;
@@ -344,10 +324,6 @@ class Image extends ConversionHelper implements IProcessor {
 		return $replacementNode;
 	}
 
-	/**
-	 * @param DOMElement $node
-	 * @return DOMNode
-	 */
 	private function makeImageExternalLinkReplacement( DOMElement $node ): DOMNode {
 		$params = $this->getImageParams( $node );
 
@@ -364,26 +340,25 @@ class Image extends ConversionHelper implements IProcessor {
 			if ( $pageEl->getAttribute( 'ri:content-title' ) ) {
 				$rawPageTitle = $pageEl->getAttribute( 'ri:content-title' );
 			}
-			$spaceKey = '';
+
 			if ( $pageEl->getAttribute( 'ri:space-key' ) ) {
 				$spaceKey = $pageEl->getAttribute( 'ri:space-key' );
-			}
-			if ( !empty( $spaceKey ) ) {
-				$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
-				// TODO: Log if spaceId is null, but we should be able to
-				// resolve the filename without spaceId as well, so we can continue processing
+
+				if ( !empty( $spaceKey ) ) {
+					$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey ) ?? 0;
+				}
 			}
 		}
 
 		[ 'title' => $targetFilename, 'isBroken' => $isBrokenFile ] =
-				$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
+			$this->filenameResolver->resolve( $spaceId, $rawPageTitle, $filename );
 		array_unshift( $params, $targetFilename );
 
 		$brokenLinkInfo = '';
 		$target = '';
 
-		$link = $node->parentNode;
-		if ( $link instanceof DOMElement === false ) {
+		$link = $this->findEnclosingAnchor( $node );
+		if ( $link === null ) {
 			$brokenLinkInfo = $this->getCategoryBroken( 'image_external_link' );
 		} else {
 			$target = $link->getAttribute( 'href' );
@@ -409,14 +384,31 @@ class Image extends ConversionHelper implements IProcessor {
 		return $replacementNode;
 	}
 
+	private function isImageWithPageLink( DOMElement $node ): bool {
+		if ( $node->parentNode->nodeName === 'ac:link-body' ) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * @param DOMDocument $dom
-	 * @param array $params
-	 * @param string $confluenceFileKey
-	 * @param string $debug
-	 *
-	 * @return DOMNode
+	 * Extracts the plain URL string from an <ac:image> node's <ri:url> child,
+	 * stripping query parameters. Returns an empty string if not applicable.
 	 */
+	private function getImageUrl( DOMElement $imageNode ): string {
+		foreach ( $imageNode->childNodes as $child ) {
+			if ( $child instanceof DOMElement && $child->nodeName === 'ri:url' ) {
+				return $this->modifyExternalImageUrl( $child->getAttribute( 'ri:value' ) );
+			}
+		}
+		return '';
+	}
+
+	private function getImageReplacement( array $params ): string {
+		return '[[File:' . implode( '|', $params ) . ']]';
+	}
+
 	private function makeImageLinkWithDebugInfo( DOMDocument $dom, array $params,
 		string $confluenceFileKey, string $debug = '' ): DOMNode {
 		$params = array_map( 'trim', $params );
@@ -430,75 +422,4 @@ class Image extends ConversionHelper implements IProcessor {
 
 		return $this->createTextNode( $dom, $replacementText, __METHOD__ );
 	}
-
-	/**
-	 * @param array $params
-	 *
-	 * @return string
-	 */
-	private function getImageReplacement( array $params ): string {
-		return '[[File:' . implode( '|', $params ) . ']]';
-	}
-
-	/**
-	 * @param DOMElement $node
-	 *
-	 * @return bool
-	 */
-	private function isImageWithPageLink( DOMElement $node ): bool {
-		if ( $node->parentNode->nodeName === 'ac:link-body' ) {
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Extracts the plain URL string from an <ac:image> node's <ri:url> child,
-	 * stripping query parameters. Returns an empty string if not applicable.
-	 *
-	 * @param DOMElement $imageNode
-	 * @return string
-	 */
-	private function getImageUrlText( DOMElement $imageNode ): string {
-		foreach ( $imageNode->childNodes as $child ) {
-			if ( $child instanceof DOMElement && $child->nodeName === 'ri:url' ) {
-				$parsedUrl = parse_url( $child->getAttribute( 'ri:value' ) );
-				if ( isset( $parsedUrl['scheme'] ) && isset( $parsedUrl['host'] ) && isset( $parsedUrl['path'] ) ) {
-					return $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . $parsedUrl['path'];
-				}
-			}
-		}
-		return '';
-	}
-
-	/**
-	 * @param DOMElement $node
-	 *
-	 * @return bool
-	 */
-	private function isImageWithExternalLink( DOMElement $node ): bool {
-		if ( $node->parentNode->nodeName !== 'a' ) {
-			return false;
-		}
-
-		$anchor = $node->parentNode;
-		if ( $anchor instanceof DOMElement === false ) {
-			return false;
-		}
-
-		if ( !$anchor->hasAttribute( 'href' ) ) {
-			return false;
-		}
-
-		$href = $anchor->getAttribute( 'href' );
-		$parsedUrl = parse_url( $href );
-
-		if ( isset( $parsedUrl['scheme'] ) ) {
-			return true;
-		}
-
-		return false;
-	}
-
 }
