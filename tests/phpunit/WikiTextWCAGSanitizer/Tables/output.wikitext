@@ -1,0 +1,72 @@
+lorem ipsum
+{| class="wikitable-1"
+|+ Table 1
+! one
+! two
+|-
+| tree
+| four
+|}
+
+dolor sit amet
+
+{|class="wikitable-2"
+|+ Table 2
+! style="background-color:blue;! one
+!! two
+|-
+|style = "color: red;"| tree
+|| four
+|}
+
+lorem ipsum
+{| class="wikitable-3"
+! one
+! two
+|-
+| tree
+| four
+|+ Table 3: has caption bottom
+|}
+
+dolor sit amet
+
+{| class="wikitable-4"
+|+ Table 4: has caption top
+! style="background-color:blue;! one
+!! two
+|-
+|style = "color: red;"| tree
+|| four
+|}
+
+{| class="wikitable-5"
+|+ Table 5: has caption top
+! style="background-color:blue;! one
+!! two
+|-
+|style = "color: red;"| tree
+||
+{| class="wikitable-6"
+|+ Table 6
+! style="background-color:blue;! one
+!! two
+|-
+|style = "color: red;"| tree
+|| four
+|}
+|}
+
+lorem ipsum
+{| class="wikitable-7"! one! two|-| tree| four|+ Table 7: has caption bottom|}
+
+lorem ipsum
+{| class="wikitable-8"|+ Table 8 | one! two|-| tree| four|}
+
+lorem ipsum
+{| class="wikitable-9"! one! two|-|
+|+ Table 9
+
+lorem ipsum
+{| class="wikitable-10"|+ Table 10 | one! two|-| tree| four|}
+| four|}
