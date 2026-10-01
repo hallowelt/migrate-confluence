@@ -2,13 +2,12 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
-use HalloWelt\MigrateConfluence\Utility\Version;
 use HalloWelt\MigrateConfluence\Utility\MacroInfo;
-use Symfony\Component\Console\Input\InputOption;
+use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Output\StreamOutput;
 
 /**
  * report all macro usage
@@ -107,7 +106,7 @@ class ReportSupport extends Command {
 		$str .= sprintf( $rowTpl, 'macro name', 'support', 'required extensions' );
 		$str .= $rowSplit;
 		foreach ( $support['macros'] as $macroName => $macroInfo ) {
-			$str .= sprintf( $rowTpl, $macroName, match ($macroInfo['supportLevel'] ) {
+			$str .= sprintf( $rowTpl, $macroName, match ( $macroInfo['supportLevel'] ) {
 				MacroInfo::SUPPORT_LEVEL_UNKNOWN => 'unknown',
 				MacroInfo::SUPPORT_LEVEL_FULLY => 'full',
 				MacroInfo::SUPPORT_LEVEL_ALMOST_FULLY => 'almost full',
