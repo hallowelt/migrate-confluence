@@ -20,4 +20,5 @@ please open an issue first with the intended changes that you’d like to provid
 * **Tool behaviour:**
     * [Configuration](./configuration.md)
     * [Output profiles](./output_profiles.md)
+    * [Adding author info](./how_to_add_author_info.md)
     * [Structure of output files](./composer_output_structure.md)
