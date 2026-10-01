@@ -70,9 +70,31 @@ files uploaded into the wiki that are not referenced on any page.
 
 ### Missing Categories and Labels
 
-Open the special page `Special:WantedCategories`. On this page you can check
+Open the special page `Special:WantedCategories`. On this page you can check not
+only the helper categories that were automatically created, but also any labels
+that were migrated. Every Confluence label is transfered into a MediaWiki
+category.
 
-## Not migrated
-- User identities
-- Some layouts
-- Files of a space which can not be assigned to a page
+## Not Migrated at the Moment
+
+### User identities
+
+The migration allows to [retain author info](./how_to_add_author_info.md), but the
+user accounts themselves are not migrated. They need to be set up by the wiki
+admin.
+
+This will presumably never change. The security implications of automatically creating
+a large amount of user accounts are out of scope for this tool. (Think user groups,
+deleted users, external authentication, ...)
+
+### Some Layouts
+
+A set of page layouts is migrated (and editable with the PageLayouts extension). However,
+if your users crafted delicate nested layouts, chances are high that they will not be
+migrated fully.
+
+### Files of a space which can not be assigned to a page
+
+Files in Confluence are always assigned to a page. If the export contains a file that does
+not feature such a link, it is unclear, if it is a deleted file, a file from a different
+space or something else altogether. This file cannot be meaningfully migrated.
