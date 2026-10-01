@@ -160,14 +160,14 @@ class Convert extends CommandConvert {
 		}
 		$this->readConfigFile( $this->config );
 		$this->wikiTextBasePath = $this->dest . '/content/wikitext';
-		$this->makeTargetPathname();
-		$this->ensureTargetPath();
 
 		return parent::processFiles();
 	}
 
 	protected function doProcessFile(): bool {
 		$converterFactoryCallbacks = $this->config['converters'];
+		$this->makeTargetPathname();
+		$this->ensureTargetPath();
 
 		foreach ( $converterFactoryCallbacks as $key => $callback ) {
 			$converter = call_user_func_array(
