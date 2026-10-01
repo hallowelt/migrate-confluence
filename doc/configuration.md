@@ -234,4 +234,4 @@ subpages, e.g. `Marketing` turns `Page A` into
 not nested.
 
 Use this option additionally to `wiki-namespace`, if you want to migrate
-several spaces into the same wiki.
+several spaces into the same wiki and namespace.
