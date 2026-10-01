@@ -27,7 +27,7 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 		$params = $this->macroParams( $node, $macroReplacement );
 
 		if ( isset( $params[ 'url' ] ) ) {
-			$macroReplacement->nodeValue = $params['url'];
+			$macroReplacement->nodeValue = htmlspecialchars( $params['url'], ENT_QUOTES | ENT_XML1, 'UTF-8' );
 		}
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
