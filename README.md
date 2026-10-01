@@ -1,13 +1,10 @@
 # Migrate Confluence XML export to MediaWiki import data
 
-This is a command line tool to convert the contents of a Confluence space into
-a MediaWiki import data format. See also the [official BlueSpice Helpdesk
-entry](https://en.wiki.bluespice.com/wiki/Confluence_migration).
+This is a command line tool to convert the contents of a Confluence space into a MediaWiki import data format. See also the [official BlueSpice Helpdesk entry](https://en.wiki.bluespice.com/wiki/Confluence_migration).
 
 ## Docker
 
-The migrate confluence tool is available as [docker
-image](https://hub.docker.com/r/bluespice/migrate-confluence).
+The migrate confluence tool is available as [docker image](https://hub.docker.com/r/bluespice/migrate-confluence).
 
 ## Documentation
 
@@ -22,8 +19,7 @@ See [`doc/index.md`](doc/index.md) for an overview of available documentation.
 
 ## Config file
 
-It is possible to use a YAML file to configure the behavior of the tool. See
-[`doc/configuration.md`](doc/configuration.md) for details.
+It is possible to use a YAML file to configure the behavior of the tool. See [`doc/configuration.md`](doc/configuration.md) for details.
 
 ## TODO
 

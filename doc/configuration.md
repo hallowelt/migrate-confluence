@@ -233,5 +233,5 @@ subpages, e.g. `Marketing` turns `Page A` into
 `Marketing/Page A` (within the resolved namespace). If empty, pages are
 not nested.
 
-Use this option as an alternative to `wiki-namespace`, if you want to migrate
+Use this option additionally to `wiki-namespace`, if you want to migrate
 several spaces into the same wiki.

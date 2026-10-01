@@ -72,8 +72,8 @@ files uploaded into the wiki that are not referenced on any page.
 
 Open the special page `Special:WantedCategories`. On this page you can check not
 only the helper categories that were automatically created, but also any labels
-that were migrated. Every Confluence label is transfered into a MediaWiki
-category.
+that were migrated. Every Confluence label attached to a page, blog post or
+attachment is transfered into a MediaWiki category.
 
 ## Not Migrated at the Moment
 
@@ -93,8 +93,13 @@ A set of page layouts is migrated (and editable with the PageLayouts extension).
 if your users crafted delicate nested layouts, chances are high that they will not be
 migrated fully.
 
-### Files of a space which can not be assigned to a page
+> **Note:** If you haven’t got installed the PageLayouts extension you can mimic its
+> effects by copying the [styles from the extension](https://github.com/BlueSpice-Wiki/mediawiki-extensions-PageLayouts/blob/main/resources/styles-view.css)
+> into your [Common.css stylesheet](https://www.mediawiki.org/wiki/Manual:CSS).
+
+### Files without Association to a Page or Space
 
 Files in Confluence are always assigned to a page. If the export contains a file that does
 not feature such a link, it is unclear, if it is a deleted file, a file from a different
-space or something else altogether. This file cannot be meaningfully migrated.
+space or something else altogether. If it cannot be associated to the currently migrated
+space in other ways as well, the file cannot be meaningfully migrated.
