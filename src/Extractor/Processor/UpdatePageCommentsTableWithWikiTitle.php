@@ -3,6 +3,8 @@
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
+use HalloWelt\MigrateConfluence\Utility\WikiTitleUniquifier;
+use RuntimeException;
 
 class UpdatePageCommentsTableWithWikiTitle extends ProcessorBase {
 
@@ -10,12 +12,17 @@ class UpdatePageCommentsTableWithWikiTitle extends ProcessorBase {
 	 * @return void
 	 */
 	public function execute(): void {
+		$commentIdToWikiTitleMap = [];
 		foreach ( $this->workspaceDB->getPageComments() as $comment ) {
 			if ( !isset( $comment['comment_id'] ) || !isset( $comment['page_id'] ) ) {
 				continue;
 			}
 
 			$commentId = (int)$comment['comment_id'];
+			if ( isset( $comment['wiki_title'] ) && $comment['wiki_title'] !== '' ) {
+				continue;
+			}
+
 			$pageId = (int)$comment['page_id'];
 			$wikiTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $pageId );
 			if ( $wikiTitle === null || $wikiTitle === '' ) {
@@ -37,7 +44,20 @@ class UpdatePageCommentsTableWithWikiTitle extends ProcessorBase {
 				$talkTitle = 'Talk:' . $wikiTitle;
 			}
 
-			$this->workspaceDB->updatePageCommentWikiTitle( $commentId, $talkTitle );
+			$commentIdToWikiTitleMap[$commentId] = $talkTitle;
+		}
+
+		$commentIdToWikiTitleMap = WikiTitleUniquifier::makeUnique(
+			$commentIdToWikiTitleMap,
+			$this->workspaceDB->getPageCommentWikiTitles()
+		);
+
+		foreach ( $commentIdToWikiTitleMap as $commentId => $talkTitle ) {
+			if ( !$this->workspaceDB->updatePageCommentWikiTitle( (int)$commentId, $talkTitle ) ) {
+				$message = "Could not persist wiki title for page comment ID $commentId";
+				$this->dbLog->addLogEntry( 'error', 'extract', __CLASS__, $message );
+				throw new RuntimeException( $message );
+			}
 			$this->writeln( "Updated wiki title for page comment ID $commentId with title '$talkTitle'" );
 		}
 	}
