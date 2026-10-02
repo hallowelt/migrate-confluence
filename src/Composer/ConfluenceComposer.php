@@ -35,8 +35,10 @@ use Symfony\Component\Console\Output\Output;
  * wiki-local _shared directory for wiki-scoped defaults. If no wiki mapping is configured
  * (no --wikis CSV supplied to analyze), all spaces are grouped under a single implicit
  * wiki, see DEFAULT_WIKI_NAME.
+ *
+ * Not intended to be extended; all helper members are private.
  */
-class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
+final class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
 
 	/**
 	 * Directory/name used for the single implicit wiki when no wiki mapping was configured
@@ -60,32 +62,29 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	private ?PipeChannel $pipeChannel = null;
 
 	/** @var MigrationConfig */
-	protected MigrationConfig $migrationConfig;
+	private MigrationConfig $migrationConfig;
 
 	/** @var string */
-	protected string $dest = '';
+	private string $dest = '';
 
-	/** @var Workspace|null */
-	protected $workspace = null;
+	private Output $output;
 
-	protected Output $output;
-
-	protected DBComposerDataLookup $dataLookup;
+	private DBComposerDataLookup $dataLookup;
 
 	/** @var ComposerSkipHelper */
-	protected ComposerSkipHelper $skipHelper;
+	private ComposerSkipHelper $skipHelper;
 
 	/** @var WorkspaceDB|null */
-	protected ?WorkspaceDB $workspaceDB = null;
+	private ?WorkspaceDB $workspaceDB = null;
 
 	/** @var DBLog|null */
-	protected ?DBLog $dbLog = null;
+	private ?DBLog $dbLog = null;
 
 	/** @var int Total number of parallel compose worker processes (1 = no parallelism) */
-	protected int $workerCount = 1;
+	private int $workerCount = 1;
 
 	/** @var int Zero-based index of this worker process among $workerCount */
-	protected int $workerIndex = 0;
+	private int $workerIndex = 0;
 
 	/**
 	 * @var bool Set on the single, non-parallel pass that runs after all compose workers have
@@ -93,7 +92,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * content, wiki-level sidebar) that cannot be safely produced by concurrent workers
 	 * touching the same wiki. See finalizeWikis().
 	 */
-	protected bool $finalizeOnly = false;
+	private bool $finalizeOnly = false;
 
 	/**
 	 * @var array<string,string[]> subDir (wikiName/namespace) => file extensions, collected
@@ -101,7 +100,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * passed through here for the finalize pass to consume. Empty outside a finalize pass.
 	 * See finalizeWikis().
 	 */
-	protected array $namespaceFileExtensions = [];
+	private array $namespaceFileExtensions = [];
 
 	/**
 	 * @param array $config
@@ -131,7 +130,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 *
 	 * @return bool
 	 */
-	protected function isWorker(): bool {
+	private function isWorker(): bool {
 		return $this->workerCount > 1 && !$this->finalizeOnly;
 	}
 
@@ -141,7 +140,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 *
 	 * @return bool
 	 */
-	protected function isFinalizeOnly(): bool {
+	private function isFinalizeOnly(): bool {
 		return $this->finalizeOnly;
 	}
 
@@ -152,7 +151,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param int $index
 	 * @return bool
 	 */
-	protected function isMyShare( int $index ): bool {
+	private function isMyShare( int $index ): bool {
 		if ( $this->workerCount <= 1 ) {
 			return true;
 		}
@@ -196,7 +195,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param Builder $builder
 	 * @return void
 	 */
-	protected function doBuildXML( Builder $builder ): void {
+	private function doBuildXML( Builder $builder ): void {
 		$wikiNames = $this->getConfiguredWikiNames();
 
 		if ( $this->isFinalizeOnly() ) {
@@ -262,7 +261,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 *
 	 * @return string[]
 	 */
-	protected function getConfiguredWikiNames(): array {
+	private function getConfiguredWikiNames(): array {
 		$wikiNames = $this->dataLookup->getWikisConfigWikiNames();
 		if ( $wikiNames === [] ) {
 			return [ self::DEFAULT_WIKI_NAME ];
@@ -274,7 +273,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param string $wikiName
 	 * @return array
 	 */
-	protected function getSpacesForWiki( string $wikiName ): array {
+	private function getSpacesForWiki( string $wikiName ): array {
 		if ( $this->dataLookup->getWikisConfigWikiNames() === [] ) {
 			// No wiki mapping configured: every known space belongs to the implicit wiki.
 			return $this->dataLookup->getSpaces();
@@ -447,7 +446,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param string $subDir
 	 * @return void
 	 */
-	protected function addWikiImportHelper( string $subDir = '' ): void {
+	private function addWikiImportHelper( string $subDir = '' ): void {
 		$sourcePaths = glob( __DIR__ . '/_shell/*' );
 		if ( $sourcePaths === false || $sourcePaths === [] ) {
 			return;
@@ -465,7 +464,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param array $spaces
 	 * @return array
 	 */
-	protected function buildSpacesMap( array $spaces ): array {
+	private function buildSpacesMap( array $spaces ): array {
 		$map = [];
 		foreach ( $spaces as $space ) {
 			$spaceId = (int)$space['space_id'];
@@ -484,7 +483,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param Builder $builder
 	 * @return array
 	 */
-	protected function initProcessorsForSharedContent(
+	private function initProcessorsForSharedContent(
 		Builder $builder
 	): array {
 		return [
@@ -503,7 +502,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param int[] $spaceIds
 	 * @return void
 	 */
-	protected function runSharedContentProcessors( Builder $builder, string $subDir, array $spaceIds ): void {
+	private function runSharedContentProcessors( Builder $builder, string $subDir, array $spaceIds ): void {
 		foreach ( $this->initProcessorsForSharedContent( $builder ) as $processor ) {
 			$processor->setSubDir( $subDir );
 			if ( $processor instanceof ISpaceIdsDependentProcessor ) {
@@ -517,7 +516,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param Builder $builder
 	 * @return array
 	 */
-	protected function initProcessorsForSpaceContent(
+	private function initProcessorsForSpaceContent(
 		Builder $builder, ComposerDeploymentInfo $deploymentInfo
 	): array {
 		return [
@@ -566,7 +565,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param string $subDir
 	 * @return void
 	 */
-	protected function writeDeploymentLog(
+	private function writeDeploymentLog(
 		ComposerDeploymentInfo $deploymentInfo, string $subDir
 	): void {
 		$content = "# Namespaces\n\n";
@@ -587,7 +586,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param string $subDir
 	 * @return void
 	 */
-	protected function writeSkippedPagesLog(
+	private function writeSkippedPagesLog(
 		string $namespace, ComposerDeploymentInfo $deploymentInfo, string $subDir = ''
 	): void {
 		$skippedPages = $deploymentInfo->getSkippedPages();
@@ -601,7 +600,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param DBLog $dbLog
 	 * @return void
 	 */
-	protected function writeUserReadableDBLog( DBLog $dbLog ): void {
+	private function writeUserReadableDBLog( DBLog $dbLog ): void {
 		$this->writeDBLogContent( $dbLog, 'error' );
 		$this->writeDBLogContent( $dbLog, 'warning' );
 		$this->writeDBLogContent( $dbLog, 'info' );
@@ -611,7 +610,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param array $data
 	 * @return string
 	 */
-	protected function makeListContent( array $data ): string {
+	private function makeListContent( array $data ): string {
 		$content = '';
 		foreach ( $data as $item ) {
 			$content .= "$item\n";
@@ -624,7 +623,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param string $type
 	 * @return void
 	 */
-	protected function writeDBLogContent( DBLog $dbLog, string $type ): void {
+	private function writeDBLogContent( DBLog $dbLog, string $type ): void {
 		$data = $dbLog->getLogEntriesForStep( 'compose', $type );
 		$content = '';
 		foreach ( $data as $item ) {
@@ -640,7 +639,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 *
 	 * @return void
 	 */
-	protected function writeInvalidPagesLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
+	private function writeInvalidPagesLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
 			$data = array_merge( $data, $this->dataLookup->getInvalidPages( (int)$spaceId ) );
@@ -665,7 +664,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 *
 	 * @return void
 	 */
-	protected function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
+	private function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
 			$data = array_merge( $data, $this->dataLookup->getInvalidBlogPosts( (int)$spaceId ) );
@@ -690,7 +689,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 *
 	 * @return void
 	 */
-	protected function writeInvalidPageTemplatesLog(
+	private function writeInvalidPageTemplatesLog(
 		array $spaceIds, string $namespace = '', string $subDir = ''
 	): void {
 		$data = [];
@@ -716,7 +715,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 *
 	 * @return void
 	 */
-	protected function writeInvalidAttachmentsLog(
+	private function writeInvalidAttachmentsLog(
 		array $spaceIds, string $namespace = '', string $subDir = ''
 	): void {
 		$data = [];
@@ -740,7 +739,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param string $subDir
 	 * @return string
 	 */
-	protected function ensureLogPath( string $subDir ): string {
+	private function ensureLogPath( string $subDir ): string {
 		$path = $this->dest . "/result";
 		$path .= "/$subDir/log";
 		if ( !is_dir( $path ) ) {
@@ -754,7 +753,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param string $subDir
 	 * @return string
 	 */
-	protected function ensureDeploymentInfoPath( string $subDir ): string {
+	private function ensureDeploymentInfoPath( string $subDir ): string {
 		$path = $this->dest . "/result";
 		$path .= "/$subDir";
 		if ( !is_dir( $path ) ) {
@@ -770,7 +769,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param DBLog $dbLog
 	 * @return void
 	 */
-	protected function logMigrateConfluenceToolVersion( DBLog $dbLog ): void {
+	private function logMigrateConfluenceToolVersion( DBLog $dbLog ): void {
 		$dbLog->addLogEntry(
 			'info',
 			'compose',
@@ -783,7 +782,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param string $subDir
 	 * @return void
 	 */
-	protected function addSpaceImportHelper( string $subDir = '' ): void {
+	private function addSpaceImportHelper( string $subDir = '' ): void {
 		$sourcePaths = glob( __DIR__ . '/_shell/*' );
 		if ( $sourcePaths === false || $sourcePaths === [] ) {
 			return;
@@ -801,7 +800,7 @@ class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterfa
 	 * @param string $targetPath
 	 * @return void
 	 */
-	protected function copyShellScript( string $sourcePath, string $targetPath ): void {
+	private function copyShellScript( string $sourcePath, string $targetPath ): void {
 		if ( !file_exists( $sourcePath ) ) {
 			throw new \RuntimeException( 'Could not find shell script: ' . $sourcePath );
 		}
