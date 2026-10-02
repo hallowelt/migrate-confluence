@@ -20,8 +20,7 @@ $config = [
 		'HalloWelt\MigrateConfluence\Converter\ConfluenceConverterMediaWiki::factory'
 	],
 	'composers' => [
-		'HalloWelt\MigrateConfluence\Composer\NamespaceBasedComposer::factory',
-		'HalloWelt\MigrateConfluence\Composer\WikiBasedComposer::factory'
+		'HalloWelt\MigrateConfluence\Composer\ConfluenceComposer::factory'
 	],
 	'command-overrides' => [
 		'analyze' => [

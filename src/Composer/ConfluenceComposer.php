@@ -15,8 +15,10 @@ use HalloWelt\MigrateConfluence\Composer\Processor\Files;
 use HalloWelt\MigrateConfluence\Composer\Processor\InvalidContents;
 use HalloWelt\MigrateConfluence\Composer\Processor\PageComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
+use HalloWelt\MigrateConfluence\Composer\Processor\Sidebar;
 use HalloWelt\MigrateConfluence\Composer\Processor\Templates;
 use HalloWelt\MigrateConfluence\Composer\Processor\Users;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
@@ -27,51 +29,78 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Output\Output;
 
-abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
+/**
+ * All Confluence migrations are composed on a per-wiki basis: one output directory per
+ * target wiki below workspace/result, each containing namespace directories and a
+ * wiki-local _shared directory for wiki-scoped defaults. If no wiki mapping is configured
+ * (no --wikis CSV supplied to analyze), all spaces are grouped under a single implicit
+ * wiki, see DEFAULT_WIKI_NAME.
+ *
+ * Not intended to be extended; all helper members are private.
+ */
+final class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
+
+	/**
+	 * Directory/name used for the single implicit wiki when no wiki mapping was configured
+	 * (no --wikis CSV supplied to analyze). In that case all spaces are treated as if they
+	 * belonged to this one wiki.
+	 */
+	private const DEFAULT_WIKI_NAME = 'default';
+
+	/**
+	 * Round-robin index into the flattened list of (wiki, namespace) pairs across *all*
+	 * wikis, shared across every call to storeMigrationResult() in this instance. This is
+	 * what gives worker sharding namespace-level granularity instead of only wiki-level
+	 * granularity: a single large wiki with many namespaces still gets spread across every
+	 * worker, not pinned to just one of them.
+	 *
+	 * @var int
+	 */
+	private int $namespaceShardIndex = 0;
+
+	/** @var PipeChannel|null Lazily opened; only used when isWorker() actually sends data. */
+	private ?PipeChannel $pipeChannel = null;
 
 	/** @var MigrationConfig */
-	protected MigrationConfig $migrationConfig;
+	private MigrationConfig $migrationConfig;
 
 	/** @var string */
-	protected string $dest = '';
+	private string $dest = '';
 
-	/** @var Workspace|null */
-	protected $workspace = null;
+	private Output $output;
 
-	protected Output $output;
-
-	protected DBComposerDataLookup $dataLookup;
+	private DBComposerDataLookup $dataLookup;
 
 	/** @var ComposerSkipHelper */
-	protected ComposerSkipHelper $skipHelper;
+	private ComposerSkipHelper $skipHelper;
 
 	/** @var WorkspaceDB|null */
-	protected ?WorkspaceDB $workspaceDB = null;
+	private ?WorkspaceDB $workspaceDB = null;
 
 	/** @var DBLog|null */
-	protected ?DBLog $dbLog = null;
+	private ?DBLog $dbLog = null;
 
 	/** @var int Total number of parallel compose worker processes (1 = no parallelism) */
-	protected int $workerCount = 1;
+	private int $workerCount = 1;
 
 	/** @var int Zero-based index of this worker process among $workerCount */
-	protected int $workerIndex = 0;
+	private int $workerIndex = 0;
 
 	/**
 	 * @var bool Set on the single, non-parallel pass that runs after all compose workers have
 	 * finished, to aggregate wiki-level artifacts (deployment.txt, wikiimport.sh, shared
 	 * content, wiki-level sidebar) that cannot be safely produced by concurrent workers
-	 * touching the same wiki. See WikiBasedComposer.
+	 * touching the same wiki. See finalizeWikis().
 	 */
-	protected bool $finalizeOnly = false;
+	private bool $finalizeOnly = false;
 
 	/**
 	 * @var array<string,string[]> subDir (wikiName/namespace) => file extensions, collected
 	 * from all workers by the orchestrator (via ComposeDataWriter over the fd-3 DB pipe) and
 	 * passed through here for the finalize pass to consume. Empty outside a finalize pass.
-	 * See WikiBasedComposer.
+	 * See finalizeWikis().
 	 */
-	protected array $namespaceFileExtensions = [];
+	private array $namespaceFileExtensions = [];
 
 	/**
 	 * @param array $config
@@ -101,17 +130,17 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 *
 	 * @return bool
 	 */
-	protected function isWorker(): bool {
+	private function isWorker(): bool {
 		return $this->workerCount > 1 && !$this->finalizeOnly;
 	}
 
 	/**
 	 * Whether this is the single, non-parallel finalize pass that runs after all compose
-	 * workers have finished (see WikiBasedComposer for what it aggregates).
+	 * workers have finished (see finalizeWikis() for what it aggregates).
 	 *
 	 * @return bool
 	 */
-	protected function isFinalizeOnly(): bool {
+	private function isFinalizeOnly(): bool {
 		return $this->finalizeOnly;
 	}
 
@@ -122,7 +151,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param int $index
 	 * @return bool
 	 */
-	protected function isMyShare( int $index ): bool {
+	private function isMyShare( int $index ): bool {
 		if ( $this->workerCount <= 1 ) {
 			return true;
 		}
@@ -162,13 +191,278 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 		$this->doBuildXML( $builder );
 	}
 
-	abstract protected function doBuildXML( Builder $builder ): void;
+	/**
+	 * @param Builder $builder
+	 * @return void
+	 */
+	private function doBuildXML( Builder $builder ): void {
+		$wikiNames = $this->getConfiguredWikiNames();
+
+		if ( $this->isFinalizeOnly() ) {
+			// Workers only produced per-namespace artifacts (self-contained). Aggregate the
+			// once-per-wiki artifacts here, in a single non-parallel pass, without redoing
+			// any of the actual (expensive) content processing.
+			$this->finalizeWikis( $wikiNames, $builder );
+			$this->writeUserReadableDBLog( $this->dbLog );
+			return;
+		}
+
+		// Run space dependent processors for each space, grouped by target wiki.
+		$this->output->writeln( "Data is assigned to some wikis." );
+
+		foreach ( $wikiNames as $wikiName ) {
+			$spaces = $this->getSpacesForWiki( $wikiName );
+			if ( $spaces === [] ) {
+				$this->output->writeln( "No spaces found for wiki '$wikiName'." );
+				continue;
+			}
+
+			// Shared content and the wiki-level sidebar/deployment.txt/wikiimport.sh are
+			// once-per-wiki artifacts. If multiple workers process namespaces of the *same*
+			// wiki concurrently, only one of them (the single, non-parallel run) may write
+			// these; otherwise workers would race on the same files or overwrite each other's
+			// (partial) ComposerDeploymentInfo. They are produced later by the finalize pass
+			// instead — see isFinalizeOnly() above.
+			if ( !$this->isWorker() ) {
+				$this->runSharedContentProcessors(
+					$builder,
+					$wikiName . '/_shared',
+					array_map( 'intval', array_column( $spaces, 'space_id' ) )
+				);
+			}
+
+			$spacesMap = $this->buildSpacesMap( $spaces );
+			$deploymentInfo = $this->storeMigrationResult( $spacesMap, $builder, $wikiName );
+
+			if ( !$this->isWorker() ) {
+				$sidebarProcessor = new Sidebar(
+					$this->dataLookup, $this->migrationConfig, $this->dest, $spaces
+				);
+				$sidebarProcessor->setSubDir( $wikiName );
+				$sidebarProcessor->execute();
+
+				$this->addWikiImportHelper( $wikiName );
+				$this->writeDeploymentLog( $deploymentInfo, $wikiName );
+			}
+
+			$this->output->writeln( "Processing wiki '$wikiName' with " . count( $spaces ) . " spaces." );
+		}
+
+		if ( !$this->isWorker() ) {
+			$this->writeUserReadableDBLog( $this->dbLog );
+		}
+	}
+
+	/**
+	 * Target wiki names to process. If no wiki mapping was configured (no --wikis CSV
+	 * supplied to analyze), all spaces are grouped under a single implicit wiki name, so
+	 * migrations without an explicit wiki mapping are composed the same way as migrations
+	 * with exactly one configured wiki.
+	 *
+	 * @return string[]
+	 */
+	private function getConfiguredWikiNames(): array {
+		$wikiNames = $this->dataLookup->getWikisConfigWikiNames();
+		if ( $wikiNames === [] ) {
+			return [ self::DEFAULT_WIKI_NAME ];
+		}
+		return $wikiNames;
+	}
+
+	/**
+	 * @param string $wikiName
+	 * @return array
+	 */
+	private function getSpacesForWiki( string $wikiName ): array {
+		if ( $this->dataLookup->getWikisConfigWikiNames() === [] ) {
+			// No wiki mapping configured: every known space belongs to the implicit wiki.
+			return $this->dataLookup->getSpaces();
+		}
+		return $this->dataLookup->getWikisConfigSpacesForWikiName( $wikiName );
+	}
+
+	/**
+	 * Run the per-namespace processors for this worker's assigned slice of $spacesMap.
+	 * Namespaces are round-robin sliced across worker processes (namespace-level, not
+	 * wiki-level, granularity); namespace size is not taken into account.
+	 *
+	 * @param array $spacesMap
+	 * @param Builder $builder
+	 * @param string $wikiName
+	 * @return ComposerDeploymentInfo Aggregated over the namespaces *this call* processed
+	 *   (all of them for a single-process run, only this worker's slice otherwise).
+	 */
+	private function storeMigrationResult(
+		array $spacesMap, Builder $builder, string $wikiName = ''
+	): ComposerDeploymentInfo {
+		$wikiDeploymentInfo = new ComposerDeploymentInfo();
+
+		foreach ( $spacesMap as $namespace => $spaces ) {
+			if ( $this->skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
+				$this->output->writeln( "Skip namespace '$namespace' by configuration." );
+				continue;
+			}
+
+			if ( !$this->isMyShare( $this->namespaceShardIndex++ ) ) {
+				continue;
+			}
+
+			if ( $wikiName === '' ) {
+				$this->output->writeln( "Wikiname for namespace '$namespace' is empty. -> skipping" );
+				continue;
+			}
+			$subDir = $wikiName . '/' . $namespace;
+
+			// Own instance per namespace: keeps this namespace's processing (and its
+			// skipped-pages log) self-contained and safe to run concurrently with other
+			// workers processing other namespaces of the same wiki.
+			$namespaceDeploymentInfo = new ComposerDeploymentInfo();
+			$namespaceDeploymentInfo->addNamespace( $namespace );
+
+			$processors = $this->initProcessorsForSpaceContent( $builder, $namespaceDeploymentInfo );
+
+			$spaceIds = array_keys( $spaces );
+			foreach ( $processors as $processor ) {
+				if ( $processor instanceof ISubDirAware ) {
+					$processor->setSubDir( $subDir );
+				}
+				if ( $processor instanceof ISpaceIdsDependentProcessor ) {
+					$processor->setCurrentSpaceIds( $spaceIds );
+				}
+				$processor->execute();
+			}
+
+			// Add enhanced sidebar to the namespace directory, not shared. It is a namespace-scoped feature.
+			$sidebarProcessor = new Sidebar(
+				$this->dataLookup, $this->migrationConfig, $this->dest, $spaces
+			);
+			if ( $sidebarProcessor instanceof ISubDirAware ) {
+				$sidebarProcessor->setSubDir( $subDir );
+			}
+			$sidebarProcessor->execute();
+
+			$this->writeSkippedPagesLog( $namespace, $namespaceDeploymentInfo, $subDir );
+			$this->writeInvalidPagesLog( $spaceIds, $namespace, $subDir );
+			$this->writeInvalidBlogPostsLog( $spaceIds, $namespace, $subDir );
+			$this->writeInvalidAttachmentsLog( $spaceIds, $namespace, $subDir );
+			$this->writeInvalidPageTemplatesLog( $spaceIds, $namespace, $subDir );
+
+			$wikiDeploymentInfo->addNamespace( $namespace );
+			foreach ( $namespaceDeploymentInfo->getFileExtensions() as $extension ) {
+				$wikiDeploymentInfo->addFileExtension( $extension );
+			}
+
+			if ( $this->isWorker() ) {
+				// The wiki-level deployment.txt is deferred to the finalize pass (it may need
+				// to merge contributions from other workers touching the same wiki). Send
+				// this namespace's file extensions over the DB pipe (fd 3) so the orchestrator
+				// can hand them to the finalize pass in memory — no temp files, mirroring how
+				// Analyze/Convert stream results back to the parent process.
+				$this->getPipeChannel()->send(
+					[ 'addNamespaceExtensions', $subDir, $namespaceDeploymentInfo->getFileExtensions() ]
+				);
+			}
+		}
+
+		return $wikiDeploymentInfo;
+	}
+
+	/**
+	 * @return PipeChannel
+	 */
+	private function getPipeChannel(): PipeChannel {
+		if ( $this->pipeChannel === null ) {
+			$this->pipeChannel = new PipeChannel();
+		}
+		return $this->pipeChannel;
+	}
+
+	/**
+	 * Non-parallel pass run once after all compose workers have finished. Produces the
+	 * once-per-wiki artifacts (shared content, wiki-level sidebar, deployment.txt,
+	 * wikiimport.sh) that workers skipped while processing their namespace slices.
+	 *
+	 * @param array $wikiNames
+	 * @param Builder $builder
+	 * @return void
+	 */
+	private function finalizeWikis( array $wikiNames, Builder $builder ): void {
+		foreach ( $wikiNames as $wikiName ) {
+			$spaces = $this->getSpacesForWiki( $wikiName );
+			if ( $spaces === [] ) {
+				continue;
+			}
+
+			$this->runSharedContentProcessors(
+				$builder,
+				$wikiName . '/_shared',
+				array_map( 'intval', array_column( $spaces, 'space_id' ) )
+			);
+
+			$spacesMap = $this->buildSpacesMap( $spaces );
+			$deploymentInfo = $this->mergeWikiDeploymentInfo( $spacesMap, $wikiName );
+
+			$sidebarProcessor = new Sidebar(
+				$this->dataLookup, $this->migrationConfig, $this->dest, $spaces
+			);
+			$sidebarProcessor->setSubDir( $wikiName );
+			$sidebarProcessor->execute();
+
+			$this->addWikiImportHelper( $wikiName );
+			$this->writeDeploymentLog( $deploymentInfo, $wikiName );
+		}
+	}
+
+	/**
+	 * Reconstruct the wiki-level ComposerDeploymentInfo from each namespace's file
+	 * extensions, collected in memory from workers (via ComposeDataWriter) and passed
+	 * through $this->namespaceFileExtensions, without re-running any content processing.
+	 *
+	 * @param array $spacesMap
+	 * @param string $wikiName
+	 * @return ComposerDeploymentInfo
+	 */
+	private function mergeWikiDeploymentInfo( array $spacesMap, string $wikiName ): ComposerDeploymentInfo {
+		$deploymentInfo = new ComposerDeploymentInfo();
+
+		foreach ( $spacesMap as $namespace => $spaces ) {
+			if ( $this->skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
+				continue;
+			}
+			$deploymentInfo->addNamespace( $namespace );
+
+			$subDir = $wikiName . '/' . $namespace;
+			foreach ( $this->namespaceFileExtensions[$subDir] ?? [] as $extension ) {
+				$deploymentInfo->addFileExtension( $extension );
+			}
+		}
+
+		return $deploymentInfo;
+	}
+
+	/**
+	 * @param string $subDir
+	 * @return void
+	 */
+	private function addWikiImportHelper( string $subDir = '' ): void {
+		$sourcePaths = glob( __DIR__ . '/_shell/*' );
+		if ( $sourcePaths === false || $sourcePaths === [] ) {
+			return;
+		}
+
+		$targetDir = $this->dest . "/result";
+		if ( $subDir !== '' ) {
+			$targetDir .= "/$subDir";
+			$sourcePath = __DIR__ . '/_shell/wikiimport.sh';
+			$this->copyShellScript( $sourcePath, $targetDir . '/wikiimport.sh' );
+		}
+	}
 
 	/**
 	 * @param array $spaces
 	 * @return array
 	 */
-	protected function buildSpacesMap( array $spaces ): array {
+	private function buildSpacesMap( array $spaces ): array {
 		$map = [];
 		foreach ( $spaces as $space ) {
 			$spaceId = (int)$space['space_id'];
@@ -187,7 +481,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param Builder $builder
 	 * @return array
 	 */
-	protected function initProcessorsForSharedContent(
+	private function initProcessorsForSharedContent(
 		Builder $builder
 	): array {
 		return [
@@ -206,7 +500,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param int[] $spaceIds
 	 * @return void
 	 */
-	protected function runSharedContentProcessors( Builder $builder, string $subDir, array $spaceIds ): void {
+	private function runSharedContentProcessors( Builder $builder, string $subDir, array $spaceIds ): void {
 		foreach ( $this->initProcessorsForSharedContent( $builder ) as $processor ) {
 			$processor->setSubDir( $subDir );
 			if ( $processor instanceof ISpaceIdsDependentProcessor ) {
@@ -220,7 +514,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param Builder $builder
 	 * @return array
 	 */
-	protected function initProcessorsForSpaceContent(
+	private function initProcessorsForSpaceContent(
 		Builder $builder, ComposerDeploymentInfo $deploymentInfo
 	): array {
 		return [
@@ -269,7 +563,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param string $subDir
 	 * @return void
 	 */
-	protected function writeDeploymentLog(
+	private function writeDeploymentLog(
 		ComposerDeploymentInfo $deploymentInfo, string $subDir
 	): void {
 		$content = "# Namespaces\n\n";
@@ -290,7 +584,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param string $subDir
 	 * @return void
 	 */
-	protected function writeSkippedPagesLog(
+	private function writeSkippedPagesLog(
 		string $namespace, ComposerDeploymentInfo $deploymentInfo, string $subDir = ''
 	): void {
 		$skippedPages = $deploymentInfo->getSkippedPages();
@@ -304,7 +598,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param DBLog $dbLog
 	 * @return void
 	 */
-	protected function writeUserReadableDBLog( DBLog $dbLog ): void {
+	private function writeUserReadableDBLog( DBLog $dbLog ): void {
 		$this->writeDBLogContent( $dbLog, 'error' );
 		$this->writeDBLogContent( $dbLog, 'warning' );
 		$this->writeDBLogContent( $dbLog, 'info' );
@@ -314,7 +608,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param array $data
 	 * @return string
 	 */
-	protected function makeListContent( array $data ): string {
+	private function makeListContent( array $data ): string {
 		$content = '';
 		foreach ( $data as $item ) {
 			$content .= "$item\n";
@@ -327,7 +621,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param string $type
 	 * @return void
 	 */
-	protected function writeDBLogContent( DBLog $dbLog, string $type ): void {
+	private function writeDBLogContent( DBLog $dbLog, string $type ): void {
 		$data = $dbLog->getLogEntriesForStep( 'compose', $type );
 		$content = '';
 		foreach ( $data as $item ) {
@@ -343,7 +637,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 *
 	 * @return void
 	 */
-	protected function writeInvalidPagesLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
+	private function writeInvalidPagesLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
 			$data = array_merge( $data, $this->dataLookup->getInvalidPages( (int)$spaceId ) );
@@ -368,7 +662,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 *
 	 * @return void
 	 */
-	protected function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
+	private function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
 		$data = [];
 		foreach ( $spaceIds as $spaceId ) {
 			$data = array_merge( $data, $this->dataLookup->getInvalidBlogPosts( (int)$spaceId ) );
@@ -393,7 +687,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 *
 	 * @return void
 	 */
-	protected function writeInvalidPageTemplatesLog(
+	private function writeInvalidPageTemplatesLog(
 		array $spaceIds, string $namespace = '', string $subDir = ''
 	): void {
 		$data = [];
@@ -419,7 +713,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 *
 	 * @return void
 	 */
-	protected function writeInvalidAttachmentsLog(
+	private function writeInvalidAttachmentsLog(
 		array $spaceIds, string $namespace = '', string $subDir = ''
 	): void {
 		$data = [];
@@ -443,7 +737,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param string $subDir
 	 * @return string
 	 */
-	protected function ensureLogPath( string $subDir ): string {
+	private function ensureLogPath( string $subDir ): string {
 		$path = $this->dest . "/result";
 		$path .= "/$subDir/log";
 		if ( !is_dir( $path ) ) {
@@ -457,7 +751,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param string $subDir
 	 * @return string
 	 */
-	protected function ensureDeploymentInfoPath( string $subDir ): string {
+	private function ensureDeploymentInfoPath( string $subDir ): string {
 		$path = $this->dest . "/result";
 		$path .= "/$subDir";
 		if ( !is_dir( $path ) ) {
@@ -473,7 +767,7 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	 * @param DBLog $dbLog
 	 * @return void
 	 */
-	protected function logMigrateConfluenceToolVersion( DBLog $dbLog ): void {
+	private function logMigrateConfluenceToolVersion( DBLog $dbLog ): void {
 		$dbLog->addLogEntry(
 			'info',
 			'compose',
@@ -483,28 +777,11 @@ abstract class ConfluenceComposerBase extends ComposerBase implements IOutputAwa
 	}
 
 	/**
-	 * @param string $subDir
-	 * @return void
-	 */
-	protected function addSpaceImportHelper( string $subDir = '' ): void {
-		$sourcePaths = glob( __DIR__ . '/_shell/*' );
-		if ( $sourcePaths === false || $sourcePaths === [] ) {
-			return;
-		}
-
-		if ( $subDir !== '' ) {
-			$sourcePath = __DIR__ . '/_shell/spaceimport.sh';
-			$targetDir = $this->dest . "/result/$subDir";
-			$this->copyShellScript( $sourcePath, $targetDir . '/spaceimport.sh' );
-		}
-	}
-
-	/**
 	 * @param string $sourcePath
 	 * @param string $targetPath
 	 * @return void
 	 */
-	protected function copyShellScript( string $sourcePath, string $targetPath ): void {
+	private function copyShellScript( string $sourcePath, string $targetPath ): void {
 		if ( !file_exists( $sourcePath ) ) {
 			throw new \RuntimeException( 'Could not find shell script: ' . $sourcePath );
 		}
