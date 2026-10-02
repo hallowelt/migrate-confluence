@@ -60,9 +60,7 @@ class Spaces extends ProcessorBase {
 
 		// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
 		$namespacePrefix = '';
-		if ( $spaceKey !== 'GENERAL' ) {
-			$namespacePrefix = $this->wikis->getNamespaceForSpaceKey( $spaceKey );
-		}
+		$namespacePrefix = $this->wikis->getNamespaceForSpaceKey( $spaceKey );
 
 		$interwikiPrefix = $this->wikis->getInterwikiPrefixForSpaceKey( $spaceKey );
 		$rootPage = $this->wikis->getRootPageForSpaceKey( $spaceKey );
