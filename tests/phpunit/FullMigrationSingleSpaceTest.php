@@ -9,7 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
-use HalloWelt\MigrateConfluence\Composer\WikiBasedComposer;
+use HalloWelt\MigrateConfluence\Composer\ConfluenceComposer;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceGalaxy;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
@@ -63,7 +63,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	 * @covers \HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\ConfluenceExtractor
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceGalaxy
-	 * @covers \HalloWelt\MigrateConfluence\Composer\WikiBasedComposer
+	 * @covers \HalloWelt\MigrateConfluence\Composer\ConfluenceComposer
 	 */
 	public function testMigration(): void {
 		$src = $this->tempDir . '/single-source/input';
@@ -231,6 +231,44 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			'cs-comments',
 			$blogTalkPages['Blog_Talk:CON/My_Blog_Post'],
 			'Expected cs-comments slot in blog talk page.'
+		);
+
+		// Verify manifest.json
+		$manifestFile = $this->tempDir . '/single-source/workspace/result/manifest.json';
+		$this->assertFileExists( $manifestFile );
+		$manifest = json_decode( file_get_contents( $manifestFile ), true );
+		$this->assertSame( 'confluence', $manifest['source_system'] );
+		$this->assertCount( 1, $manifest['target']['wikis'] );
+		$this->assertSame( 'full-migration-wiki', $manifest['target']['wikis'][0]['sfr'] );
+
+		// Verify namespace_import_config.json: THRD is mapped to NS_MAIN and must be
+		// excluded; CON and SECOND get sequential IDs starting at 3000.
+		$namespaceConfigFile = $this->tempDir
+			. '/single-source/workspace/result/full-migration-wiki/namespace_import_config.json';
+		$this->assertFileExists( $namespaceConfigFile );
+		$namespaceConfig = json_decode( file_get_contents( $namespaceConfigFile ), true );
+		$this->assertSame(
+			[
+				'3000' => [
+					'name' => 'CON',
+					'subpages' => true,
+					'content' => true,
+					'pagetemplates' => true,
+					'visualeditor' => true,
+					'smw' => true,
+					'commentstreams' => true,
+				],
+				'3002' => [
+					'name' => 'SECOND',
+					'subpages' => true,
+					'content' => true,
+					'pagetemplates' => true,
+					'visualeditor' => true,
+					'smw' => true,
+					'commentstreams' => true,
+				],
+			],
+			$namespaceConfig
 		);
 	}
 
@@ -443,7 +481,7 @@ class FullMigrationSingleSpaceTest extends TestCase {
 	): void {
 		$buckets = new DataBuckets( [] );
 
-		$composer = new WikiBasedComposer( $config, $workspace, $buckets );
+		$composer = new ConfluenceComposer( $config, $workspace, $buckets );
 		$composer->setOutput( $output );
 		$composer->setDestinationPath( $dest );
 

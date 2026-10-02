@@ -17,6 +17,11 @@ See [`doc/index.md`](doc/index.md) for an overview of available documentation.
 3. Import into MediaWiki: See [`doc/how_to_import_the_result.md`](doc/how_to_import_the_result.md) to get the data into your wiki.
 4. Manual post-import maintenance: See [`doc/how_to_evaluate_the_result.md`](doc/how_to_evaluate_the_result.md) for tips on how to check the faithfulness of the migration result.
 
+
+### Import into MediaWiki
+
+> **Note:** For the file import you need the extension [BlueSpiceDistributionConnector](https://www.mediawiki.org/wiki/Extension:DistributionConnector) with minimum version 5.1.9 or 5.2.5 installed. See your wiki’s [Special:Version](https://en.wiki5.bluespice.com/wiki/Special:Version) page to check the requirement.
+
 ## Config file
 
 It is possible to use a YAML file to configure the behavior of the tool. See [`doc/configuration.md`](doc/configuration.md) for details.

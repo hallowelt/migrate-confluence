@@ -3,7 +3,7 @@
 You converted your data by [running the migration tool](./usage.md). Now it’s time to reap
 the harvest and import the content into your MediaWiki instance.
 
-The migration tool adds helper scripts for the import. You can choose to use them or issue the
+The migration tool adds a helper script for the import. You can choose to use it or issue the
 commands yourself for maximum control. We describe both processes below.
 
 > **Note:** For the file import you need the extension [BlueSpiceDistributionConnector](https://www.mediawiki.org/wiki/Extension:DistributionConnector) with minimum version 5.1.9 or 5.2.5 installed. See your wiki’s [Special:Version](https://en.wiki5.bluespice.com/wiki/Special:Version) page to check the requirement.
@@ -22,21 +22,20 @@ commands yourself for maximum control. We describe both processes below.
 > **Note:** For a detailed description of the composer modes and their output directory
 > layout, see [Composer Output Structure](./composer_output_structure.md).
 
-Two helper scripts in `result/*/` automate the import steps from above:
+A helper script in `result/*/` automates the import steps from above:
 
-* `spaceimport.sh` imports a single namespace directory. Use this if you import all data into the same wiki.
-* `wikiimport.sh` imports all namespace directories of one wiki. Use this if you import data into several wiki instances.
+* `wikiimport.sh` imports all namespace directories of one wiki.
 
-Both handle split output as well, e.g. `pages-00000001.xml`,
+It handles split output as well, e.g. `pages-00000001.xml`,
 `pages-00000002.xml`, ...
 
-**Common options:**
+**Options:**
 
 | Option | Description |
 | --- | --- |
 | `--wiki-root=PATH` | Required. Path to the MediaWiki root directory. |
-| `--src=PATH` | Directory to import. Defaults to the directory the script is located in. |
-| `--add-default` | Also import `default-files*.xml` and `default-pages*.xml`. For wiki-based output they are read from `_shared`; for namespace-based output they are read from the namespace directory. |
+| `--src=PATH` | Wiki directory to import. Defaults to the directory the script is located in. |
+| `--add-default` | Also import `default-files*.xml` and `default-pages*.xml` from `_shared`. |
 | `--dry` | Dry run. Only print the import commands so you can verify the paths. |
 | `--sfr=NAME` | MediaWiki wiki instance, forwarded to both import maintenance scripts. Omit it for the default wiki. |
 
@@ -55,22 +54,6 @@ Import order per namespace directory:
 Only `pages*.xml` is mandatory, all other groups are skipped with a note when
 they are missing. `user.xml` is intentionally ignored.
 
-### spaceimport.sh
-
-Expects the namespace based composer output:
-
-```bash
-result/<namespace>/{default-files,default-pages,files,templates,pages,page-talk,blogs,blog-talk}.xml
-result/<namespace>/default-images/*
-```
-
-`--src` points to the namespace directory. Default files and pages are imported
-from the same directory when `--add-default` is used:
-
-```bash
-spaceimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/ABC --add-default
-```
-
 ### wikiimport.sh
 
 Expects the wiki based composer output:
@@ -88,8 +71,23 @@ imported and the `_shared` data is imported once per wiki:
 wikiimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/MyWiki --sfr=MyWiki --add-default
 ```
 
-If `--add-default` is used but no `_shared` directory exists, both scripts print
-a warning and continue.
+`wikiimport.sh` additionally supports `--mode=all|no-files|files-only` (default: `all`),
+to choose which XML groups are imported:
+
+| Mode | Description |
+| --- | --- |
+| `all` (default) | Import everything, including file/media attachments. |
+| `no-files` | Import everything **except** file/media attachments: skips `files*.xml` and `_shared/default-files*.xml`. |
+| `files-only` | Import **only** file/media attachments: `files*.xml` and `_shared/default-files*.xml`. |
+
+`--no-files` and `--files-only` are shortcuts for `--mode=no-files` and `--mode=files-only`.
+
+```bash
+wikiimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/MyWiki --sfr=MyWiki --add-default --files-only
+```
+
+If `--add-default` is used but no `_shared` directory exists, the script prints
+a warning and continues.
 
 ## Final Touches after the Import
 
