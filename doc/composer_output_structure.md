@@ -1,87 +1,19 @@
 # Composer Output Structure
 
-The compose step turns converted workspace data into MediaWiki import XML files.
-There are two composer modes, depending on whether the migration configuration assigns
-Confluence spaces to target wikis.
+The compose step turns converted workspace data into MediaWiki import XML files. All
+migrations are composed on a per-wiki basis by `ConfluenceComposerBase`, which creates one
+output directory per target wiki below `workspace/result`. Each wiki directory contains
+namespace directories and one `_shared` directory.
 
-- `NamespaceBasedComposer` is used when no wiki mapping is configured.
-- `WikiBasedComposer` is used when spaces are assigned to one or more target wikis.
+If the migration configuration does not assign Confluence spaces to target wikis (no
+`--wikis` CSV supplied to `analyze`), all spaces are grouped under a single implicit wiki
+named `default`, so the output structure is identical to a migration with exactly one
+configured wiki.
 
-Both composers group Confluence spaces by their target namespace. A namespace group can
+The composer groups Confluence spaces by their target namespace. A namespace group can
 contain one or more Confluence space IDs. Default pages and default files are filtered by
 those space IDs, so only defaults that were actually registered during conversion are
 written.
-
-## NamespaceBasedComposer
-
-`NamespaceBasedComposer` creates one output directory per target namespace directly below
-`workspace/result`.
-
-Example:
-
-```text
-workspace/result/
-	CON/
-		default-images/
-		images/
-		blog-talk.xml
-		blogs.xml
-		default-files.xml
-		default-pages.xml
-		deployment.txt
-		files.xml
-		invalid_attachments.log
-		invalid_blog_posts.log
-		invalid_page_templates.log
-		invalid_pages.log
-		page-talk.xml
-		pages.xml
-		spaceimport.sh
-		templates.xml
-		users.xml
-```
-
-The namespace directory name is the target MediaWiki namespace. If a namespace contains
-more than one Confluence space, all space IDs in that namespace are processed together.
-
-### Namespace-scoped Defaults
-
-For namespace-based composition, default content is written into the namespace directory:
-
-```text
-workspace/result/<namespace>/default-pages.xml
-workspace/result/<namespace>/default-files.xml
-workspace/result/<namespace>/default-images/
-```
-
-These files contain only default pages and files registered for the space IDs assigned to
-that namespace. Default file binaries are stored in `default-images`, next to
-`default-files.xml`.
-
-For example, if namespace `CON` contains spaces `10` and `20`, then
-`CON/default-pages.xml` contains the union of registered default pages for spaces `10` and
-`20`. It does not contain defaults registered only by a different namespace.
-
-### Namespace Content
-
-The namespace directory also contains the regular import XML files for that namespace:
-
-- `files.xml`: page and blog post attachments
-- `blogs.xml`: blog post content
-- `pages.xml`: current page content
-- `page-talk.xml`: page comments
-- `templates.xml`: Confluence page templates
-- `blog-talk.xml`: blog post comments
-- `users.xml`: exported user metadata for lookup/reference
-
-When split output is enabled, files can be written as numbered chunks, for example
-`pages-00000001.xml`, `pages-00000002.xml`, and so on.
-
-## WikiBasedComposer
-
-`WikiBasedComposer` creates one output directory per target wiki below
-`workspace/result`. Each wiki directory contains namespace directories and one `_shared`
-directory.
 
 Example:
 
@@ -127,7 +59,7 @@ workspace/result/
 The first-level directory is the target wiki name from the wiki mapping configuration.
 Inside it, each namespace used by that wiki gets its own namespace directory.
 
-### Wiki-scoped Defaults
+## Wiki-scoped Defaults
 
 For wiki-based composition, default content is written once per wiki into the wiki-local
 `_shared` directory:
@@ -150,7 +82,7 @@ pages for spaces `10`, `20`, and `30`.
 Defaults are not copied from a global shared directory. They are generated for the target
 wiki from the relevant space IDs.
 
-### Namespace Content Inside a Wiki
+## Namespace Content Inside a Wiki
 
 Each namespace directory below the wiki contains only namespace-local migration output:
 
@@ -230,12 +162,9 @@ A default file is written only when it was registered for one of the relevant sp
 The file itself is stored below the `default-images/` directory placed next to
 `default-files.xml` and referenced from that XML file.
 
-Examples:
+Example:
 
 ```text
-workspace/result/<namespace>/default-files.xml
-workspace/result/<namespace>/default-images/<filename>
-
 workspace/result/<wiki-name>/_shared/default-files.xml
 workspace/result/<wiki-name>/_shared/default-images/<filename>
 ```
@@ -247,8 +176,8 @@ The composer also writes shell helper scripts for importing generated output.
 - `spaceimport.sh` is written into namespace directories.
 - `wikiimport.sh` is written into wiki directories.
 
-For namespace-based output, run the namespace import helper from a namespace directory.
-For wiki-based output, run the wiki import helper from a wiki directory. The wiki import
-helper knows about the wiki-local `_shared` directory and can import default pages and
-files before namespace-local content when requested. Default file XML references binaries
-from the `default-images` directory placed next to that XML file.
+Run the namespace import helper from a namespace directory for namespace-local content.
+Run the wiki import helper from a wiki directory; it knows about the wiki-local `_shared`
+directory and can import default pages and files before namespace-local content when
+requested. Default file XML references binaries from the `default-images` directory
+placed next to that XML file.
