@@ -47,6 +47,12 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	 */
 	private const DEFAULT_WIKI_NAME = 'default';
 
+	/** First MediaWiki namespace ID assigned in a wiki's namespace_import_config.json. */
+	private const NAMESPACE_IMPORT_ID_START = 3000;
+
+	/** Step between consecutive namespace IDs in namespace_import_config.json. */
+	private const NAMESPACE_IMPORT_ID_STEP = 2;
+
 	/**
 	 * Round-robin index into the flattened list of (wiki, namespace) pairs across *all*
 	 * wikis, shared across every call to storeMigrationResult() in this instance. This is
@@ -244,6 +250,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 				$this->addWikiImportHelper( $wikiName );
 				$this->writeDeploymentLog( $deploymentInfo, $wikiName );
+				$this->writeNamespaceImportConfig( $deploymentInfo, $wikiName );
 			}
 
 			$fileExtensionsPerWiki[$wikiName] = $deploymentInfo->getFileExtensions();
@@ -385,13 +392,15 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	/**
 	 * Non-parallel pass run once after all compose workers have finished. Produces the
 	 * once-per-wiki artifacts (shared content, wiki-level sidebar, deployment.txt,
-	 * wikiimport.sh) that workers skipped while processing their namespace slices.
+	 * wikiimport.sh, namespace_import_config.json) that workers skipped while processing
+	 * their namespace slices, plus the migration-wide manifest.json.
 	 *
 	 * @param array $wikiNames
 	 * @param Builder $builder
 	 * @return void
 	 */
 	private function finalizeWikis( array $wikiNames, Builder $builder ): void {
+		$fileExtensionsPerWiki = [];
 		foreach ( $wikiNames as $wikiName ) {
 			$spaces = $this->getSpacesForWiki( $wikiName );
 			if ( $spaces === [] ) {
@@ -415,7 +424,12 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 			$this->addWikiImportHelper( $wikiName );
 			$this->writeDeploymentLog( $deploymentInfo, $wikiName );
+			$this->writeNamespaceImportConfig( $deploymentInfo, $wikiName );
+
+			$fileExtensionsPerWiki[$wikiName] = $deploymentInfo->getFileExtensions();
 		}
+
+		$this->writeManifest( $fileExtensionsPerWiki );
 	}
 
 	/**
@@ -581,6 +595,52 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 		$logDir = $this->ensureDeploymentInfoPath( $subDir );
 		file_put_contents( $logDir . "/deployment.txt", $content );
+	}
+
+	/**
+	 * Writes a per-wiki "namespace_import_config.json" listing every target MediaWiki
+	 * namespace used by that wiki, except the main namespace (NS_MAIN), which needs no
+	 * import configuration. Namespace IDs start at 3000 and increase in steps of 2 (3000,
+	 * 3002, 3004, ...), assigned in the order namespaces first appeared for that wiki. If a
+	 * wiki has no namespace left after excluding NS_MAIN (e.g. its only space is mapped to
+	 * the main namespace), no file is written.
+	 *
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param string $wikiName
+	 * @return void
+	 */
+	private function writeNamespaceImportConfig( ComposerDeploymentInfo $deploymentInfo, string $wikiName ): void {
+		$namespaces = array_values( array_filter(
+			$deploymentInfo->getNamespaces(),
+			static function ( string $namespace ): bool {
+				return $namespace !== 'NS_MAIN';
+			}
+		) );
+
+		if ( $namespaces === [] ) {
+			return;
+		}
+
+		$config = [];
+		$namespaceId = self::NAMESPACE_IMPORT_ID_START;
+		foreach ( $namespaces as $namespace ) {
+			$config[(string)$namespaceId] = [
+				'name' => $namespace,
+				'subpages' => true,
+				'content' => true,
+				'pagetemplates' => true,
+				'visualeditor' => true,
+				'smw' => true,
+				'commentstreams' => true,
+			];
+			$namespaceId += self::NAMESPACE_IMPORT_ID_STEP;
+		}
+
+		$logDir = $this->ensureDeploymentInfoPath( $wikiName );
+		file_put_contents(
+			$logDir . '/namespace_import_config.json',
+			json_encode( $config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) . "\n"
+		);
 	}
 
 	/**
@@ -863,7 +923,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	 */
 	private function getManifestScriptTemplates(): array {
 		return [
-			'./result/<instance_id>/wikiimport.sh --sfr=<instance_id> --add-defaults',
+			'./result/<instance_id>/wikiimport.sh --sfr=<instance_id> --add-default',
 			'php /app/bluespice/w/maintenance/rebuildall.php --sfr=<instance_id>',
 		];
 	}

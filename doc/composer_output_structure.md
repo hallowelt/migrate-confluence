@@ -19,6 +19,7 @@ Example:
 
 ```text
 workspace/result/
+	manifest.json
 	full-migration-wiki/
 		_shared/
 			default-images/
@@ -53,6 +54,7 @@ workspace/result/
 			templates.xml
 			users.xml
 		deployment.txt
+		namespace_import_config.json
 		wikiimport.sh
 ```
 
@@ -168,6 +170,67 @@ Example:
 workspace/result/<wiki-name>/_shared/default-files.xml
 workspace/result/<wiki-name>/_shared/default-images/<filename>
 ```
+
+## Manifest
+
+`workspace/result/manifest.json` is written once per migration (not once per wiki). It
+lists every target wiki produced by the migration, the file extensions encountered in it,
+and the deployment scripts to run for that wiki, for example:
+
+```json
+{
+    "source_system": "confluence",
+    "package_id": "customer-x-2026-08-10",
+    "target": {
+        "wikis": [
+            {
+                "sfr": "full-migration-wiki",
+                "file_extensions": ["pdf", "png"],
+                "scripts": [
+                    "./result/full-migration-wiki/wikiimport.sh --sfr=full-migration-wiki --add-default",
+                    "php /app/bluespice/w/maintenance/rebuildall.php --sfr=full-migration-wiki"
+                ]
+            }
+        ]
+    }
+}
+```
+
+## Namespace Import Config
+
+`workspace/result/<wiki-name>/namespace_import_config.json` is written once per wiki and
+lists the MediaWiki namespace IDs to create for that wiki's import. Namespace IDs start at
+`3000` and increase in steps of `2` (`3000`, `3002`, `3004`, ...), assigned in the order
+namespaces were first encountered for that wiki.
+
+```json
+{
+    "3000": {
+        "name": "CON",
+        "subpages": true,
+        "content": true,
+        "pagetemplates": true,
+        "visualeditor": true,
+        "smw": true,
+        "commentstreams": true
+    },
+    "3002": {
+        "name": "DEVOPS",
+        "subpages": true,
+        "content": true,
+        "pagetemplates": true,
+        "visualeditor": true,
+        "smw": true,
+        "commentstreams": true
+    }
+}
+```
+
+The target main namespace (`NS_MAIN`, i.e. a space mapped to an empty wiki namespace) does
+not need an import configuration entry and is always excluded. If a wiki ends up with no
+namespace left after excluding `NS_MAIN` (for example a single-space migration mapped
+entirely to the main namespace), `namespace_import_config.json` is not written at all for
+that wiki.
 
 ## Import Helpers
 
