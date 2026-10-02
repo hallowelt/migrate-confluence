@@ -1,7 +1,7 @@
 # Composer Output Structure
 
 The compose step turns converted workspace data into MediaWiki import XML files. All
-migrations are composed on a per-wiki basis by `ConfluenceComposerBase`, which creates one
+migrations are composed on a per-wiki basis by `ConfluenceComposer`, which creates one
 output directory per target wiki below `workspace/result`. Each wiki directory contains
 namespace directories and one `_shared` directory.
 
