@@ -22,7 +22,7 @@ class Compose extends CommandCompose {
 
 	/**
 	 * @var bool Set while running the single, non-parallel finalize pass that aggregates
-	 * once-per-wiki artifacts after all compose workers have finished (see WikiBasedComposer).
+	 * once-per-wiki artifacts after all compose workers have finished (see ConfluenceComposerBase).
 	 */
 	private bool $finalizeOnly = false;
 
