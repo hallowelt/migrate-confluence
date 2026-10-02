@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
+use HalloWelt\MigrateConfluence\Utility\WikiTitleUniquifier;
 
 /**
  */
@@ -33,6 +34,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		$spaceIdToPrefixMap = $this->workspaceDB->getMapSpaceIdToPrefix();
 		$blogPosts = $this->workspaceDB->getBlogPosts();
 		$pageIdToWikiTitleMap = [];
+		$titlesAlreadyInUse = $this->workspaceDB->getBlogPostWikiTitles();
 
 		foreach ( $blogPosts as $blogPost ) {
 			if (
@@ -106,8 +108,13 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		$compressedTitlesMap = $titleCompressor->execute( $pageIdToWikiTitleMap );
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
 		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
+		$wikiTitleUniquifier = new WikiTitleUniquifier();
+		$titlesMap = $wikiTitleUniquifier->makeUnique(
+			$compressedPageIdToWikiTitleMap,
+			$titlesAlreadyInUse
+		);
 
-		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
+		foreach ( $titlesMap as $pageId => $wikiTitle ) {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
 

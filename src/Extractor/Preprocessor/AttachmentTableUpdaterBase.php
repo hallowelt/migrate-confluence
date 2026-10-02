@@ -25,6 +25,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 
 	protected const MAX_UNCOLLIDE_ATTEMPTS = 10000;
 	protected const UNKNOWN_EXTENSION = '.unknown';
+	private array $reservedWikiTitles = [];
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
@@ -46,6 +47,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 * @throws Exception
 	 */
 	public function execute(): void {
+		$this->reservedWikiTitles = [];
 		$this->addAttachments();
 		$this->checkWikiTitles();
 	}
@@ -271,7 +273,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		}
 
 		// Uncollide file title
-		$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
+		$exists = $this->wikiTitleExists( $attachmentWikiTitle );
 		$counter = 1;
 		while ( $exists ) {
 			if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
@@ -308,11 +310,16 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				);
 			}
 
-			$exists = $this->checkWikiTitleExists( $attachmentWikiTitle );
+			$exists = $this->wikiTitleExists( $attachmentWikiTitle );
 			$counter++;
 		}
 
+		$this->reservedWikiTitles[$attachmentWikiTitle] = true;
 		return $attachmentWikiTitle;
+	}
+
+	private function wikiTitleExists( string $wikiTitle ): bool {
+		return isset( $this->reservedWikiTitles[$wikiTitle] ) || $this->checkWikiTitleExists( $wikiTitle );
 	}
 
 	/**

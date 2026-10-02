@@ -2770,6 +2770,30 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getPageWikiTitles(): array {
+		$transaction = $this->cachedPrepare(
+			"SELECT DISTINCT wiki_title FROM pages
+			WHERE wiki_title IS NOT NULL AND wiki_title != ''"
+		);
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$wikiTitles = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			$wikiTitles[] = (string)$row['wiki_title'];
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $wikiTitles;
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getMapPageIdtoParentPageId(): array {
@@ -3249,6 +3273,30 @@ class WorkspaceDB {
 		}
 
 		return $map;
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getBlogPostWikiTitles(): array {
+		$transaction = $this->cachedPrepare(
+			"SELECT DISTINCT wiki_title FROM blog_posts
+			WHERE wiki_title IS NOT NULL AND wiki_title != ''"
+		);
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$wikiTitles = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			$wikiTitles[] = (string)$row['wiki_title'];
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $wikiTitles;
 	}
 
 	/**
@@ -4174,6 +4222,30 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getPageAttachmentWikiTitles(): array {
+		$transaction = $this->cachedPrepare(
+			"SELECT DISTINCT target_attachment_filename FROM page_attachments
+			WHERE target_attachment_filename IS NOT NULL AND target_attachment_filename != ''"
+		);
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$wikiTitles = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			$wikiTitles[] = (string)$row['target_attachment_filename'];
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $wikiTitles;
+	}
+
+	/**
 	 * @param string $wikiTitle
 	 * @return bool
 	 */
@@ -4188,6 +4260,30 @@ class WorkspaceDB {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getBlogPostAttachmentWikiTitles(): array {
+		$transaction = $this->cachedPrepare(
+			"SELECT DISTINCT target_attachment_filename FROM blog_post_attachments
+			WHERE target_attachment_filename IS NOT NULL AND target_attachment_filename != ''"
+		);
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$wikiTitles = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			$wikiTitles[] = (string)$row['target_attachment_filename'];
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $wikiTitles;
 	}
 
 	/**
@@ -4644,6 +4740,30 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getPageCommentWikiTitles(): array {
+		$transaction = $this->cachedPrepare(
+			"SELECT DISTINCT wiki_title FROM page_comments
+			WHERE wiki_title IS NOT NULL AND wiki_title != ''"
+		);
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$wikiTitles = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			$wikiTitles[] = (string)$row['wiki_title'];
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $wikiTitles;
+	}
+
+	/**
 	 * @param int $commentId
 	 * @param int $blogPostId
 	 * @param string $wikiTitle
@@ -4699,6 +4819,30 @@ class WorkspaceDB {
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getBlogPostCommentWikiTitles(): array {
+		$transaction = $this->cachedPrepare(
+			"SELECT DISTINCT wiki_title FROM blog_post_comments
+			WHERE wiki_title IS NOT NULL AND wiki_title != ''"
+		);
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$wikiTitles = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			$wikiTitles[] = (string)$row['wiki_title'];
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $wikiTitles;
 	}
 
 	/**
@@ -5756,6 +5900,30 @@ class WorkspaceDB {
 	 */
 	public function getPageTemplates(): array {
 		return $this->getAllData( 'page_templates' );
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getPageTemplateWikiTitles(): array {
+		$transaction = $this->cachedPrepare(
+			"SELECT DISTINCT wiki_title FROM page_templates
+			WHERE wiki_title IS NOT NULL AND wiki_title != ''"
+		);
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$wikiTitles = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			$wikiTitles[] = (string)$row['wiki_title'];
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $wikiTitles;
 	}
 
 	/**
