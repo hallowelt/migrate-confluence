@@ -123,6 +123,13 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 			$this->getWikiTextTemplateName()
 		);
 
+		if ( $templateTitle === null ) {
+			$this->writer->registerDefaultPage(
+				$this->currentSpaceId,
+				'FallbackCreateFromTemplate'
+			);
+		}
+
 		$node->parentNode->replaceChild(
 			$this->createTextNode( $node->ownerDocument, $wikiText, __METHOD__ ),
 			$node
