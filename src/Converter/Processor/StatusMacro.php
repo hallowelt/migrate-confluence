@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
+
 /**
  * <ac:structured-macro ac:name="status" ac:schema-version="1" ac:macro-id="1b880702-ef9e-4f6c-be5d-717c6e4cdaae">
  *   <ac:parameter ac:name="title">Good Status</ac:parameter>
@@ -10,12 +12,9 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class StatusMacro extends ConvertMacroToTemplateBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'status';
-	}
+	public const MACRO_NAME = 'status';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	/**
 	 * @inheritDoc

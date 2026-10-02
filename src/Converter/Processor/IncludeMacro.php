@@ -6,8 +6,13 @@ use DOMElement;
 use Exception;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class IncludeMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'include';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	/**
 	 * @var DBConversionDataLookup
@@ -31,14 +36,6 @@ class IncludeMacro extends StructuredMacroProcessorBase {
 		$this->dataLookup = $dataLookup;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->conversionHelper = new ConversionHelper();
-	}
-
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'include';
 	}
 
 	/**

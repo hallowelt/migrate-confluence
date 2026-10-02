@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
  *
@@ -17,13 +18,11 @@ use DOMElement;
  */
 class LocalTabMacro extends MacroProcessorBase {
 
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'localtab';
-	}
+	public const MACRO_NAME = 'localtab';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'Header_Tabs' ];
 
 	/**
 	 * @inheritDoc

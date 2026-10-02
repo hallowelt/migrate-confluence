@@ -7,6 +7,7 @@ use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use RuntimeException;
 use Throwable;
 
@@ -19,6 +20,12 @@ use Throwable;
  * @see https://confluence.atlassian.com/doc/roadmap-planner-macro-935385512.html
  */
 class RoadmapMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'roadmap';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'ParserFunctions' ];
 
 	private const MONTHS = [
 		'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -46,13 +53,6 @@ class RoadmapMacro extends StructuredMacroProcessorBase {
 		private int $currentSpaceId,
 		private string $rawPageTitle
 	) {
-	}
-
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'roadmap';
 	}
 
 	/**

@@ -6,9 +6,16 @@ use DOMElement;
 use DOMText;
 use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class TasksReportMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
+
+	public const MACRO_NAME = 'tasks-report-macro';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'BlueSpiceChecklist' ];
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
@@ -17,13 +24,6 @@ class TasksReportMacro extends StructuredMacroProcessorBase implements IUsesPlac
 		protected readonly DBConversionDataLookup $dataLookup,
 		private readonly PlaceholderManager $placeholderManager
 	) {
-	}
-
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'tasks-report-macro';
 	}
 
 	/**

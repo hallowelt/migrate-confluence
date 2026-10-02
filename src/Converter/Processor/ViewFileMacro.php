@@ -7,9 +7,14 @@ use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ViewFileMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'view-file';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	/**
 	 * @param IConverterDataWriter $writer
@@ -24,13 +29,6 @@ class ViewFileMacro extends StructuredMacroProcessorBase {
 		protected int $currentSpaceId,
 		protected string $rawPageTitle,
 		protected MigrationConfig $migrationConfig ) {
-	}
-
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'view-file';
 	}
 
 	/**

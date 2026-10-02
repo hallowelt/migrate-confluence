@@ -3,15 +3,13 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class AnchorMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'anchor';
-	}
+	public const MACRO_NAME = 'anchor';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
 
 	/**
 	 * @inheritDoc

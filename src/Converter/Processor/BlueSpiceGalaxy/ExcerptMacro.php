@@ -8,6 +8,7 @@ use DOMNode;
 use DOMText;
 use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroProcessorBase;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
@@ -16,6 +17,12 @@ use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
  * @see https://confluence.atlassian.com/doc/excerpt-macro-148062.html
  */
 class ExcerptMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
+
+	public const MACRO_NAME = 'excerpt';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'PageExcerpts' ];
 
 	public const EXCERPT_NAME_FALLBACK_PREFIX = 'excerpt-';
 
@@ -52,13 +59,6 @@ class ExcerptMacro extends StructuredMacroProcessorBase implements IUsesPlacehol
 	public function __construct(
 		private readonly PlaceholderManager $placeholderManager
 	) {
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'excerpt';
 	}
 
 	public function process( DOMDocument $dom ): void {

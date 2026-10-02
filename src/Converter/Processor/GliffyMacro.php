@@ -5,8 +5,15 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class GliffyMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'gliffy';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'DrawioEditor' ];
 
 	/**
 	 * @param DBConversionDataLookup $dataLookup
@@ -20,14 +27,6 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 		private string $rawPageTitle,
 		private IConverterDataWriter $dataWriter
 	) {
-	}
-
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'gliffy';
 	}
 
 	/**

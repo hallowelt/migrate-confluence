@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
+
 /**
  * <ac:structured-macro ac:name="viewpdf">
  *	<ac:parameter ac:name="name">
@@ -11,12 +13,9 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class ViewPdfMacro extends ViewFileMacro {
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'viewpdf';
-	}
+	public const MACRO_NAME = 'viewpdf';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	/**
 	 * @return string

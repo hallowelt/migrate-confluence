@@ -6,21 +6,21 @@ use DOMElement;
 use Exception;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
  * Partially converting pagetree macro
  */
 class PageTreeMacro extends StructuredMacroProcessorBase {
 
+	public const MACRO_NAME = 'pagetree';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'SubPageList' ];
+
 	/** @var array */
 	private array $params = [];
-
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'pagetree';
-	}
 
 	/**
 	 * @param IConverterDataWriter $writer

@@ -11,6 +11,7 @@ use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 // phpcs:disable Generic.Files.LineLength.TooLong
@@ -42,6 +43,12 @@ use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
  */
 class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IUsesPlaceholder {
 
+	public const MACRO_NAME = 'create-from-template';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'InputBox', 'ParserFunctions', 'Semantic_MediaWiki' ];
+
 	/** @var string */
 	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
 
@@ -62,13 +69,6 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 	/**
 	 * @return string
 	 */
-	protected function getMacroName(): string {
-		return 'create-from-template';
-	}
-
-	/**
-	 * @return string
-	 */
 	protected function getWikiTextTemplateName(): string {
 		return 'CreateFromTemplate';
 	}
@@ -84,7 +84,7 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 			$macros[] = $structuredMacro;
 		}
 
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 
 		foreach ( $macros as $macro ) {
 			if ( $macro->getAttribute( 'ac:name' ) === $macroName ) {
@@ -122,6 +122,13 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 			$this->currentSpaceId,
 			$this->getWikiTextTemplateName()
 		);
+
+		if ( $templateTitle === null ) {
+			$this->writer->registerDefaultPage(
+				$this->currentSpaceId,
+				'FallbackCreateFromTemplate'
+			);
+		}
 
 		$node->parentNode->replaceChild(
 			$this->createTextNode( $node->ownerDocument, $wikiText, __METHOD__ ),
@@ -171,7 +178,7 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 	 * @return string
 	 */
 	private function getBrokenMacroCategory(): string {
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 		return $this->getCategoryBrokenMacro( $macroName );
 	}
 
