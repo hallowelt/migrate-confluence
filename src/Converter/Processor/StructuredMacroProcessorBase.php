@@ -10,11 +10,7 @@ use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 
 abstract class StructuredMacroProcessorBase extends ConversionHelper implements IProcessor {
 
-	/**
-	 *
-	 * @return string
-	 */
-	abstract protected function getMacroName(): string;
+	public const MACRO_NAME = '';
 
 	/**
 	 * @inheritDoc
@@ -27,7 +23,7 @@ abstract class StructuredMacroProcessorBase extends ConversionHelper implements 
 			$macros[] = $structuredMacro;
 		}
 
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 
 		foreach ( $macros as $macro ) {
 			if ( $macro->getAttribute( 'ac:name' ) === $macroName ) {
@@ -100,7 +96,7 @@ abstract class StructuredMacroProcessorBase extends ConversionHelper implements 
 	 * @return string
 	 */
 	protected function getBrokenMacroCategory(): string {
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 		return $this->getCategoryBrokenMacro( $macroName );
 	}
 }

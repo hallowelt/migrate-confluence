@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
  * <ac:structured-macro ac:name="table-filter" ac:schema-version="1" ac:macro-id="...">
@@ -29,12 +30,9 @@ use DOMElement;
  */
 class TableFilterMacro extends ConvertMacroToTemplateWithBodyBase {
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'table-filter';
-	}
+	public const MACRO_NAME = 'table-filter';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	/**
 	 * @inheritDoc

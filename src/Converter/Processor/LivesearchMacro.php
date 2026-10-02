@@ -7,8 +7,15 @@ use DOMElement;
 use DOMException;
 use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class LivesearchMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'livesearch';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'BlueSpiceExtendedSearch', 'ParserFunctions' ];
 
 	private const TEMPLATE_NAME = 'TagSearch';
 
@@ -36,17 +43,10 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getMacroName(): string {
-		return 'livesearch';
-	}
-
-	/**
-	 * @inheritDoc
-	 */
 	public function process( DOMDocument $dom ): void {
 		$macros = $this->findAsStructuredMacro( $dom );
 
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 
 		foreach ( $macros as $macro ) {
 			if ( $macro->getAttribute( 'ac:name' ) === $macroName ) {
@@ -80,7 +80,7 @@ class LivesearchMacro extends StructuredMacroProcessorBase {
 	 * @return void
 	 */
 	private function processAsWikiMarkup( DOMDocument $dom ): void {
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 		$regex = '/\{' . preg_quote( $macroName, '/' ) . '(?::([^}]*))?\}/';
 
 		$found = false;

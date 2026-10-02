@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
@@ -19,18 +20,16 @@ use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
  */
 class LocalTabGroupMacro extends MacroProcessorBase implements IUsesPlaceholder {
 
+	public const MACRO_NAME = 'localtabgroup';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'Header_Tabs' ];
+
 	/**
 	 * @param PlaceholderManager $placeholderManager
 	 */
 	public function __construct( private PlaceholderManager $placeholderManager ) {
-	}
-
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'localtabgroup';
 	}
 
 	/**

@@ -7,8 +7,15 @@ use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class DrawioMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'drawio';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'DrawioEditor', 'ParserFunctions' ];
 
 	/** @var IConverterDataWriter */
 	protected IConverterDataWriter $writer;
@@ -51,14 +58,6 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		$this->conversionDataWriter = $conversionDataWriter;
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
-	}
-
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'drawio';
 	}
 
 	/**

@@ -6,8 +6,16 @@ use DOMElement;
 use Exception;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class ChildrenMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'children';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'Semantic_MediaWiki' ];
+
 	/**
 	 * @param IConverterDataWriter $writer
 	 * @param int $spaceId
@@ -20,13 +28,6 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 		private string $wikiPageTitle,
 		private DBConversionDataLookup $dataLookup
 	) {
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function getMacroName(): string {
-		return 'children';
 	}
 
 	/**

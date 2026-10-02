@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
  * Partially implements the Confluence "detailssummary" macro.
@@ -26,12 +27,9 @@ use DOMElement;
  */
 class DetailsSummaryMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'detailssummary';
-	}
+	public const MACRO_NAME = 'detailssummary';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_SKETCHY;
 
 	/**
 	 * @inheritDoc

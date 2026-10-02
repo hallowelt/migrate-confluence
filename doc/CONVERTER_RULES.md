@@ -23,7 +23,7 @@ Converter processors handle transformation of specific Confluence elements or ma
   - Transforms them using DOM manipulation
 
 ### Pattern Specifics
-- For macro processors: implement `getMacroName(): string` to specify target macro name
+- For macro processors: set the constant `MACRO_NAME` to specify target macro name
 - Use DOM manipulation to locate elements via `getElementsByTagName()`, `getElementsByClassName()`, etc.
 - Replace or modify DOM nodes in place
 - Handle parameters from `ac:parameter` attributes (Confluence format)
