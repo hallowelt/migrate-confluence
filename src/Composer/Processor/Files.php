@@ -71,6 +71,11 @@ class Files extends FileProcessorBase {
 			$assocPageTitle = $this->dataLookup->getWikiPageTitleFromPageId(
 				$pageAttachment['page_id']
 			);
+			if ( $this->skipHelper->skipWikiTitle( $assocPageTitle ) ) {
+				$this->output->writeln( "Skip attachments for page title $assocPageTitle." );
+				continue;
+			}
+			$this->output->writeln( "Processing attachments for page title $assocPageTitle ..." );
 			$this->processAttachment( $pageAttachment, $assocPageTitle );
 		}
 	}
@@ -99,6 +104,11 @@ class Files extends FileProcessorBase {
 			$assocPageTitle = $this->dataLookup->getWikiBlogPostTitleFromBlogPostId(
 				$blogPostAttachment['blog_post_id']
 			);
+			if ( $this->skipHelper->skipWikiTitle( $assocPageTitle ) ) {
+				$this->output->writeln( "Skip attachments for blog post title $assocPageTitle." );
+				continue;
+			}
+			$this->output->writeln( "Processing attachments for blog post title $assocPageTitle ..." );
 			$this->processAttachment( $blogPostAttachment, $assocPageTitle );
 		}
 	}
@@ -115,12 +125,6 @@ class Files extends FileProcessorBase {
 	private function processAttachment( array $attachmentRecord, ?string $assocPageTitle ): void {
 		$attachmentId = $attachmentRecord['attachment_id'];
 		$attachmentPageTitle = $attachmentRecord['target_attachment_filename'];
-
-		if ( $this->skipHelper->skipWikiTitle( $assocPageTitle ) ) {
-			$this->output->writeln( "Skip attachments for page title $assocPageTitle." );
-			return;
-		}
-		$this->output->writeln( "Processing attachments for page title $assocPageTitle ..." );
 
 		if ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
 			$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );
@@ -217,11 +221,6 @@ class Files extends FileProcessorBase {
 			$attachmentId = $additionalAttachment['attachment_id'];
 
 			$attachmentPageTitle = $additionalAttachment['target_attachment_filename'];
-
-			if ( $this->skipHelper->skipWikiTitle( $attachmentPageTitle ) ) {
-				$this->output->writeln( "Skip additional attachment $attachmentPageTitle." );
-				continue;
-			}
 
 			if ( $this->skipAttachmentId( $attachmentId, $attachmentPageTitle ) ) {
 				$this->deploymentInfo->addSkippedPage( $attachmentPageTitle );

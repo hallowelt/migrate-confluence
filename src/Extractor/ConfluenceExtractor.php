@@ -9,6 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\CreateDefaultWikisConfig;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PrepareComments;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateAttachmentsTableWithSpaceIdFallback;
@@ -126,6 +127,15 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		$writer = new ExtractorDirectDataWriter( $this->workspaceDB );
 
 		$this->buckets->loadFromWorkspace( $this->workspace );
+
+		// Create default wikis config if none exists
+		// The preprosessor is placed here to ensure it runs before all other preprocessors
+		$defaultWikiConfig = new CreateDefaultWikisConfig(
+			$this->workspaceDB,
+			$this->dbLog,
+			$writer
+		);
+		$defaultWikiConfig->execute();
 
 		// preparation
 		$preprocessors = $this->getPreProcessors( $writer );
