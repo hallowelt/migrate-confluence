@@ -5,6 +5,10 @@ namespace HalloWelt\MigrateConfluence\Utility;
 class WikiTitleUniquifier {
 
 	/**
+	 * Use this method to uncolide wiki titles.
+	 * This method returns eighter the wiki title or the wiki title appended with a number
+	 * like My_Title-(1)
+	 *
 	 * @param array<int,string> $wikiTitles
 	 * @return array<int,string>
 	 */

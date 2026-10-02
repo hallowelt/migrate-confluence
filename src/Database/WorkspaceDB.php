@@ -2773,9 +2773,32 @@ class WorkspaceDB {
 	 * @return string[]
 	 */
 	public function getPageWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'pages' );
+	}
+
+	/**
+	 * @param string $table
+	 * @return string[]
+	 */
+	private function getWikiTitlesFrom( string $table ): array {
+		$titleColumns = [
+			'pages' => 'wiki_title',
+			'blog_posts' => 'wiki_title',
+			'page_attachments' => 'target_attachment_filename',
+			'blog_post_attachments' => 'target_attachment_filename',
+			'page_comments' => 'wiki_title',
+			'blog_post_comments' => 'wiki_title',
+			'page_templates' => 'wiki_title',
+		];
+
+		if ( !isset( $titleColumns[$table] ) ) {
+			throw new InvalidArgumentException( 'Unsupported table for wiki titles: ' . $table );
+		}
+
+		$titleColumn = $titleColumns[$table];
 		$transaction = $this->cachedPrepare(
-			"SELECT DISTINCT wiki_title FROM pages
-			WHERE wiki_title IS NOT NULL AND wiki_title != ''"
+			"SELECT DISTINCT $titleColumn AS wiki_title FROM $table
+			WHERE $titleColumn IS NOT NULL AND $titleColumn != ''"
 		);
 		$result = $transaction->execute();
 		if ( !$result ) {
@@ -3279,24 +3302,7 @@ class WorkspaceDB {
 	 * @return string[]
 	 */
 	public function getBlogPostWikiTitles(): array {
-		$transaction = $this->cachedPrepare(
-			"SELECT DISTINCT wiki_title FROM blog_posts
-			WHERE wiki_title IS NOT NULL AND wiki_title != ''"
-		);
-		$result = $transaction->execute();
-		if ( !$result ) {
-			return [];
-		}
-
-		$wikiTitles = [];
-		$row = $result->fetchArray( SQLITE3_ASSOC );
-		while ( $row ) {
-			$wikiTitles[] = (string)$row['wiki_title'];
-			$row = $result->fetchArray( SQLITE3_ASSOC );
-		}
-		$result->finalize();
-
-		return $wikiTitles;
+		return $this->getWikiTitlesFrom( 'blog_posts' );
 	}
 
 	/**
@@ -4225,24 +4231,7 @@ class WorkspaceDB {
 	 * @return string[]
 	 */
 	public function getPageAttachmentWikiTitles(): array {
-		$transaction = $this->cachedPrepare(
-			"SELECT DISTINCT target_attachment_filename FROM page_attachments
-			WHERE target_attachment_filename IS NOT NULL AND target_attachment_filename != ''"
-		);
-		$result = $transaction->execute();
-		if ( !$result ) {
-			return [];
-		}
-
-		$wikiTitles = [];
-		$row = $result->fetchArray( SQLITE3_ASSOC );
-		while ( $row ) {
-			$wikiTitles[] = (string)$row['target_attachment_filename'];
-			$row = $result->fetchArray( SQLITE3_ASSOC );
-		}
-		$result->finalize();
-
-		return $wikiTitles;
+		return $this->getWikiTitlesFrom( 'page_attachments' );
 	}
 
 	/**
@@ -4266,24 +4255,7 @@ class WorkspaceDB {
 	 * @return string[]
 	 */
 	public function getBlogPostAttachmentWikiTitles(): array {
-		$transaction = $this->cachedPrepare(
-			"SELECT DISTINCT target_attachment_filename FROM blog_post_attachments
-			WHERE target_attachment_filename IS NOT NULL AND target_attachment_filename != ''"
-		);
-		$result = $transaction->execute();
-		if ( !$result ) {
-			return [];
-		}
-
-		$wikiTitles = [];
-		$row = $result->fetchArray( SQLITE3_ASSOC );
-		while ( $row ) {
-			$wikiTitles[] = (string)$row['target_attachment_filename'];
-			$row = $result->fetchArray( SQLITE3_ASSOC );
-		}
-		$result->finalize();
-
-		return $wikiTitles;
+		return $this->getWikiTitlesFrom( 'blog_post_attachments' );
 	}
 
 	/**
@@ -4743,24 +4715,7 @@ class WorkspaceDB {
 	 * @return string[]
 	 */
 	public function getPageCommentWikiTitles(): array {
-		$transaction = $this->cachedPrepare(
-			"SELECT DISTINCT wiki_title FROM page_comments
-			WHERE wiki_title IS NOT NULL AND wiki_title != ''"
-		);
-		$result = $transaction->execute();
-		if ( !$result ) {
-			return [];
-		}
-
-		$wikiTitles = [];
-		$row = $result->fetchArray( SQLITE3_ASSOC );
-		while ( $row ) {
-			$wikiTitles[] = (string)$row['wiki_title'];
-			$row = $result->fetchArray( SQLITE3_ASSOC );
-		}
-		$result->finalize();
-
-		return $wikiTitles;
+		return $this->getWikiTitlesFrom( 'page_comments' );
 	}
 
 	/**
@@ -4825,24 +4780,7 @@ class WorkspaceDB {
 	 * @return string[]
 	 */
 	public function getBlogPostCommentWikiTitles(): array {
-		$transaction = $this->cachedPrepare(
-			"SELECT DISTINCT wiki_title FROM blog_post_comments
-			WHERE wiki_title IS NOT NULL AND wiki_title != ''"
-		);
-		$result = $transaction->execute();
-		if ( !$result ) {
-			return [];
-		}
-
-		$wikiTitles = [];
-		$row = $result->fetchArray( SQLITE3_ASSOC );
-		while ( $row ) {
-			$wikiTitles[] = (string)$row['wiki_title'];
-			$row = $result->fetchArray( SQLITE3_ASSOC );
-		}
-		$result->finalize();
-
-		return $wikiTitles;
+		return $this->getWikiTitlesFrom( 'blog_post_comments' );
 	}
 
 	/**
@@ -5906,24 +5844,7 @@ class WorkspaceDB {
 	 * @return string[]
 	 */
 	public function getPageTemplateWikiTitles(): array {
-		$transaction = $this->cachedPrepare(
-			"SELECT DISTINCT wiki_title FROM page_templates
-			WHERE wiki_title IS NOT NULL AND wiki_title != ''"
-		);
-		$result = $transaction->execute();
-		if ( !$result ) {
-			return [];
-		}
-
-		$wikiTitles = [];
-		$row = $result->fetchArray( SQLITE3_ASSOC );
-		while ( $row ) {
-			$wikiTitles[] = (string)$row['wiki_title'];
-			$row = $result->fetchArray( SQLITE3_ASSOC );
-		}
-		$result->finalize();
-
-		return $wikiTitles;
+		return $this->getWikiTitlesFrom( 'page_templates' );
 	}
 
 	/**
