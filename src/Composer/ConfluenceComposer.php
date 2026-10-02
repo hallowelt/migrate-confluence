@@ -357,8 +357,6 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 			$this->writeInvalidAttachmentsLog( $spaceIds, $namespace, $subDir );
 			$this->writeInvalidPageTemplatesLog( $spaceIds, $namespace, $subDir );
 
-			$this->addSpaceImportHelper( $subDir );
-
 			$wikiDeploymentInfo->addNamespace( $namespace );
 			foreach ( $namespaceDeploymentInfo->getFileExtensions() as $extension ) {
 				$wikiDeploymentInfo->addFileExtension( $extension );
@@ -839,23 +837,6 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 			__CLASS__,
 			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
 		);
-	}
-
-	/**
-	 * @param string $subDir
-	 * @return void
-	 */
-	private function addSpaceImportHelper( string $subDir = '' ): void {
-		$sourcePaths = glob( __DIR__ . '/_shell/*' );
-		if ( $sourcePaths === false || $sourcePaths === [] ) {
-			return;
-		}
-
-		if ( $subDir !== '' ) {
-			$sourcePath = __DIR__ . '/_shell/spaceimport.sh';
-			$targetDir = $this->dest . "/result/$subDir";
-			$this->copyShellScript( $sourcePath, $targetDir . '/spaceimport.sh' );
-		}
 	}
 
 	/**

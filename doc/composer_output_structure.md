@@ -36,7 +36,6 @@ workspace/result/
 			invalid_pages.log
 			page-talk.xml
 			pages.xml
-			spaceimport.sh
 			templates.xml
 			users.xml
 		DEVOPS/
@@ -50,7 +49,6 @@ workspace/result/
 			invalid_pages.log
 			page-talk.xml
 			pages.xml
-			spaceimport.sh
 			templates.xml
 			users.xml
 		deployment.txt
@@ -234,12 +232,10 @@ that wiki.
 
 ## Import Helpers
 
-The composer also writes shell helper scripts for importing generated output.
+The composer also writes a shell helper script for importing generated output.
 
-- `spaceimport.sh` is written into namespace directories.
 - `wikiimport.sh` is written into wiki directories.
 
-Run the namespace import helper from a namespace directory for namespace-local content.
 Run the wiki import helper from a wiki directory; it knows about the wiki-local `_shared`
 directory and can import default pages and files before namespace-local content when
 requested. Default file XML references binaries from the `default-images` directory
