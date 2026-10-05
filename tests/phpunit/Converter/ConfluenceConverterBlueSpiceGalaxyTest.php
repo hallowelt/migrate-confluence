@@ -53,7 +53,9 @@ class ConfluenceConverterBlueSpiceGalaxyTest extends TestCase {
 
 		// The profile is expected to insert its own processors at a fixed position, leaving the
 		// remaining default processors in their original relative order.
-		$position = ( new ReflectionClassConstant( ConfluenceConverterBase::class, 'PROFILE_AWARE_PROCESSORS_POSITION' ) )
+		$position = ( new ReflectionClassConstant(
+			ConfluenceConverterBase::class, 'PROFILE_AWARE_PROCESSORS_POSITION'
+		) )
 			->getValue();
 		$insertedCount = count( $processors ) - count( $defaultProcessors );
 		$classesWithoutInserted = $actualClasses;

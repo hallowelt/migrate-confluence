@@ -41,8 +41,9 @@ class ConfluenceConverterMediaWikiTest extends TestCase {
 
 		$processors = ( new ReflectionMethod( ConfluenceConverterMediaWiki::class, 'getProcessors' ) )
 			->invoke( $converter );
-		$defaultProcessors = ( new ReflectionMethod( ConfluenceConverterMediaWiki::class, 'getDefaultProcessors' ) )
-			->invoke( $converter );
+		$defaultProcessors = ( new ReflectionMethod(
+			ConfluenceConverterMediaWiki::class, 'getDefaultProcessors'
+		) )->invoke( $converter );
 
 		// The profile is expected to add to, not replace, the default processor list.
 		$this->assertGreaterThan( count( $defaultProcessors ), count( $processors ) );
@@ -51,8 +52,9 @@ class ConfluenceConverterMediaWikiTest extends TestCase {
 
 		// The profile is expected to insert its own processors at a fixed position, leaving the
 		// remaining default processors in their original relative order.
-		$position = ( new ReflectionClassConstant( ConfluenceConverterBase::class, 'PROFILE_AWARE_PROCESSORS_POSITION' ) )
-			->getValue();
+		$position = ( new ReflectionClassConstant(
+			ConfluenceConverterBase::class, 'PROFILE_AWARE_PROCESSORS_POSITION'
+		) )->getValue();
 		$insertedCount = count( $processors ) - count( $defaultProcessors );
 		$classesWithoutInserted = $actualClasses;
 		array_splice( $classesWithoutInserted, $position, $insertedCount );
