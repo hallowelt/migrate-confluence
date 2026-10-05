@@ -53,7 +53,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		}
 
 		$filename = $this->getFilename( $params['diagramName'], $spaceId, $rawPageTitle );
-		if ( empty ( $filename ) ) {
+		if ( empty( $filename ) ) {
 			$isBroken = true;
 		}
 		$params['diagramName'] = $filename;
@@ -109,10 +109,6 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		return $params;
 	}
 
-	/**
-	 * @param int $spaceId Space to look up the diagram's attachments in.
-	 * @param string $rawPageTitle Confluence page title to look up the diagram's attachments on.
-	 */
 	protected function getFilename( string $diagramName, int $spaceId, string $rawPageTitle ): string {
 		$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 			$spaceId,
