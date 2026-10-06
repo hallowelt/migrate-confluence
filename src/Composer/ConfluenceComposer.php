@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Composer;
 
+use Exception;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
@@ -46,6 +47,15 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	 * belonged to this one wiki.
 	 */
 	private const DEFAULT_WIKI_NAME = 'default';
+
+	/** First MediaWiki namespace ID assigned in a wiki's namespace_import_config.json. */
+	private const NAMESPACE_IMPORT_ID_START = 3000;
+
+	/**
+	 * Step between consecutive namespace IDs in namespace_import_config.json.
+	 * Cant be < 2, because _talk namespace ids are namespaceId + 1
+	 */
+	private const NAMESPACE_IMPORT_ID_STEP = 2;
 
 	/**
 	 * Round-robin index into the flattened list of (wiki, namespace) pairs across *all*
@@ -210,6 +220,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 		// Run space dependent processors for each space, grouped by target wiki.
 		$this->output->writeln( "Data is assigned to some wikis." );
 
+		$fileExtensionsPerWiki = [];
 		foreach ( $wikiNames as $wikiName ) {
 			$spaces = $this->getSpacesForWiki( $wikiName );
 			if ( $spaces === [] ) {
@@ -243,13 +254,16 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 				$this->addWikiImportHelper( $wikiName );
 				$this->writeDeploymentLog( $deploymentInfo, $wikiName );
+				$this->writeNamespaceImportConfig( $deploymentInfo, $wikiName );
 			}
 
+			$fileExtensionsPerWiki[$wikiName] = $deploymentInfo->getFileExtensions();
 			$this->output->writeln( "Processing wiki '$wikiName' with " . count( $spaces ) . " spaces." );
 		}
 
 		if ( !$this->isWorker() ) {
 			$this->writeUserReadableDBLog( $this->dbLog );
+			$this->writeManifest( $fileExtensionsPerWiki );
 		}
 	}
 
@@ -380,13 +394,15 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	/**
 	 * Non-parallel pass run once after all compose workers have finished. Produces the
 	 * once-per-wiki artifacts (shared content, wiki-level sidebar, deployment.txt,
-	 * wikiimport.sh) that workers skipped while processing their namespace slices.
+	 * wikiimport.sh, namespace_import_config.json) that workers skipped while processing
+	 * their namespace slices, plus the migration-wide manifest.json.
 	 *
 	 * @param array $wikiNames
 	 * @param Builder $builder
 	 * @return void
 	 */
 	private function finalizeWikis( array $wikiNames, Builder $builder ): void {
+		$fileExtensionsPerWiki = [];
 		foreach ( $wikiNames as $wikiName ) {
 			$spaces = $this->getSpacesForWiki( $wikiName );
 			if ( $spaces === [] ) {
@@ -410,7 +426,12 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 			$this->addWikiImportHelper( $wikiName );
 			$this->writeDeploymentLog( $deploymentInfo, $wikiName );
+			$this->writeNamespaceImportConfig( $deploymentInfo, $wikiName );
+
+			$fileExtensionsPerWiki[$wikiName] = $deploymentInfo->getFileExtensions();
 		}
+
+		$this->writeManifest( $fileExtensionsPerWiki );
 	}
 
 	/**
@@ -576,6 +597,71 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 		$logDir = $this->ensureDeploymentInfoPath( $subDir );
 		file_put_contents( $logDir . "/deployment.txt", $content );
+	}
+
+	/**
+	 * Writes a per-wiki "namespace_import_config.json" listing every target MediaWiki
+	 * namespace used by that wiki, except the main namespace (NS_MAIN), which needs no
+	 * import configuration. Namespace IDs start at 3000 and increase in steps of 2 (3000,
+	 * 3002, 3004, ...), assigned in the order namespaces first appeared for that wiki. Each
+	 * namespace also gets a corresponding talk namespace, at ID + 1 and name suffixed with
+	 * "_talk", which is why IDs are spaced two apart. If a wiki has no namespace left after
+	 * excluding NS_MAIN (e.g. its only space is mapped to the main namespace), no file is
+	 * written.
+	 *
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param string $wikiName
+	 *
+	 * @return void
+	 * @throws Exception
+	 */
+	private function writeNamespaceImportConfig( ComposerDeploymentInfo $deploymentInfo, string $wikiName ): void {
+		if ( self::NAMESPACE_IMPORT_ID_STEP < 2 ) {
+			throw new Exception( "Namespace import configuration error" );
+		}
+
+		$namespaces = array_values( array_filter(
+			$deploymentInfo->getNamespaces(),
+			static function ( string $namespace ): bool {
+				return $namespace !== 'NS_MAIN';
+			}
+		) );
+
+		if ( $namespaces === [] ) {
+			return;
+		}
+
+		$config = [];
+		$namespaceId = self::NAMESPACE_IMPORT_ID_START;
+		foreach ( $namespaces as $namespace ) {
+			$config[(string)( $namespaceId )] = [
+				'name' => $namespace,
+				'subpages' => true,
+				'content' => true,
+				'pagetemplates' => true,
+				'visualeditor' => true,
+				'smw' => true,
+				'commentstreams' => true,
+			];
+
+			$config[(string)( $namespaceId + 1 )] = [
+				'name' => $namespace . "_talk",
+				'subpages' => true,
+				'content' => false,
+				'pagetemplates' => false,
+				'visualeditor' => false,
+				'smw' => false,
+				'commentstreams' => false,
+			];
+
+			$namespaceId += self::NAMESPACE_IMPORT_ID_STEP;
+		}
+
+		$logDir = $this->ensureDeploymentInfoPath( $wikiName );
+		file_put_contents(
+			$logDir . '/namespace_import_config.json',
+			json_encode( $config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) . "\n"
+		);
 	}
 
 	/**
@@ -794,5 +880,72 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 		if ( $sourcePerms !== false ) {
 			chmod( $targetPath, $sourcePerms & 0777 );
 		}
+	}
+
+	/**
+	 * Writes a "manifest.json" file to the result directory, describing the deployable
+	 * wikis produced by a multi-wiki (wiki-based) migration run.
+	 *
+	 * @param array $fileExtensionsPerWiki Map of wiki name to the file extensions used in that wiki
+	 * @return void
+	 */
+	private function writeManifest( array $fileExtensionsPerWiki ): void {
+		if ( $fileExtensionsPerWiki === [] ) {
+			return;
+		}
+
+		$wikis = [];
+		foreach ( $fileExtensionsPerWiki as $wikiName => $fileExtensions ) {
+			$scripts = [];
+			foreach ( $this->getManifestScriptTemplates() as $scriptTemplate ) {
+				$scripts[] = str_replace( '<instance_id>', $wikiName, $scriptTemplate );
+			}
+
+			$wikis[] = [
+				'sfr' => $wikiName,
+				'file_extensions' => $fileExtensions,
+				'scripts' => $scripts,
+			];
+		}
+
+		$manifest = [
+			'source_system' => 'confluence',
+			'package_id' => $this->makePackageId(),
+			'target' => [
+				'wikis' => $wikis,
+			],
+		];
+
+		file_put_contents(
+			$this->dest . '/result/manifest.json',
+			json_encode( $manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) . "\n"
+		);
+	}
+
+	/**
+	 * @return string[]
+	 */
+	private function getManifestScriptTemplates(): array {
+		return [
+			'./result/<instance_id>/wikiimport.sh --sfr=<instance_id> --add-default',
+			'php /app/bluespice/w/maintenance/rebuildall.php --sfr=<instance_id>',
+		];
+	}
+
+	/**
+	 * Builds a package id from the name of the parent directory of the workspace
+	 * (the migration project directory) and the current date, e.g.
+	 * "customer-x-2026-08-10-v1". Falls back to "migration" if the parent
+	 * directory name cannot be determined.
+	 *
+	 * @return string
+	 */
+	private function makePackageId(): string {
+		$parentDirName = basename( dirname( rtrim( $this->dest, '/' ) ) );
+		if ( $parentDirName === '' || $parentDirName === '.' || $parentDirName === '/' || $parentDirName === false ) {
+			$parentDirName = 'migration';
+		}
+
+		return $parentDirName . '-' . date( 'Y-m-d' );
 	}
 }

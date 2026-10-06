@@ -232,6 +232,63 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			$blogTalkPages['Blog_Talk:CON/My_Blog_Post'],
 			'Expected cs-comments slot in blog talk page.'
 		);
+
+		// Verify manifest.json
+		$manifestFile = $this->tempDir . '/single-source/workspace/result/manifest.json';
+		$this->assertFileExists( $manifestFile );
+		$manifest = json_decode( file_get_contents( $manifestFile ), true );
+		$this->assertSame( 'confluence', $manifest['source_system'] );
+		$this->assertCount( 1, $manifest['target']['wikis'] );
+		$this->assertSame( 'full-migration-wiki', $manifest['target']['wikis'][0]['sfr'] );
+
+		// Verify namespace_import_config.json: THRD is mapped to NS_MAIN and must be
+		// excluded; CON and SECOND get sequential IDs starting at 3000, each followed by
+		// its corresponding talk namespace at ID + 1.
+		$namespaceConfigFile = $this->tempDir
+			. '/single-source/workspace/result/full-migration-wiki/namespace_import_config.json';
+		$this->assertFileExists( $namespaceConfigFile );
+		$namespaceConfig = json_decode( file_get_contents( $namespaceConfigFile ), true );
+		$this->assertSame(
+			[
+				'3000' => [
+					'name' => 'CON',
+					'subpages' => true,
+					'content' => true,
+					'pagetemplates' => true,
+					'visualeditor' => true,
+					'smw' => true,
+					'commentstreams' => true,
+				],
+				'3001' => [
+					'name' => 'CON_talk',
+					'subpages' => true,
+					'content' => false,
+					'pagetemplates' => false,
+					'visualeditor' => false,
+					'smw' => false,
+					'commentstreams' => false,
+				],
+				'3002' => [
+					'name' => 'SECOND',
+					'subpages' => true,
+					'content' => true,
+					'pagetemplates' => true,
+					'visualeditor' => true,
+					'smw' => true,
+					'commentstreams' => true,
+				],
+				'3003' => [
+					'name' => 'SECOND_talk',
+					'subpages' => true,
+					'content' => false,
+					'pagetemplates' => false,
+					'visualeditor' => false,
+					'smw' => false,
+					'commentstreams' => false,
+				],
+			],
+			$namespaceConfig
+		);
 	}
 
 	/**
