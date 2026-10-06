@@ -79,6 +79,6 @@ The database will always be created afresh in the `analyze` step and is
 expected to remain in the exact same state during the other three steps.
 
 Never edit code in the `vendor` folder. However, libraries in the `vendor/hallowelt` folder
-will receive upstream change requests. If you happen to find that an edit in one of those
+will accept upstream change requests. If you happen to find that an edit in one of those
 projects will simplify your implementation, especially in `vendor/hallowelt/mediawiki-lib-migration/src`,
 report this finding back to the user.
