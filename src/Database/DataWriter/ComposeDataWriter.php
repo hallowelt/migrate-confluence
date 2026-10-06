@@ -26,7 +26,7 @@ class ComposeDataWriter implements IDataWriter {
 	}
 
 	/**
-	 * Replayed from a worker's PipeChannel message (see WikiBasedComposer). Not part of the
+	 * Replayed from a worker's PipeChannel message (see ConfluenceComposer). Not part of the
 	 * IDataWriter contract — PipeReplay dispatches by method name dynamically, so this only
 	 * needs to exist on this concrete class.
 	 *
