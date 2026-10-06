@@ -16,6 +16,7 @@ class PageCommentsTest extends TestCase {
 			100,
 			1,
 			'My Page',
+			'my page',
 			'MKT:My_Page',
 			'current',
 			'20240301000000',

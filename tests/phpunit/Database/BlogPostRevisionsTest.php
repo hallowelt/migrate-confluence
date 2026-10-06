@@ -13,7 +13,7 @@ class BlogPostRevisionsTest extends TestCase {
 		$db = ( new WorkspaceDbMock() )->createEmpty();
 
 		$db->addBlogPost(
-			100, 1, 'My Post', 'Blog:MKT/My_Post',
+			100, 1, 'My Post', 'my post', 'Blog:MKT/My_Post',
 			'current', '20240301000000', '', '1', -1, [], [], [], []
 		);
 
@@ -32,12 +32,12 @@ class BlogPostRevisionsTest extends TestCase {
 
 		// Historical version (old revision) stored as draft
 		$db->addBlogPost(
-			99, 1, 'My Post', 'Blog:MKT/My_Post',
+			99, 1, 'My Post', 'my post', 'Blog:MKT/My_Post',
 			'draft', '20240201000000', '', '1', 100, [], [], [], []
 		);
 		// Current version
 		$db->addBlogPost(
-			100, 1, 'My Post', 'Blog:MKT/My_Post',
+			100, 1, 'My Post', 'my post', 'Blog:MKT/My_Post',
 			'current', '20240301000000', '', '2', -1, [], [], [], []
 		);
 
@@ -57,12 +57,12 @@ class BlogPostRevisionsTest extends TestCase {
 
 		// Standalone unpublished draft — unrelated to post 100
 		$db->addBlogPost(
-			77, 1, 'Unpublished', 'Blog:MKT/Unpublished',
+			77, 1, 'Unpublished', 'unpublished', 'Blog:MKT/Unpublished',
 			'draft', '20240101000000', '', '1', -1, [], [], [], []
 		);
 		// Current post
 		$db->addBlogPost(
-			100, 1, 'My Post', 'Blog:MKT/My_Post',
+			100, 1, 'My Post', 'my post', 'Blog:MKT/My_Post',
 			'current', '20240301000000', '', '1', -1, [], [], [], []
 		);
 

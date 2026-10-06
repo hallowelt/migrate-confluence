@@ -74,6 +74,7 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	 * @param int $pageId
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $wikiTitle
 	 * @param string $contentStatus
 	 * @param string $revisionTimestamp
@@ -92,6 +93,7 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 		int $pageId,
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $wikiTitle,
 		string $contentStatus,
 		string $revisionTimestamp,
@@ -108,6 +110,7 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 			$pageId,
 			$spaceId,
 			$confluenceTitle,
+			$confluenceLowerTitle,
 			$wikiTitle,
 			$contentStatus,
 			$revisionTimestamp,
@@ -126,6 +129,7 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	 * @param int $pageId
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $wikiTitle
 	 * @param string $contentStatus
 	 * @param string $revisionTimestamp
@@ -143,6 +147,7 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 		int $pageId,
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $wikiTitle,
 		string $contentStatus,
 		string $revisionTimestamp,
@@ -158,6 +163,7 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 			$pageId,
 			$spaceId,
 			$confluenceTitle,
+			$confluenceLowerTitle,
 			$wikiTitle,
 			$contentStatus,
 			$revisionTimestamp,

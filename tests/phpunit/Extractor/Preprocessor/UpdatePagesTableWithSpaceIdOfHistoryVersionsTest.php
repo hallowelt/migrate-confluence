@@ -16,8 +16,10 @@ class UpdatePagesTableWithSpaceIdOfHistoryVersionsTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addPage( 100, 10, 'Original', '', 'current', '', '', '1', -1, -1, [], [], [], [] );
-		$workspaceDB->addPage( 101, null, 'Historical', '', 'historical', '', '', '1', 100, -1, [], [], [], [] );
+		$workspaceDB->addPage( 100, 10, 'Original', 'original', '', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage(
+			101, null, 'Historical', 'historical', '', 'historical', '', '', '1', 100, -1, [], [], [], []
+		);
 
 		$processor = new UpdatePagesTableWithSpaceIdOfHistoryVersions( $workspaceDB, $dbLog, $writer );
 		$processor->execute();
