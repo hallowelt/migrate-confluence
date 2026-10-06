@@ -107,7 +107,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 
 	/**
 	 * Determines position of execution of profile processors.
-	 * Default = 4, which currently means between LayoutCell and AncorMacro
+	 * Default = 4, which currently means between LayoutCell and AnchorMacro
 	 */
 	protected const PROFILE_AWARE_PROCESSORS_POSITION = 4;
 
