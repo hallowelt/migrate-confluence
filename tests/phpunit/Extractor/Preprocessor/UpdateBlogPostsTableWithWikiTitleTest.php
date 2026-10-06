@@ -31,4 +31,26 @@ class UpdateBlogPostsTableWithWikiTitleTest extends TestCase {
 			'Expected generated blog post wiki_title to use Blog:TEST/ namespace prefix.'
 		);
 	}
+
+	/**
+	 * @covers \\HalloWelt\\MigrateConfluence\\Extractor\\Preprocessor\\UpdateBlogPostsTableWithWikiTitle::execute
+	 */
+	public function testResolvesDuplicateWikiTitlesInSameRun(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		foreach ( [ 500, 501 ] as $blogPostId ) {
+			$workspaceDB->addBlogPost(
+				$blogPostId, 42, 'Sample blog', '', 'current', '', '', '1', -1, [], [], [], []
+			);
+		}
+
+		$processor = new UpdateBlogPostsTableWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor->execute();
+
+		$blogPosts = $workspaceDB->getBlogPosts();
+		$this->assertNotSame( $blogPosts[0]['wiki_title'], $blogPosts[1]['wiki_title'] );
+	}
 }

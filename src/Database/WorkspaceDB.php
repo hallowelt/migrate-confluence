@@ -2770,6 +2770,53 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getPageWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'pages' );
+	}
+
+	/**
+	 * @param string $table
+	 * @return string[]
+	 */
+	private function getWikiTitlesFrom( string $table ): array {
+		$titleColumns = [
+			'pages' => 'wiki_title',
+			'blog_posts' => 'wiki_title',
+			'page_attachments' => 'target_attachment_filename',
+			'blog_post_attachments' => 'target_attachment_filename',
+			'page_comments' => 'wiki_title',
+			'blog_post_comments' => 'wiki_title',
+			'page_templates' => 'wiki_title',
+		];
+
+		if ( !isset( $titleColumns[$table] ) ) {
+			throw new InvalidArgumentException( 'Unsupported table for wiki titles: ' . $table );
+		}
+
+		$titleColumn = $titleColumns[$table];
+		$transaction = $this->cachedPrepare(
+			"SELECT DISTINCT $titleColumn AS wiki_title FROM $table
+			WHERE $titleColumn IS NOT NULL AND $titleColumn != ''"
+		);
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$wikiTitles = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			$wikiTitles[] = (string)$row['wiki_title'];
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $wikiTitles;
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getMapPageIdtoParentPageId(): array {
@@ -3249,6 +3296,13 @@ class WorkspaceDB {
 		}
 
 		return $map;
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getBlogPostWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'blog_posts' );
 	}
 
 	/**
@@ -4174,6 +4228,13 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getPageAttachmentWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'page_attachments' );
+	}
+
+	/**
 	 * @param string $wikiTitle
 	 * @return bool
 	 */
@@ -4188,6 +4249,13 @@ class WorkspaceDB {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getBlogPostAttachmentWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'blog_post_attachments' );
 	}
 
 	/**
@@ -4644,6 +4712,13 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getPageCommentWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'page_comments' );
+	}
+
+	/**
 	 * @param int $commentId
 	 * @param int $blogPostId
 	 * @param string $wikiTitle
@@ -4699,6 +4774,13 @@ class WorkspaceDB {
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getBlogPostCommentWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'blog_post_comments' );
 	}
 
 	/**
@@ -5756,6 +5838,13 @@ class WorkspaceDB {
 	 */
 	public function getPageTemplates(): array {
 		return $this->getAllData( 'page_templates' );
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getPageTemplateWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'page_templates' );
 	}
 
 	/**
