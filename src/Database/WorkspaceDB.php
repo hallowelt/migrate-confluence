@@ -2650,10 +2650,12 @@ class WorkspaceDB {
 	 */
 	public function getWikiPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): ?string {
 		$transaction = $this->cachedPrepare(
-			'SELECT wiki_title FROM pages WHERE space_id = :space_id AND confluence_title = :confluence_title LIMIT 1'
+			'SELECT wiki_title FROM pages
+			 WHERE space_id = :space_id AND confluence_lowertitle = :confluence_lowertitle
+			 LIMIT 1'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', mb_strtolower( $confluenceTitle ), SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( !$result ) {
@@ -2675,11 +2677,11 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title, interwiki_title
 			FROM pages
-			WHERE space_id = :space_id AND confluence_title = :confluence_title
+			WHERE space_id = :space_id AND confluence_lowertitle = :confluence_lowertitle
 			LIMIT 1'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', mb_strtolower( $confluenceTitle ), SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( !$result ) {
@@ -2709,11 +2711,11 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT wiki_title FROM blog_posts
 			WHERE space_id = :space_id
-			AND confluence_title = :confluence_title
+			AND confluence_lowertitle = :confluence_lowertitle
 			LIMIT 1'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', mb_strtolower( $confluenceTitle ), SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( !$result ) {
@@ -4006,12 +4008,12 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT pa.target_attachment_filename FROM page_attachments pa
 			JOIN pages p ON pa.page_id = p.page_id
-			WHERE p.space_id = :space_id AND p.confluence_title = :confluence_title
+			WHERE p.space_id = :space_id AND p.confluence_lowertitle = :confluence_lowertitle
 			AND pa.original_attachment_filename = :original_attachment_filename
 			LIMIT 1'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', mb_strtolower( $confluenceTitle ), SQLITE3_TEXT );
 		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
@@ -4043,12 +4045,12 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT bpa.target_attachment_filename FROM blog_post_attachments bpa
 			JOIN blog_posts bp ON bpa.blog_post_id = bp.page_id
-			WHERE bp.space_id = :space_id AND bp.confluence_title = :confluence_title
+			WHERE bp.space_id = :space_id AND bp.confluence_lowertitle = :confluence_lowertitle
 			AND bpa.original_attachment_filename = :original_attachment_filename
 			LIMIT 1'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', mb_strtolower( $confluenceTitle ), SQLITE3_TEXT );
 		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
 
 		$result = $transaction->execute();
@@ -4112,11 +4114,11 @@ class WorkspaceDB {
 			JOIN pages p ON a.container_id = p.page_id
 			JOIN page_attachments pa ON pa.attachment_id = a.attachment_id AND pa.page_id = p.page_id
 			WHERE p.space_id = :space_id
-			AND p.confluence_title = :confluence_title
+			AND p.confluence_lowertitle = :confluence_lowertitle
 			ORDER BY pa.target_attachment_filename ASC'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $rawPageTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', mb_strtolower( $rawPageTitle ), SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
@@ -4149,11 +4151,11 @@ class WorkspaceDB {
 			JOIN blog_posts b ON a.container_id = b.page_id
 			JOIN blog_post_attachments bpa ON bpa.attachment_id = a.attachment_id AND bpa.blog_post_id = b.page_id
 			WHERE b.space_id = :space_id
-			AND b.confluence_title = :confluence_title
+			AND b.confluence_lowertitle = :confluence_lowertitle
 			ORDER BY bpa.target_attachment_filename ASC'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $rawBlogPostTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', mb_strtolower( $rawBlogPostTitle ), SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
@@ -5444,10 +5446,10 @@ class WorkspaceDB {
 			'SELECT pa.original_attachment_filename, pa.target_attachment_filename, am.meta FROM page_attachments pa
 			JOIN pages p ON pa.page_id = p.page_id
 			LEFT JOIN attachments_meta am ON pa.attachment_id = am.attachment_id
-			WHERE p.space_id = :space_id AND p.confluence_title = :confluence_title'
+			WHERE p.space_id = :space_id AND p.confluence_lowertitle = :confluence_lowertitle'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $rawPageTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', mb_strtolower( $rawPageTitle ), SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
@@ -5491,10 +5493,10 @@ class WorkspaceDB {
 			FROM blog_post_attachments bpa
 			JOIN blog_posts bp ON bpa.blog_post_id = bp.page_id
 			LEFT JOIN attachments_meta am ON bpa.attachment_id = am.attachment_id
-			WHERE bp.space_id = :space_id AND bp.confluence_title = :confluence_title'
+			WHERE bp.space_id = :space_id AND bp.confluence_lowertitle = :confluence_lowertitle'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
-		$transaction->bindValue( ':confluence_title', $rawBlogPostTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', mb_strtolower( $rawBlogPostTitle ), SQLITE3_TEXT );
 
 		$result = $transaction->execute();
 		if ( $result === false ) {
