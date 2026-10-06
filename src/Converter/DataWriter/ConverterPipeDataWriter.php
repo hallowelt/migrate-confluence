@@ -28,6 +28,7 @@ class ConverterPipeDataWriter extends AbstractPipeDataWriter implements IConvert
 	/**
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $originalAttachmentFilename
 	 * @param string $targetAttachmentFilename
 	 *
@@ -36,16 +37,25 @@ class ConverterPipeDataWriter extends AbstractPipeDataWriter implements IConvert
 	public function addGliffy(
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
-		$this->send( __FUNCTION__, $spaceId, $confluenceTitle, $originalAttachmentFilename, $targetAttachmentFilename );
+		$this->send(
+			__FUNCTION__,
+			$spaceId,
+			$confluenceTitle,
+			$confluenceLowerTitle,
+			$originalAttachmentFilename,
+			$targetAttachmentFilename
+		);
 		return true;
 	}
 
 	/**
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $svgFilename
 	 *
 	 * @return bool
@@ -53,9 +63,10 @@ class ConverterPipeDataWriter extends AbstractPipeDataWriter implements IConvert
 	public function addRoadmapSvg(
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $svgFilename
 	): bool {
-		$this->send( __FUNCTION__, $spaceId, $confluenceTitle, $svgFilename );
+		$this->send( __FUNCTION__, $spaceId, $confluenceTitle, $confluenceLowerTitle, $svgFilename );
 		return true;
 	}
 

@@ -75,6 +75,22 @@ account was not created before the import, the wiki will show the comment author
 
 As soon as the user account is created, the display of the comment author is updated as well.
 
+## Links to Deleted Pages
+
+Confluence provides several records for the same page title within a space: historical
+revisions, drafts, trashed/deleted content, and the one current, live page.
+
+When another page links to a page title, the tool resolves that link only against the
+*current* version of the target. If the target page was moved to the Confluence trash
+or to another space, and no current version with that title exists anymore, the link is **not**
+resolved, even though a historical/trashed row with a matching title is technically still
+present in the export.
+
+This is intentional: a link to a deleted page should surface as a broken link (category
+`Broken_page_link`, see [how to evaluate the result](./how_to_evaluate_the_result.md)) so
+you can notice and fix it, instead of silently pointing to an arbitrary non-current record
+that was never actually migrated.
+
 ## Category “Pages with syntax highlighting errors”
 
 You might notice this category when checking migration results. This is a feature of the

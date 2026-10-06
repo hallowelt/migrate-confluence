@@ -45,6 +45,7 @@ interface IAnalyzeDataWriter extends IDataWriter {
 	 * @param int $pageId
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $wikiTitle
 	 * @param string $contentStatus
 	 * @param string $revisionTimestamp
@@ -63,6 +64,7 @@ interface IAnalyzeDataWriter extends IDataWriter {
 		int $pageId,
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $wikiTitle,
 		string $contentStatus,
 		string $revisionTimestamp,
@@ -80,6 +82,7 @@ interface IAnalyzeDataWriter extends IDataWriter {
 	 * @param int $pageId
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $wikiTitle
 	 * @param string $contentStatus
 	 * @param string $revisionTimestamp
@@ -97,6 +100,7 @@ interface IAnalyzeDataWriter extends IDataWriter {
 		int $pageId,
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $wikiTitle,
 		string $contentStatus,
 		string $revisionTimestamp,

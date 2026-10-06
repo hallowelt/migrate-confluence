@@ -18,7 +18,7 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
-		$workspaceDB->addPage( 600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage( 600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 		// Older Confluence export format: no "space" property on the attachment itself.
 		$workspaceDB->addAttachment(
 			601, null, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
@@ -38,7 +38,7 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
-		$workspaceDB->addBlogPost( 700, 1000, 'Post', 'TEST:Post', 'current', '', '', '1', -1, [], [], [], [] );
+		$workspaceDB->addBlogPost( 700, 1000, 'Post', 'post', 'TEST:Post', 'current', '', '', '1', -1, [], [], [], [] );
 		$workspaceDB->addAttachment(
 			701, null, 'file.txt', 'txt', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
 		);
@@ -58,7 +58,7 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addSpace( 2000, 'OTHER', 'Other Space', 'OTHER', '', '', -1, -1 );
-		$workspaceDB->addPage( 600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage( 600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 		// Attachment already has its own (different) space_id set explicitly.
 		$workspaceDB->addAttachment(
 			602, 2000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/c', [], [], []

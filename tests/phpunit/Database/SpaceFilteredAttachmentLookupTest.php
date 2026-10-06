@@ -24,7 +24,7 @@ class SpaceFilteredAttachmentLookupTest extends TestCase {
 	public function testGetPageAttachmentsFallsBackToContainerPageSpaceWhenAttachmentSpaceIsNull(): void {
 		$db = $this->createWorkspaceDB();
 		$db->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
-		$db->addPage( 600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$db->addPage( 600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 		$db->addAttachment(
 			601, null, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
@@ -45,7 +45,7 @@ class SpaceFilteredAttachmentLookupTest extends TestCase {
 	public function testGetBlogPostAttachmentsFallsBackToContainerBlogPostSpaceWhenAttachmentSpaceIsNull(): void {
 		$db = $this->createWorkspaceDB();
 		$db->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
-		$db->addBlogPost( 700, 1000, 'Post', 'TEST:Post', 'current', '', '', '1', -1, [], [], [], [] );
+		$db->addBlogPost( 700, 1000, 'Post', 'post', 'TEST:Post', 'current', '', '', '1', -1, [], [], [], [] );
 		$db->addAttachment(
 			701, null, 'file.txt', 'txt', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
 		);
@@ -66,7 +66,7 @@ class SpaceFilteredAttachmentLookupTest extends TestCase {
 	public function testGetAdditionalAttachmentsFallsBackToContainerPageSpaceWhenAttachmentSpaceIsNull(): void {
 		$db = $this->createWorkspaceDB();
 		$db->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
-		$db->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$db->addPage( 800, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 		$db->addAttachment(
 			803, null, 'orphan.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/e', [], [], []
 		);

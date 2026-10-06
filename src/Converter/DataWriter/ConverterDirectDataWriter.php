@@ -28,6 +28,7 @@ class ConverterDirectDataWriter extends AbstractDirectDataWriter implements ICon
 	/**
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $originalAttachmentFilename
 	 * @param string $targetAttachmentFilename
 	 *
@@ -36,17 +37,19 @@ class ConverterDirectDataWriter extends AbstractDirectDataWriter implements ICon
 	public function addGliffy(
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
 		return $this->db->addGliffy(
-			$spaceId, $confluenceTitle, $originalAttachmentFilename, $targetAttachmentFilename
+			$spaceId, $confluenceTitle, $confluenceLowerTitle, $originalAttachmentFilename, $targetAttachmentFilename
 		);
 	}
 
 	/**
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $svgFilename
 	 *
 	 * @return bool
@@ -54,9 +57,10 @@ class ConverterDirectDataWriter extends AbstractDirectDataWriter implements ICon
 	public function addRoadmapSvg(
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $svgFilename
 	): bool {
-		return $this->db->addRoadmapSvg( $spaceId, $confluenceTitle, $svgFilename );
+		return $this->db->addRoadmapSvg( $spaceId, $confluenceTitle, $confluenceLowerTitle, $svgFilename );
 	}
 
 	/**

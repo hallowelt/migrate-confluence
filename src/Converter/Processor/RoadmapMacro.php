@@ -88,7 +88,12 @@ class RoadmapMacro extends StructuredMacroProcessorBase {
 
 		if ( $svg ) {
 			$this->conversionDataWriter->replaceConfluenceFileContent( $filename, $svg );
-			$this->dataWriter->addRoadmapSvg( $this->currentSpaceId, $this->rawPageTitle, $filename );
+			$this->dataWriter->addRoadmapSvg(
+				$this->currentSpaceId,
+				$this->rawPageTitle,
+				mb_strtolower( $this->rawPageTitle ),
+				$filename
+			);
 			$templateParams['filename'] = $filename;
 		}
 

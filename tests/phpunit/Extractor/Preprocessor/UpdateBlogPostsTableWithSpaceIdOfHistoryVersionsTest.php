@@ -16,8 +16,12 @@ class UpdateBlogPostsTableWithSpaceIdOfHistoryVersionsTest extends TestCase {
 		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
-		$workspaceDB->addBlogPost( 200, 10, 'Original blog', '', 'current', '', '', '1', -1, [], [], [], [] );
-		$workspaceDB->addBlogPost( 201, null, 'Historical blog', '', 'historical', '', '', '1', 200, [], [], [], [] );
+		$workspaceDB->addBlogPost(
+			200, 10, 'Original blog', 'original blog', '', 'current', '', '', '1', -1, [], [], [], []
+		);
+		$workspaceDB->addBlogPost(
+			201, null, 'Historical blog', 'historical blog', '', 'historical', '', '', '1', 200, [], [], [], []
+		);
 
 		$processor = new UpdateBlogPostsTableWithSpaceIdOfHistoryVersions( $workspaceDB, $dbLog, $writer );
 		$processor->execute();
