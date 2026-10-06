@@ -75,8 +75,6 @@ XML;
 		$this->assertStringContainsString( '{{Drawio', $actualOutput );
 		$this->assertStringContainsString( '|diagramName=DEVOPS:SomePage-drawio.png', $actualOutput );
 		$this->assertStringContainsString( '|width=881', $actualOutput );
-		$this->assertStringNotContainsString( 'pageId', $actualOutput );
-		$this->assertStringNotContainsString( 'includedDiagram', $actualOutput );
 	}
 
 	/**

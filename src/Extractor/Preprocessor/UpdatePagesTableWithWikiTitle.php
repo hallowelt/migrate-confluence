@@ -13,6 +13,7 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
+use HalloWelt\MigrateConfluence\Utility\WikiTitleUniquifier;
 
 /**
  */
@@ -60,6 +61,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 		$pages = $this->workspaceDB->getPages();
 		$pageIdToWikiTitleMap = [];
+		$titlesAlreadyInUse = $this->workspaceDB->getPageWikiTitles();
 		foreach ( $pages as $page ) {
 			if ( !isset( $page['page_id'] ) ) {
 				$this->dbLog->addLogEntry(
@@ -149,7 +151,13 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
 		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
 
-		foreach ( $compressedPageIdToWikiTitleMap as $pageId => $wikiTitle ) {
+		$wikiTitleUniquifier = new WikiTitleUniquifier();
+		$titlesMap = $wikiTitleUniquifier->makeUnique(
+			$compressedPageIdToWikiTitleMap,
+			$titlesAlreadyInUse
+		);
+
+		foreach ( $titlesMap as $pageId => $wikiTitle ) {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for page id $pageId";
 

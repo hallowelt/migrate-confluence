@@ -51,4 +51,34 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 			'Did not expect invalid page template titles.'
 		);
 	}
+
+	/**
+	 * @covers \\HalloWelt\\MigrateConfluence\\Extractor\\Preprocessor\\UpdatePageTemplatesWithWikiTitle::execute
+	 */
+	public function testResolvesDuplicateWikiTitlesInSameRun(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		foreach ( [ 700, 701 ] as $templateId ) {
+			$workspaceDB->addPageTemplate(
+				$templateId,
+				'Sample template',
+				42,
+				'',
+				'',
+				'1',
+				[],
+				[],
+				'current'
+			);
+		}
+
+		$processor = new UpdatePageTemplatesWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor->execute();
+
+		$pageTemplates = $workspaceDB->getPageTemplates();
+		$this->assertNotSame( $pageTemplates[0]['wiki_title'], $pageTemplates[1]['wiki_title'] );
+	}
 }

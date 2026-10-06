@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
  * <ac:structured-macro ac:name="loremipsum">
@@ -14,6 +15,10 @@ use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
  */
 class LoremIpsumMacro extends StructuredMacroProcessorBase {
 
+	public const MACRO_NAME = 'loremipsum';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
 	/**
 	 * @param IConverterDataWriter $writer
 	 * @param int $currentSpaceId
@@ -22,14 +27,6 @@ class LoremIpsumMacro extends StructuredMacroProcessorBase {
 		private IConverterDataWriter $writer,
 		private int $currentSpaceId,
 	) {
-	}
-
-	/**
-	 *
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'loremipsum';
 	}
 
 	/**

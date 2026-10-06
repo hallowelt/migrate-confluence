@@ -24,7 +24,6 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$workspaceDB->addAttachment(
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
-
 		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
 		$processor->execute();
 
@@ -37,6 +36,36 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			$expectedTargetFilename,
 			$actualTargetFilename,
 			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
+		);
+	}
+
+	/**
+	 * @covers \\HalloWelt\\MigrateConfluence\\Extractor\\Preprocessor\\UpdatePageAttachmentTable::execute
+	 */
+	public function testResolvesDuplicateTitlesWithinSameRun(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			602, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/b', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
+		$processor->execute();
+
+		$pageAttachments = $workspaceDB->getPageAttachments();
+		$this->assertCount( 2, $pageAttachments );
+		$this->assertNotSame(
+			$pageAttachments[0]['target_attachment_filename'],
+			$pageAttachments[1]['target_attachment_filename']
 		);
 	}
 
@@ -220,5 +249,9 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			"$message Expected '$expectedTargetFilename', got '$actualTargetFilename'."
 		);
 	}
+
+	// Note: attachments without their own space_id (older Confluence export format) are
+	// backfilled upstream by UpdateAttachmentsTableWithSpaceIdFallback, which runs before
+	// this preprocessor in the pipeline. See UpdateAttachmentsTableWithSpaceIdFallbackTest.
 
 }

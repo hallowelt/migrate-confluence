@@ -34,7 +34,7 @@ abstract class ConvertMacroToTemplateWithBodyBase extends ConversionHelper imple
 	 */
 	public function process( DOMDocument $dom ): void {
 		$macros = $dom->getElementsByTagName( 'structured-macro' );
-		$requiredMacroName = $this->getMacroName();
+		$requiredMacroName = static::MACRO_NAME;
 		$templateStartName = $this->getWikiTextTemplateStartName();
 		$templateEndName = $this->getWikiTextTemplateEndName();
 
@@ -155,12 +155,6 @@ abstract class ConvertMacroToTemplateWithBodyBase extends ConversionHelper imple
 			}
 		}
 	}
-
-	/**
-	 *
-	 * @return string
-	 */
-	abstract protected function getMacroName(): string;
 
 	/**
 	 *

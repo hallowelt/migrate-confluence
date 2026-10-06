@@ -29,6 +29,9 @@ class WorkspaceDB {
 	/** @var bool tracks whether a transaction is currently open */
 	private bool $inTransaction = false;
 
+	/** @var array<int,int|null> In-request cache for getSpaceIdByContentId() */
+	private array $spaceIdByContentIdCache = [];
+
 	/**
 	 * @param string $dest
 	 *
@@ -2767,6 +2770,53 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getPageWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'pages' );
+	}
+
+	/**
+	 * @param string $table
+	 * @return string[]
+	 */
+	private function getWikiTitlesFrom( string $table ): array {
+		$titleColumns = [
+			'pages' => 'wiki_title',
+			'blog_posts' => 'wiki_title',
+			'page_attachments' => 'target_attachment_filename',
+			'blog_post_attachments' => 'target_attachment_filename',
+			'page_comments' => 'wiki_title',
+			'blog_post_comments' => 'wiki_title',
+			'page_templates' => 'wiki_title',
+		];
+
+		if ( !isset( $titleColumns[$table] ) ) {
+			throw new InvalidArgumentException( 'Unsupported table for wiki titles: ' . $table );
+		}
+
+		$titleColumn = $titleColumns[$table];
+		$transaction = $this->cachedPrepare(
+			"SELECT DISTINCT $titleColumn AS wiki_title FROM $table
+			WHERE $titleColumn IS NOT NULL AND $titleColumn != ''"
+		);
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return [];
+		}
+
+		$wikiTitles = [];
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		while ( $row ) {
+			$wikiTitles[] = (string)$row['wiki_title'];
+			$row = $result->fetchArray( SQLITE3_ASSOC );
+		}
+		$result->finalize();
+
+		return $wikiTitles;
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getMapPageIdtoParentPageId(): array {
@@ -3249,6 +3299,13 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getBlogPostWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'blog_posts' );
+	}
+
+	/**
 	 * @param int $blogPostId
 	 * @return array
 	 */
@@ -3308,6 +3365,29 @@ class WorkspaceDB {
 		}
 
 		return (int)$data['space_id'];
+	}
+
+	/**
+	 * Resolves the space_id of a content item (page or blog post) by its content id.
+	 * Used as a fallback to determine an attachment's namespace when the attachment
+	 * itself does not carry a "space" property (older Confluence export format).
+	 *
+	 * @param int $contentId
+	 * @return int|null The space_id, or null if no page or blog post with that id has one.
+	 */
+	public function getSpaceIdByContentId( int $contentId ): ?int {
+		if ( array_key_exists( $contentId, $this->spaceIdByContentIdCache ) ) {
+			return $this->spaceIdByContentIdCache[$contentId];
+		}
+
+		$spaceId = $this->getSpaceIdForPageId( $contentId );
+		if ( $spaceId === null ) {
+			$spaceId = $this->getSpaceIdForBlogPostId( $contentId );
+		}
+
+		$this->spaceIdByContentIdCache[$contentId] = $spaceId;
+
+		return $spaceId;
 	}
 
 	/**
@@ -3632,30 +3712,13 @@ class WorkspaceDB {
 		return $bodies;
 	}
 
-	/**
-	 * @param int $attachmentId
-	 * @param int|null $spaceId
-	 * @param string $filename
-	 * @param string $fileExtension
-	 * @param int $containerContentId
-	 * @param string $contentStatus
-	 * @param string $version
-	 * @param string $revisionTimestamp
-	 * @param string $lastModifier
-	 * @param int $originalVersionId
-	 * @param string $attachmentReference
-	 * @param array $historicalIds
-	 * @param array $properties
-	 * @param array $collection
-	 * @return bool
-	 */
 	public function addAttachment(
 		int $attachmentId,
 		?int $spaceId,
 		string $filename,
 		string $fileExtension,
 		int $containerContentId,
-		string $contentStatus,
+		?string $contentStatus,
 		string $version,
 		string $revisionTimestamp,
 		string $lastModifier,
@@ -3729,6 +3792,25 @@ class WorkspaceDB {
 	 */
 	public function getAttachments(): array {
 		return $this->getAllData( 'attachments' );
+	}
+
+	/**
+	 * Update the space_id of an attachment. Used as a fallback for older Confluence
+	 * exports where an attachment does not carry its own "space" property; the
+	 * value is resolved from the attachment's container page/blog post instead.
+	 *
+	 * @param int $attachmentId
+	 * @param int $spaceId
+	 * @return bool
+	 */
+	public function updateAttachmentSpaceId( int $attachmentId, int $spaceId ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE attachments SET space_id = :space_id WHERE attachment_id = :attachment_id'
+		);
+
+		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
 	}
 
 	/**
@@ -4146,6 +4228,13 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getPageAttachmentWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'page_attachments' );
+	}
+
+	/**
 	 * @param string $wikiTitle
 	 * @return bool
 	 */
@@ -4160,6 +4249,13 @@ class WorkspaceDB {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getBlogPostAttachmentWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'blog_post_attachments' );
 	}
 
 	/**
@@ -4180,7 +4276,12 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * Join in the owning page as a fallback for attachments whose own space_id
+	 * is not set (e.g. older Confluence exports); COALESCE prefers the
+	 * attachment's space_id but falls back to its page's space_id.
+	 *
 	 * @param int|null $spaceId
+	 *
 	 * @return array
 	 */
 	public function getPageAttachments( ?int $spaceId = null ): array {
@@ -4190,7 +4291,8 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT pa.* FROM page_attachments pa
 			JOIN attachments a ON pa.attachment_id = a.attachment_id
-			WHERE a.space_id = :space_id'
+			JOIN pages p ON pa.page_id = p.page_id
+			WHERE COALESCE( a.space_id, p.space_id ) = :space_id'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 
@@ -4213,7 +4315,8 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT bpa.* FROM blog_post_attachments bpa
 			JOIN attachments a ON bpa.attachment_id = a.attachment_id
-			WHERE a.space_id = :space_id'
+			JOIN blog_posts bp ON bpa.blog_post_id = bp.page_id
+			WHERE COALESCE( a.space_id, bp.space_id ) = :space_id'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 
@@ -4236,7 +4339,9 @@ class WorkspaceDB {
 		$transaction = $this->cachedPrepare(
 			'SELECT aa.* FROM additional_attachments aa
 			JOIN attachments a ON aa.attachment_id = a.attachment_id
-			WHERE a.space_id = :space_id'
+			LEFT JOIN pages p ON a.container_id = p.page_id
+			LEFT JOIN blog_posts bp ON a.container_id = bp.page_id
+			WHERE COALESCE( a.space_id, p.space_id, bp.space_id ) = :space_id'
 		);
 		$transaction->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
 
@@ -4607,6 +4712,13 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getPageCommentWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'page_comments' );
+	}
+
+	/**
 	 * @param int $commentId
 	 * @param int $blogPostId
 	 * @param string $wikiTitle
@@ -4662,6 +4774,13 @@ class WorkspaceDB {
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':comment_id', $commentId, SQLITE3_INTEGER );
 		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getBlogPostCommentWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'blog_post_comments' );
 	}
 
 	/**
@@ -5719,6 +5838,13 @@ class WorkspaceDB {
 	 */
 	public function getPageTemplates(): array {
 		return $this->getAllData( 'page_templates' );
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getPageTemplateWikiTitles(): array {
+		return $this->getWikiTitlesFrom( 'page_templates' );
 	}
 
 	/**

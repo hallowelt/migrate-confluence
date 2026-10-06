@@ -8,11 +8,19 @@ use DOMException;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
  *
  */
 class TaskListMacro extends ConversionHelper implements IProcessor {
+
+	public const MACRO_NAME = 'task-list';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+
+	public const REQUIRED_EXTENSIONS = [ 'BlueSpiceChecklist' ];
+
 	/**
 	 * @inheritDoc
 	 */

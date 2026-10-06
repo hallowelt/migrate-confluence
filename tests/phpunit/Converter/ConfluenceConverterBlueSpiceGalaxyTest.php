@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Converter;
 
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBase;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBlueSpiceGalaxy;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
@@ -10,6 +11,7 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use PHPUnit\Framework\TestCase;
+use ReflectionClassConstant;
 use ReflectionMethod;
 use ReflectionProperty;
 
@@ -47,8 +49,18 @@ class ConfluenceConverterBlueSpiceGalaxyTest extends TestCase {
 		// The profile is expected to add to, not replace, the default processor list.
 		$this->assertGreaterThan( count( $defaultProcessors ), count( $processors ) );
 		$defaultClasses = array_map( 'get_class', $defaultProcessors );
-		$leadingClasses = array_map( 'get_class', array_slice( $processors, 0, count( $defaultProcessors ) ) );
-		$this->assertSame( $defaultClasses, $leadingClasses );
+		$actualClasses = array_map( 'get_class', $processors );
+
+		// The profile is expected to insert its own processors at a fixed position, leaving the
+		// remaining default processors in their original relative order.
+		$position = ( new ReflectionClassConstant(
+			ConfluenceConverterBase::class, 'PROFILE_AWARE_PROCESSORS_POSITION'
+		) )
+			->getValue();
+		$insertedCount = count( $processors ) - count( $defaultProcessors );
+		$classesWithoutInserted = $actualClasses;
+		array_splice( $classesWithoutInserted, $position, $insertedCount );
+		$this->assertSame( $defaultClasses, $classesWithoutInserted );
 	}
 
 	private function initMinimalPropertiesForProcessors( ConfluenceConverterBlueSpiceGalaxy $converter ): void {

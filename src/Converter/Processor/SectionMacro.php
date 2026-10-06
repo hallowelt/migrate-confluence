@@ -2,13 +2,12 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
+
 class SectionMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 *
-	 * @inheritDoc
-	 */
-	public function getMacroName(): string {
-		return 'section';
-	}
+	public const MACRO_NAME = 'section';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
 }

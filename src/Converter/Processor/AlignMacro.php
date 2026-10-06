@@ -6,15 +6,13 @@ use DOMDocument;
 use DOMElement;
 use DOMException;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 class AlignMacro implements IProcessor {
 
-	/**
-	 * @return string
-	 */
-	protected function getMacroName(): string {
-		return 'align';
-	}
+	public const MACRO_NAME = 'align';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	/**
 	 * @inheritDoc
@@ -27,7 +25,7 @@ class AlignMacro implements IProcessor {
 			$macros[] = $macrosTag;
 		}
 
-		$macroName = $this->getMacroName();
+		$macroName = static::MACRO_NAME;
 		foreach ( $macros as $macro ) {
 			if ( $macro->getAttribute( 'ac:name' ) === $macroName ) {
 				$this->doProcessMacro( $macro );

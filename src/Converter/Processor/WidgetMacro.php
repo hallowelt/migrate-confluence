@@ -4,18 +4,15 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
  */
 class WidgetMacro extends StructuredMacroProcessorBase {
 
-	/**
-	 *
-	 * @inheritDoc
-	 */
-	public function getMacroName(): string {
-		return 'widget';
-	}
+	public const MACRO_NAME = 'widget';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	/**
 	 * @inheritDoc
@@ -27,7 +24,7 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 		$params = $this->macroParams( $node, $macroReplacement );
 
 		if ( isset( $params[ 'url' ] ) ) {
-			$macroReplacement->nodeValue = $params['url'];
+			$macroReplacement->nodeValue = htmlspecialchars( $params['url'], ENT_QUOTES | ENT_XML1, 'UTF-8' );
 		}
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );

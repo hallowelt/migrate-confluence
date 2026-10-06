@@ -13,7 +13,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./wikiimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<wiki-name>] [--add-default] [--dry] [--sfr=<wiki-instance>]
+Usage: ./wikiimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<wiki-name>] [--add-default] [--dry] [--sfr=<wiki-instance>] [--mode=all|no-files|files-only]
 
 Imports every namespace directory inside the selected wiki result directory.
 Supports both single-file output (e.g. pages.xml) and split output
@@ -25,23 +25,34 @@ Options:
   --add-default     Also import default-files*.xml and default-pages*.xml from <src>/_shared
   --dry             Dry run, only print the import commands instead of running them
   --sfr=NAME        MediaWiki wiki instance passed to the import maintenance scripts
+  --mode=MODE       What to import (default: all)
+                      all         Import everything (pages, templates, comments, sidebar,
+                                  and files)
+                      no-files    Import everything except file/media attachments:
+                                  skips _shared/default-files*.xml and files*.xml
+                      files-only  Import only file/media attachments:
+                                  _shared/default-files*.xml and files*.xml
+  --no-files        Shortcut for --mode=no-files
+  --files-only      Shortcut for --mode=files-only
 
 Import order per namespace directory:
-  1) _shared/default-files*.xml  (only with --add-default, once per wiki)
-  2) _shared/default-pages*.xml  (only with --add-default, once per wiki)
-  3) files*.xml
-  4) templates*.xml
-  5) pages*.xml
-  6) page-talk*.xml
-  7) blogs*.xml
-  8) blog-talk*.xml
-  9) enhanced-sidebar*.xml
+  1) _shared/default-files*.xml  (only with --add-default, skipped in --mode=no-files)
+  2) _shared/default-pages*.xml  (only with --add-default, skipped in --mode=files-only)
+  3) files*.xml                  (skipped in --mode=no-files)
+  4) templates*.xml              (skipped in --mode=files-only)
+  5) pages*.xml                  (skipped in --mode=files-only)
+  6) page-talk*.xml              (skipped in --mode=files-only)
+  7) blogs*.xml                  (skipped in --mode=files-only)
+  8) blog-talk*.xml              (skipped in --mode=files-only)
+  9) enhanced-sidebar*.xml       (skipped in --mode=files-only)
 
 Notes:
-- Only pages*.xml is mandatory, all other groups are skipped when missing.
+- Only pages*.xml is mandatory, and only in --mode=all/no-files. All other groups
+  are skipped when missing.
 - user.xml is intentionally ignored.
 EOF
 }
+
 
 # --- Argument parsing --------------------------------------------------------
 
@@ -50,6 +61,7 @@ sfr=""
 wiki_root=""
 add_default=0
 dry=0
+mode="all"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 for arg in "$@"; do
@@ -66,6 +78,15 @@ for arg in "$@"; do
       ;;
     --add-default)
       add_default=1
+      ;;
+    --mode=*)
+      mode="${arg#*=}"
+      ;;
+    --no-files)
+      mode="no-files"
+      ;;
+    --files-only)
+      mode="files-only"
       ;;
     --dry)
       dry=1
@@ -88,6 +109,16 @@ if [[ -z "$wiki_root" ]]; then
   exit 1
 fi
 
+case "$mode" in
+  all|no-files|files-only)
+    ;;
+  *)
+    echo "Error: invalid --mode value: $mode (expected all, no-files, or files-only)" >&2
+    usage >&2
+    exit 1
+    ;;
+esac
+
 # Without --src the script assumes it lives inside the wiki result directory.
 if [[ -z "$src" ]]; then
   src="$script_dir"
@@ -96,6 +127,7 @@ src="${src%/}"
 
 wiki_name="$(basename "$src")"
 shared_dir="$src/_shared"
+
 
 # --- Validation --------------------------------------------------------------
 
@@ -113,12 +145,12 @@ if [[ "$add_default" -eq 1 && ! -d "$shared_dir" ]]; then
   echo "Warning: --add-default is set but the shared directory does not exist: $shared_dir" >&2
 fi
 
-if [[ ! -f "$wiki_root/maintenance/importDump.php" ]]; then
+if [[ "$mode" != "files-only" && ! -f "$wiki_root/maintenance/importDump.php" ]]; then
   echo "Error: maintenance/importDump.php not found in wiki root: $wiki_root" >&2
   exit 1
 fi
 
-if [[ ! -f "$wiki_root/extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php" ]]; then
+if [[ "$mode" != "no-files" && ! -f "$wiki_root/extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php" ]]; then
   echo "Error: extensions/BlueSpiceDistributionConnector/maintenance/importFiles.php not found in wiki root: $wiki_root" >&2
   exit 1
 fi
@@ -189,11 +221,11 @@ run_import_files_file() {
 }
 
 # Imports one group of XML files.
-#   $1 directory, $2 file base name, $3 mode ("files"|"dump"), $4 "required"|"optional"
+#   $1 directory, $2 file base name, $3 import_kind ("files"|"dump"), $4 "required"|"optional"
 run_group() {
   local source_dir="$1"
   local base="$2"
-  local mode="$3"
+  local import_kind="$3"
   local required="$4"
   local files=()
 
@@ -209,7 +241,7 @@ run_group() {
 
   for file in "${files[@]}"; do
     echo "==> Importing $base from $file"
-    if [[ "$mode" == "files" ]]; then
+    if [[ "$import_kind" == "files" ]]; then
       run_import_files_file "$file"
     else
       run_import_dump_file "$file"
@@ -220,7 +252,7 @@ run_group() {
 # Imports a group from <src>/_shared, but only with --add-default.
 run_default_group() {
   local base="$1"
-  local mode="$2"
+  local import_kind="$2"
 
   if (( add_default == 0 )); then
     return 0
@@ -231,20 +263,25 @@ run_default_group() {
     return 0
   fi
 
-  run_group "$shared_dir" "$base" "$mode" "optional"
+  run_group "$shared_dir" "$base" "$import_kind" "optional"
 }
 
-# Imports all XML groups of a single namespace directory.
+# Imports all XML groups of a single namespace directory, depending on --mode.
 import_namespace_directory() {
   local source_dir="$1"
 
-  run_group "$source_dir" "files" "files" "optional"
-  run_group "$source_dir" "templates" "dump" "optional"
-  run_group "$source_dir" "pages" "dump" "required"
-  run_group "$source_dir" "page-talk" "dump" "optional"
-  run_group "$source_dir" "blogs" "dump" "optional"
-  run_group "$source_dir" "blog-talk" "dump" "optional"
-  run_group "$source_dir" "enhanced-sidebar" "dump" "optional"
+  if [[ "$mode" != "no-files" ]]; then
+    run_group "$source_dir" "files" "files" "optional"
+  fi
+
+  if [[ "$mode" != "files-only" ]]; then
+    run_group "$source_dir" "templates" "dump" "optional"
+    run_group "$source_dir" "pages" "dump" "required"
+    run_group "$source_dir" "page-talk" "dump" "optional"
+    run_group "$source_dir" "blogs" "dump" "optional"
+    run_group "$source_dir" "blog-talk" "dump" "optional"
+    run_group "$source_dir" "enhanced-sidebar" "dump" "optional"
+  fi
 
   if [[ -f "$source_dir/user.xml" ]]; then
     echo "Note: user.xml exists at $source_dir/user.xml and is intentionally ignored."
@@ -255,11 +292,15 @@ import_namespace_directory() {
 
 # Default media are imported once per wiki, before any namespace content, so
 # that pages referencing them already find their files.
-run_default_group "default-files" "files"
+if [[ "$mode" != "no-files" ]]; then
+  run_default_group "default-files" "files"
+fi
 
 # Default pages are imported before the migrated pages, so migrated content
 # wins in case of a title collision.
-run_default_group "default-pages" "dump"
+if [[ "$mode" != "files-only" ]]; then
+  run_default_group "default-pages" "dump"
+fi
 
 shopt -s nullglob
 namespace_dirs=("$src"/*/)
@@ -287,12 +328,14 @@ for namespace_dir in "${namespace_dirs[@]}"; do
 done
 
 # The wiki wide sidebar lives next to the namespace directories.
-sidebar_file="$src/enhanced-sidebar.xml"
-if [[ -f "$sidebar_file" ]]; then
-  echo "==> Importing wiki sidebar from $sidebar_file"
-  if ! run_import_dump_file "$sidebar_file"; then
-    echo "Error: import failed for wiki sidebar $sidebar_file" >&2
-    exit 1
+if [[ "$mode" != "files-only" ]]; then
+  sidebar_file="$src/enhanced-sidebar.xml"
+  if [[ -f "$sidebar_file" ]]; then
+    echo "==> Importing wiki sidebar from $sidebar_file"
+    if ! run_import_dump_file "$sidebar_file"; then
+      echo "Error: import failed for wiki sidebar $sidebar_file" >&2
+      exit 1
+    fi
   fi
 fi
 

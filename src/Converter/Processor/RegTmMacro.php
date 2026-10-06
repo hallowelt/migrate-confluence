@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
+
 /**
  * <ac:structured-macro ac:name="reg-tm" ac:schema-version="1" ac:macro-id="12345">
  *   <ac:rich-text-body>Product Name</ac:rich-text-body>
@@ -9,12 +11,9 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
  */
 class RegTmMacro extends ConvertMacroToTemplateBase {
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'reg-tm';
-	}
+	public const MACRO_NAME = 'reg-tm';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
 
 	/**
 	 * @inheritDoc

@@ -6,6 +6,7 @@ use DOMElement;
 use DOMNode;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
+use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 /**
@@ -13,6 +14,10 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
  * @see tests/phpunit/date/gallery-macro-input.xml for example input
  */
 class GalleryMacro extends StructuredMacroProcessorBase {
+
+	public const MACRO_NAME = 'gallery';
+
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	/** @var DBConversionDataLookup */
 	private DBConversionDataLookup $dataLookup;
@@ -45,13 +50,6 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		$this->currentSpaceId = $currentSpaceId;
 		$this->rawPageTitle = $rawPageTitle;
 		$this->config = $config;
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	protected function getMacroName(): string {
-		return 'gallery';
 	}
 
 	/**

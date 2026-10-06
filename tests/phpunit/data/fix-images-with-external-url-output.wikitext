@@ -1,3 +1,0 @@
-[[File:Some test file]]
-
-<img src="https://server.unit.test/image_1234.png" height="150" />

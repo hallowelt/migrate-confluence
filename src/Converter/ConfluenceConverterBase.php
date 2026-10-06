@@ -14,7 +14,6 @@ use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\EscapePipesInTemplateBody;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixImagesWithExternalUrl;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
@@ -48,6 +47,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
+use HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncDrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
@@ -106,6 +106,12 @@ use Symfony\Component\Console\Output\Output;
 abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware {
 
 	protected const PROFILE_NAME = '.BASE_CLASS._DO_NOT_USE';
+
+	/**
+	 * Determines position of execution of profile processors.
+	 * Default = 4, which currently means between LayoutCell and AnchorMacro
+	 */
+	protected const PROFILE_AWARE_PROCESSORS_POSITION = 4;
 
 	/** @var MigrationConfig */
 	protected MigrationConfig $migrationConfig;
@@ -477,10 +483,15 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->placeholderManager
 			),
 			new Image(
+				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
 				$this->migrationConfig
+			),
+			new ImgHtml(
+				$this->writer,
+				$this->currentSpace
 			),
 			new AttachmentLink(
 				$this->dataLookup,
@@ -662,7 +673,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		return [
 			new RestoreExcerptIncludeMacro( $this->dataLookup ),
 			new FixLineBreakInHeadings(),
-			new FixImagesWithExternalUrl(),
 			new NestedHeadings(),
 			new FixEmptyListItemWrapper(),
 			new FixMultilineTemplate(),

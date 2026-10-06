@@ -62,4 +62,58 @@ class AttachmentsTest extends TestCase {
 			'Unexpected collection.historicalVersions value.'
 		);
 	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments::doExecute
+	 */
+	public function testOlderExportUsesContentPropertyAsContainer(): void {
+		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
+
+		$processor = new Attachments(
+			new AnalyzerDirectDataWriter( $this->workspaceDB ),
+			new MigrationConfig( [ 'include-history' => true ] ),
+			__DIR__
+		);
+
+		$this->executeProcessorForClass(
+			$processor, __DIR__ . '/attachment_content_only.xml', 'Attachment'
+		);
+
+		$attachments = $this->workspaceDB->getAttachments();
+		$this->assertCount( 1, $attachments, 'Expected exactly one attachment row.' );
+
+		$attachment = $attachments[0];
+		$this->assertSame( 31, $attachment['container_id'],
+			'Expected container_id to be resolved from the "content" property.'
+		);
+		$this->assertSame( __DIR__ . '/attachments/31/41/1', $attachment['attachment_reference'],
+			'Unexpected attachment_reference value.'
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments::doExecute
+	 */
+	public function testContainerContentTakesPrecedenceOverContent(): void {
+		$this->workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
+
+		$processor = new Attachments(
+			new AnalyzerDirectDataWriter( $this->workspaceDB ),
+			new MigrationConfig( [ 'include-history' => true ] ),
+			__DIR__
+		);
+
+		$this->executeProcessorForClass( $processor, __DIR__ . '/attachment_both.xml', 'Attachment' );
+
+		$attachments = $this->workspaceDB->getAttachments();
+		$this->assertCount( 1, $attachments, 'Expected exactly one attachment row.' );
+
+		$attachment = $attachments[0];
+		$this->assertSame( 32, $attachment['container_id'],
+			'Expected container_id to be resolved from "containerContent", not "content".'
+		);
+		$this->assertSame( __DIR__ . '/attachments/32/42/1', $attachment['attachment_reference'],
+			'Unexpected attachment_reference value.'
+		);
+	}
 }
