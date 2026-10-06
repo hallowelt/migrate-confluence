@@ -13,10 +13,14 @@ class ConfluenceConverterMediaWiki extends ConfluenceConverterBase {
 	 * @inheritDoc
 	 */
 	protected function getProcessors(): array {
-		return array_merge( $this->getDefaultProcessors(), [
+		$processors = $this->getDefaultProcessors();
+
+		array_splice( $processors, ConfluenceConverterBase::PROFILE_AWARE_PROCESSORS_POSITION, 0, [
 			new StatusMacro( $this->writer, $this->currentSpace ),
 			new ExcerptMacro( $this->writer, $this->currentSpace ),
 			new ExcerptIncludeMacro( $this->writer, $this->dataLookup, $this->currentSpace ),
 		] );
+
+		return $processors;
 	}
 }

@@ -7,6 +7,10 @@ knowing eye and the attention of the users.
 If ever possible the tool will always try to **port all information**, even if
 the functionality cannot be restored.
 
+> Due to some fundamental differences between the systems the tool needs to make
+> decisions from time to time. [Read about the behavior](./behavior.md) in face
+> of these to understand the subtleties of the migration.
+
 ## Cleanup Categories
 
 In the case that the tool cannot migrate content or functionality it will create
