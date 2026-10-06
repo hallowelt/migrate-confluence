@@ -45,7 +45,7 @@ class UpdateBlogPostsTableWithWikiTitleTest extends TestCase {
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		foreach ( [ 500, 501 ] as $blogPostId ) {
 			$workspaceDB->addBlogPost(
-				$blogPostId, 42, 'Sample blog', '', 'current', '', '', '1', -1, [], [], [], []
+				$blogPostId, 42, 'Sample blog', 'sample blog', '', 'current', '', '', '1', -1, [], [], [], []
 			);
 		}
 

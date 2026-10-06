@@ -16,9 +16,11 @@ class PageWikiTitlesTest extends TestCase {
 	 */
 	public function testReturnsDistinctNonEmptyPageWikiTitles(): void {
 		$db = $this->createWorkspaceDB();
-		$db->addPage( 1, null, 'Page one', 'TEST:One', 'current', '', '', '1', -1, -1, [], [], [], [] );
-		$db->addPage( 2, null, 'Page one historical', 'TEST:One', 'current', '', '', '1', 1, -1, [], [], [], [] );
-		$db->addPage( 3, null, 'Page without title', '', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$db->addPage( 1, null, 'Page one', 'page one', 'TEST:One', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$db->addPage(
+			2, null, 'Page one historical', 'page one', 'TEST:One', 'current', '', '', '1', 1, -1, [], [], [], []
+		);
+		$db->addPage( 3, null, 'Page without title', '', '', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$this->assertSame( [ 'TEST:One' ], $db->getPageWikiTitles() );
 	}
