@@ -32,12 +32,40 @@ class ConfluenceLowertitleLookupTest extends TestCase {
 		);
 	}
 
+	/**
+	 * Adds a page that was deleted/archived in Confluence: it has no current, live
+	 * version anymore, but its (non-current) row with the matching title is still
+	 * present in the export/DB.
+	 */
+	private function addNonCurrentPage(
+		WorkspaceDB $db, int $pageId, string $confluenceTitle, string $confluenceLowertitle, string $contentStatus
+	): void {
+		$db->addPage(
+			$pageId, self::SPACE_ID, $confluenceTitle, $confluenceLowertitle, '',
+			$contentStatus, '20240101000000', '', '1', -1, -1, [], [], [], []
+		);
+	}
+
 	private function addBlogPost(
 		WorkspaceDB $db, int $pageId, string $confluenceTitle, string $confluenceLowertitle, string $wikiTitle
 	): void {
 		$db->addBlogPost(
 			$pageId, self::SPACE_ID, $confluenceTitle, $confluenceLowertitle, $wikiTitle,
 			'current', '20240101000000', '', '1', -1, [], [], [], []
+		);
+	}
+
+	/**
+	 * Adds a blog post that was deleted/archived in Confluence: it has no current,
+	 * live version anymore, but its (non-current) row with the matching title is
+	 * still present in the export/DB.
+	 */
+	private function addNonCurrentBlogPost(
+		WorkspaceDB $db, int $pageId, string $confluenceTitle, string $confluenceLowertitle, string $contentStatus
+	): void {
+		$db->addBlogPost(
+			$pageId, self::SPACE_ID, $confluenceTitle, $confluenceLowertitle, '',
+			$contentStatus, '20240101000000', '', '1', -1, [], [], [], []
 		);
 	}
 
@@ -110,6 +138,41 @@ class ConfluenceLowertitleLookupTest extends TestCase {
 	}
 
 	/**
+	 * Regression test: if a page was deleted/archived in Confluence (no current, live
+	 * version left with that title), a link to its title must not resolve, even though
+	 * a non-current row with a matching confluence_lowertitle is still present in the DB.
+	 *
+	 * @covers \HalloWelt\MigrateConfluence\Database\WorkspaceDB::getWikiPageTitleFromSpaceId
+	 */
+	public function testGetWikiPageTitleFromSpaceIdDoesNotResolveDeletedPage(): void {
+		$db = $this->createWorkspaceDB();
+		$this->addSpace( $db );
+		$this->addNonCurrentPage( $db, 606, 'Archived Page', 'archived page', 'archived' );
+
+		$this->assertNull(
+			$db->getWikiPageTitleFromSpaceId( self::SPACE_ID, 'archived page' ),
+			'A page without a current version must not be resolved by title.'
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Database\WorkspaceDB::getWikiPageTitleFromSpaceId
+	 */
+	public function testGetWikiPageTitleFromSpaceIdResolvesCurrentPageDespiteNonCurrentDuplicate(): void {
+		$db = $this->createWorkspaceDB();
+		$this->addSpace( $db );
+		// A trashed/historical row sharing the same title as the live page.
+		$this->addNonCurrentPage( $db, 607, 'Reused Title', 'reused title', 'trashed' );
+		$this->addPage( $db, 608, 'Reused Title', 'reused title', 'TEST:Reused_Title' );
+
+		$this->assertSame(
+			'TEST:Reused_Title',
+			$db->getWikiPageTitleFromSpaceId( self::SPACE_ID, 'reused title' ),
+			'Lookup must resolve to the current page, not the non-current duplicate row.'
+		);
+	}
+
+	/**
 	 * @covers \HalloWelt\MigrateConfluence\Database\WorkspaceDB::getWikiBlogPostTitleFromSpaceId
 	 */
 	public function testGetWikiBlogPostTitleFromSpaceIdIsCaseInsensitive(): void {
@@ -136,6 +199,23 @@ class ConfluenceLowertitleLookupTest extends TestCase {
 			$db->getWikiBlogPostTitleFromSpaceId( self::SPACE_ID, 'custom-lowertitle' )
 		);
 		$this->assertNull( $db->getWikiBlogPostTitleFromSpaceId( self::SPACE_ID, 'Original Post' ) );
+	}
+
+	/**
+	 * Regression test: if a blog post was deleted/archived in Confluence (no current,
+	 * live version left with that title), a link to its title must not resolve.
+	 *
+	 * @covers \HalloWelt\MigrateConfluence\Database\WorkspaceDB::getWikiBlogPostTitleFromSpaceId
+	 */
+	public function testGetWikiBlogPostTitleFromSpaceIdDoesNotResolveDeletedBlogPost(): void {
+		$db = $this->createWorkspaceDB();
+		$this->addSpace( $db );
+		$this->addNonCurrentBlogPost( $db, 705, 'Archived Post', 'archived post', 'archived' );
+
+		$this->assertNull(
+			$db->getWikiBlogPostTitleFromSpaceId( self::SPACE_ID, 'archived post' ),
+			'A blog post without a current version must not be resolved by title.'
+		);
 	}
 
 	/**
