@@ -2790,36 +2790,64 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @param int[] $spaceIds Restrict to pages belonging to these space IDs. Empty means "all spaces".
 	 * @return string[]
 	 */
-	public function getPageWikiTitles(): array {
-		return $this->getWikiTitlesFrom( 'pages' );
+	public function getPageWikiTitles( array $spaceIds = [] ): array {
+		return $this->getWikiTitlesFrom( 'pages', $spaceIds );
 	}
+
+	private const WIKI_TITLE_COLUMNS = [
+		'pages' => 'wiki_title',
+		'blog_posts' => 'wiki_title',
+		'page_attachments' => 'target_attachment_filename',
+		'blog_post_attachments' => 'target_attachment_filename',
+		'page_comments' => 'wiki_title',
+		'blog_post_comments' => 'wiki_title',
+		'page_templates' => 'wiki_title',
+	];
+
+	// Tables without their own space_id need a join to resolve one: table => [parentTable, fkColumn].
+	private const WIKI_TITLE_SPACE_JOINS = [
+		'page_attachments' => [ 'pages', 'page_id' ],
+		'blog_post_attachments' => [ 'blog_posts', 'blog_post_id' ],
+		'page_comments' => [ 'pages', 'page_id' ],
+		'blog_post_comments' => [ 'blog_posts', 'blog_post_id' ],
+	];
 
 	/**
 	 * @param string $table
+	 * @param int[] $spaceIds Restrict to rows belonging to these space IDs. Empty means "all spaces".
 	 * @return string[]
 	 */
-	private function getWikiTitlesFrom( string $table ): array {
-		$titleColumns = [
-			'pages' => 'wiki_title',
-			'blog_posts' => 'wiki_title',
-			'page_attachments' => 'target_attachment_filename',
-			'blog_post_attachments' => 'target_attachment_filename',
-			'page_comments' => 'wiki_title',
-			'blog_post_comments' => 'wiki_title',
-			'page_templates' => 'wiki_title',
-		];
-
-		if ( !isset( $titleColumns[$table] ) ) {
+	private function getWikiTitlesFrom( string $table, array $spaceIds = [] ): array {
+		if ( !isset( self::WIKI_TITLE_COLUMNS[$table] ) ) {
 			throw new InvalidArgumentException( 'Unsupported table for wiki titles: ' . $table );
 		}
 
-		$titleColumn = $titleColumns[$table];
-		$transaction = $this->cachedPrepare(
-			"SELECT DISTINCT $titleColumn AS wiki_title FROM $table
-			WHERE $titleColumn IS NOT NULL AND $titleColumn != ''"
-		);
+		$titleColumn = self::WIKI_TITLE_COLUMNS[$table];
+
+		if ( $spaceIds === [] ) {
+			$sql = "SELECT DISTINCT $titleColumn AS wiki_title FROM $table
+				WHERE $titleColumn IS NOT NULL AND $titleColumn != ''";
+		} elseif ( isset( self::WIKI_TITLE_SPACE_JOINS[$table] ) ) {
+			[ $parentTable, $fkColumn ] = self::WIKI_TITLE_SPACE_JOINS[$table];
+			$placeholders = implode( ',', array_fill( 0, count( $spaceIds ), '?' ) );
+			$sql = "SELECT DISTINCT t.$titleColumn AS wiki_title FROM $table t
+				INNER JOIN $parentTable p ON p.page_id = t.$fkColumn
+				WHERE t.$titleColumn IS NOT NULL AND t.$titleColumn != ''
+				AND p.space_id IN ($placeholders)";
+		} else {
+			$placeholders = implode( ',', array_fill( 0, count( $spaceIds ), '?' ) );
+			$sql = "SELECT DISTINCT $titleColumn AS wiki_title FROM $table
+				WHERE $titleColumn IS NOT NULL AND $titleColumn != ''
+				AND space_id IN ($placeholders)";
+		}
+
+		$transaction = $this->cachedPrepare( $sql );
+		foreach ( array_values( $spaceIds ) as $index => $spaceId ) {
+			$transaction->bindValue( $index + 1, (int)$spaceId, SQLITE3_INTEGER );
+		}
 		$result = $transaction->execute();
 		if ( !$result ) {
 			return [];
@@ -2834,6 +2862,45 @@ class WorkspaceDB {
 		$result->finalize();
 
 		return $wikiTitles;
+	}
+
+	/**
+	 * Groups every known space ID by the output wiki it will be composed into, so callers
+	 * can uncollide wiki titles only against pages that end up in the same wiki. Spaces
+	 * without an explicit `--wikis` config entry fall into one shared implicit group,
+	 * mirroring ConfluenceComposer::getConfiguredWikiNames()/getSpacesForWiki().
+	 *
+	 * @return array<int,int[]> space_id => list of space_ids sharing its destination wiki.
+	 */
+	public function getSpaceIdToWikiGroupMap(): array {
+		$allSpaceIds = array_map(
+			static fn ( array $space ): int => (int)$space['space_id'],
+			$this->getSpaces()
+		);
+
+		if ( $this->getWikisConfigWikiNames() === [] ) {
+			$map = [];
+			foreach ( $allSpaceIds as $spaceId ) {
+				$map[$spaceId] = $allSpaceIds;
+			}
+			return $map;
+		}
+
+		$map = [];
+		foreach ( $allSpaceIds as $spaceId ) {
+			$spaceKey = $this->getSpaceKeyFromSpaceId( $spaceId );
+			$wikiName = $spaceKey !== null ? $this->getWikisConfigWikiNameForSpaceKey( $spaceKey ) : null;
+			if ( $wikiName === null ) {
+				// Not covered by the --wikis CSV: only shares a wiki with itself.
+				$map[$spaceId] = [ $spaceId ];
+				continue;
+			}
+			$map[$spaceId] = array_map(
+				static fn ( array $space ): int => (int)$space['space_id'],
+				$this->getWikisConfigSpacesForWikiName( $wikiName )
+			);
+		}
+		return $map;
 	}
 
 	/**
@@ -3326,8 +3393,8 @@ class WorkspaceDB {
 	/**
 	 * @return string[]
 	 */
-	public function getBlogPostWikiTitles(): array {
-		return $this->getWikiTitlesFrom( 'blog_posts' );
+	public function getBlogPostWikiTitles( array $spaceIds = [] ): array {
+		return $this->getWikiTitlesFrom( 'blog_posts', $spaceIds );
 	}
 
 	/**
@@ -4269,8 +4336,8 @@ class WorkspaceDB {
 	/**
 	 * @return string[]
 	 */
-	public function getPageAttachmentWikiTitles(): array {
-		return $this->getWikiTitlesFrom( 'page_attachments' );
+	public function getPageAttachmentWikiTitles( array $spaceIds = [] ): array {
+		return $this->getWikiTitlesFrom( 'page_attachments', $spaceIds );
 	}
 
 	/**
@@ -4293,8 +4360,8 @@ class WorkspaceDB {
 	/**
 	 * @return string[]
 	 */
-	public function getBlogPostAttachmentWikiTitles(): array {
-		return $this->getWikiTitlesFrom( 'blog_post_attachments' );
+	public function getBlogPostAttachmentWikiTitles( array $spaceIds = [] ): array {
+		return $this->getWikiTitlesFrom( 'blog_post_attachments', $spaceIds );
 	}
 
 	/**
@@ -4753,8 +4820,8 @@ class WorkspaceDB {
 	/**
 	 * @return string[]
 	 */
-	public function getPageCommentWikiTitles(): array {
-		return $this->getWikiTitlesFrom( 'page_comments' );
+	public function getPageCommentWikiTitles( array $spaceIds = [] ): array {
+		return $this->getWikiTitlesFrom( 'page_comments', $spaceIds );
 	}
 
 	/**
@@ -4818,8 +4885,8 @@ class WorkspaceDB {
 	/**
 	 * @return string[]
 	 */
-	public function getBlogPostCommentWikiTitles(): array {
-		return $this->getWikiTitlesFrom( 'blog_post_comments' );
+	public function getBlogPostCommentWikiTitles( array $spaceIds = [] ): array {
+		return $this->getWikiTitlesFrom( 'blog_post_comments', $spaceIds );
 	}
 
 	/**
@@ -5904,8 +5971,8 @@ class WorkspaceDB {
 	/**
 	 * @return string[]
 	 */
-	public function getPageTemplateWikiTitles(): array {
-		return $this->getWikiTitlesFrom( 'page_templates' );
+	public function getPageTemplateWikiTitles( array $spaceIds = [] ): array {
+		return $this->getWikiTitlesFrom( 'page_templates', $spaceIds );
 	}
 
 	/**

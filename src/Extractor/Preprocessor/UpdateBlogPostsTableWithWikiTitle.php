@@ -34,7 +34,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		$spaceIdToPrefixMap = $this->workspaceDB->getMapSpaceIdToPrefix();
 		$blogPosts = $this->workspaceDB->getBlogPosts();
 		$pageIdToWikiTitleMap = [];
-		$titlesAlreadyInUse = $this->workspaceDB->getBlogPostWikiTitles();
+		$pageIdToSpaceIdMap = [];
 
 		foreach ( $blogPosts as $blogPost ) {
 			if (
@@ -69,6 +69,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			try {
 				$wikiTitle = $titleBuilder->buildTitle( $spaceId, $pageId, $confluenceTitle );
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
+				$pageIdToSpaceIdMap[$pageId] = $spaceId;
 			} catch ( Exception $ex ) {
 				$this->dbLog->addLogEntry(
 					'error',
@@ -109,9 +110,12 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
 		$compressedPageIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $pageIdToWikiTitleMap );
 		$wikiTitleUniquifier = new WikiTitleUniquifier();
-		$titlesMap = $wikiTitleUniquifier->makeUnique(
+		$spaceIdToWikiGroup = $this->workspaceDB->getSpaceIdToWikiGroupMap();
+		$titlesMap = $wikiTitleUniquifier->makeUniquePerWiki(
 			$compressedPageIdToWikiTitleMap,
-			$titlesAlreadyInUse
+			$pageIdToSpaceIdMap,
+			$spaceIdToWikiGroup,
+			fn ( array $spaceIds ) => $this->workspaceDB->getBlogPostWikiTitles( $spaceIds )
 		);
 
 		foreach ( $titlesMap as $pageId => $wikiTitle ) {

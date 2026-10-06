@@ -32,7 +32,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 	private function updateWikiTitles(): void {
 		$pageTemplates = $this->workspaceDB->getPageTemplates();
 		$templateIdToWikiTitleMap = [];
-		$titlesAlreadyInUse = $this->workspaceDB->getPageTemplateWikiTitles();
+		$templateIdToSpaceIdMap = [];
 
 		foreach ( $pageTemplates as $pageTemplate ) {
 			if ( !isset( $pageTemplate['template_id'] ) ) {
@@ -73,6 +73,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 			try {
 				$wikiTitle = $this->buildTemplateTitle( $confluenceTitle, $spaceId );
 				$templateIdToWikiTitleMap[$templateId] = $wikiTitle;
+				$templateIdToSpaceIdMap[$templateId] = $spaceId;
 			} catch ( InvalidTitleException $e ) {
 				$this->dbLog->addLogEntry(
 					'warning',
@@ -119,9 +120,12 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
 		$compressedTemplateIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $templateIdToWikiTitleMap );
 		$wikiTitleUniquifier = new WikiTitleUniquifier();
-		$titlesMap = $wikiTitleUniquifier->makeUnique(
+		$spaceIdToWikiGroup = $this->workspaceDB->getSpaceIdToWikiGroupMap();
+		$titlesMap = $wikiTitleUniquifier->makeUniquePerWiki(
 			$compressedTemplateIdToWikiTitleMap,
-			$titlesAlreadyInUse
+			$templateIdToSpaceIdMap,
+			$spaceIdToWikiGroup,
+			fn ( array $spaceIds ) => $this->workspaceDB->getPageTemplateWikiTitles( $spaceIds )
 		);
 
 		foreach ( $titlesMap as $templateId => $wikiTitle ) {
