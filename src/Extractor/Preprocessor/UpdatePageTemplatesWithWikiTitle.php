@@ -9,6 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
+use HalloWelt\MigrateConfluence\Utility\WikiTitleUniquifier;
 
 /**
  */
@@ -31,6 +32,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 	private function updateWikiTitles(): void {
 		$pageTemplates = $this->workspaceDB->getPageTemplates();
 		$templateIdToWikiTitleMap = [];
+		$titlesAlreadyInUse = $this->workspaceDB->getPageTemplateWikiTitles();
 
 		foreach ( $pageTemplates as $pageTemplate ) {
 			if ( !isset( $pageTemplate['template_id'] ) ) {
@@ -116,8 +118,13 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 		$compressedTitlesMap = $titleCompressor->execute( $templateIdToWikiTitleMap );
 		$applyCompressedTitles = new ApplyCompressedTitle( $compressedTitlesMap );
 		$compressedTemplateIdToWikiTitleMap = $applyCompressedTitles->toMapValues( $templateIdToWikiTitleMap );
+		$wikiTitleUniquifier = new WikiTitleUniquifier();
+		$titlesMap = $wikiTitleUniquifier->makeUnique(
+			$compressedTemplateIdToWikiTitleMap,
+			$titlesAlreadyInUse
+		);
 
-		foreach ( $compressedTemplateIdToWikiTitleMap as $templateId => $wikiTitle ) {
+		foreach ( $titlesMap as $templateId => $wikiTitle ) {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for page template id $templateId";
 
