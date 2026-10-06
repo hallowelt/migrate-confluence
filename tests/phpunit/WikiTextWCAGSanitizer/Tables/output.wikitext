@@ -61,12 +61,18 @@ lorem ipsum
 {| class="wikitable-7"! one! two|-| tree| four|+ Table 7: has caption bottom|}
 
 lorem ipsum
-{| class="wikitable-8"|+ Table 8 | one! two|-| tree| four|}
+{| class="wikitable-8"
+|+ Table 8
+! one! two|-| tree| four|}
 
 lorem ipsum
 {| class="wikitable-9"! one! two|-|
 |+ Table 9
 
 lorem ipsum
-{| class="wikitable-10"|+ Table 10 | one! two|-| tree| four|}
+{| class="wikitable-10"
+|+ Table 10
+! one! two|-| tree| four|}
 | four|}
+
+[[Category:WCAG/Table_missing_caption]]

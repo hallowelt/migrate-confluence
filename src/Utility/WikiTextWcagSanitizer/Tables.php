@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Utility\WikiTextWcagSanitizer;
 
 class Tables {
 
-	private const CATEGORY_TABLE_CAPTION = 'Table_missing_caption';
+	private const CATEGORY_TABLE_CAPTION = 'WCAG/Table_missing_caption';
 
 	/**
 	 * Adding a caption to a table if not exists.
@@ -32,9 +32,8 @@ class Tables {
 			$tableWithoutCaption = true;
 		}
 
-		if ( !$tableWithoutCaption ) {
-			$category = "[[Category:Table_without_caption]]";
-			$wikitext .= "\n$category\n";
+		if ( $tableWithoutCaption ) {
+			$wikitext .= "\n\n[[Category:" . self::CATEGORY_TABLE_CAPTION . "]]";
 		}
 
 		return $wikitext;
@@ -181,7 +180,9 @@ class Tables {
 
 		if ( count( $lines ) === 1 ) {
 			$line = $lines[0];
-			$lines[0] = preg_replace( '#\{\|(.*?)[\!|\|]#', "{|$1|+ $label $num |", $line );
+			// Insert the caption before the first cell delimiter without consuming it,
+			// so header cells ("!") are not demoted to data cells ("|").
+			$lines[0] = preg_replace( '#\{\|(.*?)(?=[\!|])#', "{|$1\n|+ $label $num\n", $line );
 		} else {
 			array_splice( $lines, 1, 0, [ "|+ $label $num" ] );
 		}

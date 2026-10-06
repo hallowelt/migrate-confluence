@@ -4,8 +4,7 @@ namespace HalloWelt\MigrateConfluence\Utility\WikiTextWcagSanitizer;
 
 class Headings {
 
-	private const CATEGORY_HEADING_OERDER = 'Heading_order';
-	private const CATEGORY_HEADING_OERDER_FIXED = 'Heading_order_fixed';
+	private const CATEGORY_HEADING_ORDER = 'WCAG/Heading_order';
 
 	/**
 	 * Fix the order of headings and add a maintenance category
@@ -18,7 +17,7 @@ class Headings {
 
 		if ( !$goodHeadingOrder ) {
 			$wikitext = $this->sanitizeHeadings( $wikitext );
-			$wikitext .= "\n\n[[Category:WCAG/Heading_order]]";
+			$wikitext .= "\n\n[[Category:" . self::CATEGORY_HEADING_ORDER . "]]";
 		}
 
 		return $wikitext;

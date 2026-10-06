@@ -36,7 +36,7 @@ config:
     profile: mediawiki
     csv-delimiter: ","
     add-userinfo: false
-	sanitize-wcag: false
+    sanitize-wcag: false
 ```
 
 ### `mainpage`
