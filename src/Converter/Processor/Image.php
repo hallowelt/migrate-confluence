@@ -108,26 +108,99 @@ class Image extends ImageProcessorBase {
 	private function getImageParams( DOMElement $node ): array {
 		$params = [];
 
-		$width = $node->getAttribute( 'ac:width' );
-		$height = $node->getAttribute( 'ac:height' );
-		if ( $width !== '' || $height !== '' ) {
-			$dimensions = 'px';
-			if ( $height !== '' ) {
-				$dimensions = 'x' . $height . $dimensions;
-			}
-			$dimensions = $width . $dimensions;
-			$params[] = $dimensions;
-		}
-
-		if ( $node->getAttribute( 'ac:thumbnail' ) !== '' ) {
+		// A caption is the only case where MediaWiki's "thumb" is the right match.
+		// ac:thumbnail only means "serve a scaled copy" in Confluence, which
+		// MediaWiki does automatically for any sized image, so it is ignored.
+		$caption = $this->getImageCaption( $node );
+		if ( $caption !== '' ) {
 			$params[] = 'thumb';
 		}
 
-		if ( $node->getAttribute( 'ac:align' ) !== '' ) {
-			$params[] = $node->getAttribute( 'ac:align' );
+		$width = $this->getPixelValue( $node, 'ac:width' );
+		$height = $this->getPixelValue( $node, 'ac:height' );
+		if ( $width !== '' || $height !== '' ) {
+			// "150px", "x150px" or "200x150px"
+			$params[] = $width . ( $height !== '' ? 'x' . $height : '' ) . 'px';
+		}
+
+		$align = $this->getImageAlignment( $node );
+		if ( $align !== '' ) {
+			$params[] = $align;
+		}
+
+		// Borders are not rendered on thumb images, so only add for plain images
+		if ( $caption === '' && $node->getAttribute( 'ac:border' ) === 'true' ) {
+			$params[] = 'border';
+		}
+
+		$alt = $this->sanitizeParamText( $node->getAttribute( 'ac:alt' ) );
+		if ( $alt !== '' ) {
+			$params[] = 'alt=' . $alt;
+		}
+
+		$class = $this->sanitizeParamText( $node->getAttribute( 'ac:class' ) );
+		if ( $class !== '' ) {
+			$params[] = 'class=' . $class;
+		}
+
+		// The last unnamed parameter is the caption. On non-thumb images
+		// MediaWiki shows it as the tooltip, which matches ac:title.
+		if ( $caption !== '' ) {
+			$params[] = $caption;
+		} else {
+			$title = $this->sanitizeParamText( $node->getAttribute( 'ac:title' ) );
+			if ( $title !== '' ) {
+				$params[] = $title;
+			}
 		}
 
 		return $params;
+	}
+
+	private function getPixelValue( DOMElement $node, string $attribute ): string {
+		$value = trim( $node->getAttribute( $attribute ) );
+		$value = preg_replace( '/px$/i', '', $value );
+		if ( $value === '' || !is_numeric( $value ) ) {
+			return '';
+		}
+		return (string)(int)round( (float)$value );
+	}
+
+	private function getImageAlignment( DOMElement $node ): string {
+		$align = strtolower( trim( $node->getAttribute( 'ac:align' ) ) );
+		if ( in_array( $align, [ 'left', 'center', 'right' ], true ) ) {
+			return $align;
+		}
+
+		// Confluence Cloud editor
+		$layoutMap = [
+			'align-start' => 'left',
+			'wrap-left' => 'left',
+			'center' => 'center',
+			'align-end' => 'right',
+			'wrap-right' => 'right',
+		];
+		$layout = strtolower( trim( $node->getAttribute( 'ac:layout' ) ) );
+		return $layoutMap[$layout] ?? '';
+	}
+
+	private function getImageCaption( DOMElement $node ): string {
+		foreach ( $node->childNodes as $child ) {
+			if ( $child instanceof DOMElement && $child->nodeName === 'ac:caption' ) {
+				return $this->sanitizeParamText( $child->textContent );
+			}
+		}
+		return '';
+	}
+
+	private function sanitizeParamText( string $text ): string {
+		// Collapse whitespace/newlines and escape characters that break [[File:...]]
+		$text = trim( preg_replace( '/\s+/u', ' ', $text ) );
+		return str_replace(
+			[ '|', '[[', ']]' ],
+			[ '&#124;', '&#91;&#91;', '&#93;&#93;' ],
+			$text
+		);
 	}
 
 	/**

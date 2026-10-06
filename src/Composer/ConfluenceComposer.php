@@ -29,51 +29,23 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Output\Output;
 
-class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
-
-	/** @var MigrationConfig */
-	protected MigrationConfig $migrationConfig;
-
-	/** @var string */
-	protected string $dest = '';
-
-	/** @var Workspace|null */
-	protected $workspace = null;
-
-	protected Output $output;
-
-	protected DBComposerDataLookup $dataLookup;
-
-	/** @var ComposerSkipHelper */
-	protected ComposerSkipHelper $skipHelper;
-
-	/** @var WorkspaceDB|null */
-	protected ?WorkspaceDB $workspaceDB = null;
-
-	/** @var DBLog|null */
-	protected ?DBLog $dbLog = null;
-
-	/** @var int Total number of parallel compose worker processes (1 = no parallelism) */
-	protected int $workerCount = 1;
-
-	/** @var int Zero-based index of this worker process among $workerCount */
-	protected int $workerIndex = 0;
+/**
+ * All Confluence migrations are composed on a per-wiki basis: one output directory per
+ * target wiki below workspace/result, each containing namespace directories and a
+ * wiki-local _shared directory for wiki-scoped defaults. If no wiki mapping is configured
+ * (no --wikis CSV supplied to analyze), all spaces are grouped under a single implicit
+ * wiki, see DEFAULT_WIKI_NAME.
+ *
+ * Not intended to be extended; all helper members are private.
+ */
+final class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
 
 	/**
-	 * @var bool Set on the single, non-parallel pass that runs after all compose workers have
-	 * finished, to aggregate wiki-level artifacts (deployment.txt, wikiimport.sh, shared
-	 * content, wiki-level sidebar) that cannot be safely produced by concurrent workers
-	 * touching the same wiki. See WikiBasedComposer.
+	 * Directory/name used for the single implicit wiki when no wiki mapping was configured
+	 * (no --wikis CSV supplied to analyze). In that case all spaces are treated as if they
+	 * belonged to this one wiki.
 	 */
-	protected bool $finalizeOnly = false;
-
-	/**
-	 * @var array<string,string[]> subDir (wikiName/namespace) => file extensions, collected
-	 * from all workers by the orchestrator (via ComposeDataWriter over the fd-3 DB pipe) and
-	 * passed through here for the finalize pass to consume. Empty outside a finalize pass.
-	 * See WikiBasedComposer.
-	 */
-	protected array $namespaceFileExtensions = [];
+	private const DEFAULT_WIKI_NAME = 'default';
 
 	/**
 	 * Round-robin index into the flattened list of (wiki, namespace) pairs across *all*
@@ -88,6 +60,47 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 
 	/** @var PipeChannel|null Lazily opened; only used when isWorker() actually sends data. */
 	private ?PipeChannel $pipeChannel = null;
+
+	/** @var MigrationConfig */
+	private MigrationConfig $migrationConfig;
+
+	/** @var string */
+	private string $dest = '';
+
+	private Output $output;
+
+	private DBComposerDataLookup $dataLookup;
+
+	/** @var ComposerSkipHelper */
+	private ComposerSkipHelper $skipHelper;
+
+	/** @var WorkspaceDB|null */
+	private ?WorkspaceDB $workspaceDB = null;
+
+	/** @var DBLog|null */
+	private ?DBLog $dbLog = null;
+
+	/** @var int Total number of parallel compose worker processes (1 = no parallelism) */
+	private int $workerCount = 1;
+
+	/** @var int Zero-based index of this worker process among $workerCount */
+	private int $workerIndex = 0;
+
+	/**
+	 * @var bool Set on the single, non-parallel pass that runs after all compose workers have
+	 * finished, to aggregate wiki-level artifacts (deployment.txt, wikiimport.sh, shared
+	 * content, wiki-level sidebar) that cannot be safely produced by concurrent workers
+	 * touching the same wiki. See finalizeWikis().
+	 */
+	private bool $finalizeOnly = false;
+
+	/**
+	 * @var array<string,string[]> subDir (wikiName/namespace) => file extensions, collected
+	 * from all workers by the orchestrator (via ComposeDataWriter over the fd-3 DB pipe) and
+	 * passed through here for the finalize pass to consume. Empty outside a finalize pass.
+	 * See finalizeWikis().
+	 */
+	private array $namespaceFileExtensions = [];
 
 	/**
 	 * @param array $config
@@ -117,17 +130,17 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 *
 	 * @return bool
 	 */
-	protected function isWorker(): bool {
+	private function isWorker(): bool {
 		return $this->workerCount > 1 && !$this->finalizeOnly;
 	}
 
 	/**
 	 * Whether this is the single, non-parallel finalize pass that runs after all compose
-	 * workers have finished (see WikiBasedComposer for what it aggregates).
+	 * workers have finished (see finalizeWikis() for what it aggregates).
 	 *
 	 * @return bool
 	 */
-	protected function isFinalizeOnly(): bool {
+	private function isFinalizeOnly(): bool {
 		return $this->finalizeOnly;
 	}
 
@@ -138,7 +151,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @param int $index
 	 * @return bool
 	 */
-	protected function isMyShare( int $index ): bool {
+	private function isMyShare( int $index ): bool {
 		if ( $this->workerCount <= 1 ) {
 			return true;
 		}
@@ -175,12 +188,15 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 		}
 		$this->skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
 
-		$wikiNames = $this->dataLookup->getWikisConfigWikiNames();
-		if ( $wikiNames === [] ) {
-			// This composer is only for wiki-based deployments.
-			// If no wikis are configured, we will not process anything.
-			return;
-		}
+		$this->doBuildXML( $builder );
+	}
+
+	/**
+	 * @param Builder $builder
+	 * @return void
+	 */
+	private function doBuildXML( Builder $builder ): void {
+		$wikiNames = $this->getConfiguredWikiNames();
 
 		if ( $this->isFinalizeOnly() ) {
 			// Workers only produced per-namespace artifacts (self-contained). Aggregate the
@@ -191,12 +207,11 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			return;
 		}
 
-		// Run space dependent processors for each space
-		// If wikis are configured, we will process spaces grouped by wiki name
+		// Run space dependent processors for each space, grouped by target wiki.
 		$this->output->writeln( "Data is assigned to some wikis." );
 
 		foreach ( $wikiNames as $wikiName ) {
-			$spaces = $this->dataLookup->getWikisConfigSpacesForWikiName( $wikiName );
+			$spaces = $this->getSpacesForWiki( $wikiName );
 			if ( $spaces === [] ) {
 				$this->output->writeln( "No spaces found for wiki '$wikiName'." );
 				continue;
@@ -239,358 +254,31 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	}
 
 	/**
-	 * @param array $spaces
+	 * Target wiki names to process. If no wiki mapping was configured (no --wikis CSV
+	 * supplied to analyze), all spaces are grouped under a single implicit wiki name, so
+	 * migrations without an explicit wiki mapping are composed the same way as migrations
+	 * with exactly one configured wiki.
+	 *
+	 * @return string[]
+	 */
+	private function getConfiguredWikiNames(): array {
+		$wikiNames = $this->dataLookup->getWikisConfigWikiNames();
+		if ( $wikiNames === [] ) {
+			return [ self::DEFAULT_WIKI_NAME ];
+		}
+		return $wikiNames;
+	}
+
+	/**
+	 * @param string $wikiName
 	 * @return array
 	 */
-	protected function buildSpacesMap( array $spaces ): array {
-		$map = [];
-		foreach ( $spaces as $space ) {
-			$spaceId = (int)$space['space_id'];
-			$namespace = empty( $space['namespace_prefix'] ) ? 'NS_MAIN' : $space['namespace_prefix'];
-
-			if ( !isset( $map[$namespace] ) ) {
-				$map[$namespace] = [];
-			}
-			$map[$namespace][$spaceId] = $space;
+	private function getSpacesForWiki( string $wikiName ): array {
+		if ( $this->dataLookup->getWikisConfigWikiNames() === [] ) {
+			// No wiki mapping configured: every known space belongs to the implicit wiki.
+			return $this->dataLookup->getSpaces();
 		}
-
-		return $map;
-	}
-
-	/**
-	 * @param Builder $builder
-	 * @return array
-	 */
-	protected function initProcessorsForSharedContent(
-		Builder $builder
-	): array {
-		return [
-			new DefaultFiles(
-				$this->dataLookup, $this->workspace, $this->output, $this->dest, $this->migrationConfig
-			),
-			new DefaultPages(
-				$builder, $this->output, $this->dest, $this->migrationConfig, $this->dataLookup
-			),
-		];
-	}
-
-	/**
-	 * @param Builder $builder
-	 * @param string $subDir
-	 * @param int[] $spaceIds
-	 * @return void
-	 */
-	protected function runSharedContentProcessors( Builder $builder, string $subDir, array $spaceIds ): void {
-		foreach ( $this->initProcessorsForSharedContent( $builder ) as $processor ) {
-			$processor->setSubDir( $subDir );
-			if ( $processor instanceof ISpaceIdsDependentProcessor ) {
-				$processor->setCurrentSpaceIds( $spaceIds );
-			}
-			$processor->execute();
-		}
-	}
-
-	/**
-	 * @param Builder $builder
-	 * @return array
-	 */
-	protected function initProcessorsForSpaceContent(
-		Builder $builder, ComposerDeploymentInfo $deploymentInfo
-	): array {
-		return [
-			new Files(
-				$this->dataLookup, $this->workspace,
-				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $this->skipHelper
-			),
-			new Pages(
-				$builder, $this->dataLookup, $this->workspace,
-				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $this->skipHelper
-			),
-			new BlogPosts(
-				$builder, $this->dataLookup, $this->workspace,
-				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $this->skipHelper
-			),
-			new Templates(
-				$builder, $this->dataLookup, $this->workspace,
-				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $this->skipHelper
-			),
-			new PageComments(
-				$builder, $this->dataLookup, $this->workspace,
-				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $this->skipHelper
-			),
-			new BlogPostComments(
-				$builder, $this->dataLookup, $this->workspace,
-				$this->output, $this->dest, $this->migrationConfig,
-				$deploymentInfo, $this->skipHelper
-			),
-			new Users(
-				$this->dataLookup, $this->output, $this->dest
-			),
-			new InvalidContents(
-				$builder, $this->dataLookup, $this->workspace,
-				$this->output, $this->dest, $this->migrationConfig
-			),
-		];
-	}
-
-	/**
-	 * @param ComposerDeploymentInfo $deploymentInfo
-	 * @param string $subDir
-	 * @return void
-	 */
-	protected function writeDeploymentLog(
-		ComposerDeploymentInfo $deploymentInfo, string $subDir
-	): void {
-		$content = "# Namespaces\n\n";
-		$namespaces = $deploymentInfo->getNamespaces();
-		$content .= $this->makeListContent( $namespaces );
-
-		$content .= "\n\n# File extensions\n\n";
-		$fileExtensions = $deploymentInfo->getFileExtensions();
-		$content .= $this->makeListContent( $fileExtensions );
-
-		$logDir = $this->ensureDeploymentInfoPath( $subDir );
-		file_put_contents( $logDir . "/deployment.txt", $content );
-	}
-
-	/**
-	 * @param string $namespace
-	 * @param ComposerDeploymentInfo $deploymentInfo
-	 * @param string $subDir
-	 * @return void
-	 */
-	protected function writeSkippedPagesLog(
-		string $namespace, ComposerDeploymentInfo $deploymentInfo, string $subDir = ''
-	): void {
-		$skippedPages = $deploymentInfo->getSkippedPages();
-		$content = $this->makeListContent( $skippedPages );
-
-		$logDir = $this->ensureLogPath( $subDir );
-		file_put_contents( $logDir . "/skipped_pages.log", $content );
-	}
-
-	/**
-	 * @param DBLog $dbLog
-	 * @return void
-	 */
-	protected function writeUserReadableDBLog( DBLog $dbLog ): void {
-		$this->writeDBLogContent( $dbLog, 'error' );
-		$this->writeDBLogContent( $dbLog, 'warning' );
-		$this->writeDBLogContent( $dbLog, 'info' );
-	}
-
-	/**
-	 * @param array $data
-	 * @return string
-	 */
-	protected function makeListContent( array $data ): string {
-		$content = '';
-		foreach ( $data as $item ) {
-			$content .= "$item\n";
-		}
-		return $content;
-	}
-
-	/**
-	 * @param DBLog $dbLog
-	 * @param string $type
-	 * @return void
-	 */
-	protected function writeDBLogContent( DBLog $dbLog, string $type ): void {
-		$data = $dbLog->getLogEntriesForStep( 'compose', $type );
-		$content = '';
-		foreach ( $data as $item ) {
-			$content .= $item['caller'] . ': ' . $item['text'] . "\n";
-		}
-		file_put_contents( $this->dest . "/composer_{$type}.log", $content );
-	}
-
-	/**
-	 * @param array $spaceIds
-	 * @param string $namespace
-	 * @param string $subDir
-	 *
-	 * @return void
-	 */
-	protected function writeInvalidPagesLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
-		$data = [];
-		foreach ( $spaceIds as $spaceId ) {
-			$data = array_merge( $data, $this->dataLookup->getInvalidPages( (int)$spaceId ) );
-		}
-		$content = "page_id;space_id;confluence_title;wiki_title;text\n";
-		foreach ( $data as $item ) {
-			$line = $item['page_id'] . ';';
-			$line .= $item['space_id'] . ';';
-			$line .= $item['confluence_title'] . ';';
-			$line .= $item['wiki_title'] . ';';
-			$line .= $item['text'] . ';';
-			$content .= $line . "\n";
-		}
-		$logDir = $this->ensureLogPath( $subDir );
-		file_put_contents( $logDir . "/invalid_pages.log", $content );
-	}
-
-	/**
-	 * @param array $spaceIds
-	 * @param string $namespace
-	 * @param string $subDir
-	 *
-	 * @return void
-	 */
-	protected function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
-		$data = [];
-		foreach ( $spaceIds as $spaceId ) {
-			$data = array_merge( $data, $this->dataLookup->getInvalidBlogPosts( (int)$spaceId ) );
-		}
-		$content = "blog_post_id;space_id;confluence_title;wiki_title;text\n";
-		foreach ( $data as $item ) {
-			$line = $item['blog_post_id'] . ';';
-			$line .= $item['space_id'] . ';';
-			$line .= $item['confluence_title'] . ';';
-			$line .= $item['wiki_title'] . ';';
-			$line .= $item['text'] . ';';
-			$content .= $line . "\n";
-		}
-		$logDir = $this->ensureLogPath( $subDir );
-		file_put_contents( $logDir . "/invalid_blog_posts.log", $content );
-	}
-
-	/**
-	 * @param array $spaceIds
-	 * @param string $namespace
-	 * @param string $subDir
-	 *
-	 * @return void
-	 */
-	protected function writeInvalidPageTemplatesLog(
-		array $spaceIds, string $namespace = '', string $subDir = ''
-	): void {
-		$data = [];
-		foreach ( $spaceIds as $spaceId ) {
-			$data = array_merge( $data, $this->dataLookup->getInvalidPageTemplates( (int)$spaceId ) );
-		}
-		$content = "template_id;confluence_title;wiki_title;text\n";
-		foreach ( $data as $item ) {
-			$line = $item['template_id'] . ';';
-			$line .= $item['confluence_title'] . ';';
-			$line .= $item['wiki_title'] . ';';
-			$line .= $item['text'] . ';';
-			$content .= $line . "\n";
-		}
-		$logDir = $this->ensureLogPath( $subDir );
-		file_put_contents( $logDir . "/invalid_page_templates.log", $content );
-	}
-
-	/**
-	 * @param array $spaceIds
-	 * @param string $namespace
-	 * @param string $subDir
-	 *
-	 * @return void
-	 */
-	protected function writeInvalidAttachmentsLog(
-		array $spaceIds, string $namespace = '', string $subDir = ''
-	): void {
-		$data = [];
-		foreach ( $spaceIds as $spaceId ) {
-			$data = array_merge( $data, $this->dataLookup->getInvalidAttachments( (int)$spaceId ) );
-		}
-		$content = "attachment_id;page_id;confluence_title;wiki_title;text\n";
-		foreach ( $data as $item ) {
-			$line = $item['attachment_id'] . ';';
-			$line .= $item['page_id'] . ';';
-			$line .= $item['confluence_title'] . ';';
-			$line .= $item['wiki_title'] . ';';
-			$line .= $item['text'] . ';';
-			$content .= $line . "\n";
-		}
-		$logDir = $this->ensureLogPath( $subDir );
-		file_put_contents( $logDir . "/invalid_attachments.log", $content );
-	}
-
-	/**
-	 * @param string $subDir
-	 * @return string
-	 */
-	protected function ensureLogPath( string $subDir ): string {
-		$path = $this->dest . "/result";
-		$path .= "/$subDir/log";
-		if ( !is_dir( $path ) ) {
-			mkdir( $path, 0755, true );
-		}
-
-		return $path;
-	}
-
-	/**
-	 * @param string $subDir
-	 * @return string
-	 */
-	protected function ensureDeploymentInfoPath( string $subDir ): string {
-		$path = $this->dest . "/result";
-		$path .= "/$subDir";
-		if ( !is_dir( $path ) ) {
-			mkdir( $path, 0755, true );
-		}
-
-		return $path;
-	}
-
-	/**
-	 * Add version information of the migrate confluence tool to the database
-	 *
-	 * @param DBLog $dbLog
-	 * @return void
-	 */
-	protected function logMigrateConfluenceToolVersion( DBLog $dbLog ): void {
-		$dbLog->addLogEntry(
-			'info',
-			'compose',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
-	}
-
-	/**
-	 * @param string $subDir
-	 * @return void
-	 */
-	protected function addSpaceImportHelper( string $subDir = '' ): void {
-		$sourcePaths = glob( __DIR__ . '/_shell/*' );
-		if ( $sourcePaths === false || $sourcePaths === [] ) {
-			return;
-		}
-
-		if ( $subDir !== '' ) {
-			$sourcePath = __DIR__ . '/_shell/spaceimport.sh';
-			$targetDir = $this->dest . "/result/$subDir";
-			$this->copyShellScript( $sourcePath, $targetDir . '/spaceimport.sh' );
-		}
-	}
-
-	/**
-	 * @param string $sourcePath
-	 * @param string $targetPath
-	 * @return void
-	 */
-	protected function copyShellScript( string $sourcePath, string $targetPath ): void {
-		if ( !file_exists( $sourcePath ) ) {
-			throw new \RuntimeException( 'Could not find shell script: ' . $sourcePath );
-		}
-
-		if ( !copy( $sourcePath, $targetPath ) ) {
-			throw new \RuntimeException( 'Failed to copy shell script: ' . $sourcePath );
-		}
-
-		$sourcePerms = fileperms( $sourcePath );
-		if ( $sourcePerms !== false ) {
-			chmod( $targetPath, $sourcePerms & 0777 );
-		}
+		return $this->dataLookup->getWikisConfigSpacesForWikiName( $wikiName );
 	}
 
 	/**
@@ -659,8 +347,6 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$this->writeInvalidAttachmentsLog( $spaceIds, $namespace, $subDir );
 			$this->writeInvalidPageTemplatesLog( $spaceIds, $namespace, $subDir );
 
-			$this->addSpaceImportHelper( $subDir );
-
 			$wikiDeploymentInfo->addNamespace( $namespace );
 			foreach ( $namespaceDeploymentInfo->getFileExtensions() as $extension ) {
 				$wikiDeploymentInfo->addFileExtension( $extension );
@@ -702,7 +388,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 */
 	private function finalizeWikis( array $wikiNames, Builder $builder ): void {
 		foreach ( $wikiNames as $wikiName ) {
-			$spaces = $this->dataLookup->getWikisConfigSpacesForWikiName( $wikiName );
+			$spaces = $this->getSpacesForWiki( $wikiName );
 			if ( $spaces === [] ) {
 				continue;
 			}
@@ -758,7 +444,7 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 	 * @param string $subDir
 	 * @return void
 	 */
-	protected function addWikiImportHelper( string $subDir = '' ): void {
+	private function addWikiImportHelper( string $subDir = '' ): void {
 		$sourcePaths = glob( __DIR__ . '/_shell/*' );
 		if ( $sourcePaths === false || $sourcePaths === [] ) {
 			return;
@@ -769,6 +455,344 @@ class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, 
 			$targetDir .= "/$subDir";
 			$sourcePath = __DIR__ . '/_shell/wikiimport.sh';
 			$this->copyShellScript( $sourcePath, $targetDir . '/wikiimport.sh' );
+		}
+	}
+
+	/**
+	 * @param array $spaces
+	 * @return array
+	 */
+	private function buildSpacesMap( array $spaces ): array {
+		$map = [];
+		foreach ( $spaces as $space ) {
+			$spaceId = (int)$space['space_id'];
+			$namespace = empty( $space['namespace_prefix'] ) ? 'NS_MAIN' : $space['namespace_prefix'];
+
+			if ( !isset( $map[$namespace] ) ) {
+				$map[$namespace] = [];
+			}
+			$map[$namespace][$spaceId] = $space;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * @param Builder $builder
+	 * @return array
+	 */
+	private function initProcessorsForSharedContent(
+		Builder $builder
+	): array {
+		return [
+			new DefaultFiles(
+				$this->dataLookup, $this->workspace, $this->output, $this->dest, $this->migrationConfig
+			),
+			new DefaultPages(
+				$builder, $this->output, $this->dest, $this->migrationConfig, $this->dataLookup
+			),
+		];
+	}
+
+	/**
+	 * @param Builder $builder
+	 * @param string $subDir
+	 * @param int[] $spaceIds
+	 * @return void
+	 */
+	private function runSharedContentProcessors( Builder $builder, string $subDir, array $spaceIds ): void {
+		foreach ( $this->initProcessorsForSharedContent( $builder ) as $processor ) {
+			$processor->setSubDir( $subDir );
+			if ( $processor instanceof ISpaceIdsDependentProcessor ) {
+				$processor->setCurrentSpaceIds( $spaceIds );
+			}
+			$processor->execute();
+		}
+	}
+
+	/**
+	 * @param Builder $builder
+	 * @return array
+	 */
+	private function initProcessorsForSpaceContent(
+		Builder $builder, ComposerDeploymentInfo $deploymentInfo
+	): array {
+		return [
+			new Files(
+				$this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo, $this->skipHelper
+			),
+			new Pages(
+				$builder, $this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo, $this->skipHelper
+			),
+			new BlogPosts(
+				$builder, $this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo, $this->skipHelper
+			),
+			new Templates(
+				$builder, $this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo, $this->skipHelper
+			),
+			new PageComments(
+				$builder, $this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo, $this->skipHelper
+			),
+			new BlogPostComments(
+				$builder, $this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig,
+				$deploymentInfo, $this->skipHelper
+			),
+			new Users(
+				$this->dataLookup, $this->output, $this->dest
+			),
+			new InvalidContents(
+				$builder, $this->dataLookup, $this->workspace,
+				$this->output, $this->dest, $this->migrationConfig
+			),
+		];
+	}
+
+	/**
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param string $subDir
+	 * @return void
+	 */
+	private function writeDeploymentLog(
+		ComposerDeploymentInfo $deploymentInfo, string $subDir
+	): void {
+		$content = "# Namespaces\n\n";
+		$namespaces = $deploymentInfo->getNamespaces();
+		$content .= $this->makeListContent( $namespaces );
+
+		$content .= "\n\n# File extensions\n\n";
+		$fileExtensions = $deploymentInfo->getFileExtensions();
+		$content .= $this->makeListContent( $fileExtensions );
+
+		$logDir = $this->ensureDeploymentInfoPath( $subDir );
+		file_put_contents( $logDir . "/deployment.txt", $content );
+	}
+
+	/**
+	 * @param string $namespace
+	 * @param ComposerDeploymentInfo $deploymentInfo
+	 * @param string $subDir
+	 * @return void
+	 */
+	private function writeSkippedPagesLog(
+		string $namespace, ComposerDeploymentInfo $deploymentInfo, string $subDir = ''
+	): void {
+		$skippedPages = $deploymentInfo->getSkippedPages();
+		$content = $this->makeListContent( $skippedPages );
+
+		$logDir = $this->ensureLogPath( $subDir );
+		file_put_contents( $logDir . "/skipped_pages.log", $content );
+	}
+
+	/**
+	 * @param DBLog $dbLog
+	 * @return void
+	 */
+	private function writeUserReadableDBLog( DBLog $dbLog ): void {
+		$this->writeDBLogContent( $dbLog, 'error' );
+		$this->writeDBLogContent( $dbLog, 'warning' );
+		$this->writeDBLogContent( $dbLog, 'info' );
+	}
+
+	/**
+	 * @param array $data
+	 * @return string
+	 */
+	private function makeListContent( array $data ): string {
+		$content = '';
+		foreach ( $data as $item ) {
+			$content .= "$item\n";
+		}
+		return $content;
+	}
+
+	/**
+	 * @param DBLog $dbLog
+	 * @param string $type
+	 * @return void
+	 */
+	private function writeDBLogContent( DBLog $dbLog, string $type ): void {
+		$data = $dbLog->getLogEntriesForStep( 'compose', $type );
+		$content = '';
+		foreach ( $data as $item ) {
+			$content .= $item['caller'] . ': ' . $item['text'] . "\n";
+		}
+		file_put_contents( $this->dest . "/composer_{$type}.log", $content );
+	}
+
+	/**
+	 * @param array $spaceIds
+	 * @param string $namespace
+	 * @param string $subDir
+	 *
+	 * @return void
+	 */
+	private function writeInvalidPagesLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
+		$data = [];
+		foreach ( $spaceIds as $spaceId ) {
+			$data = array_merge( $data, $this->dataLookup->getInvalidPages( (int)$spaceId ) );
+		}
+		$content = "page_id;space_id;confluence_title;wiki_title;text\n";
+		foreach ( $data as $item ) {
+			$line = $item['page_id'] . ';';
+			$line .= $item['space_id'] . ';';
+			$line .= $item['confluence_title'] . ';';
+			$line .= $item['wiki_title'] . ';';
+			$line .= $item['text'] . ';';
+			$content .= $line . "\n";
+		}
+		$logDir = $this->ensureLogPath( $subDir );
+		file_put_contents( $logDir . "/invalid_pages.log", $content );
+	}
+
+	/**
+	 * @param array $spaceIds
+	 * @param string $namespace
+	 * @param string $subDir
+	 *
+	 * @return void
+	 */
+	private function writeInvalidBlogPostsLog( array $spaceIds, string $namespace = '', string $subDir = '' ): void {
+		$data = [];
+		foreach ( $spaceIds as $spaceId ) {
+			$data = array_merge( $data, $this->dataLookup->getInvalidBlogPosts( (int)$spaceId ) );
+		}
+		$content = "blog_post_id;space_id;confluence_title;wiki_title;text\n";
+		foreach ( $data as $item ) {
+			$line = $item['blog_post_id'] . ';';
+			$line .= $item['space_id'] . ';';
+			$line .= $item['confluence_title'] . ';';
+			$line .= $item['wiki_title'] . ';';
+			$line .= $item['text'] . ';';
+			$content .= $line . "\n";
+		}
+		$logDir = $this->ensureLogPath( $subDir );
+		file_put_contents( $logDir . "/invalid_blog_posts.log", $content );
+	}
+
+	/**
+	 * @param array $spaceIds
+	 * @param string $namespace
+	 * @param string $subDir
+	 *
+	 * @return void
+	 */
+	private function writeInvalidPageTemplatesLog(
+		array $spaceIds, string $namespace = '', string $subDir = ''
+	): void {
+		$data = [];
+		foreach ( $spaceIds as $spaceId ) {
+			$data = array_merge( $data, $this->dataLookup->getInvalidPageTemplates( (int)$spaceId ) );
+		}
+		$content = "template_id;confluence_title;wiki_title;text\n";
+		foreach ( $data as $item ) {
+			$line = $item['template_id'] . ';';
+			$line .= $item['confluence_title'] . ';';
+			$line .= $item['wiki_title'] . ';';
+			$line .= $item['text'] . ';';
+			$content .= $line . "\n";
+		}
+		$logDir = $this->ensureLogPath( $subDir );
+		file_put_contents( $logDir . "/invalid_page_templates.log", $content );
+	}
+
+	/**
+	 * @param array $spaceIds
+	 * @param string $namespace
+	 * @param string $subDir
+	 *
+	 * @return void
+	 */
+	private function writeInvalidAttachmentsLog(
+		array $spaceIds, string $namespace = '', string $subDir = ''
+	): void {
+		$data = [];
+		foreach ( $spaceIds as $spaceId ) {
+			$data = array_merge( $data, $this->dataLookup->getInvalidAttachments( (int)$spaceId ) );
+		}
+		$content = "attachment_id;page_id;confluence_title;wiki_title;text\n";
+		foreach ( $data as $item ) {
+			$line = $item['attachment_id'] . ';';
+			$line .= $item['page_id'] . ';';
+			$line .= $item['confluence_title'] . ';';
+			$line .= $item['wiki_title'] . ';';
+			$line .= $item['text'] . ';';
+			$content .= $line . "\n";
+		}
+		$logDir = $this->ensureLogPath( $subDir );
+		file_put_contents( $logDir . "/invalid_attachments.log", $content );
+	}
+
+	/**
+	 * @param string $subDir
+	 * @return string
+	 */
+	private function ensureLogPath( string $subDir ): string {
+		$path = $this->dest . "/result";
+		$path .= "/$subDir/log";
+		if ( !is_dir( $path ) ) {
+			mkdir( $path, 0755, true );
+		}
+
+		return $path;
+	}
+
+	/**
+	 * @param string $subDir
+	 * @return string
+	 */
+	private function ensureDeploymentInfoPath( string $subDir ): string {
+		$path = $this->dest . "/result";
+		$path .= "/$subDir";
+		if ( !is_dir( $path ) ) {
+			mkdir( $path, 0755, true );
+		}
+
+		return $path;
+	}
+
+	/**
+	 * Add version information of the migrate confluence tool to the database
+	 *
+	 * @param DBLog $dbLog
+	 * @return void
+	 */
+	private function logMigrateConfluenceToolVersion( DBLog $dbLog ): void {
+		$dbLog->addLogEntry(
+			'info',
+			'compose',
+			__CLASS__,
+			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
+		);
+	}
+
+	/**
+	 * @param string $sourcePath
+	 * @param string $targetPath
+	 * @return void
+	 */
+	private function copyShellScript( string $sourcePath, string $targetPath ): void {
+		if ( !file_exists( $sourcePath ) ) {
+			throw new \RuntimeException( 'Could not find shell script: ' . $sourcePath );
+		}
+
+		if ( !copy( $sourcePath, $targetPath ) ) {
+			throw new \RuntimeException( 'Failed to copy shell script: ' . $sourcePath );
+		}
+
+		$sourcePerms = fileperms( $sourcePath );
+		if ( $sourcePerms !== false ) {
+			chmod( $targetPath, $sourcePerms & 0777 );
 		}
 	}
 }

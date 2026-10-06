@@ -74,7 +74,7 @@ XML;
 
 		$dataWriter = $this->createMock( ConverterDirectDataWriter::class );
 		$dataWriter->expects( $this->once() )->method( 'addRoadmapSvg' )
-			->with( 1, 'SomePage', 'Roadmap-test-macro-id.svg' );
+			->with( 1, 'SomePage', 'somepage', 'Roadmap-test-macro-id.svg' );
 
 		$processor = new RoadmapMacro( $dataLookup, $conversionDataWriter, $dataWriter, 1, 'SomePage' );
 		$processor->process( $dom );

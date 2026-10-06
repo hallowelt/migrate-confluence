@@ -13,7 +13,9 @@ class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
 	 * @inheritDoc
 	 */
 	protected function getProcessors(): array {
-		return array_merge( $this->getDefaultProcessors(), [
+		$processors = $this->getDefaultProcessors();
+
+		array_splice( $processors, ConfluenceConverterBase::PROFILE_AWARE_PROCESSORS_POSITION, 0, [
 			new StatusMacro( $this->placeholderManager ),
 			new ExcerptMacro( $this->placeholderManager ),
 			new ExcerptIncludeMacro(
@@ -22,5 +24,7 @@ class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
 				$this->placeholderManager
 			),
 		] );
+
+		return $processors;
 	}
 }

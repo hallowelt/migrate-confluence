@@ -19,7 +19,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
-		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
 			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
@@ -57,7 +57,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
-		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
 			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
@@ -98,7 +98,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', '' );
-		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
 			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
@@ -137,7 +137,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', '' );
-		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
 			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
@@ -178,7 +178,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', 'Root' );
-		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
 			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
@@ -217,7 +217,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', 'Root' );
-		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		$workspaceDB->addAttachment(
 			801, 1000, 'known.pdf', 'pdf', 800, 'current', '1', '', '', -1, '/tmp/c', [], [], []
@@ -257,7 +257,7 @@ class PopulateAdditionalAttachmentsTableTest extends TestCase {
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
-		$workspaceDB->addPage( 800, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage( 800, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
 
 		// Older Confluence export format: no "space" property on the orphan attachment itself,
 		// but its container page (800) is known and has a space. attachments.space_id is

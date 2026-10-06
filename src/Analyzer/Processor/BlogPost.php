@@ -72,6 +72,8 @@ class BlogPost extends ProcessorBase {
 			return;
 		}
 
+		$confluenceLowerTitle = $properties['lowerTitle'] ?? mb_strtolower( $confluenceTitle );
+
 		$bodyContentIds = [];
 		if ( isset( $collection['bodyContents'] ) ) {
 			$bodyContentIds = $collection['bodyContents'];
@@ -123,6 +125,7 @@ class BlogPost extends ProcessorBase {
 			$pageId,
 			$spaceId,
 			$confluenceTitle,
+			$confluenceLowerTitle,
 			'',
 			$contentStatus,
 			$revisionTimestamp,

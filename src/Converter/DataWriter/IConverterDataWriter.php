@@ -9,6 +9,7 @@ interface IConverterDataWriter extends IDataWriter {
 	/**
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $originalAttachmentFilename
 	 * @param string $targetAttachmentFilename
 	 *
@@ -17,6 +18,7 @@ interface IConverterDataWriter extends IDataWriter {
 	public function addGliffy(
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool;
@@ -24,6 +26,7 @@ interface IConverterDataWriter extends IDataWriter {
 	/**
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $svgFilename
 	 *
 	 * @return bool
@@ -31,6 +34,7 @@ interface IConverterDataWriter extends IDataWriter {
 	public function addRoadmapSvg(
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $svgFilename
 	): bool;
 

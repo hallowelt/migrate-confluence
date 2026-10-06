@@ -19,12 +19,11 @@ class UpdatePageAttachmentTableTest extends TestCase {
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPage(
-			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+			600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
 		$workspaceDB->addAttachment(
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
-
 		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
 		$processor->execute();
 
@@ -41,6 +40,36 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	}
 
 	/**
+	 * @covers \\HalloWelt\\MigrateConfluence\\Extractor\\Preprocessor\\UpdatePageAttachmentTable::execute
+	 */
+	public function testResolvesDuplicateTitlesWithinSameRun(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			602, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/b', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
+		$processor->execute();
+
+		$pageAttachments = $workspaceDB->getPageAttachments();
+		$this->assertCount( 2, $pageAttachments );
+		$this->assertNotSame(
+			$pageAttachments[0]['target_attachment_filename'],
+			$pageAttachments[1]['target_attachment_filename']
+		);
+	}
+
+	/**
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
 	 */
 	public function testCreatesTargetAttachmentFilenameWithExtNsFileRepo(): void {
@@ -50,7 +79,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addPage(
-			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+			600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
 		$workspaceDB->addAttachment(
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
@@ -88,7 +117,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', '' );
 		$workspaceDB->addPage(
-			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+			600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
 		$workspaceDB->addAttachment(
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
@@ -120,7 +149,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', '' );
 		$workspaceDB->addPage(
-			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+			600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
 		$workspaceDB->addAttachment(
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
@@ -158,7 +187,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', 'Root' );
 		$workspaceDB->addPage(
-			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+			600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
 		$workspaceDB->addAttachment(
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
@@ -194,7 +223,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'MYTEST', 'Root' );
 		$workspaceDB->addPage(
-			600, 1000, 'Page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+			600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
 		$workspaceDB->addAttachment(
 			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []

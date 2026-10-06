@@ -21,7 +21,7 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
 		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'TEST', '' );
 		$workspaceDB->addPage(
-			400, 42, 'Sample page', '', 'current', '', '', '1', -1, -1, [], [], [], []
+			400, 42, 'Sample page', 'sample page', '', 'current', '', '', '1', -1, -1, [], [], [], []
 		);
 
 		$processor = new UpdatePagesTableWithWikiTitle(

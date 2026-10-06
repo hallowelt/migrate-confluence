@@ -21,7 +21,7 @@ class ConfluenceConverterBaseTest extends TestCase {
 	public function testAddsFolderTemplateToEmptyFolderPage(): void {
 		$database = ( new WorkspaceDbMock() )->createEmpty();
 		$database->addPage(
-			1, 1, 'Folder', 'Folder', 'current', '', '', '1', -1, -1, [], [], [ 'isFolder' => true ], []
+			1, 1, 'Folder', 'folder', 'Folder', 'current', '', '', '1', -1, -1, [], [], [ 'isFolder' => true ], []
 		);
 
 		$converter = $this->newConverter();
