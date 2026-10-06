@@ -13,6 +13,7 @@ class UpdatePageCommentsTableWithWikiTitle extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$commentIdToWikiTitleMap = [];
+		$commentIdToSpaceIdMap = [];
 		foreach ( $this->workspaceDB->getPageComments() as $comment ) {
 			if ( !isset( $comment['comment_id'] ) || !isset( $comment['page_id'] ) ) {
 				continue;
@@ -45,11 +46,15 @@ class UpdatePageCommentsTableWithWikiTitle extends ProcessorBase {
 			}
 
 			$commentIdToWikiTitleMap[$commentId] = $talkTitle;
+			$commentIdToSpaceIdMap[$commentId] = $this->workspaceDB->getSpaceIdForPageId( $pageId );
 		}
 
-		$commentIdToWikiTitleMap = WikiTitleUniquifier::makeUnique(
+		$spaceIdToWikiGroup = $this->workspaceDB->getSpaceIdToWikiGroupMap();
+		$commentIdToWikiTitleMap = WikiTitleUniquifier::makeUniquePerWiki(
 			$commentIdToWikiTitleMap,
-			$this->workspaceDB->getPageCommentWikiTitles()
+			$commentIdToSpaceIdMap,
+			$spaceIdToWikiGroup,
+			fn ( array $spaceIds ) => $this->workspaceDB->getPageCommentWikiTitles( $spaceIds )
 		);
 
 		foreach ( $commentIdToWikiTitleMap as $commentId => $talkTitle ) {

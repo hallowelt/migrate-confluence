@@ -16,6 +16,7 @@ class UpdateBlogPostCommentsTableWithWikiTitle extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$commentIdToWikiTitleMap = [];
+		$commentIdToSpaceIdMap = [];
 		foreach ( $this->workspaceDB->getBlogPostComments() as $comment ) {
 			if ( !isset( $comment['comment_id'] ) || !isset( $comment['blog_post_id'] ) ) {
 				continue;
@@ -44,11 +45,15 @@ class UpdateBlogPostCommentsTableWithWikiTitle extends ProcessorBase {
 			}
 
 			$commentIdToWikiTitleMap[$commentId] = $wikiTitle;
+			$commentIdToSpaceIdMap[$commentId] = $this->workspaceDB->getSpaceIdForBlogPostId( $blogPostId );
 		}
 
-		$commentIdToWikiTitleMap = WikiTitleUniquifier::makeUnique(
+		$spaceIdToWikiGroup = $this->workspaceDB->getSpaceIdToWikiGroupMap();
+		$commentIdToWikiTitleMap = WikiTitleUniquifier::makeUniquePerWiki(
 			$commentIdToWikiTitleMap,
-			$this->workspaceDB->getBlogPostCommentWikiTitles()
+			$commentIdToSpaceIdMap,
+			$spaceIdToWikiGroup,
+			fn ( array $spaceIds ) => $this->workspaceDB->getBlogPostCommentWikiTitles( $spaceIds )
 		);
 
 		foreach ( $commentIdToWikiTitleMap as $commentId => $wikiTitle ) {
