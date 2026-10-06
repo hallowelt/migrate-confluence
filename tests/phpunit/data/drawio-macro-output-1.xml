@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="some" xmlns:ri="thing">
-	{{Drawio|border=true
+	{{Drawio
+|border=true
 |diagramName=SomePage-drawio.png
 |simpleViewer=false
 |width=
