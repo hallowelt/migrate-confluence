@@ -18,8 +18,8 @@ class UpdateBlogPostAttachmentTable extends AttachmentTableUpdaterBase {
 	}
 
 	/** @inheritDoc */
-	protected function checkWikiTitleExists( string $wikiTitle ): bool {
-		return $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $wikiTitle );
+	protected function checkWikiTitleExists( string $wikiTitle, array $spaceIds ): bool {
+		return $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $wikiTitle, $spaceIds );
 	}
 
 	/** @inheritDoc */

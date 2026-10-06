@@ -18,8 +18,8 @@ class UpdatePageAttachmentTable extends AttachmentTableUpdaterBase {
 	}
 
 	/** @inheritDoc */
-	protected function checkWikiTitleExists( string $wikiTitle ): bool {
-		return $this->workspaceDB->checkPageAttachmentWikiTitleExists( $wikiTitle );
+	protected function checkWikiTitleExists( string $wikiTitle, array $spaceIds ): bool {
+		return $this->workspaceDB->checkPageAttachmentWikiTitleExists( $wikiTitle, $spaceIds );
 	}
 
 	/** @inheritDoc */

@@ -25,7 +25,10 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 
 	protected const MAX_UNCOLLIDE_ATTEMPTS = 10000;
 	protected const UNKNOWN_EXTENSION = '.unknown';
+	/** @var array<string,array<string,true>> wiki group key => set of titles reserved during this run */
 	private array $reservedWikiTitles = [];
+	/** @var array<int,int[]> space_id => space_ids sharing its destination wiki */
+	private array $spaceIdToWikiGroup = [];
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
@@ -48,6 +51,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$this->reservedWikiTitles = [];
+		$this->spaceIdToWikiGroup = $this->workspaceDB->getSpaceIdToWikiGroupMap();
 		$this->addAttachments();
 		$this->checkWikiTitles();
 	}
@@ -72,12 +76,15 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	abstract protected function getContentLabel(): string;
 
 	/**
-	 * Checks whether a wiki title already exists in the attachment table.
+	 * Checks whether a wiki title already exists in the attachment table, restricted to
+	 * attachments belonging to the given space IDs (the destination-wiki group of the
+	 * attachment being built), so titles don't collide across different output wikis.
 	 *
 	 * @param string $wikiTitle
+	 * @param int[] $spaceIds
 	 * @return bool
 	 */
-	abstract protected function checkWikiTitleExists( string $wikiTitle ): bool;
+	abstract protected function checkWikiTitleExists( string $wikiTitle, array $spaceIds ): bool;
 
 	/**
 	 * Persists a new attachment entry to the attachment table.
@@ -272,8 +279,9 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			);
 		}
 
-		// Uncollide file title
-		$exists = $this->wikiTitleExists( $attachmentWikiTitle );
+		// Uncollide file title, scoped to attachments going into the same output wiki.
+		$groupSpaceIds = $this->spaceIdToWikiGroup[$attachmentSpaceId] ?? [ $attachmentSpaceId ];
+		$exists = $this->wikiTitleExists( $attachmentWikiTitle, $groupSpaceIds );
 		$counter = 1;
 		while ( $exists ) {
 			if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
@@ -310,16 +318,32 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				);
 			}
 
-			$exists = $this->wikiTitleExists( $attachmentWikiTitle );
+			$exists = $this->wikiTitleExists( $attachmentWikiTitle, $groupSpaceIds );
 			$counter++;
 		}
 
-		$this->reservedWikiTitles[$attachmentWikiTitle] = true;
+		$this->reservedWikiTitles[$this->wikiGroupKey( $groupSpaceIds )][$attachmentWikiTitle] = true;
 		return $attachmentWikiTitle;
 	}
 
-	private function wikiTitleExists( string $wikiTitle ): bool {
-		return isset( $this->reservedWikiTitles[$wikiTitle] ) || $this->checkWikiTitleExists( $wikiTitle );
+	/**
+	 * @param string $wikiTitle
+	 * @param int[] $groupSpaceIds Space IDs sharing the destination wiki of the attachment being built.
+	 * @return bool
+	 */
+	private function wikiTitleExists( string $wikiTitle, array $groupSpaceIds ): bool {
+		$groupKey = $this->wikiGroupKey( $groupSpaceIds );
+		return isset( $this->reservedWikiTitles[$groupKey][$wikiTitle] )
+			|| $this->checkWikiTitleExists( $wikiTitle, $groupSpaceIds );
+	}
+
+	/**
+	 * @param int[] $groupSpaceIds
+	 * @return string
+	 */
+	private function wikiGroupKey( array $groupSpaceIds ): string {
+		sort( $groupSpaceIds );
+		return implode( ',', $groupSpaceIds );
 	}
 
 	/**

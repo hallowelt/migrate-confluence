@@ -4318,19 +4318,11 @@ class WorkspaceDB {
 
 	/**
 	 * @param string $wikiTitle
+	 * @param int[] $spaceIds Restrict the check to attachments in these space IDs. Empty means "all spaces".
 	 * @return bool
 	 */
-	public function checkPageAttachmentWikiTitleExists( string $wikiTitle ): bool {
-		$transaction = $this->cachedPrepare(
-			'SELECT 1 FROM page_attachments WHERE target_attachment_filename = :wiki_title LIMIT 1'
-		);
-		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
-
-		$result = $transaction->execute();
-		if ( $result->fetchArray() !== false ) {
-			return true;
-		}
-		return false;
+	public function checkPageAttachmentWikiTitleExists( string $wikiTitle, array $spaceIds = [] ): bool {
+		return $this->checkAttachmentWikiTitleExistsInTable( 'page_attachments', $wikiTitle, $spaceIds );
 	}
 
 	/**
@@ -4342,19 +4334,11 @@ class WorkspaceDB {
 
 	/**
 	 * @param string $wikiTitle
+	 * @param int[] $spaceIds Restrict the check to attachments in these space IDs. Empty means "all spaces".
 	 * @return bool
 	 */
-	public function checkBlogPostAttachmentWikiTitleExists( string $wikiTitle ): bool {
-		$transaction = $this->cachedPrepare(
-			'SELECT 1 FROM blog_post_attachments WHERE target_attachment_filename = :wiki_title LIMIT 1'
-		);
-		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
-
-		$result = $transaction->execute();
-		if ( $result->fetchArray() !== false ) {
-			return true;
-		}
-		return false;
+	public function checkBlogPostAttachmentWikiTitleExists( string $wikiTitle, array $spaceIds = [] ): bool {
+		return $this->checkAttachmentWikiTitleExistsInTable( 'blog_post_attachments', $wikiTitle, $spaceIds );
 	}
 
 	/**
@@ -4366,19 +4350,47 @@ class WorkspaceDB {
 
 	/**
 	 * @param string $wikiTitle
+	 * @param int[] $spaceIds Restrict the check to attachments in these space IDs. Empty means "all spaces".
 	 * @return bool
 	 */
-	public function checkAdditionalAttachmentWikiTitleExists( string $wikiTitle ): bool {
-		$transaction = $this->cachedPrepare(
-			'SELECT 1 FROM additional_attachments WHERE target_attachment_filename = :wiki_title LIMIT 1'
-		);
-		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+	public function checkAdditionalAttachmentWikiTitleExists( string $wikiTitle, array $spaceIds = [] ): bool {
+		return $this->checkAttachmentWikiTitleExistsInTable( 'additional_attachments', $wikiTitle, $spaceIds );
+	}
+
+	/**
+	 * Shared existence check for the three attachment tables. Scoping by $spaceIds joins
+	 * in the source `attachments` table (which all three are populated from and which
+	 * carries `space_id`), so title collisions are only reported within the same wiki group.
+	 *
+	 * @param string $table One of page_attachments, blog_post_attachments, additional_attachments.
+	 * @param string $wikiTitle
+	 * @param int[] $spaceIds
+	 * @return bool
+	 */
+	private function checkAttachmentWikiTitleExistsInTable(
+		string $table, string $wikiTitle, array $spaceIds
+	): bool {
+		if ( $spaceIds === [] ) {
+			$transaction = $this->cachedPrepare(
+				"SELECT 1 FROM $table WHERE target_attachment_filename = :wiki_title LIMIT 1"
+			);
+			$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
+		} else {
+			$placeholders = implode( ',', array_fill( 0, count( $spaceIds ), '?' ) );
+			$transaction = $this->cachedPrepare(
+				"SELECT 1 FROM $table t
+				INNER JOIN attachments a ON a.attachment_id = t.attachment_id
+				WHERE t.target_attachment_filename = ? AND a.space_id IN ($placeholders)
+				LIMIT 1"
+			);
+			$transaction->bindValue( 1, $wikiTitle, SQLITE3_TEXT );
+			foreach ( array_values( $spaceIds ) as $index => $spaceId ) {
+				$transaction->bindValue( $index + 2, (int)$spaceId, SQLITE3_INTEGER );
+			}
+		}
 
 		$result = $transaction->execute();
-		if ( $result->fetchArray() !== false ) {
-			return true;
-		}
-		return false;
+		return $result->fetchArray() !== false;
 	}
 
 	/**

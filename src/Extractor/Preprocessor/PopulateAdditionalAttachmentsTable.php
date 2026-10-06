@@ -18,10 +18,10 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 	}
 
 	/** @inheritDoc */
-	protected function checkWikiTitleExists( string $wikiTitle ): bool {
-		return ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $wikiTitle )
-			|| $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $wikiTitle )
-			|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $wikiTitle )
+	protected function checkWikiTitleExists( string $wikiTitle, array $spaceIds ): bool {
+		return ( $this->workspaceDB->checkPageAttachmentWikiTitleExists( $wikiTitle, $spaceIds )
+			|| $this->workspaceDB->checkBlogPostAttachmentWikiTitleExists( $wikiTitle, $spaceIds )
+			|| $this->workspaceDB->checkAdditionalAttachmentWikiTitleExists( $wikiTitle, $spaceIds )
 		);
 	}
 

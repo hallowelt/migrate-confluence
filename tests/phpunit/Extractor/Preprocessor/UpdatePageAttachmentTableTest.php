@@ -250,6 +250,51 @@ class UpdatePageAttachmentTableTest extends TestCase {
 		);
 	}
 
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
+	 */
+	public function testEachWikiKeepsItsOwnAttachmentTitleWhenMigratingMultipleWikis(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createWriter( $workspaceDB );
+
+		// Two spaces mapped (via --wikis) to two different output wikis, each with an
+		// identically named page and attachment, so both would naturally want the
+		// same target_attachment_filename.
+		$workspaceDB->addSpace( 1000, 'ONE', 'Space One', 'ONE', '', '', -1, -1 );
+		$workspaceDB->addSpace( 2000, 'TWO', 'Space Two', 'TWO', '', '', -1, -1 );
+		$workspaceDB->addWikisConfig( 'ONE', 'wiki-one', 'ONE', '' );
+		$workspaceDB->addWikisConfig( 'TWO', 'wiki-two', 'TWO', '' );
+
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'page', 'ONE:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addPage(
+			700, 2000, 'Page', 'page', 'TWO:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			701, 2000, 'file.txt', 'txt', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $dbLog, $writer, new MigrationConfig( [] ) );
+		$processor->execute();
+
+		$pageAttachments = $workspaceDB->getPageAttachments();
+		$attachmentOne = $this->findRowById( $pageAttachments, 'attachment_id', 601 );
+		$attachmentTwo = $this->findRowById( $pageAttachments, 'attachment_id', 701 );
+
+		$this->assertSame( 'ONE_Page-file.txt', $attachmentOne['target_attachment_filename'] );
+		$this->assertSame(
+			'TWO_Page-file.txt',
+			$attachmentTwo['target_attachment_filename'],
+			'Expected second wiki attachment to keep its own title instead of being ' .
+			'uncollided against the other wiki.'
+		);
+	}
+
 	// Note: attachments without their own space_id (older Confluence export format) are
 	// backfilled upstream by UpdateAttachmentsTableWithSpaceIdFallback, which runs before
 	// this preprocessor in the pipeline. See UpdateAttachmentsTableWithSpaceIdFallbackTest.
