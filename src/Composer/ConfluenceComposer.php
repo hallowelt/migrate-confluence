@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Composer;
 
+use Exception;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
@@ -50,7 +51,10 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	/** First MediaWiki namespace ID assigned in a wiki's namespace_import_config.json. */
 	private const NAMESPACE_IMPORT_ID_START = 3000;
 
-	/** Step between consecutive namespace IDs in namespace_import_config.json. */
+	/**
+	 * Step between consecutive namespace IDs in namespace_import_config.json.
+	 * Cant be < 2, because _talk namespace ids are namespaceId + 1
+	 */
 	private const NAMESPACE_IMPORT_ID_STEP = 2;
 
 	/**
@@ -599,15 +603,23 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	 * Writes a per-wiki "namespace_import_config.json" listing every target MediaWiki
 	 * namespace used by that wiki, except the main namespace (NS_MAIN), which needs no
 	 * import configuration. Namespace IDs start at 3000 and increase in steps of 2 (3000,
-	 * 3002, 3004, ...), assigned in the order namespaces first appeared for that wiki. If a
-	 * wiki has no namespace left after excluding NS_MAIN (e.g. its only space is mapped to
-	 * the main namespace), no file is written.
+	 * 3002, 3004, ...), assigned in the order namespaces first appeared for that wiki. Each
+	 * namespace also gets a corresponding talk namespace, at ID + 1 and name suffixed with
+	 * "_talk", which is why IDs are spaced two apart. If a wiki has no namespace left after
+	 * excluding NS_MAIN (e.g. its only space is mapped to the main namespace), no file is
+	 * written.
 	 *
 	 * @param ComposerDeploymentInfo $deploymentInfo
 	 * @param string $wikiName
+	 *
 	 * @return void
+	 * @throws Exception
 	 */
 	private function writeNamespaceImportConfig( ComposerDeploymentInfo $deploymentInfo, string $wikiName ): void {
+		if ( self::NAMESPACE_IMPORT_ID_STEP < 2 ) {
+			throw new Exception( "Namespace import configuration error" );
+		}
+
 		$namespaces = array_values( array_filter(
 			$deploymentInfo->getNamespaces(),
 			static function ( string $namespace ): bool {
@@ -622,7 +634,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 		$config = [];
 		$namespaceId = self::NAMESPACE_IMPORT_ID_START;
 		foreach ( $namespaces as $namespace ) {
-			$config[(string)$namespaceId] = [
+			$config[(string)( $namespaceId )] = [
 				'name' => $namespace,
 				'subpages' => true,
 				'content' => true,
@@ -631,6 +643,17 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 				'smw' => true,
 				'commentstreams' => true,
 			];
+
+			$config[(string)( $namespaceId + 1 )] = [
+				'name' => $namespace . "_talk",
+				'subpages' => true,
+				'content' => false,
+				'pagetemplates' => false,
+				'visualeditor' => false,
+				'smw' => false,
+				'commentstreams' => false,
+			];
+
 			$namespaceId += self::NAMESPACE_IMPORT_ID_STEP;
 		}
 
