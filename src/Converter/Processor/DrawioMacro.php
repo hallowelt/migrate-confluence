@@ -17,47 +17,13 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 
 	public const REQUIRED_EXTENSIONS = [ 'DrawioEditor', 'ParserFunctions' ];
 
-	/** @var IConverterDataWriter */
-	protected IConverterDataWriter $writer;
-
-	/**
-	 * @var DBConversionDataLookup
-	 */
-	protected DBConversionDataLookup $dataLookup;
-
-	/**
-	 * @var ConversionDataWriter
-	 */
-	protected ConversionDataWriter $conversionDataWriter;
-
-	/**
-	 * @var int
-	 */
-	protected int $currentSpaceId;
-
-	/**
-	 * @var string
-	 */
-	protected string $rawPageTitle;
-
-	/**
-	 * Undocumented function
-	 *
-	 * @param IConverterDataWriter $writer
-	 * @param DBConversionDataLookup $dataLookup
-	 * @param ConversionDataWriter $conversionDataWriter
-	 * @param int $currentSpaceId
-	 * @param string $rawPageTitle
-	 */
 	public function __construct(
-		IConverterDataWriter $writer, DBConversionDataLookup $dataLookup,
-		ConversionDataWriter $conversionDataWriter,	int $currentSpaceId, string $rawPageTitle
+		protected readonly IConverterDataWriter $writer,
+		protected readonly DBConversionDataLookup $dataLookup,
+		protected readonly ConversionDataWriter $conversionDataWriter,
+		protected readonly int $currentSpaceId,
+		protected readonly string $rawPageTitle
 	) {
-		$this->writer = $writer;
-		$this->dataLookup = $dataLookup;
-		$this->conversionDataWriter = $conversionDataWriter;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
 	}
 
 	/**
@@ -75,39 +41,41 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 	protected function doProcessMacro( DOMElement $node ): void {
 		$params = $this->getMacroParams( $node );
 
-		if ( isset( $params['diagramName'] ) ) {
-			$paramsString = $this->makeParamsString( $params );
-			$templateName = $this->getTemplateName();
-
-			$node->parentNode->replaceChild(
-				$this->createTextNode( $node->ownerDocument, "{{{$templateName}{$paramsString}}}", __METHOD__ ),
-				$node
-			);
+		$isBroken = false;
+		if ( !isset( $params['diagramName'] ) ) {
+			$isBroken = true;
 		}
 
-		$this->writer->registerDefaultPage(
-			$this->currentSpaceId,
-			$this->getTemplateName()
+		$spaceId = $this->currentSpaceId;
+		$rawPageTitle = $this->rawPageTitle;
+		if ( isset( $params['pageId'] ) && $params['pageId'] !== '' ) {
+			[ $spaceId, $rawPageTitle ] = $this->resolveSourcePage( (int)$params['pageId'] );
+		}
+
+		$filename = $this->getFilename( $params['diagramName'], $spaceId, $rawPageTitle );
+		if ( empty( $filename ) ) {
+			$isBroken = true;
+		}
+		$params['diagramName'] = $filename;
+
+		$templateName = $this->getTemplateName();
+
+		$content = sprintf(
+			"{{%s\n%s}}%s",
+			$templateName,
+			$this->makeParamsString( $params ),
+			$isBroken ? $this->getBrokenMacroCategory() : ""
 		);
+
+		$node->parentNode->replaceChild(
+			$this->createTextNode( $node->ownerDocument, $content, __METHOD__ ),
+			$node
+		);
+		$this->writer->registerDefaultPage( $this->currentSpaceId, $templateName );
 	}
 
-	/**
-	 * @param array $params
-	 * @param int|null $spaceId Space to look up the diagram's attachments in. Defaults to the current space.
-	 * @param string|null $rawPageTitle Confluence page title to look up the diagram's attachments on.
-	 *   Defaults to the current page.
-	 * @return string
-	 */
-	protected function makeParamsString( array $params, ?int $spaceId = null, ?string $rawPageTitle = null ): string {
+	protected function makeParamsString( array $params ): ?string {
 		$paramsString = '';
-
-		if ( isset( $params['diagramName'] ) ) {
-			$filename = $this->getFilename( $params['diagramName'], $spaceId, $rawPageTitle );
-			$params['diagramName'] = $filename;
-		} else {
-			return '';
-		}
-
 		foreach ( $params as $key => $value ) {
 			$paramsString .= "|$key=$value\n";
 		}
@@ -141,17 +109,7 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		return $params;
 	}
 
-	/**
-	 * @param string $diagramName
-	 * @param int|null $spaceId Space to look up the diagram's attachments in. Defaults to the current space.
-	 * @param string|null $rawPageTitle Confluence page title to look up the diagram's attachments on.
-	 *   Defaults to the current page.
-	 * @return string
-	 */
-	protected function getFilename( string $diagramName, ?int $spaceId = null, ?string $rawPageTitle = null ): string {
-		$spaceId ??= $this->currentSpaceId;
-		$rawPageTitle ??= $this->rawPageTitle;
-
+	protected function getFilename( string $diagramName, int $spaceId, string $rawPageTitle ): string {
 		$filename = $this->dataLookup->getWikiFileTitleFromSpaceId(
 			$spaceId,
 			$rawPageTitle,
@@ -246,5 +204,23 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		$imageFileContent =	$drawIoFileHandler->bakeDiagramDataIntoImage( $imageFileContent, $dataFileContent );
 
 		$this->conversionDataWriter->replaceConfluenceFileContent( $drawioImageFilename, $imageFileContent );
+	}
+
+	/**
+	 * Resolve the space and confluence page title the embedded diagram actually lives on.
+	 * Falls back to the current space/page if the referenced page cannot be found.
+	 *
+	 * @param int $pageId
+	 * @return array{0: int, 1: string} [ spaceId, rawPageTitle ]
+	 */
+	private function resolveSourcePage( int $pageId ): array {
+		$resolvedSpaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
+		$resolvedPageTitle = $this->dataLookup->getConfluencePageTitleFromPageId( $pageId );
+
+		if ( $resolvedSpaceId === null || $resolvedPageTitle === null ) {
+			return [ $this->currentSpaceId, $this->rawPageTitle ];
+		}
+
+		return [ $resolvedSpaceId, $resolvedPageTitle ];
 	}
 }

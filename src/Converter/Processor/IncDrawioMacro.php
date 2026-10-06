@@ -15,41 +15,4 @@ class IncDrawioMacro extends DrawioMacro {
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
 
 	public const REQUIRED_EXTENSIONS = [ 'DrawioEditor', 'ParserFunctions' ];
-
-	/**
-	 * @inheritDoc
-	 */
-	protected function makeParamsString( array $params, ?int $spaceId = null, ?string $rawPageTitle = null ): string {
-		if ( !isset( $params['diagramName'] ) ) {
-			return '';
-		}
-
-		if ( isset( $params['pageId'] ) && $params['pageId'] !== '' ) {
-			[ $spaceId, $rawPageTitle ] = $this->resolveSourcePage( (int)$params['pageId'] );
-		}
-
-		// These parameters are only needed to resolve the source page/diagram above,
-		// the Drawio template itself has no use for them.
-		unset( $params['pageId'], $params['includedDiagram'] );
-
-		return parent::makeParamsString( $params, $spaceId, $rawPageTitle );
-	}
-
-	/**
-	 * Resolve the space and confluence page title the embedded diagram actually lives on.
-	 * Falls back to the current space/page if the referenced page cannot be found.
-	 *
-	 * @param int $pageId
-	 * @return array{0: int, 1: string} [ spaceId, rawPageTitle ]
-	 */
-	private function resolveSourcePage( int $pageId ): array {
-		$resolvedSpaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
-		$resolvedPageTitle = $this->dataLookup->getConfluencePageTitleFromPageId( $pageId );
-
-		if ( $resolvedSpaceId === null || $resolvedPageTitle === null ) {
-			return [ $this->currentSpaceId, $this->rawPageTitle ];
-		}
-
-		return [ $resolvedSpaceId, $resolvedPageTitle ];
-	}
 }

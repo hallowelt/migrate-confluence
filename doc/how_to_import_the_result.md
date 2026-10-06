@@ -71,6 +71,21 @@ imported and the `_shared` data is imported once per wiki:
 wikiimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/MyWiki --sfr=MyWiki --add-default
 ```
 
+`wikiimport.sh` additionally supports `--mode=all|no-files|files-only` (default: `all`),
+to choose which XML groups are imported:
+
+| Mode | Description |
+| --- | --- |
+| `all` (default) | Import everything, including file/media attachments. |
+| `no-files` | Import everything **except** file/media attachments: skips `files*.xml` and `_shared/default-files*.xml`. |
+| `files-only` | Import **only** file/media attachments: `files*.xml` and `_shared/default-files*.xml`. |
+
+`--no-files` and `--files-only` are shortcuts for `--mode=no-files` and `--mode=files-only`.
+
+```bash
+wikiimport.sh --wiki-root=/tmp/mediawiki --src=/tmp/result/MyWiki --sfr=MyWiki --add-default --files-only
+```
+
 If `--add-default` is used but no `_shared` directory exists, the script prints
 a warning and continues.
 
