@@ -952,6 +952,22 @@ class WorkspaceDB {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function isWikisConfigEmpty(): bool {
+		$transaction = $this->cachedPrepare( 'SELECT 1 FROM wikis_config LIMIT 1' );
+		$result = $transaction->execute();
+		if ( !$result ) {
+			return true;
+		}
+
+		$isEmpty = $result->fetchArray( SQLITE3_ASSOC ) === false;
+		$result->finalize();
+
+		return $isEmpty;
+	}
+
+	/**
 	 * @param string $spaceKey
 	 * @return string|null
 	 */
