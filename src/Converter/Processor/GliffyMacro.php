@@ -108,6 +108,7 @@ class GliffyMacro extends StructuredMacroProcessorBase {
 		$this->dataWriter->addGliffy(
 			$this->currentSpaceId,
 			$this->rawPageTitle,
+			mb_strtolower( $this->rawPageTitle ),
 			$name,
 			$filename
 		);

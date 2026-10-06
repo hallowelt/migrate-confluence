@@ -71,6 +71,7 @@ class Page extends ProcessorBase {
 			);
 			return;
 		}
+		$confluenceLowerTitle = $properties['lowerTitle'] ?? mb_strtolower( $confluenceTitle );
 
 		$bodyContentIds = [];
 		if ( isset( $collection['bodyContents'] ) ) {
@@ -128,6 +129,7 @@ class Page extends ProcessorBase {
 			$pageId,
 			$spaceId,
 			$confluenceTitle,
+			$confluenceLowerTitle,
 			'',
 			$contentStatus,
 			$revisionTimestamp,

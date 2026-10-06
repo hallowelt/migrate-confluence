@@ -265,6 +265,9 @@ class WorkspaceDB {
 			'idx_pages_space_title', 'pages', 'space_id, confluence_title'
 		);
 		$this->doCreateIndex(
+			'idx_pages_space_lowertitle', 'pages', 'space_id, confluence_lowertitle'
+		);
+		$this->doCreateIndex(
 			'idx_blog_posts_space_id', 'blog_posts', 'space_id'
 		);
 		$this->doCreateIndex(
@@ -503,6 +506,7 @@ class WorkspaceDB {
 				page_id INT PRIMARY KEY,
 				space_id INT,
 				confluence_title CHAR,
+				confluence_lowertitle CHAR,
 				wiki_title CHAR,
 				interwiki_title CHAR,
 				parent_page_id INT,
@@ -528,6 +532,7 @@ class WorkspaceDB {
 				page_id INT PRIMARY KEY,
 				space_id INT,
 				confluence_title CHAR,
+				confluence_lowertitle CHAR,
 				wiki_title CHAR,
 				content_status CHAR,
 				version CHAR,
@@ -760,6 +765,7 @@ class WorkspaceDB {
 			'CREATE TABLE IF NOT EXISTS gliffy (
 				space_id INT,
 				confluence_title CHAR,
+				confluence_lowertitle CHAR,
 				original_attachment_filename CHAR,
 				target_attachment_filename CHAR
 			);'
@@ -779,6 +785,7 @@ class WorkspaceDB {
 			'CREATE TABLE IF NOT EXISTS roadmap_svgs (
 				space_id INT,
 				confluence_title CHAR,
+				confluence_lowertitle CHAR,
 				svg_filename CHAR
 			);'
 		);
@@ -2473,6 +2480,7 @@ class WorkspaceDB {
 	 * @param int $pageId
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowertitle
 	 * @param string $wikiTitle
 	 * @param string $contentStatus
 	 * @param string $revisionTimestamp
@@ -2490,6 +2498,7 @@ class WorkspaceDB {
 		int $pageId,
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowertitle,
 		string $wikiTitle,
 		string $contentStatus,
 		string $revisionTimestamp,
@@ -2511,6 +2520,7 @@ class WorkspaceDB {
 				page_id,
 				space_id,
 				confluence_title,
+				confluence_lowertitle,
 				wiki_title,
 				parent_page_id,
 				content_status,
@@ -2526,6 +2536,7 @@ class WorkspaceDB {
 				:page_id,
 				:space_id,
 				:confluence_title,
+				:confluence_lowertitle,
 				:wiki_title,
 				:parent_page_id,
 				:content_status,
@@ -2547,6 +2558,7 @@ class WorkspaceDB {
 			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
 		}
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', $confluenceLowertitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':parent_page_id', $parentPageId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
@@ -3062,6 +3074,7 @@ class WorkspaceDB {
 	 * @param int $pageId
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowertitle
 	 * @param string $wikiTitle
 	 * @param string $contentStatus
 	 * @param string $revisionTimestamp
@@ -3078,6 +3091,7 @@ class WorkspaceDB {
 		int $pageId,
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowertitle,
 		string $wikiTitle,
 		string $contentStatus,
 		string $revisionTimestamp,
@@ -3098,6 +3112,7 @@ class WorkspaceDB {
 				page_id,
 				space_id,
 				confluence_title,
+				confluence_lowertitle,
 				wiki_title,
 				content_status,
 				version,
@@ -3112,6 +3127,7 @@ class WorkspaceDB {
 				:page_id,
 				:space_id,
 				:confluence_title,
+				:confluence_lowertitle,
 				:wiki_title,
 				:content_status,
 				:version,
@@ -3132,6 +3148,7 @@ class WorkspaceDB {
 			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
 		}
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', $confluenceLowertitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':wiki_title', $wikiTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':content_status', $contentStatus, SQLITE3_TEXT );
 		$transaction->bindValue( ':version', $version, SQLITE3_TEXT );
@@ -5308,6 +5325,7 @@ class WorkspaceDB {
 	/**
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $originalAttachmentFilename
 	 * @param string $targetAttachmentFilename
 	 * @return bool
@@ -5315,6 +5333,7 @@ class WorkspaceDB {
 	public function addGliffy(
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $originalAttachmentFilename,
 		string $targetAttachmentFilename
 	): bool {
@@ -5322,11 +5341,13 @@ class WorkspaceDB {
 			'INSERT INTO gliffy (
 				space_id,
 				confluence_title,
+				confluence_lowertitle,
 				original_attachment_filename,
 				target_attachment_filename
 			) VALUES (
 				:space_id,
 				:confluence_title,
+				:confluence_lowertitle,
 				:original_attachment_filename,
 				:target_attachment_filename
 			)'
@@ -5338,6 +5359,7 @@ class WorkspaceDB {
 			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
 		}
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', $confluenceLowerTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':original_attachment_filename', $originalAttachmentFilename, SQLITE3_TEXT );
 		$transaction->bindValue( ':target_attachment_filename', $targetAttachmentFilename, SQLITE3_TEXT );
 
@@ -5350,22 +5372,26 @@ class WorkspaceDB {
 	 *
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
+	 * @param string $confluenceLowerTitle
 	 * @param string $svgFilename
 	 * @return bool
 	 */
 	public function addRoadmapSvg(
 		?int $spaceId,
 		string $confluenceTitle,
+		string $confluenceLowerTitle,
 		string $svgFilename
 	): bool {
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO roadmap_svgs (
 				space_id,
 				confluence_title,
+				confluence_lowertitle,
 				svg_filename
 			) VALUES (
 				:space_id,
 				:confluence_title,
+				:confluence_lowertitle,
 				:svg_filename
 			)'
 		);
@@ -5376,6 +5402,7 @@ class WorkspaceDB {
 			$transaction->bindValue( ':space_id', null, SQLITE3_NULL );
 		}
 		$transaction->bindValue( ':confluence_title', $confluenceTitle, SQLITE3_TEXT );
+		$transaction->bindValue( ':confluence_lowertitle', $confluenceLowerTitle, SQLITE3_TEXT );
 		$transaction->bindValue( ':svg_filename', $svgFilename, SQLITE3_TEXT );
 
 		return $this->executeTransactionWithStatus( $transaction );

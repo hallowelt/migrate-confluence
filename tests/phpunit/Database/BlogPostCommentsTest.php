@@ -16,6 +16,7 @@ class BlogPostCommentsTest extends TestCase {
 			100,
 			1,
 			'My Blog Post',
+			'my blog post',
 			'Blog:MKT/My_Blog_Post',
 			'current',
 			'20240301000000',
