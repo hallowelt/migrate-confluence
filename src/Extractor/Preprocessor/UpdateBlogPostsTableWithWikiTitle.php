@@ -43,6 +43,10 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				|| !isset( $blogPost['confluence_title'] )
 				// historical versions
 				|| (int)$blogPost['original_version_id'] !== -1
+				// Non-current (e.g. deleted/trashed) blog posts are never composed
+				// into the final wiki output. Skip them so they neither claim a
+				// title nor compete with actually-exported blog posts.
+				|| ( isset( $blogPost['content_status'] ) && $blogPost['content_status'] !== 'current' )
 			) {
 				continue;
 			}
