@@ -557,12 +557,18 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				 $this->currentSpace,
 				 $this->wikiPageTitle
 			),
-			new AttachmentsMacro(),
+			new AttachmentsMacro(
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->placeholderManager
+			),
 			new GalleryMacro(
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->migrationConfig
+				$this->migrationConfig,
+				$this->placeholderManager
 			),
 			new ExpandMacro( $this->writer, $this->currentSpace ),
 			new DetailsMacro( $this->writer, $this->currentSpace ),
@@ -980,7 +986,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 
 			// Avoid duplicates in attachment list
 			$attachmentList = array_unique( $attachmentList );
-
 			if ( !empty( $attachmentList ) ) {
 				$wikiText .= sprintf(
 					"\n<attachments hideversion=\"1\" hideeditor=\"1\" title=\"%s\">\n",

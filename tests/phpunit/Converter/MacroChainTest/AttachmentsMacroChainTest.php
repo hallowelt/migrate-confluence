@@ -4,6 +4,8 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 
 /**
  * @group full
@@ -36,7 +38,11 @@ class AttachmentsMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new AttachmentsMacro();
+		$workspaceDb = ( new WorkspaceDbMock() )
+			->createWithoutExtNsFileRepoCompat();
+		$dataLookup = new DBConversionDataLookup( $workspaceDb );
+
+		return new AttachmentsMacro( $dataLookup, 42, 'SomePage', $this->placeholderManager );
 	}
 
 }

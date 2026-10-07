@@ -1,3 +1,8 @@
 
+<attachments>
+* [[Media:ABC_SomePage-SomeImage.png]]
+* [[Media:ABC_SomePage-SomeImage1.png]]
+</attachments>
+
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

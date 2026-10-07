@@ -4,6 +4,9 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
+use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
+use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class AttachmentsMacroTest extends ProcessorTestCase {
 
@@ -24,10 +27,12 @@ class AttachmentsMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new AttachmentsMacro();
+		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$placeholderManager = new PlaceholderManager();
+		$processor = new AttachmentsMacro( $dataLookup, 1, 'MyPage', $placeholderManager );
 		$processor->process( $dom );
 
-		$actualOutput = $dom->saveXML( $dom->documentElement );
+		$actualOutput = $placeholderManager->replacePlaceholders( $dom->saveXML( $dom->documentElement ) );
 		$expectedOutput = file_get_contents( "$this->dir/attachments-macro-output.xml" );
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
