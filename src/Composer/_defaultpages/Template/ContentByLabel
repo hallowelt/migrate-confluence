@@ -113,6 +113,7 @@ Behavior summary:
 - Uses max as DPL count.
 - Uses sort as DPL ordermethod when provided.
 - Uses reverse=true/yes to set order=descending.
+- Uses excludeCurrent=true/yes to set skipthispage=yes, otherwise skipthispage=no.
 - Uses showSpace to choose default display path when path is not set:
   showSpace set -> fullpagename, otherwise -> pagename.
 -->
@@ -132,19 +133,18 @@ Behavior summary:
 |{{#explode:{{{conditions|}}}|,|8}}
 |{{#explode:{{{conditions|}}}|,|9}}
 |mode=userformat
-|mode=userformat
  |replaceintitle={{#switch:{{{path|pagename}}}
  |fullpagename= /^$/,
  |basepagename=/\/[^\/]+$/,
  |subpagename=/^.*\//,
- |#default=/^$/, 
+ |#default=/^$/,
 }}
 |addcategories={{{showLabels|}}}
 |format=,\n <div role="list-item" style="margin-left:1em; padding-top:0.6em">[[ %PAGE%|<i class="bi bi-card-text prefix"></i> {{#ifeq:{{{path|}}}|fullpagename|%PAGE%|%TITLE%}} ]] {{#ifeq:{{{showSpace}}}|true|<span class="dpl-ns-marker">%PAGE%</span>}}<br><span class="badge rounded-pill bg-light text-dark" style="margin-left:2.5em">%CATLIST%</span></div>
-|ordermethod={{{sort|}}} 
+|ordermethod={{{sort|}}}
 |{{#switch:{{lc:{{{reverse|}}}}}|true|yes=order=descending}}
 |count={{{max|999}}}
-|mode=none
+|skipthispage={{#switch:{{lc:{{{excludeCurrent|}}}}}|true|yes=yes|#default=no}}
 }}
 |<span class="dpl-ns-marker">([^:<]+):[^<]*</span>
 |($1)
