@@ -30,6 +30,7 @@ class ExtractPagesMetaData extends ProcessorBase {
 	 */
 	public function execute(): void {
 		$configCategories = $this->migrationConfig->getCategories();
+		$labellingIdsByContent = $this->getLabellingIdsByContent();
 
 		foreach ( $this->workspaceDB->getCurrentPages() as $page ) {
 			if ( !isset( $page['page_id'] ) || !isset( $page['original_version_id'] ) ) {
@@ -38,12 +39,18 @@ class ExtractPagesMetaData extends ProcessorBase {
 
 			$pageId = (int)$page['page_id'];
 			$originalVersionId = (int)$page['original_version_id'];
-			$collection = json_decode( $page['collection'] ?? '{}', true ) ?? [];
-			$labellings = $collection['labellings'] ?? [];
 
 			if ( $originalVersionId !== -1 ) {
 				continue;
 			}
+
+			$collection = json_decode( $page['collection'] ?? '{}', true ) ?? [];
+			$labellings = $collection['labellings'] ?? [];
+			// Some exports only reference the page from the Labelling side (property "content")
+			$labellings = array_values( array_unique( array_merge(
+				$labellings,
+				$labellingIdsByContent[$pageId] ?? []
+			) ) );
 
 			$categories = $this->getCategoryMeta( $labellings, $configCategories );
 
@@ -94,4 +101,20 @@ class ExtractPagesMetaData extends ProcessorBase {
 		return array_unique( $categories );
 	}
 
+	/**
+	 * Map content (page) id => labelling ids, based on the Labelling's "content" property
+	 *
+	 * @return array<int, array<int>>
+	 */
+	private function getLabellingIdsByContent(): array {
+		$map = [];
+		foreach ( $this->workspaceDB->getLabellings() as $row ) {
+			$props = json_decode( $row['properties'] ?? '{}', true ) ?? [];
+			$contentId = (int)( $props['content'] ?? 0 );
+			if ( $contentId > 0 ) {
+				$map[$contentId][] = (int)$row['labelling_id'];
+			}
+		}
+		return $map;
+	}
 }
