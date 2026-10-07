@@ -19,39 +19,6 @@ class DrawIOFileHandler {
 	}
 
 	/**
-	 * Checks by file extension if that's associated with DrawIO PNG image
-	 *
-	 * @param string $fileName
-	 * @return bool
-	 */
-	public function isDrawIOImage( string $fileName ): bool {
-		return preg_match( '#\.drawio\.png$#', $fileName );
-	}
-
-	/**
-	 * Checks by file content if that's associated with XML of DrawIO diagram
-	 *
-	 * Could be helpful, for instance, in case with file without explicit extension.
-	 * In Confluence export data there could be DrawIO files without extension (like "diagram")
-	 * or with some weird extension (like "diagram_3.OG").
-	 * In that case one of the ways to determine if that's DrawIO data file - is to look on its content.
-	 * DrawIO data file should look like that:
-	 * <code>
-	 *     <mxfile host="some.host" ...>
-	 *         <diagram id="..." ...>
-	 *          	...
-	 * 		   </diagram>
-	 *     </mxfile>
-	 * </code>
-	 *
-	 * @param string $fileContent
-	 * @return bool
-	 */
-	public function isDrawIODataContent( string $fileContent ): bool {
-		return (bool)preg_match( '#<mxfile.*?>\s*.*\s*<diagram.*?>#s', $fileContent );
-	}
-
-	/**
 	 * Encodes and bakes DrawIO diagram XML into PNG image "tEXt" data chunk
 	 *
 	 * @param string $imageContent

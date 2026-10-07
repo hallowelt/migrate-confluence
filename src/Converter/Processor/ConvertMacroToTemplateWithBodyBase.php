@@ -19,6 +19,8 @@ use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
  */
 abstract class ConvertMacroToTemplateWithBodyBase extends ConversionHelper implements IProcessor {
 
+	public const MACRO_NAME = '';
+
 	/**
 	 * @param IConverterDataWriter $writer
 	 * @param int $currentSpace

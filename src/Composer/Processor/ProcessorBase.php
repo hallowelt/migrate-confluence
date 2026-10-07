@@ -141,13 +141,6 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsD
 	}
 
 	/**
-	 * @return bool
-	 */
-	protected function includeHistory(): bool {
-		return $this->migrationConfig->getIncludeHistory();
-	}
-
-	/**
 	 * @param string $title
 	 * @return string
 	 */

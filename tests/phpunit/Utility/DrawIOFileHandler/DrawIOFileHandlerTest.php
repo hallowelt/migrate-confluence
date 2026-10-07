@@ -23,54 +23,6 @@ class DrawIOFileHandlerTest extends TestCase {
 	}
 
 	/**
-	 * @covers \HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler::isDrawIODataContent
-	 */
-	public function testIsDrawIODataContent() {
-		$drawIoFileHandler = new DrawIOFileHandler();
-
-		$diagramXml = <<<HERE
-<mxfile host="ac.draw.io" modified="2023-08-09T08:35:34.679Z">
-	<somestring>Some content</somestring>
-	<diagram>Some diagram content...</diagram>
-</mxfile>
-HERE;
-
-		$diagramXml2 = file_get_contents( __DIR__ . '/data/diagram.drawio' );
-
-		$notDiagramXmlString1 = <<<HERE
-<mxfile host="ac.draw.io" modified="2023-08-09T08:35:34.679Z">
-	<somestring>Some content</somestring>
-	<notdiagram>Not a diagram</notdiagram>
-</mxfile>
-HERE;
-
-		$notDiagramXmlString2 = <<<HERE
-<?xml version="1.0" encoding="utf8" ?>
-	<somestring>Some content</somestring>
-	<diagram>Not a diagram</diagram>
-</xml>
-HERE;
-
-		$this->assertTrue( $drawIoFileHandler->isDrawIODataContent( $diagramXml ) );
-		$this->assertTrue( $drawIoFileHandler->isDrawIODataContent( $diagramXml2 ) );
-
-		$this->assertFalse( $drawIoFileHandler->isDrawIODataContent( $notDiagramXmlString1 ) );
-		$this->assertFalse( $drawIoFileHandler->isDrawIODataContent( $notDiagramXmlString2 ) );
-	}
-
-	/**
-	 * @covers \HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler::isDrawIOImage
-	 */
-	public function testIsDrawIOImage() {
-		$drawIoFileHandler = new DrawIOFileHandler();
-
-		$this->assertFalse( $drawIoFileHandler->isDrawIOImage( 'diagram.drawio' ) );
-		$this->assertFalse( $drawIoFileHandler->isDrawIOImage( 'diagram.drawio.tmp' ) );
-
-		$this->assertTrue( $drawIoFileHandler->isDrawIOImage( 'diagram.drawio.png' ) );
-	}
-
-	/**
 	 * @covers \HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler::bakeDiagramDataIntoImage
 	 */
 	public function testBakeDiagramDataIntoImage() {

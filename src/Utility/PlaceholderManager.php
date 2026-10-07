@@ -35,10 +35,8 @@ class PlaceholderManager {
 		if ( !isset( self::PLACEHOLDER_TEMPLATES[ $context ] ) ) {
 			throw new \InvalidArgumentException( sprintf( 'Invalid placeholder context: %s', $context ) );
 		}
-		if ( !isset( $this->placeholders[ $string ] ) ) {
-			$key = sprintf( self::PLACEHOLDER_TEMPLATES[ $context ], count( $this->placeholders ) );
-			$this->placeholders[ $key ] = $string;
-		}
+		$key = sprintf( self::PLACEHOLDER_TEMPLATES[ $context ], count( $this->placeholders ) );
+		$this->placeholders[ $key ] = $string;
 		return $key;
 	}
 
