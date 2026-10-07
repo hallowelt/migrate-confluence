@@ -94,4 +94,46 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 		);
 	}
 
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithWikiTitle::execute
+	 */
+	public function testCurrentPageIsNotSuffixedDueToCollidingWithDeletedPages(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$dbLog = $this->createDBLog( $workspaceDB );
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'TEST', '' );
+
+		// Two trashed/deleted pages that share a title with a later, still-current page.
+		// Deleted content is never composed into the final wiki output, so it must not
+		// occupy/consume the clean (unsuffixed) title that the current page needs.
+		$workspaceDB->addPage(
+			100, 42, 'Sample page', 'sample page', '', 'deleted', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addPage(
+			200, 42, 'Sample page', 'sample page', '', 'deleted', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addPage(
+			300, 42, 'Sample page', 'sample page', '', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+
+		$processor = new UpdatePagesTableWithWikiTitle(
+			$workspaceDB,
+			$dbLog,
+			$writer,
+			new MigrationConfig( [] ),
+			new WikisConfig( $workspaceDB )
+		);
+		$processor->execute();
+
+		$currentPage = $this->findRowById( $workspaceDB->getPages(), 'page_id', 300 );
+		$this->assertSame(
+			'TEST:Sample_page',
+			$currentPage['wiki_title'],
+			'Expected the current page to keep the plain title instead of being ' .
+			'suffixed against deleted pages that will never be exported.'
+		);
+	}
+
 }

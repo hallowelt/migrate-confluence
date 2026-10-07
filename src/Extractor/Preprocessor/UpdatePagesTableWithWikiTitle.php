@@ -96,6 +96,19 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				continue;
 			}
 
+			// Non-current (e.g. deleted/trashed) pages are never composed into the
+			// final wiki output. Skip them here so they neither claim a title nor
+			// compete with actually-exported pages during uniquification.
+			if ( isset( $page['content_status'] ) && $page['content_status'] !== 'current' ) {
+				$this->dbLog->addLogEntry(
+					'info',
+					'extract',
+					__CLASS__,
+					"Skipping non-current page $pageId while updating wiki titles"
+				);
+				continue;
+			}
+
 			// Skip pages that already have a wiki_title set (e.g. templates).
 			if ( isset( $page['wiki_title'] ) && $page['wiki_title'] !== '' ) {
 				continue;
