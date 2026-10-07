@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 use DOMDocument;
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
-use HalloWelt\MigrateConfluence\Converter\Processor\StructuredMacroProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
