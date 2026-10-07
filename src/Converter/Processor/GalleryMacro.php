@@ -8,6 +8,7 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  * @see https://confluence.atlassian.com/doc/gallery-macro-139434.html for documentation
@@ -19,45 +20,22 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
-	/** @var DBConversionDataLookup */
-	private DBConversionDataLookup $dataLookup;
-
-	/** @var int */
-	private int $currentSpaceId;
-
-	/** @var string */
-	private string $rawPageTitle;
-
-	/** @var MigrationConfig */
-	private MigrationConfig $config;
-
-	/** @var FilenameResolver */
 	private FilenameResolver $filenameResolver;
 
-	/**
-	 * @param DBConversionDataLookup $dataLookup
-	 * @param int $currentSpaceId
-	 * @param string $rawPageTitle
-	 * @param MigrationConfig $config
-	 */
 	public function __construct(
-		DBConversionDataLookup $dataLookup,
-		int $currentSpaceId,
-		string $rawPageTitle,
-		MigrationConfig $config
+		private readonly DBConversionDataLookup $dataLookup,
+		private readonly int $currentSpaceId,
+		private readonly string $rawPageTitle,
+		MigrationConfig $config,
+		private readonly PlaceholderManager $placeholderManager
 	) {
-		$this->dataLookup = $dataLookup;
-		$this->currentSpaceId = $currentSpaceId;
-		$this->rawPageTitle = $rawPageTitle;
-		$this->config = $config;
+		$this->filenameResolver = new FilenameResolver( $dataLookup, $config );
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	protected function doProcessMacro( DOMElement $node ): void {
-		$this->filenameResolver = new FilenameResolver( $this->dataLookup, $this->config );
-
 		$macroName = $node->getAttribute( 'ac:name' );
 
 		$macroReplacement = $node->ownerDocument->createElement( 'div' );
@@ -86,7 +64,7 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 			return;
 		}
 
-		$galleryTag = '<gallery';
+		$galleryTag = "\n<gallery";
 		if ( isset( $params['title'] ) && $params['title'] !== '' ) {
 			$galleryTag .= ' caption="' . htmlspecialchars( $params['title'] ) . '"';
 		}
@@ -97,14 +75,15 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 		foreach ( $files as $file ) {
 			$galleryTag .= $file . "\n";
 		}
-		$galleryTag .= '</gallery>';
+		$galleryTag .= "</gallery>\n";
 		if ( $hasBroken ) {
-			$galleryTag .= $this->getCategoryBroken( 'attachment_link' );
+			$galleryTag .= $this->getCategoryBroken( 'attachment_link' ) . "\n";
 		}
 
+		// Text node with a placeholder: pandoc escapes "<" in text and joins the lines
 		$galleryTagNode = $this->createTextNode(
 			$node->ownerDocument,
-			$galleryTag,
+			$this->placeholderManager->getPlaceholder( $galleryTag ),
 			__METHOD__
 		);
 		$macroReplacement->appendChild( $galleryTagNode );
@@ -238,7 +217,8 @@ class GalleryMacro extends StructuredMacroProcessorBase {
 	): array {
 		$files = [];
 		foreach ( $attachments as $meta ) {
-			$fileLabels = $meta['labels'] ?? [];
+			// The extractor stores attachment labels as 'categories'
+			$fileLabels = $meta['labels'] ?? $meta['categories'] ?? [];
 			if ( !empty( $includeLabels )
 				&& count( array_intersect( $includeLabels, $fileLabels ) ) !== count( $includeLabels ) ) {
 				continue;

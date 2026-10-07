@@ -44,7 +44,7 @@ class GalleryMacroChainTest extends MacroChainTestBase {
 		$dataLookup = new \HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup( $workspaceDb );
 		$migrationConfig = new \HalloWelt\MigrateConfluence\Utility\MigrationConfig( [] );
 
-		return new GalleryMacro( $dataLookup, 42, 'SomePage', $migrationConfig );
+		return new GalleryMacro( $dataLookup, 42, 'SomePage', $migrationConfig, $this->placeholderManager );
 	}
 
 }

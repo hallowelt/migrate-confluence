@@ -2,7 +2,12 @@ Before
 
 <div class="ac-gallery">
 
-&lt;gallery&gt; ABC_SomePage-SomeImage.png ABC_SomePage-SomeImage1.png &lt;/gallery&gt;
+
+<gallery>
+ABC_SomePage-SomeImage.png
+ABC_SomePage-SomeImage1.png
+</gallery>
+
 
 </div>
 After

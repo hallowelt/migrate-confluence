@@ -7,6 +7,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class GalleryMacroTest extends ProcessorTestCase {
 	/**
@@ -16,12 +17,13 @@ class GalleryMacroTest extends ProcessorTestCase {
 	public function testProcess() {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
-		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ) );
+		$placeholderManager = new PlaceholderManager();
+		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ), $placeholderManager );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( file_get_contents( "$dir/gallery-macro-input.xml" ) );
 		$processor->process( $dom );
-		$actualOutput = $dom->saveXML( $dom->documentElement );
+		$actualOutput = $placeholderManager->replacePlaceholders( $dom->saveXML( $dom->documentElement ) );
 
 		$expectedDom = new DOMDocument();
 		$expectedDom->loadXML( file_get_contents( "$dir/gallery-macro-output.xml" ) );
@@ -44,12 +46,13 @@ class GalleryMacroTest extends ProcessorTestCase {
 		// hero.jpg:       [featured, approved]    → included ✓
 		// rejected.png:   [featured, approved, draft] → excluded (has 'draft')
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
-		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ) );
+		$placeholderManager = new PlaceholderManager();
+		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ), $placeholderManager );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( file_get_contents( "$dir/gallery-macro-label-input.xml" ) );
 		$processor->process( $dom );
-		$actualOutput = $dom->saveXML( $dom->documentElement );
+		$actualOutput = $placeholderManager->replacePlaceholders( $dom->saveXML( $dom->documentElement ) );
 
 		$expectedDom = new DOMDocument();
 		$expectedDom->loadXML( file_get_contents( "$dir/gallery-macro-label-output.xml" ) );
@@ -66,12 +69,13 @@ class GalleryMacroTest extends ProcessorTestCase {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
-		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ) );
+		$placeholderManager = new PlaceholderManager();
+		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage', new MigrationConfig( [] ), $placeholderManager );
 
 		$dom = new DOMDocument();
 		$dom->loadXML( file_get_contents( "$dir/gallery-macro-page-input.xml" ) );
 		$processor->process( $dom );
-		$actualOutput = $dom->saveXML( $dom->documentElement );
+		$actualOutput = $placeholderManager->replacePlaceholders( $dom->saveXML( $dom->documentElement ) );
 
 		$expectedDom = new DOMDocument();
 		$expectedDom->loadXML( file_get_contents( "$dir/gallery-macro-page-output.xml" ) );
@@ -88,12 +92,15 @@ class GalleryMacroTest extends ProcessorTestCase {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 
 		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
-		$processor = new GalleryMacro( $dataLookup, 1, 'MyPage without attachments', new MigrationConfig( [] ) );
+		$placeholderManager = new PlaceholderManager();
+		$processor = new GalleryMacro(
+			$dataLookup, 1, 'MyPage without attachments', new MigrationConfig( [] ), $placeholderManager
+		);
 
 		$dom = new DOMDocument();
 		$dom->loadXML( file_get_contents( "$dir/gallery-macro-broken-input.xml" ) );
 		$processor->process( $dom );
-		$actualOutput = $dom->saveXML( $dom->documentElement );
+		$actualOutput = $placeholderManager->replacePlaceholders( $dom->saveXML( $dom->documentElement ) );
 
 		$expectedDom = new DOMDocument();
 		$expectedDom->loadXML( file_get_contents( "$dir/gallery-macro-broken-output.xml" ) );
