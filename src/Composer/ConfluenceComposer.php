@@ -896,8 +896,12 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 		$wikis = [];
 		foreach ( $fileExtensionsPerWiki as $wikiName => $fileExtensions ) {
+			$hasNamespaceImportConfig = file_exists(
+				$this->dest . "/result/$wikiName/namespace_import_config.json"
+			);
+
 			$scripts = [];
-			foreach ( $this->getManifestScriptTemplates() as $scriptTemplate ) {
+			foreach ( $this->getManifestScriptTemplates( $hasNamespaceImportConfig ) as $scriptTemplate ) {
 				$scripts[] = str_replace( '<instance_id>', $wikiName, $scriptTemplate );
 			}
 
@@ -923,13 +927,22 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	}
 
 	/**
+	 * @param bool $hasNamespaceImportConfig Whether a "namespace_import_config.json" was
+	 *   written for this wiki. It is only written when the wiki has namespaces besides
+	 *   NS_MAIN, so wikis with only the main namespace must skip the import script.
 	 * @return string[]
 	 */
-	private function getManifestScriptTemplates(): array {
-		return [
-			'./result/<instance_id>/wikiimport.sh --sfr=<instance_id> --add-default',
-			'php /app/bluespice/w/maintenance/rebuildall.php --sfr=<instance_id>',
-		];
+	private function getManifestScriptTemplates( bool $hasNamespaceImportConfig ): array {
+		$scripts = [];
+		if ( $hasNamespaceImportConfig ) {
+			$scripts[] = 'php /app/bluespice/w/extensions/BlueSpiceNamespaceManager/maintenance/'
+				. 'ImportNamespaces.php --json ./result/<instance_id>/namespace_import_config.json';
+		}
+
+		$scripts[] = './result/<instance_id>/wikiimport.sh --sfr=<instance_id> --add-default';
+		$scripts[] = 'php /app/bluespice/w/maintenance/rebuildall.php --sfr=<instance_id>';
+
+		return $scripts;
 	}
 
 	/**
