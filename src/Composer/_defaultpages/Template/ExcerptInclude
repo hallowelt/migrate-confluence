@@ -45,4 +45,4 @@
         }
     }
 }
-</templatedata></noinclude><includeonly>{{Textbox|boxtype=important|header=|text=Here should be an included excerpt{{#if:{{{page|}}}| from page {{{page}}}}}{{#if:{{{excerpt|}}}| from excerpt name {{{excerpt}}}}}.|icon=yes}}</includeonly>
+</templatedata></noinclude><includeonly>{{Textbox|boxtype=important|header=|text=Here should be an included excerpt {{#if:{{{page|}}}| from page [[{{{page}}}]]}} {{#if:{{{excerpt|}}}|from excerpt name {{{excerpt}}}}}.|icon=yes}}</includeonly>
