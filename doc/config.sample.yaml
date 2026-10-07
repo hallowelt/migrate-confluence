@@ -1,13 +1,20 @@
 config:
-        mainpage: My Main Page
-        composer-skip-namespace:
-          - ABC
-        composer-skip-titles:
-          - ABC:DEF/GHI
-        categories:
-                - My Category 1
-                - My Category 2
-        ext-ns-file-repo-compat: true
-        composer-page-per-xml-limit: 100,
-        ns-talk-prefix: Talk
-        add-userinfo: true
+    mainpage: Main Page
+    categories: []
+    #     - My Category 1
+    #     - My Category 2
+    ext-ns-file-repo-compat: false
+    include-history: false
+    composer-page-per-xml-limit: 0
+    # 0 = no limit
+    composer-skip-namespace: []
+    #     - ABC
+    #     - NS_MAIN
+    composer-skip-titles: []
+    #     - ABC:DEF/GHI
+    ns-talk-prefix: Talk
+    create-sidebar: true
+    profile: bluespice-galaxy
+    # Allowed values: bluespice-galaxy | mediawiki
+    csv-delimiter: ","
+    add-userinfo: false
