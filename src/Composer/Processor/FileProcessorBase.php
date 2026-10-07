@@ -118,13 +118,6 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	}
 
 	/**
-	 * @return bool
-	 */
-	protected function includeHistory(): bool {
-		return $this->migrationConfig->getIncludeHistory();
-	}
-
-	/**
 	 * Skip pages automatically that have to long titles or contents.
 	 *
 	 * @param int $attachmentId

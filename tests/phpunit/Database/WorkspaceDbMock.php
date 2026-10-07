@@ -231,8 +231,25 @@ class WorkspaceDbMock {
 
 		foreach ( $mainPages as $spaceId => $titles ) {
 			$pageId = $this->findPageId( $workspaceDB, $spaceId, $titles[0], $titles[1] );
-			$workspaceDB->updateSpaceHomepageId( $spaceId, $pageId );
+			$this->setSpaceHomepageId( $workspaceDB, $spaceId, $pageId );
 		}
+	}
+
+	/**
+	 * Test-only helper: production code sets `homepage_id` via `addSpace()` at space-creation
+	 * time (the homepage ID is already known from Confluence data). This fixture seeds pages
+	 * after spaces, so it pokes the column directly rather than reintroducing the now-unused
+	 * `WorkspaceDB::updateSpaceHomepageId()` production method.
+	 */
+	private function setSpaceHomepageId( WorkspaceDB $workspaceDB, int $spaceId, int $pageId ): void {
+		$reflection = new ReflectionClass( WorkspaceDB::class );
+		$dbProp = $reflection->getProperty( 'db' );
+		$db = $dbProp->getValue( $workspaceDB );
+
+		$stmt = $db->prepare( 'UPDATE spaces SET homepage_id = :homepage_id WHERE space_id = :space_id' );
+		$stmt->bindValue( ':homepage_id', $pageId, SQLITE3_INTEGER );
+		$stmt->bindValue( ':space_id', $spaceId, SQLITE3_INTEGER );
+		$stmt->execute();
 	}
 
 	private function seedPageTemplateMappings( WorkspaceDB $workspaceDB ): void {

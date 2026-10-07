@@ -75,6 +75,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\RegTmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RoadmapMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SmMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\SpaceDetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
@@ -448,14 +449,18 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new PanelMacro( $this->writer, $this->currentSpace ),
 			new ColumnMacro( $this->writer, $this->currentSpace ),
 			new SectionMacro(),
+			new SpaceDetailsMacro(
+				$this->writer,
+				$this->currentSpace,
+			),
 			new ChildrenMacro(
-				 $this->writer,
+				$this->writer,
 				$this->currentSpace,
 				$this->wikiPageTitle,
 				$this->dataLookup
 			),
 			new PageTreeMacro(
-				 $this->writer,
+				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,

@@ -38,14 +38,6 @@ class DBConversionDataLookup {
 	}
 
 	/**
-	 * @param int $containerId
-	 * @return array
-	 */
-	public function getInlineCommentsForContentId( int $containerId ): array {
-		return $this->workspaceDB->getInlineCommentsForContentId( $containerId );
-	}
-
-	/**
 	 * @param string $markerRef
 	 * @return array|null
 	 */
@@ -331,15 +323,6 @@ class DBConversionDataLookup {
 	 */
 	public function getPageAttachmentsForPageId( int $pageId ): array {
 		return $this->workspaceDB->getPageAttachmentsForPageId( $pageId );
-	}
-
-	/**
-	 * @param int $blogPostId
-	 *
-	 * @return array
-	 */
-	public function getBlogPostAttachmentsForBlogPostId( int $blogPostId ): array {
-		return $this->workspaceDB->getBlogPostAttachmentsForBlogPostId( $blogPostId );
 	}
 
 	/**

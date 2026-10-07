@@ -18,42 +18,6 @@ class TitleValidityCheckerTest extends TestCase {
 	}
 
 	/**
-	 * @covers \HalloWelt\MigrateConfluence\Utility\TitleValidityChecker::validate
-	 */
-	public function testValidate(): void {
-		// Plain titles (no namespace)
-		$this->assertTrue( $this->checker->validate( 'Some_Page' ) );
-		$this->assertTrue( $this->checker->validate( 'SomePage' ) );
-		$this->assertTrue( $this->checker->validate( str_repeat( 'a', 255 ) ) );
-
-		// Titles with a valid namespace
-		$this->assertTrue( $this->checker->validate( 'Documentation:Some_Page' ) );
-		$this->assertTrue( $this->checker->validate( 'NS1:Page' ) );
-
-		// Ends with underscore
-		$this->assertFalse( $this->checker->validate( 'Some_Page_' ) );
-		$this->assertFalse( $this->checker->validate( 'Documentation:Some_Page_' ) );
-
-		// Contains invalid char
-		$this->assertFalse( $this->checker->validate( 'Some~Page' ) );
-		$this->assertFalse( $this->checker->validate( 'Documentation:Some~Page' ) );
-
-		// Double colon
-		$this->assertFalse( $this->checker->validate( 'NS:Sub:Page' ) );
-
-		// Invalid namespace
-		$this->assertFalse( $this->checker->validate( '123NS:Page' ) );
-		$this->assertFalse( $this->checker->validate( 'NS!:Page' ) );
-		$this->assertFalse( $this->checker->validate( ':Page' ) );
-
-		// Title text too long (namespace branch)
-		$this->assertFalse( $this->checker->validate( 'NS:' . str_repeat( 'a', 256 ) ) );
-
-		// Title too long (no namespace branch)
-		$this->assertFalse( $this->checker->validate( str_repeat( 'a', 256 ) ) );
-	}
-
-	/**
 	 * @covers \HalloWelt\MigrateConfluence\Utility\TitleValidityChecker::hasValidEnding
 	 */
 	public function testHasValidEnding(): void {

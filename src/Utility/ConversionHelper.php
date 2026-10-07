@@ -46,13 +46,13 @@ class ConversionHelper {
 	}
 
 	/**
-	 * @param string|null $spaceId
+	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
 	 *
 	 * @return string
 	 */
 	public function getConfluencePageKeyFromSpaceId(
-		?string $spaceId, string $confluenceTitle
+		?int $spaceId, string $confluenceTitle
 	): string {
 		$space = $this->getSpaceStringFromSpaceId( $spaceId );
 		return $this->getConfluencePageKey( $space, $confluenceTitle );
@@ -68,44 +68,6 @@ class ConversionHelper {
 	): string {
 		$space = $this->getSpaceStringFromSpaceKey( $spaceKey );
 		return $this->getConfluencePageKey( $space, $confluenceTitle );
-	}
-
-	/**
-	 * @param string|null $spaceId
-	 * @param string $confluenceTitle
-	 * @param string $origFilename
-	 *
-	 * @return string
-	 */
-	protected function getConfluenceFileKeyFromSpaceId(
-		?string $spaceId, string $confluenceTitle, string $origFilename
-	): string {
-		$space = $this->getSpaceStringFromSpaceId( $spaceId );
-		return $this->getConfluenceFileKey( $space, $confluenceTitle, $origFilename );
-	}
-
-	/**
-	 * @param string $spaceKey
-	 * @param string $confluenceTitle
-	 * @param string $origFilename
-	 *
-	 * @return string
-	 */
-	protected function getConfluenceFileKeyFromSpaceKey(
-		string $spaceKey, string $confluenceTitle, string $origFilename
-	): string {
-		$space = $this->getSpaceStringFromSpaceKey( $spaceKey );
-		return $this->getConfluenceFileKey( $space, $confluenceTitle, $origFilename );
-	}
-
-	/**
-	 * @param string $spaceKey
-	 * @param string $confluenceTitle
-	 * @param string $origFilename
-	 * @return string
-	 */
-	private function getConfluenceFileKey( string $spaceKey, string $confluenceTitle, string $origFilename ): string {
-		return str_replace( ' ', '_', "Confluence_file---$spaceKey---$confluenceTitle---$origFilename" );
 	}
 
 	/**

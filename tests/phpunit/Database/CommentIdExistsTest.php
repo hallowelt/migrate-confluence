@@ -5,7 +5,6 @@ namespace HalloWelt\MigrateConfluence\Tests\Database;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \HalloWelt\MigrateConfluence\Database\WorkspaceDB::commentIdExists
  * @covers \HalloWelt\MigrateConfluence\Database\WorkspaceDB::pageCommentIdExists
  * @covers \HalloWelt\MigrateConfluence\Database\WorkspaceDB::blogPostCommentIdExists
  */
@@ -71,13 +70,5 @@ class CommentIdExistsTest extends TestCase {
 
 		$this->assertFalse( $db->pageCommentIdExists( 200 ) );
 		$this->assertFalse( $db->blogPostCommentIdExists( 200 ) );
-	}
-
-	public function testCommentIdExistsStillChecksCommentsTable(): void {
-		$db = ( new WorkspaceDbMock() )->createEmpty();
-
-		$db->addComment( 200, 100, 'Comment', 'current', 'abc123', [], '', '', [], [] );
-
-		$this->assertTrue( $db->commentIdExists( 200 ) );
 	}
 }
