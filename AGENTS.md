@@ -59,6 +59,9 @@ Run the narrowest relevant subset after changes; run the full suite when
 touching shared code. Make sure that any temporary files and folders are
 cleaned up again.
 
+Never weaken, skip or delete an existing test to make it pass. If a test expectation seems wrong, report it instead.
+New converter behavior needs a test with input markup and expected wikitext.
+
 ## Code Creation
 
 If you write new code, make sure that it produces valid UTF-8 encoded text.
@@ -82,3 +85,28 @@ Never edit code in the `vendor` folder. However, libraries in the `vendor/hallow
 will accept upstream change requests. If you happen to find that an edit in one of those
 projects will simplify your implementation, especially in `vendor/hallowelt/mediawiki-lib-migration/src`,
 report this finding back to the user.
+
+## Workspace boundaries
+
+Stay inside the repository root at all times. Do not read, write, list or
+search anything outside of it. Never run commands like `find /`, `ls /` or
+`grep -r /`, and do not try to locate binaries outside the repo.
+
+Use paths relative to the repository root.
+For temporary files and test output, use `.tmp/` in the repository root (it is git-ignored). Do not use `/tmp` or `sys_get_temp_dir()`. Delete what you created when you are done.
+`php` and `composer` are available on the PATH. Run tools from `vendor/bin/`.
+
+## Git and dependencies
+Do not commit, push, or create branches unless asked.
+Do not add, remove or update Composer dependencies, and do not modify `composer.lock`, without asking first.
+
+## Real customer data
+
+Never open, read, search, or run the pipeline on real Confluence exports or
+on any output derived from them (SQLite DBs, converted wikitext, compose
+output). This applies even if such files are present in the workspace or a
+user path points to them.
+
+If a bug can only be understood from real input, stop and ask the user to
+provide a minimal, anonymized snippet. Then build a synthetic test case from
+that snippet.
