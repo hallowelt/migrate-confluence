@@ -1,3 +1,17 @@
 <xml xmlns:ac="sample_namespace">
-    <attachments></attachments>
+    
+<attachments>
+* [[Media:approved.png]]
+* [[Media:blueprint.tiff]]
+* [[Media:dashboard.png]]
+* [[Media:document.pdf]]
+* [[Media:hero.jpg]]
+* [[Media:icon.svg]]
+* [[Media:illustration.webp]]
+* [[Media:loading.gif]]
+* [[Media:photo.jpg]]
+* [[Media:raw-scan.bmp]]
+* [[Media:rejected.png]]
+</attachments>
+
 </xml>
