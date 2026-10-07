@@ -70,6 +70,8 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PanelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
+use HalloWelt\MigrateConfluence\Converter\Processor\ProfileMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ProfilePictureMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RegTmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RoadmapMacro;
@@ -480,6 +482,14 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->currentSpace
 			),
 			new TasksReportMacro(
+				$this->dataLookup,
+				$this->placeholderManager
+			),
+			new ProfileMacro(
+				$this->dataLookup,
+				$this->placeholderManager
+			),
+			new ProfilePictureMacro(
 				$this->dataLookup,
 				$this->placeholderManager
 			),
