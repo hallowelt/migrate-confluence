@@ -902,13 +902,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 					foreach ( $elementWithDataAttr->attributes as $attribute ) {
 						if ( $attribute->name === 'data-atlassian-layout' ) {
 							$elementWithDataAttr->setAttribute( 'data-atlassian-layout', '' );
-						} elseif ( str_starts_with( $attribute->name, 'data-' ) ) {
-							/* pandoc strips "data-" prefixes from data attributes.
-							 * @see https://github.com/jgm/pandoc/issues/11680 */
-							$elementWithDataAttr->setAttribute(
-								'preserve-attr-' . $attribute->name,
-								 $attribute->value );
-							$elementWithDataAttr->removeAttribute( $attribute->name );
 						}
 					}
 				}
@@ -928,7 +921,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
 		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
-		$this->wikiText = str_replace( " preserve-attr-data-", " data-", $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
 				"#&lt;img(.*?)/&gt;#s",
