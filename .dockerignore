@@ -4,6 +4,7 @@
 !bin/migrate-confluence
 !src
 !composer.json
+!composer.lock
 !LICENSE
 !README.md
 !VERSION
