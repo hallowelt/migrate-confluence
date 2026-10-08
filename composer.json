@@ -10,8 +10,8 @@
 	"license": "GPL-3.0-only",
 	"authors": [
 		{
-			"name": "Robert Vogel",
-			"email": "vogel@hallowelt.com"
+			"name": "Hallo Welt! GmbH",
+			"homepage": "https://hallowelt.com"
 		}
 	],
 	"repositories": [{
@@ -26,7 +26,7 @@
 		"hallowelt/mediawiki-lib-wikitext": "~1",
 		"ext-dom": "*",
 		"ext-mbstring": "*",
-        "symfony/yaml": "^7.0"
+		"symfony/yaml": "^7.0"
 	},
 	"require-dev": {
 		"mediawiki/mediawiki-codesniffer": "52.0.0",
@@ -60,6 +60,9 @@
 		]
 	},
 	"config": {
+		"platform": {
+			"php": "8.5"
+		},
 		"allow-plugins": {
 			"dealerdirect/phpcodesniffer-composer-installer": true,
 			"composer/installers": true
