@@ -47,6 +47,21 @@ If phpcs reports style issues, `composer run fix` (minus-x + phpcbf) auto-fixes 
 
 Do not run `composer run lint`! It has known issues at the moment.
 
+## Doc comments
+
+Doc comments must not repeat what the PHP signature already says.
+
+- Omit `@param` and `@return` tags whose type is identical to the native type
+  declaration and that have no description.
+- Keep a tag when it adds information: element types of arrays
+  (`@return DOMElement[]`, `@param array<string, int> $map`), a more specific
+  type than the native one, or a description of the meaning or allowed values.
+- Keep `@throws` tags.
+- If a doc comment would be empty after this, omit it entirely. Do not write a
+  summary that just restates the method name ("Gets the parameters").
+- Only apply this to code you write or modify. Do not clean up doc comments in
+  unrelated code, to keep diffs focused.
+
 ### Unit tests
 
 Unit tests live in `tests/phpunit/` and are run with:
