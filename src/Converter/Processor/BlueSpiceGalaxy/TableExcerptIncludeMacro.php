@@ -50,10 +50,6 @@ class TableExcerptIncludeMacro extends ExcerptIncludeMacro {
 	/**
 	 * Makes sure the target page is in the default parameter (ac:name=""),
 	 * which is where ExcerptIncludeMacro expects it.
-	 *
-	 * @param DOMElement $node
-	 *
-	 * @return void
 	 */
 	private function normalizePageParameter( DOMElement $node ): void {
 		if ( $node->getElementsByTagName( 'default-parameter' )->length > 0 ) {
@@ -112,8 +108,6 @@ class TableExcerptIncludeMacro extends ExcerptIncludeMacro {
 
 	/**
 	 * Direct parameters of the macro only, not those of nested macros.
-	 *
-	 * @param DOMElement $node
 	 *
 	 * @return DOMElement[]
 	 */
