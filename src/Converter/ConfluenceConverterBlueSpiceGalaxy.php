@@ -5,6 +5,8 @@ namespace HalloWelt\MigrateConfluence\Converter;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\StatusMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\TableExcerptIncludeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\TableExcerptMacro;
 
 class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
 	protected const PROFILE_NAME = 'bluespice-galaxy';
@@ -22,6 +24,13 @@ class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->placeholderManager
+			),
+			new TableExcerptMacro( $this->placeholderManager ),
+			new TableExcerptIncludeMacro(
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->placeholderManager,
+				$this->confluencePageTitle
 			),
 		] );
 
