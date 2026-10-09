@@ -22,6 +22,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\EscapeWikiMarkup;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
@@ -835,17 +836,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		$sContent = preg_replace( '/<at:declarations\s*\/>/', '', $sContent );
 		$sContent = preg_replace( '/<at:declarations[^>]*>.*?<\/at:declarations>/s', '', $sContent );
 
-		// Append categories
-		$metaData = $this->getMetaData();
-		$categories = '';
-		if ( isset( $metaData['categories'] ) ) {
-			foreach ( $metaData['categories'] as $category ) {
-				$category = ucfirst( $category );
-				$categories .= "[[Category:$category]]\n";
-			}
-		}
-		$sContent = str_replace( '</body>', $categories . '</body>', $sContent );
-
 		// phpcs:ignore Generic.Files.LineLength.TooLong
 		$sContent = '<xml xmlns:ac="some" xmlns:ri="thing" xmlns:bs="bluespice" xmlns:at="atlassian-template">' . $sContent . '</xml>';
 
@@ -875,6 +865,8 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	 */
 	protected function preprocessDomSource( DOMDocument $dom ): void {
 		$preprocessors = [
+			// Has to be first: must only see the original Confluence text
+			new EscapeWikiMarkup( $this->placeholderManager ),
 			new SanitizeLinkContent(),
 			new HoistMacroFromHeading(),
 			new Table()
@@ -938,6 +930,14 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			},
 			$this->wikiText
 		);
+
+		$categories = array_map(
+			static fn ( $category ) => '[[Category:' . ucfirst( $category ) . ']]',
+			$this->getMetaData()['categories'] ?? []
+		);
+		if ( $categories ) {
+			$this->wikiText .= "\n\n" . implode( ' ', $categories );
+		}
 
 		if ( $this->contentType !== 'spaceDescription' && $this->contentType !== 'pageTemplate' ) {
 			$this->wikiText .= $this->addAdditionalAttachments();
