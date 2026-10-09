@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="table-chart" ac:schema-version="1">
+		<ac:parameter ac:name="type">Pie</ac:parameter>
+		<ac:parameter ac:name="aggregation">Max</ac:parameter>
+		<ac:rich-text-body>
+<table><tbody><tr><th>Month</th><th>Min</th><th>Max</th></tr><tr><td>Jan, early</td><td>1,5</td><td>5</td></tr><tr><td>Feb</td><td>2</td><td>7</td></tr></tbody></table>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>

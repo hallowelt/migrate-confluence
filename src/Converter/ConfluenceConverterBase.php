@@ -76,6 +76,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\RoadmapMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SpaceDetailsMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TableChartMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
@@ -648,6 +649,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			),
 			new LivesearchMacro( $this->writer, $this->currentSpace ),
 			new ChartMacro( $this->placeholderManager ),
+			new TableChartMacro( $this->placeholderManager ),
 		];
 	}
 
