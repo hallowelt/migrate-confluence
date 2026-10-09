@@ -60,9 +60,12 @@ class ReportSupport extends Command {
 			$classname = $this->getClassFromFilename( $fileObj->getPathname() );
 			try {
 				$reflection = new \ReflectionClass( $classname );
-				$macroName = $reflection->hasConstant( 'MACRO_NAME' ) ? $reflection->getConstant( 'MACRO_NAME' ) : null	;
-				$supportLevel = $reflection->hasConstant( 'SUPPORT_LEVEL' ) ? $reflection->getConstant( 'SUPPORT_LEVEL' ) : null;
-				$requiredExtensions = $reflection->hasConstant( 'REQUIRED_EXTENSIONS' ) ? $reflection->getConstant( 'REQUIRED_EXTENSIONS' ) : null;
+				$macroName = $reflection->hasConstant( 'MACRO_NAME' ) ?
+					$reflection->getConstant( 'MACRO_NAME' ) : null;
+				$supportLevel = $reflection->hasConstant( 'SUPPORT_LEVEL' ) ?
+					$reflection->getConstant( 'SUPPORT_LEVEL' ) : null;
+				$requiredExtensions = $reflection->hasConstant( 'REQUIRED_EXTENSIONS' ) ?
+					$reflection->getConstant( 'REQUIRED_EXTENSIONS' ) : null;
 			} catch ( \ReflectionException $e ) {
 				// handle the exception if the class does not exist or cannot be instantiated
 				$output->writeln( sprintf( 'Failed to instantiate class %s: %s', $classname, $e->getMessage() ) );
