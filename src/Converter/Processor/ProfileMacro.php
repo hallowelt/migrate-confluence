@@ -55,7 +55,7 @@ class ProfileMacro extends StructuredMacroProcessorBase implements IUsesPlacehol
 						$userkey = $userNode->getAttribute( 'ri:userkey' );
 						$username = $this->dataLookup->getUsernameFromUserKey( $userkey ) ?? $userkey;
 						if ( $username ) {
-							break;
+							break 2;
 						}
 					}
 				}
@@ -74,7 +74,7 @@ class ProfileMacro extends StructuredMacroProcessorBase implements IUsesPlacehol
 			$this->placeholderManager->getPlaceholder(
 				sprintf(
 					'<user-profile user="%s" framed="false" orientation="horizontal" />',
-					$username ) ),
+					htmlspecialchars( $username, ENT_QUOTES, 'UTF-8' ) ) ),
 			__METHOD__
 		);
 		$parent->insertBefore( $placeholder, $node );
