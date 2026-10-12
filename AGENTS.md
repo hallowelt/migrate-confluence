@@ -47,6 +47,28 @@ If phpcs reports style issues, `composer run fix` (minus-x + phpcbf) auto-fixes 
 
 Do not run `composer run lint`! It has known issues at the moment.
 
+## Doc comments
+
+Document methods with a short summary of their purpose: what the method is
+for, not how it is implemented. Doc comments must not repeat what the PHP
+signature already says.
+
+- Write the summary as one brief sentence about purpose, e.g. "Builds the
+  navigation tree for the current user." Do not describe the implementation,
+  and do not just restate the method name ("Gets the parameters"). If there is
+  nothing to say beyond the method name, omit the doc comment.
+- For public methods that override or implement a method from a parent class
+  or interface and have nothing to add, use `/** @inheritDoc */` instead of
+  writing a new summary.
+- Omit `@param` and `@return` tags whose type is identical to the native type
+  declaration and that have no description.
+- Keep a tag when it adds information: element types of arrays
+  (`@return DOMElement[]`, `@param array<string, int> $map`), a more specific
+  type than the native one, or a description of the meaning or allowed values.
+- Keep `@throws` tags.
+- Only apply this to code you write or modify. Do not clean up doc comments in
+  unrelated code, to keep diffs focused.
+
 ### Unit tests
 
 Unit tests live in `tests/phpunit/` and are run with:
