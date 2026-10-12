@@ -2,6 +2,5 @@ vendor/
 workspace/
 .phpunit.result.cache
 dist/migrate-confluence.phar
-composer.lock
 *.bak
 *.tmp
