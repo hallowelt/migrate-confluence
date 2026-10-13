@@ -97,8 +97,8 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
-use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\HookHandler;
+use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
@@ -398,7 +398,8 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		 *
 		 * @since 8.0.0
 		 * @param string $sContent content after all processing
-		 * @param array $context context information including pageId, wikiPageTitle, confluencePageTitle, currentSpace, and contentType
+		 * @param array $context context information including pageId,
+		 *              wikiPageTitle, confluencePageTitle, currentSpace, and contentType
 		 * @param DBConversionDataLookup $dataLookup data lookup object
 		 */
 		$this->wikiText = HookHandler::filter( 'convert-content-post', $this->wikiText, [
@@ -843,7 +844,8 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		 *
 		 * @since 8.0.0
 		 * @param string $sContent content before any processing
-		 * @param array $context context information including pageId, wikiPageTitle, confluencePageTitle, currentSpace, and contentType
+		 * @param array $context context information including pageId, wikiPageTitle, confluencePageTitle,
+		 *						 currentSpace, and contentType
 		 * @param DBConversionDataLookup $dataLookup data lookup object
 		 */
 		$sContent = HookHandler::filter( 'convert-content-pre', $sContent, [
