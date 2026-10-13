@@ -8,6 +8,34 @@ Hooks are code snippets in a PHP file, referenced from your configuration file, 
 
 Filters allow modifying a concrete value.
 
+### `convert-content-post`
+
+Allow modification of the output after processing
+
+**Since:** [8.0.0](https://github.com/hallowelt/migrate-confluence/releases/tag/8.0.0)
+
+**Parameters:**
+
+- `$sContent` _string_ — content after all processing
+- `$context` _array_ — context information including pageId, wikiPageTitle, confluencePageTitle, currentSpace, and contentType
+- `$dataLookup` _DBConversionDataLookup_ — data lookup object
+
+_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php) at line 404._
+
+### `convert-content-pre`
+
+Allow modification of the raw input before processing it.
+
+**Since:** [8.0.0](https://github.com/hallowelt/migrate-confluence/releases/tag/8.0.0)
+
+**Parameters:**
+
+- `$sContent` _string_ — content before any processing
+- `$context` _array_ — context information including pageId, wikiPageTitle, confluencePageTitle, currentSpace, and contentType
+- `$dataLookup` _DBConversionDataLookup_ — data lookup object
+
+_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php) at line 849._
+
 ### `include-import-file`
 
 Control whether the current entities.xml file should be considered.
