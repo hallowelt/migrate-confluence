@@ -4,12 +4,12 @@ namespace HalloWelt\MigrateConfluence\Command;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Convert as CommandConvert;
-use HalloWelt\MediaWiki\Lib\Migration\Command\Traits\SetupHooks;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBase;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterPipeDataWriter;

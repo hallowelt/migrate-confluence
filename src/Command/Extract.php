@@ -4,11 +4,11 @@ namespace HalloWelt\MigrateConfluence\Command;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Extract as CommandExtract;
-use HalloWelt\MediaWiki\Lib\Migration\Command\Traits\SetupHooks;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use Symfony\Component\Console\Command\Command;
