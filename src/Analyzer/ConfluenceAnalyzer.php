@@ -70,7 +70,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 		 *
 		 * Control whether the current entities.xml file should be considered.
 		 *
-		 * @since 5.0.0
+		 * @since 8.0.0
 		 * @param bool $value whether to include the file. Defaults to true.
 		 * @param SplFileInfo $file the import XML file currently processed
 		 */
