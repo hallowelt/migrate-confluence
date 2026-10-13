@@ -10,31 +10,31 @@ Filters allow modifying a concrete value.
 
 ### `convert-content-post`
 
-Allow modification of the output after processing
+Allow modification of the output after processing wikiPageTitle, confluencePageTitle, currentSpace, and contentType
 
 **Since:** [8.0.0](https://github.com/hallowelt/migrate-confluence/releases/tag/8.0.0)
 
 **Parameters:**
 
 - `$sContent` _string_ — content after all processing
-- `$context` _array_ — context information including pageId, wikiPageTitle, confluencePageTitle, currentSpace, and contentType
+- `$context` _array_ — context information including pageId,
 - `$dataLookup` _DBConversionDataLookup_ — data lookup object
 
-_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php) at line 404._
+_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php) at line 405._
 
 ### `convert-content-pre`
 
-Allow modification of the raw input before processing it.
+Allow modification of the raw input before processing it. currentSpace, and contentType
 
 **Since:** [8.0.0](https://github.com/hallowelt/migrate-confluence/releases/tag/8.0.0)
 
 **Parameters:**
 
 - `$sContent` _string_ — content before any processing
-- `$context` _array_ — context information including pageId, wikiPageTitle, confluencePageTitle, currentSpace, and contentType
+- `$context` _array_ — context information including pageId, wikiPageTitle, confluencePageTitle,
 - `$dataLookup` _DBConversionDataLookup_ — data lookup object
 
-_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php) at line 849._
+_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php) at line 851._
 
 ### `include-import-file`
 
