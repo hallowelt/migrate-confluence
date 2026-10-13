@@ -212,7 +212,7 @@ function renderHooks( array $hooks ): string {
 			$out .= "\n";
 		}
 
-		$out .= "_Defined in [`{$hook['file']}`](../src/{$hook['file']}) at line {$hook['line']}._\n\n";
+		$out .= "_Defined in [`{$hook['file']}`](../src/{$hook['file']}#L{$hook['line']}) at line {$hook['line']}._\n\n";
 	}
 	return $out;
 }

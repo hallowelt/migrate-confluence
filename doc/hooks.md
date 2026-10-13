@@ -20,7 +20,7 @@ Allow modification of the output after processing wikiPageTitle, confluencePageT
 - `$context` _array_ — context information including pageId,
 - `$dataLookup` _DBConversionDataLookup_ — data lookup object
 
-_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php) at line 405._
+_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php#L405) at line 405._
 
 ### `convert-content-pre`
 
@@ -34,7 +34,7 @@ Allow modification of the raw input before processing it. currentSpace, and cont
 - `$context` _array_ — context information including pageId, wikiPageTitle, confluencePageTitle,
 - `$dataLookup` _DBConversionDataLookup_ — data lookup object
 
-_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php) at line 851._
+_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php#L851) at line 851._
 
 ### `include-import-file`
 
@@ -47,5 +47,5 @@ Control whether the current entities.xml file should be considered.
 - `$value` _bool_ — whether to include the file. Defaults to true.
 - `$file` _SplFileInfo_ — the import XML file currently processed
 
-_Defined in [`Analyzer/ConfluenceAnalyzer.php`](../src/Analyzer/ConfluenceAnalyzer.php) at line 77._
+_Defined in [`Analyzer/ConfluenceAnalyzer.php`](../src/Analyzer/ConfluenceAnalyzer.php#L77) at line 77._
 
