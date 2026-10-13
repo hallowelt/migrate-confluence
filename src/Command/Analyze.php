@@ -41,7 +41,7 @@ class Analyze extends BatchFileProcessorBase {
 	 */
 	private WikisConfig $wikisConfig;
 
-	private ?MigrationConfig $migrationConfig;
+	private ?MigrationConfig $migrationConfig = null;
 
 	use SetupHooks;
 
