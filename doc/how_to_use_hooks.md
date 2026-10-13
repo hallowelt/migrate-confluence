@@ -9,12 +9,12 @@ your configuration file:
 
 return [
     'filters' => [
-        'analyze/include_file' => function($value, $file) {
-			if ( str_contains( $file->getPathname(), '/some/path/' ) ) {
+        'include-import-file' => function( $value, $file ) {
+            if ( str_contains( $file->getPathname(), '/some/path/' ) ) {
                 // we want to ignore imports from ./input/some/path/entities.xml
                 return false;
             }
-			return $value;
+            return $value;
         },
     ]
 ]
@@ -27,6 +27,20 @@ config:
     hook-handler: hooks.php
 ```
 
-and the hook handler is executed.
+and the hook handler code is executed.
 
-See the [list of available hooks](./hooks.md) for details.
+See the [list of available hooks](./hooks.md) for details on hooks.
+
+## Actions and Filters
+
+If you happen to have worked with WordPress’ hook system you might feel at home
+instantly. In a nutshell:
+
+* _action_ allow custom code to run at specific points during the execution.
+    They can stop the processing, log information, or manipulate some state.
+* _filters_ receive a value as first parameter and are expected to return it
+    either unchanged or manipulated. The other parameters are helpful context
+    for the hook to decide, whether to act, like the page title or the content
+    type.
+
+Register the appropriate type in your hooks PHP file.
