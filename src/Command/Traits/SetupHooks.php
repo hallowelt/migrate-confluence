@@ -33,7 +33,10 @@ trait SetupHooks {
 		}
 
 		if ( is_string( $hookHandler ) && $hookHandler !== '' ) {
-			$customHandlersFile = realpath( $configPath . DIRECTORY_SEPARATOR . $hookHandler );
+			if ( !str_starts_with( $hookHandler, '/' ) ) {
+				$hookHandler = $configPath . DIRECTORY_SEPARATOR . $hookHandler;
+			}
+			$customHandlersFile = realpath( $hookHandler );
 			if ( !is_file( $customHandlersFile ) ) {
 				throw new \RuntimeException( 'Hook handler file not found: ' . $hookHandler );
 			}
