@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Command;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Extract as CommandExtract;
+use HalloWelt\MediaWiki\Lib\Migration\Command\Traits\SetupHooks;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
@@ -24,6 +25,8 @@ class Extract extends CommandExtract {
 	 * @var array
 	 */
 	protected $eventhandlers = [];
+
+	use SetupHooks;
 
 	/**
 	 * @inheritDoc
@@ -55,6 +58,7 @@ class Extract extends CommandExtract {
 	 */
 	protected function beforeProcessFiles() {
 		$this->readConfigFile( $this->config );
+		$this->installCustomerHooks( $this->config, $this->input->getOption( 'config' ) );
 		parent::beforeProcessFiles();
 		// Explicitly reset the persisted data
 		$this->buckets = new DataBuckets( $this->getBucketKeys() );

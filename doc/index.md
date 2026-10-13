@@ -23,3 +23,4 @@ please open an issue first with the intended changes that you’d like to provid
     * [Adding author info](./how_to_add_author_info.md)
     * [Structure of output files](./composer_output_structure.md)
     * [Behavior and design decisions](./behavior.md)
+    * [Using custom code](./how_to_use_hooks.md)

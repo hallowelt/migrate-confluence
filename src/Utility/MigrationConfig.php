@@ -105,4 +105,11 @@ class MigrationConfig {
 	public function getCSVDelimiter(): string {
 		return $this->get( 'csv-delimiter', ',' );
 	}
+
+	/**
+	 * @return ?string
+	 */
+	public function getHookHandler(): ?string {
+		return $this->get( 'hook-handler', null );
+	}
 }
