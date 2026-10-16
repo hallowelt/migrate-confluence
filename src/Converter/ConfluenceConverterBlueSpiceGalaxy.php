@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Converter;
 
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\PanelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\StatusMacro;
 
 class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
@@ -23,6 +24,7 @@ class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
 				$this->currentSpace,
 				$this->placeholderManager
 			),
+			new PanelMacro( $this->placeholderManager ),
 		] );
 
 		return $processors;
