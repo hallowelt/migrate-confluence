@@ -54,7 +54,7 @@ class Files extends FileProcessorBase {
 	 * @return void
 	 */
 	private function addPageAttachments(): void {
-		Log::to( 'console' )->debug( "\nAdding page attachments...\n" );
+		Log::to( 'console' )->debug( "Adding page attachments..." );
 
 		$pageAttachments = [];
 		if ( is_array( $this->currentSpaceIds ) ) {
@@ -87,7 +87,7 @@ class Files extends FileProcessorBase {
 	 * @return void
 	 */
 	private function addBlogPostAttachments(): void {
-		Log::to( 'console' )->debug( "\nAdding blog post attachments...\n" );
+		Log::to( 'console' )->debug( "Adding blog post attachments..." );
 
 		$blogPostAttachments = [];
 		if ( is_array( $this->currentSpaceIds ) ) {
@@ -203,7 +203,7 @@ class Files extends FileProcessorBase {
 	 * @return void
 	 */
 	private function addAdditionalAttachments(): void {
-		Log::to( 'console' )->debug( "\nAdding additional attachments...\n" );
+		Log::to( 'console' )->debug( "Adding additional attachments..." );
 
 		$additionalAttachments = [];
 		if ( is_array( $this->currentSpaceIds ) ) {
@@ -308,7 +308,7 @@ class Files extends FileProcessorBase {
 	 * @return void
 	 */
 	private function addGeneratedSvgs(): void {
-		Log::to( 'console' )->debug( "\nAdding generated SVGs...\n" );
+		Log::to( 'console' )->debug( "Adding generated SVGs..." );
 
 		$generatedSvgs = [];
 		if ( is_array( $this->currentSpaceIds ) ) {

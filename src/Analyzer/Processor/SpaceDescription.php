@@ -131,6 +131,6 @@ class SpaceDescription extends ProcessorBase {
 				);
 		}
 
-		Log::to( 'console' )->debug( "\nAdd space description ($descriptionId)" );
+		Log::to( 'console' )->debug( "Add space description ($descriptionId)" );
 	}
 }

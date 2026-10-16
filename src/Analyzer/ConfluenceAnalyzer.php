@@ -67,8 +67,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 
 		$sourcePath = $file->getPathname();
 
-		Log::to( 'console' )->info( "\nProcessing: $sourcePath" );
-		Log::to( 'console' )->debug( "\nAnalyze data:" );
+		Log::to( 'console' )->info( "Processing: $sourcePath" );
 
 		$processors = $this->getProcessors( $file->getPath() );
 
