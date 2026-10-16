@@ -78,8 +78,8 @@ class Comments extends ProcessorBase {
 
 		if ( empty( $bodyContentIds ) ) {
 			$warning = "no body content IDs found for comment (ID:$commentId)";
-			Log::to( 'console' )->notice( $warning );
-			# TODO Log::to( 'db', 'console' )->notice( $warning );
+			Log::to( 'console' )->warning( $warning );
+			# TODO Log::to( 'db', 'console' )->warning( $warning );
 			$this->writer->addLogEntry(
 				'warning',
 				'analyze',

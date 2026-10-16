@@ -117,8 +117,8 @@ class Page extends ProcessorBase {
 
 		if ( empty( $bodyContentIds ) && ( !isset( $properties['isFolder'] ) || $properties['isFolder'] !== 'true' ) ) {
 			$warning = "no body content IDs found for page '$confluenceTitle' (ID:$pageId)";
-			Log::to( 'console' )->notice( $warning );
-			# TODO Log::to( 'db', 'console' )->notice( $warning );
+			Log::to( 'console' )->warning( $warning );
+			# TODO Log::to( 'db', 'console' )->warning( $warning );
 			$this->writer->addLogEntry(
 				'warning',
 				'analyze',

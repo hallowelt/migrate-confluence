@@ -127,7 +127,7 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	 */
 	protected function skipAttachmentId( int $attachmentId, string $title ): bool {
 		if ( $this->dataLookup->isAttachmentInvalid( $attachmentId ) ) {
-			Log::to( 'console' )->notice( "Attachment $title skipped due to invalid title or content" );
+			Log::to( 'console' )->warning( "Attachment $title skipped due to invalid title or content" );
 			return true;
 		}
 		return false;

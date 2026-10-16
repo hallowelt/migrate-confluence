@@ -108,8 +108,8 @@ class BlogPost extends ProcessorBase {
 
 		if ( empty( $bodyContentIds ) ) {
 			$warning = "no body content IDs found for blog post '$confluenceTitle' (ID:$pageId)";
-			Log::to( 'console' )->notice( $warning );
-			# TODO Log::to( 'db', 'console' )->notice( $warning );
+			Log::to( 'console' )->warning( $warning );
+			# TODO Log::to( 'db', 'console' )->warning( $warning );
 			$this->writer->addLogEntry(
 				'warning',
 				'analyze',
