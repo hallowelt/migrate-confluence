@@ -12,6 +12,7 @@ use HalloWelt\MigrateConfluence\Database\DataWriter\ComposeDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
+use HalloWelt\MigrateConfluence\Utility\DirectoryHelper;
 use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -232,9 +233,6 @@ class Compose extends CommandCompose {
 	 * @return void
 	 */
 	private function ensureTargetDirs(): void {
-		$path = "$this->dest/result";
-		if ( !file_exists( $path ) ) {
-			mkdir( $path, 0755, true );
-		}
+		DirectoryHelper::ensure( "$this->dest/result" );
 	}
 }
