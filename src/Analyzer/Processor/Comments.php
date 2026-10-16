@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
@@ -73,11 +74,12 @@ class Comments extends ProcessorBase {
 		// and in collection is placed in the ConfluenceAnalyzer, which will attempt to retrieve them
 		// from the body_contents table based on the comment ID.
 
-		$this->output->writeln( "Add comment (ID:$commentId)" );
+		Log::to( 'console' )->debug( "Add comment (ID:$commentId)" );
 
 		if ( empty( $bodyContentIds ) ) {
-			$warning = "Warning: No body content IDs found for comment (ID:$commentId)";
-			$this->output->writeln( $warning );
+			$warning = "no body content IDs found for comment (ID:$commentId)";
+			Log::to( 'console' )->notice( $warning );
+			# TODO Log::to( 'db', 'console' )->notice( $warning );
 			$this->writer->addLogEntry(
 				'warning',
 				'analyze',

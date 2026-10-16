@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 
 /**
@@ -97,7 +98,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Creating wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
 			);
 

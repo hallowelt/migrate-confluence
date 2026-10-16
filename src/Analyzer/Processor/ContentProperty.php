@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
@@ -67,6 +68,6 @@ class ContentProperty extends ProcessorBase {
 			);
 		}
 
-		$this->output->writeln( "Add content property '$propName'" );
+		Log::to( 'console' )->debug( "Add content property '$propName'" );
 	}
 }

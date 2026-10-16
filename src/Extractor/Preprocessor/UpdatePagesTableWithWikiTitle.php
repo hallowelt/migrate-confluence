@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
@@ -117,7 +118,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			$spaceId = (int)$page['space_id'];
 			$confluenceTitle = (string)$page['confluence_title'];
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Creating wiki title for page ID $pageId with confluence title '$confluenceTitle'"
 			);
 
@@ -187,7 +188,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 					$message
 				);
 			}
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Updated wiki title for page ID $pageId with title: $wikiTitle"
 			);
 			$this->writer->updatePageWikiTitle( (int)$pageId, $wikiTitle );

@@ -4,7 +4,7 @@ namespace HalloWelt\MigrateConfluence\Extractor;
 
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExtractorBase;
-use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
@@ -38,15 +38,11 @@ use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use SplFileInfo;
-use Symfony\Component\Console\Output\Output;
 
-class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware, IOutputAwareInterface {
+class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware {
 
 	/** @var string */
 	private string $dest = '';
-
-	/** @var Output|null */
-	private ?Output $output = null;
 
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
@@ -74,13 +70,6 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	public function setDestinationPath( string $dest ): void {
 		$this->dest = $dest;
-	}
-
-	/**
-	 * @param Output $output
-	 */
-	public function setOutput( Output $output ): void {
-		$this->output = $output;
 	}
 
 	/**
@@ -140,9 +129,6 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 		// preparation
 		$preprocessors = $this->getPreProcessors( $writer );
 		foreach ( $preprocessors as $processor ) {
-			if ( $this->output ) {
-				$processor->setOutput( $this->output );
-			}
 			$processor->execute();
 		}
 
@@ -215,42 +201,27 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	private function checkTitles(): void {
 		if ( !empty( $this->dbLog->getLogEntriesForStep( 'analyze' ) ) ) {
-			$this->writeln( "\n\nWARNINGS / ERRORS:\n" );
-			$this->writeln(
-				"\nPlease check logging table in workspaceDB for details about invalid titles and filenames\n\n"
-			);
+			Log::to( 'console' )->warning(
+				'WARNINGS / ERRORS: Please check logging table in workspaceDB ' .
+				'for details about invalid titles and filenames' );
 		}
 
 		if ( !empty( $this->workspaceDB->getInvalidPageWikiTitles() ) ) {
-			$this->writeln( "\n\INVALID PAGE TITLES DETECTED:\n" );
-			$this->writeln(
-				"\nPlease check page_invalid_titles table in workspaceDB for details\n\n"
-			);
+			Log::to( 'console' )->warning(
+				'INVALID PAGE TITLES DETECTED: Please check page_invalid_titles ' .
+				'table in workspaceDB for details' );
 		}
 
 		if ( !empty( $this->workspaceDB->getInvalidBlogPostWikiTitles() ) ) {
-			$this->writeln( "\n\INVALID BLOG POST TITLES DETECTED:\n" );
-			$this->writeln(
-				"\nPlease check blog_post_invalid_titles table in workspaceDB for details\n\n"
-			);
+			Log::to( 'console' )->warning(
+				'INVALID BLOG POST TITLES DETECTED: Please check blog_post_invalid_titles ' .
+				'table in workspaceDB for details' );
 		}
 
 		if ( !empty( $this->workspaceDB->getInvalidAttachmentTitles() ) ) {
-			$this->writeln( "\n\INVALID ATTACHMENT TITLES DETECTED:\n" );
-			$this->writeln(
-				"\nPlease check invalid_attachment_titles table in workspaceDB for details\n\n"
-			);
-		}
-	}
-
-	/**
-	 * @param string $text
-	 * @param int $options
-	 * @return void
-	 */
-	private function writeln( string $text, int $options = Output::OUTPUT_NORMAL ): void {
-		if ( $this->output instanceof Output ) {
-			$this->output->writeln( $text, $options );
+			Log::to( 'console' )->warning(
+				'INVALID ATTACHMENT TITLES DETECTED: Please check invalid_attachment_titles ' .
+				'table in workspaceDB for details' );
 		}
 	}
 }
