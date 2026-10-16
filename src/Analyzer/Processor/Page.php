@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
@@ -112,11 +113,12 @@ class Page extends ProcessorBase {
 			$version = $properties['version'];
 		}
 
-		$this->output->writeln( "Add page '$confluenceTitle' (ID:$pageId)" );
+		Log::to( 'console' )->debug( "Add page '$confluenceTitle' (ID:$pageId)" );
 
 		if ( empty( $bodyContentIds ) && ( !isset( $properties['isFolder'] ) || $properties['isFolder'] !== 'true' ) ) {
-			$warning = "Warning: No body content IDs found for page '$confluenceTitle' (ID:$pageId)";
-			$this->output->writeln( $warning );
+			$warning = "no body content IDs found for page '$confluenceTitle' (ID:$pageId)";
+			Log::to( 'console' )->warning( $warning );
+			# TODO Log::to( 'db', 'console' )->warning( $warning );
 			$this->writer->addLogEntry(
 				'warning',
 				'analyze',

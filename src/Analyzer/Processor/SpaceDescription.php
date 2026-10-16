@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use XMLReader;
@@ -130,6 +131,6 @@ class SpaceDescription extends ProcessorBase {
 				);
 		}
 
-		$this->output->writeln( "\nAdd space description ($descriptionId)" );
+		Log::to( 'console' )->debug( "Add space description ($descriptionId)" );
 	}
 }

@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
@@ -101,6 +102,6 @@ class PageTemplates extends ProcessorBase {
 			);
 		}
 
-		$this->output->writeln( "Add page template '$name' (ID:$templateId)" );
+		Log::to( 'console' )->debug( "Add page template '$name' (ID:$templateId)" );
 	}
 }

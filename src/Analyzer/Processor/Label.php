@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
@@ -66,6 +67,6 @@ class Label extends ProcessorBase {
 			);
 		}
 
-		$this->output->writeln( "Add label (ID:$labelId)" );
+		Log::to( 'console' )->debug( "Add label (ID:$labelId)" );
 	}
 }

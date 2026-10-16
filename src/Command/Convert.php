@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBase;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
@@ -96,7 +97,7 @@ class Convert extends CommandConvert {
 
 		$this->dest = realpath( $input->getOption( 'dest' ) );
 		if ( !is_dir( $this->dest ) ) {
-			$output->writeln( "Destination does not exist" );
+			Log::to( 'console' )->error( "Destination does not exist" );
 			return Command::FAILURE;
 		}
 
@@ -236,11 +237,11 @@ class Convert extends CommandConvert {
 			$validationError = $configOptionHelper->validateFile();
 
 			if ( $validationError !== null ) {
-				$this->output->writeln( $validationError );
+				Log::to( 'console' )->error( $validationError );
 				exit( 1 );
 			} else {
 				$config['config'] = $configOptionHelper->getConfig();
-				$this->output->writeln( 'Config file loaded successfully' );
+				Log::to( 'console' )->debug( 'Config file loaded successfully' );
 			}
 		}
 	}

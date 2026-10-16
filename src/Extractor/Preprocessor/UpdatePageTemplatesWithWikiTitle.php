@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
@@ -66,7 +67,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 			$spaceId = (int)$pageTemplate['space_id'];
 			$confluenceTitle = (string)$pageTemplate['confluence_title'];
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Creating wiki title for page template ID $templateId with confluence title '$confluenceTitle'"
 			);
 
@@ -141,7 +142,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 				throw new Exception( $message );
 			}
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Updated wiki title for page template ID $templateId with title: $wikiTitle"
 			);
 			$this->writer->updatePageTemplateWikiTitle( (int)$templateId, $wikiTitle );

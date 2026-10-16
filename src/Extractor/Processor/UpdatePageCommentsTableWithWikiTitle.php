@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\WikiTitleUniquifier;
 use RuntimeException;
@@ -63,7 +64,7 @@ class UpdatePageCommentsTableWithWikiTitle extends ProcessorBase {
 				$this->dbLog->addLogEntry( 'error', 'extract', __CLASS__, $message );
 				throw new RuntimeException( $message );
 			}
-			$this->writeln( "Updated wiki title for page comment ID $commentId with title '$talkTitle'" );
+			Log::to( 'console' )->debug( "Updated wiki title for page comment ID $commentId with title '$talkTitle'" );
 		}
 	}
 }

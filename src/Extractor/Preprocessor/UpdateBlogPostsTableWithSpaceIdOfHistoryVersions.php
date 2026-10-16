@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 
 /**
@@ -40,7 +41,7 @@ class UpdateBlogPostsTableWithSpaceIdOfHistoryVersions extends ProcessorBase {
 
 			$originalSpaceId = $pageIdToSpaceIdMap[$originalVersionId];
 			$this->writer->updateBlogPostSpaceId( $pageId, $originalSpaceId );
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Updated space_id for historical blog post ID $pageId with space_id: $originalSpaceId"
 			);
 		}

@@ -7,6 +7,7 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\Processor\BlogPostComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\BlogPosts;
@@ -218,13 +219,13 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 		}
 
 		// Run space dependent processors for each space, grouped by target wiki.
-		$this->output->writeln( "Data is assigned to some wikis." );
+		Log::to( 'console' )->debug( "Data is assigned to some wikis." );
 
 		$fileExtensionsPerWiki = [];
 		foreach ( $wikiNames as $wikiName ) {
 			$spaces = $this->getSpacesForWiki( $wikiName );
 			if ( $spaces === [] ) {
-				$this->output->writeln( "No spaces found for wiki '$wikiName'." );
+				Log::to( 'console' )->notice( "No spaces found for wiki '$wikiName'." );
 				continue;
 			}
 
@@ -258,7 +259,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 			}
 
 			$fileExtensionsPerWiki[$wikiName] = $deploymentInfo->getFileExtensions();
-			$this->output->writeln( "Processing wiki '$wikiName' with " . count( $spaces ) . " spaces." );
+			Log::to( 'console' )->debug( "Processing wiki '$wikiName' with " . count( $spaces ) . " spaces." );
 		}
 
 		if ( !$this->isWorker() ) {
@@ -313,7 +314,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 		foreach ( $spacesMap as $namespace => $spaces ) {
 			if ( $this->skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
-				$this->output->writeln( "Skip namespace '$namespace' by configuration." );
+				Log::to( 'console' )->debug( "Skip namespace '$namespace' by configuration." );
 				continue;
 			}
 
@@ -322,7 +323,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 			}
 
 			if ( $wikiName === '' ) {
-				$this->output->writeln( "Wikiname for namespace '$namespace' is empty. -> skipping" );
+				Log::to( 'console' )->notice( "Wikiname for namespace '$namespace' is empty. -> skipping" );
 				continue;
 			}
 			$subDir = $wikiName . '/' . $namespace;

@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
@@ -169,7 +170,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			$attachmentSpaceId = (int)$attachment['space_id'];
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Creating wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
 			);
 
@@ -356,7 +357,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		$collected = $this->compressWikiTitles( $collected );
 
 		foreach ( $collected as $attachmentId => $data ) {
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Add {$this->getContentLabel()} attachment for attachment ID $attachmentId"
 				. " with title: {$data['wikiTitle']}"
 			);
