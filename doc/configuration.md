@@ -36,6 +36,7 @@ config:
     profile: mediawiki
     csv-delimiter: ","
     add-userinfo: false
+    sanitize-wcag: false
 ```
 
 ### `mainpage`
@@ -235,3 +236,7 @@ not nested.
 
 Use this option additionally to `wiki-namespace`, if you want to migrate
 several spaces into the same wiki and namespace.
+
+### `sanitize-wcag`
+
+Optional. Fix order of headlines and add table caption if not set

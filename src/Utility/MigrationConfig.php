@@ -105,4 +105,8 @@ class MigrationConfig {
 	public function getCSVDelimiter(): string {
 		return $this->get( 'csv-delimiter', ',' );
 	}
+
+	public function sanitizeWCAG(): bool {
+		return $this->get( 'sanitize-wcag', false );
+	}
 }
