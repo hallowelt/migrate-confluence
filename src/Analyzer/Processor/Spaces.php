@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use XMLReader;
@@ -53,9 +54,9 @@ class Spaces extends ProcessorBase {
 		if ( substr( $spaceKey, 0, 1 ) === '~' ) {
 			// User namespaces
 			$spaceKey = $this->sanitizeUserSpaceKey( $spaceKey, $spaceName );
-			$this->output->writeln( "\033[31mAdd space $spaceKey (ID:$spaceId) - protected user namespace\033[39m" );
+			Log::to( 'console' )->debug( "Add space $spaceKey (ID:$spaceId) - protected user namespace" );
 		} else {
-			$this->output->writeln( "Add space $spaceKey (ID:$spaceId)" );
+			Log::to( 'console' )->debug( "Add space $spaceKey (ID:$spaceId)" );
 		}
 
 		// Confluence's GENERAL equals MediaWiki's NS_MAIN, thus having no prefix
@@ -80,10 +81,7 @@ class Spaces extends ProcessorBase {
 			$xmlFile = $this->xmlReader->baseURI;
 			$xmlDir = dirname( $xmlFile );
 			$xmlFilename = basename( $xmlFile );
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Space ID $spaceId already exists in the database."
 					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);

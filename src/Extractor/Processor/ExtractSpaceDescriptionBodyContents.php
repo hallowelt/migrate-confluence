@@ -2,11 +2,11 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 
 /**
  */
@@ -15,16 +15,14 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 	/**
 	 * @param WorkspaceDB $workspaceDB
 	 * @param Workspace $workspace
-	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 */
 	public function __construct(
 		WorkspaceDB $workspaceDB,
 		protected Workspace $workspace,
-		DBLog $dbLog,
 		IExtractorDataWriter $writer
 	) {
-		parent::__construct( $workspaceDB, $dbLog, $writer );
+		parent::__construct( $workspaceDB, $writer );
 	}
 
 	/**
@@ -75,8 +73,7 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 		foreach ( $bodyContentIds as $bodyContentId ) {
 			$body = $this->workspaceDB->getBodyContentBodyByBodyContentId( $bodyContentId );
 			if ( $body === null ) {
-				$this->dbLog->addLogEntry(
-					'warning', 'extract', __METHOD__,
+				Log::to( 'db' )->warning(
 					"No body found in body_content_bodies for body content ID $bodyContentId, skipping extraction."
 				);
 				continue;
@@ -85,9 +82,7 @@ class ExtractSpaceDescriptionBodyContents extends ProcessorBase {
 			$bodyContentHTML = $this->normalizeBodyContentHTML( $body );
 			$targetFileName = $this->workspace->saveRawContent( (string)$bodyContentId, $bodyContentHTML );
 
-			$this->dbLog->addLogEntry(
-				'info', 'extract', __METHOD__, "Extract body content to $targetFileName"
-			);
+			Log::to( 'db' )->info( "Extract body content to $targetFileName" );
 		}
 	}
 

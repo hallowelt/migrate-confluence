@@ -7,6 +7,7 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Command\Compose as CommandCompose;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\DataWriter\ComposeDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
@@ -97,7 +98,7 @@ class Compose extends CommandCompose {
 		if ( !$isChildProcess && $workers > 1 ) {
 			$this->dest = realpath( $input->getOption( 'dest' ) );
 			if ( !is_dir( $this->dest ) ) {
-				$output->writeln( "Destination does not exist" );
+				Log::to( 'console' )->error( "Destination does not exist" );
 				return Command::FAILURE;
 			}
 
@@ -209,11 +210,11 @@ class Compose extends CommandCompose {
 			$validationError = $configOptionHelper->validateFile();
 
 			if ( $validationError !== null ) {
-				$this->output->writeln( $validationError );
+				Log::to( 'console' )->error( $validationError );
 				exit( 1 );
 			} else {
 				$config['config'] = $configOptionHelper->getConfig();
-				$this->output->writeln( 'Config file loaded successfully' );
+				Log::to( 'console' )->debug( 'Config file loaded successfully' );
 			}
 		}
 	}

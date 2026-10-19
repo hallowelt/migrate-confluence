@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 
 /**
@@ -50,11 +51,10 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 
 			$this->writer->updatePageBodyContentIds( $pageId, $foundIds );
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Updated body_content_ids for page ID $pageId with IDs: " . implode( ', ', $foundIds )
 			);
 		}
-		$this->writeln( "... done" );
 	}
 
 	/**
@@ -80,7 +80,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 
 			$this->writer->updateBlogPostBodyContentIds( $pageId, $foundIds );
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Updated body_content_ids for blog post ID $pageId with IDs: " . implode( ', ', $foundIds )
 			);
 		}
@@ -110,7 +110,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 
 			$this->writer->updateCommentBodyContentIds( $commentId, $foundIds );
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Updated body_content_ids for comment ID $commentId with IDs: " . implode( ', ', $foundIds )
 			);
 		}
@@ -139,7 +139,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 
 			$this->writer->updateSpaceDescriptionBodyContentIds( $spaceDescriptionId, $foundIds );
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Updated body_content_ids for space description ID $spaceDescriptionId with IDs: " .
 				implode( ', ', $foundIds )
 			);

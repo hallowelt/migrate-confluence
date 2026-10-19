@@ -8,6 +8,7 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use Symfony\Component\Console\Command\Command;
@@ -100,11 +101,11 @@ class Extract extends CommandExtract {
 			$validationError = $configOptionHelper->validateFile();
 
 			if ( $validationError !== null ) {
-				$this->output->writeln( $validationError );
+				Log::to( 'console' )->error( $validationError );
 				exit( 1 );
 			} else {
 				$config['config'] = $configOptionHelper->getConfig();
-				$this->output->writeln( 'Config file loaded successfully' );
+				Log::to( 'console' )->debug( 'Config file loaded successfully' );
 			}
 		}
 	}
@@ -134,7 +135,7 @@ class Extract extends CommandExtract {
 			$this->currentFile = array_pop( $this->files );
 			$result = $this->processFile( $this->currentFile );
 			if ( $result === false ) {
-				$this->output->writeln( "<error>Failed to process data</error>" );
+				Log::to( 'console' )->error( "Failed to process data" );
 				$overallReturn = Command::FAILURE;
 			}
 		} else {

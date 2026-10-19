@@ -8,17 +8,18 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBase;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterPipeDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeLogEntryWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
@@ -96,12 +97,14 @@ class Convert extends CommandConvert {
 
 		$this->dest = realpath( $input->getOption( 'dest' ) );
 		if ( !is_dir( $this->dest ) ) {
-			$output->writeln( "Destination does not exist" );
+			Log::to( 'console' )->error( "Destination does not exist" );
 			return Command::FAILURE;
 		}
 
 		if ( $isChildProcess ) {
-			$this->dataWriter = new ConverterPipeDataWriter( new PipeChannel() );
+			$channel = new PipeChannel();
+			Log::setDatabaseHandler( new PipeLogEntryWriter( $channel ) );
+			$this->dataWriter = new ConverterPipeDataWriter( $channel );
 
 			try {
 				return parent::execute( $input, $output );
@@ -111,14 +114,9 @@ class Convert extends CommandConvert {
 		}
 
 		$workspaceDB = WorkspaceDB::open( $this->dest );
+		Log::setDatabaseHandler( $workspaceDB );
 
-		$dbLog = new DBLog( $workspaceDB );
-		$dbLog->addLogEntry(
-			'info',
-			'convert',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
+		Log::to( 'db' )->info( sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() ) );
 
 		if ( $workers > 1 ) {
 			$pool = new WorkerPool( $output, new ConverterDirectDataWriter( $workspaceDB ) );
@@ -236,11 +234,11 @@ class Convert extends CommandConvert {
 			$validationError = $configOptionHelper->validateFile();
 
 			if ( $validationError !== null ) {
-				$this->output->writeln( $validationError );
+				Log::to( 'console' )->error( $validationError );
 				exit( 1 );
 			} else {
 				$config['config'] = $configOptionHelper->getConfig();
-				$this->output->writeln( 'Config file loaded successfully' );
+				Log::to( 'console' )->debug( 'Config file loaded successfully' );
 			}
 		}
 	}

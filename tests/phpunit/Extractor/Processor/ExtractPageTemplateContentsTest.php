@@ -2,14 +2,20 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 
 class ExtractPageTemplateContentsTest extends TestCase {
+
+	protected function tearDown(): void {
+		Log::setDatabaseHandler( null );
+		Log::setStep( '' );
+		parent::tearDown();
+	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents::execute
@@ -17,7 +23,8 @@ class ExtractPageTemplateContentsTest extends TestCase {
 	public function testExtractsNonEmptyTemplateContentsAsRawFiles(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
-		$dbLog = $this->createMock( DBLog::class );
+		Log::setDatabaseHandler( $workspaceDB );
+		Log::setStep( 'extract' );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentPageTemplateContents' )->willReturn( [
@@ -29,7 +36,7 @@ class ExtractPageTemplateContentsTest extends TestCase {
 			->method( 'saveRawContent' )
 			->with( 'pt_20', '<html><body>Template content</body></html>' );
 
-		$processor = new ExtractPageTemplateContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractPageTemplateContents( $workspaceDB, $workspace, $writer );
 		$processor->execute();
 	}
 }
