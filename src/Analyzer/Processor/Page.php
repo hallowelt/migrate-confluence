@@ -64,10 +64,7 @@ class Page extends ProcessorBase {
 
 		$confluenceTitle = $properties['title'] ?? "";
 		if ( empty( $confluenceTitle ) ) {
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->warning(
 				"Page with ID $pageId has no title"
 			);
 			return;
@@ -117,14 +114,7 @@ class Page extends ProcessorBase {
 
 		if ( empty( $bodyContentIds ) && ( !isset( $properties['isFolder'] ) || $properties['isFolder'] !== 'true' ) ) {
 			$warning = "no body content IDs found for page '$confluenceTitle' (ID:$pageId)";
-			Log::to( 'console' )->warning( $warning );
-			# TODO Log::to( 'db', 'console' )->warning( $warning );
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
-				$warning
-			);
+			Log::to( 'db', 'console' )->warning( $warning );
 		}
 
 		$status = $this->writer->addPage(
@@ -149,10 +139,7 @@ class Page extends ProcessorBase {
 			$xmlFile = $this->xmlReader->baseURI;
 			$xmlDir = dirname( $xmlFile );
 			$xmlFilename = basename( $xmlFile );
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Page ID $pageId ('$confluenceTitle') already exists in the database."
 					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);

@@ -48,10 +48,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 		}
 
 		$attachmentId = (int)$attachment['attachment_id'];
-		$this->dbLog->addLogEntry(
-			'warning',
-			'extract',
-			__CLASS__,
+		Log::to( 'db' )->warning(
 			"Could not resolve a space for attachment ID $attachmentId; skipping."
 		);
 		return false;

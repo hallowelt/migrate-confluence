@@ -122,10 +122,7 @@ class SpaceDescription extends ProcessorBase {
 				$xmlFile = $this->xmlReader->baseURI;
 				$xmlDir = dirname( $xmlFile );
 				$xmlFilename = basename( $xmlFile );
-				$this->writer->addLogEntry(
-					'serious-error',
-					'analyze',
-					__CLASS__,
+				Log::to( 'db' )->critical(
 					"Space description ID $descriptionId already exists in the database."
 						. " Source directory: '$xmlDir', file: '$xmlFilename'."
 				);

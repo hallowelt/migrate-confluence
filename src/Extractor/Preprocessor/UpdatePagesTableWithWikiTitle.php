@@ -9,7 +9,6 @@ use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleBuilder;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
@@ -22,19 +21,17 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
-	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 * @param WikisConfig $wikisConfig
 	 */
 	public function __construct(
 		WorkspaceDB $workspaceDB,
-		DBLog $dbLog,
 		IExtractorDataWriter $writer,
 		private MigrationConfig $migrationConfig,
 		private WikisConfig $wikisConfig
 	) {
-		parent::__construct( $workspaceDB, $dbLog, $writer );
+		parent::__construct( $workspaceDB, $writer );
 	}
 
 	/**
@@ -65,10 +62,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$pageIdToSpaceIdMap = [];
 		foreach ( $pages as $page ) {
 			if ( !isset( $page['page_id'] ) ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->warning(
 					'Skipping page without page_id while updating wiki titles'
 				);
 				continue;
@@ -77,10 +71,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			$pageId = (int)$page['page_id'];
 
 			if ( !isset( $page['space_id'] ) || !isset( $page['confluence_title'] ) ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->warning(
 					"Skipping page $pageId while updating wiki titles: missing space_id or confluence_title"
 				);
 				continue;
@@ -88,10 +79,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 
 			// historical versions
 			if ( (int)$page['original_version_id'] !== -1 ) {
-				$this->dbLog->addLogEntry(
-					'info',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->info(
 					"Skipping historical page $pageId while updating wiki titles"
 				);
 				continue;
@@ -101,10 +89,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			// final wiki output. Skip them here so they neither claim a title nor
 			// compete with actually-exported pages during uniquification.
 			if ( isset( $page['content_status'] ) && $page['content_status'] !== 'current' ) {
-				$this->dbLog->addLogEntry(
-					'info',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->info(
 					"Skipping non-current page $pageId while updating wiki titles"
 				);
 				continue;
@@ -127,10 +112,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 				$pageIdToSpaceIdMap[$pageId] = $spaceId;
 			} catch ( Exception $ex ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->warning(
 					"Could not build wiki title for page $pageId: " . $ex->getMessage()
 				);
 			}
@@ -138,12 +120,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleBuilder delivers empty wiki title for page $confluenceTitle (page id $pageId)";
 
-				$this->dbLog->addLogEntry(
-					'error',
-					'extract',
-					__CLASS__,
-					$message
-				);
+				Log::to( 'db' )->error( $message );
 
 				throw new Exception(
 					$message
@@ -152,10 +129,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
-			$this->dbLog->addLogEntry(
-				'warning',
-				'extract',
-				__CLASS__,
+			Log::to( 'db' )->warning(
 				"Could not find page with wiki title"
 			);
 			return;
@@ -178,12 +152,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for page id $pageId";
 
-				$this->dbLog->addLogEntry(
-					'error',
-					'extract',
-					__CLASS__,
-					$message
-				);
+				Log::to( 'db' )->error( $message );
 				throw new Exception(
 					$message
 				);
@@ -205,10 +174,7 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 		$spaceIdPrefixMap = [];
 		foreach ( $this->workspaceDB->getSpaces() as $space ) {
 			if ( !isset( $space['space_id'] ) || !isset( $space['space_key'] ) ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->warning(
 					"Skipping space without space_id or space_key while building spaceIdPrefixMap"
 				);
 				continue;

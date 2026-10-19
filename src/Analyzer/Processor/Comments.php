@@ -78,14 +78,7 @@ class Comments extends ProcessorBase {
 
 		if ( empty( $bodyContentIds ) ) {
 			$warning = "no body content IDs found for comment (ID:$commentId)";
-			Log::to( 'console' )->warning( $warning );
-			# TODO Log::to( 'db', 'console' )->warning( $warning );
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
-				$warning
-			);
+			Log::to( 'db', 'console' )->warning( $warning );
 		}
 
 		$creatorKey = $properties['creator'] ?? '';
@@ -109,10 +102,7 @@ class Comments extends ProcessorBase {
 			$xmlFile = $this->xmlReader->baseURI;
 			$xmlDir = dirname( $xmlFile );
 			$xmlFilename = basename( $xmlFile );
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Comment ID $commentId already exists in the database."
 					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);

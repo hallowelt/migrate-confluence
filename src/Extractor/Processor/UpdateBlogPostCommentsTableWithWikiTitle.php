@@ -31,10 +31,7 @@ class UpdateBlogPostCommentsTableWithWikiTitle extends ProcessorBase {
 			$blogPostId = (int)$comment['blog_post_id'];
 			$wikiTitle = $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $blogPostId );
 			if ( $wikiTitle === null || $wikiTitle === '' ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->warning(
 					"No wiki title found for blog post comment ID $commentId (blog post ID $blogPostId)"
 				);
 				continue;
@@ -60,7 +57,7 @@ class UpdateBlogPostCommentsTableWithWikiTitle extends ProcessorBase {
 		foreach ( $commentIdToWikiTitleMap as $commentId => $wikiTitle ) {
 			if ( !$this->workspaceDB->updateBlogPostCommentWikiTitle( (int)$commentId, $wikiTitle ) ) {
 				$message = "Could not persist wiki title for blog post comment ID $commentId";
-				$this->dbLog->addLogEntry( 'error', 'extract', __CLASS__, $message );
+				Log::to( 'db' )->error( $message );
 				throw new RuntimeException( $message );
 			}
 			Log::to( 'console' )->debug(

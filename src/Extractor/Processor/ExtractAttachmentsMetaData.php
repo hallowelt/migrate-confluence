@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
+
 /**
  */
 class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
@@ -37,10 +39,7 @@ class ExtractAttachmentsMetaData extends ExtractPagesMetaData {
 				]
 			);
 
-			$this->dbLog->addLogEntry(
-				'info',
-				'extract',
-				__METHOD__,
+			Log::to( 'db' )->info(
 				"Add attachment meta for attachment ID $attachmentId"
 			);
 		}

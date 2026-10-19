@@ -76,10 +76,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 				$pageIdToSpaceIdMap[$pageId] = $spaceId;
 			} catch ( Exception $ex ) {
-				$this->dbLog->addLogEntry(
-					'error',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->error(
 					'Could not build wiki title for blog post ' . $pageId . ': ' . $ex->getMessage()
 				);
 			}
@@ -87,12 +84,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
 
-				$this->dbLog->addLogEntry(
-					'error',
-					'extract',
-					__CLASS__,
-					$message
-				);
+				Log::to( 'db' )->error( $message );
 
 				throw new Exception(
 					$message
@@ -101,10 +93,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 		}
 
 		if ( $pageIdToWikiTitleMap === [] ) {
-			$this->dbLog->addLogEntry(
-				'warning',
-				'extract',
-				__CLASS__,
+			Log::to( 'db' )->warning(
 				"Could not find blog post with wiki title"
 			);
 			return;
@@ -127,12 +116,7 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for blog post id $pageId";
 
-				$this->dbLog->addLogEntry(
-					'error',
-					'extract',
-					__CLASS__,
-					$message
-				);
+				Log::to( 'db' )->error( $message );
 				throw new Exception(
 					$message
 				);

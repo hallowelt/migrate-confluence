@@ -64,10 +64,7 @@ class BlogPost extends ProcessorBase {
 
 		$confluenceTitle = $properties['title'] ?? "";
 		if ( empty( $confluenceTitle ) ) {
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->warning(
 				"Blog post with ID $pageId has empty title. Skipping."
 			);
 			return;
@@ -108,14 +105,7 @@ class BlogPost extends ProcessorBase {
 
 		if ( empty( $bodyContentIds ) ) {
 			$warning = "no body content IDs found for blog post '$confluenceTitle' (ID:$pageId)";
-			Log::to( 'console' )->warning( $warning );
-			# TODO Log::to( 'db', 'console' )->warning( $warning );
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
-				$warning
-			);
+			Log::to( 'db', 'console' )->warning( $warning );
 		}
 
 		$historicalIds = [];
@@ -144,10 +134,7 @@ class BlogPost extends ProcessorBase {
 			$xmlFile = $this->xmlReader->baseURI;
 			$xmlDir = dirname( $xmlFile );
 			$xmlFilename = basename( $xmlFile );
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Blog post ID $pageId ('$confluenceTitle') already exists in the database."
 					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);

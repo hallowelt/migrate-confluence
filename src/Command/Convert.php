@@ -15,11 +15,11 @@ use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterPipeDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeLogEntryWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
@@ -102,7 +102,9 @@ class Convert extends CommandConvert {
 		}
 
 		if ( $isChildProcess ) {
-			$this->dataWriter = new ConverterPipeDataWriter( new PipeChannel() );
+			$channel = new PipeChannel();
+			Log::setDatabaseHandler( new PipeLogEntryWriter( $channel ) );
+			$this->dataWriter = new ConverterPipeDataWriter( $channel );
 
 			try {
 				return parent::execute( $input, $output );
@@ -112,14 +114,9 @@ class Convert extends CommandConvert {
 		}
 
 		$workspaceDB = WorkspaceDB::open( $this->dest );
+		Log::setDatabaseHandler( $workspaceDB );
 
-		$dbLog = new DBLog( $workspaceDB );
-		$dbLog->addLogEntry(
-			'info',
-			'convert',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
+		Log::to( 'db' )->info( sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() ) );
 
 		if ( $workers > 1 ) {
 			$pool = new WorkerPool( $output, new ConverterDirectDataWriter( $workspaceDB ) );

@@ -18,7 +18,6 @@ class CreateDefaultWikisConfigTest extends TestCase {
 
 		$processor = new CreateDefaultWikisConfig(
 			$workspaceDB,
-			$this->createDBLog( $workspaceDB ),
 			$this->createWriter( $workspaceDB )
 		);
 		$processor->execute();
@@ -40,7 +39,6 @@ class CreateDefaultWikisConfigTest extends TestCase {
 
 		$processor = new CreateDefaultWikisConfig(
 			$workspaceDB,
-			$this->createDBLog( $workspaceDB ),
 			$this->createWriter( $workspaceDB )
 		);
 		$processor->execute();

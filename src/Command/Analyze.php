@@ -12,11 +12,11 @@ use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerPipeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeLogEntryWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\CSVParser;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Sanitizer;
 use HalloWelt\MigrateConfluence\Utility\Version;
@@ -125,7 +125,9 @@ class Analyze extends BatchFileProcessorBase {
 		if ( $isChildProcess ) {
 			$workspaceDB = WorkspaceDB::open( $this->dest );
 			$this->wikisConfig = new WikisConfig( $workspaceDB );
-			$this->dataWriter = new AnalyzerPipeDataWriter( new PipeChannel() );
+			$channel = new PipeChannel();
+			Log::setDatabaseHandler( new PipeLogEntryWriter( $channel ) );
+			$this->dataWriter = new AnalyzerPipeDataWriter( $channel );
 
 			try {
 				return parent::execute( $input, $output );
@@ -135,19 +137,14 @@ class Analyze extends BatchFileProcessorBase {
 		}
 
 		$workspaceDB = WorkspaceDB::create( $this->dest );
+		Log::setDatabaseHandler( $workspaceDB );
 		$this->readWikisConfigFile( $workspaceDB );
 		if ( $this->getMigrationConfig()->getAddUserinfo() ) {
 			$this->readUsermapFile( $workspaceDB );
 		}
 		$this->wikisConfig = new WikisConfig( $workspaceDB );
 
-		$dbLog = new DBLog( $workspaceDB );
-		$dbLog->addLogEntry(
-			'info',
-			'analyze',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
+		Log::to( 'db' )->info( sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() ) );
 
 		if ( $workers > 1 ) {
 			$pool = new WorkerPool( $output, new AnalyzerDirectDataWriter( $workspaceDB ) );

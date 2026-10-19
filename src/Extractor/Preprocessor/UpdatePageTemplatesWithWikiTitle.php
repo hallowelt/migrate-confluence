@@ -37,10 +37,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 
 		foreach ( $pageTemplates as $pageTemplate ) {
 			if ( !isset( $pageTemplate['template_id'] ) ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->warning(
 					'Skipping page template without template_id while updating wiki titles'
 				);
 				continue;
@@ -51,12 +48,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 			if ( !isset( $pageTemplate['space_id'] ) || !isset( $pageTemplate['confluence_title'] ) ) {
 				$message = "Skipping page template $templateId while updating wiki titles: ";
 				$message .= "missing space_id or confluence_title";
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
-					$message
-				);
+				Log::to( 'db' )->warning( $message );
 				continue;
 			}
 
@@ -76,10 +68,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 				$templateIdToWikiTitleMap[$templateId] = $wikiTitle;
 				$templateIdToSpaceIdMap[$templateId] = $spaceId;
 			} catch ( InvalidTitleException $e ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->warning(
 					"Page Template with ID $templateId has invalid title '$confluenceTitle': " . $e->getMessage()
 				);
 
@@ -95,22 +84,14 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 				$message = "TitleBuilder delivers empty wiki title for";
 				$message .= " page template $confluenceTitle (template id $templateId)";
 
-				$this->dbLog->addLogEntry(
-					'error',
-					'extract',
-					__CLASS__,
-					$message
-				);
+				Log::to( 'db' )->error( $message );
 
 				throw new Exception( $message );
 			}
 		}
 
 		if ( $templateIdToWikiTitleMap === [] ) {
-			$this->dbLog->addLogEntry(
-				'warning',
-				'extract',
-				__CLASS__,
+			Log::to( 'db' )->warning(
 				'Could not find page template with wiki title'
 			);
 			return;
@@ -133,12 +114,7 @@ class UpdatePageTemplatesWithWikiTitle extends ProcessorBase {
 			if ( empty( $wikiTitle ) ) {
 				$message = "TitleCompressor delivers empty wiki title for page template id $templateId";
 
-				$this->dbLog->addLogEntry(
-					'error',
-					'extract',
-					__CLASS__,
-					$message
-				);
+				Log::to( 'db' )->error( $message );
 				throw new Exception( $message );
 			}
 

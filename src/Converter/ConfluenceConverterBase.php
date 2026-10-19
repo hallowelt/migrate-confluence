@@ -1106,11 +1106,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 	 * @return void
 	 */
 	protected function addNonBlockingLogEntry( string $message, string $type = 'warning' ): void {
-		$this->writer->addLogEntry(
-			$type,
-			'convert',
-			__CLASS__,
-			$message
-		);
+		Log::to( 'db' )->log( $type, $message );
 	}
 }
