@@ -51,6 +51,7 @@ class TableChartMacro extends StructuredMacroProcessorBase {
 	private const TYPE_MAP = [
 		'line' => 'linechart',
 		'column' => 'barchart',
+		'bar' => 'barchart',
 		'pie' => 'piechart',
 	];
 

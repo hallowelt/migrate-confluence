@@ -50,12 +50,12 @@ class SpreadsheetTableMacroTest extends ProcessorTestCase {
 		return [
 			'csv-table' => [
 				CsvTableMacro::class, 'csv-table', $attachment( 'Dummy_3.xls' ),
-				'{{#spreadsheettable:DEVOPS:SomePage-Dummy_3.xls}}', false
+				'{{#spreadsheetrange:DEVOPS:SomePage-Dummy_3.xls|format=table}}', false
 			],
 			'json-from-table' => [
 				JsonFromTableMacro::class, 'json-from-table',
 				$attachment( 'Dummy_3.xls' ) . '<ac:parameter ac:name="format">markdown</ac:parameter>',
-				'{{#spreadsheettable:DEVOPS:SomePage-Dummy_3.xls}}', false
+				'{{#spreadsheetrange:DEVOPS:SomePage-Dummy_3.xls|format=table}}', false
 			],
 			'attachment not migrated' => [
 				CsvTableMacro::class, 'csv-table', $attachment( 'Unknown.csv' ),

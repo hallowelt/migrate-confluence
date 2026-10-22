@@ -9,14 +9,15 @@ use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 /**
- * Base for the Table Filter macros that render an attached data file (CSV, JSON) as a table.
- * They are converted to a call of the parser function `#spreadsheettable` of the
- * SpreadsheetFileReader extension, which renders the whole file as an HTML table:
+ * Base for the Table Filter macros that render an attached data file as a table.
+ * They are converted to a call of the parser function `#spreadsheetrange` of the
+ * SpreadsheetFileReader extension, which renders the whole sheet as an HTML table:
  *
- * {{#spreadsheettable:Some_page-Data.csv}}
+ * {{#spreadsheetrange:Some_page-Data.csv|format=table}}
  *
  * Only the data source "attachment" can be represented. Macros with another source (URL, body, ...)
  * or with an attachment that was not migrated are kept and marked as broken.
+ * The file itself is not inspected, only the reference to it is rewritten.
  *
  * Macro parameters other than "attachment" and "source" (e.g. "expand", "format", "isFirstTimeEnter")
  * have no equivalent and are not migrated.
@@ -58,7 +59,7 @@ abstract class SpreadsheetTableMacroBase extends StructuredMacroProcessorBase {
 		}
 
 		$node->parentNode->replaceChild(
-			$this->createTextNode( $node->ownerDocument, '{{#spreadsheettable:' . $fileTitle . '}}', __METHOD__ ),
+			$this->createTextNode( $node->ownerDocument, '{{#spreadsheetrange:' . $fileTitle . '|format=table}}', __METHOD__ ),
 			$node
 		);
 	}
