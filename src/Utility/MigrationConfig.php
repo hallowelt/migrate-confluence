@@ -111,5 +111,12 @@ class MigrationConfig {
 	 */
 	public function getHookHandler(): ?string {
 		return $this->get( 'hook-handler', null );
+  }
+  
+  /**
+	 * @return string Empty if not configured
+	 */
+	public function getSourceTimezone(): string {
+		return (string)$this->get( 'source-timezone', '' );
 	}
 }

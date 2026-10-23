@@ -1,22 +1,4 @@
-{{TableFilterStart
-|inverse = ,
-|sparkName = Sparkline
-|column = Status
-|limitHeight = 
-|separator = Point (.)
-|default = ,
-|isFirstTimeEnter = true
-|cell-width = ,
-|userfilter = Thema
-|datepattern = dd.mm.yy
-|id = 1234567890123_-456789017
-|updateSelectOptions = true
-|worklog = 365|5|8|y w d h m|y w d h m
-|isOR = AND
-|order = 0,1
-}}
-
-{| class="wikitable fixed-table wrapped datagrid"
+{| class="wikitable fixed-table wrapped datagrid" filterparams="{&quot;inverse&quot;:&quot;,&quot;,&quot;sparkName&quot;:&quot;Sparkline&quot;,&quot;column&quot;:&quot;Status&quot;,&quot;limitHeight&quot;:&quot;&quot;,&quot;separator&quot;:&quot;Point (.)&quot;,&quot;default&quot;:&quot;,&quot;,&quot;isFirstTimeEnter&quot;:&quot;true&quot;,&quot;cell-width&quot;:&quot;,&quot;,&quot;userfilter&quot;:&quot;Thema&quot;,&quot;datepattern&quot;:&quot;dd.mm.yy&quot;,&quot;id&quot;:&quot;1234567890123_-456789017&quot;,&quot;updateSelectOptions&quot;:&quot;true&quot;,&quot;worklog&quot;:&quot;365|5|8|y w d h m|y w d h m&quot;,&quot;isOR&quot;:&quot;AND&quot;,&quot;order&quot;:&quot;0,1&quot;}"
 |-
 ! Position
 ! Name
@@ -36,7 +18,5 @@
 | <br />
 | <br />
 |}
-
-{{TableFilterEnd}}
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

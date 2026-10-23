@@ -6,6 +6,7 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
+use HalloWelt\MigrateConfluence\Utility\DirectoryHelper;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Symfony\Component\Console\Output\Output;
 
@@ -167,9 +168,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsD
 		if ( $this->subDir !== '' ) {
 			$basePath .= $this->subDir . '/';
 		}
-		if ( !file_exists( $basePath ) ) {
-			mkdir( $basePath, 0755, true );
-		}
+		DirectoryHelper::ensure( $basePath );
 		return $basePath;
 	}
 }

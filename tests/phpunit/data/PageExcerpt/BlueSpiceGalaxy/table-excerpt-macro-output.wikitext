@@ -1,0 +1,25 @@
+Intro
+
+<excerpt-block name="table1">
+
+{| class="wikitable wrapped"
+|-
+! style="text-align: left;"| Name
+! Functions
+|-
+| style="text-align: left;"| [http://example.org Link]
+|
+* One
+* Two
+
+Paragraph
+
+|}
+
+</excerpt-block> <excerpt-block name="excerpt-0">
+
+Plain excerpt
+
+</excerpt-block>
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
