@@ -39,7 +39,7 @@ class TitleValidityChecker {
 
 		$matches = [];
 		/* this regex comes from BlueSpiceNamespaceManager/src/Utils/NameChecker.php */
-		preg_match( '/^[a-zA-Z_\\x80-\\xFF][a-zA-Z0-9_\\x80-\\xFF]{1,99}$/i', $namespace, $matches );
+		preg_match( '/^[a-zA-Z_\\x80-\\xFF][a-zA-Z0-9_\\x80-\\xFF]{0,99}$/i', $namespace, $matches );
 		if ( empty( $matches ) ) {
 			return false;
 		}
