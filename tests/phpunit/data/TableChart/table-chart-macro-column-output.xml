@@ -1,0 +1,5 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	###BREAK###<barchart title="Temps &quot;A&quot;" showvalues="true">
+---color:#111111 label:Min###BREAK###"Jan, early",1.5###BREAK###Feb,2###BREAK###---color:#d04437 label:Max###BREAK###"Jan, early",5###BREAK###Feb,7###BREAK###</barchart>
+
+</xml>

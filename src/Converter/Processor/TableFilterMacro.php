@@ -2,7 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
+use DOMDocument;
 use DOMElement;
+use DOMNode;
+use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 
 /**
@@ -27,8 +30,12 @@ use HalloWelt\MigrateConfluence\Utility\MacroInfo;
  *     ...
  *   </ac:rich-text-body>
  * </ac:structured-macro>
+ *
+ * The table is marked as "datagrid" (TableTools) and all parameters are kept in "data-filterparams".
+ * Only two parameters have an effect: "disabled" (="true") leaves the table without the "datagrid"
+ * class, and a numeric "cell-width" becomes a "min-width" style on all cells.
  */
-class TableFilterMacro extends ConvertMacroToTemplateWithBodyBase {
+class TableFilterMacro implements IProcessor {
 
 	public const MACRO_NAME = 'table-filter';
 
@@ -37,67 +44,96 @@ class TableFilterMacro extends ConvertMacroToTemplateWithBodyBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getWikiTextTemplateStartName(): string {
-		return 'TableFilterStart';
+	public function process( DOMDocument $dom ): void {
+		$actualMacros = [];
+		foreach ( $dom->getElementsByTagName( 'structured-macro' ) as $macro ) {
+			if ( $macro->getAttribute( 'ac:name' ) === static::MACRO_NAME ) {
+				$actualMacros[] = $macro;
+			}
+		}
+
+		foreach ( $actualMacros as $actualMacro ) {
+			$parentNode = $actualMacro->parentNode;
+
+			$params = [];
+			foreach ( $actualMacro->childNodes as $child ) {
+				if ( !( $child instanceof DOMElement ) || $child->localName !== 'parameter' ) {
+					continue;
+				}
+				$paramName = $child->getAttribute( 'ac:name' );
+				if ( trim( $paramName ) === '' ) {
+					continue;
+				}
+				$params[$paramName] = $child->nodeValue;
+			}
+			// A disabled filter leaves a plain table, which TableTools does not turn into a data grid
+			$isDisabled = strtolower( trim( $params['disabled'] ?? '' ) ) === 'true';
+			$cellWidth = $this->parseCellWidth( $params['cell-width'] ?? '' );
+			$filterParams = json_encode( $params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+
+			foreach ( iterator_to_array( $actualMacro->childNodes ) as $child ) {
+				if ( !( $child instanceof DOMElement ) || $child->localName !== 'rich-text-body' ) {
+					continue;
+				}
+				foreach ( iterator_to_array( $child->childNodes ) as $bodyChild ) {
+					if ( $bodyChild instanceof DOMElement && $bodyChild->nodeName === 'table' ) {
+						if ( !$isDisabled ) {
+							$classes = [];
+							if ( $bodyChild->hasAttribute( 'class' ) ) {
+								$classes = explode( ' ', $bodyChild->getAttribute( 'class' ) );
+							}
+							$classes[] = 'datagrid';
+							$bodyChild->setAttribute( 'class', implode( ' ', $classes ) );
+						}
+						$bodyChild->setAttribute( 'data-filterparams', $filterParams );
+						if ( $cellWidth !== null ) {
+							$this->applyCellWidth( $bodyChild, $cellWidth );
+						}
+					}
+					if ( $this->isEmptyParagraph( $bodyChild ) ) {
+						continue;
+					}
+					$parentNode->insertBefore( $bodyChild, $actualMacro );
+				}
+			}
+
+			$parentNode->removeChild( $actualMacro );
+		}
 	}
 
 	/**
-	 * @inheritDoc
+	 * Returns the width in pixels, or null if the value is not a plain number (e.g. empty or ",").
 	 */
-	protected function getWikiTextTemplateEndName(): string {
-		return 'TableFilterEnd';
+	private function parseCellWidth( string $value ): ?int {
+		if ( !preg_match( '/^\s*(\d+)\s*(px)?\s*$/i', $value, $matches ) || (int)$matches[1] === 0 ) {
+			return null;
+		}
+		return (int)$matches[1];
 	}
 
 	/**
-	 * @inheritDoc
+	 * Keeps the data grid cells at least as wide as configured; TableTools preserves cell styles.
 	 */
-	protected function extractBodyElements( DOMElement $actualMacro, DOMElement $parentNode ): void {
-		$richTextBodies = $actualMacro->getElementsByTagName( 'rich-text-body' );
-		$richTextBodyEls = [];
-		foreach ( $richTextBodies as $richTextBody ) {
-			$richTextBodyEls[] = $richTextBody;
-		}
-
-		if ( !empty( $richTextBodyEls ) ) {
-			$bodyString = "";
-			if ( $this->addLinebreakInsideTemplate() ) {
-				$bodyString .= "###BREAK###\n";
+	private function applyCellWidth( DOMElement $table, int $width ): void {
+		foreach ( $table->getElementsByTagName( '*' ) as $cell ) {
+			if ( $cell->nodeName !== 'th' && $cell->nodeName !== 'td' ) {
+				continue;
 			}
-			$wikitextTemplateEndTextNode = $this->createTextNode(
-				$actualMacro->ownerDocument,
-				$bodyString,
-				__METHOD__
-			);
-			$parentNode->insertBefore( $wikitextTemplateEndTextNode, $actualMacro );
-
-			for ( $index = 0; $index < $richTextBodies->length; $index++ ) {
-				$bodyEl = $richTextBodies->item( $index );
-
-				$childNodes = [];
-				foreach ( $bodyEl->childNodes as $childNode ) {
-					$childNodes[] = $childNode;
-				}
-
-				foreach ( $childNodes as $childNode ) {
-					if ( $childNode instanceof DOMElement === false ) {
-						continue;
-					}
-					if ( $childNode->nodeName !== 'table' ) {
-						continue;
-					}
-
-					$classes = [];
-					if ( $childNode->hasAttribute( 'class' ) ) {
-						$class = $childNode->getAttribute( 'class' );
-						$classes = explode( ' ', $class );
-					}
-					$classes[] = 'datagrid';
-
-					$childNode->setAttribute( 'class', implode( ' ', $classes ) );
-
-					$parentNode->insertBefore( $childNode, $actualMacro );
-				}
-			}
+			$style = rtrim( trim( $cell->getAttribute( 'style' ) ), ';' );
+			$style = $style === '' ? '' : "$style; ";
+			$cell->setAttribute( 'style', "{$style}min-width: {$width}px;" );
 		}
+	}
+
+	/**
+	 * Detects the editor's empty cursor-target paragraphs around the table.
+	 *
+	 * @param DOMNode $node
+	 * @return bool
+	 */
+	private function isEmptyParagraph( DOMNode $node ): bool {
+		return $node instanceof DOMElement && $node->nodeName === 'p'
+			&& trim( $node->textContent ) === ''
+			&& $node->getElementsByTagName( '*' )->length === $node->getElementsByTagName( 'br' )->length;
 	}
 }

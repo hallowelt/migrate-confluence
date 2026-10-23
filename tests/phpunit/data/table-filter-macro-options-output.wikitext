@@ -1,0 +1,17 @@
+{| class="wikitable datagrid" filterparams="{&quot;cell-width&quot;:&quot;250&quot;}"
+|-
+! style="min-width: 250px"| Name
+! style="text-align: center; min-width: 250px;"| Status
+|-
+| style="min-width: 250px"| Test
+| style="text-align: center; min-width: 250px;"| done
+|}
+
+{| class="wikitable" filterparams="{&quot;disabled&quot;:&quot;true&quot;}"
+|-
+! Name
+|-
+| Plain
+|}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
