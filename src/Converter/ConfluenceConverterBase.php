@@ -69,7 +69,6 @@ use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\PanelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
@@ -452,7 +451,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new NoteMacro( $this->writer, $this->currentSpace ),
 			new WarningMacro( $this->writer, $this->currentSpace ),
 			new TocMacro( $this->tocMacroUsage ),
-			new PanelMacro( $this->writer, $this->currentSpace ),
 			new ColumnMacro( $this->writer, $this->currentSpace ),
 			new SectionMacro(),
 			new SpaceDetailsMacro(
