@@ -178,6 +178,22 @@ Add the author information to migrated data. There are some things to consider,
 if you want to enable this feature.
 See [Add Revision Author Info](./how_to_add_author_info.md) for details.
 
+### `source-timezone`
+
+* Type: string (PHP/IANA timezone identifier, e.g. `Europe/Berlin`)
+* Default: empty
+
+The timezone in which the exported Confluence dates (page revisions, attachments,
+comments) are written. Dates in `entities.xml` carry no offset, and MediaWiki
+import timestamps are UTC, so the dates are converted from this zone to UTC
+during the `analyze` step.
+
+If empty, the `timezoneId` from `exportDescriptor.properties` is used (Cloud
+exports). If that is missing as well (Server/Data Center exports), `UTC` is
+assumed. For Server/Data Center exports, the header comment of
+`exportDescriptor.properties` (e.g. `CEST`) shows the server's zone; set this
+option if it is not UTC. An invalid value aborts the analysis.
+
 ## Wikis-config CSV file (`--wikis`)
 
 The wikis-config CSV maps each Confluence space key to the target wiki's
