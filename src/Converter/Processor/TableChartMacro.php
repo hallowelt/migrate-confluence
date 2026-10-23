@@ -23,7 +23,9 @@ use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
  * colors/colorKeyMap (series colors), legend (showlegend), innerlabels (showvalues),
  * separator (decimal separator).
  * Parameters not mapped (SimpleCharts has no equivalent): tfc-height, align, ytitle,
- * is3d, log, xlog, grid, trendline, interpolation, line-settings, barColoringType.
+ * is3d, log, xlog, grid, trendline, interpolation, line-settings, barColoringType,
+ * outerLabels, pieKeys, hide, hidecontrols, hasTable, customNoTableMsg, datepattern, worklog,
+ * ganttArrows, id, version, formatVersion, isFirstTimeEnter.
  *
  * <ac:structured-macro ac:name="table-chart">
  *	<ac:parameter ac:name="type">Line</ac:parameter>

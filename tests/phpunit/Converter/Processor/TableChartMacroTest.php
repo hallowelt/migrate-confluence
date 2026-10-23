@@ -42,6 +42,7 @@ class TableChartMacroTest extends ProcessorTestCase {
 			'unsupported type' => [ 'radar' ],
 			'csv-table data source' => [ 'csv' ],
 			'negative value' => [ 'negative' ],
+			'unmapped parameters are ignored' => [ 'unmapped-params' ],
 		];
 	}
 }

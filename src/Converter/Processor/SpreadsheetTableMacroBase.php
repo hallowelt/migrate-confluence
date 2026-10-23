@@ -59,7 +59,11 @@ abstract class SpreadsheetTableMacroBase extends StructuredMacroProcessorBase {
 		}
 
 		$node->parentNode->replaceChild(
-			$this->createTextNode( $node->ownerDocument, '{{#spreadsheetrange:' . $fileTitle . '|format=table}}', __METHOD__ ),
+			$this->createTextNode(
+				$node->ownerDocument,
+				'{{#spreadsheetrange:' . $fileTitle . '|format=table}}',
+				__METHOD__
+			),
 			$node
 		);
 	}
