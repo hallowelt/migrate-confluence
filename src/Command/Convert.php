@@ -9,6 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBase;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterPipeDataWriter;
@@ -34,6 +35,8 @@ class Convert extends CommandConvert {
 
 	/** @var IConverterDataWriter|null */
 	private ?IConverterDataWriter $dataWriter;
+
+	use SetupHooks;
 
 	/**
 	 * @return void
@@ -94,6 +97,9 @@ class Convert extends CommandConvert {
 
 		$workers = (int)$input->getOption( 'workers' );
 		$isChildProcess = $input->hasParameterOption( '--worker' );
+
+		$this->readConfigFile( $this->config );
+		$this->installCustomerHooks( $this->config, $this->input->getOption( 'config' ) );
 
 		$this->dest = realpath( $input->getOption( 'dest' ) );
 		if ( !is_dir( $this->dest ) ) {
@@ -159,7 +165,6 @@ class Convert extends CommandConvert {
 		if ( !$this->dataWriter ) {
 			throw new Exception( 'No data writer is set' );
 		}
-		$this->readConfigFile( $this->config );
 		$this->wikiTextBasePath = $this->dest . '/content/wikitext';
 
 		return parent::processFiles();
