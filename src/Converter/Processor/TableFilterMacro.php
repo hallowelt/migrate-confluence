@@ -30,6 +30,10 @@ use HalloWelt\MigrateConfluence\Utility\MacroInfo;
  *     ...
  *   </ac:rich-text-body>
  * </ac:structured-macro>
+ *
+ * The table is marked as "datagrid" (TableTools) and all parameters are kept in "data-filterparams".
+ * Only two parameters have an effect: "disabled" (="true") leaves the table without the "datagrid"
+ * class, and a numeric "cell-width" becomes a "min-width" style on all cells.
  */
 class TableFilterMacro implements IProcessor {
 
@@ -62,6 +66,9 @@ class TableFilterMacro implements IProcessor {
 				}
 				$params[$paramName] = $child->nodeValue;
 			}
+			// A disabled filter leaves a plain table, which TableTools does not turn into a data grid
+			$isDisabled = strtolower( trim( $params['disabled'] ?? '' ) ) === 'true';
+			$cellWidth = $this->parseCellWidth( $params['cell-width'] ?? '' );
 			$filterParams = json_encode( $params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 
 			foreach ( iterator_to_array( $actualMacro->childNodes ) as $child ) {
@@ -70,13 +77,18 @@ class TableFilterMacro implements IProcessor {
 				}
 				foreach ( iterator_to_array( $child->childNodes ) as $bodyChild ) {
 					if ( $bodyChild instanceof DOMElement && $bodyChild->nodeName === 'table' ) {
-						$classes = [];
-						if ( $bodyChild->hasAttribute( 'class' ) ) {
-							$classes = explode( ' ', $bodyChild->getAttribute( 'class' ) );
+						if ( !$isDisabled ) {
+							$classes = [];
+							if ( $bodyChild->hasAttribute( 'class' ) ) {
+								$classes = explode( ' ', $bodyChild->getAttribute( 'class' ) );
+							}
+							$classes[] = 'datagrid';
+							$bodyChild->setAttribute( 'class', implode( ' ', $classes ) );
 						}
-						$classes[] = 'datagrid';
-						$bodyChild->setAttribute( 'class', implode( ' ', $classes ) );
 						$bodyChild->setAttribute( 'data-filterparams', $filterParams );
+						if ( $cellWidth !== null ) {
+							$this->applyCellWidth( $bodyChild, $cellWidth );
+						}
 					}
 					if ( $this->isEmptyParagraph( $bodyChild ) ) {
 						continue;
@@ -86,6 +98,30 @@ class TableFilterMacro implements IProcessor {
 			}
 
 			$parentNode->removeChild( $actualMacro );
+		}
+	}
+
+	/**
+	 * Returns the width in pixels, or null if the value is not a plain number (e.g. empty or ",").
+	 */
+	private function parseCellWidth( string $value ): ?int {
+		if ( !preg_match( '/^\s*(\d+)\s*(px)?\s*$/i', $value, $matches ) || (int)$matches[1] === 0 ) {
+			return null;
+		}
+		return (int)$matches[1];
+	}
+
+	/**
+	 * Keeps the data grid cells at least as wide as configured; TableTools preserves cell styles.
+	 */
+	private function applyCellWidth( DOMElement $table, int $width ): void {
+		foreach ( $table->getElementsByTagName( '*' ) as $cell ) {
+			if ( $cell->nodeName !== 'th' && $cell->nodeName !== 'td' ) {
+				continue;
+			}
+			$style = rtrim( trim( $cell->getAttribute( 'style' ) ), ';' );
+			$style = $style === '' ? '' : "$style; ";
+			$cell->setAttribute( 'style', "{$style}min-width: {$width}px;" );
 		}
 	}
 
