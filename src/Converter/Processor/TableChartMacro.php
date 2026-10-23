@@ -249,7 +249,11 @@ class TableChartMacro extends StructuredMacroProcessorBase {
 		$close = $this->placeholderManager->getPlaceholder( "</$tag>\n" );
 		$node->parentNode->insertBefore( $doc->createTextNode( "###BREAK###$open" ), $node );
 		foreach ( $lines as $line ) {
-			$node->parentNode->insertBefore( $doc->createTextNode( "$line###BREAK###" ), $node );
+			// Placeholder keeps pandoc from escaping quotes and wiki markup in the chart data
+			$node->parentNode->insertBefore(
+				$doc->createTextNode( $this->placeholderManager->getPlaceholder( $line ) . '###BREAK###' ),
+				$node
+			);
 		}
 		$node->parentNode->insertBefore( $doc->createTextNode( $close ), $node );
 		$node->parentNode->removeChild( $node );
