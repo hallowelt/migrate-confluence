@@ -1,0 +1,8 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		convert:placeholder=0
+	</p>
+	<ac:structured-macro ac:name="profile" ac:schema-version="1" data-layout="default" ac:local-id="8c793404-1c4c-4665-9364-ad7d279dc9bb" ac:macro-id="89dddf6ebebf2325fa065a0b5b99f871852ae7e84aa26c0e1f43a3dc27fea1dd">
+		<ac:parameter ac:name="user"><ri:user/></ac:parameter>
+	</ac:structured-macro>
+</xml>

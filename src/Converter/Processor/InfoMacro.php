@@ -19,6 +19,8 @@ class InfoMacro extends ConvertMacroToTemplateBase {
 
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
 
+	public const REQUIRED_EXTENSIONS = [ 'ContentDroplets' ];
+
 	/**
 	 * @inheritDoc
 	 */

@@ -26,6 +26,7 @@ use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DBLog;
+use HalloWelt\MigrateConfluence\Utility\DirectoryHelper;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Output\Output;
@@ -826,9 +827,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	private function ensureLogPath( string $subDir ): string {
 		$path = $this->dest . "/result";
 		$path .= "/$subDir/log";
-		if ( !is_dir( $path ) ) {
-			mkdir( $path, 0755, true );
-		}
+		DirectoryHelper::ensure( $path );
 
 		return $path;
 	}
@@ -840,9 +839,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	private function ensureDeploymentInfoPath( string $subDir ): string {
 		$path = $this->dest . "/result";
 		$path .= "/$subDir";
-		if ( !is_dir( $path ) ) {
-			mkdir( $path, 0755, true );
-		}
+		DirectoryHelper::ensure( $path );
 
 		return $path;
 	}
