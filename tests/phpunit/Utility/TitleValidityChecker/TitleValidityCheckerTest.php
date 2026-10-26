@@ -50,8 +50,8 @@ class TitleValidityCheckerTest extends TestCase {
 		$this->assertTrue( $this->checker->hasValidNamespace( '_Private' ) );
 		$this->assertTrue( $this->checker->hasValidNamespace( 'My_Namespace' ) );
 
-		// Single character
-		$this->assertTrue( $this->checker->hasValidNamespace( 'A' ) );
+		// Single character: disallowed in BlueSpice
+		$this->assertFalse( $this->checker->hasValidNamespace( 'A' ) );
 
 		// Starts with digit
 		$this->assertFalse( $this->checker->hasValidNamespace( '123Space' ) );
