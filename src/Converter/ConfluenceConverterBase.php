@@ -487,7 +487,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new NoteMacro( $this->writer, $this->currentSpace ),
 			new WarningMacro( $this->writer, $this->currentSpace ),
 			new TocMacro( $this->tocMacroUsage ),
-			new PanelMacro( $this->writer, $this->currentSpace ),
 			new ColumnMacro( $this->writer, $this->currentSpace ),
 			new SectionMacro(),
 			new SpaceDetailsMacro(
