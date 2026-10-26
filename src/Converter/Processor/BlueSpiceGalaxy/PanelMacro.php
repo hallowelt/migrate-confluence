@@ -15,7 +15,7 @@ class PanelMacro extends StructuredMacroProcessorBase implements IUsesPlaceholde
 
 	public const MACRO_NAME = 'panel';
 
-	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_FULLY;
+	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
 	public const REQUIRED_EXTENSIONS = [ 'StandardTags' ];
 
@@ -81,7 +81,7 @@ class PanelMacro extends StructuredMacroProcessorBase implements IUsesPlaceholde
 					'<div class="ext-standardtags-card-icon bi" aria-hidden="true">%s</div>',
 					$panelIconText
 				) : '',
-				$title ),
+				htmlspecialchars( $title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' ) ),
 			) . "\n",
 			__METHOD__
 		);
