@@ -120,3 +120,14 @@ the following information is dropped on purpose, to keep the pages editable in t
 Table attributes `cellpadding` and `summary` are kept in the output, but with newer Pandoc
 versions they have no visible effect. The other legacy table attributes (`align`, `valign`,
 `bgcolor`, `border`, `cellspacing`, `nowrap`) are converted to CSS and keep working.
+
+The `p` (paragraph) macro is migrated as `<div role="paragraph">` and not as `<p>`, because
+Pandoc removes all attributes (`class`, `style`, `title`, ...) from `<p>`. The visible result is
+a block like any other paragraph, but the page source contains a `div`.
+
+The `img` macro is migrated like any external HTML image, i.e. as an `{{ExternalImage}}` template
+with all parameters. Image maps (`usemap`, `ismap`) and long descriptions have no effect in the wiki.
+
+The `change-history` macro becomes a link to the page history. The Confluence version comments are
+not migrated, so the table of versions, authors, dates and comments cannot be recreated, and the
+`limit` parameter has no effect.

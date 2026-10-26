@@ -35,6 +35,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BgcolorMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CenterMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ChangeHistoryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChartMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CheeseMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
@@ -59,6 +60,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\HighlightMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\HtmlcommentMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml;
+use HalloWelt\MigrateConfluence\Converter\Processor\ImgMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncDrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
@@ -83,6 +85,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PanelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
+use HalloWelt\MigrateConfluence\Converter\Processor\PMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
@@ -530,6 +533,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
+			new ImgMacro(),
 			new ImgHtml(
 				$this->writer,
 				$this->currentSpace
@@ -638,6 +642,8 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new HtmlcommentMacro( $this->placeholderManager ),
 			new LiMacro(),
 			new OlMacro(),
+			new PMacro(),
+			new ChangeHistoryMacro( $this->writer, $this->currentSpace ),
 			new PreMacro( $this->placeholderManager ),
 			new SpanMacro(),
 			new StrikeMacro(),

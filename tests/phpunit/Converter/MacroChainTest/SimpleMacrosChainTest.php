@@ -5,15 +5,19 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\MacroChainTest;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\BgcolorMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CenterMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ChangeHistoryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CheeseMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ClickableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColgroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DivMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\HighlightMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\HtmlcommentMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml;
+use HalloWelt\MigrateConfluence\Converter\Processor\ImgMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LiMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LozengeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\OlMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyMarkMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyPolicyMacro;
@@ -45,7 +49,7 @@ class SimpleMacrosChainTest extends MacroChainTestBase {
 	 */
 	public function testMacroChain( $processor, string $macroXml, string $expected ): void {
 		if ( $processor instanceof \Closure ) {
-			$processor = $processor( $this->placeholderManager, $this->dataLookup );
+			$processor = $processor( $this->placeholderManager, $this->dataLookup, $this->createConverterDataWriter() );
 		}
 		$xml = '<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace"><p>' . $macroXml . '</p></xml>';
 		$actual = $this->runChainWithProcessor( $processor, $xml );
@@ -100,6 +104,26 @@ class SimpleMacrosChainTest extends MacroChainTestBase {
 				'a <ac:structured-macro ac:name="strike">'
 					. '<ac:rich-text-body>text</ac:rich-text-body></ac:structured-macro> b',
 				'a <s>text</s> b'
+			],
+			'p' => [
+				new PMacro(),
+				'<ac:structured-macro ac:name="p"><ac:parameter ac:name="class">lead</ac:parameter>'
+					. '<ac:parameter ac:name="title">tip</ac:parameter>'
+					. '<ac:rich-text-body>text</ac:rich-text-body></ac:structured-macro>',
+				"<div class=\"lead\" title=\"tip\" role=\"paragraph\">\n\ntext\n\n</div>"
+			],
+			'img' => [
+				static fn ( $pm, $lookup, $w ) => [ new ImgMacro(), new ImgHtml( $w, 1 ) ],
+				'<ac:structured-macro ac:name="img"><ac:parameter ac:name="src">http://example.org/a.png'
+					. '</ac:parameter><ac:parameter ac:name="width">50</ac:parameter>'
+					. '<ac:parameter ac:name="alt">Alt</ac:parameter></ac:structured-macro>',
+				'{{ExternalImage|url=http://example.org/a.png|width=50|alt=Alt}}'
+			],
+			'change-history' => [
+				new ChangeHistoryMacro( $w, 1 ),
+				'<ac:structured-macro ac:name="change-history"><ac:parameter ac:name="limit">2</ac:parameter>'
+					. '</ac:structured-macro>',
+				"{{ChangeHistory\n|limit = 2\n}}\n"
 			],
 			'pre' => [
 				static fn ( $pm ) => new PreMacro( $pm ),
