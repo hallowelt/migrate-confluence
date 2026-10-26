@@ -10,20 +10,25 @@ use HalloWelt\MigrateConfluence\Converter\Processor\CheeseMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ClickableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColgroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DivMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\FancyBulletsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\HighlightMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\HtmlcommentMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\IframeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml;
 use HalloWelt\MigrateConfluence\Converter\Processor\ImgMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LiMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LozengeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\OlMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PagetreesearchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyMarkMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyPolicyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RoundrectMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\SearchBoxMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SpanMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\StrikeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\StyleMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TbodyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TdMacro;
@@ -124,6 +129,39 @@ class SimpleMacrosChainTest extends MacroChainTestBase {
 				'<ac:structured-macro ac:name="change-history"><ac:parameter ac:name="limit">2</ac:parameter>'
 					. '</ac:structured-macro>',
 				"{{ChangeHistory\n|limit = 2\n}}\n"
+			],
+			'iframe' => [
+				new IframeMacro( $w, 1 ),
+				'<ac:structured-macro ac:name="iframe">'
+					. '<ac:parameter ac:name="url">https://example.org/?a=1</ac:parameter>'
+					. '<ac:parameter ac:name="width">50%</ac:parameter></ac:structured-macro>',
+				"{{Iframe\n|url = https://example.org/?a=1\n|width = 50%\n}}\n"
+			],
+			'search-box' => [
+				new SearchBoxMacro( $w, 1 ),
+				'<ac:structured-macro ac:name="search-box"><ac:parameter ac:name="button">Go</ac:parameter>'
+					. '</ac:structured-macro>',
+				"{{SearchBox\n|button = Go\n}}\n"
+			],
+			'pagetreesearch' => [
+				new PagetreesearchMacro( $w, 1 ),
+				'<ac:structured-macro ac:name="pagetreesearch"><ac:parameter ac:name="root">Root page</ac:parameter>'
+					. '</ac:structured-macro>',
+				"{{PageTreeSearch\n|root = Root page\n}}\n"
+			],
+			'fancy-bullets' => [
+				new FancyBulletsMacro(),
+				'<ac:structured-macro ac:name="fancy-bullets"><ac:parameter ac:name="bullet">x</ac:parameter>'
+					. '<ac:rich-text-body><ul><li>one</li></ul></ac:rich-text-body></ac:structured-macro>',
+				"<div bullet=\"x\">\n\n* one\n\n\n</div>"
+			],
+			'style' => [
+				static fn ( $pm, $lookup, $w ) => new StyleMacro( $pm, $w, 1 ),
+				'<ac:structured-macro ac:name="style"><ac:parameter ac:name="media">print</ac:parameter>'
+					. '<ac:plain-text-body><![CDATA[a[lang|=en] { content: "x"; } @media print { b { c: d }}]]>'
+					. '</ac:plain-text-body></ac:structured-macro>',
+				'{{Style|css=a[lang{{!}}{{=}}en] { content: "x"; } @media print { b { c: d } }' . "\n"
+					. "|media=print\n}}"
 			],
 			'pre' => [
 				static fn ( $pm ) => new PreMacro( $pm ),

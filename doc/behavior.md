@@ -131,3 +131,16 @@ with all parameters. Image maps (`usemap`, `ismap`) and long descriptions have n
 The `change-history` macro becomes a link to the page history. The Confluence version comments are
 not migrated, so the table of versions, authors, dates and comments cannot be recreated, and the
 `limit` parameter has no effect.
+
+The `iframe`, `search-box` and `pagetreesearch` macros need Extension:Widgets on the target wiki
+(the widget pages are imported into the `Widget:` namespace). The `iframe` macro embeds only URLs with
+protocols allowed by the wiki; any host is allowed (no allow-list, by decision).
+`search-box` and `pagetreesearch` become a plain form for the wiki search: space restrictions,
+grouping, filters and live results of Confluence are lost, and a page-tree restriction depends on the
+search backend. The `fancy-bullets` macro keeps its list, but the bullet styling is not migrated.
+
+The `style` macro becomes a `{{Style}}` template (widget `Widget:Style`) with the CSS, `media` and
+`import` parameters. In the CSS, `|` and `=` are written as `{{!}}` and `{{=}}`, and a `<` is dropped
+by the widget. Be aware that every editor can restyle a page with this widget. The `viewfile` macro
+is migrated like `view-file`, as a link to the attachment; the `page`, `space` and `date` parameters
+(attachments of other pages), as well as `width` and `height`, are only kept as template parameters.
