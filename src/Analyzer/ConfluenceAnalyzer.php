@@ -10,6 +10,8 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BodyContents;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Comments;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentPermission;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentPermissionSet;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\ContentProperty;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Label;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Labelling;
@@ -167,6 +169,8 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			'Label' => new Label( $this->writer ),
 			'Labelling' => new Labelling( $this->writer ),
 			'ContentProperty' => new ContentProperty( $this->writer ),
+			'ContentPermissionSet' => new ContentPermissionSet( $this->writer ),
+			'ContentPermission' => new ContentPermission( $this->writer ),
 			'ConfluenceUserImpl' => new Users( $this->writer ),
 			'PageTemplate' => new PageTemplates( $this->writer ),
 		];

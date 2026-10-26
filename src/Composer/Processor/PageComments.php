@@ -89,6 +89,7 @@ class PageComments extends ContentProcessorBase {
 			}
 
 			$this->output->writeln( "Adding comments for Talk page '$talkTitle'..." );
+			$this->registerPageConstraints( $talkTitle, $this->dataLookup->getPageConstraints( $pageId ) );
 			$this->appendTalkPageWithComments( $talkTitle, $commentsData );
 		}
 	}

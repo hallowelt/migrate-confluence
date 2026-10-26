@@ -66,6 +66,7 @@ class Pages extends ContentProcessorBase {
 			$this->output->writeln( "Processing page '$pageTitle' ..." );
 
 			$namespace = $this->getNamespace( $pageTitle );
+			$this->registerPageConstraints( $pageTitle, $this->dataLookup->getPageConstraints( $pageId ) );
 
 			$spaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
 			$spaceDescriptions = $this->dataLookup->getSpaceDescriptionRevisionsForSpaceId( $spaceId );

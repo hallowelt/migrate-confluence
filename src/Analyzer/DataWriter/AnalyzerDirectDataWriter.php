@@ -314,6 +314,27 @@ class AnalyzerDirectDataWriter extends AbstractDirectDataWriter implements IAnal
 	}
 
 	/**
+	 * @inheritDoc
+	 */
+	public function addContentPermissionSet(
+		int $setId, int $contentId, string $permissionType, array $permissionIds, array $properties
+	): bool {
+		return $this->db->addContentPermissionSet( $setId, $contentId, $permissionType, $permissionIds, $properties );
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function addContentPermission(
+		int $permissionId, int $setId, string $permissionType, string $groupName,
+		string $userKey, string $timestamp, array $properties
+	): bool {
+		return $this->db->addContentPermission(
+			$permissionId, $setId, $permissionType, $groupName, $userKey, $timestamp, $properties
+		);
+	}
+
+	/**
 	 * @param string $userKey
 	 * @param string $wikiUsername
 	 * @param string $email

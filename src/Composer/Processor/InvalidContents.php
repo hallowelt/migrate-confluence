@@ -72,6 +72,7 @@ class InvalidContents extends ContentProcessorBase {
 
 			$this->invalidPageIds[$pageId] = $pageId;
 			$this->output->writeln( "Processing skipped invalid page '$wikiTitle' ..." );
+			$this->registerPageConstraints( $wikiTitle, $this->dataLookup->getPageConstraints( $pageId ) );
 
 			$spaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
 			$spaceDescriptions = [];
@@ -130,6 +131,7 @@ class InvalidContents extends ContentProcessorBase {
 
 			$this->invalidBlogPostIds[$blogPostId] = $blogPostId;
 			$this->output->writeln( "Processing skipped invalid blog post '$wikiTitle' ..." );
+			$this->registerPageConstraints( $wikiTitle, $this->dataLookup->getPageConstraints( $blogPostId ) );
 
 			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $blogPostId );
 			foreach ( $revisions as $revision ) {
@@ -171,6 +173,7 @@ class InvalidContents extends ContentProcessorBase {
 
 		$userkeyToUsernameMap = $this->buildUserkeyToUsernameMap( $this->dataLookup );
 		$talkTitleToComments = [];
+		$talkTitleToContainerId = [];
 
 		foreach ( $comments as $comment ) {
 			$containerId = (int)( $comment['container_id'] ?? 0 );
@@ -203,6 +206,7 @@ class InvalidContents extends ContentProcessorBase {
 			$username = $userkeyToUsernameMap[$creatorKey] ?? $creatorKey;
 
 			$talkTitle = $this->buildTalkTitle( $wikiTitle );
+			$talkTitleToContainerId[$talkTitle] = $containerId;
 			if ( !isset( $talkTitleToComments[$talkTitle] ) ) {
 				$talkTitleToComments[$talkTitle] = [];
 			}
@@ -220,6 +224,10 @@ class InvalidContents extends ContentProcessorBase {
 
 		foreach ( $talkTitleToComments as $talkTitle => $commentsData ) {
 			$this->output->writeln( "Adding skipped invalid comments for Talk page '$talkTitle'..." );
+			$this->registerPageConstraints(
+				$talkTitle,
+				$this->dataLookup->getPageConstraints( $talkTitleToContainerId[$talkTitle] )
+			);
 
 			$slotText = json_encode( $commentsData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP );
 			$this->addRevision(

@@ -66,6 +66,10 @@ class BlogPosts extends ContentProcessorBase {
 			$this->output->writeln( "Processing blog post '$blogPostTitle' ..." );
 
 			$namespace = $this->getNamespace( $blogPostTitle );
+			$this->registerPageConstraints(
+				$blogPostTitle,
+				$this->dataLookup->getPageConstraints( $blogPostId )
+			);
 
 			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $blogPostId );
 			foreach ( $revisions as $revision ) {

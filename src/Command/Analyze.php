@@ -79,6 +79,14 @@ class Analyze extends BatchFileProcessorBase {
 		);
 		$definition->addOption(
 			new InputOption(
+				'groupmap',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'Specifies the path to the csv file mapping Confluence group names to MediaWiki group names'
+			)
+		);
+		$definition->addOption(
+			new InputOption(
 				'workers',
 				null,
 				InputOption::VALUE_REQUIRED,
@@ -138,6 +146,7 @@ class Analyze extends BatchFileProcessorBase {
 		if ( $this->getMigrationConfig()->getAddUserinfo() ) {
 			$this->readUsermapFile( $workspaceDB );
 		}
+		$this->readGroupmapFile( $workspaceDB );
 		$this->wikisConfig = new WikisConfig( $workspaceDB );
 
 		$dbLog = new DBLog( $workspaceDB );
@@ -327,6 +336,47 @@ class Analyze extends BatchFileProcessorBase {
 					$record['confluence-username']
 				);
 			}
+		}
+	}
+
+	/**
+	 * @param WorkspaceDB $workspaceDB
+	 *
+	 * @return void
+	 */
+	private function readGroupmapFile( WorkspaceDB $workspaceDB ): void {
+		$filename = $this->input->getOption( 'groupmap' );
+		if ( empty( $filename ) ) {
+			return;
+		}
+
+		$csvParser = new CSVParser(
+			$filename,
+			static function ( array $data, int $rowNumber ): ?array {
+				$confluenceGroup = trim( $data[0] ?? '' );
+				if ( $rowNumber === 0 && preg_match( '/^confluence.group$/i', $confluenceGroup ) ) {
+					// Skip the header line
+					return null;
+				}
+				if ( $confluenceGroup === '' ) {
+					throw new \Exception( "Confluence group name must not be empty (row $rowNumber)" );
+				}
+
+				return [
+					'confluence-group' => $confluenceGroup,
+					'wiki-group' => trim( $data[1] ?? '' ),
+				];
+			},
+			$this->getMigrationConfig()
+		);
+		$error = '';
+		if ( !$csvParser->validateFile( $error ) ) {
+			$this->output->writeln( $error );
+			exit( 1 );
+		}
+
+		foreach ( $csvParser->getRecords() as $record ) {
+			$workspaceDB->addGroupMapping( $record['confluence-group'], $record['wiki-group'] );
 		}
 	}
 

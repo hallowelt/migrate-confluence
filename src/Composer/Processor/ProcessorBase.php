@@ -8,6 +8,7 @@ use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
 use HalloWelt\MigrateConfluence\Utility\DirectoryHelper;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PageConstraintsXml;
 use Symfony\Component\Console\Output\Output;
 
 abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsDependentProcessor, ISubDirAware {
@@ -29,6 +30,12 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsD
 
 	/** @var int[]|null */
 	protected ?array $currentSpaceIds = null;
+
+	/** @var array<string, array> Constraints rows by wiki title */
+	private array $pageConstraints = [];
+
+	/** @var array<string, true> Titles in the output file under construction */
+	private array $titlesInOutputFile = [];
 
 	/**
 	 * @param Builder $builder
@@ -65,6 +72,23 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsD
 	}
 
 	/**
+	 * Sets the restrictions to be written for a page. Must be called before its revisions are added.
+	 *
+	 * @param string $wikiTitle
+	 * @param array|null $row Stored constraints; null (none found) restricts the page completely
+	 */
+	protected function registerPageConstraints( string $wikiTitle, ?array $row ): void {
+		if ( !$this->migrationConfig->getAddPageConstraints() ) {
+			return;
+		}
+		if ( $row === null ) {
+			$this->output->writeln( "Warning: No page constraints found for '$wikiTitle'; page is locked down." );
+			$row = PageConstraintsXml::FAIL_CLOSED;
+		}
+		$this->pageConstraints[$wikiTitle] = $row;
+	}
+
+	/**
 	 * @param string $wikiPageName
 	 * @param string $wikiText
 	 * @param string $timestamp
@@ -82,6 +106,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsD
 		$this->builder->addRevision(
 			$wikiPageName, $wikiText, $timestamp, $username, $model, $format, $slotData
 		);
+		$this->titlesInOutputFile[$wikiPageName] = true;
 		$this->numOfRevisions++;
 
 		if ( $this->multiXmlOutputEnabled ) {
@@ -111,6 +136,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsD
 		$this->builder->addFileRevision(
 			$filename, $wikitext, $base64Contents, $timestamp, $username, $model, $format
 		);
+		$this->titlesInOutputFile['File:' . $filename] = true;
 		$this->numOfRevisions++;
 
 		if ( $this->multiXmlOutputEnabled ) {
@@ -136,6 +162,16 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsD
 		$name .= '.xml';
 
 		$basePath = $this->getBasePath();
+
+		// Pages spanning several output files need the element in each of them
+		foreach ( array_keys( $this->titlesInOutputFile ) as $title ) {
+			if ( isset( $this->pageConstraints[$title] ) ) {
+				$element = $this->builder->createCustomPageElement( 'pageconstraints' );
+				PageConstraintsXml::fill( $element, $this->pageConstraints[$title] );
+				$this->builder->addCustomPageElement( $title, $element );
+			}
+		}
+		$this->titlesInOutputFile = [];
 
 		$this->builder->buildAndSave( $basePath . $name );
 		$this->builder->reset();

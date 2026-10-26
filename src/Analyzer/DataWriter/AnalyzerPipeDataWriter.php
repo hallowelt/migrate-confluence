@@ -337,6 +337,31 @@ class AnalyzerPipeDataWriter extends AbstractPipeDataWriter implements IAnalyzeD
 	}
 
 	/**
+	 * @inheritDoc
+	 */
+	public function addContentPermissionSet(
+		int $setId, int $contentId, string $permissionType, array $permissionIds, array $properties
+	): bool {
+		$this->send( __FUNCTION__, $setId, $contentId, $permissionType, $permissionIds, $properties );
+
+		return true;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function addContentPermission(
+		int $permissionId, int $setId, string $permissionType, string $groupName,
+		string $userKey, string $timestamp, array $properties
+	): bool {
+		$this->send(
+			__FUNCTION__, $permissionId, $setId, $permissionType, $groupName, $userKey, $timestamp, $properties
+		);
+
+		return true;
+	}
+
+	/**
 	 * @param string $userKey
 	 * @param string $wikiUsername
 	 * @param string $email
