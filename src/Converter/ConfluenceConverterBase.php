@@ -27,6 +27,7 @@ use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\HTML\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Processor\AcAdfExtensionGeneric;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
@@ -39,6 +40,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ContentByLabelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CopyrightMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\CsvTableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
@@ -54,6 +56,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InlineCommentMarker;
 use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\JsonFromTableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Layout;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutCell;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutSection;
@@ -79,6 +82,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\RoadmapMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SpaceDetailsMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TableChartMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
@@ -647,7 +651,22 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->currentSpace
 			),
 			new LivesearchMacro( $this->writer, $this->currentSpace ),
+			// Must run before TableChartMacro, as they are used as its data source
+			new CsvTableMacro(
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
+			),
+			new JsonFromTableMacro(
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
+			),
 			new ChartMacro( $this->placeholderManager ),
+			new TableChartMacro( $this->placeholderManager ),
+			new AcAdfExtensionGeneric( $this->placeholderManager ),
 		];
 	}
 

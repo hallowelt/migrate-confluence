@@ -20,6 +20,7 @@ use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
+use HalloWelt\MigrateConfluence\Utility\DirectoryHelper;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
@@ -253,10 +254,7 @@ class Convert extends CommandConvert {
 	}
 
 	private function ensureTargetPath(): void {
-		$baseTargetPath = dirname( $this->targetPathname );
-		if ( !file_exists( $baseTargetPath ) ) {
-			mkdir( $baseTargetPath, 0755, true );
-		}
+		DirectoryHelper::ensure( dirname( $this->targetPathname ) );
 	}
 
 }
