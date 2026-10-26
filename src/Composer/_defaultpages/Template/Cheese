@@ -1,0 +1,24 @@
+<noinclude>Template added by Confluence migration to handle the "cheese" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Show a message; without a message, \"I like cheese!\" is shown (Confluence \"cheese\" macro).",
+        "de": "Eine Nachricht anzeigen; ohne Nachricht wird \"I like cheese!\" angezeigt (Confluence-\"cheese\"-Makro)."
+    },
+    "params": {
+        "body": {
+            "label": {
+                "en": "Message",
+                "de": "Nachricht"
+            },
+            "type": "string",
+            "required": false,
+            "description": {
+                "en": "The text to show. Defaults to \"I like cheese!\".",
+                "de": "Der anzuzeigende Text. Standardwert ist \"I like cheese!\"."
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{{body|I like cheese!}}}</includeonly>

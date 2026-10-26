@@ -104,3 +104,19 @@ telling the extension, _how_ to highlight the code.
 
 Use this category, if you want to fine-tune your code display. If you used the `code`
 macro only as `<pre>` on steroids, you can ignore this feature completely.
+
+## Parameters of HTML-style macros that are not migrated
+
+The macros `ul`, `ol`, `li`, `strike`, `clickable`, `thead`, `tbody` and `colgroup` are converted
+to plain wikitext lists, links and tables. Wikitext has no place for their styling parameters, so
+the following information is dropped on purpose, to keep the pages editable in the visual editor:
+
+- `ul`: all parameters (e.g. `style`, `class`, `type`)
+- `ol`: all parameters except `start` and `type`
+- `li`: all parameters except `id`
+- `strike`: all parameters; `clickable`: all parameters except the link target
+- `thead`, `tbody`: all parameters; `colgroup`: the column definitions
+
+Table attributes `cellpadding` and `summary` are kept in the output, but with newer Pandoc
+versions they have no visible effect. The other legacy table attributes (`align`, `valign`,
+`bgcolor`, `border`, `cellspacing`, `nowrap`) are converted to CSS and keep working.
