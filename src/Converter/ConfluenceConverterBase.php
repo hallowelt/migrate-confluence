@@ -27,6 +27,7 @@ use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\HTML\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Processor\AcAdfExtensionGeneric;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
@@ -676,6 +677,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			),
 			new ChartMacro( $this->placeholderManager ),
 			new TableChartMacro( $this->placeholderManager ),
+			new AcAdfExtensionGeneric( $this->placeholderManager ),
 		];
 	}
 
