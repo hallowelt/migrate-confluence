@@ -7,6 +7,7 @@ use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DirectoryHelper;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikiFileXmlBuilder;
@@ -197,9 +198,7 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 		if ( $this->subDir !== '' ) {
 			$basePath .= $this->subDir . '/';
 		}
-		if ( !file_exists( $basePath ) ) {
-			mkdir( $basePath, 0755, true );
-		}
+		DirectoryHelper::ensure( $basePath );
 		return $basePath;
 	}
 }

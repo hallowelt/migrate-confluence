@@ -2,9 +2,12 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use DateTimeImmutable;
+use DateTimeZone;
 use HalloWelt\MigrateConfluence\Analyzer\IAnalyzerProcessor;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 use XMLReader;
 
 abstract class ProcessorBase implements IAnalyzerProcessor {
@@ -20,6 +23,19 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 
 	/** @var XMLReader */
 	protected XMLReader $xmlReader;
+
+	/** @var DateTimeZone Zone in which the export's dates are written */
+	protected DateTimeZone $sourceTimezone;
+
+	/**
+	 * Sets the zone in which the export's dates are interpreted; they are converted to UTC.
+	 *
+	 * @param DateTimeZone $timezone
+	 * @return void
+	 */
+	public function setSourceTimezone( DateTimeZone $timezone ): void {
+		$this->sourceTimezone = $timezone;
+	}
 
 	/**
 	 * @param OutputInterface $output
@@ -177,16 +193,22 @@ abstract class ProcessorBase implements IAnalyzerProcessor {
 	}
 
 	/**
+	 * Converts an export date to a UTC MediaWiki timestamp; empty string if unparsable.
+	 *
 	 * @param string $lastModificationDate
 	 * @return string
 	 */
 	protected function buildTimestamp( string $lastModificationDate ): string {
-		$time = strtotime( $lastModificationDate );
-
-		if ( $time === false ) {
+		if ( trim( $lastModificationDate ) === '' ) {
 			return '';
 		}
 
-		return date( 'YmdHis', $time );
+		try {
+			$date = new DateTimeImmutable( $lastModificationDate, $this->sourceTimezone ?? new DateTimeZone( 'UTC' ) );
+		} catch ( Throwable ) {
+			return '';
+		}
+
+		return $date->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'YmdHis' );
 	}
 }

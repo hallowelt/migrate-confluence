@@ -1,0 +1,9 @@
+
+<linechart title="T">
+---label:Max
+Jan,1
+Feb,2
+</linechart>
+
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

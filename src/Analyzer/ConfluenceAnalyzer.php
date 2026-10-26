@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer;
 
+use DateTimeZone;
+use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
@@ -13,11 +15,13 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\Label;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Labelling;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Page;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\PageTemplates;
+use HalloWelt\MigrateConfluence\Analyzer\Processor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
+use InvalidArgumentException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -73,7 +77,8 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 
 		$this->writer->beginTransaction();
 		try {
-			$this->processExportDescriptor( $file );
+			$descriptorInfo = $this->processExportDescriptor( $file );
+			$this->applySourceTimezone( $processors, $descriptorInfo['timezoneId'] );
 			$this->processFile( $sourcePath, $processors );
 			$this->writer->commitTransaction();
 		} catch ( \Throwable $e ) {
@@ -85,13 +90,40 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	}
 
 	/**
-	 * @param SplFileInfo $entitiesFile
+	 * Applies the zone of the export dates: config option, then descriptor, then UTC.
+	 *
+	 * @param array $processors
+	 * @param string $descriptorTimezone
 	 * @return void
 	 */
-	private function processExportDescriptor( SplFileInfo $entitiesFile ): void {
+	private function applySourceTimezone( array $processors, string $descriptorTimezone ): void {
+		$configured = $this->config->getSourceTimezone();
+		try {
+			$timezone = new DateTimeZone( $configured !== '' ? $configured : ( $descriptorTimezone ?: 'UTC' ) );
+		} catch ( Exception $e ) {
+			if ( $configured !== '' ) {
+				throw new InvalidArgumentException( "Invalid 'source-timezone' in config: '$configured'" );
+			}
+			$this->output->writeln( "Unknown timezoneId '$descriptorTimezone' in export, assuming UTC" );
+			$timezone = new DateTimeZone( 'UTC' );
+		}
+		$this->output->writeln( "Interpreting export dates as {$timezone->getName()}" );
+
+		foreach ( $processors as $processor ) {
+			if ( $processor instanceof ProcessorBase ) {
+				$processor->setSourceTimezone( $timezone );
+			}
+		}
+	}
+
+	/**
+	 * @param SplFileInfo $entitiesFile
+	 * @return array{timezoneId: string} Info from the descriptor; values are empty if unknown
+	 */
+	private function processExportDescriptor( SplFileInfo $entitiesFile ): array {
 		$descriptorPath = $entitiesFile->getPath() . '/exportDescriptor.properties';
 		if ( !file_exists( $descriptorPath ) ) {
-			return;
+			return [ 'timezoneId' => '' ];
 		}
 
 		$props = [];
@@ -114,6 +146,8 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			$props['timezoneId'] ?? '',
 			basename( $entitiesFile->getPath() ) . '/' . $entitiesFile->getFilename()
 		);
+
+		return [ 'timezoneId' => $props['timezoneId'] ?? '' ];
 	}
 
 	/**
