@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 trait SetupHooks {
 
 	/**
-	 * if given, load the configured PHP file relative to the config file to set up custom hooks
+	 * If given, load the configured PHP file relative to the config file to set up custom hooks
 	 *
 	 * @param array|MigrationConfig $config
 	 * @param string|null $configFilePath
