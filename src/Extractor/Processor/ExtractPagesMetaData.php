@@ -2,27 +2,25 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 
 class ExtractPagesMetaData extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
-	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
 		WorkspaceDB $workspaceDB,
-		DBLog $dbLog,
 		IExtractorDataWriter $writer,
 		protected MigrationConfig $migrationConfig
 	) {
-		parent::__construct( $workspaceDB, $dbLog, $writer );
+		parent::__construct( $workspaceDB, $writer );
 	}
 
 	/**
@@ -65,10 +63,7 @@ class ExtractPagesMetaData extends ProcessorBase {
 				]
 			);
 
-			$this->dbLog->addLogEntry(
-				'info',
-				'extract',
-				__METHOD__,
+			Log::to( 'db' )->info(
 				"Add page category meta for page {$page['wiki_title']}"
 			);
 		}

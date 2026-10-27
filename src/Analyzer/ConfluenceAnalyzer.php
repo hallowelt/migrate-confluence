@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Analyzer;
 use DateTimeZone;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\IAnalyzer;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Attachments;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\BlogPost;
@@ -86,8 +87,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 
 		$sourcePath = $file->getPathname();
 
-		$this->output->writeln( "\nProcessing: $sourcePath" );
-		$this->output->writeln( "\nAnalyze data:" );
+		Log::to( 'console' )->info( "Processing: $sourcePath" );
 
 		$processors = $this->getProcessors( $file->getPath() );
 

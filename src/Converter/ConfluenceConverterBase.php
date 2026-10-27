@@ -8,7 +8,7 @@ use DOMNodeList;
 use DOMXPath;
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\Converter\PandocHTML;
-use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\AddDisplayTitle;
@@ -27,6 +27,7 @@ use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\HTML\CDATAClosingFixer;
+use HalloWelt\MigrateConfluence\Converter\Processor\AcAdfExtensionGeneric;
 use HalloWelt\MigrateConfluence\Converter\Processor\AlignMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
@@ -69,7 +70,6 @@ use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\PanelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
@@ -107,9 +107,8 @@ use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use HalloWelt\MigrateConfluence\Utility\TranslatableString;
 use SplFileInfo;
-use Symfony\Component\Console\Output\Output;
 
-abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwareInterface, IDestinationPathAware {
+abstract class ConfluenceConverterBase extends PandocHTML implements IDestinationPathAware {
 
 	protected const PROFILE_NAME = '.BASE_CLASS._DO_NOT_USE';
 
@@ -157,9 +156,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 
 	/** @var SplFileInfo|null */
 	protected ?SplFileInfo $preprocessedFile = null;
-
-	/** @var Output|null */
-	protected ?Output $output = null;
 
 	/** @var string */
 	protected string $contentType = '';
@@ -211,13 +207,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	}
 
 	/**
-	 * @param Output $output
-	 */
-	public function setOutput( Output $output ): void {
-		$this->output = $output;
-	}
-
-	/**
 	 *
 	 * @param SplFileInfo $file
 	 * @return string
@@ -239,7 +228,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	 * @throws Exception
 	 */
 	protected function doConvert( SplFileInfo $file ): string {
-		$this->output->writeln( "Converting file " . $file->getPathname() );
+		Log::to( 'console' )->debug( "Converting file " . $file->getPathname() );
 
 		$this->rawFile = $file;
 
@@ -472,7 +461,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new NoteMacro( $this->writer, $this->currentSpace ),
 			new WarningMacro( $this->writer, $this->currentSpace ),
 			new TocMacro( $this->tocMacroUsage ),
-			new PanelMacro( $this->writer, $this->currentSpace ),
 			new ColumnMacro( $this->writer, $this->currentSpace ),
 			new SectionMacro(),
 			new SpaceDetailsMacro(
@@ -696,6 +684,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			),
 			new ChartMacro( $this->placeholderManager ),
 			new TableChartMacro( $this->placeholderManager ),
+			new AcAdfExtensionGeneric( $this->placeholderManager ),
 		];
 	}
 
@@ -1129,7 +1118,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 		}
 
 		$this->addNonBlockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
-		$this->output->writeln( "bodyContentId $bodyContentId contains large content" );
+		Log::to( 'console' )->warning( "bodyContentId $bodyContentId contains large content" );
 	}
 
 	/**
@@ -1173,11 +1162,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 	 * @return void
 	 */
 	protected function addNonBlockingLogEntry( string $message, string $type = 'warning' ): void {
-		$this->writer->addLogEntry(
-			$type,
-			'convert',
-			__CLASS__,
-			$message
-		);
+		Log::to( 'db' )->log( $type, $message );
 	}
 }
