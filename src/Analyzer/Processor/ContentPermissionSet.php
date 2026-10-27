@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
@@ -61,10 +62,7 @@ class ContentPermissionSet extends ProcessorBase {
 
 		if ( $contentId <= 0 || $type === '' ) {
 			// Kept in the DB anyway: the extractor must not treat the content as unrestricted unnoticed
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->warning(
 				"Permission set $setId has no owning content or no type (content: '$contentId', type: '$type')."
 			);
 		}
@@ -79,15 +77,12 @@ class ContentPermissionSet extends ProcessorBase {
 
 		if ( !$status ) {
 			$xmlFile = $this->xmlReader->baseURI;
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Permission set ID $setId already exists in the database."
 					. " Source directory: '" . dirname( $xmlFile ) . "', file: '" . basename( $xmlFile ) . "'."
 			);
 		}
 
-		$this->output->writeln( "Add content permission set (ID:$setId)" );
+		Log::to( 'console' )->debug( "Add content permission set (ID:$setId)" );
 	}
 }

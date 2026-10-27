@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -71,7 +72,7 @@ class InvalidContents extends ContentProcessorBase {
 			}
 
 			$this->invalidPageIds[$pageId] = $pageId;
-			$this->output->writeln( "Processing skipped invalid page '$wikiTitle' ..." );
+			Log::to( 'console' )->debug( "Processing skipped invalid page '$wikiTitle' ..." );
 			$this->registerPageConstraints( $wikiTitle, $this->dataLookup->getPageConstraints( $pageId ) );
 
 			$spaceId = $this->dataLookup->getSpaceIdForPageId( $pageId );
@@ -83,7 +84,7 @@ class InvalidContents extends ContentProcessorBase {
 			}
 
 			if ( $homepageId !== null && $pageId === $homepageId ) {
-				$this->output->writeln(
+				Log::to( 'console' )->debug(
 					"Page '$wikiTitle' is a homepage, adding space description to page content if applicable..."
 				);
 			}
@@ -130,7 +131,7 @@ class InvalidContents extends ContentProcessorBase {
 			}
 
 			$this->invalidBlogPostIds[$blogPostId] = $blogPostId;
-			$this->output->writeln( "Processing skipped invalid blog post '$wikiTitle' ..." );
+			Log::to( 'console' )->debug( "Processing skipped invalid blog post '$wikiTitle' ..." );
 			$this->registerPageConstraints( $wikiTitle, $this->dataLookup->getPageConstraints( $blogPostId ) );
 
 			$revisions = $this->dataLookup->getBlogPostRevisionsForBlogPostId( $blogPostId );
@@ -223,7 +224,7 @@ class InvalidContents extends ContentProcessorBase {
 		}
 
 		foreach ( $talkTitleToComments as $talkTitle => $commentsData ) {
-			$this->output->writeln( "Adding skipped invalid comments for Talk page '$talkTitle'..." );
+			Log::to( 'console' )->debug( "Adding skipped invalid comments for Talk page '$talkTitle'..." );
 			$this->registerPageConstraints(
 				$talkTitle,
 				$this->dataLookup->getPageConstraints( $talkTitleToContainerId[$talkTitle] )
@@ -263,7 +264,7 @@ class InvalidContents extends ContentProcessorBase {
 				continue;
 			}
 
-			$this->output->writeln( "Processing skipped invalid template '$wikiTitle' ..." );
+			Log::to( 'console' )->debug( "Processing skipped invalid template '$wikiTitle' ..." );
 
 			$revisions = $this->dataLookup->getPageTemplateRevisionsForTemplateId( $templateId );
 			foreach ( $revisions as $revision ) {

@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 
 /**
@@ -47,10 +48,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 		}
 
 		$attachmentId = (int)$attachment['attachment_id'];
-		$this->dbLog->addLogEntry(
-			'warning',
-			'extract',
-			__CLASS__,
+		Log::to( 'db' )->warning(
 			"Could not resolve a space for attachment ID $attachmentId; skipping."
 		);
 		return false;
@@ -97,7 +95,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Creating wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
 			);
 

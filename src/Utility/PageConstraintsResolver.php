@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Utility;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 
 /**
  * Computes the effective page restrictions of a content object, including those of its ancestors.
@@ -24,14 +25,12 @@ class PageConstraintsResolver {
 	 * @param array<int, int> $parents Content id to parent content id
 	 * @param callable $userLookup Takes a Confluence user key, returns the wiki user name or null
 	 * @param callable $groupLookup Takes a Confluence group name, returns the wiki group name or null
-	 * @param DBLog $dbLog
 	 */
 	public function __construct(
 		private readonly array $restrictions,
 		private readonly array $parents,
 		private $userLookup,
-		private $groupLookup,
-		private readonly DBLog $dbLog
+		private $groupLookup
 	) {
 	}
 
@@ -180,6 +179,6 @@ class PageConstraintsResolver {
 	 * @param string $text
 	 */
 	private function log( string $type, int $contentId, string $text ): void {
-		$this->dbLog->addLogEntry( $type, 'extract', __CLASS__, "Content $contentId: $text" );
+		Log::to( 'db' )->$type( "Content $contentId: $text" );
 	}
 }

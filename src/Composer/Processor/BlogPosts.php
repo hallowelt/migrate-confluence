@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
@@ -59,11 +60,11 @@ class BlogPosts extends ContentProcessorBase {
 
 		foreach ( $wikiTitles as $blogPostId => $blogPostTitle ) {
 			if ( $this->skipHelper->skipBlogPost( $blogPostTitle ) ) {
-				$this->output->writeln( "Skip blog post $blogPostTitle." );
+				Log::to( 'console' )->info( "Skip blog post $blogPostTitle." );
 				$this->deploymentInfo->addSkippedPage( $blogPostTitle );
 				continue;
 			}
-			$this->output->writeln( "Processing blog post '$blogPostTitle' ..." );
+			Log::to( 'console' )->debug( "Processing blog post '$blogPostTitle' ..." );
 
 			$namespace = $this->getNamespace( $blogPostTitle );
 			$this->registerPageConstraints(

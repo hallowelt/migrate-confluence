@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
@@ -142,7 +143,7 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	 */
 	protected function skipAttachmentId( int $attachmentId, string $title ): bool {
 		if ( $this->dataLookup->isAttachmentInvalid( $attachmentId ) ) {
-			$this->output->writeln( "Attachment $title skipped due to invalid title or content" );
+			Log::to( 'console' )->warning( "Attachment $title skipped due to invalid title or content" );
 			return true;
 		}
 		return false;

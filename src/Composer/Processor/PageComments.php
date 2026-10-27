@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
@@ -61,7 +62,7 @@ class PageComments extends ContentProcessorBase {
 	private function addCommentPages(): void {
 		$comments = $this->getComments();
 		if ( empty( $comments ) ) {
-			$this->output->writeln( "No comments found, skipping comment processing." );
+			Log::to( 'console' )->info( "No comments found, skipping comment processing." );
 			return;
 		}
 
@@ -72,12 +73,12 @@ class PageComments extends ContentProcessorBase {
 			$talkTitle = $this->getTalkTitle( $pageId );
 
 			if ( $wikiTitle === null || $talkTitle === null ) {
-				$this->output->writeln( "Warning: No title found for page ID $pageId, skipping comments." );
+				Log::to( 'console' )->warning( "No title found for page ID $pageId, skipping comments." );
 				continue;
 			}
 
 			if ( $this->skip( $wikiTitle, $talkTitle ) ) {
-				$this->output->writeln( "Skip page $talkTitle." );
+				Log::to( 'console' )->info( "Skip page $talkTitle." );
 				$this->deploymentInfo->addSkippedPage( $talkTitle );
 				continue;
 			}
@@ -88,7 +89,7 @@ class PageComments extends ContentProcessorBase {
 				continue;
 			}
 
-			$this->output->writeln( "Adding comments for Talk page '$talkTitle'..." );
+			Log::to( 'console' )->debug( "Adding comments for Talk page '$talkTitle'..." );
 			$this->registerPageConstraints( $talkTitle, $this->dataLookup->getPageConstraints( $pageId ) );
 			$this->appendTalkPageWithComments( $talkTitle, $commentsData );
 		}
@@ -176,7 +177,7 @@ class PageComments extends ContentProcessorBase {
 			$wikiTitle = $comment['wiki_title'];
 
 			if ( $this->skipHelper->skipWikiTitle( $wikiTitle ) ) {
-				$this->output->writeln( "Skip comments for title $wikiTitle." );
+				Log::to( 'console' )->info( "Skip comments for title $wikiTitle." );
 				continue;
 			}
 
@@ -187,7 +188,7 @@ class PageComments extends ContentProcessorBase {
 			if ( $wikiTitle === null || $wikiTitle === '' ) {
 				continue;
 			}
-			$this->output->writeln( "Processing comments for page title $wikiTitle ..." );
+			Log::to( 'console' )->debug( "Processing comments for page title $wikiTitle ..." );
 
 			if ( !isset( $pageIdToCommentsMap[$containerContentId] ) ) {
 				$pageIdToCommentsMap[$containerContentId] = [];
@@ -225,8 +226,8 @@ class PageComments extends ContentProcessorBase {
 			$bodyContentIds = json_decode( $comment['body_content_ids'], true );
 
 			if ( empty( $bodyContentIds ) ) {
-				$this->output->writeln(
-					"Warning: No converted content for comment $commentId, skipping."
+				Log::to( 'console' )->warning(
+					"No converted content for comment $commentId, skipping."
 				);
 				continue;
 			}
@@ -234,8 +235,8 @@ class PageComments extends ContentProcessorBase {
 			$bodyContentId = $bodyContentIds[0];
 			$wikitext = $this->workspace->getConvertedContent( $bodyContentId );
 			if ( empty( $wikitext ) ) {
-				$this->output->writeln(
-					"Warning: No converted content for comment $commentId (body content $bodyContentId), skipping."
+				Log::to( 'console' )->warning(
+					"No converted content for comment $commentId (body content $bodyContentId), skipping."
 				);
 				continue;
 			}

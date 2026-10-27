@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISpaceIdsDependentProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
@@ -82,7 +83,7 @@ abstract class ProcessorBase implements IConfluenceComposerProcessor, ISpaceIdsD
 			return;
 		}
 		if ( $row === null ) {
-			$this->output->writeln( "Warning: No page constraints found for '$wikiTitle'; page is locked down." );
+			Log::to( 'console' )->warning( "No page constraints found for '$wikiTitle'; page is locked down." );
 			$row = PageConstraintsXml::FAIL_CLOSED;
 		}
 		$this->pageConstraints[$wikiTitle] = $row;

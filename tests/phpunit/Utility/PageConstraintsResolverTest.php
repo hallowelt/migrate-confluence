@@ -2,8 +2,6 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Utility;
 
-use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\PageConstraintsResolver;
 use PHPUnit\Framework\TestCase;
 
@@ -18,13 +16,11 @@ class PageConstraintsResolverTest extends TestCase {
 	}
 
 	private function resolver( array $restrictions, array $parents = [], array $groups = [] ): PageConstraintsResolver {
-		$db = ( new WorkspaceDbMock() )->createEmpty();
 		return new PageConstraintsResolver(
 			$restrictions,
 			$parents,
 			static fn ( string $key ) => [ 'k1' => 'Alice', 'k2' => 'Bob' ][$key] ?? null,
-			static fn ( string $group ) => $groups[$group] ?? null,
-			new DBLog( $db )
+			static fn ( string $group ) => $groups[$group] ?? null
 		);
 	}
 

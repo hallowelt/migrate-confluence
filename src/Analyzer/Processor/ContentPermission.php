@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
@@ -60,10 +61,7 @@ class ContentPermission extends ProcessorBase {
 
 		if ( $groupName === '' && $userKey === '' ) {
 			// Stored anyway: the restriction list stays restrictive, it just names nobody
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->warning(
 				"Content permission $permissionId names neither a user nor a group."
 			);
 		}
@@ -84,15 +82,12 @@ class ContentPermission extends ProcessorBase {
 
 		if ( !$status ) {
 			$xmlFile = $this->xmlReader->baseURI;
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Content permission ID $permissionId already exists in the database."
 					. " Source directory: '" . dirname( $xmlFile ) . "', file: '" . basename( $xmlFile ) . "'."
 			);
 		}
 
-		$this->output->writeln( "Add content permission (ID:$permissionId)" );
+		Log::to( 'console' )->debug( "Add content permission (ID:$permissionId)" );
 	}
 }

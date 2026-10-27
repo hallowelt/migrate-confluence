@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\Mediawiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
@@ -53,7 +54,7 @@ class Files extends FileProcessorBase {
 	 * @return void
 	 */
 	private function addPageAttachments(): void {
-		$this->output->writeln( "\nAdding page attachments...\n" );
+		Log::to( 'console' )->debug( "Adding page attachments..." );
 
 		$pageAttachments = [];
 		if ( is_array( $this->currentSpaceIds ) ) {
@@ -72,10 +73,10 @@ class Files extends FileProcessorBase {
 				$pageAttachment['page_id']
 			);
 			if ( $this->skipHelper->skipWikiTitle( $assocPageTitle ) ) {
-				$this->output->writeln( "Skip attachments for page title $assocPageTitle." );
+				Log::to( 'console' )->info( "Skip attachments for page title $assocPageTitle." );
 				continue;
 			}
-			$this->output->writeln( "Processing attachments for page title $assocPageTitle ..." );
+			Log::to( 'console' )->debug( "Processing attachments for page title $assocPageTitle ..." );
 			$this->processAttachment(
 				$pageAttachment,
 				$assocPageTitle,
@@ -90,7 +91,7 @@ class Files extends FileProcessorBase {
 	 * @return void
 	 */
 	private function addBlogPostAttachments(): void {
-		$this->output->writeln( "\nAdding blog post attachments...\n" );
+		Log::to( 'console' )->debug( "Adding blog post attachments..." );
 
 		$blogPostAttachments = [];
 		if ( is_array( $this->currentSpaceIds ) ) {
@@ -109,10 +110,10 @@ class Files extends FileProcessorBase {
 				$blogPostAttachment['blog_post_id']
 			);
 			if ( $this->skipHelper->skipWikiTitle( $assocPageTitle ) ) {
-				$this->output->writeln( "Skip attachments for blog post title $assocPageTitle." );
+				Log::to( 'console' )->info( "Skip attachments for blog post title $assocPageTitle." );
 				continue;
 			}
-			$this->output->writeln( "Processing attachments for blog post title $assocPageTitle ..." );
+			Log::to( 'console' )->debug( "Processing attachments for blog post title $assocPageTitle ..." );
 			$this->processAttachment(
 				$blogPostAttachment,
 				$assocPageTitle,
@@ -165,22 +166,22 @@ class Files extends FileProcessorBase {
 				$filePath = $attachment['attachment_reference'];
 
 				if ( file_exists( $filePath ) ) {
-					$this->output->writeln( "Attachment: $filename in version from $timestamp" );
+					Log::to( 'console' )->debug( "Attachment: $filename in version from $timestamp" );
 				} else {
-					$this->output->writeln( "Attachment $filename in version from $timestamp was not found!" );
+					Log::to( 'console' )->warning( "Attachment $filename in version from $timestamp was not found!" );
 					continue;
 				}
 
 				$doHardLinks = true;
 				$testFilePath = $this->dest . '/images/' . $filename;
 				if ( file_exists( $testFilePath ) ) {
-					$this->output->writeln( "Attachment file override detected. Using override!" );
+					Log::to( 'console' )->info( "Attachment file override detected. Using override!" );
 					$filePath = $testFilePath;
 					$doHardLinks = false;
 				} elseif ( file_exists( $filePath ) ) {
-					$this->output->writeln( "Upload attachment file." );
+					Log::to( 'console' )->debug( "Upload attachment file." );
 				} else {
-					$this->output->writeln( "Attachment file not found (ID: $attachmentId)!" );
+					Log::to( 'console' )->warning( "Attachment file not found (ID: $attachmentId)!" );
 					continue;
 				}
 
@@ -203,7 +204,8 @@ class Files extends FileProcessorBase {
 				// Log file extension
 				$this->deploymentInfo->addFileExtension( $attachment['file_extension'] );
 			} else {
-				$this->output->writeln( "Attachment file was not found!" );
+				Log::to( 'console' )->warning(
+					"Attachment file '{$attachment['attachment_reference']}' was not found!" );
 			}
 		}
 	}
@@ -214,7 +216,7 @@ class Files extends FileProcessorBase {
 	 * @return void
 	 */
 	private function addAdditionalAttachments(): void {
-		$this->output->writeln( "\nAdding additional attachments...\n" );
+		Log::to( 'console' )->debug( "Adding additional attachments..." );
 
 		$additionalAttachments = [];
 		if ( is_array( $this->currentSpaceIds ) ) {
@@ -256,9 +258,10 @@ class Files extends FileProcessorBase {
 					$filePath = $attachment['attachment_reference'];
 
 					if ( file_exists( $filePath ) ) {
-						$this->output->writeln( "Attachment: $filename" );
+						Log::to( 'console' )->debug( "Attachment: $filename" );
 					} else {
-						$this->output->writeln( "Attachment file was not found!" );
+						Log::to( 'console' )->warning(
+							"Attachment file '{$attachment['attachment_reference']}' was not found!" );
 						continue;
 					}
 
@@ -266,13 +269,13 @@ class Files extends FileProcessorBase {
 					// Check for temporary files created by converter (e.g. a drawio file)
 					$testFilePath = $this->dest . '/images/' . $filename;
 					if ( file_exists( $testFilePath ) ) {
-						$this->output->writeln( "Attachment file override detected. Using override!" );
+						Log::to( 'console' )->info( "Attachment file override detected. Using override!" );
 						$filePath = $testFilePath;
 						$doHardLinks = false;
 					} elseif ( file_exists( $filePath ) ) {
-						$this->output->writeln( "Upload attachment file." );
+						Log::to( 'console' )->debug( "Upload attachment file." );
 					} else {
-						$this->output->writeln( "Attachment file not found (ID: $attachmentId)!" );
+						Log::to( 'console' )->warning( "Attachment file not found (ID: $attachmentId)!" );
 						continue;
 					}
 
@@ -305,7 +308,8 @@ class Files extends FileProcessorBase {
 					// Log file extension
 					$this->deploymentInfo->addFileExtension( $attachment['file_extension'] );
 				} else {
-					$this->output->writeln( "Attachment file was not found!" );
+					Log::to( 'console' )->warning(
+						"Attachment file '{$attachment['attachment_reference']}' was not found!" );
 				}
 			}
 		}
@@ -320,7 +324,7 @@ class Files extends FileProcessorBase {
 	 * @return void
 	 */
 	private function addGeneratedSvgs(): void {
-		$this->output->writeln( "\nAdding generated SVGs...\n" );
+		Log::to( 'console' )->debug( "Adding generated SVGs..." );
 
 		$generatedSvgs = [];
 		if ( is_array( $this->currentSpaceIds ) ) {
@@ -340,16 +344,16 @@ class Files extends FileProcessorBase {
 			$filename = $generatedSvg['svg_filename'];
 
 			if ( $this->skipHelper->skipWikiTitle( $filename ) ) {
-				$this->output->writeln( "Skip generated SVG $filename." );
+				Log::to( 'console' )->info( "Skip generated SVG $filename." );
 				continue;
 			}
 
 			$filePath = $this->dest . '/images/' . $filename;
 			if ( !file_exists( $filePath ) ) {
-				$this->output->writeln( "Generated SVG not found: $filename" );
+				Log::to( 'console' )->warning( "Generated SVG not found: $filename" );
 				continue;
 			}
-			$this->output->writeln( "Generated SVG: $filename" );
+			Log::to( 'console' )->debug( "Generated SVG: $filename" );
 
 			$svgContent = file_get_contents( $filePath );
 			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $svgContent, $uploadPath );

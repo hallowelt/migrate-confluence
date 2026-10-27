@@ -13,7 +13,6 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 	 */
 	public function testBuildsWikiTitleForPageTemplate(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -29,7 +28,7 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 			'current'
 		);
 
-		$processor = new UpdatePageTemplatesWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdatePageTemplatesWithWikiTitle( $workspaceDB, $writer );
 		$processor->execute();
 
 		$pageTemplate = $this->findRowById( $workspaceDB->getPageTemplates(), 'template_id', 700 );
@@ -57,7 +56,6 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 	 */
 	public function testResolvesDuplicateWikiTitlesInSameRun(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -75,7 +73,7 @@ class UpdatePageTemplatesWithWikiTitleTest extends TestCase {
 			);
 		}
 
-		$processor = new UpdatePageTemplatesWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdatePageTemplatesWithWikiTitle( $workspaceDB, $writer );
 		$processor->execute();
 
 		$pageTemplates = $workspaceDB->getPageTemplates();

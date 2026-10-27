@@ -3,13 +3,14 @@
 namespace HalloWelt\MigrateConfluence\Database;
 
 use Exception;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\LogEntryWriter;
 use InvalidArgumentException;
 use RuntimeException;
 use SQLite3;
 use SQLite3Result;
 use SQLite3Stmt;
 
-class WorkspaceDB {
+class WorkspaceDB implements LogEntryWriter {
 
 	/** @var SQLite3 */
 	private SQLite3 $db;
@@ -226,6 +227,7 @@ class WorkspaceDB {
 		} catch ( Exception $e ) {
 			if ( $e->getCode() === self::SQLITE_CONSTRAINT_ERROR_CODE ) {
 				$this->addLogEntry(
+					date( DATE_ATOM ),
 					'warning',
 					'',
 					__CLASS__,
@@ -383,6 +385,7 @@ class WorkspaceDB {
 	private function createTableLogging(): void {
 		$this->db->exec(
 			'CREATE TABLE IF NOT EXISTS logging (
+				timestamp CHAR,
 				type CHAR,
 				step CHAR,
 				caller CHAR,
@@ -1176,22 +1179,20 @@ class WorkspaceDB {
 	}
 
 	/**
-	 * @param string $type
-	 * @param string $step
-	 * @param string $caller
-	 * @param string $text
-	 * @return void
+	 * @inheritDoc
 	 */
 	public function addLogEntry(
-		string $type, string $step, string $caller, string $text
+		string $timestamp, string $type, string $step, string $caller, string $text
 	): void {
 		$transaction = $this->cachedPrepare(
 			'INSERT INTO logging (
+				timestamp,
 				type,
 				step,
 				caller,
 				text
 			) VALUES (
+				:timestamp,
 				:type,
 				:step,
 				:caller,
@@ -1199,6 +1200,7 @@ class WorkspaceDB {
 			)'
 		);
 
+		$transaction->bindValue( ':timestamp', $timestamp, SQLITE3_TEXT );
 		$transaction->bindValue( ':type', $type, SQLITE3_TEXT );
 		$transaction->bindValue( ':step', $step, SQLITE3_TEXT );
 		$transaction->bindValue( ':caller', $caller, SQLITE3_TEXT );
@@ -1208,13 +1210,13 @@ class WorkspaceDB {
 
 	/**
 	 * @param string $step
-	 * @param string $type
+	 * @param string $type Level name, matched case-insensitively
 	 * @return array
 	 */
 	public function getLogEntriesForStep( string $step, string $type = '' ): array {
 		if ( $type !== '' ) {
 			$transaction = $this->cachedPrepare(
-				'SELECT caller,text FROM logging WHERE step = :step AND type = :type'
+				'SELECT caller,text FROM logging WHERE step = :step AND type = :type COLLATE NOCASE'
 			);
 			$transaction->bindValue( ':step', $step, SQLITE3_TEXT );
 			$transaction->bindValue( ':type', $type, SQLITE3_TEXT );

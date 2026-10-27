@@ -2,10 +2,10 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PageConstraintsResolver;
 
@@ -16,17 +16,15 @@ class ExtractPageConstraints extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
-	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
 		WorkspaceDB $workspaceDB,
-		DBLog $dbLog,
 		IExtractorDataWriter $writer,
 		protected MigrationConfig $migrationConfig
 	) {
-		parent::__construct( $workspaceDB, $dbLog, $writer );
+		parent::__construct( $workspaceDB, $writer );
 	}
 
 	/**
@@ -38,7 +36,6 @@ class ExtractPageConstraints extends ProcessorBase {
 			$this->workspaceDB->getMapPageIdtoParentPageId(),
 			fn ( string $userKey ) => $this->workspaceDB->getUsernameFromUserKey( $userKey ),
 			fn ( string $group ) => $this->workspaceDB->getWikiGroupName( $group ),
-			$this->dbLog
 		);
 
 		$contents = array_merge(
@@ -84,10 +81,7 @@ class ExtractPageConstraints extends ProcessorBase {
 			$type = strtolower( (string)$set['permission_type'] );
 			if ( $contentId <= 0 || !in_array( $type, [ 'view', 'edit' ], true ) ) {
 				// Share and unknown types have no counterpart in the wiki
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->warning(
 					"Permission set {$set['set_id']} (content: $contentId, type: '{$set['permission_type']}') ignored."
 				);
 				continue;

@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
@@ -59,11 +60,11 @@ class Pages extends ContentProcessorBase {
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
 			if ( $this->skipHelper->skipPage( $pageTitle ) ) {
-				$this->output->writeln( "Skip page $pageTitle." );
+				Log::to( 'console' )->info( "Skip page $pageTitle." );
 				$this->deploymentInfo->addSkippedPage( $pageTitle );
 				continue;
 			}
-			$this->output->writeln( "Processing page '$pageTitle' ..." );
+			Log::to( 'console' )->debug( "Processing page '$pageTitle' ..." );
 
 			$namespace = $this->getNamespace( $pageTitle );
 			$this->registerPageConstraints( $pageTitle, $this->dataLookup->getPageConstraints( $pageId ) );
@@ -73,7 +74,7 @@ class Pages extends ContentProcessorBase {
 			$homepageId = $this->dataLookup->getSpaceHomepageIdForSpaceId( $spaceId );
 
 			if ( $pageId === $homepageId ) {
-				$this->output->writeln(
+				Log::to( 'console' )->info(
 					"Page '$pageTitle' is a homepage, adding space description to page content if applicable..."
 				);
 				$revisions = $this->dataLookup->getPageRevisionsForPageId( $homepageId );

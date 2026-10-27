@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Database\DataWriter;
 interface IDataWriter {
 
 	/**
+	 * @param string $timestamp ISO 8601
 	 * @param string $type
 	 * @param string $step
 	 * @param string $caller
@@ -13,7 +14,7 @@ interface IDataWriter {
 	 * @return void
 	 */
 	public function addLogEntry(
-		string $type, string $step, string $caller, string $text
+		string $timestamp, string $type, string $step, string $caller, string $text
 	): void;
 
 	/**

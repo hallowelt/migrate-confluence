@@ -15,7 +15,6 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 	 */
 	public function testBuildsWikiTitleForCurrentTopLevelPage(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -26,7 +25,6 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 
 		$processor = new UpdatePagesTableWithWikiTitle(
 			$workspaceDB,
-			$dbLog,
 			$writer,
 			new MigrationConfig( [] ),
 			new WikisConfig( $workspaceDB )
@@ -52,7 +50,6 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 	 */
 	public function testEachWikiKeepsItsOwnMainPageWhenMigratingMultipleWikis(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		// Two spaces mapped (via --wikis) to two different output wikis, both without a
@@ -71,7 +68,6 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 
 		$processor = new UpdatePagesTableWithWikiTitle(
 			$workspaceDB,
-			$dbLog,
 			$writer,
 			new MigrationConfig( [] ),
 			new WikisConfig( $workspaceDB )
@@ -99,7 +95,6 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 	 */
 	public function testCurrentPageIsNotSuffixedDueToCollidingWithDeletedPages(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -120,7 +115,6 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 
 		$processor = new UpdatePagesTableWithWikiTitle(
 			$workspaceDB,
-			$dbLog,
 			$writer,
 			new MigrationConfig( [] ),
 			new WikisConfig( $workspaceDB )

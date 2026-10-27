@@ -5,17 +5,18 @@ namespace HalloWelt\MigrateConfluence\Command;
 use HalloWelt\MediaWiki\Lib\CommandLineTools\Commands\BatchFileProcessorBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerPipeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
+use HalloWelt\MigrateConfluence\Database\DataWriter\PipeLogEntryWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\CSVParser;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Sanitizer;
 use HalloWelt\MigrateConfluence\Utility\Version;
@@ -125,14 +126,16 @@ class Analyze extends BatchFileProcessorBase {
 
 		$this->dest = realpath( $input->getOption( 'dest' ) );
 		if ( !is_dir( $this->dest ) ) {
-			$output->writeln( "Destination does not exist" );
+			Log::to( 'console' )->error( "Destination does not exist" );
 			return Command::FAILURE;
 		}
 
 		if ( $isChildProcess ) {
 			$workspaceDB = WorkspaceDB::open( $this->dest );
 			$this->wikisConfig = new WikisConfig( $workspaceDB );
-			$this->dataWriter = new AnalyzerPipeDataWriter( new PipeChannel() );
+			$channel = new PipeChannel();
+			Log::setDatabaseHandler( new PipeLogEntryWriter( $channel ) );
+			$this->dataWriter = new AnalyzerPipeDataWriter( $channel );
 
 			try {
 				return parent::execute( $input, $output );
@@ -142,6 +145,7 @@ class Analyze extends BatchFileProcessorBase {
 		}
 
 		$workspaceDB = WorkspaceDB::create( $this->dest );
+		Log::setDatabaseHandler( $workspaceDB );
 		$this->readWikisConfigFile( $workspaceDB );
 		if ( $this->getMigrationConfig()->getAddUserinfo() ) {
 			$this->readUsermapFile( $workspaceDB );
@@ -149,13 +153,7 @@ class Analyze extends BatchFileProcessorBase {
 		$this->readGroupmapFile( $workspaceDB );
 		$this->wikisConfig = new WikisConfig( $workspaceDB );
 
-		$dbLog = new DBLog( $workspaceDB );
-		$dbLog->addLogEntry(
-			'info',
-			'analyze',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
+		Log::to( 'db' )->info( sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() ) );
 
 		if ( $workers > 1 ) {
 			$pool = new WorkerPool( $output, new AnalyzerDirectDataWriter( $workspaceDB ) );
@@ -186,7 +184,7 @@ class Analyze extends BatchFileProcessorBase {
 	 * @throws Throwable
 	 */
 	protected function processFile( SplFileInfo $file ): bool {
-		$this->output->writeln( "Analyzing file '{$this->currentFile->getFilename()}'" );
+		Log::to( 'console' )->debug( "Analyzing file '{$this->currentFile->getFilename()}'" );
 
 		$analyzer = new ConfluenceAnalyzer(
 			$this->dataWriter,
@@ -208,7 +206,7 @@ class Analyze extends BatchFileProcessorBase {
 	 */
 	private function logExecutionTime( OutputInterface $output, ?string $dest = null ): void {
 		$time = $this->executionTime->getHumanReadableTime();
-		$output->writeln( "\nExecution time: {$time}\n" );
+		Log::to( 'console' )->info( "Execution time: {$time}" );
 
 		$dest = $dest ?? $this->dest;
 		$workspace = new Workspace( new SplFileInfo( $dest ) );
@@ -230,11 +228,11 @@ class Analyze extends BatchFileProcessorBase {
 			$validationError = $configOptionHelper->validateFile();
 
 			if ( $validationError !== null ) {
-				$this->output->writeln( $validationError );
+				Log::to( 'console' )->error( $validationError );
 				exit( 1 );
 			} else {
 				$advancedConfig = $configOptionHelper->getConfig();
-				$this->output->writeln( 'Config file loaded successfully' );
+				Log::to( 'console' )->debug( 'Config file loaded successfully' );
 			}
 		}
 
@@ -278,7 +276,7 @@ class Analyze extends BatchFileProcessorBase {
 			$error = '';
 			$isValid = $csvParser->validateFile( $error );
 			if ( !$isValid ) {
-				$this->output->writeln( $error );
+				Log::to( 'console' )->error( $error );
 				exit( 1 );
 			}
 
@@ -323,7 +321,7 @@ class Analyze extends BatchFileProcessorBase {
 			$error = '';
 			$isValid = $csvParser->validateFile( $error );
 			if ( !$isValid ) {
-				$this->output->writeln( $error );
+				Log::to( 'console' )->error( $error );
 				exit( 1 );
 			}
 
