@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\WikiTitleUniquifier;
 use RuntimeException;
@@ -27,10 +28,7 @@ class UpdatePageCommentsTableWithWikiTitle extends ProcessorBase {
 			$pageId = (int)$comment['page_id'];
 			$wikiTitle = $this->workspaceDB->getWikiPageTitleFromPageId( $pageId );
 			if ( $wikiTitle === null || $wikiTitle === '' ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->warning(
 					"No wiki title found for page comment ID $commentId (page ID $pageId)"
 				);
 				continue;
@@ -60,10 +58,10 @@ class UpdatePageCommentsTableWithWikiTitle extends ProcessorBase {
 		foreach ( $commentIdToWikiTitleMap as $commentId => $talkTitle ) {
 			if ( !$this->workspaceDB->updatePageCommentWikiTitle( (int)$commentId, $talkTitle ) ) {
 				$message = "Could not persist wiki title for page comment ID $commentId";
-				$this->dbLog->addLogEntry( 'error', 'extract', __CLASS__, $message );
+				Log::to( 'db' )->error( $message );
 				throw new RuntimeException( $message );
 			}
-			$this->writeln( "Updated wiki title for page comment ID $commentId with title '$talkTitle'" );
+			Log::to( 'console' )->debug( "Updated wiki title for page comment ID $commentId with title '$talkTitle'" );
 		}
 	}
 }

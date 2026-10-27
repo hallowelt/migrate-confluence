@@ -12,8 +12,10 @@ abstract class AbstractPipeDataWriter implements IDataWriter {
 		$this->channel->send( [ $method, ...$args ] );
 	}
 
-	public function addLogEntry( string $type, string $step, string $caller, string $text ): void {
-		$this->send( __FUNCTION__, $type, $step, $caller, $text );
+	public function addLogEntry(
+		string $timestamp, string $type, string $step, string $caller, string $text
+	): void {
+		$this->send( __FUNCTION__, $timestamp, $type, $step, $caller, $text );
 	}
 
 	public function beginTransaction(): void {

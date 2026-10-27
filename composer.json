@@ -19,17 +19,17 @@
 		"url": "https://packages.bluespice.com/"
 	}],
 	"require": {
-		"psr/log": "~1.1",
+		"psr/log": "3.0.2",
 		"hallowelt/mediawiki-lib-mediawikixml": "~1",
 		"hallowelt/mediawiki-lib-commandline-tools": "~2",
-		"hallowelt/mediawiki-lib-migration": "~3",
+		"hallowelt/mediawiki-lib-migration": "^3",
 		"hallowelt/mediawiki-lib-wikitext": "~1",
 		"ext-dom": "*",
 		"ext-mbstring": "*",
-		"symfony/yaml": "^7.0"
+		"symfony/yaml": "^8.1"
 	},
 	"require-dev": {
-		"mediawiki/mediawiki-codesniffer": "52.0.0",
+		"mediawiki/mediawiki-codesniffer": "52.0.1",
 		"mediawiki/mediawiki-phan-config": "^0.20.0",
 		"mediawiki/minus-x": "2.0.1",
 		"php-parallel-lint/php-console-highlighter": "^1.0",

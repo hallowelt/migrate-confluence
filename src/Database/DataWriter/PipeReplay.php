@@ -56,6 +56,6 @@ class PipeReplay {
 	}
 
 	private function logInvalid( string $line ): void {
-		$this->target->addLogEntry( 'error', 'replay.invalid-worker-output', __CLASS__, $line );
+		$this->target->addLogEntry( date( DATE_ATOM ), 'error', 'replay.invalid-worker-output', __CLASS__, $line );
 	}
 }
