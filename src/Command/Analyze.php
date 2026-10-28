@@ -11,6 +11,7 @@ use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerPipeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeLogEntryWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
@@ -40,6 +41,10 @@ class Analyze extends BatchFileProcessorBase {
 	 * @var WikisConfig
 	 */
 	private WikisConfig $wikisConfig;
+
+	private ?MigrationConfig $migrationConfig = null;
+
+	use SetupHooks;
 
 	/**
 	 * @param array $config
@@ -121,6 +126,8 @@ class Analyze extends BatchFileProcessorBase {
 			Log::to( 'console' )->error( "Destination does not exist" );
 			return Command::FAILURE;
 		}
+
+		$this->installCustomerHooks( $this->getMigrationConfig(), $this->input->getOption( 'config' ) );
 
 		if ( $isChildProcess ) {
 			$workspaceDB = WorkspaceDB::open( $this->dest );
@@ -211,23 +218,26 @@ class Analyze extends BatchFileProcessorBase {
 	 * @return MigrationConfig
 	 */
 	private function getMigrationConfig(): MigrationConfig {
-		$filename = $this->input->getOption( 'config' );
+		if ( !$this->migrationConfig ) {
+			$filename = $this->input->getOption( 'config' );
 
-		$advancedConfig = [];
-		if ( !empty( $filename ) ) {
-			$configOptionHelper = new ConfigOptionHelper( $filename );
-			$validationError = $configOptionHelper->validateFile();
+			$config = [];
+			if ( !empty( $filename ) ) {
+				$configOptionHelper = new ConfigOptionHelper( $filename );
+				$validationError = $configOptionHelper->validateFile();
 
-			if ( $validationError !== null ) {
-				Log::to( 'console' )->error( $validationError );
-				exit( 1 );
-			} else {
-				$advancedConfig = $configOptionHelper->getConfig();
-				Log::to( 'console' )->debug( 'Config file loaded successfully' );
+				if ( $validationError !== null ) {
+					Log::to( 'console' )->error( $validationError );
+					exit( 1 );
+				} else {
+					$config = $configOptionHelper->getConfig();
+					Log::to( 'console' )->debug( 'Config file loaded successfully' );
+				}
 			}
-		}
 
-		return new MigrationConfig( $advancedConfig );
+			$this->migrationConfig = new MigrationConfig( $config );
+		}
+		return $this->migrationConfig;
 	}
 
 	/**

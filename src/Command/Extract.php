@@ -9,6 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IExtractor;
 use HalloWelt\MediaWiki\Lib\Migration\IFileProcessorEventHandler;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
+use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use Symfony\Component\Console\Command\Command;
@@ -25,6 +26,8 @@ class Extract extends CommandExtract {
 	 * @var array
 	 */
 	protected $eventhandlers = [];
+
+	use SetupHooks;
 
 	/**
 	 * @inheritDoc
@@ -56,6 +59,7 @@ class Extract extends CommandExtract {
 	 */
 	protected function beforeProcessFiles() {
 		$this->readConfigFile( $this->config );
+		$this->installCustomerHooks( $this->config, $this->input->getOption( 'config' ) );
 		parent::beforeProcessFiles();
 		// Explicitly reset the persisted data
 		$this->buckets = new DataBuckets( $this->getBucketKeys() );

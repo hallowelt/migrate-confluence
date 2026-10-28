@@ -100,6 +100,7 @@ use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\HookHandler;
 use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
@@ -381,6 +382,25 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$this->addFolderTemplateIfApplicable();
 
 		$this->postprocessWikiText();
+
+		/**
+		 * @migrate-filter convert-content-post
+		 *
+		 * Allow modification of the output after processing
+		 *
+		 * @since 8.0.0
+		 * @param string $sContent content after all processing
+		 * @param array $context context information including pageId,
+		 *              wikiPageTitle, confluencePageTitle, currentSpace, and contentType
+		 * @param DBConversionDataLookup $dataLookup data lookup object
+		 */
+		$this->wikiText = HookHandler::filter( 'convert-content-post', $this->wikiText, [
+			'pageId' => $this->pageId,
+			'wikiPageTitle' => $this->wikiPageTitle,
+			'confluencePageTitle' => $this->confluencePageTitle,
+			'currentSpace' => $this->currentSpace,
+			'contentType' => $this->contentType,
+		], $this->dataLookup );
 
 		$this->checkContentLength( $bodyContentId );
 
@@ -822,6 +842,25 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 	 */
 	protected function preprocessHTMLSource( SplFileInfo $oHTMLSourceFile ): string {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
+
+		/**
+		 * @migrate-filter convert-content-pre
+		 *
+		 * Allow modification of the raw input before processing it.
+		 *
+		 * @since 8.0.0
+		 * @param string $sContent content before any processing
+		 * @param array $context context information including pageId, wikiPageTitle, confluencePageTitle,
+		 *						 currentSpace, and contentType
+		 * @param DBConversionDataLookup $dataLookup data lookup object
+		 */
+		$sContent = HookHandler::filter( 'convert-content-pre', $sContent, [
+			'pageId' => $this->pageId,
+			'wikiPageTitle' => $this->wikiPageTitle,
+			'confluencePageTitle' => $this->confluencePageTitle,
+			'currentSpace' => $this->currentSpace,
+			'contentType' => $this->contentType,
+		], $this->dataLookup );
 
 		$preprocessors = [
 			new CDATAClosingFixer()

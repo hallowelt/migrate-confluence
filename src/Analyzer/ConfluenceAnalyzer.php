@@ -20,6 +20,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
+use HalloWelt\MigrateConfluence\Utility\HookHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use InvalidArgumentException;
@@ -66,6 +67,21 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	 */
 	public function analyze( SplFileInfo $file ): bool {
 		if ( $file->getFilename() !== 'entities.xml' ) {
+			return true;
+		}
+
+		/**
+		 * @migrate-filter include-import-file
+		 *
+		 * Control whether the current entities.xml file should be considered.
+		 *
+		 * @since 8.0.0
+		 * @param bool $value whether to include the file. Defaults to true.
+		 * @param SplFileInfo $file the import XML file currently processed
+		 */
+		$includeFile = HookHandler::filter( 'include-import-file', true, $file );
+		if ( !$includeFile ) {
+			$this->output->writeln( "Skipping file due to config: " . $file->getPathname() );
 			return true;
 		}
 
