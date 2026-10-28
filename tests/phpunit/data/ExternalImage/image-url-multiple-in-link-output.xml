@@ -1,0 +1,5 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		{{ExternalImage|link=https://example.com/target|url=https://example.com/a.png|width=10}}{{ExternalImage|link=https://example.com/target|url=https://example.com/b.png|width=20}}
+	</p>
+</xml>
