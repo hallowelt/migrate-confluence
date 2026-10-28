@@ -96,7 +96,7 @@ $processors = [
 - Indicate progress: "Processing 250/1000 pages..."
 
 ### Logging
-- Use `DBLog` for errors or warnings
+- Use `Log::to( 'db' )` (or `Log::to( 'db', 'console' )`) for errors or warnings
 - Log skipped items and reasons
 - Log final statistics
 

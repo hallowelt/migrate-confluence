@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
@@ -52,15 +53,12 @@ class Labelling extends ProcessorBase {
 			$xmlFile = $this->xmlReader->baseURI;
 			$xmlDir = dirname( $xmlFile );
 			$xmlFilename = basename( $xmlFile );
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Labelling ID $labellingId already exists in the database."
 					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);
 		}
 
-		$this->output->writeln( "Add labelling (ID:$labellingId)" );
+		Log::to( 'console' )->debug( "Add labelling (ID:$labellingId)" );
 	}
 }

@@ -2,21 +2,28 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\UpdateBlogPostCommentsTableWithWikiTitle;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 class UpdateBlogPostCommentsTableWithWikiTitleTest extends TestCase {
+
+	protected function tearDown(): void {
+		Log::setDatabaseHandler( null );
+		Log::setStep( '' );
+		parent::tearDown();
+	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\UpdateBlogPostCommentsTableWithWikiTitle::execute
 	 */
 	public function testConvertsBlogNamespaceForAllValidComments(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$dbLog = $this->createMock( DBLog::class );
+		Log::setDatabaseHandler( $workspaceDB );
+		Log::setStep( 'extract' );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getBlogPostComments' )->willReturn( [
@@ -44,9 +51,9 @@ class UpdateBlogPostCommentsTableWithWikiTitleTest extends TestCase {
 			)
 			->willReturn( true );
 
-		$dbLog->expects( $this->never() )->method( 'addLogEntry' );
+		$workspaceDB->expects( $this->never() )->method( 'addLogEntry' );
 
-		$processor = new UpdateBlogPostCommentsTableWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdateBlogPostCommentsTableWithWikiTitle( $workspaceDB, $writer );
 		$processor->execute();
 	}
 
@@ -55,7 +62,8 @@ class UpdateBlogPostCommentsTableWithWikiTitleTest extends TestCase {
 	 */
 	public function testMakesGeneratedTalkTitlesUnique(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$dbLog = $this->createMock( DBLog::class );
+		Log::setDatabaseHandler( $workspaceDB );
+		Log::setStep( 'extract' );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getBlogPostComments' )->willReturn( [
@@ -73,7 +81,7 @@ class UpdateBlogPostCommentsTableWithWikiTitleTest extends TestCase {
 			)
 			->willReturn( true );
 
-		$processor = new UpdateBlogPostCommentsTableWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdateBlogPostCommentsTableWithWikiTitle( $workspaceDB, $writer );
 		$processor->execute();
 	}
 
@@ -82,7 +90,8 @@ class UpdateBlogPostCommentsTableWithWikiTitleTest extends TestCase {
 	 */
 	public function testFailsWhenWikiTitleCannotBePersisted(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$dbLog = $this->createMock( DBLog::class );
+		Log::setDatabaseHandler( $workspaceDB );
+		Log::setStep( 'extract' );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getBlogPostComments' )->willReturn( [
@@ -95,15 +104,16 @@ class UpdateBlogPostCommentsTableWithWikiTitleTest extends TestCase {
 			->method( 'updateBlogPostCommentWikiTitle' )
 			->with( 200, 'Blog_Talk:TEST/Entry' )
 			->willReturn( false );
-		$dbLog->expects( $this->once() )->method( 'addLogEntry' )->with(
-			'error',
+		$workspaceDB->expects( $this->once() )->method( 'addLogEntry' )->with(
+			$this->anything(),
+			'ERROR',
 			'extract',
-			UpdateBlogPostCommentsTableWithWikiTitle::class,
+			$this->anything(),
 			'Could not persist wiki title for blog post comment ID 200'
 		);
 
 		$this->expectException( RuntimeException::class );
-		$processor = new UpdateBlogPostCommentsTableWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdateBlogPostCommentsTableWithWikiTitle( $workspaceDB, $writer );
 		$processor->execute();
 	}
 

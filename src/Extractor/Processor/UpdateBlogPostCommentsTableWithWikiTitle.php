@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\WikiTitleUniquifier;
 use RuntimeException;
@@ -30,10 +31,7 @@ class UpdateBlogPostCommentsTableWithWikiTitle extends ProcessorBase {
 			$blogPostId = (int)$comment['blog_post_id'];
 			$wikiTitle = $this->workspaceDB->getWikiBlogPostTitleFromBlogPostId( $blogPostId );
 			if ( $wikiTitle === null || $wikiTitle === '' ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'extract',
-					__CLASS__,
+				Log::to( 'db' )->warning(
 					"No wiki title found for blog post comment ID $commentId (blog post ID $blogPostId)"
 				);
 				continue;
@@ -59,10 +57,11 @@ class UpdateBlogPostCommentsTableWithWikiTitle extends ProcessorBase {
 		foreach ( $commentIdToWikiTitleMap as $commentId => $wikiTitle ) {
 			if ( !$this->workspaceDB->updateBlogPostCommentWikiTitle( (int)$commentId, $wikiTitle ) ) {
 				$message = "Could not persist wiki title for blog post comment ID $commentId";
-				$this->dbLog->addLogEntry( 'error', 'extract', __CLASS__, $message );
+				Log::to( 'db' )->error( $message );
 				throw new RuntimeException( $message );
 			}
-			$this->writeln( "Updated wiki title for blog post comment ID $commentId with title '$wikiTitle'" );
+			Log::to( 'console' )->debug(
+				"Updated wiki title for blog post comment ID $commentId with title '$wikiTitle'" );
 		}
 	}
 }

@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
@@ -53,11 +54,11 @@ class Templates extends ContentProcessorBase {
 
 		foreach ( $wikiTitles as $templateId => $pageTitle ) {
 			if ( $this->skipHelper->skipTemplate( $pageTitle ) ) {
-				$this->output->writeln( "Skip template '$pageTitle'" );
+				Log::to( 'console' )->info( "Skip template '$pageTitle'" );
 				$this->deploymentInfo->addSkippedPage( $pageTitle );
 				continue;
 			}
-			$this->output->writeln( "Processing template '$pageTitle' ..." );
+			Log::to( 'console' )->debug( "Processing template '$pageTitle' ..." );
 
 			$namespace = $this->getNamespace( $pageTitle );
 

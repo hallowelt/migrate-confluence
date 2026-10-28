@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
+
 /**
  */
 class ExtractBlogPostsMetaData extends ExtractPagesMetaData {
@@ -36,10 +38,7 @@ class ExtractBlogPostsMetaData extends ExtractPagesMetaData {
 				]
 			);
 
-			$this->dbLog->addLogEntry(
-				'info',
-				'extract',
-				__METHOD__,
+			Log::to( 'db' )->info(
 				"Add blog post meta for page {$blogPost['wiki_title']}"
 			);
 		}

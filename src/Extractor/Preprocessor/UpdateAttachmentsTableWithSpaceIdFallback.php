@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 
 /**
@@ -40,7 +41,7 @@ class UpdateAttachmentsTableWithSpaceIdFallback extends ProcessorBase {
 			$attachmentId = (int)$attachment['attachment_id'];
 			$this->writer->updateAttachmentSpaceId( $attachmentId, $spaceId );
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Updated space_id for attachment ID $attachmentId with space_id: $spaceId"
 				. " (inherited from container ID $containerId)"
 			);

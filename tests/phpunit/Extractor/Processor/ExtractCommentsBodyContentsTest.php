@@ -2,14 +2,20 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractCommentsBodyContents;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 
 class ExtractCommentsBodyContentsTest extends TestCase {
+
+	protected function tearDown(): void {
+		Log::setDatabaseHandler( null );
+		Log::setStep( '' );
+		parent::tearDown();
+	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractCommentsBodyContents::execute
@@ -17,7 +23,8 @@ class ExtractCommentsBodyContentsTest extends TestCase {
 	public function testExtractsOnlyPageAndBlogPostComments(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
-		$dbLog = $this->createMock( DBLog::class );
+		Log::setDatabaseHandler( $workspaceDB );
+		Log::setStep( 'extract' );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getComments' )->willReturn( [
@@ -93,9 +100,9 @@ class ExtractCommentsBodyContentsTest extends TestCase {
 			)
 			->willReturnOnConsecutiveCalls( '/content/raw/104.mraw', '/content/raw/105.mraw' );
 
-		$dbLog->expects( $this->exactly( 2 ) )->method( 'addLogEntry' );
+		$workspaceDB->expects( $this->exactly( 2 ) )->method( 'addLogEntry' );
 
-		$processor = new ExtractCommentsBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractCommentsBodyContents( $workspaceDB, $workspace, $writer );
 		$processor->execute();
 	}
 }
