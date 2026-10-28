@@ -1,0 +1,21 @@
+<noinclude>Template added by Confluence migration to handle the "welcome-message" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Show the welcome message. In Confluence, this is the global message from the administration settings, which is not part of a space export. Enter the welcome text as the default of the body parameter in this template.",
+        "de": "Die Willkommensnachricht anzeigen. In Confluence ist dies die globale Nachricht aus den Administrationseinstellungen, die nicht Teil eines Space-Exports ist. Der Willkommenstext muss als Standardwert des Parameters body in dieser Vorlage eingetragen werden."
+    },
+    "params": {
+        "body": {
+            "label": { "en": "Welcome message", "de": "Willkommensnachricht" },
+            "type": "content",
+            "required": false,
+            "description": {
+                "en": "The text to show. Overrides the default for a single use.",
+                "de": "Der anzuzeigende Text. \u00dcberschreibt den Standardwert f\u00fcr eine einzelne Verwendung."
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{{body|}}}</includeonly>
