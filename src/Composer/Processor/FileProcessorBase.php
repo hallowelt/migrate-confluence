@@ -11,6 +11,7 @@ use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DirectoryHelper;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PageConstraintsXml;
 use HalloWelt\MigrateConfluence\Utility\WikiFileXmlBuilder;
 use Symfony\Component\Console\Output\Output;
 
@@ -73,6 +74,20 @@ abstract class FileProcessorBase implements IConfluenceComposerProcessor, ISpace
 	 */
 	public function setCurrentSpaceIds( array $spaceIds ): void {
 		$this->currentSpaceIds = $spaceIds;
+	}
+
+	/**
+	 * Sets the restrictions to be written for a file page.
+	 *
+	 * @param string $fileTitle
+	 * @param array|null $row Stored constraints of the owning content; null means unowned file
+	 * @return void
+	 */
+	protected function registerPageConstraints( string $fileTitle, ?array $row ): void {
+		if ( !$this->migrationConfig->getAddPageConstraints() ) {
+			return;
+		}
+		$this->builder->setPageConstraints( $fileTitle, $row ?? PageConstraintsXml::NONE );
 	}
 
 	/**

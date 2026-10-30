@@ -188,6 +188,14 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * @param int $contentId ID of a page or blog post
+	 * @return array{type: string, timestamp: string, targets: array}|null
+	 */
+	public function getPageConstraints( int $contentId ): ?array {
+		return $this->workspaceDB->getPageConstraintsForContentId( $contentId );
+	}
+
+	/**
 	 * Returns the talk page wiki title for comments on the given page.
 	 *
 	 * @param int $pageId

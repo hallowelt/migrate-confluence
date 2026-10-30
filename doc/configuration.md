@@ -36,6 +36,7 @@ config:
     profile: mediawiki
     csv-delimiter: ","
     add-userinfo: false
+    add-page-constraints: true
 ```
 
 ### `mainpage`
@@ -177,6 +178,16 @@ is the comma as used as default by Excel.
 Add the author information to migrated data. There are some things to consider,
 if you want to enable this feature.
 See [Add Revision Author Info](./how_to_add_author_info.md) for details.
+
+### `add-page-constraints`
+
+* Type: bool
+* Default: `true`
+
+Write the Confluence page restrictions (who may read or edit a page) into the
+import files as `<pageconstraints>` elements. If `false`, the `compose` step
+writes no such elements. The restriction data is still collected by the
+`analyze` and `extract` steps. See [Apply page restrictions](./how_to_apply_page_constraints.md).
 
 ### `source-timezone`
 

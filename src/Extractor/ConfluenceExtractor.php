@@ -26,6 +26,7 @@ use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractAttachmentsMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsBodyContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractBlogPostsMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractCommentsBodyContents;
+use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageConstraints;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesBodyContents;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPageTemplateContents;
@@ -163,6 +164,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 			new ExtractBlogPostsBodyContents( $this->workspaceDB, $this->workspace, $writer ),
 
 			new ExtractPageTemplateContents( $this->workspaceDB, $this->workspace, $writer ),
+			new ExtractPageConstraints( $this->workspaceDB, $writer, $this->migrationConfig ),
 			new ExtractPagesMetaData( $this->workspaceDB, $writer, $this->migrationConfig ),
 			new ExtractBlogPostsMetaData( $this->workspaceDB, $writer, $this->migrationConfig ),
 			new ExtractAttachmentsMetaData( $this->workspaceDB, $writer, $this->migrationConfig ),
