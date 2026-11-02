@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
 use HalloWelt\MediaWiki\Lib\Migration\InvalidTitleException;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\TitleBuilder as GenericTitleBuilder;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
@@ -47,7 +48,7 @@ class Users extends ProcessorBase {
 		}
 
 		if ( !isset( $properties['lowerName'] ) || $properties['lowerName'] === '' ) {
-			$this->output->writeln( "\033[31m User $userKey has no username\033[39m" );
+			Log::to( 'console' )->warning( "User $userKey has no username" );
 			return;
 		}
 
@@ -71,16 +72,13 @@ class Users extends ProcessorBase {
 			$xmlFile = $this->xmlReader->baseURI;
 			$xmlDir = dirname( $xmlFile );
 			$xmlFilename = basename( $xmlFile );
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"User ID '$userKey' ('$mediaWikiUsername') already exists in the database."
 					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);
 		}
 
-		$this->output->writeln( "Add user '$mediaWikiUsername' (ID:$userKey)" );
+		Log::to( 'console' )->debug( "Add user '$mediaWikiUsername' (ID:$userKey)" );
 	}
 
 	/**

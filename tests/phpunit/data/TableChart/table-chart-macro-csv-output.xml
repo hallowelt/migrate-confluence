@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	[[Category:Broken_table-chart/line]]<ac:structured-macro ac:name="table-chart" ac:schema-version="1">
+		<ac:parameter ac:name="type">Line</ac:parameter>
+		<ac:parameter ac:name="aggregation">Max</ac:parameter>
+		<ac:rich-text-body>
+<ac:structured-macro ac:name="csv-table"><ac:parameter ac:name="attachment">a.csv</ac:parameter></ac:structured-macro>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>

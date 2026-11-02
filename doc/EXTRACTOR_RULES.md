@@ -55,7 +55,7 @@ The Extractor provides methods to extract each data type:
 ### Filename Handling
 - **`FilenameResolver`**: Convert Confluence titles/paths to filesystem filenames
 - **`FilenameBuilder`**: Construct file paths for organized storage
-- **`DBLog`**: Log extraction progress and errors
+- **`Log::to( 'db' )`**: Log extraction progress and errors (see `doc/logging.md` in `mediawiki-lib-migration`)
 
 ### Configuration
 - **`MigrationConfig`**: Access migration settings
@@ -66,7 +66,7 @@ The Extractor provides methods to extract each data type:
 ### Initialization Order (in `doExtract()`)
 1. `initMigrationConfig()` - Load migration settings
 2. `initWorkspaceDB()` - Connect to analyzed data
-3. `initDBLog()` - Initialize logging
+3. Register the DB log handler (`Log::setDatabaseHandler( $this->workspaceDB )`)
 4. Execute extraction methods in logical order
 
 ### Important Notes
@@ -78,9 +78,9 @@ The Extractor provides methods to extract each data type:
 ## 7. Error Handling
 
 ### Logging
-- Use `DBLog` to record extraction errors and warnings
-- Call `$this->dbLog->addLogEntry()` for significant events
-- Log file move/copy failures explicitly
+- Use `Log::to( 'db' )->warning()` / `->error()` etc. to record extraction errors and warnings in the
+  workspace DB (add `'console'` as a second channel to also show them on the console)
+- Log significant events; log file move/copy failures explicitly
 
 ### Robustness
 - Verify destination directories exist before writing

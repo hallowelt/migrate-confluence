@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
@@ -38,10 +39,7 @@ class PageTemplates extends ProcessorBase {
 		}
 
 		if ( $templateId === null ) {
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->warning(
 				'Page Template has no ID.'
 			);
 
@@ -50,10 +48,7 @@ class PageTemplates extends ProcessorBase {
 
 		$name = $properties['name'] ?? '';
 		if ( $name === '' ) {
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->warning(
 				"Page Template with ID $templateId has no title."
 			);
 
@@ -92,15 +87,12 @@ class PageTemplates extends ProcessorBase {
 			$xmlFile = $this->xmlReader->baseURI;
 			$xmlDir = dirname( $xmlFile );
 			$xmlFilename = basename( $xmlFile );
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Page template ID $templateId ('$name') already exists in the database."
 					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);
 		}
 
-		$this->output->writeln( "Add page template '$name' (ID:$templateId)" );
+		Log::to( 'console' )->debug( "Add page template '$name' (ID:$templateId)" );
 	}
 }

@@ -11,8 +11,10 @@ abstract class AbstractDirectDataWriter implements IDataWriter {
 	) {
 	}
 
-	public function addLogEntry( string $type, string $step, string $caller, string $text ): void {
-		$this->db->addLogEntry( $type, $step, $caller, $text );
+	public function addLogEntry(
+		string $timestamp, string $type, string $step, string $caller, string $text
+	): void {
+		$this->db->addLogEntry( $timestamp, $type, $step, $caller, $text );
 	}
 
 	public function beginTransaction(): void {

@@ -1,0 +1,11 @@
+<html xmlns:ac="some" xmlns:ri="thing">
+	<ac:structured-macro ac:name="panel" ac:schema-version="1" ac:macro-id="someID">
+		<ac:parameter ac:name="title">Some title</ac:parameter>
+		<ac:parameter ac:name="bgColor">blue</ac:parameter>
+		<ac:parameter ac:name="panelIconText">:smile:</ac:parameter>
+		<ac:rich-text-body>
+			<p>Some <strong>bold</strong> text</p>
+			<ul><li>Item</li></ul>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</html>

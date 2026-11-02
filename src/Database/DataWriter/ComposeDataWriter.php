@@ -13,7 +13,9 @@ class ComposeDataWriter implements IDataWriter {
 	/** @var array<string,string[]> subDir (wikiName/namespace) => file extensions */
 	private array $namespaceExtensions = [];
 
-	public function addLogEntry( string $type, string $step, string $caller, string $text ): void {
+	public function addLogEntry(
+		string $timestamp, string $type, string $step, string $caller, string $text
+	): void {
 	}
 
 	public function beginTransaction(): void {

@@ -1,0 +1,3 @@
+<profileimage username="Alice" />
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

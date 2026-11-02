@@ -1,23 +1,6 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-   {{TableFilterStart###BREAK###
-|inverse = ,###BREAK###
-|sparkName = Sparkline###BREAK###
-|column = Status###BREAK###
-|limitHeight = ###BREAK###
-|separator = Point (.)###BREAK###
-|default = ,###BREAK###
-|isFirstTimeEnter = true###BREAK###
-|cell-width = ,###BREAK###
-|userfilter = Thema###BREAK###
-|datepattern = dd.mm.yy###BREAK###
-|id = 1234567890123_-456789017###BREAK###
-|updateSelectOptions = true###BREAK###
-|worklog = 365|5|8|y w d h m|y w d h m###BREAK###
-|isOR = AND###BREAK###
-|order = 0,1###BREAK###
-}}###BREAK###
-<table class="fixed-table wrapped datagrid">
+   <table class="fixed-table wrapped datagrid" data-filterparams="{&quot;inverse&quot;:&quot;,&quot;,&quot;sparkName&quot;:&quot;Sparkline&quot;,&quot;column&quot;:&quot;Status&quot;,&quot;limitHeight&quot;:&quot;&quot;,&quot;separator&quot;:&quot;Point (.)&quot;,&quot;default&quot;:&quot;,&quot;,&quot;isFirstTimeEnter&quot;:&quot;true&quot;,&quot;cell-width&quot;:&quot;,&quot;,&quot;userfilter&quot;:&quot;Thema&quot;,&quot;datepattern&quot;:&quot;dd.mm.yy&quot;,&quot;id&quot;:&quot;1234567890123_-456789017&quot;,&quot;updateSelectOptions&quot;:&quot;true&quot;,&quot;worklog&quot;:&quot;365|5|8|y w d h m|y w d h m&quot;,&quot;isOR&quot;:&quot;AND&quot;,&quot;order&quot;:&quot;0,1&quot;}">
 				<colgroup>
 					<col style="width: 38.0px;"/>
 					<col style="width: 227.0px;"/>
@@ -48,5 +31,5 @@
 						<td><br/></td>
 					</tr>
 				</tbody>
-			</table>{{TableFilterEnd}}
+			</table>
 </xml>

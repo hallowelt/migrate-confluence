@@ -2,14 +2,20 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyContents;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use PHPUnit\Framework\TestCase;
 
 class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
+
+	protected function tearDown(): void {
+		Log::setDatabaseHandler( null );
+		Log::setStep( '' );
+		parent::tearDown();
+	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractSpaceDescriptionBodyContents::execute
@@ -17,7 +23,8 @@ class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
 	public function testExtractsCurrentSpaceDescriptionBodyContentToRawWorkspaceFile(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
 		$workspace = $this->createMock( Workspace::class );
-		$dbLog = $this->createMock( DBLog::class );
+		Log::setDatabaseHandler( $workspaceDB );
+		Log::setStep( 'extract' );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
 		$workspaceDB->method( 'getCurrentSpaceDescriptions' )->willReturn( [
@@ -33,19 +40,17 @@ class ExtractSpaceDescriptionBodyContentsTest extends TestCase {
 			->with( '101', '<html><body>Body ]]> content</body></html>' )
 			->willReturn( '/content/raw/101.mraw' );
 
-		$class = 'HalloWelt\\MigrateConfluence\\Extractor\\Processor\\';
-		$class .= 'ExtractSpaceDescriptionBodyContents::extractBodyContentIds';
-
-		$dbLog->expects( $this->once() )
+		$workspaceDB->expects( $this->once() )
 			->method( 'addLogEntry' )
 			->with(
-				'info',
+				$this->anything(),
+				'INFO',
 				'extract',
-				$class,
+				$this->anything(),
 				'Extract body content to /content/raw/101.mraw'
 			);
 
-		$processor = new ExtractSpaceDescriptionBodyContents( $workspaceDB, $workspace, $dbLog, $writer );
+		$processor = new ExtractSpaceDescriptionBodyContents( $workspaceDB, $workspace, $writer );
 		$processor->execute();
 	}
 }

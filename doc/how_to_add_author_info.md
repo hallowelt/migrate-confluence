@@ -45,9 +45,9 @@ Confluence export data.
 
 ## Creating a Pre-Filled CSV File
 
-Use the helper command `printusers` to generate a pre-filled list of user
-accounts from your export data:
+The migration toolbox repository offers [a helper command](https://github.com/hallowelt/migrate-confluence-toolbox/blob/main/print-users/README.md)
+to generate a pre-filled list of user accounts from your export data:
 
 ```
-docker run --rm -v $(pwd):/data bluespice/migrate-confluence:latest printusers --src=/data/input --dest=/data/usermap.csv
+print-users.php /data/input > usermap.csv
 ```

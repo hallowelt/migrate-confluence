@@ -1,0 +1,10 @@
+<div class="ext-standardtags-card" style="--st-card-accent: #E7F9FF"><div class="ext-standardtags-card-header"><div class="ext-standardtags-card-icon bi" aria-hidden="true">😄</div><div class="ext-standardtags-card-headings"><div class="ext-standardtags-card-title">Some title</div></div></div><div class="ext-standardtags-card-body">
+
+Some '''bold''' text
+
+* Item
+
+</div></div>
+
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

@@ -1,0 +1,31 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>Intro</p>
+	<ac:structured-macro ac:name="table-excerpt" ac:schema-version="1">
+		<ac:parameter ac:name="name">table1</ac:parameter>
+		<ac:rich-text-body>
+			<table class="wrapped">
+				<tbody>
+					<tr>
+						<th style="text-align: left;">Name</th>
+						<th>Functions</th>
+					</tr>
+					<tr>
+						<td><a href="http://example.org">Link</a></td>
+						<td>
+							<ul>
+								<li>One</li>
+								<li>Two</li>
+							</ul>
+							<p>Paragraph</p>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+	<ac:structured-macro ac:name="excerpt" ac:schema-version="1">
+		<ac:rich-text-body>
+			<p>Plain excerpt</p>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>

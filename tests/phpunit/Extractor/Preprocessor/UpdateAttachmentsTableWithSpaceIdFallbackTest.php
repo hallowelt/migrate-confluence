@@ -14,7 +14,6 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 
 	public function testBackfillsSpaceIdFromContainerPage(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -24,7 +23,7 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 			601, null, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
 		);
 
-		( new UpdateAttachmentsTableWithSpaceIdFallback( $workspaceDB, $dbLog, $writer ) )->execute();
+		( new UpdateAttachmentsTableWithSpaceIdFallback( $workspaceDB, $writer ) )->execute();
 
 		$attachments = $workspaceDB->getAttachments();
 		$attachment = $this->findRowById( $attachments, 'attachment_id', 601 );
@@ -34,7 +33,6 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 
 	public function testBackfillsSpaceIdFromContainerBlogPost(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -43,7 +41,7 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 			701, null, 'file.txt', 'txt', 700, 'current', '1', '', '', -1, '/tmp/b', [], [], []
 		);
 
-		( new UpdateAttachmentsTableWithSpaceIdFallback( $workspaceDB, $dbLog, $writer ) )->execute();
+		( new UpdateAttachmentsTableWithSpaceIdFallback( $workspaceDB, $writer ) )->execute();
 
 		$attachments = $workspaceDB->getAttachments();
 		$attachment = $this->findRowById( $attachments, 'attachment_id', 701 );
@@ -53,7 +51,6 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 
 	public function testDoesNotOverwriteExistingSpaceId(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -64,7 +61,7 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 			602, 2000, 'file.txt', 'txt', 600, 'current', '1', '', '', -1, '/tmp/c', [], [], []
 		);
 
-		( new UpdateAttachmentsTableWithSpaceIdFallback( $workspaceDB, $dbLog, $writer ) )->execute();
+		( new UpdateAttachmentsTableWithSpaceIdFallback( $workspaceDB, $writer ) )->execute();
 
 		$attachments = $workspaceDB->getAttachments();
 		$attachment = $this->findRowById( $attachments, 'attachment_id', 602 );
@@ -74,7 +71,6 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 
 	public function testLeavesUnresolvableAttachmentSpaceIdNull(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		// No space property and no known container (container_id -1, no page/blog post for it).
@@ -82,7 +78,7 @@ class UpdateAttachmentsTableWithSpaceIdFallbackTest extends TestCase {
 			603, null, 'file.txt', 'txt', -1, 'current', '1', '', '', -1, '/tmp/d', [], [], []
 		);
 
-		( new UpdateAttachmentsTableWithSpaceIdFallback( $workspaceDB, $dbLog, $writer ) )->execute();
+		( new UpdateAttachmentsTableWithSpaceIdFallback( $workspaceDB, $writer ) )->execute();
 
 		$attachments = $workspaceDB->getAttachments();
 		$attachment = $this->findRowById( $attachments, 'attachment_id', 603 );

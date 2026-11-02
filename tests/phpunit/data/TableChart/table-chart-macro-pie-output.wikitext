@@ -1,0 +1,8 @@
+
+<piechart>
+"Jan, early",5
+Feb,7
+</piechart>
+
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

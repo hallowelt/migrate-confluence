@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 
@@ -74,7 +75,7 @@ abstract class ContentProcessorBase extends ProcessorBase {
 			}
 
 			if ( $logEachId ) {
-				$this->output->writeln( "Getting '$contentId' $contentLabel..." );
+				Log::to( 'console' )->debug( "Getting '$contentId' $contentLabel..." );
 			}
 
 			$convertedId = $idPrefix . $contentId;

@@ -18,6 +18,7 @@ class TableFilterMacroChainTest extends MacroChainTestBase {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$fixtures = [
 			'table-filter-macro-input.xml' => 'table-filter-macro-output.wikitext',
+			'table-filter-macro-options-input.xml' => 'table-filter-macro-options-output.wikitext',
 		];
 
 		foreach ( $fixtures as $inputFixture => $expectedFixture ) {

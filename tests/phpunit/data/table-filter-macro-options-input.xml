@@ -1,0 +1,34 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="table-filter" ac:schema-version="1">
+		<ac:parameter ac:name="cell-width">250</ac:parameter>
+		<ac:rich-text-body>
+			<table>
+				<tbody>
+					<tr>
+						<th>Name</th>
+						<th style="text-align: center;">Status</th>
+					</tr>
+					<tr>
+						<td>Test</td>
+						<td>done</td>
+					</tr>
+				</tbody>
+			</table>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+	<ac:structured-macro ac:name="table-filter" ac:schema-version="1">
+		<ac:parameter ac:name="disabled">true</ac:parameter>
+		<ac:rich-text-body>
+			<table>
+				<tbody>
+					<tr>
+						<th>Name</th>
+					</tr>
+					<tr>
+						<td>Plain</td>
+					</tr>
+				</tbody>
+			</table>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>

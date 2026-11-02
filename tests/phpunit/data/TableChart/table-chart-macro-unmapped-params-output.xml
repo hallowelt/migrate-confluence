@@ -1,0 +1,5 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	###BREAK###<linechart title="T">
+---label:Max###BREAK###Jan,1###BREAK###Feb,2###BREAK###</linechart>
+
+</xml>

@@ -105,4 +105,11 @@ class MigrationConfig {
 	public function getCSVDelimiter(): string {
 		return $this->get( 'csv-delimiter', ',' );
 	}
+
+	/**
+	 * @return string Empty if not configured
+	 */
+	public function getSourceTimezone(): string {
+		return (string)$this->get( 'source-timezone', '' );
+	}
 }

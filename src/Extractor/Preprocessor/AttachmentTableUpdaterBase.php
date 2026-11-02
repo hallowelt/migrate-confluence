@@ -4,11 +4,11 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\Migration\ApplyCompressedTitle;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\TitleCompressor;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
@@ -32,17 +32,15 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 
 	/**
 	 * @param WorkspaceDB $workspaceDB
-	 * @param DBLog $dbLog
 	 * @param IExtractorDataWriter $writer
 	 * @param MigrationConfig $migrationConfig
 	 */
 	public function __construct(
 		WorkspaceDB $workspaceDB,
-		DBLog $dbLog,
 		IExtractorDataWriter $writer,
 		protected MigrationConfig $migrationConfig,
 	) {
-		parent::__construct( $workspaceDB, $dbLog, $writer );
+		parent::__construct( $workspaceDB, $writer );
 	}
 
 	/**
@@ -169,7 +167,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			$attachmentSpaceId = (int)$attachment['space_id'];
 			$attachmentOrigFilename = (string)$attachment['filename'];
 
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Creating wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
 			);
 
@@ -254,10 +252,8 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				$contextTitle
 			);
 		} catch ( Exception $ex ) {
-			$this->dbLog->addLogEntry(
+			Log::to( 'db' )->log(
 				$logLevelOnBuildFailure,
-				'analyze',
-				static::class,
 				"Could not build target filename for attachment $attachmentId: "
 				. $ex->getMessage()
 			);
@@ -267,12 +263,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		if ( empty( $attachmentWikiTitle ) ) {
 			$message = "TitleCompressor delivers empty wiki title for attachment id $attachmentId";
 
-			$this->dbLog->addLogEntry(
-				'error',
-				'extract',
-				static::class,
-				$message
-			);
+			Log::to( 'db' )->error( $message );
 
 			throw new Exception(
 				$message
@@ -285,10 +276,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		$counter = 1;
 		while ( $exists ) {
 			if ( $counter > self::MAX_UNCOLLIDE_ATTEMPTS ) {
-				$this->dbLog->addLogEntry(
-					'warning',
-					'analyze',
-					static::class,
+				Log::to( 'db' )->warning(
 					"Could not find unique {$this->getContentLabel()} attachment title for attachment "
 					. "$attachmentId after " . self::MAX_UNCOLLIDE_ATTEMPTS . ' attempts'
 				);
@@ -306,12 +294,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				$message = "TitleCompressor delivers empty wiki title for "
 				 . "attachment id $attachmentId while uncolliding";
 
-				$this->dbLog->addLogEntry(
-					'error',
-					'extract',
-					static::class,
-					$message
-				);
+				Log::to( 'db' )->error( $message );
 
 				throw new Exception(
 					$message
@@ -356,7 +339,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		$collected = $this->compressWikiTitles( $collected );
 
 		foreach ( $collected as $attachmentId => $data ) {
-			$this->writeln(
+			Log::to( 'console' )->debug(
 				"Add {$this->getContentLabel()} attachment for attachment ID $attachmentId"
 				. " with title: {$data['wikiTitle']}"
 			);

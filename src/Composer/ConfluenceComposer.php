@@ -7,6 +7,7 @@ use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\Processor\BlogPostComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\BlogPosts;
@@ -25,7 +26,7 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
+use HalloWelt\MigrateConfluence\Utility\DirectoryHelper;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Output\Output;
@@ -86,9 +87,6 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 	/** @var WorkspaceDB|null */
 	private ?WorkspaceDB $workspaceDB = null;
-
-	/** @var DBLog|null */
-	private ?DBLog $dbLog = null;
 
 	/** @var int Total number of parallel compose worker processes (1 = no parallelism) */
 	private int $workerCount = 1;
@@ -192,9 +190,9 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 		// version log entry.
 		$this->workspaceDB = WorkspaceDB::open( $this->dest, $this->isWorker() );
 		$this->dataLookup = new DBComposerDataLookup( $this->workspaceDB );
-		$this->dbLog = new DBLog( $this->workspaceDB );
 		if ( !$this->isWorker() ) {
-			$this->logMigrateConfluenceToolVersion( $this->dbLog );
+			Log::setDatabaseHandler( $this->workspaceDB );
+			$this->logMigrateConfluenceToolVersion();
 		}
 		$this->skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
 
@@ -213,18 +211,18 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 			// once-per-wiki artifacts here, in a single non-parallel pass, without redoing
 			// any of the actual (expensive) content processing.
 			$this->finalizeWikis( $wikiNames, $builder );
-			$this->writeUserReadableDBLog( $this->dbLog );
+			$this->writeUserReadableDBLog();
 			return;
 		}
 
 		// Run space dependent processors for each space, grouped by target wiki.
-		$this->output->writeln( "Data is assigned to some wikis." );
+		Log::to( 'console' )->debug( "Data is assigned to some wikis." );
 
 		$fileExtensionsPerWiki = [];
 		foreach ( $wikiNames as $wikiName ) {
 			$spaces = $this->getSpacesForWiki( $wikiName );
 			if ( $spaces === [] ) {
-				$this->output->writeln( "No spaces found for wiki '$wikiName'." );
+				Log::to( 'console' )->notice( "No spaces found for wiki '$wikiName'." );
 				continue;
 			}
 
@@ -258,11 +256,11 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 			}
 
 			$fileExtensionsPerWiki[$wikiName] = $deploymentInfo->getFileExtensions();
-			$this->output->writeln( "Processing wiki '$wikiName' with " . count( $spaces ) . " spaces." );
+			Log::to( 'console' )->debug( "Processing wiki '$wikiName' with " . count( $spaces ) . " spaces." );
 		}
 
 		if ( !$this->isWorker() ) {
-			$this->writeUserReadableDBLog( $this->dbLog );
+			$this->writeUserReadableDBLog();
 			$this->writeManifest( $fileExtensionsPerWiki );
 		}
 	}
@@ -313,7 +311,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 		foreach ( $spacesMap as $namespace => $spaces ) {
 			if ( $this->skipHelper->skipNamespaceByConfiguration( $namespace ) ) {
-				$this->output->writeln( "Skip namespace '$namespace' by configuration." );
+				Log::to( 'console' )->debug( "Skip namespace '$namespace' by configuration." );
 				continue;
 			}
 
@@ -322,7 +320,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 			}
 
 			if ( $wikiName === '' ) {
-				$this->output->writeln( "Wikiname for namespace '$namespace' is empty. -> skipping" );
+				Log::to( 'console' )->notice( "Wikiname for namespace '$namespace' is empty. -> skipping" );
 				continue;
 			}
 			$subDir = $wikiName . '/' . $namespace;
@@ -681,13 +679,12 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	}
 
 	/**
-	 * @param DBLog $dbLog
 	 * @return void
 	 */
-	private function writeUserReadableDBLog( DBLog $dbLog ): void {
-		$this->writeDBLogContent( $dbLog, 'error' );
-		$this->writeDBLogContent( $dbLog, 'warning' );
-		$this->writeDBLogContent( $dbLog, 'info' );
+	private function writeUserReadableDBLog(): void {
+		$this->writeDBLogContent( 'error' );
+		$this->writeDBLogContent( 'warning' );
+		$this->writeDBLogContent( 'info' );
 	}
 
 	/**
@@ -703,12 +700,11 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	}
 
 	/**
-	 * @param DBLog $dbLog
 	 * @param string $type
 	 * @return void
 	 */
-	private function writeDBLogContent( DBLog $dbLog, string $type ): void {
-		$data = $dbLog->getLogEntriesForStep( 'compose', $type );
+	private function writeDBLogContent( string $type ): void {
+		$data = $this->workspaceDB->getLogEntriesForStep( 'compose', $type );
 		$content = '';
 		foreach ( $data as $item ) {
 			$content .= $item['caller'] . ': ' . $item['text'] . "\n";
@@ -826,9 +822,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	private function ensureLogPath( string $subDir ): string {
 		$path = $this->dest . "/result";
 		$path .= "/$subDir/log";
-		if ( !is_dir( $path ) ) {
-			mkdir( $path, 0755, true );
-		}
+		DirectoryHelper::ensure( $path );
 
 		return $path;
 	}
@@ -840,9 +834,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	private function ensureDeploymentInfoPath( string $subDir ): string {
 		$path = $this->dest . "/result";
 		$path .= "/$subDir";
-		if ( !is_dir( $path ) ) {
-			mkdir( $path, 0755, true );
-		}
+		DirectoryHelper::ensure( $path );
 
 		return $path;
 	}
@@ -850,16 +842,10 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	/**
 	 * Add version information of the migrate confluence tool to the database
 	 *
-	 * @param DBLog $dbLog
 	 * @return void
 	 */
-	private function logMigrateConfluenceToolVersion( DBLog $dbLog ): void {
-		$dbLog->addLogEntry(
-			'info',
-			'compose',
-			__CLASS__,
-			sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() )
-		);
+	private function logMigrateConfluenceToolVersion(): void {
+		Log::to( 'db' )->info( sprintf( '[%s] use version %s', date( 'c' ), Version::getVersion() ) );
 	}
 
 	/**
@@ -878,7 +864,8 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 		$sourcePerms = fileperms( $sourcePath );
 		if ( $sourcePerms !== false ) {
-			chmod( $targetPath, $sourcePerms & 0777 );
+			// keep the owner able to write, so that re-runs can overwrite the file
+			chmod( $targetPath, ( $sourcePerms & 0777 ) | 0200 );
 		}
 	}
 

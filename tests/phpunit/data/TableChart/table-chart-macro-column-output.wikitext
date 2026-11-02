@@ -1,0 +1,12 @@
+
+<barchart title="Temps &quot;A&quot;" showvalues="true">
+---color:#111111 label:Min
+"Jan, early",1.5
+Feb,2
+---color:#d04437 label:Max
+"Jan, early",5
+Feb,7
+</barchart>
+
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

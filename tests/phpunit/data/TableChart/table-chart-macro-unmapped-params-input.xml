@@ -1,0 +1,36 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<ac:structured-macro ac:name="table-chart" ac:schema-version="1">
+		<ac:parameter ac:name="type">Line</ac:parameter>
+		<ac:parameter ac:name="title">T</ac:parameter>
+		<ac:parameter ac:name="column">Month</ac:parameter>
+		<ac:parameter ac:name="aggregation">Max</ac:parameter>
+		<ac:parameter ac:name="dataorientation">Vertical</ac:parameter>
+		<ac:parameter ac:name="tfc-height">400</ac:parameter>
+		<ac:parameter ac:name="align">center</ac:parameter>
+		<ac:parameter ac:name="ytitle">Y</ac:parameter>
+		<ac:parameter ac:name="is3d">false</ac:parameter>
+		<ac:parameter ac:name="log">false</ac:parameter>
+		<ac:parameter ac:name="xlog">false</ac:parameter>
+		<ac:parameter ac:name="grid">true</ac:parameter>
+		<ac:parameter ac:name="trendline">false</ac:parameter>
+		<ac:parameter ac:name="interpolation">Linear</ac:parameter>
+		<ac:parameter ac:name="line-settings">solid-1.5</ac:parameter>
+		<ac:parameter ac:name="barColoringType">mono</ac:parameter>
+		<ac:parameter ac:name="outerLabels">Label</ac:parameter>
+		<ac:parameter ac:name="pieKeys">Jan‚Feb</ac:parameter>
+		<ac:parameter ac:name="hide">false</ac:parameter>
+		<ac:parameter ac:name="hidecontrols">false</ac:parameter>
+		<ac:parameter ac:name="hasTable">true</ac:parameter>
+		<ac:parameter ac:name="customNoTableMsg">false</ac:parameter>
+		<ac:parameter ac:name="datepattern">dd.mm.yy</ac:parameter>
+		<ac:parameter ac:name="worklog">365|5|8|y w d h m|y w d h m</ac:parameter>
+		<ac:parameter ac:name="ganttArrows">%7B%7D</ac:parameter>
+		<ac:parameter ac:name="id">1789130827131 -322044207</ac:parameter>
+		<ac:parameter ac:name="version">3</ac:parameter>
+		<ac:parameter ac:name="formatVersion">3</ac:parameter>
+		<ac:parameter ac:name="isFirstTimeEnter">false</ac:parameter>
+		<ac:rich-text-body>
+<table><tbody><tr><th>Month</th><th>Max</th></tr><tr><td>Jan</td><td>1</td></tr><tr><td>Feb</td><td>2</td></tr></tbody></table>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>

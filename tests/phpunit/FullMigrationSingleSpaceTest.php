@@ -428,7 +428,6 @@ class FullMigrationSingleSpaceTest extends TestCase {
 			$converter = new ConfluenceConverterBlueSpiceGalaxy( $config, $workspace );
 			$converter->setDataWriter( $writer );
 			$converter->setDestinationPath( $dest );
-			$converter->setOutput( $output );
 
 			$wikiText = $converter->convert( new SplFileInfo( $rawFilePath ) );
 

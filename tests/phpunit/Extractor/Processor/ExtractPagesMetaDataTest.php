@@ -2,21 +2,28 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use PHPUnit\Framework\TestCase;
 
 class ExtractPagesMetaDataTest extends TestCase {
+
+	protected function tearDown(): void {
+		Log::setDatabaseHandler( null );
+		Log::setStep( '' );
+		parent::tearDown();
+	}
 
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Processor\ExtractPagesMetaData::execute
 	 */
 	public function testAddsPageMetaWithConfiguredAndLabelCategories(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$dbLog = $this->createMock( DBLog::class );
+		Log::setDatabaseHandler( $workspaceDB );
+		Log::setStep( 'extract' );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
@@ -39,9 +46,9 @@ class ExtractPagesMetaDataTest extends TestCase {
 				[ 'categories' => [ 'ConfiguredCategory', 'LabelCategory' ] ]
 			);
 
-		$dbLog->expects( $this->once() )->method( 'addLogEntry' );
+		$workspaceDB->expects( $this->once() )->method( 'addLogEntry' );
 
-		$processor = new ExtractPagesMetaData( $workspaceDB, $dbLog, $writer, $migrationConfig );
+		$processor = new ExtractPagesMetaData( $workspaceDB, $writer, $migrationConfig );
 		$processor->execute();
 	}
 
@@ -50,7 +57,8 @@ class ExtractPagesMetaDataTest extends TestCase {
 	 */
 	public function testDoesNotLeakLabelCategoriesBetweenPages(): void {
 		$workspaceDB = $this->createMock( WorkspaceDB::class );
-		$dbLog = $this->createMock( DBLog::class );
+		Log::setDatabaseHandler( $workspaceDB );
+		Log::setStep( 'extract' );
 		$migrationConfig = $this->createMock( MigrationConfig::class );
 		$writer = $this->createMock( ExtractorDirectDataWriter::class );
 
@@ -79,7 +87,7 @@ class ExtractPagesMetaDataTest extends TestCase {
 				[ 'categories' => [ 'LabelCategory' ] ]
 			);
 
-		$processor = new ExtractPagesMetaData( $workspaceDB, $dbLog, $writer, $migrationConfig );
+		$processor = new ExtractPagesMetaData( $workspaceDB, $writer, $migrationConfig );
 		$processor->execute();
 	}
 }

@@ -1,0 +1,16 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	[[Category:Broken_table-chart/radar]]<ac:structured-macro ac:name="table-chart" ac:schema-version="1">
+		<ac:parameter ac:name="type">Radar</ac:parameter>
+		<ac:parameter ac:name="title">Temps "A"</ac:parameter>
+		<ac:parameter ac:name="column">Month</ac:parameter>
+		<ac:parameter ac:name="aggregation">Min‚Max</ac:parameter>
+		<ac:parameter ac:name="separator">Comma (,)</ac:parameter>
+		<ac:parameter ac:name="innerlabels">Value</ac:parameter>
+		<ac:parameter ac:name="legend">right</ac:parameter>
+		<ac:parameter ac:name="colors">#111111,#222222</ac:parameter>
+		<ac:parameter ac:name="colorKeyMap">%7B"Max":"#d04437"%7D</ac:parameter>
+		<ac:rich-text-body>
+<table><tbody><tr><th>Month</th><th>Min</th><th>Max</th></tr><tr><td>Jan, early</td><td>1,5</td><td>5</td></tr><tr><td>Feb</td><td>2</td><td>7</td></tr></tbody></table>
+		</ac:rich-text-body>
+	</ac:structured-macro>
+</xml>

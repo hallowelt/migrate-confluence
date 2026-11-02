@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use SplFileInfo;
@@ -140,10 +141,7 @@ class Attachments extends ProcessorBase {
 			$xmlFile = $this->xmlReader->baseURI;
 			$xmlDir = dirname( $xmlFile );
 			$xmlFilename = basename( $xmlFile );
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Attachment ID $attachmentId already exists in the database."
 					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);
@@ -185,10 +183,7 @@ class Attachments extends ProcessorBase {
 							if ( is_dir( $potentialAttachmentRef ) ) {
 								$attachmentsBasePath = $parentPath . '/' . $dir;
 								$attachmentsPath = $attachmentsBasePath . '/attachments';
-								$this->writer->addLogEntry(
-									'error',
-									'analyze',
-									__CLASS__,
+								Log::to( 'db' )->error(
 									"Attachment ID $attachmentId not found in expected directory"
 										. " '$expectedDir', found in '$potentialAttachmentRef' instead."
 								);
@@ -200,10 +195,7 @@ class Attachments extends ProcessorBase {
 				}
 			}
 			if ( !$foundInAltDir ) {
-				$this->writer->addLogEntry(
-					'error',
-					'analyze',
-					__CLASS__,
+				Log::to( 'db' )->error(
 					"Attachment ID $attachmentId not found in expected directory '$expectedDir'"
 						. " and not found in any subdirectory of '$parentPath'."
 				);
