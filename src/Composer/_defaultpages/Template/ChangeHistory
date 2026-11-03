@@ -1,0 +1,24 @@
+<noinclude>Template added by Confluence migration to handle the "change-history" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Link to the version history of the current page (Confluence \"change-history\" macro). The Confluence version comments are not available in the wiki.",
+        "de": "Link zur Versionsgeschichte der aktuellen Seite (Confluence-\"change-history\"-Makro). Die Versionskommentare aus Confluence sind im Wiki nicht verf\u00fcgbar."
+    },
+    "params": {
+        "limit": {
+            "label": {
+                "en": "Number of versions",
+                "de": "Anzahl der Versionen"
+            },
+            "type": "number",
+            "required": false,
+            "description": {
+                "en": "Number of versions to show in Confluence. Kept for reference only; it has no effect.",
+                "de": "Anzahl der in Confluence angezeigten Versionen. Nur zur Dokumentation erhalten, ohne Wirkung."
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>[{{fullurl:{{FULLPAGENAME}}|action=history}} {{int:history}}]</includeonly>

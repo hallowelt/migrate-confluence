@@ -1,0 +1,30 @@
+<noinclude>Template added by Confluence migration to handle the "style" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Adds CSS rules and/or an external style sheet to the page (Confluence \"style\" macro). Use {{!}} for a pipe and {{=}} for an equals sign inside the CSS.",
+        "de": "F\u00fcgt der Seite CSS-Regeln und/oder ein externes Stylesheet hinzu (Confluence-\"style\"-Makro). Innerhalb des CSS steht {{!}} f\u00fcr einen senkrechten Strich und {{=}} f\u00fcr ein Gleichheitszeichen."
+    },
+    "params": {
+        "css": {
+            "label": { "en": "CSS", "de": "CSS" },
+            "type": "content",
+            "required": false,
+            "description": { "en": "CSS rules", "de": "CSS-Regeln" }
+        },
+        "media": {
+            "label": { "en": "Media", "de": "Medium" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "Media type the styles apply to, e.g. print", "de": "Medientyp, f\u00fcr den die Stile gelten, z. B. print" }
+        },
+        "import": {
+            "label": { "en": "Import URL", "de": "Import-URL" },
+            "type": "url",
+            "required": false,
+            "description": { "en": "URL of an external style sheet", "de": "URL eines externen Stylesheets" }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{#widget:Style|css={{{css|}}}|media={{{media|}}}|import={{{import|}}}}}</includeonly>

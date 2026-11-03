@@ -1,0 +1,26 @@
+<noinclude>Template added by Confluence migration to handle the "privacy-mark" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Show a lock icon with a tooltip that links to the privacy statement on the same page (see Template:PrivacyPolicy).",
+        "de": "Ein Schloss-Symbol mit Tooltip anzeigen, das zur Datenschutzerkl\u00e4rung auf derselben Seite verlinkt (siehe Template:PrivacyPolicy)."
+    },
+    "params": {
+        "title": {
+            "label": { "en": "Tooltip", "de": "Tooltip" },
+            "type": "string",
+            "suggested": true,
+            "description": {
+                "en": "Text shown when hovering over the icon, e.g. \"Only analytics data gathered\".",
+                "de": "Text, der beim \u00dcberfahren des Symbols angezeigt wird, z. B. \"Es werden nur Analysedaten erhoben\"."
+            }
+        },
+        "class": {
+            "label": { "en": "CSS class", "de": "CSS-Klasse" },
+            "type": "string",
+            "description": { "en": "Additional CSS class(es) for the icon.", "de": "Zus\u00e4tzliche CSS-Klasse(n) f\u00fcr das Symbol." }
+        }
+    }
+}
+</templatedata></noinclude><includeonly><span class="privacy-mark {{{class|}}}"{{#if:{{{title|}}}| title="{{{title}}}"}}>[[#privacy-policy|&#x1F512;]]</span></includeonly>

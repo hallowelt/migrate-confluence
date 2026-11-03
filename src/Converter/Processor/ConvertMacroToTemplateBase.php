@@ -108,7 +108,19 @@ abstract class ConvertMacroToTemplateBase extends ConversionHelper implements IP
 				$this->currentSpace,
 				$this->getWikiTextTemplateName()
 			);
+			foreach ( $this->getWidgetNames() as $widgetName ) {
+				$this->writer->registerDefaultPage( $this->currentSpace, $widgetName, 'Widget' );
+			}
 		}
+	}
+
+	/**
+	 * Names of Widget pages (Extension:Widgets) that the template depends on.
+	 *
+	 * @return string[]
+	 */
+	protected function getWidgetNames(): array {
+		return [];
 	}
 
 	/**

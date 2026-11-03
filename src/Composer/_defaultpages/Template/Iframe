@@ -1,0 +1,72 @@
+<noinclude>Template added by Confluence migration to handle the "iframe" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Embeds an external web page (Confluence \"iframe\" macro). Only URLs with protocols allowed by the wiki are embedded.",
+        "de": "Bettet eine externe Webseite ein (Confluence-\"iframe\"-Makro). Es werden nur URLs mit im Wiki erlaubten Protokollen eingebettet."
+    },
+    "params": {
+        "url": {
+            "label": { "en": "URL", "de": "URL" },
+            "type": "url",
+            "required": true,
+            "description": { "en": "Address of the page to embed", "de": "Adresse der einzubettenden Seite" }
+        },
+        "width": {
+            "label": { "en": "Width", "de": "Breite" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "Width in pixels or percent", "de": "Breite in Pixeln oder Prozent" }
+        },
+        "height": {
+            "label": { "en": "Height", "de": "H\u00f6he" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "Height in pixels or percent", "de": "H\u00f6he in Pixeln oder Prozent" }
+        },
+        "id": {
+            "label": { "en": "ID", "de": "ID" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "HTML ID of the frame", "de": "HTML-ID des Frames" }
+        },
+        "class": {
+            "label": { "en": "CSS class", "de": "CSS-Klasse" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "CSS class(es) of the frame", "de": "CSS-Klasse(n) des Frames" }
+        },
+        "style": {
+            "label": { "en": "Inline style", "de": "Inline-Stil" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "Inline CSS of the frame", "de": "Inline-CSS des Frames" }
+        },
+        "title": {
+            "label": { "en": "Title", "de": "Titel" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "Tooltip text", "de": "Tooltip-Text" }
+        },
+        "lang": {
+            "label": { "en": "Language code", "de": "Sprachcode" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "Language of the frame content, e.g. de", "de": "Sprache des Frame-Inhalts, z. B. de" }
+        },
+        "dir": {
+            "label": { "en": "Text direction", "de": "Textrichtung" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "ltr or rtl", "de": "ltr oder rtl" }
+        },
+        "fullscreen": {
+            "label": { "en": "Allow full screen", "de": "Vollbild erlauben" },
+            "type": "boolean",
+            "required": false,
+            "description": { "en": "Any non-empty value allows full-screen mode", "de": "Ein beliebiger nicht-leerer Wert erlaubt den Vollbildmodus" }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{#widget:Iframe|url={{{url|}}}|width={{{width|}}}|height={{{height|}}}|id={{{id|}}}|class={{{class|}}}|style={{{style|}}}|title={{{title|}}}|lang={{{lang|}}}|dir={{{dir|}}}|fullscreen={{{fullscreen|}}}}}</includeonly>

@@ -33,9 +33,15 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BgcolorMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\CenterMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ChangeHistoryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChartMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\CheeseMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ClickableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ColgroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ContentByLabelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CopyrightMacro;
@@ -43,14 +49,20 @@ use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CsvTableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\DivMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioSketchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\FancyBulletsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\HighlightMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\HtmlcommentMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\IframeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml;
+use HalloWelt\MigrateConfluence\Converter\Processor\ImgMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncDrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
@@ -60,34 +72,55 @@ use HalloWelt\MigrateConfluence\Converter\Processor\JsonFromTableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Layout;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutCell;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutSection;
+use HalloWelt\MigrateConfluence\Converter\Processor\LiMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LivesearchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LoremIpsumMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\LozengeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\MarkdownMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\MultimediaMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\OfficeViewfileMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\OlMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PagetreesearchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
+use HalloWelt\MigrateConfluence\Converter\Processor\PMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
+use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyMarkMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyPolicyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ProfileMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ProfilePictureMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RegTmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RoadmapMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\RoundrectMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\SearchBoxMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SpaceDetailsMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\SpanMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\StrikeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\StyleMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableChartMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TbodyMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TdMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TheadMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ThMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TocMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TrMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\UlMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewDocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
@@ -95,6 +128,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ViewPdfMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewPptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\WelcomeMessageMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
@@ -492,6 +526,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
+			new ImgMacro(),
 			new ImgHtml(
 				$this->writer,
 				$this->currentSpace
@@ -585,12 +620,51 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			new RegTmMacro( $this->writer, $this->currentSpace ),
 			new CopyrightMacro( $this->writer, $this->currentSpace ),
 			new SmMacro( $this->writer, $this->currentSpace ),
+			new CheeseMacro( $this->writer, $this->currentSpace ),
+			new LozengeMacro( $this->writer, $this->currentSpace ),
+			new RoundrectMacro( $this->writer, $this->currentSpace ),
+			new PrivacyMarkMacro( $this->writer, $this->currentSpace ),
+			new PrivacyPolicyMacro( $this->writer, $this->currentSpace, $this->dataLookup ),
+			new WelcomeMessageMacro( $this->writer, $this->currentSpace ),
+			new BgcolorMacro(),
+			new CenterMacro(),
+			new ClickableMacro(),
+			new ColgroupMacro(),
+			new DivMacro(),
+			new HighlightMacro(),
+			new HtmlcommentMacro( $this->placeholderManager ),
+			new LiMacro(),
+			new OlMacro(),
+			new PMacro(),
+			new ChangeHistoryMacro( $this->writer, $this->currentSpace ),
+			new SearchBoxMacro( $this->writer, $this->currentSpace ),
+			new PagetreesearchMacro( $this->writer, $this->currentSpace ),
+			new IframeMacro( $this->writer, $this->currentSpace ),
+			new FancyBulletsMacro(),
+			new StyleMacro( $this->placeholderManager, $this->writer, $this->currentSpace ),
+			new PreMacro( $this->placeholderManager ),
+			new SpanMacro(),
+			new StrikeMacro(),
+			new TableMacro(),
+			new TbodyMacro(),
+			new TdMacro(),
+			new ThMacro(),
+			new TheadMacro(),
+			new TrMacro(),
+			new UlMacro(),
 			new JiraMacro(
 				$this->writer,
 				$this->currentSpace
 			),
 			new MarkdownMacro(),
 			new ViewFileMacro(
+				$this->writer,
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
+			),
+			new OfficeViewfileMacro(
 				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
