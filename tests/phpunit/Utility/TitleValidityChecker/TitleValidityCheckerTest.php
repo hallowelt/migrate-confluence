@@ -30,6 +30,20 @@ class TitleValidityCheckerTest extends TestCase {
 	}
 
 	/**
+	 * @covers \HalloWelt\MigrateConfluence\Utility\TitleValidityChecker::hasValidNamespace
+	 * @covers \HalloWelt\MigrateConfluence\Utility\TitleValidityChecker::hasValidWikiName
+	 */
+	public function testTargetNames(): void {
+		$this->assertTrue( $this->checker->hasValidNamespace( 'MY_SPACE' ) );
+		$this->assertFalse( $this->checker->hasValidNamespace( '1ST_PLACE' ) );
+		$this->assertFalse( $this->checker->hasValidNamespace( 'A' ) );
+
+		$this->assertTrue( $this->checker->hasValidWikiName( 'my-wiki.1' ) );
+		$this->assertFalse( $this->checker->hasValidWikiName( 'a/b' ) );
+		$this->assertFalse( $this->checker->hasValidWikiName( '..' ) );
+	}
+
+	/**
 	 * @covers \HalloWelt\MigrateConfluence\Utility\TitleValidityChecker::hasDoubleColon
 	 */
 	public function testHasDoubleColon(): void {
