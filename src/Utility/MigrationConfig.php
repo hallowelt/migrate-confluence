@@ -93,6 +93,13 @@ class MigrationConfig {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function getAddPageConstraints(): bool {
+		return $this->get( 'add-page-constraints', true );
+	}
+
+	/**
 	 * @return string
 	 */
 	public function getProfile(): string {

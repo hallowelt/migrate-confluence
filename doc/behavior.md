@@ -91,6 +91,20 @@ This is intentional: a link to a deleted page should surface as a broken link (c
 you can notice and fix it, instead of silently pointing to an arbitrary non-current record
 that was never actually migrated.
 
+## Page Restrictions
+
+Page restrictions are migrated by default, see [Apply page restrictions](./how_to_apply_page_constraints.md)
+for usage. The design decisions:
+
+* Restrictions are written without inheritance. The tool computes the effective restrictions of each page
+  from the page and its parents, because the target format has no inheritance.
+* Whenever access cannot be determined with certainty, the page is locked rather than opened.
+* Someone who may edit but not view a page in the export gets no access, as in Confluence.
+* Comment pages follow their page; file pages follow the page or blog post they are attached to.
+* The restrictions are computed in the `extract` step, so that problems can be logged there. The
+  `compose` step only writes them, which is why `add-page-constraints` affects only that step.
+* Space permissions, anonymous access and the "share" restriction are not migrated.
+
 ## Category “Pages with syntax highlighting errors”
 
 You might notice this category when checking migration results. This is a feature of the

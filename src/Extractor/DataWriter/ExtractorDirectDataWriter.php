@@ -196,6 +196,13 @@ class ExtractorDirectDataWriter extends AbstractDirectDataWriter implements IExt
 	}
 
 	/**
+	 * @inheritDoc
+	 */
+	public function addPageConstraints( int $contentId, string $type, string $timestamp, array $targets ): bool {
+		return $this->db->addPageConstraints( $contentId, $type, $timestamp, $targets );
+	}
+
+	/**
 	 * @param int $pageId
 	 * @param array $meta
 	 *

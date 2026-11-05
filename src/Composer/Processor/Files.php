@@ -77,7 +77,11 @@ class Files extends FileProcessorBase {
 				continue;
 			}
 			Log::to( 'console' )->debug( "Processing attachments for page title $assocPageTitle ..." );
-			$this->processAttachment( $pageAttachment, $assocPageTitle );
+			$this->processAttachment(
+				$pageAttachment,
+				$assocPageTitle,
+				$this->dataLookup->getPageConstraints( (int)$pageAttachment['page_id'] )
+			);
 		}
 	}
 
@@ -110,7 +114,11 @@ class Files extends FileProcessorBase {
 				continue;
 			}
 			Log::to( 'console' )->debug( "Processing attachments for blog post title $assocPageTitle ..." );
-			$this->processAttachment( $blogPostAttachment, $assocPageTitle );
+			$this->processAttachment(
+				$blogPostAttachment,
+				$assocPageTitle,
+				$this->dataLookup->getPageConstraints( (int)$blogPostAttachment['blog_post_id'] )
+			);
 		}
 	}
 
@@ -121,9 +129,12 @@ class Files extends FileProcessorBase {
 	 * @param array $attachmentRecord Row from page_attachments or blog_post_attachments,
 	 *   must contain 'attachment_id' and 'target_attachment_filename'.
 	 * @param string|null $assocPageTitle Wiki title of the owning page or blog post.
+	 * @param array|null $ownerConstraints Constraints of the owning page or blog post.
 	 * @return void
 	 */
-	private function processAttachment( array $attachmentRecord, ?string $assocPageTitle ): void {
+	private function processAttachment(
+		array $attachmentRecord, ?string $assocPageTitle, ?array $ownerConstraints
+	): void {
 		$attachmentId = $attachmentRecord['attachment_id'];
 		$attachmentPageTitle = $attachmentRecord['target_attachment_filename'];
 
@@ -138,6 +149,8 @@ class Files extends FileProcessorBase {
 		if ( $this->isDrawioDataFile( $filename ) ) {
 			return;
 		}
+
+		$this->registerPageConstraints( $attachmentPageTitle, $ownerConstraints );
 
 		$uploadPath = $this->getUploadPath();
 		$pageText = $this->dataLookup->getAttachmentDescription( (int)$attachmentId );
@@ -280,6 +293,9 @@ class Files extends FileProcessorBase {
 
 					$pageText = $this->dataLookup->getAttachmentDescription( (int)$attachmentId );
 
+					// Not attached to a page or blog post: nobody to inherit from
+					$this->registerPageConstraints( $attachmentPageTitle, null );
+
 					// XML containing files is supported by MediaWiki dumpBackup but can not be imported
 					$this->addFileRevision(
 						$attachmentPageTitle,
@@ -342,6 +358,7 @@ class Files extends FileProcessorBase {
 			$svgContent = file_get_contents( $filePath );
 			$uploadFilePath = $this->workspace->saveUploadFile( $filename, $svgContent, $uploadPath );
 
+			$this->registerPageConstraints( $filename, null );
 			$this->addFileRevision(
 				$filename,
 				$this->getRelativeFilePath( $uploadFilePath ),

@@ -215,6 +215,35 @@ interface IAnalyzeDataWriter extends IDataWriter {
 	): bool;
 
 	/**
+	 * @param int $setId
+	 * @param int $contentId
+	 * @param string $permissionType
+	 * @param int[] $permissionIds
+	 * @param array $properties
+	 *
+	 * @return bool
+	 */
+	public function addContentPermissionSet(
+		int $setId, int $contentId, string $permissionType, array $permissionIds, array $properties
+	): bool;
+
+	/**
+	 * @param int $permissionId
+	 * @param int $setId
+	 * @param string $permissionType
+	 * @param string $groupName
+	 * @param string $userKey
+	 * @param string $timestamp
+	 * @param array $properties
+	 *
+	 * @return bool
+	 */
+	public function addContentPermission(
+		int $permissionId, int $setId, string $permissionType, string $groupName,
+		string $userKey, string $timestamp, array $properties
+	): bool;
+
+	/**
 	 * @param string $userKey
 	 * @param string $wikiUsername
 	 * @param string $email

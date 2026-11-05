@@ -96,6 +96,10 @@ workspace/result/<wiki-name>/<namespace>/page-talk.xml
 workspace/result/<wiki-name>/<namespace>/blog-talk.xml
 ```
 
+Every page, blog post, comment page and file entry has a `<pageconstraints>` element
+directly after `<title>`. It lists who may read or edit the page. If a page is split over several
+output files, the element is repeated in each of them.
+
 Default pages and default files are not written to these namespace directories in
 wiki-based composition. They belong to `<wiki-name>/_shared`.
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-generic>
+<object class="ContentPermission" package="com.atlassian.confluence.security">
+<id name="id">789</id>
+<property name="type"><![CDATA[Edit]]></property>
+<property name="userSubject" class="ConfluenceUserImpl" package="com.atlassian.confluence.user"><id name="key"><![CDATA[user-key-1]]></id></property>
+<property name="owningSet" class="ContentPermissionSet" package="com.atlassian.confluence.security"><id name="id">123</id></property>
+<property name="lastModificationDate" type="timestamp">2026-03-09 13:06:33.928</property>
+</object>
+</hibernate-generic>

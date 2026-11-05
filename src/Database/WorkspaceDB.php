@@ -177,6 +177,9 @@ class WorkspaceDB implements LogEntryWriter {
 			'blog_post_comments',
 			'labellings',
 			'labels',
+			'content_permission_sets',
+			'content_permissions',
+			'page_constraints',
 			'gliffy',
 			'roadmap_svgs',
 			'required_templates',
@@ -342,6 +345,10 @@ class WorkspaceDB implements LogEntryWriter {
 		$this->createTableInlineComments();
 		$this->createTableLabellings();
 		$this->createTableLabels();
+		$this->createTableContentPermissionSets();
+		$this->createTableContentPermissions();
+		$this->createTablePageConstraints();
+		$this->createTableGroupMappings();
 		$this->createTableGliffy();
 		$this->createTableRoadmapSvgs();
 		$this->createTablePagesMeta();
@@ -742,6 +749,64 @@ class WorkspaceDB implements LogEntryWriter {
 				labelling_id INT PRIMARY KEY,
 				label_id INT,
 				properties BLOB
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableContentPermissionSets(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS content_permission_sets (
+				set_id INT PRIMARY KEY,
+				content_id INT,
+				permission_type CHAR,
+				permission_ids BLOB,
+				properties BLOB
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableContentPermissions(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS content_permissions (
+				permission_id INT PRIMARY KEY,
+				set_id INT,
+				permission_type CHAR,
+				group_name CHAR,
+				user_key CHAR,
+				timestamp CHAR,
+				properties BLOB
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTableGroupMappings(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS group_mappings (
+				confluence_group CHAR PRIMARY KEY,
+				wiki_group CHAR
+			);'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	private function createTablePageConstraints(): void {
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS page_constraints (
+				content_id INT PRIMARY KEY,
+				constraint_type CHAR,
+				timestamp CHAR,
+				targets BLOB
 			);'
 		);
 	}
@@ -5038,6 +5103,186 @@ class WorkspaceDB implements LogEntryWriter {
 		$transaction->bindValue( ':label_id', $labelId, SQLITE3_INTEGER );
 		$transaction->bindValue( ':properties', $propertiesJson, SQLITE3_TEXT );
 		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $setId
+	 * @param int $contentId ID of the restricted page or blog post; 0 if unknown
+	 * @param string $permissionType "View" or "Edit" as written by Confluence
+	 * @param int[] $permissionIds IDs of the permissions listed by the set
+	 * @param array $properties
+	 * @return bool True on success, false on error.
+	 */
+	public function addContentPermissionSet(
+		int $setId, int $contentId, string $permissionType, array $permissionIds, array $properties
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO content_permission_sets (
+				set_id,
+				content_id,
+				permission_type,
+				permission_ids,
+				properties
+			) VALUES (
+				:set_id,
+				:content_id,
+				:permission_type,
+				:permission_ids,
+				:properties
+			)'
+		);
+
+		$transaction->bindValue( ':set_id', $setId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':content_id', $contentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':permission_type', $permissionType, SQLITE3_TEXT );
+		$transaction->bindValue( ':permission_ids', json_encode( array_values( $permissionIds ) ), SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', json_encode( $properties ), SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param string $confluenceGroup
+	 * @param string $wikiGroup
+	 * @return bool True on success, false on error.
+	 */
+	public function addGroupMapping( string $confluenceGroup, string $wikiGroup ): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT OR REPLACE INTO group_mappings ( confluence_group, wiki_group )
+			VALUES ( :confluence_group, :wiki_group )'
+		);
+		$transaction->bindValue( ':confluence_group', $confluenceGroup, SQLITE3_TEXT );
+		$transaction->bindValue( ':wiki_group', $wikiGroup, SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param string $confluenceGroup
+	 * @return string|null Null if the group is not mapped
+	 */
+	public function getWikiGroupName( string $confluenceGroup ): ?string {
+		$transaction = $this->cachedPrepare(
+			'SELECT wiki_group FROM group_mappings WHERE confluence_group = :confluence_group LIMIT 1'
+		);
+		$transaction->bindValue( ':confluence_group', $confluenceGroup, SQLITE3_TEXT );
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+		if ( $data === [] || (string)$data[0]['wiki_group'] === '' ) {
+			return null;
+		}
+		return (string)$data[0]['wiki_group'];
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getContentPermissionSets(): array {
+		return $this->getAllData( 'content_permission_sets' );
+	}
+
+	/**
+	 * @param int $permissionId
+	 * @param int $setId ID of the owning set; 0 if the permission does not name it
+	 * @param string $permissionType
+	 * @param string $groupName Empty if the permission targets a user
+	 * @param string $userKey Empty if the permission targets a group
+	 * @param string $timestamp UTC, MediaWiki format; empty if unknown
+	 * @param array $properties
+	 * @return bool True on success, false on error.
+	 */
+	public function addContentPermission(
+		int $permissionId, int $setId, string $permissionType, string $groupName,
+		string $userKey, string $timestamp, array $properties
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO content_permissions (
+				permission_id,
+				set_id,
+				permission_type,
+				group_name,
+				user_key,
+				timestamp,
+				properties
+			) VALUES (
+				:permission_id,
+				:set_id,
+				:permission_type,
+				:group_name,
+				:user_key,
+				:timestamp,
+				:properties
+			)'
+		);
+
+		$transaction->bindValue( ':permission_id', $permissionId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':set_id', $setId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':permission_type', $permissionType, SQLITE3_TEXT );
+		$transaction->bindValue( ':group_name', $groupName, SQLITE3_TEXT );
+		$transaction->bindValue( ':user_key', $userKey, SQLITE3_TEXT );
+		$transaction->bindValue( ':timestamp', $timestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':properties', json_encode( $properties ), SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getContentPermissions(): array {
+		return $this->getAllData( 'content_permissions' );
+	}
+
+	/**
+	 * @param int $contentId ID of a page or blog post
+	 * @param string $constraintType "none", "edit" or "read_and_edit"
+	 * @param string $timestamp ISO 8601 in UTC; empty if unknown
+	 * @param array $targets List of arrays with the keys kind, name and level
+	 * @return bool True on success, false on error.
+	 */
+	public function addPageConstraints(
+		int $contentId, string $constraintType, string $timestamp, array $targets
+	): bool {
+		$transaction = $this->cachedPrepare(
+			'INSERT INTO page_constraints (
+				content_id,
+				constraint_type,
+				timestamp,
+				targets
+			) VALUES (
+				:content_id,
+				:constraint_type,
+				:timestamp,
+				:targets
+			)'
+		);
+
+		$transaction->bindValue( ':content_id', $contentId, SQLITE3_INTEGER );
+		$transaction->bindValue( ':constraint_type', $constraintType, SQLITE3_TEXT );
+		$transaction->bindValue( ':timestamp', $timestamp, SQLITE3_TEXT );
+		$transaction->bindValue( ':targets', json_encode( $targets ), SQLITE3_TEXT );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
+	/**
+	 * @param int $contentId
+	 * @return array{type: string, timestamp: string, targets: array}|null
+	 */
+	public function getPageConstraintsForContentId( int $contentId ): ?array {
+		$transaction = $this->cachedPrepare(
+			'SELECT * FROM page_constraints WHERE content_id = :content_id LIMIT 1'
+		);
+		$transaction->bindValue( ':content_id', $contentId, SQLITE3_INTEGER );
+
+		$result = $transaction->execute();
+		$data = $this->fetchDbArray( $result );
+		if ( $data === [] ) {
+			return null;
+		}
+
+		return [
+			'type' => (string)$data[0]['constraint_type'],
+			'timestamp' => (string)$data[0]['timestamp'],
+			'targets' => json_decode( (string)$data[0]['targets'], true ) ?: [],
+		];
 	}
 
 	/**
