@@ -1534,7 +1534,7 @@ class WorkspaceDB implements LogEntryWriter {
 			if ( $spaceId !== null ) {
 				$stmt = $this->cachedPrepare(
 					'SELECT page_id, space_id, confluence_title, wiki_title,
-					        body_content_ids, original_version_id
+					        body_content_ids, original_version_id, content_status
 					FROM pages
 					WHERE space_id = :space_id'
 				);
@@ -1542,7 +1542,7 @@ class WorkspaceDB implements LogEntryWriter {
 			} else {
 				$stmt = $this->cachedPrepare(
 					'SELECT page_id, space_id, confluence_title, wiki_title,
-					        body_content_ids, original_version_id
+					        body_content_ids, original_version_id, content_status
 					FROM pages'
 				);
 			}
@@ -1558,7 +1558,7 @@ class WorkspaceDB implements LogEntryWriter {
 			// Build a map of root page data keyed by page_id
 			$rootPageData = [];
 			foreach ( $allPages as $page ) {
-				if ( empty( $page['original_version_id'] ) ) {
+				if ( (int)$page['original_version_id'] === -1 ) {
 					$rootPageData[$page['page_id']] = $page;
 				}
 			}
@@ -1572,8 +1572,8 @@ class WorkspaceDB implements LogEntryWriter {
 				if ( !is_array( $ids ) ) {
 					continue;
 				}
-				$rootPageId = empty( $page['original_version_id'] )
-					? $page['page_id']
+				$rootPageId = (int)$page['original_version_id'] === -1
+					? (int)$page['page_id']
 					: (int)$page['original_version_id'];
 				foreach ( $ids as $bodyContentId ) {
 					$bodyContentId = (int)$bodyContentId;
@@ -1582,7 +1582,8 @@ class WorkspaceDB implements LogEntryWriter {
 					}
 					if ( !isset( $result[$rootPageId] ) ) {
 						$rootPage = $rootPageData[$rootPageId] ?? null;
-						if ( $rootPage === null ) {
+						// Drafts and trashed pages are never composed
+						if ( $rootPage === null || $rootPage['content_status'] !== 'current' ) {
 							continue;
 						}
 						$result[$rootPageId] = [
@@ -1674,7 +1675,7 @@ class WorkspaceDB implements LogEntryWriter {
 			if ( $spaceId !== null ) {
 				$stmt = $this->cachedPrepare(
 					'SELECT page_id, space_id, confluence_title, wiki_title,
-					        body_content_ids, original_version_id
+					        body_content_ids, original_version_id, content_status
 					FROM blog_posts
 					WHERE space_id = :space_id'
 				);
@@ -1682,7 +1683,7 @@ class WorkspaceDB implements LogEntryWriter {
 			} else {
 				$stmt = $this->cachedPrepare(
 					'SELECT page_id, space_id, confluence_title, wiki_title,
-					        body_content_ids, original_version_id
+					        body_content_ids, original_version_id, content_status
 					FROM blog_posts'
 				);
 			}
@@ -1698,7 +1699,7 @@ class WorkspaceDB implements LogEntryWriter {
 			// Build a map of root blog post data keyed by page_id
 			$rootBlogPostData = [];
 			foreach ( $allBlogPosts as $blogPost ) {
-				if ( empty( $blogPost['original_version_id'] ) ) {
+				if ( (int)$blogPost['original_version_id'] === -1 ) {
 					$rootBlogPostData[$blogPost['page_id']] = $blogPost;
 				}
 			}
@@ -1712,8 +1713,8 @@ class WorkspaceDB implements LogEntryWriter {
 				if ( !is_array( $ids ) ) {
 					continue;
 				}
-				$rootPageId = empty( $blogPost['original_version_id'] )
-					? $blogPost['page_id']
+				$rootPageId = (int)$blogPost['original_version_id'] === -1
+					? (int)$blogPost['page_id']
 					: (int)$blogPost['original_version_id'];
 				foreach ( $ids as $bodyContentId ) {
 					$bodyContentId = (int)$bodyContentId;
@@ -1722,7 +1723,8 @@ class WorkspaceDB implements LogEntryWriter {
 					}
 					if ( !isset( $result[$rootPageId] ) ) {
 						$rootBlogPost = $rootBlogPostData[$rootPageId] ?? null;
-						if ( $rootBlogPost === null ) {
+						// Drafts and trashed blog posts are never composed
+						if ( $rootBlogPost === null || $rootBlogPost['content_status'] !== 'current' ) {
 							continue;
 						}
 						$result[$rootPageId] = [
@@ -3065,6 +3067,28 @@ class WorkspaceDB implements LogEntryWriter {
 		$result->finalize();
 
 		return !empty( $data['confluence_title'] ) ? $data['confluence_title'] : null;
+	}
+
+	/**
+	 * Tells whether the root page or blog post of a (possibly historical) version is non-current,
+	 * e.g. a draft or trashed one.
+	 *
+	 * @param string $contentType 'page' or 'blogPost'
+	 * @param int $id
+	 * @return bool
+	 */
+	public function isRootContentNonCurrent( string $contentType, int $id ): bool {
+		$table = $contentType === 'blogPost' ? 'blog_posts' : 'pages';
+		$stmt = $this->cachedPrepare(
+			"SELECT r.content_status FROM $table p
+			INNER JOIN $table r ON r.page_id = CASE WHEN p.original_version_id = -1
+				THEN p.page_id ELSE p.original_version_id END
+			WHERE p.page_id = :id LIMIT 1"
+		);
+		$stmt->bindValue( ':id', $id, SQLITE3_INTEGER );
+		$row = $stmt->execute()->fetchArray( SQLITE3_ASSOC );
+
+		return $row !== false && $row['content_status'] !== null && $row['content_status'] !== 'current';
 	}
 
 	/**

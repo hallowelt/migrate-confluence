@@ -112,9 +112,10 @@ class UpdatePagesTableWithWikiTitle extends ProcessorBase {
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 				$pageIdToSpaceIdMap[$pageId] = $spaceId;
 			} catch ( Exception $ex ) {
-				Log::to( 'db' )->warning(
-					"Could not build wiki title for page $pageId: " . $ex->getMessage()
-				);
+				$message = "Could not build wiki title for page $pageId: " . $ex->getMessage();
+				Log::to( 'db' )->warning( $message );
+				$this->writer->addInvalidPageWikiTitle( $pageId, '', $message );
+				continue;
 			}
 
 			if ( empty( $wikiTitle ) ) {
