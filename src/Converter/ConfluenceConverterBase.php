@@ -491,11 +491,13 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->migrationConfig
+				$this->migrationConfig,
+				$this->placeholderManager
 			),
 			new ImgHtml(
 				$this->writer,
-				$this->currentSpace
+				$this->currentSpace,
+				$this->placeholderManager
 			),
 			new AttachmentLink(
 				$this->dataLookup,
@@ -531,21 +533,24 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
-				$this->confluencePageTitle
+				$this->confluencePageTitle,
+				$this->placeholderManager
 			),
 			new DrawioSketchMacro(
 				$this->writer,
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
-				$this->confluencePageTitle
+				$this->confluencePageTitle,
+				$this->placeholderManager
 			),
 			new IncDrawioMacro(
 				$this->writer,
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
-				$this->confluencePageTitle
+				$this->confluencePageTitle,
+				$this->placeholderManager
 			),
 			new GliffyMacro(
 				$this->dataLookup,
@@ -588,7 +593,8 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			new SmMacro( $this->writer, $this->currentSpace ),
 			new JiraMacro(
 				$this->writer,
-				$this->currentSpace
+				$this->currentSpace,
+				$this->placeholderManager
 			),
 			new MarkdownMacro( $this->placeholderManager ),
 			new ViewFileMacro(

@@ -59,7 +59,8 @@ class DrawioSketchMacroChainTest extends MacroChainTestBase {
 			$dataLookup,
 			$conversionDataWriter,
 			42,
-			'SomePage'
+			'SomePage',
+			$this->placeholderManager
 		);
 	}
 

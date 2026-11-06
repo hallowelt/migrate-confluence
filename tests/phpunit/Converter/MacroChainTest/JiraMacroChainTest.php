@@ -45,7 +45,8 @@ class JiraMacroChainTest extends MacroChainTestBase {
 	private function createProcessor(): IProcessor {
 		return new JiraMacro(
 			$this->createConverterDataWriter(),
-			1
+			1,
+			$this->placeholderManager
 		);
 	}
 
