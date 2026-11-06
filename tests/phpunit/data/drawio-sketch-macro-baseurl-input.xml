@@ -1,0 +1,7 @@
+<xml xmlns:ac="some" xmlns:ri="thing">
+	<ac:structured-macro ac:name="drawio-sketch" ac:schema-version="1" ac:macro-id="...">
+		<ac:parameter ac:name="revision">1</ac:parameter>
+		<ac:parameter ac:name="baseUrl">https://some-id.atlassian.net/wiki</ac:parameter>
+		<ac:parameter ac:name="diagramName">Drawioboard-board</ac:parameter>
+	</ac:structured-macro>
+</xml>
