@@ -1,0 +1,10 @@
+{| class="wikitable"
+|-
+! valign="top"| Head
+! Other
+|-
+| valign="middle"| middle aligned
+| valign="bottom" style="background-color: #ff8f73"| bottom aligned
+|}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

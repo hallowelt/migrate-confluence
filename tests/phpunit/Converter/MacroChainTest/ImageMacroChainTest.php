@@ -62,7 +62,8 @@ class ImageMacroChainTest extends MacroChainTestBase {
 			$dataLookup,
 			42,
 			'SomePage',
-			$migrationConfig
+			$migrationConfig,
+			$this->placeholderManager
 		);
 	}
 

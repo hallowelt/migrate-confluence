@@ -1,14 +1,13 @@
 Before
 
-<div class="ac-gallery" params="{&quot;title&quot;:&quot;Cross-Page Gallery&quot;,&quot;page&quot;:&quot;OtherPage, MKT:Marketing Assets&quot;}">
-
+<div class="ac-gallery" data-params="{&quot;title&quot;:&quot;Cross-Page Gallery&quot;,&quot;page&quot;:&quot;OtherPage, MKT:Marketing Assets&quot;}">
 
 <gallery caption="Cross-Page Gallery">
 logo.png
 </gallery>
 
-
 </div>
+
 After
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

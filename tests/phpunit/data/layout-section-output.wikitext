@@ -1,12 +1,10 @@
-<div class="pl-container" ac-layout="layout-section" data-type="fixed-width" breakout-mode="default">
-
+<div class="pl-container" data-ac-layout="layout-section" data-type="fixed-width" data-breakout-mode="default">
 :rocket: 1f680 🚀 #F4F5F7
 '''Discover our family of products'''. Basic product knowledge that all employees should have!
 
-
 </div>
-<div class="pl-container" ac-layout="layout-section" data-type="two_equal" breakout-mode="wide" breakout-width="760" local-id="a8af08eb717d">
 
+<div class="pl-container" data-ac-layout="layout-section" data-type="two_equal" data-breakout-mode="wide" data-breakout-width="760" data-local-id="a8af08eb717d">
 <span id="flowchat"></span>
 == FlowChat ==
 
@@ -15,10 +13,9 @@
 == InsightHub ==
 
 #DEEBFF lorem ipsum
-
 </div>
-<div class="pl-container" ac-layout="layout-section" data-type="two_equal" breakout-mode="wide" breakout-width="760" local-id="32a7dcdaaa19">
 
+<div class="pl-container" data-ac-layout="layout-section" data-type="two_equal" data-breakout-mode="wide" data-breakout-width="760" data-local-id="32a7dcdaaa19">
 <span id="powerknow"></span>
 == PowerKnow ==
 
@@ -27,7 +24,6 @@
 == TaskRules ==
 
 #DEEBFF lorem ipsum
-
 </div>
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

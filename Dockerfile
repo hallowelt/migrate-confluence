@@ -26,9 +26,8 @@ RUN composer dump-autoload --no-dev --classmap-authoritative
 FROM php:8.5.11-cli
 
 # install pandoc
-RUN apt-get update && \
-    apt-get -y --no-install-recommends install pandoc && \
-    rm -rf /var/lib/apt/lists/*
+COPY --from=pandoc/minimal:3.11.0.0 /usr/local/bin/pandoc /usr/local/bin/pandoc
+RUN ln -sf /usr/local/bin/pandoc /usr/local/bin/pandoc-server
 
 # set our php.ini settings
 COPY --chown=0:0 --chmod=a=r ./docker/php/php.ini /usr/local/etc/php/php.ini

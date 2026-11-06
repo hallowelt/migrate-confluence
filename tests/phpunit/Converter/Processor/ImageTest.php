@@ -7,6 +7,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class ImageTest extends ProcessorTestCase {
 	/**
@@ -128,14 +129,17 @@ class ImageTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
+		$placeholderManager = new PlaceholderManager();
 		$processor = new Image(
 			$this->createConverterDataWriter(),
 			$dataLookup,
 			$spaceId,
 			$rawPageTitle,
-			new MigrationConfig( [] )
+			new MigrationConfig( [] ),
+			$placeholderManager
 		);
 		$processor->process( $dom );
+		$this->resolvePlaceholders( $dom, $placeholderManager );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
 		$expectedOutput = file_get_contents( "$this->dir/$output" );

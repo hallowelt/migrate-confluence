@@ -17,6 +17,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixTableCellValign;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\InvalidContentCategories;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
@@ -490,11 +491,13 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->migrationConfig
+				$this->migrationConfig,
+				$this->placeholderManager
 			),
 			new ImgHtml(
 				$this->writer,
-				$this->currentSpace
+				$this->currentSpace,
+				$this->placeholderManager
 			),
 			new AttachmentLink(
 				$this->dataLookup,
@@ -530,21 +533,24 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
-				$this->confluencePageTitle
+				$this->confluencePageTitle,
+				$this->placeholderManager
 			),
 			new DrawioSketchMacro(
 				$this->writer,
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
-				$this->confluencePageTitle
+				$this->confluencePageTitle,
+				$this->placeholderManager
 			),
 			new IncDrawioMacro(
 				$this->writer,
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
-				$this->confluencePageTitle
+				$this->confluencePageTitle,
+				$this->placeholderManager
 			),
 			new GliffyMacro(
 				$this->dataLookup,
@@ -587,9 +593,10 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			new SmMacro( $this->writer, $this->currentSpace ),
 			new JiraMacro(
 				$this->writer,
-				$this->currentSpace
+				$this->currentSpace,
+				$this->placeholderManager
 			),
-			new MarkdownMacro(),
+			new MarkdownMacro( $this->placeholderManager ),
 			new ViewFileMacro(
 				$this->writer,
 				$this->dataLookup,
@@ -701,6 +708,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			new FixEmptyListItemWrapper(),
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
+			new FixTableCellValign(),
 			new FixMultilineTable(),
 			new TemplateContentPostProcessor( $this->wikiPageTitle ),
 			new RemoveMultipleLinebreaks(),
@@ -910,13 +918,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 					foreach ( $elementWithDataAttr->attributes as $attribute ) {
 						if ( $attribute->name === 'data-atlassian-layout' ) {
 							$elementWithDataAttr->setAttribute( 'data-atlassian-layout', '' );
-						} elseif ( str_starts_with( $attribute->name, 'data-' ) ) {
-							/* pandoc strips "data-" prefixes from data attributes.
-							 * @see https://github.com/jgm/pandoc/issues/11680 */
-							$elementWithDataAttr->setAttribute(
-								'preserve-attr-' . $attribute->name,
-								 $attribute->value );
-							$elementWithDataAttr->removeAttribute( $attribute->name );
 						}
 					}
 				}
@@ -936,7 +937,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
 		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
-		$this->wikiText = str_replace( " preserve-attr-data-", " data-", $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
 				"#&lt;img(.*?)/&gt;#s",

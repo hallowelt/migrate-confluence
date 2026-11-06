@@ -13,7 +13,6 @@ Intro
 * Two
 
 Paragraph
-
 |}
 
 </excerpt-block> <excerpt-block name="excerpt-0">
