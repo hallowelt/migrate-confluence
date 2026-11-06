@@ -590,7 +590,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->writer,
 				$this->currentSpace
 			),
-			new MarkdownMacro(),
+			new MarkdownMacro( $this->placeholderManager ),
 			new ViewFileMacro(
 				$this->writer,
 				$this->dataLookup,
