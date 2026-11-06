@@ -17,6 +17,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixTableCellValign;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\InvalidContentCategories;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
@@ -701,6 +702,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			new FixEmptyListItemWrapper(),
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
+			new FixTableCellValign(),
 			new FixMultilineTable(),
 			new TemplateContentPostProcessor( $this->wikiPageTitle ),
 			new RemoveMultipleLinebreaks(),
