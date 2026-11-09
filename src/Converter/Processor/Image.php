@@ -471,7 +471,8 @@ class Image extends ImageProcessorBase {
 		}
 
 		if ( !empty( $target ) ) {
-			$params[] = "link=$target";
+			// Placeholder prevents pandoc from wrapping the URL and the text after it in <nowiki>
+			$params[] = 'link=' . $this->placeholderManager->getPlaceholder( str_replace( '&', '&amp;', $target ) );
 		}
 
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";

@@ -4,15 +4,25 @@ namespace HalloWelt\MigrateConfluence\Converter\Processor;
 
 use DOMElement;
 use DOMNode;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\MacroInfo;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  */
-class WidgetMacro extends StructuredMacroProcessorBase {
+class WidgetMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
 
 	public const MACRO_NAME = 'widget';
 
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
+
+	/**
+	 * @param PlaceholderManager $placeholderManager
+	 */
+	public function __construct(
+		private readonly PlaceholderManager $placeholderManager
+	) {
+	}
 
 	/**
 	 * @inheritDoc
@@ -24,7 +34,14 @@ class WidgetMacro extends StructuredMacroProcessorBase {
 		$params = $this->macroParams( $node, $macroReplacement );
 
 		if ( isset( $params[ 'url' ] ) ) {
-			$macroReplacement->nodeValue = htmlspecialchars( $params['url'], ENT_QUOTES | ENT_XML1, 'UTF-8' );
+			// Placeholder prevents pandoc from wrapping the URL in <nowiki>, so that MediaWiki auto-links it
+			$macroReplacement->appendChild(
+				$this->createTextNode(
+					$node->ownerDocument,
+					$this->placeholderManager->getPlaceholder( str_replace( '&', '&amp;', $params['url'] ) ),
+					__METHOD__
+				)
+			);
 		}
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );

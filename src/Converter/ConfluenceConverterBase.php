@@ -25,6 +25,7 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMac
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\EscapeWikiMarkup;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\ProtectBareUrls;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\HTML\CDATAClosingFixer;
@@ -639,7 +640,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
-			new WidgetMacro(),
+			new WidgetMacro( $this->placeholderManager ),
 			new PreservePStyleTag(
 				$this->placeholderManager
 			),
@@ -891,6 +892,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$preprocessors = [
 			// Has to be first: must only see the original Confluence text
 			new EscapeWikiMarkup( $this->placeholderManager ),
+			new ProtectBareUrls( $this->placeholderManager ),
 			new SanitizeLinkContent(),
 			new HoistMacroFromHeading(),
 			new Table()
