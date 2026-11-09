@@ -438,12 +438,12 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			new PreserveTimeTag(
 				$this->placeholderManager
 			),
-			new TipMacro( $this->writer, $this->currentSpace ),
-			new InfoMacro( $this->writer, $this->currentSpace ),
-			new NoteMacro( $this->writer, $this->currentSpace ),
-			new WarningMacro( $this->writer, $this->currentSpace ),
+			new TipMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new InfoMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new NoteMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new WarningMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
 			new TocMacro( $this->tocMacroUsage ),
-			new ColumnMacro( $this->writer, $this->currentSpace ),
+			new ColumnMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
 			new SectionMacro(),
 			new SpaceDetailsMacro(
 				$this->writer,
@@ -584,14 +584,14 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->migrationConfig,
 				$this->placeholderManager
 			),
-			new ExpandMacro( $this->writer, $this->currentSpace ),
-			new DetailsMacro( $this->writer, $this->currentSpace ),
+			new ExpandMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new DetailsMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
 			new DetailsSummaryMacro(),
 			new AlignMacro(),
-			new TmMacro( $this->writer, $this->currentSpace ),
-			new RegTmMacro( $this->writer, $this->currentSpace ),
-			new CopyrightMacro( $this->writer, $this->currentSpace ),
-			new SmMacro( $this->writer, $this->currentSpace ),
+			new TmMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new RegTmMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new CopyrightMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new SmMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
 			new JiraMacro(
 				$this->writer,
 				$this->currentSpace,

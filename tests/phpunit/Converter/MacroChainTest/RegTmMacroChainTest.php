@@ -39,7 +39,7 @@ class RegTmMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new RegTmMacro( $this->createMock( IConverterDataWriter::class ), 1 );
+		return new RegTmMacro( $this->createMock( IConverterDataWriter::class ), 1, $this->placeholderManager );
 	}
 
 }

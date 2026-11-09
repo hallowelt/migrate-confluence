@@ -1,0 +1,12 @@
+{{Note
+|title = https://example.com/a?b=1&amp;c=2
+|other = second
+|body = 
+
+
+Body
+
+}}
+
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

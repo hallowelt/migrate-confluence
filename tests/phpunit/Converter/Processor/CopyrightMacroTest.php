@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\CopyrightMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class CopyrightMacroTest extends ProcessorTestCase {
 
@@ -19,7 +20,11 @@ class CopyrightMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->load( $inputFile );
 
-		$processor = new CopyrightMacro( $this->createMock( IConverterDataWriter::class ), 1 );
+		$processor = new CopyrightMacro(
+			$this->createMock( IConverterDataWriter::class ),
+			1,
+			new PlaceholderManager()
+		);
 		$processor->process( $dom );
 
 		$expectedDom = new DOMDocument();
