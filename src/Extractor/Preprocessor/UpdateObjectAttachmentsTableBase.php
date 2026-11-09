@@ -24,7 +24,6 @@ use SplFileInfo;
 abstract class UpdateObjectAttachmentsTableBase extends ProcessorBase {
 
 	protected const MAX_UNCOLLIDE_ATTEMPTS = 10000;
-	protected const UNKNOWN_EXTENSION = '.unknown';
 	/** @var array<string,array<string,true>> wiki group key => set of titles reserved during this run */
 	private array $reservedWikiTitles = [];
 	/** @var array<int,int[]> space_id => space_ids sharing its destination wiki */
@@ -193,11 +192,6 @@ abstract class UpdateObjectAttachmentsTableBase extends ProcessorBase {
 				continue;
 			}
 
-			$file = new SplFileInfo( $attachmentWikiTitle );
-			if ( $file->getExtension() === '' || strlen( $file->getExtension() ) > 10 ) {
-				$attachmentWikiTitle .= self::UNKNOWN_EXTENSION;
-			}
-
 			$collected[$attachmentId] = [
 				'containerId' => $containerId,
 				'origFilename' => $attachment['filename'],
@@ -249,13 +243,13 @@ abstract class UpdateObjectAttachmentsTableBase extends ProcessorBase {
 		string $attachmentFileExtension,
 		string $logLevelOnBuildFailure = 'warning'
 	): ?string {
-		$extensionToAppend = '';
+		$extensionWithDot = '';
 		if (
 			$attachmentFileExtension !== ''
 		) {
 			$fileExtension = ltrim( $attachmentFileExtension, '.' );
 			if ( $fileExtension !== '' ) {
-				$extensionToAppend = '.' . $fileExtension;
+				$extensionWithDot = '.' . $fileExtension;
 			}
 		}
 
@@ -283,8 +277,15 @@ abstract class UpdateObjectAttachmentsTableBase extends ProcessorBase {
 				$message
 			);
 		}
-		$attachmentWikiTitle .= $extensionToAppend;
+
 		$baseWikiTitle = $attachmentWikiTitle;
+		if ( str_ends_with( $attachmentWikiTitle, $extensionWithDot ) ) {
+			// Cut off file extension for a propper filename building
+			$baseWikiTitle = substr( $baseWikiTitle, 0, -strlen( $extensionWithDot ) );
+		} else {
+			// Add the attachment file extension to the base wiki title if it was not set.
+			$attachmentWikiTitle = $baseWikiTitle . $extensionWithDot;
+		}
 
 		// Uncollide file title, scoped to attachments going into the same output wiki.
 		$groupSpaceIds = $this->spaceIdToWikiGroup[$attachmentSpaceId] ?? [ $attachmentSpaceId ];
@@ -299,12 +300,7 @@ abstract class UpdateObjectAttachmentsTableBase extends ProcessorBase {
 				return null;
 			}
 
-			$extension = ( new SplFileInfo( $baseWikiTitle ) )->getExtension();
-			$extensionWithDot = $extension === '' ? '' : '.' . $extension;
-			$titleWithoutExtension = $extensionWithDot === ''
-				? $baseWikiTitle
-				: substr( $baseWikiTitle, 0, -strlen( $extensionWithDot ) );
-			$attachmentWikiTitle = $titleWithoutExtension . '-(' . $counter . ')' . $extensionWithDot;
+			$attachmentWikiTitle = $baseWikiTitle . '-(' . $counter . ')' . $extensionWithDot;
 
 			$exists = $this->wikiTitleExists( $attachmentWikiTitle, $groupSpaceIds );
 			$counter++;

@@ -6,12 +6,14 @@ use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 
 class UpdateAttachmentFileExtension extends ProcessorBase {
 
+	protected const UNKNOWN_EXTENSION = '.unknown';
+
 	public function execute(): void {
 		$attachments = $this->workspaceDB->getAttachments();
 		foreach ( $attachments as $attachment ) {
 			$collection = $attachment['collection'];
 			$fileExtension = $attachment['file_extension'] ?? '';
-			if ( !empty( $fileExtension ) && $fileExtension !== 'unknown' ) {
+			if ( !empty( $fileExtension ) && $fileExtension !== self::UNKNOWN_EXTENSION ) {
 				// File extension is already known, skip this attachment
 				continue;
 			}
@@ -40,16 +42,16 @@ class UpdateAttachmentFileExtension extends ProcessorBase {
 
 					if ( !empty( $mediaType ) && $mediaType === 'MEDIA_TYPE' ) {
 						// Update the attachment file extension based on the media type
-						$fileExtension = $this->getFileExtensionFromMediaType( $data['stringValue'] );
-						if ( empty( $fileExtension ) ) {
-							$fileExtension = 'unknown';
+						$fileExtensionFromMediaType = $this->getFileExtensionFromMediaType( $data['stringValue'] );
+						if ( !empty( $fileExtensionFromMediaType ) ) {
+							$fileExtension = $fileExtensionFromMediaType;
 						}
 					}
 				}
 			}
 
 			if ( $fileExtension === '' ) {
-				$fileExtension = 'unknown';
+				$fileExtension = self::UNKNOWN_EXTENSION;
 
 				$filePath = $attachment['attachment_reference'] ?? '';
 				if ( !empty( $filePath ) && file_exists( $filePath ) ) {
@@ -60,7 +62,7 @@ class UpdateAttachmentFileExtension extends ProcessorBase {
 				}
 			}
 
-		// Update the attachment in the database with the new file extension
+			// Update the attachment in the database with the new file extension
 			$this->writer->updateAttachmentFileExtension(
 				(int)$attachment['attachment_id'], strtolower( $fileExtension )
 			);
@@ -73,6 +75,6 @@ class UpdateAttachmentFileExtension extends ProcessorBase {
 		if ( strpos( $mediaType, '/' ) !== false ) {
 			$fileExtension = substr( $mediaType, strpos( $mediaType, '/' ) + 1 );
 		}
-		return $fileExtension ?: 'unknown';
+		return $fileExtension ?: self::UNKNOWN_EXTENSION;
 	}
 }
