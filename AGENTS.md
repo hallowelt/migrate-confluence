@@ -84,6 +84,28 @@ cleaned up again.
 Never weaken, skip or delete an existing test to make it pass. If a test expectation seems wrong, report it instead.
 New converter behavior needs a test with input markup and expected wikitext.
 
+### Pandoc version
+
+The converter output depends on the pandoc version. The Dockerfile is the single
+source of truth (`COPY --from=pandoc/minimal:<version>`); `ci.yaml` reads it from there.
+Chain tests and fixtures (`tests/phpunit/data/`, `FullMigrationSingleSpaceTest`)
+call the real `pandoc` binary and expect output of that exact version. A different
+local version causes spurious fixture failures, mostly whitespace and `data-` attributes.
+
+To run the tests locally, extract the binary and put it first on the PATH:
+
+```
+mkdir -p .tmp/p
+docker create --name pdtmp pandoc/minimal:<version>
+docker cp pdtmp:/usr/local/bin/pandoc .tmp/p/pandoc
+docker rm pdtmp
+PATH="$PWD/.tmp/p:$PATH" vendor/bin/phpunit
+```
+
+Regenerate fixtures only with that binary, and only for changes you have checked
+to be harmless. Fix real regressions in the processors, for example by hiding
+machine-generated wikitext from pandoc with `PlaceholderManager`.
+
 ## Code Creation
 
 If you write new code, make sure that it produces valid UTF-8 encoded text.
