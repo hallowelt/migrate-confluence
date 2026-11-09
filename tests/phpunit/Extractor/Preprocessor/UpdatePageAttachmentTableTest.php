@@ -39,7 +39,7 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	}
 
 	/**
-	 * @covers \\HalloWelt\\MigrateConfluence\\Extractor\\Preprocessor\\UpdatePageAttachmentTable::execute
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
 	 */
 	public function testResolvesDuplicateTitlesWithinSameRun(): void {
 		$workspaceDB = $this->createWorkspaceDB();
@@ -65,6 +65,32 @@ class UpdatePageAttachmentTableTest extends TestCase {
 			$pageAttachments[0]['target_attachment_filename'],
 			$pageAttachments[1]['target_attachment_filename']
 		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
+	 */
+	public function testAddsMissingFileExtensionBeforeUncolliding(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file', 'txt', 600, 'current', '1', '', '', -1, '/tmp/a', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			602, 1000, 'file', 'txt', 600, 'current', '1', '', '', -1, '/tmp/b', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $writer, new MigrationConfig( [] ) );
+		$processor->execute();
+
+		$targetFilenames = array_column( $workspaceDB->getPageAttachments(), 'target_attachment_filename' );
+		$this->assertContains( 'TEST_Page-file.txt', $targetFilenames );
+		$this->assertContains( 'TEST_Page-file-(1).txt', $targetFilenames );
 	}
 
 	/**

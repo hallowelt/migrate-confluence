@@ -21,7 +21,7 @@ use SplFileInfo;
  * Subclasses provide the content-type-specific DB operations while
  * this class owns the shared title-building and collision-resolution logic.
  */
-abstract class AttachmentTableUpdaterBase extends ProcessorBase {
+abstract class UpdateObjectAttachmentsTableBase extends ProcessorBase {
 
 	protected const MAX_UNCOLLIDE_ATTEMPTS = 10000;
 	protected const UNKNOWN_EXTENSION = '.unknown';
@@ -166,6 +166,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 			$attachmentId = (int)$attachment['attachment_id'];
 			$attachmentSpaceId = (int)$attachment['space_id'];
 			$attachmentOrigFilename = (string)$attachment['filename'];
+			$attachmentFileExtension = (string)$attachment['file_extension'];
 
 			Log::to( 'console' )->debug(
 				"Creating wiki title for attachment ID $attachmentId with title: $attachmentOrigFilename"
@@ -185,6 +186,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				$attachmentSpaceId,
 				$attachmentOrigFilename,
 				$shortContentWikiTitle,
+				$attachmentFileExtension,
 				'warning'
 			);
 			if ( $attachmentWikiTitle === null ) {
@@ -233,6 +235,7 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 	 * @param int $attachmentSpaceId
 	 * @param string $attachmentOrigFilename
 	 * @param string $contextTitle
+	 * @param string $attachmentFileExtension
 	 * @param string $logLevelOnBuildFailure Log level used when FilenameBuilder throws.
 	 * @return string|null Null if no unique title could be found after MAX_UNCOLLIDE_ATTEMPTS.
 	 * @throws Exception If the FilenameBuilder yields an empty title.
@@ -243,8 +246,19 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 		int $attachmentSpaceId,
 		string $attachmentOrigFilename,
 		string $contextTitle,
+		string $attachmentFileExtension,
 		string $logLevelOnBuildFailure = 'warning'
 	): ?string {
+		$extensionToAppend = '';
+		if (
+			$attachmentFileExtension !== ''
+		) {
+			$fileExtension = ltrim( $attachmentFileExtension, '.' );
+			if ( $fileExtension !== '' ) {
+				$extensionToAppend = '.' . $fileExtension;
+			}
+		}
+
 		try {
 			$attachmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
 				$attachmentSpaceId,
@@ -269,6 +283,8 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				$message
 			);
 		}
+		$attachmentWikiTitle .= $extensionToAppend;
+		$baseWikiTitle = $attachmentWikiTitle;
 
 		// Uncollide file title, scoped to attachments going into the same output wiki.
 		$groupSpaceIds = $this->spaceIdToWikiGroup[$attachmentSpaceId] ?? [ $attachmentSpaceId ];
@@ -283,23 +299,12 @@ abstract class AttachmentTableUpdaterBase extends ProcessorBase {
 				return null;
 			}
 
-			$attachmentWikiTitle = $filenameBuilder->buildFromAttachmentData(
-				$attachmentSpaceId,
-				$attachmentOrigFilename,
-				$contextTitle,
-				"-(" . $counter . ")"
-			);
-
-			if ( empty( $attachmentWikiTitle ) ) {
-				$message = "TitleCompressor delivers empty wiki title for "
-				 . "attachment id $attachmentId while uncolliding";
-
-				Log::to( 'db' )->error( $message );
-
-				throw new Exception(
-					$message
-				);
-			}
+			$extension = ( new SplFileInfo( $baseWikiTitle ) )->getExtension();
+			$extensionWithDot = $extension === '' ? '' : '.' . $extension;
+			$titleWithoutExtension = $extensionWithDot === ''
+				? $baseWikiTitle
+				: substr( $baseWikiTitle, 0, -strlen( $extensionWithDot ) );
+			$attachmentWikiTitle = $titleWithoutExtension . '-(' . $counter . ')' . $extensionWithDot;
 
 			$exists = $this->wikiTitleExists( $attachmentWikiTitle, $groupSpaceIds );
 			$counter++;

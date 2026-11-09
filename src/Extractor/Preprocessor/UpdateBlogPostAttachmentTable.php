@@ -5,7 +5,7 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 /**
  * Populates the blog_post_attachments table with wiki titles for all blog post attachments.
  */
-class UpdateBlogPostAttachmentTable extends AttachmentTableUpdaterBase {
+class UpdateBlogPostAttachmentTable extends UpdateObjectAttachmentsTableBase {
 
 	/** @inheritDoc */
 	protected function getContentItems(): array {
