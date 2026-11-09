@@ -60,7 +60,6 @@ class UpdateAttachmentFileExtension extends ProcessorBase {
 				}
 			}
 
-
 		// Update the attachment in the database with the new file extension
 			$this->writer->updateAttachmentFileExtension(
 				(int)$attachment['attachment_id'], strtolower( $fileExtension )
