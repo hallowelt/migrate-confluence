@@ -12,7 +12,6 @@ use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
-use SplFileInfo;
 
 /**
  * Base class for preprocessors that populate an attachment table
