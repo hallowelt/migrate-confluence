@@ -16,7 +16,9 @@ class BgcolorMacro extends HtmlTagMacroBase {
 	 * @inheritDoc
 	 */
 	protected function mapParams( array $params ): array {
-		// The color may also arrive as the unnamed (legacy) parameter
+		// The color may also arrive as the unnamed (legacy) parameter.
+		// Default "green" as documented at
+		// https://docs.adaptavist.com/cfm4cs/latest/mosaic-macros/background-color/
 		$color = $params['color'] ?? $params[''] ?? 'green';
 		unset( $params['color'], $params[''] );
 		return $this->addStyle( parent::mapParams( $params ), "background-color: $color;" );

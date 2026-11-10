@@ -19,7 +19,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ImgMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LiMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LozengeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\OlMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\PagetreesearchMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeSearchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyMarkMacro;
@@ -144,7 +144,7 @@ class SimpleMacrosChainTest extends MacroChainTestBase {
 				"{{SearchBox\n|button = Go\n}}\n"
 			],
 			'pagetreesearch' => [
-				new PagetreesearchMacro( $w, 1 ),
+				new PageTreeSearchMacro( $w, 1 ),
 				'<ac:structured-macro ac:name="pagetreesearch"><ac:parameter ac:name="root">Root page</ac:parameter>'
 					. '</ac:structured-macro>',
 				"{{PageTreeSearch\n|root = Root page\n}}\n"
@@ -279,7 +279,15 @@ class SimpleMacrosChainTest extends MacroChainTestBase {
 				static fn ( $pm, $lookup ) => new PrivacyPolicyMacro( $w, 42, $lookup ),
 				'<ac:structured-macro ac:name="privacy-policy"><ac:parameter ac:name="page">Missing</ac:parameter>'
 					. '<ac:rich-text-body><p>We log nothing.</p></ac:rich-text-body></ac:structured-macro>',
-				"{{PrivacyPolicy\n|page = Confluence_page---42---Missing\n|body = \n\n\nWe log nothing.\n\n}}\n"
+				"[[Category:Broken_macro/privacy-policy]]{{PrivacyPolicy\n|page = Confluence_page---42---Missing\n"
+					. "|body = \n\n\nWe log nothing.\n\n}}\n"
+			],
+			'privacy-policy-page-ri-page' => [
+				static fn ( $pm, $lookup ) => new PrivacyPolicyMacro( $w, 42, $lookup ),
+				'<ac:structured-macro ac:name="privacy-policy"><ac:parameter ac:name="page">'
+					. '<ri:page ri:content-title="Brand Assets" ri:space-key="MKT"/></ac:parameter>'
+					. '<ac:rich-text-body><p>We log nothing.</p></ac:rich-text-body></ac:structured-macro>',
+				"{{PrivacyPolicy\n|page = MKT:Brand_Assets\n|body = \n\n\nWe log nothing.\n\n}}\n"
 			],
 			'welcome-message' => [
 				new WelcomeMessageMacro( $w, 1 ),

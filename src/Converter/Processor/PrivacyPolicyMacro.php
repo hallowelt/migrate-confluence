@@ -35,43 +35,79 @@ class PrivacyPolicyMacro extends ConvertMacroToTemplateBase {
 
 	/**
 	 * Resolves a given `page` parameter to its wiki title; without one, the template default applies.
+	 * Unresolvable pages stay visible as red links and get the broken-macro category.
 	 *
 	 * @inheritDoc
 	 */
 	public function process( DOMDocument $dom ): void {
-		foreach ( $dom->getElementsByTagName( 'structured-macro' ) as $macro ) {
+		foreach ( iterator_to_array( $dom->getElementsByTagName( 'structured-macro' ) ) as $macro ) {
 			if ( $macro->getAttribute( 'ac:name' ) !== static::MACRO_NAME ) {
 				continue;
 			}
 			foreach ( $macro->childNodes as $child ) {
-				if ( $child instanceof DOMElement && $child->localName === 'parameter'
-					&& $child->getAttribute( 'ac:name' ) === 'page' && trim( $child->nodeValue ) !== '' ) {
-					$child->nodeValue = htmlspecialchars( $this->resolveWikiTitle( trim( $child->nodeValue ) ) );
+				if ( !$child instanceof DOMElement || $child->localName !== 'parameter'
+					|| $child->getAttribute( 'ac:name' ) !== 'page' ) {
+					continue;
 				}
+				[ $spaceKey, $title ] = $this->readPageReference( $child );
+				if ( $title === '' ) {
+					continue;
+				}
+				$wikiTitle = $this->resolveWikiTitle( $spaceKey, $title );
+				if ( $wikiTitle === null ) {
+					$wikiTitle = $this->getConfluencePageKeyFromSpaceId( $this->spaceIdFor( $spaceKey ), $title );
+					$macro->parentNode->insertBefore(
+						$this->createTextNode( $dom, $this->getCategoryBrokenMacro( static::MACRO_NAME ), __METHOD__ ),
+						$macro
+					);
+				}
+				$child->nodeValue = htmlspecialchars( $wikiTitle );
+				break;
 			}
 		}
 		parent::process( $dom );
 	}
 
 	/**
-	 * @param string $page Confluence page title, optionally prefixed with "SPACEKEY:"
-	 * @return string
+	 * Reads a page reference, either as `ri:page` element (with optional `ri:space-key`) or as plain text,
+	 * where the title may be prefixed with "SPACEKEY:".
+	 *
+	 * @param DOMElement $param
+	 * @return array{0: string, 1: string} Space key (empty for the current space) and title
 	 */
-	private function resolveWikiTitle( string $page ): string {
-		$spaceId = $this->currentSpaceId;
-		$title = $page;
-		$colon = strpos( $page, ':' );
-		if ( $colon !== false ) {
-			$otherSpaceId = $this->dataLookup->getSpaceIdFromSpaceKey( substr( $page, 0, $colon ) );
-			if ( $otherSpaceId !== null ) {
-				$spaceId = $otherSpaceId;
-				$title = substr( $page, $colon + 1 );
+	private function readPageReference( DOMElement $param ): array {
+		foreach ( $param->childNodes as $node ) {
+			if ( $node instanceof DOMElement && $node->localName === 'page' ) {
+				return [ $node->getAttribute( 'ri:space-key' ), trim( $node->getAttribute( 'ri:content-title' ) ) ];
 			}
 		}
+		$page = trim( $param->nodeValue );
+		$colon = strpos( $page, ':' );
+		if ( $colon !== false && $this->dataLookup->getSpaceIdFromSpaceKey( substr( $page, 0, $colon ) ) !== null ) {
+			return [ substr( $page, 0, $colon ), substr( $page, $colon + 1 ) ];
+		}
+		return [ '', $page ];
+	}
 
-		return $this->dataLookup->getWikiPageTitleForLink( $this->currentSpaceId, $spaceId, $title )
-			// Unresolvable: keep a visible red link, as the other page-referencing macros do
-			?? $this->getConfluencePageKeyFromSpaceId( $spaceId, $title );
+	/**
+	 * @param string $spaceKey
+	 * @return int|null
+	 */
+	private function spaceIdFor( string $spaceKey ): ?int {
+		return $spaceKey === '' ? $this->currentSpaceId : $this->dataLookup->getSpaceIdFromSpaceKey( $spaceKey );
+	}
+
+	/**
+	 * @param string $spaceKey
+	 * @param string $title
+	 * @return string|null
+	 */
+	private function resolveWikiTitle( string $spaceKey, string $title ): ?string {
+		$spaceId = $this->spaceIdFor( $spaceKey );
+		if ( $spaceId === null ) {
+			return null;
+		}
+		return $this->dataLookup->getWikiPageTitleForLink( $this->currentSpaceId, $spaceId, $title );
 	}
 
 	/**

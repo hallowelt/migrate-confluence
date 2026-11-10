@@ -7,7 +7,7 @@ use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 /**
  * Whether the search form honors the page prefix depends on the search backend of the wiki.
  */
-class PagetreesearchMacro extends ConvertMacroToTemplateBase {
+class PageTreeSearchMacro extends ConvertMacroToTemplateBase {
 
 	public const MACRO_NAME = 'pagetreesearch';
 

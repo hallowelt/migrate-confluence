@@ -86,7 +86,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\OfficeViewfileMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\OlMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\PagetreesearchMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeSearchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
 use HalloWelt\MigrateConfluence\Converter\Processor\PMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreMacro;
@@ -649,7 +649,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IOutputAwar
 			new PMacro(),
 			new ChangeHistoryMacro( $this->writer, $this->currentSpace ),
 			new SearchBoxMacro( $this->writer, $this->currentSpace ),
-			new PagetreesearchMacro( $this->writer, $this->currentSpace ),
+			new PageTreeSearchMacro( $this->writer, $this->currentSpace ),
 			new IframeMacro( $this->writer, $this->currentSpace ),
 			new FancyBulletsMacro(),
 			new StyleMacro( $this->placeholderManager, $this->writer, $this->currentSpace ),
