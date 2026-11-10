@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
@@ -58,15 +59,12 @@ class ContentProperty extends ProcessorBase {
 			$xmlFile = $this->xmlReader->baseURI;
 			$xmlDir = dirname( $xmlFile );
 			$xmlFilename = basename( $xmlFile );
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Content property ID $propertyId ('$propName') already exists in the database."
 					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);
 		}
 
-		$this->output->writeln( "Add content property '$propName'" );
+		Log::to( 'console' )->debug( "Add content property '$propName'" );
 	}
 }

@@ -2,20 +2,25 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Extractor\Preprocessor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\ExtractorDirectDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
-use HalloWelt\MigrateConfluence\Utility\DBLog;
 
 trait PreprocessorTestHelper {
 
-	private function createWorkspaceDB(): WorkspaceDB {
-		return ( new WorkspaceDbMock() )->createEmpty();
+	protected function tearDown(): void {
+		Log::setDatabaseHandler( null );
+		Log::setStep( '' );
+		parent::tearDown();
 	}
 
-	private function createDBLog( WorkspaceDB $workspaceDB ): DBLog {
-		return new DBLog( $workspaceDB );
+	private function createWorkspaceDB(): WorkspaceDB {
+		$workspaceDB = ( new WorkspaceDbMock() )->createEmpty();
+		Log::setDatabaseHandler( $workspaceDB );
+		Log::setStep( 'extract' );
+		return $workspaceDB;
 	}
 
 	private function createWriter( WorkspaceDB $workspaceDB ): IExtractorDataWriter {

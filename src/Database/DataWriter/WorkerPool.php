@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Database\DataWriter;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -46,11 +47,11 @@ class WorkerPool {
 			// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.proc_open
 			$proc = proc_open( [ ...$baseCommand, '--worker=' . $i ], $descriptors, $pipes );
 			if ( $proc === false ) {
-				$this->output->writeln( "<error>Failed to start worker {$i}.</error>" );
+				Log::to( 'console' )->error( "Failed to start worker {$i}." );
 				$this->terminate( $procs );
 				return Command::FAILURE;
 			}
-			$this->output->writeln( "Starting worker {$i}" );
+			Log::to( 'console' )->debug( "Starting worker {$i}" );
 
 			fclose( $pipes[0] );
 			foreach ( [ 1, 2, PipeChannel::FILE_DESCRIPTOR ] as $fd ) {
@@ -100,7 +101,7 @@ class WorkerPool {
 					unset( $streams[$key] );
 					if ( --$openPipes[$i] === 0 ) {
 						$exit[$i] = proc_close( $procs[$i] );
-						$this->output->writeln( "Worker {$i} finished with exit code {$exit[$i]}." );
+						Log::to( 'console' )->debug( "Worker {$i} finished with exit code {$exit[$i]}." );
 					}
 				}
 			}
@@ -110,11 +111,11 @@ class WorkerPool {
 			array_filter( $exit, static fn ( $code ) => $code !== Command::SUCCESS )
 		);
 		if ( $failed !== [] ) {
-			$this->output->writeln( '<error>Workers failed: ' . implode( ', ', $failed ) . '</error>' );
+			Log::to( 'console' )->error( 'Workers failed: ' . implode( ', ', $failed ) );
 			return Command::FAILURE;
 		}
 
-		$this->output->writeln( '<info>All workers completed successfully.</info>' );
+		Log::to( 'console' )->info( 'All workers completed successfully.' );
 		return Command::SUCCESS;
 	}
 

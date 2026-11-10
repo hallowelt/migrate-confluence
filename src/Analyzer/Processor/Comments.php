@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Analyzer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
 use XMLReader;
 
@@ -73,17 +74,11 @@ class Comments extends ProcessorBase {
 		// and in collection is placed in the ConfluenceAnalyzer, which will attempt to retrieve them
 		// from the body_contents table based on the comment ID.
 
-		$this->output->writeln( "Add comment (ID:$commentId)" );
+		Log::to( 'console' )->debug( "Add comment (ID:$commentId)" );
 
 		if ( empty( $bodyContentIds ) ) {
-			$warning = "Warning: No body content IDs found for comment (ID:$commentId)";
-			$this->output->writeln( $warning );
-			$this->writer->addLogEntry(
-				'warning',
-				'analyze',
-				__CLASS__,
-				$warning
-			);
+			$warning = "no body content IDs found for comment (ID:$commentId)";
+			Log::to( 'db', 'console' )->warning( $warning );
 		}
 
 		$creatorKey = $properties['creator'] ?? '';
@@ -107,10 +102,7 @@ class Comments extends ProcessorBase {
 			$xmlFile = $this->xmlReader->baseURI;
 			$xmlDir = dirname( $xmlFile );
 			$xmlFilename = basename( $xmlFile );
-			$this->writer->addLogEntry(
-				'serious-error',
-				'analyze',
-				__CLASS__,
+			Log::to( 'db' )->critical(
 				"Comment ID $commentId already exists in the database."
 					. " Source directory: '$xmlDir', file: '$xmlFilename'."
 			);

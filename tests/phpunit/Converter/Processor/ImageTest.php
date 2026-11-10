@@ -56,6 +56,23 @@ class ImageTest extends ProcessorTestCase {
 	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::process
 	 * @return void
 	 */
+	public function testMultipleImagesInOneExternalLink() {
+		$this->dir = dirname( __DIR__, 2 ) . '/data';
+
+		$dataLookup = new DBConversionDataLookup( ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat() );
+		$this->doTestWith(
+			$dataLookup,
+			'ExternalImage/image-url-multiple-in-link-input.xml',
+			'ExternalImage/image-url-multiple-in-link-output.xml',
+			42,
+			'SomePage'
+		);
+	}
+
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\Image::process
+	 * @return void
+	 */
 	public function testUrlImageInExternalLinkWithEmptyLink() {
 		$this->dir = dirname( __DIR__, 2 ) . '/data';
 

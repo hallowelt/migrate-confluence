@@ -13,7 +13,6 @@ class UpdateBlogPostsTableWithWikiTitleTest extends TestCase {
 	 */
 	public function testBuildsWikiTitleForCurrentBlogPost(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -21,7 +20,7 @@ class UpdateBlogPostsTableWithWikiTitleTest extends TestCase {
 			500, 42, 'Sample blog', 'sample blog', '', 'current', '', '', '1', -1, [], [], [], []
 		);
 
-		$processor = new UpdateBlogPostsTableWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdateBlogPostsTableWithWikiTitle( $workspaceDB, $writer );
 		$processor->execute();
 
 		$blogPost = $this->findRowById( $workspaceDB->getBlogPosts(), 'page_id', 500 );
@@ -39,7 +38,6 @@ class UpdateBlogPostsTableWithWikiTitleTest extends TestCase {
 	 */
 	public function testResolvesDuplicateWikiTitlesInSameRun(): void {
 		$workspaceDB = $this->createWorkspaceDB();
-		$dbLog = $this->createDBLog( $workspaceDB );
 		$writer = $this->createWriter( $workspaceDB );
 
 		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
@@ -49,7 +47,7 @@ class UpdateBlogPostsTableWithWikiTitleTest extends TestCase {
 			);
 		}
 
-		$processor = new UpdateBlogPostsTableWithWikiTitle( $workspaceDB, $dbLog, $writer );
+		$processor = new UpdateBlogPostsTableWithWikiTitle( $workspaceDB, $writer );
 		$processor->execute();
 
 		$blogPosts = $workspaceDB->getBlogPosts();

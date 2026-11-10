@@ -44,10 +44,7 @@ class Image extends ImageProcessorBase {
 
 			$linkBody = $node->parentNode;
 			$linkNode = $linkBody->parentNode;
-			$linkNode->parentNode->replaceChild(
-				$pageLinkReplacementNode,
-				$linkNode
-			);
+			$this->replaceContainer( $linkNode, $pageLinkReplacementNode, $node );
 
 			return;
 		}
@@ -59,9 +56,10 @@ class Image extends ImageProcessorBase {
 			$url = $this->getImageUrl( $node );
 
 			if ( $url !== '' ) {
-				$enclosingExternalLink->parentNode->replaceChild(
+				$this->replaceContainer(
+					$enclosingExternalLink,
 					$this->makeExternalImageReplacement( $node, $href ),
-					$enclosingExternalLink
+					$node
 				);
 
 				return;
@@ -69,15 +67,16 @@ class Image extends ImageProcessorBase {
 
 			$externalLinkReplacementNode = $this->makeImageExternalLinkReplacement( $node );
 			if ( $externalLinkReplacementNode !== $node ) {
-				$enclosingExternalLink->parentNode->replaceChild(
+				$this->replaceContainer(
+					$enclosingExternalLink,
 					$externalLinkReplacementNode,
-					$enclosingExternalLink
+					$node
 				);
 
 				return;
 			}
 
-			$this->replaceWithBrokenExternalLink( $enclosingExternalLink, $href );
+			$this->replaceWithBrokenExternalLink( $enclosingExternalLink, $href, $node );
 
 			return;
 		}
@@ -103,6 +102,24 @@ class Image extends ImageProcessorBase {
 			$replacementNode,
 			$node
 		);
+	}
+
+	/**
+	 * A link may wrap several images. Replacing the whole link on the first
+	 * image would detach (and lose) the others, so while more images remain
+	 * the replacement is inserted before the link and only this image is
+	 * removed from it. The last image replaces the link itself.
+	 */
+	private function replaceContainer( DOMNode $container, DOMNode $replacement, DOMElement $image ): void {
+		if ( $container->getElementsByTagName( 'image' )->length > 1 ) {
+			$container->parentNode->insertBefore( $replacement, $container );
+			if ( $replacement !== $image ) {
+				$image->parentNode->removeChild( $image );
+			}
+			return;
+		}
+
+		$container->parentNode->replaceChild( $replacement, $container );
 	}
 
 	private function getImageParams( DOMElement $node ): array {
@@ -262,7 +279,17 @@ class Image extends ImageProcessorBase {
 	 * ri:attachment). Keep the link itself, using its href as link text,
 	 * and mark the page as containing a broken image.
 	 */
-	private function replaceWithBrokenExternalLink( DOMElement $anchor, string $href ): void {
+	private function replaceWithBrokenExternalLink( DOMElement $anchor, string $href, DOMElement $image ): void {
+		if ( $anchor->getElementsByTagName( 'image' )->length > 1 ) {
+			$dom = $anchor->ownerDocument;
+			$anchor->parentNode->insertBefore(
+				$this->createTextNode( $dom, $this->getCategoryBroken( 'image' ), __METHOD__ ),
+				$anchor
+			);
+			$image->parentNode->removeChild( $image );
+			return;
+		}
+
 		$newAnchor = $this->replaceAnchorWithTextLink( $anchor, $href, $href );
 
 		$newAnchor->parentNode->insertBefore(

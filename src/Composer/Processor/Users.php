@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Composer\Processor;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Composer\IConfluenceComposerProcessor;
 use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
@@ -84,7 +85,7 @@ class Users implements IConfluenceComposerProcessor, ISubDirAware {
 		$this->builder->buildAndSave( $basePath . $name );
 		$this->builder->reset();
 
-		$this->output->writeln( 'Write users.xml' );
+		Log::to( 'console' )->debug( 'Write users.xml' );
 	}
 
 	/**
