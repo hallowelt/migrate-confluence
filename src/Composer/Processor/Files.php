@@ -221,7 +221,7 @@ class Files extends FileProcessorBase {
 
 		foreach ( $additionalAttachments as $additionalAttachment ) {
 
-		$attachmentId = $additionalAttachment['attachment_id'];
+			$attachmentId = $additionalAttachment['attachment_id'];
 
 			$attachmentPageTitle = $additionalAttachment['target_attachment_filename'];
 
