@@ -2080,7 +2080,7 @@ class WorkspaceDB implements LogEntryWriter {
 	 *
 	 * @return array[] Rows with keys space_key, namespace_prefix, wiki_name
 	 */
-	public function getSpaceTargetNames(): array {
+	public function getSpacesNamespacesWikis(): array {
 		$transaction = $this->cachedPrepare(
 			'SELECT s.space_key,
 				COALESCE( wc.wiki_namespace, s.namespace_prefix ) AS namespace_prefix,
