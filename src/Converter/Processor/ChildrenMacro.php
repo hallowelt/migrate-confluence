@@ -53,22 +53,37 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 			$params['page'] = str_replace( '_', ' ', $params['page'] );
 		}
 
+		$wikiText = $this->buildWikiText( $params );
+		if ( $isBroken ) {
+			$wikiText .= $this->getBrokenMacroCategory();
+		}
+
+		$textNode = $this->createTextNode( $node->ownerDocument, $wikiText, __METHOD__ );
+		$node->parentNode->replaceChild( $textNode, $node );
+
+		$this->registerDefaultPages();
+	}
+
+	/**
+	 * Builds the wikitext that lists the subpages for the macro parameters.
+	 *
+	 * @param array $params
+	 * @return string
+	 */
+	protected function buildWikiText( array $params ): string {
 		$templateParams = '';
 		foreach ( $params as $key => $value ) {
 			$templateParams .= '|' . $key . '=' . $value;
 		}
 
-		$wikiText = '{{SubpageList' . $templateParams . '}}';
-
-		if ( $isBroken ) {
-			$wikiText .= $this->getBrokenMacroCategory();
-		}
-
 		// https://github.com/JeroenDeDauw/SubPageList/blob/master/doc/USAGE.md
-		$textNode = $this->createTextNode( $node->ownerDocument, $wikiText, __METHOD__ );
+		return '{{SubpageList' . $templateParams . '}}';
+	}
 
-		$node->parentNode->replaceChild( $textNode, $node );
-
+	/**
+	 * Registers the default pages that the generated wikitext depends on.
+	 */
+	protected function registerDefaultPages(): void {
 		$this->writer->registerDefaultPage(
 			$this->spaceId,
 			'SubpageList'
@@ -85,7 +100,7 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 	 * @return array
 	 * @throws Exception
 	 */
-	private function processParams( DOMElement $node ): array {
+	protected function processParams( DOMElement $node ): array {
 		$params = [];
 
 		foreach ( $node->childNodes as $paramNode ) {
