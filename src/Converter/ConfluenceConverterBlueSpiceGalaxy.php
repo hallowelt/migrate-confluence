@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Converter;
 
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\BlueSpiceGalaxy\TemplateContentPostProcessor;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor as BaseProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\PanelMacro;
@@ -37,5 +39,17 @@ class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
 		] );
 
 		return $processors;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	protected function getPostProcessors(): array {
+		return array_map(
+			fn ( $postProcessor ) => $postProcessor instanceof BaseProcessor
+				? new TemplateContentPostProcessor( $this->wikiPageTitle )
+				: $postProcessor,
+			$this->getDefaultPostProcessors()
+		);
 	}
 }

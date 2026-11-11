@@ -21,6 +21,15 @@ class TemplateContentPostProcessor implements IPostprocessor {
 			return $wikiText;
 		}
 
-		return $wikiText . "\n<includeonly>{{#set: Created by macro=$1 }}</includeonly>";
+		return $wikiText . "\n<includeonly>" . $this->getCreatedByMacroMarker() . "</includeonly>";
+	}
+
+	/**
+	 * Builds the wikitext that links a page created from a template to its CreateFromTemplate macro.
+	 *
+	 * @return string
+	 */
+	protected function getCreatedByMacroMarker(): string {
+		return '{{#set: Created by macro=$1 }}';
 	}
 }

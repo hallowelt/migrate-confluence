@@ -72,6 +72,52 @@ class DefaultPagesTest extends TestCase {
 	}
 
 	/**
+	 * @covers \HalloWelt\MigrateConfluence\Composer\Processor\DefaultPages::execute
+	 * @dataProvider provideProfileData
+	 */
+	public function testProfileSpecificDefaultPagesReplaceBaseOnes(
+		string $profile, string $expectedParserFunction, string $unexpectedParserFunction
+	): void {
+		$builder = $this->createMock( Builder::class );
+		$addedPages = [];
+		$builder->method( 'addRevision' )
+			->willReturnCallback( static function ( string $pageName, string $text ) use ( &$addedPages ): void {
+				$addedPages[$pageName] = $text;
+			} );
+
+		$dataLookup = $this->createMock( DBComposerDataLookup::class );
+		$dataLookup->method( 'getRegisteredDefaultPagesForSpaceId' )->willReturn( [
+			'Template' => [ 'Folder', 'SpaceDetails', 'SubpageList', 'RecentlyUpdated', 'CreateFromTemplate' ],
+		] );
+
+		$processor = new DefaultPages(
+			$builder,
+			$this->createMock( Output::class ),
+			sys_get_temp_dir(),
+			new MigrationConfig( [ 'profile' => $profile ] ),
+			$dataLookup
+		);
+		$processor->setCurrentSpaceIds( [ 1 ] );
+		$processor->execute();
+
+		foreach ( [ 'Folder', 'SpaceDetails', 'SubpageList', 'RecentlyUpdated', 'CreateFromTemplate' ] as $name ) {
+			$this->assertStringContainsString( $expectedParserFunction, $addedPages["Template:$name"], $name );
+			$this->assertStringNotContainsString( $unexpectedParserFunction, $addedPages["Template:$name"], $name );
+		}
+		$this->assertArrayHasKey( 'Template:Folder/Style.css', $addedPages );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function provideProfileData(): array {
+		return [
+			'galaxy uses DPL' => [ 'bluespice-galaxy', '{{#dpl:', '{{#ask:' ],
+			'mediawiki uses SMW' => [ 'mediawiki', '{{#ask:', '{{#dpl:' ],
+		];
+	}
+
+	/**
 	 * @return array
 	 */
 	public function provideGetDefaultPageForFileData(): array {
