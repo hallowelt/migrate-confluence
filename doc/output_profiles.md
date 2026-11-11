@@ -23,9 +23,7 @@ Default pages (e.g. `Template:Folder`) live in `src/Composer/_defaultpages`
 and use Semantic MediaWiki (`{{#ask:`). A file at the same relative path below
 `src/Composer/_defaultpages_profiles/<profile>/` replaces the base file for that
 profile. The `bluespice-galaxy` profile replaces the SMW-based pages with
-DynamicPageList4 (`{{#dpl:`) and SubPageList equivalents. Pages created via
-`CreateFromTemplate` are grouped by the category
-`Category:Created by macro <macro-id>` instead of the SMW property.
+DynamicPageList4 (`{{#dpl:`) and SubPageList equivalents.
 
 Known differences to the SMW version on Galaxy:
 

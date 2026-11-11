@@ -87,7 +87,7 @@ class DefaultPagesTest extends TestCase {
 
 		$dataLookup = $this->createMock( DBComposerDataLookup::class );
 		$dataLookup->method( 'getRegisteredDefaultPagesForSpaceId' )->willReturn( [
-			'Template' => [ 'Folder', 'SpaceDetails', 'SubpageList', 'RecentlyUpdated', 'CreateFromTemplate' ],
+			'Template' => [ 'Folder', 'SpaceDetails', 'SubpageList', 'RecentlyUpdated' ],
 		] );
 
 		$processor = new DefaultPages(
@@ -100,7 +100,7 @@ class DefaultPagesTest extends TestCase {
 		$processor->setCurrentSpaceIds( [ 1 ] );
 		$processor->execute();
 
-		foreach ( [ 'Folder', 'SpaceDetails', 'SubpageList', 'RecentlyUpdated', 'CreateFromTemplate' ] as $name ) {
+		foreach ( [ 'Folder', 'SpaceDetails', 'SubpageList', 'RecentlyUpdated' ] as $name ) {
 			$this->assertStringContainsString( $expectedParserFunction, $addedPages["Template:$name"], $name );
 			$this->assertStringNotContainsString( $unexpectedParserFunction, $addedPages["Template:$name"], $name );
 		}
