@@ -1,0 +1,114 @@
+
+{| class="wikitable" style="width:100%"
+|-
+| Name || {{NAMESPACE}}
+|-
+| Pages in namespace || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|resultsheader=%TOTALPAGES%
+|format=,,,
+}}
+|-
+| Last page edit || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|ordermethod=lastedit
+|order=descending
+|format=,[[%PAGE%]],,
+}}
+|-
+| Last modification date || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|ordermethod=lastedit
+|order=descending
+|addeditdate=true
+|format=,%DATE%,,
+}}
+|-
+| Last modifier || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|ordermethod=lastedit
+|order=descending
+|addlasteditor=true
+|format=,[[User:%USER%¦%USER%]],,
+}}
+|} 
+{| class="wikitable" style="width:100%"
+|-
+| Name || {{NAMESPACE}}
+|-
+| Pages in namespace || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|resultsheader=%TOTALPAGES%
+|format=,,,
+}}
+|-
+| Last page edit || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|ordermethod=lastedit
+|order=descending
+|format=,[[%PAGE%]],,
+}}
+|-
+| Last modification date || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|ordermethod=lastedit
+|order=descending
+|addeditdate=true
+|format=,%DATE%,,
+}}
+|-
+| Last modifier || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|ordermethod=lastedit
+|order=descending
+|addlasteditor=true
+|format=,[[User:%USER%¦%USER%]],,
+}}
+|} 
+{| class="wikitable" style="width:50%"
+|-
+| Name || {{NAMESPACE}}
+|-
+| Pages in namespace || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|resultsheader=%TOTALPAGES%
+|format=,,,
+}}
+|-
+| Last page edit || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|ordermethod=lastedit
+|order=descending
+|format=,[[%PAGE%]],,
+}}
+|-
+| Last modification date || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|ordermethod=lastedit
+|order=descending
+|addeditdate=true
+|format=,%DATE%,,
+}}
+|-
+| Last modifier || {{#dpl:
+|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
+|count=1
+|ordermethod=lastedit
+|order=descending
+|addlasteditor=true
+|format=,[[User:%USER%¦%USER%]],,
+}}
+|}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

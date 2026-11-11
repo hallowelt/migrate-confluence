@@ -1,0 +1,22 @@
+{{#subpages:page=SomePage|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}
+
+{{#dpl:
+|namespace={{#if:{{NAMESPACE:SomePage}}|{{NAMESPACE:SomePage}}|Main}}
+|titlematch={{#replace:{{PAGENAME:SomePage}}| |_}}/%
+|ordermethod=firstedit
+|order=descending
+|count=500
+|format=,\n*²{SubpageListRow¦%PAGE%}²,,
+}}<!-- children macro parameters not migrated: all=true, style=h2 -->
+
+{{#subpages:page=ABC:Some page|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}<!-- children macro parameters not migrated: all=true, depth=1, style=h2 -->
+
+{{#subpages:page=DEVOPS:Some other page|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}<!-- children macro parameters not migrated: all=true, depth=1, style=h2 -->
+
+{{#subpages:page=Confluence_page---DEVOPS---Unknown_page|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}<!-- children macro parameters not migrated: all=true, depth=1, style=h2 -->[[Category:Broken_macro/children]]
+
+{{#subpages:page=Confluence_page------Unknown_page|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}<!-- children macro parameters not migrated: all=true, depth=1, style=h2 -->[[Category:Broken_macro/children]]
+
+{{#subpages:page=SomePage|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}<!-- children macro parameters not migrated: all=true, depth=1, style=h2 -->
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
