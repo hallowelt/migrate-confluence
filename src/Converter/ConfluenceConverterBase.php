@@ -1070,6 +1070,13 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 					$bodyContentId,
 					InvalidContentCategories::REASON_BODY_TOO_LONG
 				);
+			} elseif (
+				in_array( $this->contentType, [ 'page', 'blogPost' ], true )
+				&& $this->pageId !== null
+				&& $this->workspaceDB->isRootContentNonCurrent( $this->contentType, $this->pageId )
+			) {
+				// Drafts and trashed content are never composed, so they must not show up as invalid
+				return;
 			} else {
 				$this->writer->addInvalidBodyContent(
 					$bodyContentId,

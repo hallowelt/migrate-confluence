@@ -66,10 +66,7 @@ class InvalidContents extends ContentProcessorBase {
 
 		foreach ( $invalidPages as $invalidPage ) {
 			$pageId = (int)$invalidPage['page_id'];
-			$wikiTitle = (string)( $invalidPage['wiki_title'] ?? '' );
-			if ( $wikiTitle === '' ) {
-				continue;
-			}
+			$wikiTitle = $this->titleOrFallback( $invalidPage['wiki_title'] ?? '', 'Page', $pageId );
 
 			$this->invalidPageIds[$pageId] = $pageId;
 			Log::to( 'console' )->debug( "Processing skipped invalid page '$wikiTitle' ..." );
@@ -92,6 +89,9 @@ class InvalidContents extends ContentProcessorBase {
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)( $revision['revision_timestamp'] ?? '' );
 				if ( !$this->hasValidContentIdsJson( (string)( $revision['body_content_ids'] ?? '' ) ) ) {
+					Log::to( 'console' )->warning(
+						"Skipping revision '$timestamp' of '$wikiTitle': invalid body_content_ids"
+					);
 					continue;
 				}
 				$pageContent = $this->buildConvertedContentFromIdsJson(
@@ -124,10 +124,11 @@ class InvalidContents extends ContentProcessorBase {
 
 		foreach ( $invalidBlogPosts as $invalidBlogPost ) {
 			$blogPostId = (int)$invalidBlogPost['page_id'];
-			$wikiTitle = (string)( $invalidBlogPost['wiki_title'] ?? '' );
-			if ( $wikiTitle === '' ) {
-				continue;
-			}
+			$wikiTitle = $this->titleOrFallback(
+				$invalidBlogPost['wiki_title'] ?? '',
+				'BlogPost',
+				$blogPostId
+			);
 
 			$this->invalidBlogPostIds[$blogPostId] = $blogPostId;
 			Log::to( 'console' )->debug( "Processing skipped invalid blog post '$wikiTitle' ..." );
@@ -136,6 +137,9 @@ class InvalidContents extends ContentProcessorBase {
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)( $revision['revision_timestamp'] ?? '' );
 				if ( !$this->hasValidContentIdsJson( (string)( $revision['body_content_ids'] ?? '' ) ) ) {
+					Log::to( 'console' )->warning(
+						"Skipping revision '$timestamp' of '$wikiTitle': invalid body_content_ids"
+					);
 					continue;
 				}
 				$pageContent = $this->buildConvertedContentFromIdsJson(
@@ -176,27 +180,22 @@ class InvalidContents extends ContentProcessorBase {
 		foreach ( $comments as $comment ) {
 			$containerId = (int)( $comment['container_id'] ?? 0 );
 			$contentClass = (string)( $comment['content_class'] ?? '' );
-			$wikiTitle = (string)( $comment['wiki_title'] ?? '' );
-			if ( $wikiTitle === '' || $containerId === 0 ) {
+			if ( $containerId === 0 || !$this->isInvalidCommentContainer( $contentClass, $containerId ) ) {
 				continue;
 			}
 
-			if ( !$this->isInvalidCommentContainer( $contentClass, $containerId ) ) {
-				continue;
-			}
+			$wikiTitle = $this->titleOrFallback( $comment['wiki_title'] ?? '', $contentClass, $containerId );
 
 			$bodyContentIds = json_decode( (string)( $comment['body_content_ids'] ?? '' ), true );
-			if ( !is_array( $bodyContentIds ) ) {
-				continue;
-			}
-
-			$bodyContentId = $bodyContentIds[0] ?? null;
+			$bodyContentId = is_array( $bodyContentIds ) ? ( $bodyContentIds[0] ?? null ) : null;
 			if ( $bodyContentId === null ) {
+				Log::to( 'console' )->notice( "Skipping comment on '$wikiTitle': invalid body_content_ids" );
 				continue;
 			}
 
-			$wikitext = trim( $this->workspace->getConvertedContent( (int)$bodyContentId ) );
+			$wikitext = trim( (string)$this->workspace->getConvertedContent( (int)$bodyContentId ) );
 			if ( $wikitext === '' ) {
+				Log::to( 'console' )->notice( "Skipping comment on '$wikiTitle': empty converted content" );
 				continue;
 			}
 
@@ -251,10 +250,11 @@ class InvalidContents extends ContentProcessorBase {
 
 		foreach ( $invalidPageTemplates as $invalidPageTemplate ) {
 			$templateId = (int)$invalidPageTemplate['template_id'];
-			$wikiTitle = (string)( $invalidPageTemplate['wiki_title'] ?? '' );
-			if ( $wikiTitle === '' ) {
-				continue;
-			}
+			$wikiTitle = $this->titleOrFallback(
+				$invalidPageTemplate['wiki_title'] ?? '',
+				'Template',
+				$templateId
+			);
 
 			Log::to( 'console' )->debug( "Processing skipped invalid template '$wikiTitle' ..." );
 
@@ -262,6 +262,9 @@ class InvalidContents extends ContentProcessorBase {
 			foreach ( $revisions as $revision ) {
 				$timestamp = (string)( $revision['revision_timestamp'] ?? '' );
 				if ( !$this->hasValidContentIdsJson( (string)( $revision['template_content_ids'] ?? '' ) ) ) {
+					Log::to( 'console' )->warning(
+						"Skipping revision '$timestamp' of '$wikiTitle': invalid template_content_ids"
+					);
 					continue;
 				}
 				$pageContent = $this->buildConvertedContentFromIdsJson(
@@ -273,6 +276,25 @@ class InvalidContents extends ContentProcessorBase {
 				$this->addRevision( $wikiTitle, $pageContent, $timestamp );
 			}
 		}
+	}
+
+	/**
+	 * Invalid entries may have no usable wiki title; they still must not be dropped.
+	 *
+	 * @param mixed $wikiTitle
+	 * @param string $type
+	 * @param int $id
+	 * @return string
+	 */
+	private function titleOrFallback( $wikiTitle, string $type, int $id ): string {
+		$wikiTitle = (string)$wikiTitle;
+		if ( $wikiTitle !== '' ) {
+			return $wikiTitle;
+		}
+
+		$fallback = "Invalid_contents/{$type}_$id";
+		Log::to( 'console' )->notice( "$type $id has no wiki title, using '$fallback'" );
+		return $fallback;
 	}
 
 	/**
