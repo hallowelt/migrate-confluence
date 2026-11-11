@@ -6,7 +6,6 @@ use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ChildrenMacr
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\PanelMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\RecentlyUpdatedMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\SpaceDetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\StatusMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\BlueSpiceGalaxy\TableExcerptIncludeMacro;
@@ -43,12 +42,6 @@ class ConfluenceConverterBlueSpiceGalaxy extends ConfluenceConverterBase {
 				$this->currentSpace,
 				$this->wikiPageTitle,
 				$this->dataLookup,
-				$this->placeholderManager
-			),
-			new RecentlyUpdatedMacro(
-				$this->writer,
-				$this->currentSpace,
-				$this->wikiPageTitle,
 				$this->placeholderManager
 			),
 		] );

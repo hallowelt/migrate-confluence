@@ -21,11 +21,12 @@ Currently the tool supports two output profiles:
 
 Default pages (e.g. `Template:Folder`) live in `src/Composer/_defaultpages`
 and use Semantic MediaWiki (`{{#ask:`). A file at the same relative path below
-`src/Composer/_defaultpages_profiles/<profile>/` replaces the base file for that
-profile. The `bluespice-galaxy` profile replaces the SMW-based `Folder` and
-`RecentlyUpdatedRow` pages with DynamicPageList4 (`{{#dpl:`) equivalents.
+`src/Composer/_defaultpages/BlueSpiceGalaxy/` replaces the base file for that
+profile. The `bluespice-galaxy` profile replaces the SMW-based `Folder`,
+`RecentlyUpdated` and `RecentlyUpdatedRow` pages with DynamicPageList4
+(`{{#dpl:`) equivalents.
 
-The macros `children`, `recently-updated` and `space-details` do not use a
+The macros `children` and `space-details` do not use a
 wrapping template in the `bluespice-galaxy` profile. The converter writes the
 DynamicPageList4/SubPageList query directly into the page
 (`Converter/Processor/BlueSpiceGalaxy`), so options can be edited per page.
@@ -41,4 +42,3 @@ Known differences to the SMW version on Galaxy:
     the space home page).
 * `children`: `sort=creation|modified` uses DPL, sorting by title uses SubPageList.
     `depth`, `all`, `style` and `excerpt` are not supported.
-* `recently-updated`: only `max` and `labels` are supported.
