@@ -1,6 +1,5 @@
 '''Some data as scatter chart'''[[Category:Broken_chart/scatter]]
 <div class="ac-chart">
-
 <!--<ac:structured-macro ac:name="chart" ac:schema-version="1">
 		<ac:parameter ac:name="type">scatter</ac:parameter>
 		<ac:parameter ac:name="title">Some data as scatter chart</ac:parameter>
@@ -23,7 +22,6 @@
 			</table>
 		</ac:rich-text-body>
 	</ac:structured-macro>-->[[Category:Broken_macro/chart]]
-
 </div>
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

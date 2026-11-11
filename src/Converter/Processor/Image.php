@@ -9,6 +9,7 @@ use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  * Handles <ac:image> nodes. Raw HTML <img> nodes are handled by RawImage.
@@ -20,9 +21,10 @@ class Image extends ImageProcessorBase {
 		protected DBConversionDataLookup $dataLookup,
 		protected int $currentSpaceId,
 		protected string $rawPageTitle,
-		MigrationConfig $migrationConfig
+		MigrationConfig $migrationConfig,
+		PlaceholderManager $placeholderManager
 	) {
-		parent::__construct( $writer, $this->currentSpaceId );
+		parent::__construct( $writer, $this->currentSpaceId, $placeholderManager );
 		$this->filenameResolver = new FilenameResolver( $dataLookup, $migrationConfig );
 	}
 
@@ -469,7 +471,8 @@ class Image extends ImageProcessorBase {
 		}
 
 		if ( !empty( $target ) ) {
-			$params[] = "link=$target";
+			// Placeholder prevents pandoc from wrapping the URL and the text after it in <nowiki>
+			$params[] = 'link=' . $this->placeholderManager->getPlaceholder( str_replace( '&', '&amp;', $target ) );
 		}
 
 		$confluenceFileKey = "$spaceId---$rawPageTitle---$filename";

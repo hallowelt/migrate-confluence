@@ -25,7 +25,10 @@ class NoFormatMacro extends StructuredMacroProcessorBase {
 		$macroReplacement->setAttribute( 'class', 'noformat' );
 
 		$this->processParamElements( $node, $macroReplacement );
-		$this->processPlainTextBody( $node, $macroReplacement );
+		// Pandoc >= 3.11 only treats <pre> as a code block if it contains <code>
+		$code = $node->ownerDocument->createElement( 'code' );
+		$macroReplacement->appendChild( $code );
+		$this->processPlainTextBody( $node, $code );
 
 		$node->parentNode->replaceChild( $macroReplacement, $node );
 	}

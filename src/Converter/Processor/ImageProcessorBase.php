@@ -8,6 +8,7 @@ use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\FilenameResolver;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  * Shared logic used by both the <ac:image> processor (Image) and the raw
@@ -27,6 +28,7 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 	public function __construct(
 		protected IConverterDataWriter $writer,
 		protected int $currentSpaceId,
+		protected PlaceholderManager $placeholderManager,
 	) {
 	}
 
@@ -124,7 +126,8 @@ abstract class ImageProcessorBase extends ConversionHelper implements IProcessor
 			"ExternalImage"
 		);
 
-		return '{{ExternalImage|' . implode( '|', $templateParams ) . '}}';
+		// Placeholder prevents pandoc from wrapping URLs in the template in <nowiki> or escaping them
+		return $this->placeholderManager->getPlaceholder( '{{ExternalImage|' . implode( '|', $templateParams ) . '}}' );
 	}
 
 	/**

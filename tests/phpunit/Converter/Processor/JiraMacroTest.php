@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\JiraMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class JiraMacroTest extends ProcessorTestCase {
 
@@ -12,7 +13,8 @@ class JiraMacroTest extends ProcessorTestCase {
 	 * @return void
 	 */
 	public function testProcess() {
-		$jiraMacroProcessor = new JiraMacro( $this->createConverterDataWriter(), 1 );
+		$placeholderManager = new PlaceholderManager();
+		$jiraMacroProcessor = new JiraMacro( $this->createConverterDataWriter(), 1, $placeholderManager );
 		$dom = new \DOMDocument();
 		$dom->load(
 			dirname( __DIR__, 2 ) . '/data/jira-macro-input.xml'
@@ -23,6 +25,7 @@ class JiraMacroTest extends ProcessorTestCase {
 		);
 
 		$jiraMacroProcessor->process( $dom );
+		$this->resolvePlaceholders( $dom, $placeholderManager );
 
 		$this->assertDomXmlEquals( $expectedDOM, $dom );
 	}
@@ -88,12 +91,14 @@ class JiraMacroTest extends ProcessorTestCase {
 	 * @param string $outputFile
 	 */
 	private function doTest( string $inputFile, string $outputFile ): void {
-		$processor = new JiraMacro( $this->createConverterDataWriter(), 1 );
+		$placeholderManager = new PlaceholderManager();
+		$processor = new JiraMacro( $this->createConverterDataWriter(), 1, $placeholderManager );
 		$dom = new \DOMDocument();
 		$dom->load( dirname( __DIR__, 2 ) . '/data/' . $inputFile );
 		$expectedDom = new \DOMDocument();
 		$expectedDom->load( dirname( __DIR__, 2 ) . '/data/' . $outputFile );
 		$processor->process( $dom );
+		$this->resolvePlaceholders( $dom, $placeholderManager );
 		$this->assertDomXmlEquals( $expectedDom, $dom );
 	}
 

@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\TmMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class TmMacroTest extends ProcessorTestCase {
 
@@ -19,7 +20,7 @@ class TmMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->load( $inputFile );
 
-		$processor = new TmMacro( $this->createMock( IConverterDataWriter::class ), 1 );
+		$processor = new TmMacro( $this->createMock( IConverterDataWriter::class ), 1, new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$expectedDom = new DOMDocument();

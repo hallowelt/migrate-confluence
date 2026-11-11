@@ -1,5 +1,4 @@
-<div class="pl-layout" ac-layout="layout">
-
+<div class="pl-layout" data-ac-layout="layout">
 :rocket: 1f680 🚀 #F4F5F7
 '''Discover our family of products'''. Basic product knowledge that all employees should have!
 
@@ -19,7 +18,6 @@
 == TaskRules ==
 
 #DEEBFF lorem ipsum
-
 </div>
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

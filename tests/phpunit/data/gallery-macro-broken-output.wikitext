@@ -2,14 +2,13 @@ Before
 
 <div class="ac-gallery">
 
-
 <gallery>
 ABC_SomePage-SomeImage.png
 ABC_SomePage-SomeImage1.png
 </gallery>
 
-
 </div>
+
 After
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

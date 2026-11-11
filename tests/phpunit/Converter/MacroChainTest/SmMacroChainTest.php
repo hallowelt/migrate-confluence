@@ -39,7 +39,7 @@ class SmMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new SmMacro( $this->createMock( IConverterDataWriter::class ), 1 );
+		return new SmMacro( $this->createMock( IConverterDataWriter::class ), 1, $this->placeholderManager );
 	}
 
 }

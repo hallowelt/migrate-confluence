@@ -19,6 +19,7 @@ class InfoMacroChainTest extends MacroChainTestBase {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$fixtures = [
 			'info-macro-input.xml' => 'info-macro-output.wikitext',
+			'info-macro-url-title-input.xml' => 'info-macro-url-title-output.wikitext',
 		];
 
 		foreach ( $fixtures as $inputFixture => $expectedFixture ) {
@@ -37,7 +38,7 @@ class InfoMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new InfoMacro( $this->createMock( IConverterDataWriter::class ), 1 );
+		return new InfoMacro( $this->createMock( IConverterDataWriter::class ), 1, $this->placeholderManager );
 	}
 
 }

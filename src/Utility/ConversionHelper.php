@@ -46,6 +46,22 @@ class ConversionHelper {
 	}
 
 	/**
+	 * Hides values containing a URL from pandoc, which would wrap them in <nowiki> and thereby
+	 * swallow the rest of the template call.
+	 *
+	 * @param string $value
+	 * @param PlaceholderManager $placeholderManager
+	 * @return string
+	 */
+	protected function hideUrls( string $value, PlaceholderManager $placeholderManager ): string {
+		if ( !str_contains( $value, '://' ) ) {
+			return $value;
+		}
+		// Pandoc escapes these characters in wikitext, too
+		return $placeholderManager->getPlaceholder( htmlspecialchars( $value, ENT_NOQUOTES ) );
+	}
+
+	/**
 	 * @param int|null $spaceId
 	 * @param string $confluenceTitle
 	 *

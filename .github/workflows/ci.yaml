@@ -5,11 +5,12 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      PANDOC_VERSION: "3.1.11.1"
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+
+      - name: Read pandoc version from Dockerfile
+        run: echo "PANDOC_VERSION=$(grep -oP 'pandoc/minimal:\K[0-9.]+' Dockerfile)" >> "$GITHUB_ENV"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -28,8 +29,9 @@ jobs:
         if: steps.cache-pandoc.outputs.cache-hit != 'true'
         run: |
           mkdir -p ~/pandoc/bin
-          wget -q https://github.com/jgm/pandoc/releases/download/${{ env.PANDOC_VERSION }}/pandoc-${{ env.PANDOC_VERSION }}-linux-amd64.tar.gz
-          tar -xzf pandoc-${{ env.PANDOC_VERSION }}-linux-amd64.tar.gz --strip-components=2 -C ~/pandoc/bin pandoc-${{ env.PANDOC_VERSION }}/bin/pandoc
+          id=$(docker create pandoc/minimal:$PANDOC_VERSION)
+          docker cp "$id:/usr/local/bin/pandoc" ~/pandoc/bin/pandoc
+          docker rm "$id"
 
       - name: Add pandoc to PATH
         run: echo "$HOME/pandoc/bin" >> $GITHUB_PATH

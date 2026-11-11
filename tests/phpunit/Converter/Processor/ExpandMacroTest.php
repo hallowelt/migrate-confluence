@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class ExpandMacroTest extends ProcessorTestCase {
 
@@ -24,7 +25,7 @@ class ExpandMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new ExpandMacro( $this->createConverterDataWriter(), 1 );
+		$processor = new ExpandMacro( $this->createConverterDataWriter(), 1, new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

@@ -6,7 +6,9 @@ use DOMDocument;
 use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
+use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  * <ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="448329ba-06ad-4845-b3bf-2fd9a75c0d51">
@@ -17,17 +19,19 @@ use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
  *	</ac:rich-text-body>
  * </ac:structured-macro>
  */
-abstract class ConvertMacroToTemplateWithBodyBase extends ConversionHelper implements IProcessor {
+abstract class ConvertMacroToTemplateWithBodyBase extends ConversionHelper implements IProcessor, IUsesPlaceholder {
 
 	public const MACRO_NAME = '';
 
 	/**
 	 * @param IConverterDataWriter $writer
 	 * @param int $currentSpace
+	 * @param PlaceholderManager $placeholderManager
 	 */
 	public function __construct(
 		private IConverterDataWriter $writer,
-		private int $currentSpace
+		private int $currentSpace,
+		private PlaceholderManager $placeholderManager
 	) {
 	}
 
@@ -78,7 +82,7 @@ abstract class ConvertMacroToTemplateWithBodyBase extends ConversionHelper imple
 				if ( trim( $paramName ) === '' ) {
 					continue;
 				}
-				$paramValue = $parameterEl->nodeValue;
+				$paramValue = $this->hideUrls( $parameterEl->nodeValue, $this->placeholderManager );
 				// We add a "###BREAK###", as `pandoc` will eat up regular line breaks.
 				// They will be restored in a "PostProcessor"
 				$paramString = "|$paramName = $paramValue";

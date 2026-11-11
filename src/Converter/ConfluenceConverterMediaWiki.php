@@ -17,10 +17,10 @@ class ConfluenceConverterMediaWiki extends ConfluenceConverterBase {
 		$processors = $this->getDefaultProcessors();
 
 		array_splice( $processors, ConfluenceConverterBase::PROFILE_AWARE_PROCESSORS_POSITION, 0, [
-			new StatusMacro( $this->writer, $this->currentSpace ),
+			new StatusMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
 			new ExcerptMacro( $this->writer, $this->currentSpace ),
 			new ExcerptIncludeMacro( $this->writer, $this->dataLookup, $this->currentSpace ),
-			new PanelMacro( $this->writer, $this->currentSpace ),
+			new PanelMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
 		] );
 
 		return $processors;
