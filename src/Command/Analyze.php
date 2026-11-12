@@ -178,7 +178,7 @@ class Analyze extends BatchFileProcessorBase {
 	private function validateTargetNames( WorkspaceDB $workspaceDB ): int {
 		$checker = new TitleValidityChecker();
 		$invalid = [];
-		foreach ( $workspaceDB->getSpacesNamespacesWikis() as $row ) {
+		foreach ( $workspaceDB->getSpacesWikiNamespaces() as $row ) {
 			$namespace = rtrim( (string)$row['namespace_prefix'], ':' );
 			// Empty namespace means NS_MAIN
 			if ( $namespace !== '' && !$checker->hasValidNamespace( $namespace ) ) {
