@@ -144,3 +144,36 @@ The `style` macro becomes a `{{Style}}` template (widget `Widget:Style`) with th
 by the widget. Be aware that every editor can restyle a page with this widget. The `viewfile` macro
 is migrated like `view-file`, as a link to the attachment; the `page`, `space` and `date` parameters
 (attachments of other pages), as well as `width` and `height`, are only kept as template parameters.
+
+## Overly Large Pages
+
+The MediaWiki visual editor is not built for arbitrarily long content. It will stall the
+browser for very large pages. To prevent this with imported pages the tool makes a judgement
+call and moves pages *over 512 kB* size into the file `invalid-contents.xml`. This file
+can then be edited by hand or with other tools (or altogether ignored).
+
+There are several possible solutions that can be applied during import for this kind of
+pages, that depend on your use case.
+
+1.  simply import the content and live with the consequences. The `invalid-contents.xml` file
+    has the same structure as `pages.xml` and can be imported with the same maintenance scripts.
+
+2.  move all long pages into a separate namespace, where the visual editor is switched off. This
+    allows you to import the data and edit it in the wiki, although not with the comfort of a
+    wysiwyg editor.
+
+3.  split the pages and transclude the content. Split the pages manually, e.g. by heading, into
+    subpages of the overly long page and then [transclude](https://www.mediawiki.org/wiki/Transclusion)
+    the parts in the original page:
+
+    ```
+    {{Overly_long_page/Part_1}}
+    {{Overly_long_page/Part_2}}
+    {{Overly_long_page/Part_3}}
+    ```
+
+4. split the pages editorially. That is, split them actually into several new
+    pages, and if needed, link back and forth between them.
+
+Since these solutions depend highly on what your content is used for, the tool cannot automate
+one of these options.
