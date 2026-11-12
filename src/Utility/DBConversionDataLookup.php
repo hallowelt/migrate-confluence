@@ -30,6 +30,32 @@ class DBConversionDataLookup {
 	}
 
 	/**
+	 * Resolves the cover picture of a page or blog post version.
+	 *
+	 * @param int $contentId
+	 * @param bool $isBlogPost
+	 * @return array|null Keys `url` (external cover), `file` (wiki file title of an attachment cover),
+	 *  `position` (raw value) and `id`; both `url` and `file` are null if the attachment is missing.
+	 */
+	public function getCoverPicture( int $contentId, bool $isBlogPost = false ): ?array {
+		$cover = $this->workspaceDB->getCoverPictureForContentId( $contentId, $isBlogPost );
+		if ( $cover === null ) {
+			return null;
+		}
+
+		$result = [ 'id' => $cover['id'], 'position' => $cover['position'], 'url' => null, 'file' => null ];
+		if ( preg_match( '#^https?://#i', $cover['id'] ) ) {
+			$result['url'] = $cover['id'];
+		} else {
+			$result['file'] = $this->workspaceDB->getAttachmentWikiTitleByFilestoreId(
+				$cover['id'], $cover['containerId'], $isBlogPost
+			);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * @param int $pageId
 	 * @return string|null The wiki title the given Confluence page ID was migrated to, or null
 	 */

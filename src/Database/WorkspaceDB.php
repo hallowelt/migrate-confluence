@@ -3120,6 +3120,93 @@ class WorkspaceDB implements LogEntryWriter {
 	}
 
 	/**
+	 * Reads the cover picture ("banner") of a page or blog post version.
+	 *
+	 * @param int $contentId
+	 * @param bool $isBlogPost
+	 * @return array|null Keys `id` (attachment file store ID or external URL), `position` (raw value or null)
+	 *  and `containerId` (ID of the original content the attachments are owned by); null if no cover exists
+	 */
+	public function getCoverPictureForContentId( int $contentId, bool $isBlogPost = false ): ?array {
+		$table = $isBlogPost ? 'blog_posts' : 'pages';
+		$transaction = $this->cachedPrepare(
+			"SELECT original_version_id, collection FROM $table WHERE page_id = :page_id LIMIT 1"
+		);
+		$transaction->bindValue( ':page_id', $contentId, SQLITE3_INTEGER );
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+		$row = $result->fetchArray( SQLITE3_ASSOC );
+		$result->finalize();
+		if ( $row === false ) {
+			return null;
+		}
+
+		$collection = json_decode( (string)$row['collection'], true );
+		foreach ( $collection['contentProperties'] ?? [] as $propertyId ) {
+			$property = $this->getContentPopertyById( (int)$propertyId );
+			if ( $property === null || $property['property_name'] !== 'coverPicture' ) {
+				continue;
+			}
+			$properties = json_decode( (string)$property['properties'], true );
+			// The Confluence export double-escapes the JSON string
+			$cover = json_decode( stripslashes( (string)( $properties['stringValue'] ?? '' ) ), true );
+			if ( !is_array( $cover ) || !is_string( $cover['id'] ?? null ) || $cover['id'] === '' ) {
+				continue;
+			}
+			$originalVersionId = (int)$row['original_version_id'];
+			return [
+				'id' => $cover['id'],
+				'position' => $cover['position'] ?? null,
+				'containerId' => $originalVersionId > 0 ? $originalVersionId : $contentId,
+			];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Finds the wiki file title of the attachment with the given Confluence file store ID.
+	 *
+	 * @param string $filestoreId
+	 * @param int $containerId
+	 * @param bool $isBlogPost
+	 * @return string|null
+	 */
+	public function getAttachmentWikiTitleByFilestoreId(
+		string $filestoreId, int $containerId, bool $isBlogPost = false
+	): ?string {
+		$attachmentTable = $isBlogPost ? 'blog_post_attachments' : 'page_attachments';
+		$transaction = $this->cachedPrepare(
+			"SELECT a.collection, t.target_attachment_filename FROM attachments a
+			JOIN $attachmentTable t ON t.attachment_id = a.attachment_id
+			WHERE a.container_id = :container_id"
+		);
+		$transaction->bindValue( ':container_id', $containerId, SQLITE3_INTEGER );
+		$result = $transaction->execute();
+		if ( $result === false ) {
+			return null;
+		}
+
+		foreach ( $this->fetchDbArray( $result ) as $row ) {
+			$collection = json_decode( (string)$row['collection'], true );
+			foreach ( $collection['contentProperties'] ?? [] as $propertyId ) {
+				$property = $this->getContentPopertyById( (int)$propertyId );
+				if ( $property === null || $property['property_name'] !== 'FILESTORE_ID' ) {
+					continue;
+				}
+				$properties = json_decode( (string)$property['properties'], true );
+				if ( ( $properties['stringValue'] ?? null ) === $filestoreId ) {
+					return $row['target_attachment_filename'];
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * @param int $pageId
 	 * @return int|null The space_id for the given page_id, or null if not found.
 	 */
