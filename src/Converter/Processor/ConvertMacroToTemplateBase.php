@@ -26,8 +26,8 @@ abstract class ConvertMacroToTemplateBase extends ConversionHelper implements IP
 	 * @param int $currentSpace
 	 */
 	public function __construct(
-		private IConverterDataWriter $writer,
-		private int $currentSpace
+		protected IConverterDataWriter $writer,
+		protected int $currentSpace
 	) {
 	}
 
@@ -104,23 +104,17 @@ abstract class ConvertMacroToTemplateBase extends ConversionHelper implements IP
 
 			$parentNode->removeChild( $actualMacro );
 
-			$this->writer->registerDefaultPage(
-				$this->currentSpace,
-				$this->getWikiTextTemplateName()
-			);
-			foreach ( $this->getWidgetNames() as $widgetName ) {
-				$this->writer->registerDefaultPage( $this->currentSpace, $widgetName, 'Widget' );
-			}
+			$this->registerDefaultPages();
 		}
 	}
 
 	/**
-	 * Names of Widget pages (Extension:Widgets) that the template depends on.
+	 * Registers the default pages that the generated call depends on.
 	 *
-	 * @return string[]
+	 * @return void
 	 */
-	protected function getWidgetNames(): array {
-		return [];
+	protected function registerDefaultPages(): void {
+		$this->writer->registerDefaultPage( $this->currentSpace, $this->getWikiTextTemplateName() );
 	}
 
 	/**

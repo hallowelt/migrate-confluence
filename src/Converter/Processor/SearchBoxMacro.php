@@ -25,7 +25,8 @@ class SearchBoxMacro extends ConvertMacroToTemplateBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getWidgetNames(): array {
-		return [ 'SearchForm' ];
+	protected function registerDefaultPages(): void {
+		parent::registerDefaultPages();
+		$this->writer->registerDefaultPage( $this->currentSpace, 'SearchForm', 'Widget' );
 	}
 }

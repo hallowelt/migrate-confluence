@@ -25,7 +25,8 @@ class IframeMacro extends ConvertMacroToTemplateBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getWidgetNames(): array {
-		return [ 'Iframe' ];
+	protected function registerDefaultPages(): void {
+		parent::registerDefaultPages();
+		$this->writer->registerDefaultPage( $this->currentSpace, 'Iframe', 'Widget' );
 	}
 }
