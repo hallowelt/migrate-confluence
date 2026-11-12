@@ -55,31 +55,11 @@ Used [[:Template:Folder/Row|template Folder/Row]] to show rows of pages.
 </noinclude><includeonly><div class="pl-container">
 <div class="pl-col">
 == Recent changes ==
-{{#dpl:
-|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
-|titlematch={{#replace:{{PAGENAME:{{{spl-parent|{{FULLPAGENAME}}}}}}}| |_}}%
-|ordermethod=lastedit
-|order=descending
-|count=5
-|addeditdate=true
-|userdateformat=m/d/y
-|noresultsheader=no updated pages
-|format=<ul class="list-unstyled">,<li>²{Folder/Row¦%PAGE%¦%DATE%}²,</li>,</ul>
-}}
+{{#tag:recentchanges||source=revision|page={{{spl-parent|{{FULLPAGENAME}}}}}|subpagesonly=true|max=5|theme=concise|hideheading=true}}
 </div>
 <div class="pl-col">
 == Newest pages ==
-{{#dpl:
-|namespace={{#if:{{NAMESPACE}}|{{NAMESPACE}}|Main}}
-|titlematch={{#replace:{{PAGENAME:{{{spl-parent|{{FULLPAGENAME}}}}}}}| |_}}%
-|ordermethod=firstedit
-|order=descending
-|count=5
-|addeditdate=true
-|userdateformat=m/d/y
-|noresultsheader=no new pages
-|format=<ul class="list-unstyled">,<li>²{Folder/Row¦%PAGE%¦%DATE%}²,</li>,</ul>
-}}
+{{#tag:recentchanges||source=revision|page={{{spl-parent|{{FULLPAGENAME}}}}}|subpagesonly=true|sort=created|max=5|theme=concise|hideheading=true}}
 </div>
 </div>
 

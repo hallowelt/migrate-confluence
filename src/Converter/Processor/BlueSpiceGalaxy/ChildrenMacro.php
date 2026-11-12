@@ -9,13 +9,16 @@ use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
- * Lists subpages with SubPageList or DynamicPageList4 directly in the page, without a wrapping template.
+ * Lists subpages with the StandardTags pagelist tag directly in the page, without a wrapping template.
  */
 class ChildrenMacro extends BaseChildrenMacro implements IUsesPlaceholder {
 
-	public const REQUIRED_EXTENSIONS = [ 'DynamicPageList4', 'ParserFunctions', 'SubPageList' ];
+	public const REQUIRED_EXTENSIONS = [ 'StandardTags' ];
 
-	private const HANDLED_PARAMS = [ 'page', 'sort', 'reverse', 'first' ];
+	private const HANDLED_PARAMS = [ 'page', 'sort', 'reverse', 'first', 'depth', 'all' ];
+
+	/** Depth used for "all", i.e. all descendants. */
+	private const ALL_DEPTH = 100;
 
 	/**
 	 * @param IConverterDataWriter $writer
@@ -25,8 +28,8 @@ class ChildrenMacro extends BaseChildrenMacro implements IUsesPlaceholder {
 	 * @param PlaceholderManager $placeholderManager
 	 */
 	public function __construct(
-		private readonly IConverterDataWriter $writer,
-		private readonly int $spaceId,
+		IConverterDataWriter $writer,
+		int $spaceId,
 		string $wikiPageTitle,
 		DBConversionDataLookup $dataLookup,
 		private readonly PlaceholderManager $placeholderManager
@@ -38,18 +41,30 @@ class ChildrenMacro extends BaseChildrenMacro implements IUsesPlaceholder {
 	 * @inheritDoc
 	 */
 	protected function buildWikiText( array $params ): string {
-		$page = $params['page'];
-		$sort = $params['sort'] ?? '';
-		$reverse = ( $params['reverse'] ?? '' ) === 'true';
-		$limit = (int)( $params['first'] ?? 0 ) > 0 ? (int)$params['first'] : 500;
+		$sort = match ( $params['sort'] ?? '' ) {
+			'creation' => 'created',
+			'modified' => 'modified',
+			default => 'title',
+		};
+		$depth = ( $params['all'] ?? '' ) === 'true' ? self::ALL_DEPTH : max( 1, (int)( $params['depth'] ?? 1 ) );
 
-		if ( $sort === 'creation' || $sort === 'modified' ) {
-			$orderMethod = $sort === 'creation' ? 'firstedit' : 'lastedit';
-			$wikiText = $this->buildDplQuery( $page, $orderMethod, $reverse, $limit );
-		} else {
-			$order = $reverse ? 'desc' : 'asc';
-			$wikiText = "{{#subpages:page=$page|pathstyle=full|template=SubpageListRow|limit=$limit|sort=$order}}";
+		$attributes = [
+			'page' => $params['page'],
+			'format' => 'list',
+			'depth' => (string)$depth,
+			'root' => 'false',
+			'sort' => $sort,
+			'order' => ( $params['reverse'] ?? '' ) === 'true' ? 'desc' : 'asc',
+		];
+		if ( (int)( $params['first'] ?? 0 ) > 0 ) {
+			$attributes['max'] = (string)(int)$params['first'];
 		}
+
+		$wikiText = '<pagelist';
+		foreach ( $attributes as $name => $value ) {
+			$wikiText .= " $name=\"" . str_replace( '"', '&quot;', $value ) . '"';
+		}
+		$wikiText .= ' />';
 
 		$unhandled = [];
 		foreach ( $params as $name => $value ) {
@@ -65,23 +80,9 @@ class ChildrenMacro extends BaseChildrenMacro implements IUsesPlaceholder {
 		return $this->placeholderManager->getPlaceholder( $wikiText );
 	}
 
-	private function buildDplQuery( string $page, string $orderMethod, bool $reverse, int $limit ): string {
-		$order = $reverse ? 'descending' : 'ascending';
-
-		return "{{#dpl:\n"
-			. "|namespace={{#if:{{NAMESPACE:$page}}|{{NAMESPACE:$page}}|Main}}\n"
-			. "|titlematch={{#replace:{{PAGENAME:$page}}| |_}}/%\n"
-			. "|ordermethod=$orderMethod\n"
-			. "|order=$order\n"
-			. "|count=$limit\n"
-			. "|format=,\\n*²{SubpageListRow¦%PAGE%}²,,\n"
-			. "}}";
-	}
-
 	/**
 	 * @inheritDoc
 	 */
 	protected function registerDefaultPages(): void {
-		$this->writer->registerDefaultPage( $this->spaceId, 'SubpageListRow' );
 	}
 }

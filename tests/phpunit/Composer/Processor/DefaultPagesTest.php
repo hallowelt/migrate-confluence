@@ -100,10 +100,8 @@ class DefaultPagesTest extends TestCase {
 		$processor->setCurrentSpaceIds( [ 1 ] );
 		$processor->execute();
 
-		foreach ( [ 'Folder', 'RecentlyUpdated' ] as $name ) {
-			$this->assertStringContainsString( $expectedParserFunction, $addedPages["Template:$name"], $name );
-			$this->assertStringNotContainsString( $unexpectedParserFunction, $addedPages["Template:$name"], $name );
-		}
+		$this->assertStringContainsString( $expectedParserFunction, $addedPages['Template:Folder'] );
+		$this->assertStringNotContainsString( $unexpectedParserFunction, $addedPages['Template:Folder'] );
 		$this->assertArrayHasKey( 'Template:Folder/Style.css', $addedPages );
 	}
 
@@ -112,8 +110,8 @@ class DefaultPagesTest extends TestCase {
 	 */
 	public function provideProfileData(): array {
 		return [
-			'galaxy uses DPL' => [ 'bluespice-galaxy', '{{#dpl:', '{{#ask:' ],
-			'mediawiki uses SMW' => [ 'mediawiki', '{{#ask:', '{{#dpl:' ],
+			'galaxy uses StandardTags' => [ 'bluespice-galaxy', '{{#tag:recentchanges', '{{#ask:' ],
+			'mediawiki uses SMW' => [ 'mediawiki', '{{#ask:', '{{#tag:recentchanges' ],
 		];
 	}
 

@@ -1,22 +1,15 @@
-{{#subpages:page=SomePage|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}
+<pagelist page="SomePage" format="list" depth="1" root="false" sort="title" order="asc" />
 
-{{#dpl:
-|namespace={{#if:{{NAMESPACE:SomePage}}|{{NAMESPACE:SomePage}}|Main}}
-|titlematch={{#replace:{{PAGENAME:SomePage}}| |_}}/%
-|ordermethod=firstedit
-|order=descending
-|count=500
-|format=,\n*²{SubpageListRow¦%PAGE%}²,,
-}}<!-- children macro parameters not migrated: all=true, style=h2 -->
+<pagelist page="SomePage" format="list" depth="100" root="false" sort="created" order="desc" /><!-- children macro parameters not migrated: style=h2 -->
 
-{{#subpages:page=ABC:Some page|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}<!-- children macro parameters not migrated: all=true, depth=1, style=h2 -->
+<pagelist page="ABC:Some page" format="list" depth="100" root="false" sort="title" order="asc" /><!-- children macro parameters not migrated: style=h2 -->
 
-{{#subpages:page=DEVOPS:Some other page|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}<!-- children macro parameters not migrated: all=true, depth=1, style=h2 -->
+<pagelist page="DEVOPS:Some other page" format="list" depth="100" root="false" sort="title" order="asc" /><!-- children macro parameters not migrated: style=h2 -->
 
-{{#subpages:page=Confluence_page---DEVOPS---Unknown_page|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}<!-- children macro parameters not migrated: all=true, depth=1, style=h2 -->[[Category:Broken_macro/children]]
+<pagelist page="Confluence_page---DEVOPS---Unknown_page" format="list" depth="100" root="false" sort="title" order="asc" /><!-- children macro parameters not migrated: style=h2 -->[[Category:Broken_macro/children]]
 
-{{#subpages:page=Confluence_page------Unknown_page|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}<!-- children macro parameters not migrated: all=true, depth=1, style=h2 -->[[Category:Broken_macro/children]]
+<pagelist page="Confluence_page------Unknown_page" format="list" depth="100" root="false" sort="title" order="asc" /><!-- children macro parameters not migrated: style=h2 -->[[Category:Broken_macro/children]]
 
-{{#subpages:page=SomePage|pathstyle=full|template=SubpageListRow|limit=500|sort=asc}}<!-- children macro parameters not migrated: all=true, depth=1, style=h2 -->
+<pagelist page="SomePage" format="list" depth="100" root="false" sort="title" order="asc" /><!-- children macro parameters not migrated: style=h2 -->
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
