@@ -43,6 +43,81 @@ class ConfluenceConverterBaseTest extends TestCase {
 	}
 
 	/**
+	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBase::addCoverBannerIfApplicable
+	 * @dataProvider provideCoverBanners
+	 */
+	public function testAddsCoverBanner(
+		string $contentType, ?string $coverJson, bool $withAttachment, string $expected, bool $registers
+	): void {
+		$database = ( new WorkspaceDbMock() )->createEmpty();
+		$isBlogPost = $contentType === 'blogPost';
+		$collection = [];
+		if ( $coverJson !== null ) {
+			$database->addContentProperty( 10, 'coverPicture', 'x', [ 'stringValue' => $coverJson ] );
+			$collection = [ 'contentProperties' => [ 10 ] ];
+		}
+		if ( $isBlogPost ) {
+			$database->addBlogPost( 1, 1, 'Post', 'post', 'Post', 'current', '', '', '1', -1, [], [], [], $collection );
+		} else {
+			$database->addPage(
+				1, 1, 'Page', 'page', 'Page', 'current', '', '', '1', -1, -1, [], [], [], $collection
+			);
+		}
+		if ( $withAttachment ) {
+			$database->addContentProperty( 11, 'FILESTORE_ID', 'x', [ 'stringValue' => 'abc-123' ] );
+			$database->addAttachment(
+				5, 1, 'Cover pic.png', 'png', 1, 'current', '1', '', '', -1, '', [], [],
+				[ 'contentProperties' => [ 11 ] ]
+			);
+			if ( $isBlogPost ) {
+				$database->addBlogPostAttachment( 5, 1, 'Cover pic.png', 'File:Post-Cover_pic.png' );
+			} else {
+				$database->addPageAttachment( 5, 1, 'Cover pic.png', 'File:Page-Cover_pic.png' );
+			}
+		}
+
+		$converter = $this->newConverter();
+		$writer = $this->createMock( IConverterDataWriter::class );
+		$writer->expects( $registers ? $this->once() : $this->never() )
+			->method( 'registerDefaultPage' )
+			->with( 1, 'Banner', 'Widget' );
+		$this->setProperty( $converter, 'dataLookup', new DBConversionDataLookup( $database ) );
+		$this->setProperty( $converter, 'writer', $writer );
+		$this->setProperty( $converter, 'contentType', $contentType );
+		$this->setProperty( $converter, 'pageId', 1 );
+		$this->setProperty( $converter, 'currentSpace', 1 );
+		$this->setProperty( $converter, 'wikiText', 'Body' );
+
+		( new ReflectionMethod( ConfluenceConverterBase::class, 'addCoverBannerIfApplicable' ) )
+			->invoke( $converter );
+
+		$this->assertSame( $expected, $this->getProperty( $converter, 'wikiText' ) );
+	}
+
+	public static function provideCoverBanners(): array {
+		// The export double-escapes the JSON string
+		$attachment = '{\\"id\\":\\"abc-123\\",\\"position\\":50}';
+		$external = '{\\"id\\":\\"https:\\/\\/example.org\\/a.jpg?x=1&y=2\\",\\"position\\":0.5}';
+		return [
+			'attachment' => [
+				'page', $attachment, true,
+				"{{#widget:Banner|url={{filepath:Page-Cover_pic.png}}|position=50}}\nBody", true
+			],
+			'external URL' => [
+				'page', $external, false,
+				"{{#widget:Banner|url=https://example.org/a.jpg?x=1&y=2|position=0.5}}\nBody", true
+			],
+			'no cover' => [ 'page', null, false, 'Body', false ],
+			'missing attachment' => [ 'page', $attachment, false, "Body\n[[Category:Broken_banner]]", false ],
+			'blog post' => [
+				'blogPost', $attachment, true,
+				"{{#widget:Banner|url={{filepath:Post-Cover_pic.png}}|position=50}}\nBody", true
+			],
+			'comment is ignored' => [ 'comment', $attachment, true, 'Body', false ],
+		];
+	}
+
+	/**
 	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBase::matchesProfile
 	 */
 	public function testMatchesProfileIsFalseForBaseClass(): void {

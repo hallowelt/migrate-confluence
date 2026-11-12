@@ -99,6 +99,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -379,6 +380,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$this->runPostProcessors();
 
 		$this->addFolderTemplateIfApplicable();
+		$this->addCoverBannerIfApplicable();
 
 		$this->postprocessWikiText();
 
@@ -413,6 +415,49 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			$this->wikiText = '{{Folder}}';
 			$this->writer->registerDefaultPage( $this->currentSpace, 'Folder' );
 		}
+	}
+
+	/**
+	 * Prepend the Confluence cover picture as Widget:Banner to pages and blog posts.
+	 *
+	 * @return void
+	 */
+	protected function addCoverBannerIfApplicable(): void {
+		if (
+			!in_array( $this->contentType, [ 'page', 'blogPost' ], true ) ||
+			$this->pageId === null ||
+			$this->currentSpace === null
+		) {
+			return;
+		}
+
+		$cover = $this->dataLookup->getCoverPicture( $this->pageId, $this->contentType === 'blogPost' );
+		if ( $cover === null ) {
+			return;
+		}
+
+		if ( $cover['url'] !== null ) {
+			// External images are hotlinked
+			$url = $cover['url'];
+		} elseif ( $cover['file'] !== null ) {
+			$url = '{{filepath:' . preg_replace( '/^File:/i', '', $cover['file'] ) . '}}';
+		} else {
+			$this->addNonBlockingLogEntry(
+				"Cover picture '{$cover['id']}' of content {$this->pageId} has no matching attachment"
+			);
+			$this->wikiText .= "\n" . ( new ConversionHelper() )->getCategoryBroken( 'banner' );
+			return;
+		}
+
+		$widget = '{{#widget:Banner|url=' . $url;
+		if ( $cover['position'] !== null ) {
+			// The raw value is passed on; Confluence data contains both percent (50) and fraction (0.5) values
+			$widget .= '|position=' . $cover['position'];
+		}
+		$widget .= '}}';
+
+		$this->wikiText = $widget . "\n" . $this->wikiText;
+		$this->writer->registerDefaultPage( $this->currentSpace, 'Banner', 'Widget' );
 	}
 
 	/**
