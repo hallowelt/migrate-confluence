@@ -7,6 +7,16 @@ use HalloWelt\MigrateConfluence\Database\DataWriter\IDataWriter;
 interface IExtractorDataWriter extends IDataWriter {
 
 	/**
+	 * @param int $contentId
+	 * @param string $type "none", "edit" or "read_and_edit"
+	 * @param string $timestamp
+	 * @param array $targets
+	 *
+	 * @return bool
+	 */
+	public function addPageConstraints( int $contentId, string $type, string $timestamp, array $targets ): bool;
+
+	/**
 	 * @param int $templateId
 	 * @param string $wikiTitle
 	 * @param string $text

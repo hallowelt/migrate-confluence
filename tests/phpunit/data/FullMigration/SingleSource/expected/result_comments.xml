@@ -2,6 +2,7 @@
 <mediawiki>
   <page>
     <title>CON_Talk:Test_Page</title>
+    <pageconstraints type="none" inherit="0"/>
     <revision>
       <model>wikitext</model>
       <format>text/x-wiki</format>

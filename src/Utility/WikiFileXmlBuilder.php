@@ -14,6 +14,9 @@ class WikiFileXmlBuilder {
 	/** @var array */
 	private array $files = [];
 
+	/** @var array<string, array> Kept over reset(): a file may span several output files */
+	private array $pageConstraints = [];
+
 	public function __construct() {
 		$this->init();
 	}
@@ -24,6 +27,15 @@ class WikiFileXmlBuilder {
 	public function reset(): void {
 		$this->files = [];
 		$this->init();
+	}
+
+	/**
+	 * @param string $fileTitle
+	 * @param array{type: string, timestamp: string, targets: array} $row
+	 * @return void
+	 */
+	public function setPageConstraints( string $fileTitle, array $row ): void {
+		$this->pageConstraints[$fileTitle] = $row;
 	}
 
 	/**
@@ -89,6 +101,12 @@ class WikiFileXmlBuilder {
 
 			$titleEl = $this->dom->createElement( 'title', $fileTitle );
 			$fileEl->append( $titleEl );
+
+			if ( isset( $this->pageConstraints[$fileTitle] ) ) {
+				$constraintsEl = $this->dom->createElement( 'pageconstraints' );
+				PageConstraintsXml::fill( $constraintsEl, $this->pageConstraints[$fileTitle] );
+				$fileEl->append( $constraintsEl );
+			}
 
 			foreach ( $revisions as $revisionData ) {
 				$revisionEl = $this->dom->createElement( 'revision' );
