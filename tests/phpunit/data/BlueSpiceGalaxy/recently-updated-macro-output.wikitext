@@ -1,0 +1,5 @@
+<recentchanges source="revision" hideheading="true" /><!-- recently-updated macro parameters not migrated: types=page,blogpost -->
+
+Lorem ipsum
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

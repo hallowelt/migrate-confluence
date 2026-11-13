@@ -1,0 +1,3 @@
+<wikistats /> <wikistats /> <wikistats /><!-- space-details macro parameters not migrated: width=50% -->
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

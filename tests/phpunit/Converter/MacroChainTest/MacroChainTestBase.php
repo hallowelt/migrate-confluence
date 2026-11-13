@@ -14,7 +14,6 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMacro;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
@@ -81,7 +80,6 @@ abstract class MacroChainTestBase extends TestCase {
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
 			new FixMultilineTable(),
-			new TemplateContentPostProcessor( 'SomePage' ),
 			new RemoveMultipleLinebreaks(),
 			new AddDisplayTitle( 'SomeConfluenceTitle', 'SomePage' ),
 		];

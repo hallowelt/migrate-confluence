@@ -21,7 +21,6 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\InvalidContentCategories
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMacro;
-use HalloWelt\MigrateConfluence\Converter\Postprocessor\TemplateContentPostProcessor;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\EscapeWikiMarkup;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
@@ -702,7 +701,6 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
 			new FixMultilineTable(),
-			new TemplateContentPostProcessor( $this->wikiPageTitle ),
 			new RemoveMultipleLinebreaks(),
 			new AddDisplayTitle( $this->confluencePageTitle, $this->wikiPageTitle ),
 		];
