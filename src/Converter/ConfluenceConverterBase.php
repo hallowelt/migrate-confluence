@@ -802,8 +802,23 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$dom->formatOutput = true;
 		$dom->preserveWhiteSpace = true;
 		$dom->validateOnParse = false;
+		$previousErrorHandling = libxml_use_internal_errors( true );
+		libxml_clear_errors();
 		$validXML = $dom->loadXML( $source, LIBXML_PARSEHUGE );
-		if ( $validXML === false ) {
+		$errors = libxml_get_errors();
+		libxml_clear_errors();
+		libxml_use_internal_errors( $previousErrorHandling );
+
+		// With `recover` enabled loadXML() returns true even for broken markup,
+		// so check for parse errors explicitly.
+		$hasParseError = false;
+		foreach ( $errors as $error ) {
+			if ( $error->level >= LIBXML_ERR_ERROR ) {
+				$hasParseError = true;
+				break;
+			}
+		}
+		if ( $validXML === false || $hasParseError ) {
 			throw new Exception( 'Unconvertable' );
 		}
 
