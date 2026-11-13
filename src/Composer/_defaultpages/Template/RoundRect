@@ -1,0 +1,63 @@
+<noinclude>Template added by Confluence migration to handle the "roundrect" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Show content in a box with rounded corners, optional title and footer (deprecated Confluence \"roundrect\" macro). The macro parameters corners, cornersize, rows, hSize and vSize are not rendered.",
+        "de": "Inhalt in einem Kasten mit abgerundeten Ecken sowie optionalem Titel und Fu\u00dfbereich anzeigen (veraltetes Confluence-\"roundrect\"-Makro). Die Makro-Parameter corners, cornersize, rows, hSize und vSize werden nicht dargestellt."
+    },
+    "params": {
+        "title": {
+            "label": { "en": "Title", "de": "Titel" },
+            "type": "string",
+            "description": { "en": "Heading of the box.", "de": "\u00dcberschrift des Kastens." }
+        },
+        "titlebgcolor": {
+            "label": { "en": "Title background color", "de": "Hintergrundfarbe des Titels" },
+            "type": "string",
+            "description": { "en": "Any CSS color.", "de": "Beliebige CSS-Farbe." }
+        },
+        "bgcolor": {
+            "label": { "en": "Background color", "de": "Hintergrundfarbe" },
+            "type": "string",
+            "description": { "en": "Background color of the content area (any CSS color).", "de": "Hintergrundfarbe des Inhaltsbereichs (beliebige CSS-Farbe)." }
+        },
+        "footer": {
+            "label": { "en": "Footer", "de": "Fu\u00dfbereich" },
+            "type": "string",
+            "description": { "en": "Text below the content.", "de": "Text unterhalb des Inhalts." }
+        },
+        "footerbgcolor": {
+            "label": { "en": "Footer background color", "de": "Hintergrundfarbe des Fu\u00dfbereichs" },
+            "type": "string",
+            "description": { "en": "Any CSS color.", "de": "Beliebige CSS-Farbe." }
+        },
+        "width": {
+            "label": { "en": "Width", "de": "Breite" },
+            "type": "string",
+            "description": { "en": "Width of the box (CSS width).", "de": "Breite des Kastens (CSS-Breite)." }
+        },
+        "height": {
+            "label": { "en": "Height", "de": "H\u00f6he" },
+            "type": "string",
+            "description": { "en": "Height of the box (CSS height).", "de": "H\u00f6he des Kastens (CSS-H\u00f6he)." }
+        },
+        "class": {
+            "label": { "en": "CSS class", "de": "CSS-Klasse" },
+            "type": "string",
+            "description": { "en": "Additional CSS class(es) for the box.", "de": "Zus\u00e4tzliche CSS-Klasse(n) f\u00fcr den Kasten." }
+        },
+        "body": {
+            "label": { "en": "Content", "de": "Inhalt" },
+            "type": "content",
+            "suggested": true,
+            "description": { "en": "The content of the box.", "de": "Der Inhalt des Kastens." }
+        }
+    },
+    "paramOrder": [ "title", "titlebgcolor", "bgcolor", "footer", "footerbgcolor", "width", "height", "class", "body" ]
+}
+</templatedata></noinclude><includeonly><div class="roundrect {{{class|}}}" style="border:1px solid #999; border-radius:8px; overflow:hidden;{{#if:{{{width|}}}| width:{{{width}}};}}{{#if:{{{height|}}}| height:{{{height}}};}}">{{#if:{{{title|}}}|<div style="padding:0.3em 0.6em;{{#if:{{{titlebgcolor|}}}| background-color:{{{titlebgcolor}}};}}">'''{{{title}}}'''</div>}}
+<div style="padding:0.3em 0.6em;{{#if:{{{bgcolor|}}}| background-color:{{{bgcolor}}};}}">
+{{{body|}}}
+</div>{{#if:{{{footer|}}}|
+<div style="padding:0.3em 0.6em;{{#if:{{{footerbgcolor|}}}| background-color:{{{footerbgcolor}}};}}">{{{footer}}}</div>}}</div></includeonly>

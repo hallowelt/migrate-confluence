@@ -1,0 +1,5 @@
+<noinclude>Widget added by Confluence migration. Search form used by the templates "SearchBox" and "PageTreeSearch". Requires Extension:Widgets.</noinclude><includeonly><form action="<!--{$action|validate:'url'|escape:'html'}-->" method="get" class="confluence-search-form <!--{$class|default:''|escape:'html'}-->"<!--{if $id|default:''}--> id="<!--{$id|escape:'html'}-->"<!--{/if}-->>
+<!--{if $label|default:''}--><label><!--{$label|escape:'html'}--> <!--{/if}--><input type="search" name="search" placeholder="<!--{$placeholder|default:''|escape:'html'}-->"><!--{if $label|default:''}--></label><!--{/if}-->
+<!--{if $prefix|default:''}--><input type="hidden" name="prefix" value="<!--{$prefix|escape:'html'}-->"><!--{/if}-->
+<!--{if $button|default:''}--><input type="submit" value="<!--{$button|escape:'html'}-->"><!--{/if}-->
+</form></includeonly>
