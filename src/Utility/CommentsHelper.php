@@ -139,7 +139,7 @@ class CommentsHelper {
 			if ( !empty( $contentProperyIds ) ) {
 				foreach ( $contentProperyIds as $contentPropertyId ) {
 					$id = (int)$contentPropertyId;
-					$contentProperty = $this->workspaceDB->getContentPopertyById( $id );
+					$contentProperty = $this->workspaceDB->getContentPropertyById( $id );
 
 					$propertyData = [];
 					if ( isset( $contentProperty['properties'] ) ) {

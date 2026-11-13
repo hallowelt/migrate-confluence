@@ -99,6 +99,13 @@ class ExtractorDirectDataWriter extends AbstractDirectDataWriter implements IExt
 	}
 
 	/**
+	 * @inheritDoc
+	 */
+	public function updateAttachmentFileExtension( int $attachmentId, string $fileExtension ): bool {
+		return $this->db->updateAttachmentFileExtension( $attachmentId, $fileExtension );
+	}
+
+	/**
 	 * @param int $pageId
 	 * @param string $wikiTitle
 	 *

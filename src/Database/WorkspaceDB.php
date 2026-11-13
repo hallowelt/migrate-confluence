@@ -3891,6 +3891,17 @@ class WorkspaceDB implements LogEntryWriter {
 		return $this->executeTransactionWithStatus( $transaction );
 	}
 
+	/** Updates the file extension inferred for an attachment. */
+	public function updateAttachmentFileExtension( int $attachmentId, string $fileExtension ): bool {
+		$transaction = $this->cachedPrepare(
+			'UPDATE attachments SET file_extension = :file_extension WHERE attachment_id = :attachment_id'
+		);
+
+		$transaction->bindValue( ':file_extension', $fileExtension, SQLITE3_TEXT );
+		$transaction->bindValue( ':attachment_id', $attachmentId, SQLITE3_INTEGER );
+		return $this->executeTransactionWithStatus( $transaction );
+	}
+
 	/**
 	 * @return array
 	 */
@@ -4568,7 +4579,7 @@ class WorkspaceDB implements LogEntryWriter {
 	 * @param int $contentPropertyId
 	 * @return array|null
 	 */
-	public function getContentPopertyById( int $contentPropertyId ): ?array {
+	public function getContentPropertyById( int $contentPropertyId ): ?array {
 		$transaction = $this->cachedPrepare(
 			'SELECT * FROM content_properties WHERE property_id = :property_id LIMIT 1'
 		);

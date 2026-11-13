@@ -12,6 +12,7 @@ use HalloWelt\MigrateConfluence\Extractor\DataWriter\IExtractorDataWriter;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\CreateDefaultWikisConfig;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PopulateAdditionalAttachmentsTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\PrepareComments;
+use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateAttachmentFileExtension;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateAttachmentsTableWithSpaceIdFallback;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostAttachmentTable;
 use HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdateBlogPostsTableWithSpaceIdOfHistoryVersions;
@@ -137,6 +138,7 @@ class ConfluenceExtractor extends ExtractorBase implements IDestinationPathAware
 	 */
 	private function getPreProcessors( IExtractorDataWriter $writer ): array {
 		return [
+			new UpdateAttachmentFileExtension( $this->workspaceDB, $writer ),
 			new UpdateBodyContentIdsFallback( $this->workspaceDB, $writer ),
 			new UpdatePagesTableWithSpaceIdOfHistoryVersions( $this->workspaceDB, $writer ),
 			new UpdatePagesTableWithWikiTitle(
