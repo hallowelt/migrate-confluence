@@ -17,8 +17,7 @@ class MarkdownMacroChainTest extends MacroChainTestBase {
 	public function testMacroChain(): void {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$fixtures = [
-			'markdown-macro-broken-input.xml' => 'markdown-macro-broken-output.wikitext',
-			'markdown-macro-input.xml' => 'markdown-macro-output.wikitext',
+			'markdown-macro-chain-input.xml' => 'markdown-macro-chain-output.wikitext',
 		];
 
 		foreach ( $fixtures as $inputFixture => $expectedFixture ) {
@@ -37,7 +36,7 @@ class MarkdownMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new MarkdownMacro();
+		return new MarkdownMacro( $this->verbatimPlaceholderManager );
 	}
 
 }

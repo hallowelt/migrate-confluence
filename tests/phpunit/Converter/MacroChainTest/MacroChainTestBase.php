@@ -32,6 +32,8 @@ abstract class MacroChainTestBase extends TestCase {
 	/** @var PlaceholderManager */
 	protected PlaceholderManager $placeholderManager;
 
+	protected PlaceholderManager $verbatimPlaceholderManager;
+
 	/**
 	 * @return IConverterDataWriter
 	 */
@@ -43,6 +45,7 @@ abstract class MacroChainTestBase extends TestCase {
 		$workspaceDb = ( new WorkspaceDbMock() )->createWithoutExtNsFileRepoCompat();
 		$this->dataLookup = new DBConversionDataLookup( $workspaceDb );
 		$this->placeholderManager = new PlaceholderManager();
+		$this->verbatimPlaceholderManager = new PlaceholderManager( 'verbatim' );
 	}
 
 	/**
@@ -91,7 +94,9 @@ abstract class MacroChainTestBase extends TestCase {
 
 		$wikiText = $this->placeholderManager->replacePlaceholders( $wikiText );
 
-		return $this->applyConfluenceFinalReplacements( $wikiText );
+		$wikiText = $this->applyConfluenceFinalReplacements( $wikiText );
+
+		return $this->verbatimPlaceholderManager->replacePlaceholders( $wikiText );
 	}
 
 	/**
@@ -106,7 +111,20 @@ abstract class MacroChainTestBase extends TestCase {
 		$wikiText = HtmlCommentMarkerResolver::resolve( $wikiText );
 		$wikiText = str_replace( "\n {{", "\n{{", $wikiText );
 		$wikiText = str_replace( "\n }}", "\n}}", $wikiText );
-		$wikiText = str_replace( "\n- ", "\n* ", $wikiText );
+		$parts = preg_split(
+			'#(<(markdown|syntaxhighlight|pre|nowiki)\b[^>]*>.*?</\\2>)#s',
+			$wikiText,
+			-1,
+			PREG_SPLIT_DELIM_CAPTURE
+		);
+		$wikiText = '';
+		foreach ( $parts as $i => $part ) {
+			$wikiText .= match ( $i % 3 ) {
+				0 => str_replace( "\n- ", "\n* ", $part ),
+				1 => $part,
+				default => ''
+			};
+		}
 		$wikiText = str_replace( ' preserve-attr-data-', ' data-', $wikiText );
 
 		$wikiText = preg_replace_callback(
