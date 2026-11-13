@@ -216,16 +216,16 @@
         },
         {
             "name": "hallowelt/mediawiki-lib-mediawikixml",
-            "version": "1.2.1",
+            "version": "1.2.2",
             "source": {
                 "type": "git",
                 "url": "git@github.com:hallowelt/mediawiki-lib-mediawikixml.git",
-                "reference": "0d3bd6b95d9d4754a8a4fc541ad5de5871530bda"
+                "reference": "adab9d31481835334cefb5f3a8db080491fb85de"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hallowelt/mediawiki-lib-mediawikixml/zipball/0d3bd6b95d9d4754a8a4fc541ad5de5871530bda",
-                "reference": "0d3bd6b95d9d4754a8a4fc541ad5de5871530bda",
+                "url": "https://api.github.com/repos/hallowelt/mediawiki-lib-mediawikixml/zipball/adab9d31481835334cefb5f3a8db080491fb85de",
+                "reference": "adab9d31481835334cefb5f3a8db080491fb85de",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 }
             ],
             "description": "Class library for dealing with MediaWiki XML",
-            "time": "2026-09-14T12:02:14+00:00"
+            "time": "2026-11-10T09:00:39+00:00"
         },
         {
             "name": "hallowelt/mediawiki-lib-migration",
