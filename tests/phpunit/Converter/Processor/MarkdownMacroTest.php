@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\MarkdownMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class MarkdownMacroTest extends ProcessorTestCase {
 
@@ -18,7 +19,7 @@ class MarkdownMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new MarkdownMacro();
+		$processor = new MarkdownMacro( new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
@@ -41,7 +42,7 @@ class MarkdownMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new MarkdownMacro();
+		$processor = new MarkdownMacro( new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );

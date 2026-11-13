@@ -589,7 +589,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->writer,
 				$this->currentSpace
 			),
-			new MarkdownMacro(),
+			new MarkdownMacro( $this->placeholderManager ),
 			new ViewFileMacro(
 				$this->writer,
 				$this->dataLookup,
@@ -940,6 +940,31 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 	}
 
 	/**
+	 * Turns "- " list markers into wiki lists, leaving verbatim blocks untouched.
+	 *
+	 * @param string $wikiText
+	 * @return string
+	 */
+	private function replaceListMarkersOutsideVerbatim( string $wikiText ): string {
+		$parts = preg_split(
+			'#(<(markdown|syntaxhighlight|pre|nowiki)\b[^>]*>.*?</\\2>)#s',
+			$wikiText,
+			-1,
+			PREG_SPLIT_DELIM_CAPTURE
+		);
+		$result = '';
+		// Captures come in triples: text, verbatim block, tag name
+		foreach ( $parts as $i => $part ) {
+			$result .= match ( $i % 3 ) {
+				0 => str_replace( "\n- ", "\n* ", $part ),
+				1 => $part,
+				default => ''
+			};
+		}
+		return $result;
+	}
+
+	/**
 	 *
 	 * @return void
 	 */
@@ -950,7 +975,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$this->wikiText = HtmlCommentMarkerResolver::resolve( $this->wikiText );
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
-		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
+		$this->wikiText = $this->replaceListMarkersOutsideVerbatim( $this->wikiText );
 		$this->wikiText = str_replace( " preserve-attr-data-", " data-", $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
