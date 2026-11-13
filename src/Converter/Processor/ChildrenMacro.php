@@ -191,9 +191,16 @@ class ChildrenMacro extends StructuredMacroProcessorBase {
 
 		$spaceId = $this->spaceId;
 		if ( $pageLink->hasAttribute( 'ri:space-key' ) ) {
-			$spaceId = $this->dataLookup->getSpaceIdFromSpaceKey(
+			$spaceIdAttrib = $this->dataLookup->getSpaceIdFromSpaceKey(
 				$pageLink->getAttribute( 'ri:space-key' )
 			);
+			if ( $spaceIdAttrib !== null ) {
+				$spaceId = (int)$spaceIdAttrib;
+			}
+		}
+
+		if ( !$spaceId ) {
+			return null;
 		}
 
 		return $this->resolveWikiTitle( $spaceId, $confluenceTitle );
