@@ -40,7 +40,8 @@ class PreserveTimeTag implements IProcessor, IUsesPlaceholder {
 						$child->nodeType === XML_TEXT_NODE &&
 						$child->nodeValue &&
 						$child->nodeValue !== $datetime ) {
-					$content .= $dom->saveHTML( $child );
+					// saveHTML() would entity-encode non-ASCII differently across libxml versions
+					$content .= htmlspecialchars( $child->nodeValue, ENT_NOQUOTES, 'UTF-8' );
 				}
 			}
 			if ( $content ) {

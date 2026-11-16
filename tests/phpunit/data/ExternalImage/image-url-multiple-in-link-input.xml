@@ -1,0 +1,5 @@
+<xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
+	<p>
+		<a href="https://example.com/target"><ac:image ac:width="10"><ri:url ri:value="https://example.com/a.png"/></ac:image><ac:image ac:width="20"><ri:url ri:value="https://example.com/b.png"/></ac:image></a>
+	</p>
+</xml>

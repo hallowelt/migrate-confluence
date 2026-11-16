@@ -864,7 +864,8 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 		$sourcePerms = fileperms( $sourcePath );
 		if ( $sourcePerms !== false ) {
-			chmod( $targetPath, $sourcePerms & 0777 );
+			// keep the owner able to write, so that re-runs can overwrite the file
+			chmod( $targetPath, ( $sourcePerms & 0777 ) | 0200 );
 		}
 	}
 
