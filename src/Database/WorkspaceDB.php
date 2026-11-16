@@ -2076,6 +2076,23 @@ class WorkspaceDB implements LogEntryWriter {
 	}
 
 	/**
+	 * Gets the effective target namespace and wiki name per space, as the composer sees them.
+	 *
+	 * @return array[] Rows with keys space_key, namespace_prefix, wiki_name
+	 */
+	public function getSpacesWikiNamespaces(): array {
+		$transaction = $this->cachedPrepare(
+			'SELECT s.space_key,
+				COALESCE( wc.wiki_namespace, s.namespace_prefix ) AS namespace_prefix,
+				wc.wiki_name
+			FROM spaces s
+			LEFT JOIN wikis_config wc ON wc.space_key = s.space_key'
+		);
+
+		return $this->fetchDbArray( $transaction->execute() );
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getMapSpaceIdToPrefix(): array {
