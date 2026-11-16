@@ -20,6 +20,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
+use HalloWelt\MigrateConfluence\Utility\Hooks\AnalyzerHooks;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use InvalidArgumentException;
@@ -66,6 +67,11 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 	 */
 	public function analyze( SplFileInfo $file ): bool {
 		if ( $file->getFilename() !== 'entities.xml' ) {
+			return true;
+		}
+
+		if ( !AnalyzerHooks::includeSourceFile( true, $file ) ) {
+			$this->output->writeln( "Skipping file due to config: " . $file->getPathname() );
 			return true;
 		}
 

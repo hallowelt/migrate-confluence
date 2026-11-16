@@ -9,6 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\Database\DataWriter\ComposeDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
@@ -33,6 +34,8 @@ class Compose extends CommandCompose {
 	 * in memory from all workers via ComposeDataWriter, for the finalize pass to consume.
 	 */
 	private array $namespaceFileExtensions = [];
+
+	use SetupHooks;
 
 	/**
 	 * @inheritDoc
@@ -95,6 +98,9 @@ class Compose extends CommandCompose {
 
 		$workers = (int)$input->getOption( 'workers' );
 		$isChildProcess = $input->hasParameterOption( '--worker' );
+
+		$this->readConfigFile( $this->config );
+		$this->installCustomerHooks( $this->config, $this->input->getOption( 'config' ) );
 
 		if ( !$isChildProcess && $workers > 1 ) {
 			$this->dest = realpath( $input->getOption( 'dest' ) );
@@ -171,7 +177,6 @@ class Compose extends CommandCompose {
 	 * @throws Exception
 	 */
 	protected function processFiles(): int {
-		$this->readConfigFile( $this->config );
 		$this->ensureTargetDirs();
 		$this->workspace = new Workspace( new SplFileInfo( $this->dest ) );
 
@@ -206,6 +211,7 @@ class Compose extends CommandCompose {
 	 */
 	private function readConfigFile( array &$config ): void {
 		$filename = $this->input->getOption( 'config' );
+
 		if ( !empty( $filename ) ) {
 			$configOptionHelper = new ConfigOptionHelper( $filename );
 			$validationError = $configOptionHelper->validateFile();

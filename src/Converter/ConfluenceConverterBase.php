@@ -135,6 +135,7 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\Hooks\ConverterHooks;
 use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
@@ -417,6 +418,14 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$this->addCoverBannerIfApplicable();
 
 		$this->postprocessWikiText();
+
+		$this->wikiText = ConverterHooks::convertContentPost( $this->wikiText, [
+			'pageId' => $this->pageId,
+			'wikiPageTitle' => $this->wikiPageTitle,
+			'confluencePageTitle' => $this->confluencePageTitle,
+			'currentSpace' => $this->currentSpace,
+			'contentType' => $this->contentType,
+		], $this->dataLookup );
 
 		$this->checkContentLength( $bodyContentId );
 
@@ -956,6 +965,14 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 	 */
 	protected function preprocessHTMLSource( SplFileInfo $oHTMLSourceFile ): string {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
+
+		$sContent = ConverterHooks::convertContentPre( $sContent, [
+			'pageId' => $this->pageId,
+			'wikiPageTitle' => $this->wikiPageTitle,
+			'confluencePageTitle' => $this->confluencePageTitle,
+			'currentSpace' => $this->currentSpace,
+			'contentType' => $this->contentType,
+		], $this->dataLookup );
 
 		$preprocessors = [
 			new CDATAClosingFixer()
