@@ -18,6 +18,7 @@ class ExpandMacroChainTest extends MacroChainTestBase {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$fixtures = [
 			'expand-macro-input.xml' => 'expand-macro-output.wikitext',
+			'expand-macro-url-title-input.xml' => 'expand-macro-url-title-output.wikitext',
 		];
 
 		foreach ( $fixtures as $inputFixture => $expectedFixture ) {
@@ -36,7 +37,7 @@ class ExpandMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new ExpandMacro( $this->createConverterDataWriter(), 1 );
+		return new ExpandMacro( $this->createConverterDataWriter(), 1, $this->placeholderManager );
 	}
 
 }

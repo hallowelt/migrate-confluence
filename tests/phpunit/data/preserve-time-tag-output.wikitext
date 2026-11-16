@@ -8,9 +8,7 @@
 <li>Aktuell kann dort nicht getestet werden
 4 incomplete [https://confulence-url Testuser] Zugriff muss geklärt werden.
 4 incomplete [https://confulence-url Testuser] Zugriff muss geklärt werden.
-5 incomplete lorem ipsum dolor</li></ul>
-</li></ul>
-</li></ol>
+5 incomplete lorem ipsum dolor</li></ul></li></ul></li></ol>
 
 1 incomplete I have another task-list :)
 

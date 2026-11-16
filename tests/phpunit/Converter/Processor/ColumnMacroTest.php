@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use HalloWelt\MigrateConfluence\Converter\IProcessor;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class ColumnMacroTest extends StructuredMacroProcessorTestBase {
 
@@ -16,6 +17,6 @@ class ColumnMacroTest extends StructuredMacroProcessorTestBase {
 	}
 
 	protected function getProcessorToTest(): IProcessor {
-		return new ColumnMacro( $this->createConverterDataWriter(), 1 );
+		return new ColumnMacro( $this->createConverterDataWriter(), 1, new PlaceholderManager() );
 	}
 }

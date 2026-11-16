@@ -20,6 +20,7 @@ class DrawioSketchMacroChainTest extends MacroChainTestBase {
 		$dir = dirname( __DIR__, 2 ) . '/data';
 		$fixtures = [
 			'drawio-sketch-macro-input.xml' => 'drawio-sketch-macro-output.wikitext',
+			'drawio-sketch-macro-baseurl-input.xml' => 'drawio-sketch-macro-baseurl-output.wikitext',
 		];
 
 		foreach ( $fixtures as $inputFixture => $expectedFixture ) {
@@ -58,7 +59,8 @@ class DrawioSketchMacroChainTest extends MacroChainTestBase {
 			$dataLookup,
 			$conversionDataWriter,
 			42,
-			'SomePage'
+			'SomePage',
+			$this->placeholderManager
 		);
 	}
 

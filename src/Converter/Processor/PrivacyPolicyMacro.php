@@ -7,6 +7,7 @@ use DOMElement;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MacroInfo;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 /**
  * <ac:structured-macro ac:name="privacy-policy">
@@ -24,13 +25,15 @@ class PrivacyPolicyMacro extends ConvertMacroToTemplateBase {
 	 * @param IConverterDataWriter $writer
 	 * @param int $currentSpaceId
 	 * @param DBConversionDataLookup $dataLookup
+	 * @param PlaceholderManager $placeholderManager
 	 */
 	public function __construct(
 		IConverterDataWriter $writer,
 		private int $currentSpaceId,
-		private DBConversionDataLookup $dataLookup
+		private DBConversionDataLookup $dataLookup,
+		PlaceholderManager $placeholderManager
 	) {
-		parent::__construct( $writer, $currentSpaceId );
+		parent::__construct( $writer, $currentSpaceId, $placeholderManager );
 	}
 
 	/**

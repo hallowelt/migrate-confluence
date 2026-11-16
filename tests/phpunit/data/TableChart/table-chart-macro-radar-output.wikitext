@@ -1,6 +1,5 @@
 [[Category:Broken_table-chart/radar]]
 <div class="ac-table-chart">
-
 <!--<ac:structured-macro ac:name="table-chart" ac:schema-version="1">
 		<ac:parameter ac:name="type">Radar</ac:parameter>
 		<ac:parameter ac:name="title">Temps "A"</ac:parameter>
@@ -15,7 +14,6 @@
 <table><tbody><tr><th>Month</th><th>Min</th><th>Max</th></tr><tr><td>Jan, early</td><td>1,5</td><td>5</td></tr><tr><td>Feb</td><td>2</td><td>7</td></tr></tbody></table>
 		</ac:rich-text-body>
 	</ac:structured-macro>-->[[Category:Broken_macro/table-chart]]
-
 </div>
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

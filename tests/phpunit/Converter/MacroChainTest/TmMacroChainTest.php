@@ -39,7 +39,7 @@ class TmMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new TmMacro( $this->createMock( IConverterDataWriter::class ), 1 );
+		return new TmMacro( $this->createMock( IConverterDataWriter::class ), 1, $this->placeholderManager );
 	}
 
 }

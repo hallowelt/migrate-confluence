@@ -6,6 +6,7 @@ use DOMElement;
 use HalloWelt\MediaWiki\Lib\WikiText\Template;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Utility\MacroInfo;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class JiraMacro extends StructuredMacroProcessorBase {
 
@@ -21,7 +22,8 @@ class JiraMacro extends StructuredMacroProcessorBase {
 	 */
 	public function __construct(
 		private IConverterDataWriter $writer,
-		private int $currentSpaceId
+		private int $currentSpaceId,
+		private PlaceholderManager $placeholderManager
 	) {
 	}
 
@@ -59,7 +61,8 @@ class JiraMacro extends StructuredMacroProcessorBase {
 		$node->parentNode->replaceChild(
 			$this->createTextNode(
 				$node->ownerDocument,
-				$wikitextTemplate->render(),
+				// Placeholder prevents pandoc from wrapping URLs in the template in <nowiki> or escaping them
+				$this->placeholderManager->getPlaceholder( $wikitextTemplate->render() ),
 				__METHOD__
 			),
 			$node

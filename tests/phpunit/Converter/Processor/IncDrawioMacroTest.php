@@ -7,6 +7,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\IncDrawioMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class IncDrawioMacroTest extends ProcessorTestCase {
 
@@ -65,10 +66,13 @@ XML;
 
 		// The macro is being processed as if it appeared on space 42's "SomePage", which has
 		// no "drawio.png" attachment of its own - the diagram must come from space 23 instead.
+		$placeholderManager = new PlaceholderManager();
 		$processor = new IncDrawioMacro(
-			$this->createConverterDataWriter(), $dataLookup, $conversionDataWriter, 42, 'SomePage'
+			$this->createConverterDataWriter(), $dataLookup, $conversionDataWriter, 42, 'SomePage',
+			$placeholderManager
 		);
 		$processor->process( $dom );
+		$this->resolvePlaceholders( $dom, $placeholderManager );
 
 		$actualOutput = $dom->documentElement->textContent;
 
@@ -106,10 +110,13 @@ XML;
 		$dom = new DOMDocument();
 		$dom->loadXML( $macroXml );
 
+		$placeholderManager = new PlaceholderManager();
 		$processor = new IncDrawioMacro(
-			$this->createConverterDataWriter(), $dataLookup, $conversionDataWriter, 23, 'SomePage'
+			$this->createConverterDataWriter(), $dataLookup, $conversionDataWriter, 23, 'SomePage',
+			$placeholderManager
 		);
 		$processor->process( $dom );
+		$this->resolvePlaceholders( $dom, $placeholderManager );
 
 		$actualOutput = $dom->documentElement->textContent;
 

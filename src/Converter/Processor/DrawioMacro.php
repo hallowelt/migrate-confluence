@@ -8,6 +8,7 @@ use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DrawIOFileHandler;
 use HalloWelt\MigrateConfluence\Utility\MacroInfo;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class DrawioMacro extends StructuredMacroProcessorBase {
 
@@ -22,7 +23,8 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		protected readonly DBConversionDataLookup $dataLookup,
 		protected readonly ConversionDataWriter $conversionDataWriter,
 		protected readonly int $currentSpaceId,
-		protected readonly string $rawPageTitle
+		protected readonly string $rawPageTitle,
+		protected readonly PlaceholderManager $placeholderManager
 	) {
 	}
 
@@ -68,7 +70,12 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 		);
 
 		$node->parentNode->replaceChild(
-			$this->createTextNode( $node->ownerDocument, $content, __METHOD__ ),
+			$this->createTextNode(
+				$node->ownerDocument,
+				// Placeholder prevents pandoc from wrapping URLs in the template in <nowiki> or escaping them
+				$this->placeholderManager->getPlaceholder( $content ),
+				__METHOD__
+			),
 			$node
 		);
 		$this->writer->registerDefaultPage( $this->currentSpaceId, $templateName );

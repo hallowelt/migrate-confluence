@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<pre class="noformat">
+	<pre class="noformat"><code>
 		SELECT * FROM menu;
-		</pre>
-	<pre class="noformat nopanel">
+		</code></pre>
+	<pre class="noformat nopanel"><code>
 		SELECT * FROM menu;
-		</pre>
+		</code></pre>
 </xml>

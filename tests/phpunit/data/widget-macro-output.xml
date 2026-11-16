@@ -1,7 +1,7 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
-	<div class="ac-widget" data-params="{&quot;url&quot;:&quot;https:\/\/www.example.com\/1&quot;}">https://www.example.com/1</div>
+	<div class="ac-widget" data-params="{&quot;url&quot;:&quot;https:\/\/www.example.com\/1&quot;}">convert:placeholder=0</div>
 
-	<div class="ac-widget" data-params="{&quot;url&quot;:&quot;https:\/\/www.example.com\/2&quot;}">https://www.example.com/2</div>
+	<div class="ac-widget" data-params="{&quot;url&quot;:&quot;https:\/\/www.example.com\/2&quot;}">convert:placeholder=1</div>
 
-	<div class="ac-widget" data-params="{&quot;url&quot;:&quot;https:\/\/www.example.com\/3?p=1&amp;q=2&quot;}">https://www.example.com/3?p=1&amp;q=2</div>
+	<div class="ac-widget" data-params="{&quot;url&quot;:&quot;https:\/\/www.example.com\/3?p=1&amp;q=2&quot;}">convert:placeholder=2</div>
 </xml>

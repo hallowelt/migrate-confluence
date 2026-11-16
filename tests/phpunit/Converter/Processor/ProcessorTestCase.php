@@ -4,7 +4,9 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use DOMNode;
+use DOMXPath;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 use PHPUnit\Framework\TestCase;
 
 abstract class ProcessorTestCase extends TestCase {
@@ -14,6 +16,19 @@ abstract class ProcessorTestCase extends TestCase {
 	 */
 	protected function createConverterDataWriter(): IConverterDataWriter {
 		return $this->createMock( IConverterDataWriter::class );
+	}
+
+	/**
+	 * Replaces placeholders in all text nodes by their original values.
+	 *
+	 * @param DOMDocument $dom
+	 * @param PlaceholderManager $placeholderManager
+	 * @return void
+	 */
+	protected function resolvePlaceholders( DOMDocument $dom, PlaceholderManager $placeholderManager ): void {
+		foreach ( ( new DOMXPath( $dom ) )->query( '//text()' ) as $textNode ) {
+			$textNode->data = $placeholderManager->replacePlaceholders( $textNode->data );
+		}
 	}
 
 	/**

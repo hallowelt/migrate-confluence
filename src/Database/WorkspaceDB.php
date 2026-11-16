@@ -3162,7 +3162,7 @@ class WorkspaceDB implements LogEntryWriter {
 
 		$collection = json_decode( (string)$row['collection'], true );
 		foreach ( $collection['contentProperties'] ?? [] as $propertyId ) {
-			$property = $this->getContentPopertyById( (int)$propertyId );
+			$property = $this->getContentPropertyById( (int)$propertyId );
 			if ( $property === null || $property['property_name'] !== 'coverPicture' ) {
 				continue;
 			}
@@ -3209,7 +3209,7 @@ class WorkspaceDB implements LogEntryWriter {
 		foreach ( $this->fetchDbArray( $result ) as $row ) {
 			$collection = json_decode( (string)$row['collection'], true );
 			foreach ( $collection['contentProperties'] ?? [] as $propertyId ) {
-				$property = $this->getContentPopertyById( (int)$propertyId );
+				$property = $this->getContentPropertyById( (int)$propertyId );
 				if ( $property === null || $property['property_name'] !== 'FILESTORE_ID' ) {
 					continue;
 				}

@@ -51,7 +51,7 @@ XML
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new StatusMacro( $this->createMock( IConverterDataWriter::class ), 1 );
+		return new StatusMacro( $this->createMock( IConverterDataWriter::class ), 1, $this->placeholderManager );
 	}
 
 }

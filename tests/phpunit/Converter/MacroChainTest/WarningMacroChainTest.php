@@ -53,7 +53,7 @@ XML
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new WarningMacro( $this->createMock( IConverterDataWriter::class ), 1 );
+		return new WarningMacro( $this->createMock( IConverterDataWriter::class ), 1, $this->placeholderManager );
 	}
 
 }

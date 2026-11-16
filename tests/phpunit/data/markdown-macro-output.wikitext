@@ -1,6 +1,9 @@
 Before
 
-# Hello Some **bold** text
+<markdown># Hello
+
+Some **bold** text
+</markdown>
 
 After
 

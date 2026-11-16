@@ -4,6 +4,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class WidgetMacroTest extends ProcessorTestCase {
 
@@ -18,7 +19,7 @@ class WidgetMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$processor = new WidgetMacro();
+		$processor = new WidgetMacro( new PlaceholderManager() );
 		$processor->process( $dom );
 
 		$actualOutput = $dom->saveXML( $dom->documentElement );
