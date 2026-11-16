@@ -10,6 +10,7 @@ use HalloWelt\MediaWiki\Lib\Migration\IConverter;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Command\Traits\ParallelCommandTrait;
 use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBase;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\ConverterDirectDataWriter;
@@ -31,13 +32,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Convert extends CommandConvert {
 
+	use ParallelCommandTrait;
+	use SetupHooks;
+
 	/** @var string */
 	private string $wikiTextBasePath = '';
 
 	/** @var IConverterDataWriter|null */
 	private ?IConverterDataWriter $dataWriter;
-
-	use SetupHooks;
 
 	/**
 	 * @return void
@@ -53,24 +55,7 @@ class Convert extends CommandConvert {
 				'Specifies the path to the config yaml file'
 			)
 		);
-		$definition->addOption(
-			new InputOption(
-				'workers',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'Number of parallel worker processes to spawn (default: 1, no parallelism)',
-				1
-			)
-		);
-		// Hidden internal option — set automatically by the orchestrator on each child process.
-		$definition->addOption(
-			new InputOption(
-				'worker',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'[Internal] Zero-based index of this worker process'
-			)
-		);
+		$this->configureParallelOptions();
 	}
 
 	/**
@@ -145,7 +130,7 @@ class Convert extends CommandConvert {
 	}
 
 	protected function logExecutionTime(): void {
-		if ( $this->input->hasParameterOption( '--worker' ) ) {
+		if ( $this->shouldSkipExecutionTimeLogging() ) {
 			return;
 		}
 		if ( $this->workspace === null ) {
