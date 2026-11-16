@@ -22,12 +22,12 @@ class HooksTest extends TestCase {
 
 	public function testHookNameIsKebabCaseOfMethodName(): void {
 		$this->assertSame( 'convert-content-pre', Hooks::hookName( 'convertContentPre' ) );
-		$this->assertSame( 'include-import-file', Hooks::hookName( 'includeImportFile' ) );
+		$this->assertSame( 'include-source-file', Hooks::hookName( 'includeSourceFile' ) );
 	}
 
 	public function testHookMethodCallsHandlerRegisteredUnderKebabName(): void {
-		HookHandler::setUp( [ 'filters' => [ 'include-import-file' => static fn ( $include ) => false ] ] );
+		HookHandler::setUp( [ 'filters' => [ 'include-source-file' => static fn ( $include ) => false ] ] );
 
-		$this->assertFalse( AnalyzerHooks::includeImportFile( true, new SplFileInfo( 'entities.xml' ) ) );
+		$this->assertFalse( AnalyzerHooks::includeSourceFile( true, new SplFileInfo( 'entities.xml' ) ) );
 	}
 }

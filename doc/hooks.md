@@ -38,7 +38,7 @@ Allow modification of the raw input before processing it.
 
 _Defined in [`Utility/Hooks/ConverterHooks.php`](../src/Utility/Hooks/ConverterHooks.php#L20) at line 20._
 
-### `include-import-file`
+### `include-source-file`
 
 Control whether the current entities.xml file should be considered.
 

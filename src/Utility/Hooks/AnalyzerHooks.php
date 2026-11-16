@@ -16,7 +16,7 @@ class AnalyzerHooks extends Hooks {
 	 * @param bool $include whether to include the file. Defaults to true.
 	 * @param SplFileInfo $file the import XML file currently processed
 	 */
-	public static function includeImportFile( bool $include, SplFileInfo $file ): bool {
+	public static function includeSourceFile( bool $include, SplFileInfo $file ): bool {
 		return self::filter( __FUNCTION__, $include, $file );
 	}
 }
