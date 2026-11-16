@@ -1,0 +1,37 @@
+<noinclude>Template added by Confluence migration to handle the "privacy-policy" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Show a short privacy statement with a link to the main privacy policy. The target of Template:PrivacyMark.",
+        "de": "Eine kurze Datenschutzerkl\u00e4rung mit Link zur allgemeinen Datenschutzrichtlinie anzeigen. Ziel von Template:PrivacyMark."
+    },
+    "params": {
+        "body": {
+            "label": { "en": "Privacy statement", "de": "Datenschutzerkl\u00e4rung" },
+            "type": "content",
+            "suggested": true,
+            "description": { "en": "The short statement shown on the page.", "de": "Die kurze Erkl\u00e4rung, die auf der Seite angezeigt wird." }
+        },
+        "page": {
+            "label": { "en": "Page", "de": "Seite" },
+            "type": "wiki-page-name",
+            "default": "Site:Privacy_policy",
+            "description": {
+                "en": "The page with the main privacy policy.",
+                "de": "Die Seite mit der allgemeinen Datenschutzrichtlinie."
+            }
+        },
+        "class": {
+            "label": { "en": "CSS class", "de": "CSS-Klasse" },
+            "type": "string",
+            "description": { "en": "Additional CSS class(es) for the statement.", "de": "Zus\u00e4tzliche CSS-Klasse(n) f\u00fcr die Erkl\u00e4rung." }
+        }
+    },
+    "paramOrder": [ "body", "page", "class" ]
+}
+</templatedata></noinclude><includeonly><div id="privacy-policy" class="privacy-policy {{{class|}}}">
+{{{body|}}}
+
+[[{{{page|Site:Privacy_policy}}}|Privacy policy]]
+</div></includeonly>
