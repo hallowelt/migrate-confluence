@@ -29,8 +29,8 @@ abstract class ConvertMacroToTemplateBase extends ConversionHelper implements IP
 	 * @param PlaceholderManager $placeholderManager
 	 */
 	public function __construct(
-		private IConverterDataWriter $writer,
-		private int $currentSpace,
+		protected IConverterDataWriter $writer,
+		protected int $currentSpace,
 		private PlaceholderManager $placeholderManager
 	) {
 	}
@@ -108,11 +108,17 @@ abstract class ConvertMacroToTemplateBase extends ConversionHelper implements IP
 
 			$parentNode->removeChild( $actualMacro );
 
-			$this->writer->registerDefaultPage(
-				$this->currentSpace,
-				$this->getWikiTextTemplateName()
-			);
+			$this->registerDefaultPages();
 		}
+	}
+
+	/**
+	 * Registers the default pages that the generated call depends on.
+	 *
+	 * @return void
+	 */
+	protected function registerDefaultPages(): void {
+		$this->writer->registerDefaultPage( $this->currentSpace, $this->getWikiTextTemplateName() );
 	}
 
 	/**

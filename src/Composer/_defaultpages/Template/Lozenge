@@ -1,0 +1,69 @@
+<noinclude>Template added by Confluence migration to handle the "lozenge" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Show a text in a rounded badge, optionally as a link (deprecated Confluence \"lozenge\" macro).",
+        "de": "Einen Text in einem abgerundeten Abzeichen anzeigen, optional als Link (veraltetes Confluence-\"lozenge\"-Makro)."
+    },
+    "params": {
+        "title": {
+            "label": {
+                "en": "Title",
+                "de": "Titel"
+            },
+            "type": "string",
+            "suggested": true,
+            "description": {
+                "en": "The text shown in the badge.",
+                "de": "Der im Abzeichen angezeigte Text."
+            }
+        },
+        "color": {
+            "label": {
+                "en": "Color",
+                "de": "Farbe"
+            },
+            "type": "string",
+            "description": {
+                "en": "Background color of the badge (any CSS color).",
+                "de": "Hintergrundfarbe des Abzeichens (beliebige CSS-Farbe)."
+            }
+        },
+        "link": {
+            "label": {
+                "en": "Link",
+                "de": "Link"
+            },
+            "type": "string",
+            "description": {
+                "en": "Target of the badge as a URL.",
+                "de": "Ziel des Abzeichens als URL."
+            }
+        },
+        "arrow": {
+            "label": {
+                "en": "Arrow",
+                "de": "Pfeil"
+            },
+            "type": "string",
+            "description": {
+                "en": "Kept from the Confluence macro, but not rendered.",
+                "de": "Aus dem Confluence-Makro \u00fcbernommen, wird aber nicht dargestellt."
+            }
+        },
+        "width": {
+            "label": {
+                "en": "Width",
+                "de": "Breite"
+            },
+            "type": "string",
+            "description": {
+                "en": "Width of the badge (CSS width).",
+                "de": "Breite des Abzeichens (CSS-Breite)."
+            }
+        }
+    },
+    "paramOrder": [ "title", "color", "link", "arrow", "width" ]
+}
+</templatedata></noinclude><includeonly><span class="lozenge" style="display:inline-block; padding:0 0.6em; border-radius:1em; border:1px solid #999; background-color:{{{color|#eee}}};{{#if:{{{width|}}}| width:{{{width}}};}}">{{#if:{{{link|}}}|[{{{link}}} {{{title|}}}]|{{{title|}}}}}</span></includeonly>

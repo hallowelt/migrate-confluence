@@ -1,0 +1,21 @@
+<noinclude>Template added by Confluence migration to handle the "pagetreesearch" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Shows a search field that searches the subpages of a root page (Confluence \"pagetreesearch\" macro). Whether the search form honors the prefix depends on the search backend of the wiki.",
+        "de": "Zeigt ein Suchfeld, das die Unterseiten einer Stammseite durchsucht (Confluence-\"pagetreesearch\"-Makro). Ob das Suchformular das Pr\u00e4fix ber\u00fccksichtigt, h\u00e4ngt vom Such-Backend des Wikis ab."
+    },
+    "params": {
+        "root": {
+            "label": { "en": "Root page", "de": "Stammseite" },
+            "type": "wiki-page-name",
+            "required": false,
+            "description": {
+                "en": "Page whose subpages are searched. Defaults to the current page.",
+                "de": "Seite, deren Unterseiten durchsucht werden. Standard ist die aktuelle Seite."
+            }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{#widget:SearchForm|action={{fullurl:Special:Search}}|prefix={{{root|{{FULLPAGENAME}}}}}/|button={{int:searchbutton}}}}</includeonly>

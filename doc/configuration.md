@@ -242,6 +242,11 @@ Optional. The MediaWiki namespace pages of this space are migrated into.
 If empty, the pages are placed in the main namespace. Must not start with
 a digit. Same character sanitization as `wiki-name` applies.
 
+`analyze` fails with a `critical` message listing _all_ spaces whose
+resulting namespace (also when derived from the space key because no row
+matches) or wiki name is invalid, e.g. a space `1ST_PLACE` without a
+`wiki-namespace`.
+
 ### `wiki-root-page`
 
 Optional. A page title _all_ pages of this space are nested under as
