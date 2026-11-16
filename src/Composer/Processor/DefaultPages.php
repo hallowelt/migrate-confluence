@@ -9,6 +9,7 @@ use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
 class DefaultPages extends ProcessorBase {
+	private const PROFILE_DIRECTORIES = [ 'bluespice-galaxy' => 'BlueSpiceGalaxy' ];
 
 	/**
 	 * @param Builder $builder
@@ -42,13 +43,8 @@ class DefaultPages extends ProcessorBase {
 	}
 
 	private function addDefaultPages(): void {
-		$basepath = dirname( __DIR__ ) . '/_defaultpages/';
-
-		$directoriesWithWikitext = $this->getDirectoriesWithWikitext( $basepath );
-		$files = new \RecursiveIteratorIterator(
-			new \RecursiveDirectoryIterator( $basepath ),
-			\RecursiveIteratorIterator::LEAVES_ONLY
-		);
+		$files = $this->getDefaultPageFiles();
+		$directoriesWithWikitext = $this->getDirectoriesWithWikitext( array_keys( $files ) );
 
 		$registeredDefaultPages = [];
 		foreach ( $this->currentSpaceIds as $currentSpaceId ) {
@@ -61,12 +57,13 @@ class DefaultPages extends ProcessorBase {
 			}
 		}
 
-		foreach ( $files as $fileObj ) {
-			if ( $fileObj->isDir() ) {
-				continue;
-			}
-
-			$defaultPage = $this->getDefaultPageForFile( $fileObj, $basepath, $directoriesWithWikitext );
+		foreach ( $files as $relativeFilePath => $basepath ) {
+			$directoryKey = $basepath . dirname( $relativeFilePath );
+			$defaultPage = $this->getDefaultPageForFile(
+				new SplFileInfo( $basepath . $relativeFilePath ),
+				$basepath,
+				isset( $directoriesWithWikitext[dirname( $relativeFilePath )] ) ? [ $directoryKey => true ] : []
+			);
 			$defaultPageNamespace = $defaultPage['namespace'];
 			$defaultPageName = $defaultPage['registered_name'];
 			$wikiPageName = $defaultPage['wiki_title'];
@@ -78,7 +75,7 @@ class DefaultPages extends ProcessorBase {
 				continue;
 			}
 
-			$wikiText = file_get_contents( $fileObj->getPathname() );
+			$wikiText = file_get_contents( $basepath . $relativeFilePath );
 
 			$this->addRevision( $wikiPageName, $wikiText );
 		}
@@ -87,22 +84,64 @@ class DefaultPages extends ProcessorBase {
 	}
 
 	/**
-	 * Find directories where the default page body is stored in a dedicated `wikitext` file.
-	 * Sibling files in these directories are emitted as subpages of the same registered page.
+	 * Collects the default page files; files below a profile directory such as
+	 * `_defaultpages/BlueSpiceGalaxy` replace the files of the same relative path in `_defaultpages`
+	 * for that output profile.
 	 *
-	 * @param string $basepath
-	 * @return array<string,bool>
+	 * @return array<string,string> Relative path => base directory the file was found in
 	 */
-	private function getDirectoriesWithWikitext( string $basepath ): array {
-		$directories = [];
-		$files = new \RecursiveIteratorIterator(
-			new \RecursiveDirectoryIterator( $basepath ),
+	private function getDefaultPageFiles(): array {
+		$basePath = dirname( __DIR__ ) . '/_defaultpages/';
+		$files = [];
+		foreach ( $this->scanDirectory( $basePath ) as $relativePath => $path ) {
+			$topDirectory = explode( '/', $relativePath )[0];
+			if ( !in_array( $topDirectory, self::PROFILE_DIRECTORIES, true ) ) {
+				$files[$relativePath] = $path;
+			}
+		}
+
+		$profileDirectory = self::PROFILE_DIRECTORIES[$this->migrationConfig->getProfile()] ?? null;
+		if ( $profileDirectory !== null && is_dir( $basePath . $profileDirectory ) ) {
+			$files = array_merge( $files, $this->scanDirectory( $basePath . $profileDirectory . '/' ) );
+		}
+
+		ksort( $files );
+		return $files;
+	}
+
+	/**
+	 * @param string $basepath
+	 * @return array<string,string> Relative path => base directory
+	 */
+	private function scanDirectory( string $basepath ): array {
+		$files = [];
+		$iterator = new \RecursiveIteratorIterator(
+			new \RecursiveDirectoryIterator( $basepath, \FilesystemIterator::SKIP_DOTS ),
 			\RecursiveIteratorIterator::LEAVES_ONLY
 		);
 
-		foreach ( $files as $fileObj ) {
-			if ( !$fileObj->isDir() && $fileObj->getBasename() === 'wikitext' ) {
-				$directories[$fileObj->getPath()] = true;
+		foreach ( $iterator as $fileObj ) {
+			if ( $fileObj->isDir() ) {
+				continue;
+			}
+			$files[substr( $fileObj->getPathname(), strlen( $basepath ) )] = $basepath;
+		}
+
+		return $files;
+	}
+
+	/**
+	 * Find directories where the default page body is stored in a dedicated `wikitext` file.
+	 * Sibling files in these directories are emitted as subpages of the same registered page.
+	 *
+	 * @param string[] $relativePaths
+	 * @return array<string,bool>
+	 */
+	private function getDirectoriesWithWikitext( array $relativePaths ): array {
+		$directories = [];
+		foreach ( $relativePaths as $relativePath ) {
+			if ( basename( $relativePath ) === 'wikitext' ) {
+				$directories[dirname( $relativePath )] = true;
 			}
 		}
 

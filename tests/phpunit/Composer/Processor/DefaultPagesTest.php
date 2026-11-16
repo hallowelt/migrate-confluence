@@ -53,7 +53,7 @@ class DefaultPagesTest extends TestCase {
 
 		$dataLookup = $this->createMock( DBComposerDataLookup::class );
 		$dataLookup->method( 'getRegisteredDefaultPagesForSpaceId' )->willReturn( [
-			'Template' => [ 'Folder' ],
+			'Template' => [ 'Folder', 'RecentlyUpdated', 'RecentlyUpdatedRow' ],
 		] );
 
 		$processor = new DefaultPages(
@@ -69,6 +69,50 @@ class DefaultPagesTest extends TestCase {
 
 		$this->assertContains( 'Template:Folder', $addedPages );
 		$this->assertContains( 'Template:Folder/Style.css', $addedPages );
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Composer\Processor\DefaultPages::execute
+	 * @dataProvider provideProfileData
+	 */
+	public function testProfileSpecificDefaultPagesReplaceBaseOnes(
+		string $profile, string $expectedParserFunction, string $unexpectedParserFunction
+	): void {
+		$builder = $this->createMock( Builder::class );
+		$addedPages = [];
+		$builder->method( 'addRevision' )
+			->willReturnCallback( static function ( string $pageName, string $text ) use ( &$addedPages ): void {
+				$addedPages[$pageName] = $text;
+			} );
+
+		$dataLookup = $this->createMock( DBComposerDataLookup::class );
+		$dataLookup->method( 'getRegisteredDefaultPagesForSpaceId' )->willReturn( [
+			'Template' => [ 'Folder', 'RecentlyUpdated', 'RecentlyUpdatedRow' ],
+		] );
+
+		$processor = new DefaultPages(
+			$builder,
+			$this->createMock( Output::class ),
+			sys_get_temp_dir(),
+			new MigrationConfig( [ 'profile' => $profile ] ),
+			$dataLookup
+		);
+		$processor->setCurrentSpaceIds( [ 1 ] );
+		$processor->execute();
+
+		$this->assertStringContainsString( $expectedParserFunction, $addedPages['Template:Folder'] );
+		$this->assertStringNotContainsString( $unexpectedParserFunction, $addedPages['Template:Folder'] );
+		$this->assertArrayHasKey( 'Template:Folder/Style.css', $addedPages );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function provideProfileData(): array {
+		return [
+			'galaxy uses StandardTags' => [ 'bluespice-galaxy', '{{#tag:recentchanges', '{{#ask:' ],
+			'mediawiki uses SMW' => [ 'mediawiki', '{{#ask:', '{{#tag:recentchanges' ],
+		];
 	}
 
 	/**

@@ -47,7 +47,7 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 
 	public const SUPPORT_LEVEL = MacroInfo::SUPPORT_LEVEL_PARTIALLY;
 
-	public const REQUIRED_EXTENSIONS = [ 'InputBox', 'ParserFunctions', 'Semantic_MediaWiki' ];
+	public const REQUIRED_EXTENSIONS = [ 'InputBox', 'ParserFunctions' ];
 
 	/** @var string */
 	private static string $FALLBACK_TEMPLATE = 'Template:FallbackCreateFromTemplate';
@@ -95,14 +95,12 @@ class CreateFromTemplateMacro extends ConversionHelper implements IProcessor, IU
 
 	private function doProcessMacro( DOMElement $node ): void {
 		$params = $this->getParams( $node );
-		$macroId = $node->getAttribute( 'ac:macro-id' );
 		$templateTitle = $this->findTemplateTitle( $params );
 		$errorMessage = $this->getResolutionError( $params, $templateTitle );
 
 		$templateParams = [
 			'preload' => $templateTitle ?? self::$FALLBACK_TEMPLATE,
 			'buttonlabel' => $params['buttonLabel'] ?? '',
-			'macroid' => $macroId,
 		];
 
 		$wikiTemplate = new Template( $this->getWikiTextTemplateName(), $templateParams );
