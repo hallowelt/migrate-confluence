@@ -2,12 +2,12 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Utility\HookHandler;
 
-use HalloWelt\MigrateConfluence\Utility\HookHandler;
+use HalloWelt\MigrateConfluence\Utility\Hooks\HookHandler;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 /**
- * @covers \HalloWelt\MigrateConfluence\Utility\HookHandler
+ * @covers \HalloWelt\MigrateConfluence\Utility\Hooks\HookHandler
  */
 class HookHandlerTest extends TestCase {
 

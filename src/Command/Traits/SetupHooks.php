@@ -2,7 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Command\Traits;
 
-use HalloWelt\MigrateConfluence\Utility\HookHandler;
+use HalloWelt\MigrateConfluence\Utility\Hooks\HookHandler;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use Psr\Log\LoggerInterface;
 

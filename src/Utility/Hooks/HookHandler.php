@@ -1,6 +1,6 @@
 <?php
 
-namespace HalloWelt\MigrateConfluence\Utility;
+namespace HalloWelt\MigrateConfluence\Utility\Hooks;
 
 /**
  * simple hook system to allow client-based customization

@@ -12,42 +12,42 @@ Filters allow modifying a concrete value.
 
 ### `convert-content-post`
 
-Allow modification of the output after processing wikiPageTitle, confluencePageTitle, currentSpace, and contentType
+Allow modification of the output after processing.
 
 **Since:** [8.0.0](https://github.com/hallowelt/migrate-confluence/releases/tag/8.0.0)
 
 **Parameters:**
 
-- `$sContent` _string_ — content after all processing
-- `$context` _array_ — context information including pageId,
+- `$content` _string_ — content after all processing
+- `$context` _array_ — context information: pageId, wikiPageTitle, confluencePageTitle, currentSpace, contentType
 - `$dataLookup` _DBConversionDataLookup_ — data lookup object
 
-_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php#L405) at line 405._
+_Defined in [`Utility/Hooks/ConverterHooks.php`](../src/Utility/Hooks/ConverterHooks.php#L34) at line 34._
 
 ### `convert-content-pre`
 
-Allow modification of the raw input before processing it. currentSpace, and contentType
+Allow modification of the raw input before processing it.
 
 **Since:** [8.0.0](https://github.com/hallowelt/migrate-confluence/releases/tag/8.0.0)
 
 **Parameters:**
 
-- `$sContent` _string_ — content before any processing
-- `$context` _array_ — context information including pageId, wikiPageTitle, confluencePageTitle,
+- `$content` _string_ — content before any processing
+- `$context` _array_ — context information: pageId, wikiPageTitle, confluencePageTitle, currentSpace, contentType
 - `$dataLookup` _DBConversionDataLookup_ — data lookup object
 
-_Defined in [`Converter/ConfluenceConverterBase.php`](../src/Converter/ConfluenceConverterBase.php#L851) at line 851._
+_Defined in [`Utility/Hooks/ConverterHooks.php`](../src/Utility/Hooks/ConverterHooks.php#L20) at line 20._
 
 ### `include-import-file`
 
 Control whether the current entities.xml file should be considered.
 
-**Since:** [5.0.0](https://github.com/hallowelt/migrate-confluence/releases/tag/5.0.0)
+**Since:** [8.0.0](https://github.com/hallowelt/migrate-confluence/releases/tag/8.0.0)
 
 **Parameters:**
 
-- `$value` _bool_ — whether to include the file. Defaults to true.
+- `$include` _bool_ — whether to include the file. Defaults to true.
 - `$file` _SplFileInfo_ — the import XML file currently processed
 
-_Defined in [`Analyzer/ConfluenceAnalyzer.php`](../src/Analyzer/ConfluenceAnalyzer.php#L77) at line 77._
+_Defined in [`Utility/Hooks/AnalyzerHooks.php`](../src/Utility/Hooks/AnalyzerHooks.php#L19) at line 19._
 

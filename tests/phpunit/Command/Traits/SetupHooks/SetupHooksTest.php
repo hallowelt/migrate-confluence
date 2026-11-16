@@ -3,7 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Tests\Command\Traits\SetupHooks;
 
 use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
-use HalloWelt\MigrateConfluence\Utility\HookHandler;
+use HalloWelt\MigrateConfluence\Utility\Hooks\HookHandler;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;

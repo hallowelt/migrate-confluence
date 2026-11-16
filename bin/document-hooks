@@ -4,44 +4,39 @@
 declare( strict_types=1 );
 
 /**
- * Scans src/ for HookHandler::filter() and HookHandler::run() calls,
- * extracts their PHPDoc metadata (@migrate-filter / @migrate-action), warns
- * about undocumented calls, and writes doc/hooks.md.
+ * Reflects over the public static methods of the hook classes listed in
+ * HOOK_CLASSES, reads their PHPDoc, warns about undocumented hooks, and
+ * writes doc/hooks.md. The hook name is derived from the method name, a
+ * void return type marks an action, anything else a filter.
  */
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use HalloWelt\MigrateConfluence\Utility\Hooks\AnalyzerHooks;
+use HalloWelt\MigrateConfluence\Utility\Hooks\ComposerHooks;
+use HalloWelt\MigrateConfluence\Utility\Hooks\ConverterHooks;
+use HalloWelt\MigrateConfluence\Utility\Hooks\ExtractorHooks;
+use HalloWelt\MigrateConfluence\Utility\Hooks\Hooks;
+
+/** Add new hook classes here. */
+const HOOK_CLASSES = [
+	AnalyzerHooks::class,
+	ExtractorHooks::class,
+	ConverterHooks::class,
+	ComposerHooks::class,
+];
 
 $srcDir  = realpath( __DIR__ . '/../src' );
 $docFile = realpath( __DIR__ . '/../doc' ) . '/hooks.md';
-
-/**
- * File discoverer
- *
- * @param string $dir
- * @return list<string> List of PHP file paths
- **/
-function findPhpFiles( string $dir ): array {
-	$files = [];
-	$it = new RecursiveIteratorIterator(
-		new RecursiveDirectoryIterator( $dir, RecursiveDirectoryIterator::SKIP_DOTS )
-	);
-	foreach ( $it as $file ) {
-		if ( $file->getExtension() === 'php' ) {
-			$files[] = $file->getPathname();
-		}
-	}
-	sort( $files );
-	return $files;
-}
 
 
 /**
  * Docblock parser
  *
- * @return array{hookName:string|null,hookType:string|null,description:string,since:string|null,params:list<array{type:string,name:string,description:string}>}
+ * @return array{description:string,since:string|null,params:list<array{type:string,name:string,description:string}>}
  */
 function parseDocblock( string $docblock ): array {
 	$info = [
-		'hookName'    => null,
-		'hookType'    => null,
 		'description' => '',
 		'since'       => null,
 		'params'      => [],
@@ -60,13 +55,7 @@ function parseDocblock( string $docblock ): array {
 			continue;
 		}
 
-		if ( preg_match( '/^@migrate-filter\s+(\S+)/', $line, $m ) ) {
-			$info['hookType'] = 'filter';
-			$info['hookName'] = $m[1];
-		} elseif ( preg_match( '/^@migrate-action\s+(\S+)/', $line, $m ) ) {
-			$info['hookType'] = 'action';
-			$info['hookName'] = $m[1];
-		} elseif ( preg_match( '/^@since\s+(.+)/', $line, $m ) ) {
+		if ( preg_match( '/^@since\s+(.+)/', $line, $m ) ) {
 			$info['since'] = trim( $m[1] );
 		} elseif ( preg_match( '/^@param\s+(\S+)\s+(\$\S+)\s*(.*)/', $line, $m ) ) {
 			$info['params'][] = [
@@ -87,84 +76,32 @@ function parseDocblock( string $docblock ): array {
 // Main scan
 // ---------------------------------------------------------------------------
 
-/** Tokens that mark a statement or block boundary – stop looking backwards. */
-const BOUNDARIES = [ ';', '{', '}' ];
-
-$hooks    = [];   // keyed by hookName, last write wins (same name = same hook)
+$hooks    = [];   // keyed by hookName
 $warnings = [];
 
-foreach ( findPhpFiles( $srcDir ) as $filepath ) {
-	$relPath = ltrim( str_replace( $srcDir, '', $filepath ), DIRECTORY_SEPARATOR );
-	$raw = token_get_all( file_get_contents( $filepath ) );
-	$tokens = [];
-	foreach ( $raw as $tok ) {
-		if ( is_array( $tok ) ) {
-			if ( $tok[0] === T_WHITESPACE ) {
-				continue;
-			}
-			$tokens[] = [ 'type' => $tok[0], 'value' => $tok[1], 'line' => $tok[2] ];
-		} else {
-			$tokens[] = [ 'type' => null, 'value' => $tok, 'line' => null ];
-		}
-	}
-	$count   = count( $tokens );
+foreach ( HOOK_CLASSES as $class ) {
+	$reflClass = new ReflectionClass( $class );
+	$relPath = ltrim( str_replace( $srcDir, '', $reflClass->getFileName() ), DIRECTORY_SEPARATOR );
 
-	for ( $i = 0; $i < $count; $i++ ) {
-		$tok = $tokens[$i];
-
-		// Match the start of HookHandler::filter( or HookHandler::run(
-		if ( $tok['type'] !== T_STRING || $tok['value'] !== 'HookHandler' ) {
-			continue;
-		}
-		if ( ( $tokens[$i + 1]['value'] ?? '' ) !== '::' ) {
-			continue;
-		}
-		$methodToken = $tokens[$i + 2] ?? null;
-		if ( $methodToken === null
-			|| $methodToken['type'] !== T_STRING
-			|| !in_array( $methodToken['value'], [ 'filter', 'run' ], true ) ) {
-			continue;
-		}
-		if ( ( $tokens[$i + 3]['value'] ?? '' ) !== '(' ) {
+	foreach ( $reflClass->getMethods( ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_STATIC ) as $method ) {
+		// Skip inherited helpers like Hooks::hookName()
+		if ( $method->getDeclaringClass()->getName() !== $class ) {
 			continue;
 		}
 
-		$callMethod = $methodToken['value'];
-		$callLine   = $tok['line'];
-
-		// ------------------------------------------------------------------
-		// Walk backwards to find the nearest PHPDoc comment.
-		// A statement boundary (;  {  }) means the docblock is too far away.
-		// ------------------------------------------------------------------
-		$docblock = null;
-		for ( $j = $i - 1; $j >= 0; $j-- ) {
-			$prev = $tokens[$j];
-			if ( $prev['type'] === T_DOC_COMMENT ) {
-				$docblock = $prev['value'];
-				break;
-			}
-			if ( in_array( $prev['value'], BOUNDARIES, true ) ) {
-				break;
-			}
-		}
-
-		if ( $docblock === null ) {
-			$warnings[] = "WARNING: HookHandler::{$callMethod}() at {$relPath}:{$callLine}"
-				. " has no preceding PHPDoc block.";
+		$name = Hooks::hookName( $method->getName() );
+		$docblock = $method->getDocComment();
+		if ( $docblock === false ) {
+			$warnings[] = "WARNING: hook {$class}::{$method->getName()}() has no PHPDoc block.";
 			continue;
 		}
 
-		$info = parseDocblock( $docblock );
-
-		if ( $info['hookName'] === null ) {
-			$warnings[] = "WARNING: PHPDoc block before HookHandler::{$callMethod}()"
-				. " at {$relPath}:{$callLine} has no @migrate-filter / @migrate-action tag.";
-			continue;
-		}
-
-		$hooks[$info['hookName']] = array_merge( $info, [
+		$returnType = $method->getReturnType();
+		$hooks[$name] = array_merge( parseDocblock( $docblock ), [
+			'hookName' => $name,
+			'hookType' => (string)$returnType === 'void' ? 'action' : 'filter',
 			'file' => $relPath,
-			'line' => $callLine,
+			'line' => $method->getStartLine(),
 		] );
 	}
 }
