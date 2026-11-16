@@ -73,7 +73,7 @@ class ExtractCommentsBodyContentsTest extends TestCase {
 		$workspaceDB->method( 'blogPostIdExists' )->willReturnCallback(
 			static fn ( int $blogPostId ) => $blogPostId === 2
 		);
-		$workspaceDB->method( 'getContentPopertyById' )->willReturnCallback(
+		$workspaceDB->method( 'getContentPropertyById' )->willReturnCallback(
 			static function ( int $id ) {
 				if ( $id === 1 ) {
 					return [ 'properties' => json_encode( [ 'name' => 'inline-comment', 'stringValue' => 'true' ] ) ];

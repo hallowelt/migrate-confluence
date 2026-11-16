@@ -11,7 +11,7 @@ use HalloWelt\MigrateConfluence\Utility\FilenameBuilder;
  *
  * The target filename is built from space prefix and original filename only.
  */
-class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
+class PopulateAdditionalAttachmentsTable extends UpdateObjectAttachmentsTableBase {
 
 	/** @inheritDoc */
 	protected function getContentLabel(): string {
@@ -105,6 +105,7 @@ class PopulateAdditionalAttachmentsTable extends AttachmentTableUpdaterBase {
 				$attachmentSpaceId,
 				$attachmentOrigFilename,
 				'',
+				(string)$attachment['file_extension'],
 				'error'
 			);
 			if ( $attachmentWikiTitle === null ) {

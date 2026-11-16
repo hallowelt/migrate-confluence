@@ -10,6 +10,9 @@ class CDATAClosingFixer implements IHtmlPreprocessor {
 	private string $pattern = '#(<ac:plain-text-body>)(.*?)(</ac:plain-text-body>)#si';
 
 	/** @var string */
+	private string $linkBodyPattern = '#(<ac:plain-text-link-body>)(.*?)(</ac:plain-text-link-body>)#si';
+
+	/** @var string */
 	private string $cdataCloser = " [[Category:Broken_CDATA]] ]]>";
 
 	/**
@@ -23,7 +26,37 @@ class CDATAClosingFixer implements IHtmlPreprocessor {
 			},
 			$confluenceHTML
 		);
+		$confluenceHTML = preg_replace_callback(
+			$this->linkBodyPattern,
+			function ( $matches ) {
+				return $this->preprocessLinkBody( $matches );
+			},
+			$confluenceHTML
+		);
 		return $confluenceHTML;
+	}
+
+	/**
+	 * Confluence exports a link label ending in "]" with a mangled CDATA
+	 * closer "] ]>" instead of "]]>"; restores the closer.
+	 *
+	 * @param array $matches
+	 *
+	 * @return string
+	 */
+	private function preprocessLinkBody( array $matches ): string {
+		$startTag = $matches[1];
+		$content = $matches[2];
+		$endTag = $matches[3];
+		if ( !str_starts_with( $content, '<![CDATA[' ) || str_ends_with( $content, ']]>' ) ) {
+			return $matches[0];
+		}
+		if ( str_ends_with( $content, '] ]>' ) ) {
+			$content = substr( $content, 0, -4 ) . ']]>';
+		} else {
+			$content .= ' ]]>';
+		}
+		return $startTag . $content . $endTag;
 	}
 
 	/**

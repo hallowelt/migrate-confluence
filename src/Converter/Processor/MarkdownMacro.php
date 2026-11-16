@@ -7,6 +7,9 @@ use HalloWelt\MigrateConfluence\Converter\IUsesPlaceholder;
 use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
+/**
+ * `pandoc` eats unknown tags like <markdown>, so the tag is hidden behind a placeholder.
+ */
 class MarkdownMacro extends StructuredMacroProcessorBase implements IUsesPlaceholder {
 
 	public const MACRO_NAME = 'markdown';
@@ -33,6 +36,13 @@ class MarkdownMacro extends StructuredMacroProcessorBase implements IUsesPlaceho
 			break;
 		}
 
+		/* The export contains escaped code fences (\`\`\`), which WikiMarkdown would not treat as fences */
+		$markdownContent = preg_replace_callback(
+			'/^([ \t]*)((?:\\\\`){3,})/m',
+			static fn ( array $m ): string => $m[1] . str_replace( '\\`', '`', $m[2] ),
+			$markdownContent
+		);
+
 		if ( $markdownContent === '' ) {
 			$brokenMacro = true;
 		}
@@ -40,11 +50,8 @@ class MarkdownMacro extends StructuredMacroProcessorBase implements IUsesPlaceho
 		$replacement = null;
 
 		if ( !$brokenMacro ) {
-			// Markdown must reach the wiki verbatim, pandoc would convert or drop its markup
-			$replacement = $this->createTextNode(
-				$node->ownerDocument,
-				$this->placeholderManager->getPlaceholder( "<markdown>$markdownContent</markdown>" ),
-				__METHOD__
+			$replacement = $node->ownerDocument->createTextNode(
+				$this->placeholderManager->getPlaceholder( "<markdown>$markdownContent</markdown>" )
 			);
 		}
 

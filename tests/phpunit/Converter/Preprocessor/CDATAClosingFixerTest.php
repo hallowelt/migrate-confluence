@@ -60,4 +60,18 @@ HERE;
 		$actualOutput = $preprocessor->preprocess( $this->input );
 		$this->assertEquals( $this->expectedOutput, $actualOutput );
 	}
+
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Preprocessor\HTML\CDATAClosingFixer::preprocess
+	 * @return void
+	 */
+	public function testPreprocessBrokenLinkBody() {
+		$preprocessor = new CDATAClosingFixer();
+		$input = '<ac:link ac:anchor="[2]"><ac:plain-text-link-body><![CDATA[[7]] ]>'
+			. '</ac:plain-text-link-body></ac:link>';
+		$expected = '<ac:link ac:anchor="[2]"><ac:plain-text-link-body><![CDATA[[7]]]>'
+			. '</ac:plain-text-link-body></ac:link>';
+		$this->assertEquals( $expected, $preprocessor->preprocess( $input ) );
+		$this->assertTrue( ( new \DOMDocument() )->loadXML( "<r xmlns:ac=\"a\">$expected</r>" ) );
+	}
 }

@@ -84,6 +84,15 @@ interface IExtractorDataWriter extends IDataWriter {
 	public function updateAttachmentSpaceId( int $attachmentId, int $spaceId ): bool;
 
 	/**
+	 * Update the inferred file extension of an attachment.
+	 *
+	 * @param int $attachmentId
+	 * @param string $fileExtension
+	 * @return bool
+	 */
+	public function updateAttachmentFileExtension( int $attachmentId, string $fileExtension ): bool;
+
+	/**
 	 * @param int $pageId
 	 * @param string $wikiTitle
 	 *

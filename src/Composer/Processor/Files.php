@@ -220,6 +220,7 @@ class Files extends FileProcessorBase {
 		$uploadPath = $this->getUploadPath();
 
 		foreach ( $additionalAttachments as $additionalAttachment ) {
+
 			$attachmentId = $additionalAttachment['attachment_id'];
 
 			$attachmentPageTitle = $additionalAttachment['target_attachment_filename'];

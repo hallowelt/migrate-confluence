@@ -5,7 +5,7 @@ namespace HalloWelt\MigrateConfluence\Extractor\Preprocessor;
 /**
  * Populates the page_attachments table with wiki titles for all page attachments.
  */
-class UpdatePageAttachmentTable extends AttachmentTableUpdaterBase {
+class UpdatePageAttachmentTable extends UpdateObjectAttachmentsTableBase {
 
 	/** @inheritDoc */
 	protected function getContentItems(): array {

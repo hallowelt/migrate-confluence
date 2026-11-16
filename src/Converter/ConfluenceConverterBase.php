@@ -811,8 +811,23 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$dom->formatOutput = true;
 		$dom->preserveWhiteSpace = true;
 		$dom->validateOnParse = false;
+		$previousErrorHandling = libxml_use_internal_errors( true );
+		libxml_clear_errors();
 		$validXML = $dom->loadXML( $source, LIBXML_PARSEHUGE );
-		if ( $validXML === false ) {
+		$errors = libxml_get_errors();
+		libxml_clear_errors();
+		libxml_use_internal_errors( $previousErrorHandling );
+
+		// With `recover` enabled loadXML() returns true even for broken markup,
+		// so check for parse errors explicitly.
+		$hasParseError = false;
+		foreach ( $errors as $error ) {
+			if ( $error->level >= LIBXML_ERR_ERROR ) {
+				$hasParseError = true;
+				break;
+			}
+		}
+		if ( $validXML === false || $hasParseError ) {
 			throw new Exception( 'Unconvertable' );
 		}
 
@@ -928,6 +943,31 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 	}
 
 	/**
+	 * Turns "- " list markers into wiki lists, leaving verbatim blocks untouched.
+	 *
+	 * @param string $wikiText
+	 * @return string
+	 */
+	private function replaceListMarkersOutsideVerbatim( string $wikiText ): string {
+		$parts = preg_split(
+			'#(<(markdown|syntaxhighlight|pre|nowiki)\b[^>]*>.*?</\\2>)#s',
+			$wikiText,
+			-1,
+			PREG_SPLIT_DELIM_CAPTURE
+		);
+		$result = '';
+		// Captures come in triples: text, verbatim block, tag name
+		foreach ( $parts as $i => $part ) {
+			$result .= match ( $i % 3 ) {
+				0 => str_replace( "\n- ", "\n* ", $part ),
+				1 => $part,
+				default => ''
+			};
+		}
+		return $result;
+	}
+
+	/**
 	 *
 	 * @return void
 	 */
@@ -938,7 +978,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$this->wikiText = HtmlCommentMarkerResolver::resolve( $this->wikiText );
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
-		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
+		$this->wikiText = $this->replaceListMarkersOutsideVerbatim( $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
 				"#&lt;img(.*?)/&gt;#s",
