@@ -9,6 +9,7 @@ use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\ExecutionTime;
 use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
+use HalloWelt\MigrateConfluence\Command\Traits\ParallelCommandTrait;
 use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\Database\DataWriter\ComposeDataWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
@@ -21,27 +22,51 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Compose command with parallel processing support.
+ * Orchestrates worker processes and aggregates results with finalize pass.
+ */
 class Compose extends CommandCompose {
 
+	use ParallelCommandTrait;
+	use SetupHooks;
+
 	/**
-	 * @var bool Set while running the single, non-parallel finalize pass that aggregates
-	 * once-per-wiki artifacts after all compose workers have finished (see ConfluenceComposer).
+	 * @var bool Tracks whether we're in the finalize-only pass.
 	 */
-	private bool $finalizeOnly = false;
+	private bool $isInFinalizePass = false;
 
 	/**
 	 * @var array<string,string[]> subDir (wikiName/namespace) => file extensions, collected
 	 * in memory from all workers via ComposeDataWriter, for the finalize pass to consume.
 	 */
-	private array $namespaceFileExtensions = [];
+	protected array $namespaceFileExtensions = [];
 
-	use SetupHooks;
+	/**
+	 * Whether this is the finalize-only pass that runs after all compose workers have finished.
+	 *
+	 * @return bool
+	 */
+	protected function isFinalStep(): bool {
+		return $this->isInFinalizePass;
+	}
+
+	/**
+	 * Set whether we're in the finalize-only pass.
+	 *
+	 * @param bool $isFinalize
+	 * @return void
+	 */
+	protected function setFinalStep( bool $isFinalize ): void {
+		$this->isInFinalizePass = $isFinalize;
+	}
 
 	/**
 	 * @inheritDoc
 	 */
 	protected function configure(): void {
 		parent::configure();
+		$this->configureParallelOptions();
 		$definition = $this->getDefinition();
 		$definition->addOption(
 			new InputOption(
@@ -49,24 +74,6 @@ class Compose extends CommandCompose {
 				null,
 				InputOption::VALUE_REQUIRED,
 				'Specifies the path to the config yaml file'
-			)
-		);
-		$definition->addOption(
-			new InputOption(
-				'workers',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'Number of parallel worker processes to spawn (default: 1, no parallelism)',
-				1
-			)
-		);
-		// Hidden internal option — set automatically by the orchestrator on each child process.
-		$definition->addOption(
-			new InputOption(
-				'worker',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'[Internal] Zero-based index of this worker process'
 			)
 		);
 	}
@@ -81,11 +88,6 @@ class Compose extends CommandCompose {
 	}
 
 	/**
-	 * Intercept execution: when --workers > 1 and this is not already a spawned worker,
-	 * act as the orchestrator and launch child processes. Namespaces/wikis are round-robin
-	 * sliced across workers, regardless of size, and only the single (non-parallel) run
-	 * writes to the compose DB log — workers omit it for simplicity.
-	 *
 	 * @param InputInterface $input
 	 * @param OutputInterface $output
 	 *
@@ -96,11 +98,27 @@ class Compose extends CommandCompose {
 		$this->input = $input;
 		$this->output = $output;
 
-		$workers = (int)$input->getOption( 'workers' );
-		$isChildProcess = $input->hasParameterOption( '--worker' );
-
 		$this->readConfigFile( $this->config );
 		$this->installCustomerHooks( $this->config, $this->input->getOption( 'config' ) );
+
+		return $this->executeParallel( $input, $output );
+	}
+
+	/**
+	 * Orchestrate parallel worker execution and finalize pass.
+	 * When --workers > 1 and not already a spawned worker, launches child processes.
+	 * Namespaces/wikis are round-robin sliced across workers regardless of size.
+	 * Only the single (non-parallel) run writes to the compose DB log.
+	 *
+	 * @param InputInterface $input
+	 * @param OutputInterface $output
+	 *
+	 * @return int
+	 * @throws Exception
+	 */
+	private function executeParallel( InputInterface $input, OutputInterface $output ): int {
+		$workers = (int)$input->getOption( 'workers' );
+		$isChildProcess = $input->hasParameterOption( '--worker' );
 
 		if ( !$isChildProcess && $workers > 1 ) {
 			$this->dest = realpath( $input->getOption( 'dest' ) );
@@ -126,9 +144,9 @@ class Compose extends CommandCompose {
 			// finalize pass in-process to aggregate the once-per-wiki artifacts
 			// (deployment.txt, wikiimport.sh, shared content, wiki-level sidebar) and the
 			// version-log DB write.
-			$this->finalizeOnly = true;
+			$this->setFinalStep( true );
 			$result = parent::execute( $input, $output );
-			$this->finalizeOnly = false;
+			$this->setFinalStep( false );
 
 			// Log the total (workers + finalize) execution time once, now that finalize's
 			// own processFiles() run has set up $this->workspace/executionTimeBuckets.
@@ -141,35 +159,37 @@ class Compose extends CommandCompose {
 	}
 
 	/**
-	 * Keep the timer started before spawning workers (see execute()) alive across the
-	 * finalize pass's processFiles() call, instead of resetting it to the finalize pass's
-	 * own (short) runtime. executionTimeBuckets still needs to be (re)loaded here since
-	 * finalize sets up a fresh Workspace instance.
-	 *
-	 * @return void
+	 * @inheritDoc
 	 */
 	protected function initExecutionTime(): void {
-		if ( $this->finalizeOnly && $this->executionTime !== null ) {
-			$this->executionTimeBuckets = new DataBuckets( [ 'execution-time' ] );
-			$this->executionTimeBuckets->loadFromWorkspace( $this->workspace );
+		if ( $this->isFinalStep() ) {
+			$this->preserveExecutionTime();
 			return;
 		}
 		parent::initExecutionTime();
 	}
 
 	/**
-	 * Workers must not log execution time at all (each would only know its own partial
-	 * slice); the finalize pass must not log it either, since it would overwrite the total
-	 * (workers + finalize) duration with just its own short runtime. The orchestrator logs
-	 * the correct total explicitly after the finalize pass completes (see execute()).
-	 *
-	 * @return void
+	 * @inheritDoc
 	 */
 	protected function logExecutionTime(): void {
-		if ( $this->input->hasParameterOption( '--worker' ) || $this->finalizeOnly ) {
+		if ( $this->shouldSkipExecutionTimeLogging() || $this->isFinalStep() ) {
 			return;
 		}
 		parent::logExecutionTime();
+	}
+
+	/**
+	 * Pass parallel processing configuration to composers.
+	 *
+	 * @param InputInterface $input
+	 * @return void
+	 */
+	private function passParallelConfigToComposers( InputInterface $input ): void {
+		$this->config['worker-count'] = (int)$input->getOption( 'workers' );
+		$this->config['worker-index'] = (int)$input->getOption( 'worker' );
+		$this->config['compose-finalize-only'] = $this->isFinalStep();
+		$this->config['namespace-file-extensions'] = $this->namespaceFileExtensions;
 	}
 
 	/**
@@ -185,10 +205,7 @@ class Compose extends CommandCompose {
 		$this->buckets = new DataBuckets( $this->getBucketKeys() );
 		$this->buckets->loadFromWorkspace( $this->workspace );
 
-		$this->config['worker-count'] = (int)$this->input->getOption( 'workers' );
-		$this->config['worker-index'] = (int)$this->input->getOption( 'worker' );
-		$this->config['compose-finalize-only'] = $this->finalizeOnly;
-		$this->config['namespace-file-extensions'] = $this->namespaceFileExtensions;
+		$this->passParallelConfigToComposers( $this->input );
 
 		$composers = $this->makeComposers();
 		$mediawikixmlbuilder = new Builder();
@@ -227,7 +244,6 @@ class Compose extends CommandCompose {
 	}
 
 	/**
-	 *
 	 * @inheritDoc
 	 */
 	protected function getBucketKeys(): array {
@@ -235,7 +251,7 @@ class Compose extends CommandCompose {
 	}
 
 	/**
-	 * ToDo: Set this method in composer to protected
+	 * Ensure target directories exist.
 	 *
 	 * @return void
 	 */

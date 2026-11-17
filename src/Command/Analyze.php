@@ -11,6 +11,7 @@ use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerPipeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Command\Traits\ParallelCommandTrait;
 use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeLogEntryWriter;
@@ -32,8 +33,8 @@ use Throwable;
 
 class Analyze extends BatchFileProcessorBase {
 
-	/** @var ExecutionTime|null */
-	private ?ExecutionTime $executionTime = null;
+	use ParallelCommandTrait;
+	use SetupHooks;
 
 	/** @var IAnalyzeDataWriter|null */
 	private ?IAnalyzeDataWriter $dataWriter;
@@ -44,8 +45,6 @@ class Analyze extends BatchFileProcessorBase {
 	private WikisConfig $wikisConfig;
 
 	private ?MigrationConfig $migrationConfig = null;
-
-	use SetupHooks;
 
 	/**
 	 * @param array $config
@@ -84,20 +83,7 @@ class Analyze extends BatchFileProcessorBase {
 				'Specifies the path to the csv file mapping Confluence usernames to MediaWiki usernames'
 			)
 		);
-		$definition->addOption(
-			new InputOption(
-				'workers',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'Number of parallel worker processes to spawn (default: 1, no parallelism)',
-				1
-			)
-		);
-		$definition->addOption(
-			new InputOption(
-				'worker', null, InputOption::VALUE_REQUIRED, '[Internal] Zero-based index of this worker process'
-			)
-		);
+		$this->configureParallelOptions();
 	}
 
 	/**
