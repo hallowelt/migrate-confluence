@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Tests\Composer\Processor;
 
+use DOMDocument;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
@@ -99,6 +100,7 @@ class PagesTest extends TestCase {
 		$migrationConfig->method( 'getComposerSkipNamespaces' )->willReturn( [] );
 		$migrationConfig->method( 'getComposerSkipTitles' )->willReturn( [] );
 		$migrationConfig->method( 'getAddUserinfo' )->willReturn( false );
+		$migrationConfig->method( 'getAddPageConstraints' )->willReturn( true );
 
 		$dataLookup->method( 'isPageInvalid' )->willReturn( false );
 		$dataLookup->method( 'getPageIdWikiPageTitleMap' )->willReturn( [ 1 => 'Homepage' ] );
@@ -119,6 +121,16 @@ class PagesTest extends TestCase {
 		] );
 
 		$workspace->method( 'getConvertedContent' )->willReturn( 'content' );
+
+		$builder->method( 'createCustomPageElement' )->willReturnCallback(
+			static fn ( string $name ) => ( new DOMDocument() )->createElement( $name )
+		);
+		$constraintElements = [];
+		$builder->method( 'addCustomPageElement' )->willReturnCallback(
+			static function ( $title, $element ) use ( &$constraintElements ) {
+				$constraintElements[$title] = $element;
+			}
+		);
 
 		$recordedTimestamps = [];
 		$builder->method( 'addRevision' )->willReturnCallback(
@@ -144,6 +156,82 @@ class PagesTest extends TestCase {
 		$processor->execute();
 
 		$this->assertSame( [ '20230101000000', '' ], $recordedTimestamps );
+		// No stored constraints for the page: it must not become world-accessible
+		$this->assertCount( 1, $constraintElements );
+		$element = reset( $constraintElements );
+		$this->assertSame( 'read_and_edit', $element->getAttribute( 'type' ) );
+		$this->assertSame( '0', $element->getAttribute( 'inherit' ) );
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Composer\Processor\ProcessorBase::registerPageConstraints
+	 */
+	public function testNoConstraintsElementIfDisabled() {
+		$builder = $this->createMock( Builder::class );
+		$dataLookup = $this->createMock( DBComposerDataLookup::class );
+		$workspace = $this->createMock( Workspace::class );
+		$migrationConfig = $this->createMock( MigrationConfig::class );
+
+		$migrationConfig->method( 'getComposerPagePerXmlLimit' )->willReturn( 0 );
+		$migrationConfig->method( 'getComposerSkipNamespaces' )->willReturn( [] );
+		$migrationConfig->method( 'getComposerSkipTitles' )->willReturn( [] );
+		$migrationConfig->method( 'getAddUserinfo' )->willReturn( false );
+		$migrationConfig->method( 'getAddPageConstraints' )->willReturn( false );
+
+		$dataLookup->method( 'isPageInvalid' )->willReturn( false );
+		$dataLookup->method( 'getPageIdWikiPageTitleMap' )->willReturn( [ 1 => 'Homepage' ] );
+		$dataLookup->method( 'getSpaceIdForPageId' )->willReturn( 10 );
+		$dataLookup->method( 'getSpaceHomepageIdForSpaceId' )->willReturn( 1 );
+		$dataLookup->method( 'getSpaceDescriptionRevisionsForSpaceId' )->willReturn( [] );
+		$dataLookup->method( 'getPageRevisionsForPageId' )->willReturn( [
+			[
+				'revision_timestamp' => '20230101000000',
+				'body_content_ids' => json_encode( [ 1 ] ),
+				'last_modifier' => '',
+			],
+			[
+				'revision_timestamp' => '20240101000000',
+				'body_content_ids' => json_encode( [ 2 ] ),
+				'last_modifier' => '',
+			],
+		] );
+
+		$workspace->method( 'getConvertedContent' )->willReturn( 'content' );
+
+		$builder->method( 'createCustomPageElement' )->willReturnCallback(
+			static fn ( string $name ) => ( new DOMDocument() )->createElement( $name )
+		);
+		$constraintElements = [];
+		$builder->method( 'addCustomPageElement' )->willReturnCallback(
+			static function ( $title, $element ) use ( &$constraintElements ) {
+				$constraintElements[$title] = $element;
+			}
+		);
+
+		$recordedTimestamps = [];
+		$builder->method( 'addRevision' )->willReturnCallback(
+			static function ( $title, $text, $timestamp ) use ( &$recordedTimestamps ) {
+				$recordedTimestamps[] = $timestamp;
+			}
+		);
+
+		$composerDeploymentInfo = new ComposerDeploymentInfo();
+		$skipHelper = new ComposerSkipHelper( $dataLookup, $migrationConfig );
+
+		$processor = new Pages(
+			$builder,
+			$dataLookup,
+			$workspace,
+			$this->makeOutput(),
+			$this->tmpDir,
+			$migrationConfig,
+			$composerDeploymentInfo,
+			$skipHelper
+		);
+
+		$processor->execute();
+
+		$this->assertSame( [], $constraintElements );
 	}
 
 	/** @return Output */

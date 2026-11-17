@@ -18,4 +18,5 @@ config:
     # Allowed values: bluespice-galaxy | mediawiki
     csv-delimiter: ","
     add-userinfo: false
+    add-page-constraints: true
     source-timezone: ""

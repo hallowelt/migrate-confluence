@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-generic>
+<object class="ContentPermissionSet" package="com.atlassian.confluence.security">
+<id name="id">123</id>
+<property name="owningContent" class="Page" package="com.atlassian.confluence.pages"><id name="id">456</id></property>
+<property name="type"><![CDATA[Edit]]></property>
+<collection name="contentPermissions" class="java.util.HashSet">
+<element class="ContentPermission" package="com.atlassian.confluence.security"><id>789</id></element>
+<element class="ContentPermission" package="com.atlassian.confluence.security"><id>790</id></element>
+</collection>
+</object>
+</hibernate-generic>
