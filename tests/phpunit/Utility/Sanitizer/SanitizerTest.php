@@ -30,6 +30,18 @@ class SanitizerTest extends TestCase {
 			'brackets' => [ '[brackets]', 'Brackets' ],
 			'braces' => [ '{{braces}}', 'Braces' ],
 			'only illegal' => [ '#|[]', '' ],
+			'leading colon' => [ ':x', 'X' ],
+			'leading colons' => [ '::x', 'X' ],
+			'percent hex' => [ '100%25', '100 25' ],
+			'percent non-hex' => [ '50%off', '50%off' ],
+			'tildes' => [ 'a~~~b', 'A b' ],
+			'two tildes' => [ 'a~~b', 'A~~b' ],
+			'single dot' => [ '.', '' ],
+			'double dot' => [ '..', '' ],
+			'dots in name' => [ '.a.', '.a.' ],
+			'max length' => [ str_repeat( 'a', 300 ), 'A' . str_repeat( 'a', 254 ) ],
+			'max length multibyte' => [ str_repeat( 'ä', 200 ), 'Ä' . str_repeat( 'ä', 126 ) ],
+			'invalid utf-8' => [ "a\xFFb", 'A?b' ],
 			'empty' => [ '  ', '' ],
 		];
 	}
