@@ -214,6 +214,11 @@ abstract class UpdateObjectAttachmentsTableBase extends ProcessorBase {
 			return false;
 		}
 
+		// History versions are revisions of the head attachment and are uploaded under its title
+		if ( (int)( $attachment['original_version_id'] ?? -1 ) !== -1 ) {
+			return false;
+		}
+
 		return isset( $attachment['attachment_id'] ) &&
 			isset( $attachment['filename'] ) &&
 			isset( $attachment['container_id'] );
