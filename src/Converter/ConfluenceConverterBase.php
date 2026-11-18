@@ -141,6 +141,7 @@ use HalloWelt\MigrateConfluence\Utility\Hooks\ConverterHooks;
 use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
+use HalloWelt\MigrateConfluence\Utility\Sanitizer;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use HalloWelt\MigrateConfluence\Utility\TranslatableString;
 use SplFileInfo;
@@ -1125,10 +1126,13 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			$this->wikiText
 		);
 
-		$categories = array_map(
-			static fn ( $category ) => '[[Category:' . ucfirst( $category ) . ']]',
-			$this->getMetaData()['categories'] ?? []
-		);
+		$categories = [];
+		foreach ( $this->getMetaData()['categories'] ?? [] as $category ) {
+			$sanitizedName = Sanitizer::sanitizeCategory( $category );
+			if ( $sanitizedName !== '' ) {
+				$categories[] = "[[Category:$sanitizedName]]";
+			}
+		}
 		if ( $categories ) {
 			$this->wikiText .= "\n\n" . implode( ' ', $categories );
 		}
