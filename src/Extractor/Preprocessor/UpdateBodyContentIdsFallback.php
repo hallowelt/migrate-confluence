@@ -48,9 +48,13 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 			if ( empty( $foundIds ) ) {
 				$properties = json_decode( (string)( $page['properties'] ?? '' ), true ) ?? [];
 				if ( empty( $properties['isFolder'] ) ) {
-					Log::warning(
-						"No body content IDs found for page '{$page['confluence_title']}' (ID:$pageId)"
-					);
+					$message = "No body content IDs found for page '{$page['confluence_title']}' (ID:$pageId)";
+					// Historical versions, deleted pages and drafts are expected to be empty sometimes
+					if ( (int)$page['original_version_id'] > 0 || $page['content_status'] !== 'current' ) {
+						Log::debug( $message );
+					} else {
+						Log::warning( $message );
+					}
 				}
 				continue;
 			}
