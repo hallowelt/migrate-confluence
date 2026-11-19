@@ -91,6 +91,19 @@ This is intentional: a link to a deleted page should surface as a broken link (c
 you can notice and fix it, instead of silently pointing to an arbitrary non-current record
 that was never actually migrated.
 
+## Deleted and Historical Attachments
+
+Attachments in the Confluence trash are not migrated, including all their older versions.
+The extract step logs a notice for each skipped deleted attachment (`Attachment <id> is deleted;
+skipping its <n> history versions.`) in the `logging` table.
+
+Older versions of a current attachment are not migrated as separate files. With
+`include-history` enabled they are uploaded as revisions of the one wiki file page.
+
+If several current attachments of the same wiki would get the same file title, the one
+with the newest modification date keeps the plain title. The others get a suffix like `-(1)`,
+ordered by attachment ID.
+
 ## Category “Pages with syntax highlighting errors”
 
 You might notice this category when checking migration results. This is a feature of the
