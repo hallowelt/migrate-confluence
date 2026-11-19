@@ -71,7 +71,7 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 		}
 
 		if ( !AnalyzerHooks::includeSourceFile( true, $file ) ) {
-			$this->output->writeln( "Skipping file due to config: " . $file->getPathname() );
+			Log::warning( "Skipping file due to config: " . $file->getPathname() );
 			return true;
 		}
 

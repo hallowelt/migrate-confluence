@@ -2,6 +2,7 @@
 
 namespace HalloWelt\MigrateConfluence\Command;
 
+use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MigrateConfluence\Utility\MacroInfo;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use Symfony\Component\Console\Command\Command;
@@ -68,7 +69,7 @@ class ReportSupport extends Command {
 					$reflection->getConstant( 'REQUIRED_EXTENSIONS' ) : null;
 			} catch ( \ReflectionException $e ) {
 				// handle the exception if the class does not exist or cannot be instantiated
-				$output->writeln( sprintf( 'Failed to instantiate class %s: %s', $classname, $e->getMessage() ) );
+				Log::warning( sprintf( 'Failed to instantiate class %s: %s', $classname, $e->getMessage() ) );
 				continue;
 			}
 			if ( $macroName ) {

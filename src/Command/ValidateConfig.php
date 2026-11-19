@@ -39,7 +39,7 @@ class ValidateConfig extends Command {
 		$validationError = $configOptionHelper->validateFile();
 
 		if ( $validationError !== null ) {
-			$output->writeln( $validationError );
+			$output->getErrorOutput()->writeln( $validationError );
 			exit( 1 );
 		}
 
