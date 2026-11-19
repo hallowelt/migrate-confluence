@@ -103,11 +103,6 @@ class BlogPost extends ProcessorBase {
 
 		Log::to( 'console' )->debug( "Add blog post '$confluenceTitle' (ID:$pageId)" );
 
-		if ( empty( $bodyContentIds ) ) {
-			$warning = "no body content IDs found for blog post '$confluenceTitle' (ID:$pageId)";
-			Log::to( 'db', 'console' )->warning( $warning );
-		}
-
 		$historicalIds = [];
 		if ( isset( $collection['historicalVersions'] ) ) {
 			$historicalIds = $collection['historicalVersions'];

@@ -112,11 +112,6 @@ class Page extends ProcessorBase {
 
 		Log::to( 'console' )->debug( "Add page '$confluenceTitle' (ID:$pageId)" );
 
-		if ( empty( $bodyContentIds ) && ( !isset( $properties['isFolder'] ) || $properties['isFolder'] !== 'true' ) ) {
-			$warning = "no body content IDs found for page '$confluenceTitle' (ID:$pageId)";
-			Log::to( 'db', 'console' )->warning( $warning );
-		}
-
 		$status = $this->writer->addPage(
 			$pageId,
 			$spaceId,

@@ -76,11 +76,6 @@ class Comments extends ProcessorBase {
 
 		Log::to( 'console' )->debug( "Add comment (ID:$commentId)" );
 
-		if ( empty( $bodyContentIds ) ) {
-			$warning = "no body content IDs found for comment (ID:$commentId)";
-			Log::to( 'db', 'console' )->warning( $warning );
-		}
-
 		$creatorKey = $properties['creator'] ?? '';
 		$created = $properties['creationDate'] ?? '';
 		$modified = $properties['lastModificationDate'] ?? '';
