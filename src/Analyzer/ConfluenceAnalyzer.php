@@ -110,10 +110,21 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			if ( $configured !== '' ) {
 				throw new InvalidArgumentException( "Invalid 'source-timezone' in config: '$configured'" );
 			}
-			$this->output->writeln( "Unknown timezoneId '$descriptorTimezone' in export, assuming UTC" );
+			Log::warning(
+				"Unknown timezoneId '$descriptorTimezone' in export, assuming UTC"
+			);
 			$timezone = new DateTimeZone( 'UTC' );
 		}
-		$this->output->writeln( "Interpreting export dates as {$timezone->getName()}" );
+		$message = "Interpreting export dates as {$timezone->getName()}";
+		$overridesExport = $configured !== '' && $descriptorTimezone !== '' &&
+			$configured !== $descriptorTimezone;
+		if ( $overridesExport ) {
+			Log::warning( "$message (overriding '$descriptorTimezone' from export)" );
+		} elseif ( $timezone->getName() !== 'UTC' ) {
+			Log::warning( $message );
+		} else {
+			Log::debug( $message );
+		}
 
 		foreach ( $processors as $processor ) {
 			if ( $processor instanceof ProcessorBase ) {

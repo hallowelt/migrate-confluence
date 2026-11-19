@@ -48,7 +48,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 			if ( empty( $foundIds ) ) {
 				$properties = json_decode( (string)( $page['properties'] ?? '' ), true ) ?? [];
 				if ( empty( $properties['isFolder'] ) ) {
-					Log::to( 'db', 'console' )->warning(
+					Log::warning(
 						"No body content IDs found for page '{$page['confluence_title']}' (ID:$pageId)"
 					);
 				}
@@ -81,7 +81,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 			$pageId = (int)$blogPost['page_id'];
 			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $pageId );
 			if ( empty( $foundIds ) ) {
-				Log::to( 'db', 'console' )->warning(
+				Log::warning(
 					"No body content IDs found for blog post '{$blogPost['confluence_title']}' (ID:$pageId)"
 				);
 				continue;
@@ -114,7 +114,7 @@ class UpdateBodyContentIdsFallback extends ProcessorBase {
 			$foundIds = $this->workspaceDB->getBodyContentIdsForContentId( $commentId );
 
 			if ( empty( $foundIds ) ) {
-				Log::to( 'db', 'console' )->debug( "No body content IDs found for comment (ID:$commentId)" );
+				Log::debug( "No body content IDs found for comment (ID:$commentId)" );
 				continue;
 			}
 
