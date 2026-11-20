@@ -33,7 +33,8 @@ class Sanitizer {
 	 * @return string Empty if nothing is left after sanitizing
 	 */
 	public static function sanitizeCategory( string $label ): string {
-		$name = trim( preg_replace_callback( '/[#<>\[\]|{}\s]+/u', fn( $matches ) => match( $matches[0] ) {
+		$label = mb_scrub( $label );
+		$name = trim( preg_replace_callback( '/[#<>\[\]|{}]|\s+/u', static fn ( $matches ) => match ( $matches[0] ) {
 			'#' => ' hash ',
 			'<' => ' lower than ',
 			'>' => ' greater than ',
@@ -42,6 +43,10 @@ class Sanitizer {
 			']', '}' => ')',
 			default => ' ',
 		}, $label ) );
+		$name = ltrim( $name, ':' );
+		if ( $name === '.' || $name === '..' ) {
+			return '';
+		}
 		if ( !( new TitleValidityChecker() )->hasValidLength( 'Category:' . $name ) ) {
 			// truncate overly long labels. We do not bother with conflict checks, since
 			// we consider this a fringe edge case. Substract strlen( 'Category:' ) to stay
