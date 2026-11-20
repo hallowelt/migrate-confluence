@@ -3,6 +3,7 @@
 namespace HalloWelt\MigrateConfluence\Extractor\Processor;
 
 use HalloWelt\MigrateConfluence\Extractor\ProcessorBase;
+use HalloWelt\MigrateConfluence\Utility\Sanitizer;
 
 /**
  * Builds and stores file description wikitext for attachments whose wiki title
@@ -59,7 +60,10 @@ class BuildAttachmentDescriptions extends ProcessorBase {
 
 		$metaData = $this->workspaceDB->getAttachmentMetaById( $attachmentId );
 		foreach ( $metaData['categories'] ?? [] as $category ) {
-			$description .= "\n[[Category:" . ucfirst( $category ) . "]]";
+			$sanitizedName = Sanitizer::sanitizeCategory( $category );
+			if ( $sanitizedName !== '' ) {
+				$description .= "\n[[Category:$sanitizedName]]";
+			}
 		}
 
 		$this->writer->addAttachmentDescription( $attachmentId, $description );
