@@ -2,6 +2,7 @@
 <mediawiki>
   <page>
     <title>ALPHA:Alpha_Page</title>
+    <pageconstraints type="none" inherit="0"/>
     <revision>
       <timestamp>20200101000000</timestamp>
       <model>wikitext</model>
@@ -13,6 +14,7 @@
   </page>
   <page>
     <title>ALPHA:Beta_Page</title>
+    <pageconstraints type="none" inherit="0"/>
     <revision>
       <timestamp>20200101000000</timestamp>
       <model>wikitext</model>

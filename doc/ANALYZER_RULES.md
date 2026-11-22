@@ -60,6 +60,7 @@ Current entities and their tables:
 - **Comments** → `comments`
 - **Labels** → `labels`, `labellings`
 - **Content Properties** → `content_properties`
+- **Page restrictions** → `content_permission_sets`, `content_permissions`
 - **Gliffy** → `gliffy`
 - **PageTemplates** → `page_templates`, `page_template_contents`
 

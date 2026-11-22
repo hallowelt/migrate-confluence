@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-generic>
+<object class="ContentPermission" package="com.atlassian.confluence.security">
+<id name="id">790</id>
+<property name="type"><![CDATA[Edit]]></property>
+<property name="group"><![CDATA[developers]]></property>
+<property name="userSubject"/>
+</object>
+</hibernate-generic>
