@@ -130,4 +130,36 @@ class UpdatePagesTableWithWikiTitleTest extends TestCase {
 		);
 	}
 
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePagesTableWithWikiTitle::execute
+	 */
+	public function testPageWithUnbuildableTitleIsRecordedAsInvalid(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 42, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addWikisConfig( 'TEST', 'test-wiki', 'TEST', '' );
+		// A title consisting only of invalid characters leaves no title segment
+		$workspaceDB->addPage( 400, 42, '___', '___', '', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$workspaceDB->addPage( 401, 42, 'Fine', 'fine', '', 'current', '', '', '1', -1, -1, [], [], [], [] );
+
+		$processor = new UpdatePagesTableWithWikiTitle(
+			$workspaceDB,
+			$writer,
+			new MigrationConfig( [] ),
+			new WikisConfig( $workspaceDB )
+		);
+		$processor->execute();
+
+		$broken = $this->findRowById( $workspaceDB->getPages(), 'page_id', 400 );
+		$fine = $this->findRowById( $workspaceDB->getPages(), 'page_id', 401 );
+		$this->assertSame( '', $broken['wiki_title'] );
+		$this->assertSame( 'TEST:Fine', $fine['wiki_title'] );
+		$this->assertStringContainsString(
+			'Could not build wiki title for page 400',
+			$workspaceDB->getInvalidPageWikiTitleReason( 400 )
+		);
+		$this->assertNull( $workspaceDB->getInvalidPageWikiTitleReason( 401 ) );
+	}
+
 }

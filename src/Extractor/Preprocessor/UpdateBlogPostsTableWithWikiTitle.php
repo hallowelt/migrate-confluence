@@ -76,9 +76,10 @@ class UpdateBlogPostsTableWithWikiTitle extends ProcessorBase {
 				$pageIdToWikiTitleMap[$pageId] = $wikiTitle;
 				$pageIdToSpaceIdMap[$pageId] = $spaceId;
 			} catch ( Exception $ex ) {
-				Log::to( 'db' )->error(
-					'Could not build wiki title for blog post ' . $pageId . ': ' . $ex->getMessage()
-				);
+				$message = "Could not build wiki title for blog post $pageId: " . $ex->getMessage();
+				Log::to( 'db' )->error( $message );
+				$this->writer->addInvalidBlogPostWikiTitle( (int)$pageId, '', $message );
+				continue;
 			}
 
 			if ( empty( $wikiTitle ) ) {
