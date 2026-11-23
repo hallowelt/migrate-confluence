@@ -1260,8 +1260,12 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			}
 		}
 
-		$this->addNonBlockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
-		Log::to( 'console' )->warning( "bodyContentId $bodyContentId contains large content" );
+		$message = "bodyContentId $bodyContentId contains large content (>$exceed KB)";
+		if ( $this->bodyLengthInvalidReason !== null ) {
+			Log::warning( $message );
+		} else {
+			Log::notice( $message );
+		}
 	}
 
 	/**
