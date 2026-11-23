@@ -198,6 +198,9 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 	/** @var string */
 	protected string $contentType = '';
 
+	/** @var ?string */
+	protected ?string $coverFile = null;
+
 	/** @var string|null */
 	protected ?string $bodyLengthInvalidReason = null;
 
@@ -469,6 +472,8 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 	 * @return void
 	 */
 	protected function addCoverBannerIfApplicable(): void {
+		$this->coverFile = null;
+
 		if (
 			!in_array( $this->contentType, [ 'page', 'blogPost' ], true ) ||
 			$this->pageId === null ||
@@ -486,7 +491,8 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			// External images are hotlinked
 			$url = $cover['url'];
 		} elseif ( $cover['file'] !== null ) {
-			$url = '{{filepath:' . preg_replace( '/^File:/i', '', $cover['file'] ) . '}}';
+			$this->coverFile = $cover['file'];
+			$url = '{{filepath:' . $cover['file'] . '}}';
 		} else {
 			$this->addNonBlockingLogEntry(
 				"Cover picture '{$cover['id']}' of content {$this->pageId} has no matching attachment"
@@ -1169,6 +1175,9 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$pageAttachments = $this->dataLookup->getPageAttachmentsForPageId( $this->pageId );
 		if ( !empty( $pageAttachments ) ) {
 			$mediaExludeList = $this->buildMediaExcludeList( $this->wikiText );
+			if ( $this->coverFile !== null ) {
+				$mediaExludeList[] = $this->coverFile;
+			}
 
 			$attachmentList = [];
 			foreach ( $pageAttachments as $attachment ) {

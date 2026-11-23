@@ -70,9 +70,9 @@ class ConfluenceConverterBaseTest extends TestCase {
 				[ 'contentProperties' => [ 11 ] ]
 			);
 			if ( $isBlogPost ) {
-				$database->addBlogPostAttachment( 5, 1, 'Cover pic.png', 'File:Post-Cover_pic.png' );
+				$database->addBlogPostAttachment( 5, 1, 'Cover pic.png', 'Post-Cover_pic.png' );
 			} else {
-				$database->addPageAttachment( 5, 1, 'Cover pic.png', 'File:Page-Cover_pic.png' );
+				$database->addPageAttachment( 5, 1, 'Cover pic.png', 'Page-Cover_pic.png' );
 			}
 		}
 
@@ -115,6 +115,30 @@ class ConfluenceConverterBaseTest extends TestCase {
 			],
 			'comment is ignored' => [ 'comment', $attachment, true, 'Body', false ],
 		];
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Converter\ConfluenceConverterBase::addAdditionalAttachments
+	 */
+	public function testCoverFileIsNotListedAsAdditionalAttachment(): void {
+		$database = ( new WorkspaceDbMock() )->createEmpty();
+		$database->addPage( 1, 1, 'Page', 'page', 'Page', 'current', '', '', '1', -1, -1, [], [], [], [] );
+		$database->addPageAttachment( 5, 1, 'Cover pic.png', 'Page-Cover_pic.png' );
+		$database->addPageAttachment( 6, 1, 'Other.png', 'Page-Other.png' );
+
+		$converter = $this->newConverter();
+		$this->setProperty( $converter, 'dataLookup', new DBConversionDataLookup( $database ) );
+		$this->setProperty( $converter, 'pageId', 1 );
+		$this->setProperty( $converter, 'currentSpace', 1 );
+		$this->setProperty( $converter, 'confluencePageTitle', 'Page' );
+		$this->setProperty( $converter, 'wikiText', 'Body' );
+		$this->setProperty( $converter, 'coverFile', 'Page-Cover_pic.png' );
+
+		$wikiText = ( new ReflectionMethod( ConfluenceConverterBase::class, 'addAdditionalAttachments' ) )
+			->invoke( $converter );
+
+		$this->assertStringContainsString( '[[Media:Page-Other.png]]', $wikiText );
+		$this->assertStringNotContainsString( 'Cover_pic', $wikiText );
 	}
 
 	/**
