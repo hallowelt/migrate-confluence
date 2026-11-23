@@ -78,6 +78,8 @@ class DetailsSummaryMacro extends StructuredMacroProcessorBase {
 			$parentNode->insertBefore( $note, $node );
 		}
 
+		$parentNode->insertBefore( $dom->createTextNode( $this->getBrokenMacroCategory() ), $node );
+
 		$parentNode->removeChild( $node );
 	}
 
