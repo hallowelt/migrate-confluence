@@ -5271,6 +5271,41 @@ class WorkspaceDB implements LogEntryWriter {
 	}
 
 	/**
+	 * Collects the category labels recorded for pages, blog posts and attachments of the given spaces.
+	 *
+	 * @param int[] $spaceIds
+	 * @return string[] Unique labels
+	 */
+	public function getCategoryLabelsForSpaceIds( array $spaceIds ): array {
+		if ( $spaceIds === [] ) {
+			return [];
+		}
+		$in = implode( ',', array_map( 'intval', $spaceIds ) );
+		$queries = [
+			"SELECT m.meta FROM pages_meta m JOIN pages c ON c.page_id = m.page_id WHERE c.space_id IN ($in)",
+			"SELECT m.meta FROM blog_posts_meta m JOIN blog_posts c ON c.page_id = m.page_id"
+				. " WHERE c.space_id IN ($in)",
+			"SELECT m.meta FROM attachments_meta m JOIN attachments c ON c.attachment_id = m.attachment_id"
+				. " WHERE c.space_id IN ($in)",
+		];
+
+		$labels = [];
+		foreach ( $queries as $query ) {
+			$result = $this->db->query( $query );
+			if ( $result === false ) {
+				continue;
+			}
+			foreach ( $this->fetchDbArray( $result ) as $row ) {
+				$meta = json_decode( $row['meta'] ?? '', true );
+				foreach ( $meta['categories'] ?? [] as $label ) {
+					$labels[$label] = true;
+				}
+			}
+		}
+		return array_map( 'strval', array_keys( $labels ) );
+	}
+
+	/**
 	 * @param int $pageId
 	 * @return array|null
 	 */

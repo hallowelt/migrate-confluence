@@ -36,6 +36,7 @@ It handles split output as well, e.g. `pages-00000001.xml`,
 | `--wiki-root=PATH` | Required. Path to the MediaWiki root directory. |
 | `--src=PATH` | Wiki directory to import. Defaults to the directory the script is located in. |
 | `--add-default` | Also import `default-files*.xml` and `default-pages*.xml` from `_shared`. |
+| `--no-categories` | Do not import the category pages from `categories*.xml` in the wiki directory. |
 | `--dry` | Dry run. Only print the import commands so you can verify the paths. |
 | `--sfr=NAME` | MediaWiki wiki instance, forwarded to both import maintenance scripts. Omit it for the default wiki. |
 
@@ -50,6 +51,10 @@ Import order per namespace directory:
 7. `blogs*.xml`
 8. `blog-talk*.xml`
 9. `enhanced-sidebar*.xml`, containing the `MediaWiki:Sidebar.json` page for a sidebar that reflects the Confluence space navigation
+
+After all namespace directories, the wiki-wide `categories*.xml` is imported (one
+`Category:` page per category in use, unless `--no-categories` is given or the mode is `files-only`).
+The text of these pages can be changed with the `compose-category-content` hook.
 
 Only `pages*.xml` is mandatory, all other groups are skipped with a note when
 they are missing. `user.xml` is intentionally ignored.

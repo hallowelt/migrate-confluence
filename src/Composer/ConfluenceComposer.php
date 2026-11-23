@@ -11,6 +11,7 @@ use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
 use HalloWelt\MediaWiki\Lib\Migration\Workspace;
 use HalloWelt\MigrateConfluence\Composer\Processor\BlogPostComments;
 use HalloWelt\MigrateConfluence\Composer\Processor\BlogPosts;
+use HalloWelt\MigrateConfluence\Composer\Processor\Categories;
 use HalloWelt\MigrateConfluence\Composer\Processor\DefaultFiles;
 use HalloWelt\MigrateConfluence\Composer\Processor\DefaultPages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Files;
@@ -249,6 +250,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 				);
 				$sidebarProcessor->setSubDir( $wikiName );
 				$sidebarProcessor->execute();
+				$this->writeCategories( $builder, $wikiName, $spaces );
 
 				$this->addWikiImportHelper( $wikiName );
 				$this->writeDeploymentLog( $deploymentInfo, $wikiName );
@@ -421,6 +423,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 			);
 			$sidebarProcessor->setSubDir( $wikiName );
 			$sidebarProcessor->execute();
+			$this->writeCategories( $builder, $wikiName, $spaces );
 
 			$this->addWikiImportHelper( $wikiName );
 			$this->writeDeploymentLog( $deploymentInfo, $wikiName );
@@ -430,6 +433,23 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 		}
 
 		$this->writeManifest( $fileExtensionsPerWiki );
+	}
+
+	/**
+	 * Writes the wiki-wide categories.xml next to the namespace directories.
+	 *
+	 * @param Builder $builder
+	 * @param string $wikiName
+	 * @param array $spaces
+	 * @return void
+	 */
+	private function writeCategories( Builder $builder, string $wikiName, array $spaces ): void {
+		$processor = new Categories(
+			$builder, $this->output, $this->dest, $this->migrationConfig, $this->dataLookup
+		);
+		$processor->setSubDir( $wikiName );
+		$processor->setCurrentSpaceIds( array_map( 'intval', array_column( $spaces, 'space_id' ) ) );
+		$processor->execute();
 	}
 
 	/**
