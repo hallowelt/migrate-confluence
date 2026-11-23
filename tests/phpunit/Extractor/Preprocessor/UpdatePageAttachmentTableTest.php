@@ -70,6 +70,72 @@ class UpdatePageAttachmentTableTest extends TestCase {
 	/**
 	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
 	 */
+	public function testHistoryVersionsGetNoTitleAndHeadKeepsPlainName(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		// Head has the highest ID, the old version points to it
+		$workspaceDB->addAttachment(
+			602, 1000, 'file.txt', 'txt', 600, 'current', '2', '', '', -1, '/tmp/b', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '', '', 602, '/tmp/a', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $writer, new MigrationConfig( [] ) );
+		$processor->execute();
+
+		$pageAttachments = $workspaceDB->getPageAttachments();
+		$this->assertCount( 1, $pageAttachments );
+		$this->assertSame( 602, (int)$pageAttachments[0]['attachment_id'] );
+		$this->assertSame( 'TEST_Page-file.txt', $pageAttachments[0]['target_attachment_filename'] );
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
+	 */
+	public function testNewestAttachmentGetsPlainNameOnCollision(): void {
+		$workspaceDB = $this->createWorkspaceDB();
+		$writer = $this->createWriter( $workspaceDB );
+
+		$workspaceDB->addSpace( 1000, 'TEST', 'Test Space', 'TEST', '', '', -1, -1 );
+		$workspaceDB->addPage(
+			600, 1000, 'Page', 'page', 'TEST:Page', 'current', '', '', '1', -1, -1, [], [], [], []
+		);
+		$workspaceDB->addAttachment(
+			601, 1000, 'file.txt', 'txt', 600, 'current', '1', '20230907081424', '', -1, '/tmp/a', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			602, 1000, 'file.txt', 'txt', 600, 'current', '1', '20230803172749', '', -1, '/tmp/b', [], [], []
+		);
+		$workspaceDB->addAttachment(
+			603, 1000, 'file.txt', 'txt', 600, 'current', '1', '20231218095726', '', -1, '/tmp/c', [], [], []
+		);
+
+		$processor = new UpdatePageAttachmentTable( $workspaceDB, $writer, new MigrationConfig( [] ) );
+		$processor->execute();
+
+		$titles = [];
+		foreach ( $workspaceDB->getPageAttachments() as $row ) {
+			$titles[(int)$row['attachment_id']] = $row['target_attachment_filename'];
+		}
+		$this->assertSame(
+			[
+				603 => 'TEST_Page-file.txt',
+				601 => 'TEST_Page-file-(1).txt',
+				602 => 'TEST_Page-file-(2).txt',
+			],
+			$titles
+		);
+	}
+
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Extractor\Preprocessor\UpdatePageAttachmentTable::execute
+	 */
 	public function testAddsMissingFileExtensionBeforeUncolliding(): void {
 		$workspaceDB = $this->createWorkspaceDB();
 		$writer = $this->createWriter( $workspaceDB );

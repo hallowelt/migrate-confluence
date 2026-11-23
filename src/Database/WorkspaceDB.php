@@ -3908,7 +3908,12 @@ class WorkspaceDB implements LogEntryWriter {
 	 * @return array
 	 */
 	public function getAttachments(): array {
-		return $this->getAllData( 'attachments' );
+		// Stable order, so that the newest attachment wins a title collision and the
+		// suffixes do not depend on the row order in the DB
+		$result = $this->db->query(
+			'SELECT * FROM attachments ORDER BY revision_timestamp DESC, attachment_id'
+		);
+		return $this->fetchDbArray( $result );
 	}
 
 	/**
