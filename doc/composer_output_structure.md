@@ -51,6 +51,7 @@ workspace/result/
 			pages.xml
 			templates.xml
 			users.xml
+		categories.xml
 		deployment.txt
 		namespace_import_config.json
 		wikiimport.sh
@@ -58,6 +59,13 @@ workspace/result/
 
 The first-level directory is the target wiki name from the wiki mapping configuration.
 Inside it, each namespace used by that wiki gets its own namespace directory.
+
+## Categories
+
+`<wiki-name>/categories.xml` contains one `Category:` page for every category that the
+pages, blog posts and attachments of the wiki's spaces use. Labels that sanitize to the
+same category name result in one page. The page text can be changed with the
+`compose-category-content` hook.
 
 ## Wiki-scoped Defaults
 

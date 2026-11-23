@@ -10,6 +10,19 @@ See the [documentation](how_to_use_hooks.md) for a detailed explanation.
 
 Filters allow modifying a concrete value.
 
+### `compose-category-content`
+
+Allow modification of the wikitext of a category page in categories.xml. title (full wiki title), labels (Confluence labels that resulted in this category)
+
+**Since:** [8.0.0](https://github.com/hallowelt/migrate-confluence/releases/tag/8.0.0)
+
+**Parameters:**
+
+- `$content` _string_ — wikitext of the category page
+- `$context` _array_ — context information: category (name without namespace prefix),
+
+_Defined in [`Utility/Hooks/ComposerHooks.php`](../src/Utility/Hooks/ComposerHooks.php#L18) at line 18._
+
 ### `convert-content-post`
 
 Allow modification of the output after processing.

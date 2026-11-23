@@ -20,6 +20,14 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * @param int[] $spaceIds
+	 * @return string[] Unique category labels used in the given spaces
+	 */
+	public function getCategoryLabelsForSpaceIds( array $spaceIds ): array {
+		return $this->workspaceDB->getCategoryLabelsForSpaceIds( $spaceIds );
+	}
+
+	/**
 	 * @param int|null $spaceId
 	 * @return array
 	 */

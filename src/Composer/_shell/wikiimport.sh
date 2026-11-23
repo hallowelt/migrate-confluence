@@ -6,6 +6,7 @@
 #   result/<wiki-name>/<namespace>/{files,pages,page-talk,blogs,blog-talk,templates}.xml
 #   result/<wiki-name>/_shared/{default-files,default-pages}.xml
 #   result/<wiki-name>/_shared/default-images/*
+#   result/<wiki-name>/categories.xml
 #
 # The files in "_shared" are only imported when --add-default is set.
 
@@ -13,7 +14,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./wikiimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<wiki-name>] [--add-default] [--dry] [--sfr=<wiki-instance>] [--mode=all|no-files|files-only]
+Usage: ./wikiimport.sh --wiki-root=/path/to/wiki-root [--src=/path/to/result/<wiki-name>] [--add-default] [--no-categories] [--dry] [--sfr=<wiki-instance>] [--mode=all|no-files|files-only]
 
 Imports every namespace directory inside the selected wiki result directory.
 Supports both single-file output (e.g. pages.xml) and split output
@@ -23,6 +24,7 @@ Options:
   --wiki-root=PATH  Path to the MediaWiki root directory
   --src=PATH        Wiki result directory (defaults to this script's directory)
   --add-default     Also import default-files*.xml and default-pages*.xml from <src>/_shared
+  --no-categories   Do not import the category pages from <src>/categories*.xml
   --dry             Dry run, only print the import commands instead of running them
   --sfr=NAME        MediaWiki wiki instance passed to the import maintenance scripts
   --mode=MODE       What to import (default: all)
@@ -46,6 +48,9 @@ Import order per namespace directory:
   8) blog-talk*.xml              (skipped in --mode=files-only)
   9) enhanced-sidebar*.xml       (skipped in --mode=files-only)
 
+After all namespace directories, the wiki wide <src>/categories*.xml is imported
+(skipped in --mode=files-only and with --no-categories).
+
 Notes:
 - Only pages*.xml is mandatory, and only in --mode=all/no-files. All other groups
   are skipped when missing.
@@ -61,6 +66,7 @@ sfr=""
 wiki_root=""
 add_default=0
 dry=0
+import_categories=1
 mode="all"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -87,6 +93,9 @@ for arg in "$@"; do
       ;;
     --files-only)
       mode="files-only"
+      ;;
+    --no-categories)
+      import_categories=0
       ;;
     --dry)
       dry=1
@@ -326,6 +335,14 @@ for namespace_dir in "${namespace_dirs[@]}"; do
     exit 1
   fi
 done
+
+# The category pages live next to the namespace directories, too.
+if [[ "$mode" != "files-only" && "$import_categories" -eq 1 ]]; then
+  if ! run_group "$src" "categories" "dump" "optional"; then
+    echo "Error: import failed for categories in $src" >&2
+    exit 1
+  fi
+fi
 
 # The wiki wide sidebar lives next to the namespace directories.
 if [[ "$mode" != "files-only" ]]; then
