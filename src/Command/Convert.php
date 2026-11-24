@@ -130,6 +130,7 @@ class Convert extends CommandConvert {
 
 			$this->executionTime = new ExecutionTime();
 			$result = $pool->run( WorkerPool::baseCommandFromArgv(), $workers );
+			$this->removePandocCache();
 			$this->logExecutionTime();
 
 			return $result;
@@ -141,6 +142,15 @@ class Convert extends CommandConvert {
 			return parent::execute( $input, $output );
 		} finally {
 			$this->dataWriter = null;
+			$this->removePandocCache();
+		}
+	}
+
+	private function removePandocCache(): void {
+		$dir = $this->dest . '/' . ConfluenceConverterBase::PANDOC_CACHE_DIR;
+		array_map( 'unlink', glob( "$dir/*" ) ?: [] );
+		if ( is_dir( $dir ) ) {
+			rmdir( $dir );
 		}
 	}
 

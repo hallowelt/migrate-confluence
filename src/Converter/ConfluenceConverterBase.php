@@ -137,6 +137,7 @@ use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\DirectoryHelper;
 use HalloWelt\MigrateConfluence\Utility\Hooks\ConverterHooks;
 use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
@@ -147,6 +148,12 @@ use HalloWelt\MigrateConfluence\Utility\TranslatableString;
 use SplFileInfo;
 
 abstract class ConfluenceConverterBase extends PandocHTML implements IDestinationPathAware {
+
+	/** Relative to the workspace; removed by the convert command when done. */
+	public const PANDOC_CACHE_DIR = 'content/pandoc-cache';
+
+	/** Returned by PandocHTML::doConvert on pandoc errors; must not be cached. */
+	private const PANDOC_FAILED_OUTPUT = "<!-- html could not be converted to wikitext -->\n";
 
 	protected const PROFILE_NAME = '.BASE_CLASS._DO_NOT_USE';
 
@@ -410,7 +417,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			$this->preprocessedFile->getPathname()
 		);
 
-		$this->wikiText = parent::doConvert( $this->preprocessedFile );
+		$this->wikiText = $this->convertWithPandocCache( $this->preprocessedFile );
 
 		/* replace placeholders as soon as possible again, so that postprocessors can work on the final wiki text */
 		$this->wikiText = $this->placeholderManager->replacePlaceholders( $this->wikiText );
@@ -436,6 +443,32 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$this->wikiText = $invalidContentCategories->postprocess( $this->wikiText );
 
 		return $this->wikiText;
+	}
+
+	/**
+	 * Runs pandoc, reusing the output of earlier runs with byte-identical input (e.g. unchanged page versions).
+	 *
+	 * Placeholders are substituted after this step, so sharing raw pandoc output between pages is safe.
+	 * Workers share the cache through atomic renames.
+	 *
+	 * @param SplFileInfo $file
+	 * @return string
+	 */
+	private function convertWithPandocCache( SplFileInfo $file ): string {
+		$cacheDir = $this->dest . '/' . self::PANDOC_CACHE_DIR;
+		$cacheFile = $cacheDir . '/' . md5_file( $file->getPathname() );
+		if ( is_file( $cacheFile ) ) {
+			return file_get_contents( $cacheFile );
+		}
+
+		$wikiText = parent::doConvert( $file );
+		if ( $wikiText !== self::PANDOC_FAILED_OUTPUT ) {
+			DirectoryHelper::ensure( $cacheDir );
+			$tmp = $cacheFile . '.' . getmypid();
+			file_put_contents( $tmp, $wikiText );
+			rename( $tmp, $cacheFile );
+		}
+		return $wikiText;
 	}
 
 	/**
