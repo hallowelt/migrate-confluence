@@ -59,7 +59,8 @@ class WorkspaceDbMock {
 		string $dataFilename,
 		string $dataFilePath,
 		string $imageFilename,
-		string $imageFilePath
+		string $imageFilePath,
+		string $dataTargetFilename = ''
 	): WorkspaceDB {
 		$this->nextTestPageId = 10000;
 		$this->nextTestAttachmentId = 20000;
@@ -73,7 +74,7 @@ class WorkspaceDbMock {
 
 		$this->addAttachmentMapping(
 			$workspaceDB, $spaceId, $pageId,
-			$dataFilename, "$pageTitle-$dataFilename",
+			$dataFilename, "$pageTitle-" . ( $dataTargetFilename ?: $dataFilename ),
 			[], $dataFilePath
 		);
 		$this->addAttachmentMapping(

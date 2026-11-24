@@ -127,6 +127,55 @@ XML;
 	}
 
 	/**
+	 * Regression test: the wiki title of the data file may carry an extension reported by
+	 * Confluence (".vnd.jgraph.mxfile"). The template appends ".png" itself, so the emitted
+	 * diagramName must be derived from the image title ("foo"), not the data file title.
+	 *
+	 * @covers HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro::process
+	 * @return void
+	 */
+	public function testDiagramNameIgnoresDataFileExtension(): void {
+		$this->tempDir = sys_get_temp_dir() . '/confluence-migration-drawio-ext-test-' . uniqid();
+		mkdir( $this->tempDir, 0755, true );
+
+		$dataDir = dirname( __DIR__, 2 ) . '/Utility/DrawIOFileHandler/data';
+		$db = ( new WorkspaceDbMock() )->createWithDrawioAttachments(
+			1,
+			'DiagramPage',
+			'diagram',
+			$dataDir . '/diagram.drawio',
+			'diagram.png',
+			$dataDir . '/diagram.drawio.png',
+			'diagram.vnd.jgraph.mxfile'
+		);
+
+		$dom = new DOMDocument();
+		$dom->loadXML(
+			'<xml xmlns:ac="some" xmlns:ri="thing">'
+			. '<ac:structured-macro ac:name="drawio" ac:schema-version="1" ac:macro-id="t">'
+			. '<ac:parameter ac:name="diagramName">diagram</ac:parameter>'
+			. '</ac:structured-macro></xml>'
+		);
+
+		$placeholderManager = new PlaceholderManager();
+		$processor = new DrawioMacro(
+			$this->createConverterDataWriter(),
+			new DBConversionDataLookup( $db ),
+			new ConversionDataWriter( $this->tempDir ),
+			1,
+			'DiagramPage',
+			$placeholderManager
+		);
+		$processor->process( $dom );
+		$this->resolvePlaceholders( $dom, $placeholderManager );
+
+		$output = $dom->saveXML();
+		$this->assertStringContainsString( 'diagramName=DiagramPage-diagram', $output );
+		$this->assertStringNotContainsString( 'mxfile', $output );
+		$this->assertStringNotContainsString( '.png', $output );
+	}
+
+	/**
 	 * @param int $spaceId
 	 * @param string $input
 	 * @param string $output
