@@ -90,6 +90,48 @@ class FilesTest extends TestCase {
 	}
 
 	/**
+	 * Generated SVGs follow their owning page: kept for valid pages, skipped for invalid ones.
+	 *
+	 * @covers \HalloWelt\MigrateConfluence\Composer\Processor\Files::execute
+	 */
+	public function testExecuteSkipsGeneratedSvgOfInvalidPagesOnly(): void {
+		mkdir( $this->tmpDir . '/images' );
+		file_put_contents( $this->tmpDir . '/images/Roadmap-ok.svg', '<svg/>' );
+		file_put_contents( $this->tmpDir . '/images/Roadmap-bad.svg', '<svg/>' );
+
+		$dataLookup = $this->createMock( DBComposerDataLookup::class );
+		$dataLookup->method( 'getPageAttachments' )->willReturn( [] );
+		$dataLookup->method( 'getBlogPostAttachments' )->willReturn( [] );
+		$dataLookup->method( 'getAdditionalAttachments' )->willReturn( [] );
+		$dataLookup->method( 'getRoadmapSvgs' )->willReturn( [
+			[ 'space_id' => 1, 'confluence_title' => 'Good', 'svg_filename' => 'Roadmap-ok.svg' ],
+			[ 'space_id' => 1, 'confluence_title' => 'Bad', 'svg_filename' => 'Roadmap-bad.svg' ],
+		] );
+		$dataLookup->method( 'getWikiPageTitleFromSpaceId' )->willReturnMap( [
+			[ 1, 'Good', 'Good' ],
+			[ 1, 'Bad', 'Bad' ],
+		] );
+		$dataLookup->method( 'isPageInvalid' )->willReturnCallback( static fn ( $t ) => $t === 'Bad' );
+
+		$migrationConfig = new MigrationConfig( [] );
+		$processor = new Files(
+			$dataLookup,
+			new Workspace( new SplFileInfo( $this->tmpDir ) ),
+			$this->makeOutput(),
+			$this->tmpDir,
+			$migrationConfig,
+			new ComposerDeploymentInfo(),
+			new ComposerSkipHelper( $dataLookup, $migrationConfig )
+		);
+		$processor->setSubDir( 'CON' );
+		$processor->execute();
+
+		$xml = file_get_contents( $this->tmpDir . '/result/CON/files.xml' );
+		$this->assertStringContainsString( 'Roadmap-ok.svg', $xml );
+		$this->assertStringNotContainsString( 'Roadmap-bad.svg', $xml );
+	}
+
+	/**
 	 * Complements the regression test above by asserting that the path written into
 	 * files.xml is relative to files.xml's own directory (e.g. "./images/...") and that
 	 * it actually resolves to the uploaded file on disk, for the page-attachment path.
