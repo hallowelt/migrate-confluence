@@ -39,7 +39,6 @@ use HalloWelt\MigrateConfluence\Converter\Processor\CenterMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChangeHistoryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChartMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CheeseMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ClickableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColgroupMacro;
@@ -97,14 +96,12 @@ use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyMarkMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyPolicyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ProfileMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ProfilePictureMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RegTmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RoadmapMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RoundrectMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SearchBoxMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SmMacro;
-use HalloWelt\MigrateConfluence\Converter\Processor\SpaceDetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SpanMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\StrikeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\StyleMacro;
@@ -533,26 +530,11 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			new TocMacro( $this->tocMacroUsage ),
 			new ColumnMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
 			new SectionMacro(),
-			new SpaceDetailsMacro(
-				$this->writer,
-				$this->currentSpace,
-			),
-			new ChildrenMacro(
-				$this->writer,
-				$this->currentSpace,
-				$this->wikiPageTitle,
-				$this->dataLookup
-			),
 			new PageTreeMacro(
 				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->wikiPageTitle
-			),
-			new RecentlyUpdatedMacro(
-				$this->writer,
-				$this->currentSpace,
 				$this->wikiPageTitle
 			),
 			new IncludeMacro(
