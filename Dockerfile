@@ -23,7 +23,7 @@ RUN composer dump-autoload --no-dev --classmap-authoritative
 #
 # Main Image
 #
-FROM php:8.5.11-cli
+FROM php:8.5.11-cli-alpine
 
 # install pandoc
 COPY --from=pandoc/minimal:3.11.0.0 /usr/local/bin/pandoc /usr/local/bin/pandoc
@@ -37,12 +37,8 @@ ARG UID=10001
 ARG GID=10001
 
 # set up the user, group and the /data directory
-RUN groupadd -g "${GID}" app && \
-    useradd -u "${UID}" -g "${GID}" \
-        --no-create-home \
-        --no-log-init \
-        --shell /usr/sbin/nologin \
-        app && \
+RUN addgroup -g "${GID}" app && \
+    adduser -u "${UID}" -G app -H -D -s /sbin/nologin app && \
     install -d -o "${UID}" -g 0 -m 775 /data
 
 # fetch the built final code from the "build" step
