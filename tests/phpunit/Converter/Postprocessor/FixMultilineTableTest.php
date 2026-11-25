@@ -32,6 +32,17 @@ class FixMultilineTableTest extends TestCase {
 
 	/**
 	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable::postprocess
+	 * @return void
+	 */
+	public function testNamespacedAttributeBeforeList() {
+		$input = "{|\n|-\n|\nac:local-id=\"abc\"| * One\n* Two\n|}";
+		$expected = "{|\n|-\n| ac:local-id=\"abc\"|\n* One\n* Two\n|}";
+
+		$this->assertSame( $expected, ( new FixMultilineTable() )->postprocess( $input ) );
+	}
+
+	/**
+	 * @covers HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable::postprocess
 	 * @dataProvider provideBlockCharsForSimpleTable
 	 * @param string $char
 	 * @param string $input
