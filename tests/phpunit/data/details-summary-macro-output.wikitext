@@ -9,4 +9,6 @@
 
 ''Details Summary - CQL: label = &quot;Label 1&quot; and parent = currentContent ( )''
 
+[[Category:Broken_macro/detailssummary]]
+
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}
