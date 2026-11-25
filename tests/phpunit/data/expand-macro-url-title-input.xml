@@ -1,0 +1,9 @@
+<xml xmlns:ac="sample_namespace">
+    <ac:structured-macro ac:name="expand">
+        <ac:parameter ac:name="title">see https://example.com/a?b=1&amp;c=2</ac:parameter>
+        <ac:parameter ac:name="other">second</ac:parameter>
+        <ac:rich-text-body>
+            <p>Body</p>
+        </ac:rich-text-body>
+    </ac:structured-macro>
+</xml>

@@ -47,6 +47,17 @@ class TitleValidityChecker {
 	}
 
 	/**
+	 * Checks whether a wiki (instance) name is usable as a directory name.
+	 *
+	 * @param string $wikiName
+	 * @return bool
+	 */
+	public function hasValidWikiName( string $wikiName ): bool {
+		return $wikiName !== ''
+			&& !preg_match( '#[/\\\\\x00]|^[.-]#', $wikiName );
+	}
+
+	/**
 	 * @param string $title
 	 * @return bool
 	 */

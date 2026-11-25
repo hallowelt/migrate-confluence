@@ -39,7 +39,7 @@ class CopyrightMacroChainTest extends MacroChainTestBase {
 	 * @return IProcessor
 	 */
 	private function createProcessor(): IProcessor {
-		return new CopyrightMacro( $this->createMock( IConverterDataWriter::class ), 1 );
+		return new CopyrightMacro( $this->createMock( IConverterDataWriter::class ), 1, $this->placeholderManager );
 	}
 
 }

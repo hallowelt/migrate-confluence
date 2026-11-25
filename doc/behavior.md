@@ -91,6 +91,19 @@ This is intentional: a link to a deleted page should surface as a broken link (c
 you can notice and fix it, instead of silently pointing to an arbitrary non-current record
 that was never actually migrated.
 
+## Deleted and Historical Attachments
+
+Attachments in the Confluence trash are not migrated, including all their older versions.
+The extract step logs a notice for each skipped deleted attachment (`Attachment <id> is deleted;
+skipping its <n> history versions.`) in the `logging` table.
+
+Older versions of a current attachment are not migrated as separate files. With
+`include-history` enabled they are uploaded as revisions of the one wiki file page.
+
+If several current attachments of the same wiki would get the same file title, the one
+with the newest modification date keeps the plain title. The others get a suffix like `-(1)`,
+ordered by attachment ID.
+
 ## Category “Pages with syntax highlighting errors”
 
 You might notice this category when checking migration results. This is a feature of the
@@ -104,6 +117,46 @@ telling the extension, _how_ to highlight the code.
 
 Use this category, if you want to fine-tune your code display. If you used the `code`
 macro only as `<pre>` on steroids, you can ignore this feature completely.
+
+## Parameters of HTML-style macros that are not migrated
+
+The macros `ul`, `ol`, `li`, `strike`, `clickable`, `thead`, `tbody` and `colgroup` are converted
+to plain wikitext lists, links and tables. Wikitext has no place for their styling parameters, so
+the following information is dropped on purpose, to keep the pages editable in the visual editor:
+
+- `ul`: all parameters (e.g. `style`, `class`, `type`)
+- `ol`: all parameters except `start` and `type`
+- `li`: all parameters except `id`
+- `strike`: all parameters; `clickable`: all parameters except the link target
+- `thead`, `tbody`: all parameters; `colgroup`: the column definitions
+
+Table attributes `cellpadding` and `summary` are kept in the output, but with newer Pandoc
+versions they have no visible effect. The other legacy table attributes (`align`, `valign`,
+`bgcolor`, `border`, `cellspacing`, `nowrap`) are converted to CSS and keep working.
+
+The `p` (paragraph) macro is migrated as `<div role="paragraph">` and not as `<p>`, because
+Pandoc removes all attributes (`class`, `style`, `title`, ...) from `<p>`. The visible result is
+a block like any other paragraph, but the page source contains a `div`.
+
+The `img` macro is migrated like any external HTML image, i.e. as an `{{ExternalImage}}` template
+with all parameters. Image maps (`usemap`, `ismap`) and long descriptions have no effect in the wiki.
+
+The `change-history` macro becomes a link to the page history. The Confluence version comments are
+not migrated, so the table of versions, authors, dates and comments cannot be recreated, and the
+`limit` parameter has no effect.
+
+The `iframe`, `search-box` and `pagetreesearch` macros need Extension:Widgets on the target wiki
+(the widget pages are imported into the `Widget:` namespace). The `iframe` macro embeds only URLs with
+protocols allowed by the wiki; any host is allowed (no allow-list, by decision).
+`search-box` and `pagetreesearch` become a plain form for the wiki search: space restrictions,
+grouping, filters and live results of Confluence are lost, and a page-tree restriction depends on the
+search backend. The `fancy-bullets` macro keeps its list, but the bullet styling is not migrated.
+
+The `style` macro becomes a `{{Style}}` template (widget `Widget:Style`) with the CSS, `media` and
+`import` parameters. In the CSS, `|` and `=` are written as `{{!}}` and `{{=}}`, and a `<` is dropped
+by the widget. Be aware that every editor can restyle a page with this widget. The `viewfile` macro
+is migrated like `view-file`, as a link to the attachment; the `page`, `space` and `date` parameters
+(attachments of other pages), as well as `width` and `height`, are only kept as template parameters.
 
 ## Overly Large Pages
 

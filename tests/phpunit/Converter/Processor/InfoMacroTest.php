@@ -5,6 +5,7 @@ namespace HalloWelt\MigrateConfluence\Tests\Converter\Processor;
 use DOMDocument;
 use HalloWelt\MigrateConfluence\Converter\DataWriter\IConverterDataWriter;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class InfoMacroTest extends ProcessorTestCase {
 
@@ -25,7 +26,7 @@ class InfoMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
-		$preprocessor = new InfoMacro( $this->createMock( IConverterDataWriter::class ), 1 );
+		$preprocessor = new InfoMacro( $this->createMock( IConverterDataWriter::class ), 1, new PlaceholderManager() );
 		$preprocessor->process( $dom );
 
 		$actualOutput = $dom->saveXML();

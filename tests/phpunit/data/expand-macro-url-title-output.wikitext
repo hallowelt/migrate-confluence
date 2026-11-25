@@ -1,0 +1,10 @@
+{{ExpandStart
+|title = see https://example.com/a?b=1&amp;c=2
+|other = second
+}}
+
+Body
+
+{{ExpandEnd}}
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

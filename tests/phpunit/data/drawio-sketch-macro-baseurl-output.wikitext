@@ -1,0 +1,7 @@
+{{DrawioSketch
+|revision=1
+|baseUrl=https://some-id.atlassian.net/wiki
+|diagramName=
+}}[[Category:Broken_macro/drawio-sketch]]
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

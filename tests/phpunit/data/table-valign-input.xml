@@ -1,0 +1,14 @@
+<xml xmlns:ac="some" xmlns:ri="thing">
+	<table>
+		<tbody>
+			<tr>
+				<th valign="top">Head</th>
+				<th>Other</th>
+			</tr>
+			<tr>
+				<td valign="middle">middle aligned</td>
+				<td valign="bottom" style="background-color: #ff8f73">bottom aligned</td>
+			</tr>
+		</tbody>
+	</table>
+</xml>

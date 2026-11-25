@@ -1,8 +1,7 @@
 <div>
-
 [[File:ABC_SomePage-SomeImage2.png|500x200px|center|alt=Alternative text|class=some-class]][[Category:Broken_image]]
-
 </div>
+
 [[File:ABC_SomePage-SomeImage2.png|x215px]][[Category:Broken_image]]
 
 [[File:ABC_SomePage-SomeImage2.png|x164px]][[Category:Broken_image]]

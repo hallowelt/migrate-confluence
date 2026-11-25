@@ -1,7 +1,6 @@
 Before
 
-<div class="ac-gallery" params="{&quot;title&quot;:&quot;Assets Gallery (All Image Types)&quot;,&quot;columns&quot;:&quot;4&quot;}">
-
+<div class="ac-gallery" data-params="{&quot;title&quot;:&quot;Assets Gallery (All Image Types)&quot;,&quot;columns&quot;:&quot;4&quot;}">
 
 <gallery caption="Assets Gallery (All Image Types)" perrow="4">
 ABC_SomePage-dashboard.png
@@ -17,8 +16,8 @@ ABC_SomePage-document.pdf
 </gallery>
 [[Category:Broken_attachment_link]]
 
-
 </div>
+
 After
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

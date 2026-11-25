@@ -1,15 +1,12 @@
 <br />
 
-
 <br />
-
 
 {{ColumnStart
 |width = 33%
 }} {{ColumnEnd}}
 
 <br />
-
 
 {{ColumnStart
 |width = 33%
@@ -23,17 +20,14 @@
 
 <br />
 
-
 {{ColumnEnd}}
 
 <br />
-
 
 {{ColumnStart
 |width = 33%
 }} {{ColumnEnd}}
 
 <br />
-
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

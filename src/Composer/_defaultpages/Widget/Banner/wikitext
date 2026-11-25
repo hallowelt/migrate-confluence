@@ -1,0 +1,62 @@
+<!--{* Usage: {{#widget:Banner|url={{filepath:Team.jpg}}|height=240}} (height is optional) *}-->
+<!--{* ponytail: "position" is accepted but not used yet. Confluence values are 50 or 0.5 (unit unclear), so nothing is emitted for it. *}-->
+<!--{assign var=u value=$url|validate:'url'}-->
+<!--{assign var=h value=$height|validate:'int'}-->
+<!--{if $u}-->
+<style>
+/* Mirrors the side padding of #main in BlueSpiceDiscovery (2.5rem, 1rem on small screens) */
+#main::before {
+	--banner-pad: 2.5rem;
+	content: "";
+	display: block;
+	margin: -1rem calc( -1 * var( --banner-pad ) ) 1rem;
+	max-width: calc( 100% + 2 * var( --banner-pad ) );
+<!--{if $h}-->
+	height: <!--{$h}-->px;
+<!--{else}-->
+	/* Confluence default: 18.42% of the content width, at least 140px */
+	aspect-ratio: 5.4286;
+	min-height: 140px;
+	max-height: 750px;
+<!--{/if}-->
+	background: url("<!--{$u}-->") center / cover no-repeat;
+}
+@media ( max-width: 767px ) {
+	#main::before { --banner-pad: 1rem; }
+}
+</style>
+<!--{/if}--><noinclude>
+Shows a cover picture ("banner") at the top of the page. Added by the Confluence migration.
+
+Usage: <code><nowiki>{{#widget:Banner|url={{filepath:Team.jpg}}|height=240}}</nowiki></code>
+
+* <code>url</code>: address of the image. Use <code><nowiki>{{filepath:File name}}</nowiki></code> for wiki files or a full http(s) URL.
+* <code>height</code>: optional height in pixels. Without it the height follows the page width (at least 140px).
+* <code>position</code>: optional, currently not used. The migration passes the Confluence vertical image position (seen as 50 and as 0.5, so percent or fraction is unclear) for later use.
+
+<templatedata>
+{
+	"description": "Shows a cover picture (banner) at the top of the page.",
+	"params": {
+		"url": {
+			"label": "Image URL",
+			"description": "Address of the image, e.g. {{filepath:Team.jpg}} or an external http(s) URL.",
+			"type": "string",
+			"required": true
+		},
+		"height": {
+			"label": "Height",
+			"description": "Height of the banner in pixels. Optional.",
+			"type": "number",
+			"required": false
+		},
+		"position": {
+			"label": "Position",
+			"description": "Vertical image position from the Confluence cover picture. Currently not used by the widget.",
+			"type": "string",
+			"required": false
+		}
+	}
+}
+</templatedata>
+</noinclude>

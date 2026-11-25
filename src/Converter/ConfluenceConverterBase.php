@@ -17,12 +17,14 @@ use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixEmptyListItemWrapper;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixLineBreakInHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTable;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixMultilineTemplate;
+use HalloWelt\MigrateConfluence\Converter\Postprocessor\FixTableCellValign;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\InvalidContentCategories;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\NestedHeadings;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RemoveMultipleLinebreaks;
 use HalloWelt\MigrateConfluence\Converter\Postprocessor\RestoreExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\EscapeWikiMarkup;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\HoistMacroFromHeading;
+use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\ProtectBareUrls;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\SanitizeLinkContent;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\DOM\Table;
 use HalloWelt\MigrateConfluence\Converter\Preprocessor\HTML\CDATAClosingFixer;
@@ -32,9 +34,15 @@ use HalloWelt\MigrateConfluence\Converter\Processor\AnchorLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AnchorMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\AttachmentsMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\BgcolorMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\CenterMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ChangeHistoryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChartMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\CheeseMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ClickableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CodeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ColgroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ColumnMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ContentByLabelMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CopyrightMacro;
@@ -42,14 +50,20 @@ use HalloWelt\MigrateConfluence\Converter\Processor\CreateFromTemplateMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\CsvTableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DetailsSummaryMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\DivMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\DrawioSketchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Emoticon;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExpandMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\FancyBulletsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GalleryMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\GliffyMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\HighlightMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\HtmlcommentMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\IframeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Image;
 use HalloWelt\MigrateConfluence\Converter\Processor\ImgHtml;
+use HalloWelt\MigrateConfluence\Converter\Processor\ImgMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncDrawioMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\IncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\InfoMacro;
@@ -59,34 +73,55 @@ use HalloWelt\MigrateConfluence\Converter\Processor\JsonFromTableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Layout;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutCell;
 use HalloWelt\MigrateConfluence\Converter\Processor\LayoutSection;
+use HalloWelt\MigrateConfluence\Converter\Processor\LiMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LivesearchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabGroupMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LocalTabMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\LoremIpsumMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\LozengeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\MarkdownMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\MultimediaMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoFormatMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\NoteMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\OfficeViewfileMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\OlMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PageTreeSearchMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\Placeholder;
+use HalloWelt\MigrateConfluence\Converter\Processor\PMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PreMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreservePStyleTag;
 use HalloWelt\MigrateConfluence\Converter\Processor\PreserveTimeTag;
+use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyMarkMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\PrivacyPolicyMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ProfileMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ProfilePictureMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RegTmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\RoadmapMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\RoundrectMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\SearchBoxMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SectionMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\SpaceDetailsMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\SpanMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\StrikeMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\StyleMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableChartMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TableFilterMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TableMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TaskListMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TasksReportMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TbodyMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TdMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TheadMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\ThMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TipMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TmMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\TocMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\TrMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\UlMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\UserLink;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewDocMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewFileMacro;
@@ -94,14 +129,18 @@ use HalloWelt\MigrateConfluence\Converter\Processor\ViewPdfMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewPptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ViewXlsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WarningMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\WelcomeMessageMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\WidgetMacro;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
+use HalloWelt\MigrateConfluence\Utility\ConversionHelper;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\Hooks\ConverterHooks;
 use HalloWelt\MigrateConfluence\Utility\HtmlCommentMarkerResolver;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
+use HalloWelt\MigrateConfluence\Utility\Sanitizer;
 use HalloWelt\MigrateConfluence\Utility\TocMacroUsage;
 use HalloWelt\MigrateConfluence\Utility\TranslatableString;
 use SplFileInfo;
@@ -378,8 +417,17 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$this->runPostProcessors();
 
 		$this->addFolderTemplateIfApplicable();
+		$this->addCoverBannerIfApplicable();
 
 		$this->postprocessWikiText();
+
+		$this->wikiText = ConverterHooks::convertContentPost( $this->wikiText, [
+			'pageId' => $this->pageId,
+			'wikiPageTitle' => $this->wikiPageTitle,
+			'confluencePageTitle' => $this->confluencePageTitle,
+			'currentSpace' => $this->currentSpace,
+			'contentType' => $this->contentType,
+		], $this->dataLookup );
 
 		$this->checkContentLength( $bodyContentId );
 
@@ -415,6 +463,49 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 	}
 
 	/**
+	 * Prepend the Confluence cover picture as Widget:Banner to pages and blog posts.
+	 *
+	 * @return void
+	 */
+	protected function addCoverBannerIfApplicable(): void {
+		if (
+			!in_array( $this->contentType, [ 'page', 'blogPost' ], true ) ||
+			$this->pageId === null ||
+			$this->currentSpace === null
+		) {
+			return;
+		}
+
+		$cover = $this->dataLookup->getCoverPicture( $this->pageId, $this->contentType === 'blogPost' );
+		if ( $cover === null ) {
+			return;
+		}
+
+		if ( $cover['url'] !== null ) {
+			// External images are hotlinked
+			$url = $cover['url'];
+		} elseif ( $cover['file'] !== null ) {
+			$url = '{{filepath:' . preg_replace( '/^File:/i', '', $cover['file'] ) . '}}';
+		} else {
+			$this->addNonBlockingLogEntry(
+				"Cover picture '{$cover['id']}' of content {$this->pageId} has no matching attachment"
+			);
+			$this->wikiText .= "\n" . ( new ConversionHelper() )->getCategoryBroken( 'banner' );
+			return;
+		}
+
+		$widget = '{{#widget:Banner|url=' . $url;
+		if ( $cover['position'] !== null ) {
+			// The raw value is passed on; Confluence data contains both percent (50) and fraction (0.5) values
+			$widget .= '|position=' . $cover['position'];
+		}
+		$widget .= '}}';
+
+		$this->wikiText = $widget . "\n" . $this->wikiText;
+		$this->writer->registerDefaultPage( $this->currentSpace, 'Banner', 'Widget' );
+	}
+
+	/**
 	 * @return array
 	 */
 	protected function getDefaultProcessors(): array {
@@ -435,12 +526,12 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			new PreserveTimeTag(
 				$this->placeholderManager
 			),
-			new TipMacro( $this->writer, $this->currentSpace ),
-			new InfoMacro( $this->writer, $this->currentSpace ),
-			new NoteMacro( $this->writer, $this->currentSpace ),
-			new WarningMacro( $this->writer, $this->currentSpace ),
+			new TipMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new InfoMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new NoteMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new WarningMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
 			new TocMacro( $this->tocMacroUsage ),
-			new ColumnMacro( $this->writer, $this->currentSpace ),
+			new ColumnMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
 			new SectionMacro(),
 			new SpaceDetailsMacro(
 				$this->writer,
@@ -489,11 +580,14 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->dataLookup,
 				$this->currentSpace,
 				$this->confluencePageTitle,
-				$this->migrationConfig
+				$this->migrationConfig,
+				$this->placeholderManager
 			),
+			new ImgMacro(),
 			new ImgHtml(
 				$this->writer,
-				$this->currentSpace
+				$this->currentSpace,
+				$this->placeholderManager
 			),
 			new AttachmentLink(
 				$this->dataLookup,
@@ -529,21 +623,24 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
-				$this->confluencePageTitle
+				$this->confluencePageTitle,
+				$this->placeholderManager
 			),
 			new DrawioSketchMacro(
 				$this->writer,
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
-				$this->confluencePageTitle
+				$this->confluencePageTitle,
+				$this->placeholderManager
 			),
 			new IncDrawioMacro(
 				$this->writer,
 				$this->dataLookup,
 				$this->conversionDataWriter,
 				$this->currentSpace,
-				$this->confluencePageTitle
+				$this->confluencePageTitle,
+				$this->placeholderManager
 			),
 			new GliffyMacro(
 				$this->dataLookup,
@@ -576,20 +673,60 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->migrationConfig,
 				$this->placeholderManager
 			),
-			new ExpandMacro( $this->writer, $this->currentSpace ),
-			new DetailsMacro( $this->writer, $this->currentSpace ),
+			new ExpandMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new DetailsMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
 			new DetailsSummaryMacro(),
 			new AlignMacro(),
-			new TmMacro( $this->writer, $this->currentSpace ),
-			new RegTmMacro( $this->writer, $this->currentSpace ),
-			new CopyrightMacro( $this->writer, $this->currentSpace ),
-			new SmMacro( $this->writer, $this->currentSpace ),
+			new TmMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new RegTmMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new CopyrightMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new SmMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new CheeseMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new LozengeMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new RoundrectMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new PrivacyMarkMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new PrivacyPolicyMacro( $this->writer, $this->currentSpace, $this->dataLookup, $this->placeholderManager ),
+			new WelcomeMessageMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new BgcolorMacro(),
+			new CenterMacro(),
+			new ClickableMacro(),
+			new ColgroupMacro(),
+			new DivMacro(),
+			new HighlightMacro(),
+			new HtmlcommentMacro( $this->placeholderManager ),
+			new LiMacro(),
+			new OlMacro(),
+			new PMacro(),
+			new ChangeHistoryMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new SearchBoxMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new PageTreeSearchMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new IframeMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new FancyBulletsMacro(),
+			new StyleMacro( $this->placeholderManager, $this->writer, $this->currentSpace ),
+			new PreMacro( $this->placeholderManager ),
+			new SpanMacro(),
+			new StrikeMacro(),
+			new TableMacro(),
+			new TbodyMacro(),
+			new TdMacro(),
+			new ThMacro(),
+			new TheadMacro(),
+			new TrMacro(),
+			new UlMacro(),
 			new JiraMacro(
 				$this->writer,
-				$this->currentSpace
+				$this->currentSpace,
+				$this->placeholderManager
 			),
-			new MarkdownMacro(),
+			new MarkdownMacro( $this->placeholderManager ),
 			new ViewFileMacro(
+				$this->writer,
+				$this->dataLookup,
+				$this->currentSpace,
+				$this->confluencePageTitle,
+				$this->migrationConfig
+			),
+			new OfficeViewfileMacro(
 				$this->writer,
 				$this->dataLookup,
 				$this->currentSpace,
@@ -631,7 +768,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 				$this->confluencePageTitle,
 				$this->migrationConfig
 			),
-			new WidgetMacro(),
+			new WidgetMacro( $this->placeholderManager ),
 			new PreservePStyleTag(
 				$this->placeholderManager
 			),
@@ -700,6 +837,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			new FixEmptyListItemWrapper(),
 			new FixMultilineTemplate(),
 			new EscapePipesInTemplateBody(),
+			new FixTableCellValign(),
 			new FixMultilineTable(),
 			new RemoveMultipleLinebreaks(),
 			new AddDisplayTitle( $this->confluencePageTitle, $this->wikiPageTitle ),
@@ -836,6 +974,14 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 	protected function preprocessHTMLSource( SplFileInfo $oHTMLSourceFile ): string {
 		$sContent = file_get_contents( $oHTMLSourceFile->getPathname() );
 
+		$sContent = ConverterHooks::convertContentPre( $sContent, [
+			'pageId' => $this->pageId,
+			'wikiPageTitle' => $this->wikiPageTitle,
+			'confluencePageTitle' => $this->confluencePageTitle,
+			'currentSpace' => $this->currentSpace,
+			'contentType' => $this->contentType,
+		], $this->dataLookup );
+
 		$preprocessors = [
 			new CDATAClosingFixer()
 		];
@@ -896,6 +1042,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$preprocessors = [
 			// Has to be first: must only see the original Confluence text
 			new EscapeWikiMarkup( $this->placeholderManager ),
+			new ProtectBareUrls( $this->placeholderManager ),
 			new SanitizeLinkContent(),
 			new HoistMacroFromHeading(),
 			new Table()
@@ -923,18 +1070,36 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 					foreach ( $elementWithDataAttr->attributes as $attribute ) {
 						if ( $attribute->name === 'data-atlassian-layout' ) {
 							$elementWithDataAttr->setAttribute( 'data-atlassian-layout', '' );
-						} elseif ( str_starts_with( $attribute->name, 'data-' ) ) {
-							/* pandoc strips "data-" prefixes from data attributes.
-							 * @see https://github.com/jgm/pandoc/issues/11680 */
-							$elementWithDataAttr->setAttribute(
-								'preserve-attr-' . $attribute->name,
-								 $attribute->value );
-							$elementWithDataAttr->removeAttribute( $attribute->name );
 						}
 					}
 				}
 			}
 		}
+	}
+
+	/**
+	 * Turns "- " list markers into wiki lists, leaving verbatim blocks untouched.
+	 *
+	 * @param string $wikiText
+	 * @return string
+	 */
+	private function replaceListMarkersOutsideVerbatim( string $wikiText ): string {
+		$parts = preg_split(
+			'#(<(markdown|syntaxhighlight|pre|nowiki)\b[^>]*>.*?</\\2>)#s',
+			$wikiText,
+			-1,
+			PREG_SPLIT_DELIM_CAPTURE
+		);
+		$result = '';
+		// Captures come in triples: text, verbatim block, tag name
+		foreach ( $parts as $i => $part ) {
+			$result .= match ( $i % 3 ) {
+				0 => str_replace( "\n- ", "\n* ", $part ),
+				1 => $part,
+				default => ''
+			};
+		}
+		return $result;
 	}
 
 	/**
@@ -948,8 +1113,7 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 		$this->wikiText = HtmlCommentMarkerResolver::resolve( $this->wikiText );
 		$this->wikiText = str_replace( "\n {{", "\n{{", $this->wikiText );
 		$this->wikiText = str_replace( "\n }}", "\n}}", $this->wikiText );
-		$this->wikiText = str_replace( "\n- ", "\n* ", $this->wikiText );
-		$this->wikiText = str_replace( " preserve-attr-data-", " data-", $this->wikiText );
+		$this->wikiText = $this->replaceListMarkersOutsideVerbatim( $this->wikiText );
 		$this->wikiText = preg_replace_callback(
 			[
 				"#&lt;img(.*?)/&gt;#s",
@@ -960,10 +1124,13 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			$this->wikiText
 		);
 
-		$categories = array_map(
-			static fn ( $category ) => '[[Category:' . ucfirst( $category ) . ']]',
-			$this->getMetaData()['categories'] ?? []
-		);
+		$categories = [];
+		foreach ( $this->getMetaData()['categories'] ?? [] as $category ) {
+			$sanitizedName = Sanitizer::sanitizeCategory( $category );
+			if ( $sanitizedName !== '' ) {
+				$categories[] = "[[Category:$sanitizedName]]";
+			}
+		}
 		if ( $categories ) {
 			$this->wikiText .= "\n\n" . implode( ' ', $categories );
 		}
@@ -1091,8 +1258,12 @@ abstract class ConfluenceConverterBase extends PandocHTML implements IDestinatio
 			}
 		}
 
-		$this->addNonBlockingLogEntry( "bodyContentId $bodyContentId contains large content (>$exceed KB)" );
-		Log::to( 'console' )->warning( "bodyContentId $bodyContentId contains large content" );
+		$message = "bodyContentId $bodyContentId contains large content (>$exceed KB)";
+		if ( $this->bodyLengthInvalidReason !== null ) {
+			Log::warning( $message );
+		} else {
+			Log::notice( $message );
+		}
 	}
 
 	/**

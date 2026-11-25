@@ -20,6 +20,7 @@ use HalloWelt\MigrateConfluence\Analyzer\Processor\ProcessorBase;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\SpaceDescription;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Spaces;
 use HalloWelt\MigrateConfluence\Analyzer\Processor\Users;
+use HalloWelt\MigrateConfluence\Utility\Hooks\AnalyzerHooks;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use InvalidArgumentException;
@@ -69,6 +70,11 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			return true;
 		}
 
+		if ( !AnalyzerHooks::includeSourceFile( true, $file ) ) {
+			Log::warning( "Skipping file due to config: " . $file->getPathname() );
+			return true;
+		}
+
 		$sourcePath = $file->getPathname();
 
 		Log::to( 'console' )->info( "Processing: $sourcePath" );
@@ -104,10 +110,21 @@ class ConfluenceAnalyzer implements LoggerAwareInterface, IAnalyzer {
 			if ( $configured !== '' ) {
 				throw new InvalidArgumentException( "Invalid 'source-timezone' in config: '$configured'" );
 			}
-			$this->output->writeln( "Unknown timezoneId '$descriptorTimezone' in export, assuming UTC" );
+			Log::warning(
+				"Unknown timezoneId '$descriptorTimezone' in export, assuming UTC"
+			);
 			$timezone = new DateTimeZone( 'UTC' );
 		}
-		$this->output->writeln( "Interpreting export dates as {$timezone->getName()}" );
+		$message = "Interpreting export dates as {$timezone->getName()}";
+		$overridesExport = $configured !== '' && $descriptorTimezone !== '' &&
+			$configured !== $descriptorTimezone;
+		if ( $overridesExport ) {
+			Log::warning( "$message (overriding '$descriptorTimezone' from export)" );
+		} elseif ( $timezone->getName() !== 'UTC' ) {
+			Log::warning( $message );
+		} else {
+			Log::debug( $message );
+		}
 
 		foreach ( $processors as $processor ) {
 			if ( $processor instanceof ProcessorBase ) {

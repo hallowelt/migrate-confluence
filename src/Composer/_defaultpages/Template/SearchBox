@@ -1,0 +1,43 @@
+<noinclude>Template added by Confluence migration to handle the "search-box" macro.
+
+<templatedata>
+{
+    "description": {
+        "en": "Shows a search field that opens the wiki search (Confluence \"search-box\" macro). Space restrictions, grouping and filters of the Confluence macro are not available.",
+        "de": "Zeigt ein Suchfeld, das die Wiki-Suche \u00f6ffnet (Confluence-\"search-box\"-Makro). Space-Einschr\u00e4nkungen, Gruppierung und Filter des Confluence-Makros stehen nicht zur Verf\u00fcgung."
+    },
+    "params": {
+        "label": {
+            "label": { "en": "Input label", "de": "Beschriftung des Eingabefelds" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "Label shown next to the search field", "de": "Beschriftung neben dem Suchfeld" }
+        },
+        "placeholder": {
+            "label": { "en": "Placeholder", "de": "Platzhaltertext" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "Placeholder text in the empty search field", "de": "Platzhaltertext im leeren Suchfeld" }
+        },
+        "button": {
+            "label": { "en": "Button label", "de": "Beschriftung der Schaltfl\u00e4che" },
+            "type": "string",
+            "required": false,
+            "default": "Search",
+            "description": { "en": "Text of the search button", "de": "Text der Such-Schaltfl\u00e4che" }
+        },
+        "class": {
+            "label": { "en": "CSS class", "de": "CSS-Klasse" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "Additional CSS class(es) for the form", "de": "Zus\u00e4tzliche CSS-Klasse(n) f\u00fcr das Formular" }
+        },
+        "id": {
+            "label": { "en": "ID", "de": "ID" },
+            "type": "string",
+            "required": false,
+            "description": { "en": "HTML ID of the form", "de": "HTML-ID des Formulars" }
+        }
+    }
+}
+</templatedata></noinclude><includeonly>{{#widget:SearchForm|action={{fullurl:Special:Search}}|label={{{label|}}}|placeholder={{{placeholder|}}}|button={{{button|{{int:searchbutton}}}}}|class={{{class|}}}|id={{{id|}}}}}</includeonly>

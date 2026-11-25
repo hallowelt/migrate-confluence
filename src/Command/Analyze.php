@@ -11,6 +11,7 @@ use HalloWelt\MigrateConfluence\Analyzer\ConfluenceAnalyzer;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerDirectDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\AnalyzerPipeDataWriter;
 use HalloWelt\MigrateConfluence\Analyzer\DataWriter\IAnalyzeDataWriter;
+use HalloWelt\MigrateConfluence\Command\Traits\SetupHooks;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
 use HalloWelt\MigrateConfluence\Database\DataWriter\PipeLogEntryWriter;
 use HalloWelt\MigrateConfluence\Database\DataWriter\WorkerPool;
@@ -19,6 +20,7 @@ use HalloWelt\MigrateConfluence\Utility\ConfigOptionHelper;
 use HalloWelt\MigrateConfluence\Utility\CSVParser;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
 use HalloWelt\MigrateConfluence\Utility\Sanitizer;
+use HalloWelt\MigrateConfluence\Utility\TitleValidityChecker;
 use HalloWelt\MigrateConfluence\Utility\Version;
 use HalloWelt\MigrateConfluence\Utility\WikisConfig;
 use SplFileInfo;
@@ -40,6 +42,10 @@ class Analyze extends BatchFileProcessorBase {
 	 * @var WikisConfig
 	 */
 	private WikisConfig $wikisConfig;
+
+	private ?MigrationConfig $migrationConfig = null;
+
+	use SetupHooks;
 
 	/**
 	 * @param array $config
@@ -122,6 +128,8 @@ class Analyze extends BatchFileProcessorBase {
 			return Command::FAILURE;
 		}
 
+		$this->installCustomerHooks( $this->getMigrationConfig(), $this->input->getOption( 'config' ) );
+
 		if ( $isChildProcess ) {
 			$workspaceDB = WorkspaceDB::open( $this->dest );
 			$this->wikisConfig = new WikisConfig( $workspaceDB );
@@ -153,7 +161,7 @@ class Analyze extends BatchFileProcessorBase {
 			$result = $pool->run( WorkerPool::baseCommandFromArgv(), $workers );
 			$this->logExecutionTime( $output, $this->dest );
 
-			return $result;
+			return $result === Command::SUCCESS ? $this->validateTargetNames( $workspaceDB ) : $result;
 		}
 
 		$this->dataWriter = new AnalyzerDirectDataWriter( $workspaceDB );
@@ -162,10 +170,44 @@ class Analyze extends BatchFileProcessorBase {
 		try {
 			$result = parent::execute( $input, $output );
 			$this->logExecutionTime( $output, $this->dest );
-			return $result;
+			return $result === Command::SUCCESS ? $this->validateTargetNames( $workspaceDB ) : $result;
 		} finally {
 			$this->dataWriter = null;
 		}
+	}
+
+	/**
+	 * Fails if any space maps to a namespace or wiki name that cannot be imported.
+	 *
+	 * @param WorkspaceDB $workspaceDB
+	 * @return int
+	 */
+	private function validateTargetNames( WorkspaceDB $workspaceDB ): int {
+		$checker = new TitleValidityChecker();
+		$invalid = [];
+		foreach ( $workspaceDB->getSpacesWikiNamespaces() as $row ) {
+			$namespace = rtrim( (string)$row['namespace_prefix'], ':' );
+			// Empty namespace means NS_MAIN
+			if ( $namespace !== '' && !$checker->hasValidNamespace( $namespace ) ) {
+				$invalid[] = "space '{$row['space_key']}': namespace '$namespace'";
+			}
+			$wikiName = $row['wiki_name'];
+			if ( $wikiName !== null && $wikiName !== '' && !$checker->hasValidWikiName( $wikiName ) ) {
+				$invalid[] = "space '{$row['space_key']}': wiki name '$wikiName'";
+			}
+		}
+		if ( !$invalid ) {
+			return Command::SUCCESS;
+		}
+
+		Log::to( 'console' )->critical(
+			"Invalid target names found. Pages in them could not be imported:\n  "
+			. implode( "\n  ", $invalid )
+			. "\nFix 'wiki-namespace'/'wiki-name' in the wikis CSV and re-run 'analyze'. For huge"
+			. " inputs you can instead update the columns 'wiki_namespace'/'wiki_name' (table"
+			. " 'wikis_config') or 'namespace_prefix' (table 'spaces') directly in workspace.sqlite."
+		);
+		return Command::FAILURE;
 	}
 
 	/**
@@ -211,23 +253,26 @@ class Analyze extends BatchFileProcessorBase {
 	 * @return MigrationConfig
 	 */
 	private function getMigrationConfig(): MigrationConfig {
-		$filename = $this->input->getOption( 'config' );
+		if ( !$this->migrationConfig ) {
+			$filename = $this->input->getOption( 'config' );
 
-		$advancedConfig = [];
-		if ( !empty( $filename ) ) {
-			$configOptionHelper = new ConfigOptionHelper( $filename );
-			$validationError = $configOptionHelper->validateFile();
+			$config = [];
+			if ( !empty( $filename ) ) {
+				$configOptionHelper = new ConfigOptionHelper( $filename );
+				$validationError = $configOptionHelper->validateFile();
 
-			if ( $validationError !== null ) {
-				Log::to( 'console' )->error( $validationError );
-				exit( 1 );
-			} else {
-				$advancedConfig = $configOptionHelper->getConfig();
-				Log::to( 'console' )->debug( 'Config file loaded successfully' );
+				if ( $validationError !== null ) {
+					Log::to( 'console' )->error( $validationError );
+					exit( 1 );
+				} else {
+					$config = $configOptionHelper->getConfig();
+					Log::to( 'console' )->debug( 'Config file loaded successfully' );
+				}
 			}
-		}
 
-		return new MigrationConfig( $advancedConfig );
+			$this->migrationConfig = new MigrationConfig( $config );
+		}
+		return $this->migrationConfig;
 	}
 
 	/**

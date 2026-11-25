@@ -1,6 +1,8 @@
-<pre class="noformat">        SELECT * FROM menu;
+<pre class="noformat">
+        SELECT * FROM menu;
         </pre>
-<pre class="noformat nopanel">        SELECT * FROM menu;
+<pre class="noformat nopanel">
+        SELECT * FROM menu;
         </pre>
 
 {{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

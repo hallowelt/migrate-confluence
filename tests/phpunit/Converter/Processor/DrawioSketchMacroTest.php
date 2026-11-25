@@ -7,6 +7,7 @@ use HalloWelt\MigrateConfluence\Converter\Processor\DrawioSketchMacro;
 use HalloWelt\MigrateConfluence\Tests\Database\WorkspaceDbMock;
 use HalloWelt\MigrateConfluence\Utility\ConversionDataWriter;
 use HalloWelt\MigrateConfluence\Utility\DBConversionDataLookup;
+use HalloWelt\MigrateConfluence\Utility\PlaceholderManager;
 
 class DrawioSketchMacroTest extends ProcessorTestCase {
 	/** @var DBConversionDataLookup */
@@ -59,10 +60,17 @@ class DrawioSketchMacroTest extends ProcessorTestCase {
 		$dom = new DOMDocument();
 		$dom->loadXML( $input );
 
+		$placeholderManager = new PlaceholderManager();
 		$processor = new DrawioSketchMacro(
-			$this->createConverterDataWriter(), $this->dataLookup, $this->conversionDataWriter, $spaceId, 'SomePage'
+			$this->createConverterDataWriter(),
+			$this->dataLookup,
+			$this->conversionDataWriter,
+			$spaceId,
+			'SomePage',
+			$placeholderManager
 		);
 		$processor->process( $dom );
+		$this->resolvePlaceholders( $dom, $placeholderManager );
 		$actualOutput = $dom->saveXML();
 
 		$this->assertEquals( $expectedOutput, $actualOutput );
