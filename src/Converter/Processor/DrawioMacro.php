@@ -143,6 +143,10 @@ class DrawioMacro extends StructuredMacroProcessorBase {
 				$rawPageTitle,
 				$diagramName . '.png'
 			) ?? '';
+			// The data file's extension (e.g. ".vnd.jgraph.mxfile") may differ from the image's base name
+			if ( str_ends_with( $drawioImageFilename, '.png' ) ) {
+				$filename = substr( $drawioImageFilename, 0, -strlen( '.png' ) );
+			}
 		} else {
 			// find data
 			$drawioImageFilename = $filename;
