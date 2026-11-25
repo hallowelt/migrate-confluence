@@ -328,8 +328,9 @@ class Files extends FileProcessorBase {
 		foreach ( $generatedSvgs as $generatedSvg ) {
 			$filename = $generatedSvg['svg_filename'];
 
-			if ( $this->skipHelper->skipWikiTitle( $filename ) ) {
-				Log::to( 'console' )->info( "Skip generated SVG $filename." );
+			$wikiTitle = $this->getGeneratedSvgWikiTitle( $generatedSvg );
+			if ( $wikiTitle !== null && $this->skipHelper->skipWikiTitle( $wikiTitle ) ) {
+				Log::to( 'console' )->info( "Skip generated SVG $filename for $wikiTitle." );
 				continue;
 			}
 
@@ -353,5 +354,23 @@ class Files extends FileProcessorBase {
 
 			$this->deploymentInfo->addFileExtension( 'svg' );
 		}
+	}
+
+	/**
+	 * Finds the wiki title of the page or blog post that contains the macro which
+	 * generated the SVG. Returns null if it can't be told, so the SVG is kept.
+	 *
+	 * @param array $generatedSvg Row from roadmap_svgs
+	 * @return string|null
+	 */
+	private function getGeneratedSvgWikiTitle( array $generatedSvg ): ?string {
+		if ( $generatedSvg['space_id'] === null ) {
+			return null;
+		}
+		$spaceId = (int)$generatedSvg['space_id'];
+		$title = $generatedSvg['confluence_title'];
+
+		return $this->dataLookup->getWikiPageTitleFromSpaceId( $spaceId, $title )
+			?? $this->dataLookup->getWikiBlogPostTitleFromSpaceId( $spaceId, $title );
 	}
 }

@@ -188,6 +188,24 @@ class DBComposerDataLookup {
 	}
 
 	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @return string|null
+	 */
+	public function getWikiPageTitleFromSpaceId( int $spaceId, string $confluenceTitle ): ?string {
+		return $this->workspaceDB->getWikiPageTitleFromSpaceId( $spaceId, $confluenceTitle );
+	}
+
+	/**
+	 * @param int $spaceId
+	 * @param string $confluenceTitle
+	 * @return string|null
+	 */
+	public function getWikiBlogPostTitleFromSpaceId( int $spaceId, string $confluenceTitle ): ?string {
+		return $this->workspaceDB->getWikiBlogPostTitleFromSpaceId( $spaceId, $confluenceTitle );
+	}
+
+	/**
 	 * Returns the talk page wiki title for comments on the given page.
 	 *
 	 * @param int $pageId
