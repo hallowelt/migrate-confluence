@@ -2,9 +2,12 @@
 
 namespace HalloWelt\MigrateConfluence\Converter;
 
+use HalloWelt\MigrateConfluence\Converter\Processor\ChildrenMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptIncludeMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\ExcerptMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\PanelMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\RecentlyUpdatedMacro;
+use HalloWelt\MigrateConfluence\Converter\Processor\SpaceDetailsMacro;
 use HalloWelt\MigrateConfluence\Converter\Processor\StatusMacro;
 
 class ConfluenceConverterMediaWiki extends ConfluenceConverterBase {
@@ -21,6 +24,14 @@ class ConfluenceConverterMediaWiki extends ConfluenceConverterBase {
 			new ExcerptMacro( $this->writer, $this->currentSpace ),
 			new ExcerptIncludeMacro( $this->writer, $this->dataLookup, $this->currentSpace ),
 			new PanelMacro( $this->writer, $this->currentSpace, $this->placeholderManager ),
+			new SpaceDetailsMacro( $this->writer, $this->currentSpace ),
+			new ChildrenMacro(
+				$this->writer,
+				$this->currentSpace,
+				$this->wikiPageTitle,
+				$this->dataLookup
+			),
+			new RecentlyUpdatedMacro( $this->writer, $this->currentSpace, $this->wikiPageTitle ),
 		] );
 
 		return $processors;

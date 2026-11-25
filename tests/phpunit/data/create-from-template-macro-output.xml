@@ -1,9 +1,9 @@
 <xml xmlns:ac="sample_namespace" xmlns:ri="sample_second_namespace">
 	<p>Some text before</p>
-	{{CreateFromTemplate|preload = Template:ABC/SomePage|buttonlabel = Create|macroid = 9c4e10cc-3728-409e-b178-16a9e2751ae8}}
-	{{CreateFromTemplate|preload = Template:DEVOPS/SomeOtherPage|buttonlabel = New|macroid = 68860c88-2cb6-47fa-bb6c-afd9d0fdbdef}}
-	{{CreateFromTemplate|preload = Template:ABC/SomePage|buttonlabel = Create|macroid = f1bcfd9e-b015-4b0e-9237-35e1737343c1}}
+	{{CreateFromTemplate|preload = Template:ABC/SomePage|buttonlabel = Create}}
+	{{CreateFromTemplate|preload = Template:DEVOPS/SomeOtherPage|buttonlabel = New}}
+	{{CreateFromTemplate|preload = Template:ABC/SomePage|buttonlabel = Create}}
 	<p>Some text after</p>
-	{{CreateFromTemplate|preload = Template:FallbackCreateFromTemplate|buttonlabel = New|macroid = 68860c88-2cb6-47fa-bb6c-afd9d0fdbdef}}convert:placeholder=0
-	{{CreateFromTemplate|preload = Template:FallbackCreateFromTemplate|buttonlabel = Create|macroid = f1bcfd9e-b015-4b0e-9237-35e1737343c1}}convert:placeholder=1
+	{{CreateFromTemplate|preload = Template:FallbackCreateFromTemplate|buttonlabel = New}}convert:placeholder=0
+	{{CreateFromTemplate|preload = Template:FallbackCreateFromTemplate|buttonlabel = Create}}convert:placeholder=1
 </xml>

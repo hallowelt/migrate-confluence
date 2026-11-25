@@ -1,0 +1,15 @@
+<pagelist page="SomePage" format="list" depth="1" root="false" sort="title" order="asc" />
+
+<pagelist page="SomePage" format="list" depth="100" root="false" sort="created" order="desc" /><!-- children macro parameters not migrated: style=h2 -->
+
+<pagelist page="ABC:Some page" format="list" depth="100" root="false" sort="title" order="asc" /><!-- children macro parameters not migrated: style=h2 -->
+
+<pagelist page="DEVOPS:Some other page" format="list" depth="100" root="false" sort="title" order="asc" /><!-- children macro parameters not migrated: style=h2 -->
+
+<pagelist page="Confluence_page---DEVOPS---Unknown_page" format="list" depth="100" root="false" sort="title" order="asc" /><!-- children macro parameters not migrated: style=h2 -->[[Category:Broken_macro/children]]
+
+<pagelist page="Confluence_page------Unknown_page" format="list" depth="100" root="false" sort="title" order="asc" /><!-- children macro parameters not migrated: style=h2 -->[[Category:Broken_macro/children]]
+
+<pagelist page="SomePage" format="list" depth="100" root="false" sort="title" order="asc" /><!-- children macro parameters not migrated: style=h2 -->
+
+{{DISPLAYTITLE:SomeConfluenceTitle|noreplace}}

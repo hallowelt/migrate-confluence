@@ -1,11 +1,10 @@
 <noinclude>Template added by Confluence migration to handle the "create-from-template" macro
 
-Renders an inputbox for creating new pages from a template and lists pages previously created by this macro instance.
+Renders an inputbox for creating new pages from a template.
 
 Parameters:
 * preload - The template page to preload when creating a new page
 * buttonlabel - Label for the create button
-* macroid - Unique identifier for this macro instance (used to scope created pages)
 <templatedata>
 {
     "description": {
@@ -34,18 +33,6 @@ Parameters:
             "type": "string",
             "default": "Create from template",
             "suggested": true
-        },
-        "macroid": {
-            "label": {
-                "en": "identifier",
-                "de": "Bezeichner"
-            },
-            "description": {
-                "en": "unique identifier to group created pages together",
-                "de": "Eindeutiger Bezeichner zum Gruppieren erstellter Seiten"
-            },
-            "type": "string",
-            "suggested": true
         }
     }
 }
@@ -53,15 +40,9 @@ Parameters:
 {{#tag:inputbox|
 type=create
 preload={{{preload|preload}}}
-preloadparams[]={{{macroid|}}}
 buttonlabel={{{buttonlabel|Create from template}}}
 width=28
 break=no
 useve=true
-}}
-{{#ask: [[Created by macro::{{{macroid|}}}]]
-| format=embedded
-| sort=Creation date
-| order=asc
 }}
 </includeonly>
