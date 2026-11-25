@@ -9,8 +9,6 @@ use SplFileInfo;
 use Symfony\Component\Console\Output\Output;
 
 class DefaultPages extends ProcessorBase {
-	private const PROFILE_DIRECTORIES = [ 'bluespice-galaxy' => 'BlueSpiceGalaxy' ];
-
 	/**
 	 * @param Builder $builder
 	 * @param Output $output
@@ -84,25 +82,18 @@ class DefaultPages extends ProcessorBase {
 	}
 
 	/**
-	 * Collects the default page files; files below a profile directory such as
-	 * `_defaultpages/BlueSpiceGalaxy` replace the files of the same relative path in `_defaultpages`
-	 * for that output profile.
+	 * Collects the default page files; files below `_<profile>pages` (e.g. `_bluespice-galaxypages`)
+	 * replace the files of the same relative path in `_defaultpages` for that output profile.
 	 *
 	 * @return array<string,string> Relative path => base directory the file was found in
 	 */
 	private function getDefaultPageFiles(): array {
-		$basePath = dirname( __DIR__ ) . '/_defaultpages/';
-		$files = [];
-		foreach ( $this->scanDirectory( $basePath ) as $relativePath => $path ) {
-			$topDirectory = explode( '/', $relativePath )[0];
-			if ( !in_array( $topDirectory, self::PROFILE_DIRECTORIES, true ) ) {
-				$files[$relativePath] = $path;
-			}
-		}
+		$composerPath = dirname( __DIR__ ) . '/';
+		$files = $this->scanDirectory( $composerPath . '_defaultpages/' );
 
-		$profileDirectory = self::PROFILE_DIRECTORIES[$this->migrationConfig->getProfile()] ?? null;
-		if ( $profileDirectory !== null && is_dir( $basePath . $profileDirectory ) ) {
-			$files = array_merge( $files, $this->scanDirectory( $basePath . $profileDirectory . '/' ) );
+		$profilePath = $composerPath . '_' . $this->migrationConfig->getProfile() . 'pages/';
+		if ( is_dir( $profilePath ) ) {
+			$files = array_merge( $files, $this->scanDirectory( $profilePath ) );
 		}
 
 		ksort( $files );

@@ -21,7 +21,7 @@ Currently the tool supports two output profiles:
 
 Default pages (e.g. `Template:Folder`) live in `src/Composer/_defaultpages`
 and use Semantic MediaWiki (`{{#ask:`). A file at the same relative path below
-`src/Composer/_defaultpages/BlueSpiceGalaxy/` replaces the base file for that
+`src/Composer/_bluespice-galaxypages/` (`_<profile>pages`) replaces the base file for that
 profile. The `bluespice-galaxy` profile replaces the SMW-based `Folder`
 page with a StandardTags (`<recentchanges>`) equivalent.
 
