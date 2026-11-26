@@ -9,6 +9,7 @@ use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
 use HalloWelt\MigrateConfluence\Utility\ComposerSkipHelper;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PageTree;
 use Symfony\Component\Console\Output\Output;
 
 class Pages extends ContentProcessorBase {
@@ -57,6 +58,8 @@ class Pages extends ContentProcessorBase {
 			fn ( int $spaceId ): array => $this->dataLookup->getPageIdWikiPageTitleMap( $spaceId ),
 			fn (): array => $this->dataLookup->getPageIdWikiPageTitleMap()
 		);
+
+		$hierarchy = $this->buildHierarchy();
 
 		foreach ( $wikiTitles as $pageId => $pageTitle ) {
 			if ( $this->skipHelper->skipPage( $pageTitle ) ) {
@@ -126,6 +129,12 @@ class Pages extends ContentProcessorBase {
 					(string)( $revision['last_modifier'] ?? '' )
 				);
 
+				if ( isset( $hierarchy[$pageId] ) ) {
+					// Once per page, and only if the page gets a revision (the block precedes the first one).
+					$this->addHierarchyElement( $pageTitle, $hierarchy[$pageId] );
+					unset( $hierarchy[$pageId] );
+				}
+
 				$this->addRevision(
 					$pageTitle,
 					$pageContent,
@@ -136,5 +145,59 @@ class Pages extends ContentProcessorBase {
 
 			$this->deploymentInfo->addNamespace( $namespace );
 		}
+	}
+
+	/**
+	 * Maps page IDs to their parent title and sibling ordinal for the PageHierarchies import
+	 * format. Empty unless `hierarchy-method` is `page-hierarchies`.
+	 *
+	 * @return array<int, array{parent: ?string, order: int}>
+	 */
+	private function buildHierarchy(): array {
+		if ( $this->migrationConfig->getHierarchyMethod() !== 'page-hierarchies' ) {
+			return [];
+		}
+
+		$spaceIds = is_array( $this->currentSpaceIds ) ? $this->currentSpaceIds : [ null ];
+		$hierarchy = [];
+		// Spaces sharing a namespace share its root, so root ordinals continue across spaces.
+		$rootOrder = 0;
+		foreach ( $spaceIds as $spaceId ) {
+			$pages = array_filter(
+				$this->dataLookup->getPagesForSidebar( $spaceId === null ? null : (int)$spaceId ),
+				fn ( array $page ): bool => !$this->skipHelper->skipPage( $page['wiki_title'] )
+			);
+			$titles = array_column( $pages, 'wiki_title', 'page_id' );
+			foreach ( PageTree::childrenByParent( $pages ) as $parentId => $siblings ) {
+				$order = $parentId === 0 ? $rootOrder : 0;
+				foreach ( $siblings as $page ) {
+					$hierarchy[$page['page_id']] = [ 'parent' => $titles[$parentId] ?? null, 'order' => $order++ ];
+				}
+				if ( $parentId === 0 ) {
+					$rootOrder = $order;
+				}
+			}
+		}
+
+		return $hierarchy;
+	}
+
+	/**
+	 * Adds the <pagehierarchy> block read by the PageHierarchies importer. `ns` is omitted, so the
+	 * parent lives in the page's own namespace, which holds because Confluence parents share the space.
+	 *
+	 * @param string $pageTitle
+	 * @param array{parent: ?string, order: int} $info
+	 */
+	private function addHierarchyElement( string $pageTitle, array $info ): void {
+		$element = $this->builder->createCustomPageElement( 'pagehierarchy' );
+		$element->setAttribute( 'version', '1' );
+		$element->setAttribute( 'order', (string)$info['order'] );
+		if ( $info['parent'] !== null ) {
+			$parent = $this->builder->createCustomPageElement( 'parent' );
+			$parent->setAttribute( 'title', $info['parent'] );
+			$element->appendChild( $parent );
+		}
+		$this->builder->addCustomPageElement( $pageTitle, $element );
 	}
 }

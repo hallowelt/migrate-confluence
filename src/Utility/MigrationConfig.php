@@ -2,6 +2,8 @@
 
 namespace HalloWelt\MigrateConfluence\Utility;
 
+use InvalidArgumentException;
+
 class MigrationConfig {
 
 	/**
@@ -79,10 +81,24 @@ class MigrationConfig {
 	}
 
 	/**
-	 * @return bool
+	 * How the page hierarchy is carried over: 'page-hierarchies', 'enhanced-sidebar' or 'none'.
+	 * Galaxy has native page hierarchies; the enhanced sidebar is the fallback for other profiles.
+	 *
+	 * @return string
+	 * @throws InvalidArgumentException If the configured value is unknown
 	 */
-	public function getCreateSidebar(): bool {
-		return $this->get( 'create-sidebar', true );
+	public function getHierarchyMethod(): string {
+		$method = $this->get(
+			'hierarchy-method',
+			$this->getProfile() === 'bluespice-galaxy' ? 'page-hierarchies' : 'enhanced-sidebar'
+		);
+		if ( !in_array( $method, [ 'page-hierarchies', 'enhanced-sidebar', 'none' ], true ) ) {
+			throw new InvalidArgumentException(
+				"Invalid value '$method' for 'hierarchy-method'. "
+				. "Allowed: page-hierarchies, enhanced-sidebar, none."
+			);
+		}
+		return $method;
 	}
 
 	/**

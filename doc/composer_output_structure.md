@@ -99,6 +99,18 @@ workspace/result/<wiki-name>/<namespace>/blog-talk.xml
 Default pages and default files are not written to these namespace directories in
 wiki-based composition. They belong to `<wiki-name>/_shared`.
 
+## Page Hierarchy Metadata
+
+With `hierarchy-method: page-hierarchies`, `pages.xml` contains a `<pagehierarchy>`
+block after `<title>` of each page, before the first `<revision>`:
+
+```xml
+<pagehierarchy version="1" order="1"><parent title="CON:Parent"/></pagehierarchy>
+```
+
+Root pages have no `<parent>`. The block is written once per page, even if its
+revisions are split across files. See `configuration.md` for the option.
+
 ## Default Pages and Default Files
 
 Default pages and default files are registered during conversion by converter processors

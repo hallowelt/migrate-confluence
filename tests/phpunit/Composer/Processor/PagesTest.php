@@ -146,6 +146,64 @@ class PagesTest extends TestCase {
 		$this->assertSame( [ '20230101000000', '' ], $recordedTimestamps );
 	}
 
+	/**
+	 * @covers \HalloWelt\MigrateConfluence\Composer\Processor\Pages::buildHierarchy
+	 */
+	public function testEmitsPageHierarchyBlocksForGalaxy() {
+		$builder = new Builder();
+		$dataLookup = $this->createMock( DBComposerDataLookup::class );
+		$workspace = $this->createMock( Workspace::class );
+		$migrationConfig = $this->createMock( MigrationConfig::class );
+
+		$migrationConfig->method( 'getHierarchyMethod' )->willReturn( 'page-hierarchies' );
+		$migrationConfig->method( 'getComposerSkipNamespaces' )->willReturn( [] );
+		$migrationConfig->method( 'getComposerSkipTitles' )->willReturn( [] );
+		$migrationConfig->method( 'getAddUserinfo' )->willReturn( false );
+
+		$page = static fn ( int $id, string $title, int $parent, int $position ): array => [
+			'page_id' => $id, 'wiki_title' => $title, 'confluence_title' => $title,
+			'parent_page_id' => $parent, 'position' => $position,
+		];
+		$dataLookup->method( 'isPageInvalid' )->willReturn( false );
+		$dataLookup->method( 'getPageIdWikiPageTitleMap' )
+			->willReturn( [ 1 => 'Root', 2 => 'Child B', 3 => 'Child C' ] );
+		$dataLookup->method( 'getPagesForSidebar' )->willReturn( [
+			$page( 1, 'Root', -1, 0 ), $page( 2, 'Child B', 1, 5 ), $page( 3, 'Child C', 1, 2 ),
+		] );
+		$dataLookup->method( 'getSpaceIdForPageId' )->willReturn( 10 );
+		$dataLookup->method( 'getSpaceHomepageIdForSpaceId' )->willReturn( null );
+		$dataLookup->method( 'getSpaceDescriptionRevisionsForSpaceId' )->willReturn( [] );
+		$dataLookup->method( 'getPageRevisionsForPageId' )->willReturn( [ [
+			'revision_timestamp' => '20230101000000',
+			'body_content_ids' => json_encode( [ 1 ] ),
+			'last_modifier' => '',
+		] ] );
+		$workspace->method( 'getConvertedContent' )->willReturn( 'content' );
+
+		$processor = new Pages(
+			$builder, $dataLookup, $workspace, $this->makeOutput(), $this->tmpDir,
+			$migrationConfig, new ComposerDeploymentInfo(),
+			new ComposerSkipHelper( $dataLookup, $migrationConfig )
+		);
+		$processor->execute();
+
+		$xml = simplexml_load_file( $this->tmpDir . '/result/pages.xml' );
+		$blocks = [];
+		foreach ( $xml->page as $pageEl ) {
+			$block = $pageEl->pagehierarchy;
+			$blocks[(string)$pageEl->title] = [
+				(string)$block['order'], isset( $block->parent ) ? (string)$block->parent['title'] : null,
+			];
+			$this->assertSame( 'pagehierarchy', $pageEl->children()[1]->getName() );
+		}
+
+		$this->assertEquals( [
+			'Root' => [ '0', null ],
+			'Child C' => [ '0', 'Root' ],
+			'Child B' => [ '1', 'Root' ],
+		], $blocks );
+	}
+
 	/** @return Output */
 	private function makeOutput(): Output {
 		return new class extends Output {

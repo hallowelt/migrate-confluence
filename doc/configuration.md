@@ -32,7 +32,7 @@ config:
     composer-skip-titles:
         - ABC:DEF/GHI
     ns-talk-prefix: Talk
-    create-sidebar: true
+    hierarchy-method: enhanced-sidebar
     profile: mediawiki
     csv-delimiter: ","
     add-userinfo: false
@@ -138,14 +138,25 @@ namespace).
 **Deprecated.** This setting will be removed in future versions. We expect the `*_Talk`
 namespaces to always be available as aliases, even in non-English wikis.
 
-### `create-sidebar`
+### `hierarchy-method`
 
-* Type: bool
-* Default: `true`
+* Type: string
+* Allowed values: `page-hierarchies`, `enhanced-sidebar`, `none`
+* Default: `page-hierarchies` for profile `bluespice-galaxy`, otherwise `enhanced-sidebar`
 
-Whether to generate a BlueSpice enhanced sidebar page from the migrated Confluence
-spaces. Set to `false` to skip sidebar generation entirely. See
-[the BlueSpice documentation](https://en.wiki.bluespice.com/wiki/Manual:Extension/MenuEditor#Enhanced_MediaWiki_sidebar) about this feature.
+How the Confluence page hierarchy is carried over:
+
+* `page-hierarchies`: `pages.xml` gets a `<pagehierarchy>` block per page (parent and
+  sibling order) for the BlueSpice Galaxy PageHierarchies extension. See
+  [composer output structure](composer_output_structure.md#page-hierarchy-metadata).
+* `enhanced-sidebar`: generates a BlueSpice enhanced sidebar page from the migrated
+  Confluence spaces. See
+  [the BlueSpice documentation](https://en.wiki.bluespice.com/wiki/Manual:Extension/MenuEditor#Enhanced_MediaWiki_sidebar) about this feature.
+* `none`: no hierarchy data is emitted.
+
+Any other value aborts the compose step. This replaces the former boolean
+`create-sidebar`; that key is no longer read, so use `hierarchy-method: none` instead of
+`create-sidebar: false`.
 
 ### `profile`
 

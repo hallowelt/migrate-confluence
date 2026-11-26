@@ -8,6 +8,7 @@ use HalloWelt\MigrateConfluence\Composer\ISubDirAware;
 use HalloWelt\MigrateConfluence\Utility\DBComposerDataLookup;
 use HalloWelt\MigrateConfluence\Utility\DirectoryHelper;
 use HalloWelt\MigrateConfluence\Utility\MigrationConfig;
+use HalloWelt\MigrateConfluence\Utility\PageTree;
 
 class Sidebar implements IConfluenceComposerProcessor, ISubDirAware {
 
@@ -39,7 +40,7 @@ class Sidebar implements IConfluenceComposerProcessor, ISubDirAware {
 	 * @return void
 	 */
 	public function execute(): void {
-		if ( !$this->migrationConfig->getCreateSidebar() ) {
+		if ( $this->migrationConfig->getHierarchyMethod() !== 'enhanced-sidebar' ) {
 			return;
 		}
 
@@ -112,21 +113,7 @@ class Sidebar implements IConfluenceComposerProcessor, ISubDirAware {
 	 * @return array Nested sidebar link entries
 	 */
 	private function buildPageTree( array $pages ): array {
-		$pageIdSet = array_flip( array_column( $pages, 'page_id' ) );
-
-		$childrenOf = [];
-		foreach ( $pages as $page ) {
-			$parentId = $page['parent_page_id'];
-			if ( $parentId === -1 || !isset( $pageIdSet[$parentId] ) ) {
-				$parentId = 0;
-			}
-			$childrenOf[$parentId][] = $page;
-		}
-
-		foreach ( $childrenOf as &$siblings ) {
-			usort( $siblings, static fn ( $a, $b ) => $a['position'] <=> $b['position'] );
-		}
-		unset( $siblings );
+		$childrenOf = PageTree::childrenByParent( $pages );
 
 		return $this->buildEntries( $childrenOf[0] ?? [], $childrenOf );
 	}
