@@ -4,7 +4,6 @@ namespace HalloWelt\MigrateConfluence\Composer;
 
 use Exception;
 use HalloWelt\MediaWiki\Lib\MediaWikiXML\Builder;
-use HalloWelt\MediaWiki\Lib\Migration\ComposerBase;
 use HalloWelt\MediaWiki\Lib\Migration\DataBuckets;
 use HalloWelt\MediaWiki\Lib\Migration\IOutputAwareInterface;
 use HalloWelt\MediaWiki\Lib\Migration\Logging\Log;
@@ -20,7 +19,6 @@ use HalloWelt\MigrateConfluence\Composer\Processor\Pages;
 use HalloWelt\MigrateConfluence\Composer\Processor\Sidebar;
 use HalloWelt\MigrateConfluence\Composer\Processor\Templates;
 use HalloWelt\MigrateConfluence\Composer\Processor\Users;
-use HalloWelt\MigrateConfluence\Database\DataWriter\PipeChannel;
 use HalloWelt\MigrateConfluence\Database\WorkspaceDB;
 use HalloWelt\MigrateConfluence\IDestinationPathAware;
 use HalloWelt\MigrateConfluence\Utility\ComposerDeploymentInfo;
@@ -40,7 +38,7 @@ use Symfony\Component\Console\Output\Output;
  *
  * Not intended to be extended; all helper members are private.
  */
-final class ConfluenceComposer extends ComposerBase implements IOutputAwareInterface, IDestinationPathAware {
+final class ConfluenceComposer extends ParallelComposer implements IOutputAwareInterface, IDestinationPathAware {
 
 	/**
 	 * Directory/name used for the single implicit wiki when no wiki mapping was configured
@@ -58,20 +56,6 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	 */
 	private const NAMESPACE_IMPORT_ID_STEP = 2;
 
-	/**
-	 * Round-robin index into the flattened list of (wiki, namespace) pairs across *all*
-	 * wikis, shared across every call to storeMigrationResult() in this instance. This is
-	 * what gives worker sharding namespace-level granularity instead of only wiki-level
-	 * granularity: a single large wiki with many namespaces still gets spread across every
-	 * worker, not pinned to just one of them.
-	 *
-	 * @var int
-	 */
-	private int $namespaceShardIndex = 0;
-
-	/** @var PipeChannel|null Lazily opened; only used when isWorker() actually sends data. */
-	private ?PipeChannel $pipeChannel = null;
-
 	/** @var MigrationConfig */
 	private MigrationConfig $migrationConfig;
 
@@ -88,28 +72,6 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	/** @var WorkspaceDB|null */
 	private ?WorkspaceDB $workspaceDB = null;
 
-	/** @var int Total number of parallel compose worker processes (1 = no parallelism) */
-	private int $workerCount = 1;
-
-	/** @var int Zero-based index of this worker process among $workerCount */
-	private int $workerIndex = 0;
-
-	/**
-	 * @var bool Set on the single, non-parallel pass that runs after all compose workers have
-	 * finished, to aggregate wiki-level artifacts (deployment.txt, wikiimport.sh, shared
-	 * content, wiki-level sidebar) that cannot be safely produced by concurrent workers
-	 * touching the same wiki. See finalizeWikis().
-	 */
-	private bool $finalizeOnly = false;
-
-	/**
-	 * @var array<string,string[]> subDir (wikiName/namespace) => file extensions, collected
-	 * from all workers by the orchestrator (via ComposeDataWriter over the fd-3 DB pipe) and
-	 * passed through here for the finalize pass to consume. Empty outside a finalize pass.
-	 * See finalizeWikis().
-	 */
-	private array $namespaceFileExtensions = [];
-
 	/**
 	 * @param array $config
 	 * @param Workspace $workspace
@@ -123,47 +85,6 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 		} else {
 			$this->migrationConfig = new MigrationConfig( [] );
 		}
-
-		$this->workerCount = (int)( $config['worker-count'] ?? 1 );
-		$this->workerIndex = (int)( $config['worker-index'] ?? 0 );
-		$this->finalizeOnly = (bool)( $config['compose-finalize-only'] ?? false );
-		$this->namespaceFileExtensions = $config['namespace-file-extensions'] ?? [];
-
-		$this->workspace = $workspace;
-	}
-
-	/**
-	 * Whether this instance is a spawned worker process (--workers > 1). Workers must not
-	 * write to the shared DB log or aggregated log files; only the single-process run does.
-	 *
-	 * @return bool
-	 */
-	private function isWorker(): bool {
-		return $this->workerCount > 1 && !$this->finalizeOnly;
-	}
-
-	/**
-	 * Whether this is the single, non-parallel finalize pass that runs after all compose
-	 * workers have finished (see finalizeWikis() for what it aggregates).
-	 *
-	 * @return bool
-	 */
-	private function isFinalizeOnly(): bool {
-		return $this->finalizeOnly;
-	}
-
-	/**
-	 * Round-robin slice check: true if the item at $index belongs to this worker.
-	 * Namespace/wiki sizes are not taken into account; distribution is a simple modulo split.
-	 *
-	 * @param int $index
-	 * @return bool
-	 */
-	private function isMyShare( int $index ): bool {
-		if ( $this->workerCount <= 1 ) {
-			return true;
-		}
-		return $index % $this->workerCount === $this->workerIndex;
 	}
 
 	/**
@@ -196,7 +117,12 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 		}
 		$this->skipHelper = new ComposerSkipHelper( $this->dataLookup, $this->migrationConfig );
 
+		$this->collectData();
 		$this->doBuildXML( $builder );
+	}
+
+	private function collectData(): void {
+		$wikiNames = $this->getConfiguredWikiNames();
 	}
 
 	/**
@@ -206,7 +132,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	private function doBuildXML( Builder $builder ): void {
 		$wikiNames = $this->getConfiguredWikiNames();
 
-		if ( $this->isFinalizeOnly() ) {
+		if ( $this->isFinalStep() ) {
 			// Workers only produced per-namespace artifacts (self-contained). Aggregate the
 			// once-per-wiki artifacts here, in a single non-parallel pass, without redoing
 			// any of the actual (expensive) content processing.
@@ -231,7 +157,7 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 			// wiki concurrently, only one of them (the single, non-parallel run) may write
 			// these; otherwise workers would race on the same files or overwrite each other's
 			// (partial) ComposerDeploymentInfo. They are produced later by the finalize pass
-			// instead — see isFinalizeOnly() above.
+			// instead — see isFinalStep() above.
 			if ( !$this->isWorker() ) {
 				$this->runSharedContentProcessors(
 					$builder,
@@ -261,7 +187,6 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 		if ( !$this->isWorker() ) {
 			$this->writeUserReadableDBLog();
-			$this->writeManifest( $fileExtensionsPerWiki );
 		}
 	}
 
@@ -380,16 +305,6 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 	}
 
 	/**
-	 * @return PipeChannel
-	 */
-	private function getPipeChannel(): PipeChannel {
-		if ( $this->pipeChannel === null ) {
-			$this->pipeChannel = new PipeChannel();
-		}
-		return $this->pipeChannel;
-	}
-
-	/**
 	 * Non-parallel pass run once after all compose workers have finished. Produces the
 	 * once-per-wiki artifacts (shared content, wiki-level sidebar, deployment.txt,
 	 * wikiimport.sh, namespace_import_config.json) that workers skipped while processing
@@ -428,8 +343,6 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 
 			$fileExtensionsPerWiki[$wikiName] = $deploymentInfo->getFileExtensions();
 		}
-
-		$this->writeManifest( $fileExtensionsPerWiki );
 	}
 
 	/**
@@ -867,69 +780,6 @@ final class ConfluenceComposer extends ComposerBase implements IOutputAwareInter
 			// keep the owner able to write, so that re-runs can overwrite the file
 			chmod( $targetPath, ( $sourcePerms & 0777 ) | 0200 );
 		}
-	}
-
-	/**
-	 * Writes a "manifest.json" file to the result directory, describing the deployable
-	 * wikis produced by a multi-wiki (wiki-based) migration run.
-	 *
-	 * @param array $fileExtensionsPerWiki Map of wiki name to the file extensions used in that wiki
-	 * @return void
-	 */
-	private function writeManifest( array $fileExtensionsPerWiki ): void {
-		if ( $fileExtensionsPerWiki === [] ) {
-			return;
-		}
-
-		$wikis = [];
-		foreach ( $fileExtensionsPerWiki as $wikiName => $fileExtensions ) {
-			$hasNamespaceImportConfig = file_exists(
-				$this->dest . "/result/$wikiName/namespace_import_config.json"
-			);
-
-			$scripts = [];
-			foreach ( $this->getManifestScriptTemplates( $hasNamespaceImportConfig ) as $scriptTemplate ) {
-				$scripts[] = str_replace( '<instance_id>', $wikiName, $scriptTemplate );
-			}
-
-			$wikis[] = [
-				'sfr' => $wikiName,
-				'file_extensions' => $fileExtensions,
-				'scripts' => $scripts,
-			];
-		}
-
-		$manifest = [
-			'source_system' => 'confluence',
-			'package_id' => $this->makePackageId(),
-			'target' => [
-				'wikis' => $wikis,
-			],
-		];
-
-		file_put_contents(
-			$this->dest . '/result/manifest.json',
-			json_encode( $manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) . "\n"
-		);
-	}
-
-	/**
-	 * @param bool $hasNamespaceImportConfig Whether a "namespace_import_config.json" was
-	 *   written for this wiki. It is only written when the wiki has namespaces besides
-	 *   NS_MAIN, so wikis with only the main namespace must skip the import script.
-	 * @return string[]
-	 */
-	private function getManifestScriptTemplates( bool $hasNamespaceImportConfig ): array {
-		$scripts = [];
-		if ( $hasNamespaceImportConfig ) {
-			$scripts[] = 'php /app/bluespice/w/extensions/BlueSpiceNamespaceManager/maintenance/'
-				. 'ImportNamespaces.php --json ./result/<instance_id>/namespace_import_config.json';
-		}
-
-		$scripts[] = './result/<instance_id>/wikiimport.sh --sfr=<instance_id> --add-default';
-		$scripts[] = 'php /app/bluespice/w/maintenance/rebuildall.php --sfr=<instance_id>';
-
-		return $scripts;
 	}
 
 	/**
