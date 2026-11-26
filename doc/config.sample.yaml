@@ -19,3 +19,5 @@ config:
     csv-delimiter: ","
     add-userinfo: false
     source-timezone: ""
+    # file name relative to the config file
+    hook-handler: hooks.php
