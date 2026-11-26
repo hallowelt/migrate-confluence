@@ -2,6 +2,7 @@
 <mediawiki>
   <page>
     <title>CON:Create_Project_Page</title>
+    <pagehierarchy version="1" order="0"/>
     <revision>
       <timestamp>20200302100000</timestamp>
       <model>wikitext</model>
@@ -17,6 +18,7 @@ __NOTOC__
   </page>
   <page>
     <title>CON:Cross_Space_Links_Page</title>
+    <pagehierarchy version="1" order="1"/>
     <revision>
       <timestamp>20200101000000</timestamp>
       <model>wikitext</model>
@@ -30,6 +32,7 @@ __NOTOC__
   </page>
   <page>
     <title>CON:Labels</title>
+    <pagehierarchy version="1" order="2"/>
     <revision>
       <timestamp>20200101000000</timestamp>
       <model>wikitext</model>
@@ -45,6 +48,7 @@ __NOTOC__
   </page>
   <page>
     <title>CON:Links_Test_Page</title>
+    <pagehierarchy version="1" order="3"/>
     <revision>
       <timestamp>20200101000000</timestamp>
       <model>wikitext</model>
@@ -78,6 +82,7 @@ __NOTOC__
   </page>
   <page>
     <title>CON:Test_Page</title>
+    <pagehierarchy version="1" order="4"/>
     <revision>
       <timestamp>20200101000000</timestamp>
       <model>wikitext</model>

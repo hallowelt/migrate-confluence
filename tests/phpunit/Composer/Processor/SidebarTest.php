@@ -29,11 +29,11 @@ class SidebarTest extends TestCase {
 
 	private function makeSidebar(
 		DBComposerDataLookup $dataLookup,
-		bool $createSidebar = true,
+		string $method = 'enhanced-sidebar',
 		array $currentSpaces = []
 	): Sidebar {
 		$config = $this->createMock( MigrationConfig::class );
-		$config->method( 'getCreateSidebar' )->willReturn( $createSidebar );
+		$config->method( 'getHierarchyMethod' )->willReturn( $method );
 		return new Sidebar( $dataLookup, $config, $this->tmpDir, $currentSpaces );
 	}
 
@@ -52,7 +52,7 @@ class SidebarTest extends TestCase {
 	}
 
 	private function executeSidebar( DBComposerDataLookup $dataLookup, array $spaces ): void {
-		$sidebar = $this->makeSidebar( $dataLookup, true, $spaces );
+		$sidebar = $this->makeSidebar( $dataLookup, 'enhanced-sidebar', $spaces );
 		$sidebar->setSubDir( $this->testNamespace );
 		$sidebar->execute();
 	}
@@ -83,13 +83,13 @@ class SidebarTest extends TestCase {
 	}
 
 	/**
-	 * create-sidebar: false
+	 * hierarchy-method other than enhanced-sidebar
 	 */
-	public function testCreateSidebarFalseWritesNoFile(): void {
+	public function testOtherHierarchyMethodWritesNoFile(): void {
 		$dataLookup = $this->createMock( DBComposerDataLookup::class );
 		$dataLookup->expects( $this->never() )->method( 'getPagesForSidebar' );
 
-		$sidebar = $this->makeSidebar( $dataLookup, false );
+		$sidebar = $this->makeSidebar( $dataLookup, 'page-hierarchies' );
 		$sidebar->setSubDir( $this->testNamespace );
 		$sidebar->execute();
 

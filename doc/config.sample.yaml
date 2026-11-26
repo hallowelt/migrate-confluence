@@ -13,7 +13,8 @@ config:
     composer-skip-titles: []
     #     - ABC:DEF/GHI
     ns-talk-prefix: Talk
-    create-sidebar: true
+    # Allowed values: page-hierarchies | enhanced-sidebar | none
+    hierarchy-method: page-hierarchies
     profile: bluespice-galaxy
     # Allowed values: bluespice-galaxy | mediawiki
     csv-delimiter: ","
