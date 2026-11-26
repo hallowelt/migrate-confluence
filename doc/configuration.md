@@ -74,6 +74,15 @@ Enable this if the target wiki uses the [`ExtendedNamespaceFileRepo`
 extension](https://www.mediawiki.org/wiki/Extension:NSFileRepo) that expects
 namespaced file titles.
 
+### `hook-handler`
+
+* Type: string
+* Default: `null`
+
+References a PHP file relative to the config file with instructions to load
+custom code for a migration. See [Fine-Tuning the Output with
+Hooks](./how_to_use_hooks.md) for details.
+
 ### `include-history`
 
 * Type: bool
